@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = IotSecuritySolutionId{}
 
-func TestIotSecuritySolutionIDFormatter(t *testing.T) {
+func TestParseIotSecuritySolutionIDFormatter(t *testing.T) {
 	actual := NewIotSecuritySolutionID("12345678-1234-9876-4563-123456789012", "resGroup1", "solution1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Security/iotSecuritySolutions/solution1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestIotSecuritySolutionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestIotSecuritySolutionID(t *testing.T) {
+func TestParseIotSecuritySolutionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -113,7 +113,7 @@ func TestIotSecuritySolutionID(t *testing.T) {
 	}
 }
 
-func TestIotSecuritySolutionIDInsensitively(t *testing.T) {
+func TestParseIotSecuritySolutionIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

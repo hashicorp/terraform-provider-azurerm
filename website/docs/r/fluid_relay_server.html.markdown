@@ -75,9 +75,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_key` - The secondary key for this server.
 
-* `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints. This will be deprecated in future version of fluid relay server and will always be empty, [more details](https://learn.microsoft.com/en-us/azure/azure-fluid-relay/concepts/version-compatibility).
+* `orderer_endpoints` - An array of the Fluid Relay Orderer endpoints. This will be deprecated in future version of fluid relay server and will always be empty, [more details](https://learn.microsoft.com/azure/azure-fluid-relay/concepts/version-compatibility).
 
-* `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server. This will be deprecated in future version of fluid relay server and will always be empty, [more details](https://learn.microsoft.com/en-us/azure/azure-fluid-relay/concepts/version-compatibility).
+* `storage_endpoints` - An array of storage endpoints for this Fluid Relay Server. This will be deprecated in future version of fluid relay server and will always be empty, [more details](https://learn.microsoft.com/azure/azure-fluid-relay/concepts/version-compatibility).
 
 * `service_endpoints` - An array of service endpoints for this Fluid Relay Server.
 
@@ -91,7 +91,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Fluid Relay Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Fluid Relay Server.

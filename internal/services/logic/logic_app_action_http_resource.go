@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -124,7 +124,7 @@ func resourceLogicAppActionHTTP() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
 	if err != nil {
 		return err
@@ -132,19 +132,19 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	id := parse.NewActionID(workflowId.SubscriptionId, workflowId.ResourceGroupName, workflowId.WorkflowName, d.Get("name").(string))
 
-	headersRaw := d.Get("headers").(map[string]interface{})
+	headersRaw := d.Get("headers").(map[string]any)
 	headers, err := expandLogicAppActionHttpHeaders(headersRaw)
 	if err != nil {
 		return err
 	}
 
-	queriesRaw := d.Get("queries").(map[string]interface{})
+	queriesRaw := d.Get("queries").(map[string]any)
 	queries, err := expandLogicAppActionHttpQueries(queriesRaw)
 	if err != nil {
 		return err
 	}
 
-	inputs := map[string]interface{}{
+	inputs := map[string]any{
 		"method":  d.Get("method").(string),
 		"uri":     d.Get("uri").(string),
 		"headers": headers,
@@ -155,7 +155,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	// if starts with dynamic function (starts with "@") then store it as string
 	if bodyRaw, ok := d.GetOk("body"); ok {
 		if json.Valid([]byte(bodyRaw.(string))) {
-			var body map[string]interface{}
+			var body map[string]any
 			if err := json.Unmarshal([]byte(bodyRaw.(string)), &body); err != nil {
 				return fmt.Errorf("unmarshalling JSON for Action %q: %+v", id.Name, err)
 			}
@@ -165,7 +165,7 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	action := map[string]interface{}{
+	action := map[string]any{
 		"inputs": inputs,
 		"type":   "http",
 	}
@@ -174,15 +174,14 @@ func resourceLogicAppActionHTTPCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		action["runAfter"] = expandLogicAppActionRunAfter(v.(*pluginsdk.Set).List())
 	}
 
-	err = resourceLogicAppActionUpdate(d, meta, *workflowId, id, action, "azurerm_logic_app_action_http")
-	if err != nil {
+	if err = resourceLogicAppActionUpdate(d, meta, *workflowId, id, action, "azurerm_logic_app_action_http"); err != nil {
 		return err
 	}
 
 	return resourceLogicAppActionHTTPRead(d, meta)
 }
 
-func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := parse.ActionID(d.Id())
 	if err != nil {
 		return err
@@ -212,54 +211,50 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	v := action["inputs"]
-	if v == nil {
-		return fmt.Errorf("`inputs` was nil for HTTP Action %s", id)
-	}
+	if v != nil {
+		inputs, ok := v.(map[string]any)
+		if !ok {
+			return fmt.Errorf("parsing `inputs` for HTTP Action %s", id)
+		}
 
-	inputs, ok := v.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("parsing `inputs` for HTTP Action %s", id)
-	}
+		if uri := inputs["uri"]; uri != nil {
+			d.Set("uri", uri.(string))
+		}
 
-	if uri := inputs["uri"]; uri != nil {
-		d.Set("uri", uri.(string))
-	}
+		if method := inputs["method"]; method != nil {
+			d.Set("method", method.(string))
+		}
 
-	if method := inputs["method"]; method != nil {
-		d.Set("method", method.(string))
-	}
-
-	if body := inputs["body"]; body != nil {
-		switch body.(type) {
-		case map[string]interface{}:
-			// if user edit workflow in portal, the body becomes json object
-			v, err := json.Marshal(body)
-			if err != nil {
-				return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
+		if body := inputs["body"]; body != nil {
+			switch body.(type) {
+			case map[string]any:
+				// if user edit workflow in portal, the body becomes json object
+				v, err := json.Marshal(body)
+				if err != nil {
+					return fmt.Errorf("serializing `body` for Action %q: %+v", id.Name, err)
+				}
+				d.Set("body", string(v))
+			case string:
+				d.Set("body", body)
 			}
-			d.Set("body", string(v))
-		case string:
-			d.Set("body", body)
 		}
-	}
 
-	if headers := inputs["headers"]; headers != nil {
-		hv := headers.(map[string]interface{})
-		if err := d.Set("headers", hv); err != nil {
-			return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", id.Name, err)
+		if headers := inputs["headers"]; headers != nil {
+			if err := d.Set("headers", headers.(map[string]any)); err != nil {
+				return fmt.Errorf("setting `headers` for HTTP Action %q: %+v", id.Name, err)
+			}
 		}
-	}
 
-	if queries := inputs["queries"]; queries != nil {
-		qv := queries.(map[string]interface{})
-		if err := d.Set("queries", qv); err != nil {
-			return fmt.Errorf("setting `queries` for HTTP Action %q: %+v", id.Name, err)
+		if queries := inputs["queries"]; queries != nil {
+			if err := d.Set("queries", queries.(map[string]any)); err != nil {
+				return fmt.Errorf("setting `queries` for HTTP Action %q: %+v", id.Name, err)
+			}
 		}
 	}
 
 	v = action["runAfter"]
 	if v != nil {
-		runAfter, ok := v.(map[string]interface{})
+		runAfter, ok := v.(map[string]any)
 		if !ok {
 			return fmt.Errorf("parsing `runAfter` for HTTP Action %s", id)
 		}
@@ -271,7 +266,7 @@ func resourceLogicAppActionHTTPRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := parse.ActionID(d.Id())
 	if err != nil {
 		return err
@@ -279,15 +274,14 @@ func resourceLogicAppActionHTTPDelete(d *pluginsdk.ResourceData, meta interface{
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroup, id.WorkflowName)
 
-	err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name)
-	if err != nil {
+	if err = resourceLogicAppActionRemove(d, meta, workflowId, id.Name); err != nil {
 		return fmt.Errorf("removing Action %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[string]string, error) {
+func expandLogicAppActionHttpHeaders(headersRaw map[string]any) (*map[string]string, error) {
 	headers := make(map[string]string)
 
 	for i, v := range headersRaw {
@@ -302,7 +296,7 @@ func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[st
 	return &headers, nil
 }
 
-func expandLogicAppActionHttpQueries(queriesRaw map[string]interface{}) (*map[string]string, error) {
+func expandLogicAppActionHttpQueries(queriesRaw map[string]any) (*map[string]string, error) {
 	// per the issue https://github.com/hashicorp/terraform-provider-azurerm/issues/28429
 	// empty map and nil are different on the service side.
 	if len(queriesRaw) == 0 {

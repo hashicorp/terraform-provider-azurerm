@@ -99,7 +99,7 @@ The following arguments are supported:
 * `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new resource to be created.
 
 
-* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. See the [official conditions documentation](https://learn.microsoft.com/en-us/azure/role-based-access-control/conditions-overview#what-are-role-assignment-conditions) for details. Changing this forces a new resource to be created.
+* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. See the [official conditions documentation](https://learn.microsoft.com/azure/role-based-access-control/conditions-overview#what-are-role-assignment-conditions) for details. Changing this forces a new resource to be created.
 
 * `condition_version` - (Optional) The version of the condition. Supported values include `2.0`. Changing this forces a new resource to be created.
 
@@ -142,7 +142,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the PIM Eligible Role Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PIM Eligible Role Assignment.
