@@ -8,8 +8,6 @@ description: |-
 
 # List resource: azurerm_resource_group
 
-~> **Note:** The `azurerm_resource_group` List Resource is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Lists Resource Group resources.
 
 ## Example Usage
@@ -23,7 +21,7 @@ list "azurerm_resource_group" "example" {
 }
 ```
 
-### List all Resource Groups in the subscription matching a filter 
+### List all Resource Groups in the subscription matching a filter
 
 ```hcl
 list "azurerm_resource_group" "example" {

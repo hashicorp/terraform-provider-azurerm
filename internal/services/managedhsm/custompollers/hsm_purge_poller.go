@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 var _ pollers.PollerType = &hsmDownloadPoller{}
 
-func NewHSMPurgePoller(client *managedhsms.ManagedHsmsClient, id managedhsms.DeletedManagedHSMId) pollers.PollerType {
+func NewHSMPurgePoller(client *deletedmanagedhsms.DeletedManagedHsmsClient, id deletedmanagedhsms.DeletedManagedHSMId) pollers.PollerType {
 	return &hsmPurgePoller{
 		client:          client,
 		purgeId:         id,
@@ -24,13 +24,13 @@ func NewHSMPurgePoller(client *managedhsms.ManagedHsmsClient, id managedhsms.Del
 }
 
 type hsmPurgePoller struct {
-	client          *managedhsms.ManagedHsmsClient
-	purgeId         managedhsms.DeletedManagedHSMId
+	client          *deletedmanagedhsms.DeletedManagedHsmsClient
+	purgeId         deletedmanagedhsms.DeletedManagedHSMId
 	purgeAgainUntil time.Time
 }
 
 func (p *hsmPurgePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	deletedResp, err := p.client.GetDeleted(ctx, p.purgeId)
+	deletedResp, err := p.client.ManagedHsmsGetDeleted(ctx, p.purgeId)
 
 	res := &pollers.PollResult{
 		PollInterval: time.Second * 20,
@@ -47,7 +47,7 @@ func (p *hsmPurgePoller) Poll(ctx context.Context) (*pollers.PollResult, error) 
 
 	if time.Now().After(p.purgeAgainUntil) {
 		p.purgeAgainUntil = time.Now().Add(time.Minute)
-		purgeResp, _ := p.client.PurgeDeleted(ctx, p.purgeId)
+		purgeResp, _ := p.client.ManagedHsmsPurgeDeleted(ctx, p.purgeId)
 		if response.WasNotFound(purgeResp.HttpResponse) {
 			res.Status = pollers.PollingStatusSucceeded
 		}

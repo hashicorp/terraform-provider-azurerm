@@ -12,26 +12,26 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedclusters.ManagedCluster, resourceGroup, name string) error {
 	if v, exists := d.GetOk("network_profile"); exists {
-		rawProfiles := v.([]interface{})
+		rawProfiles := v.([]any)
 
 		if len(rawProfiles) != 0 {
 			// then ensure the conditionally-required fields are set
-			profile := rawProfiles[0].(map[string]interface{})
+			profile := rawProfiles[0].(map[string]any)
 
 			if networkPlugin := profile["network_plugin"].(string); networkPlugin != "" {
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
 				podCidr := profile["pod_cidr"].(string)
-				podCidrs := profile["pod_cidrs"].([]interface{})
-				serviceCidrs := profile["service_cidrs"].([]interface{})
+				podCidrs := profile["pod_cidrs"].([]any)
+				serviceCidrs := profile["service_cidrs"].([]any)
 				networkPluginMode := profile["network_plugin_mode"].(string)
 				isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
 
@@ -45,7 +45,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 					return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
 				}
 
-				ipVersions := profile["ip_versions"].([]interface{})
+				ipVersions := profile["ip_versions"].([]any)
 				if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
 					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
 				}
@@ -68,7 +68,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 		return nil
 	}
 
-	servicePrincipalsRaw, ok := v.([]interface{})
+	servicePrincipalsRaw, ok := v.([]any)
 	if !ok || len(servicePrincipalsRaw) == 0 {
 		// if it's an existing cluster, we need to check if there's currently a SP used on this cluster that isn't
 		// defined locally, if so, we need to error out
@@ -98,7 +98,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 		if !ok {
 			return nil
 		}
-		if vs := identityRaw.([]interface{}); len(vs) == 0 {
+		if vs := identityRaw.([]any); len(vs) == 0 {
 			return nil
 		}
 

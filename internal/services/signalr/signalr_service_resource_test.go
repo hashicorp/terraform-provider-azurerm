@@ -19,6 +19,8 @@ import (
 
 type SignalRServiceResource struct{}
 
+type SignalrServiceResource = SignalRServiceResource
+
 func TestAccSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
