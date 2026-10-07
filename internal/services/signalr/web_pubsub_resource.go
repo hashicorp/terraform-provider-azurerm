@@ -28,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub -service-package-name signalr -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 const webPubSubResourceType = "azurerm_web_pubsub"
 
@@ -203,7 +203,7 @@ func resourceWebPubSub() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -214,7 +214,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	liveTraceConfig := d.Get("live_trace").([]interface{})
+	liveTraceConfig := d.Get("live_trace").([]any)
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -235,7 +235,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		publicNetworkAcc = "Disabled"
 	}
 
-	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -256,7 +256,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Name:     d.Get("sku").(string),
 			Capacity: pointer.To(int64(d.Get("capacity").(int))),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -276,7 +276,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceWebPubSubRead(d, meta)
 }
 
-func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -304,7 +304,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceWebPubSubFlatten(d, id, resp.Model, keys.Model)
 }
 
-func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,13 +324,13 @@ func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguration {
+func expandLiveTraceConfig(input []any) *webpubsub.LiveTraceConfiguration {
 	resourceCategories := make([]webpubsub.LiveTraceCategory, 0)
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	enabled := "false"
 	if v["enabled"].(bool) {
@@ -370,8 +370,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 	}
 }
 
-func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
@@ -389,15 +389,9 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 
 	if input.Categories != nil {
 		for _, item := range *input.Categories {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
+			name := pointer.From(item.Name)
 
-			var cateEnabled string
-			if item.Enabled != nil {
-				cateEnabled = *item.Enabled
-			}
+			cateEnabled := pointer.From(item.Enabled)
 
 			switch name {
 			case "MessagingLogs":
@@ -411,7 +405,7 @@ func flattenLiveTraceConfig(input *webpubsub.LiveTraceConfiguration) []interface
 			}
 		}
 	}
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"enabled":                   enabled,
 		"messaging_logs_enabled":    messagingLogEnabled,
 		"connectivity_logs_enabled": connectivityLogEnabled,

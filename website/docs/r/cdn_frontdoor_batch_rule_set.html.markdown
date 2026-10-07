@@ -193,7 +193,7 @@ An `actions` block supports the following:
 
 * `url_rewrite` - (Optional) A `url_rewrite` block as defined below.
 
-~> **Note:** `url_rewrite` conflicts with `url_redirect` and vice-versa.
+~> **Note:** `url_rewrite` conflicts with `url_redirect`
 
 ---
 
@@ -365,7 +365,7 @@ A `host_name` block supports the following:
 
 ---
 
-A `http_version` block supports the following:
+An `http_version` block supports the following:
 
 * `operator` - (Required) A condition operator. Possible values are `Equal` and `NotEqual`.
 
@@ -441,8 +441,6 @@ A `request_cookies` block supports the following:
 
 A `request_file_extension` block supports the following:
 
--> **Note:** `request_file_extension` identifies requests that include the specified file extension. Do not include a leading period.
-
 * `operator` - (Required) A condition operator. Possible values are `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual`, `RegEx`, `NotAny`, `NotEqual`, `NotContains`, `NotBeginsWith`, `NotEndsWith`, `NotLessThan`, `NotLessThanOrEqual`, `NotGreaterThan`, `NotGreaterThanOrEqual`, and `NotRegEx`.
 
 * `transforms` - (Optional) A list of condition transforms. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`. A maximum of `4` transforms may be defined.
@@ -493,9 +491,9 @@ A `request_path` block supports the following:
 
 * `transforms` - (Optional) A list of condition transforms. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode`, and `UrlEncode`. A maximum of `4` transforms may be defined.
 
-* `values` - (Optional) One or more values representing the request path to match. Do not include the leading slash (`/`). A maximum of `25` values may be defined. If multiple values are specified, they are evaluated using `OR` logic.
+* `values` - (Optional) One or more values representing the request path to match. If multiple values are specified, they are evaluated using `OR` logic.
 
-~> **Note:** `values` must not be set when `operator` is set to `Any` or `NotAny`, and is required for all other operators.
+~> **Note:** `values` must not be set when `operator` is set to `Any` or `NotAny`, and is required for all other operators. A maximum of `25` values may be defined. Do not include a leading slash (`/`) unless matching the root path, which is represented by `/`.
 
 ---
 
@@ -538,8 +536,6 @@ A `socket_address` block supports the following:
 ---
 
 A `ssl_protocol` block supports the following:
-
--> **Note:** `ssl_protocol` identifies requests based on the SSL protocol of an established TLS connection.
 
 * `operator` - (Required) A condition operator. Possible values are `Equal` and `NotEqual`.
 
