@@ -139,7 +139,7 @@ func resourceLogicAppIntegrationAccountAgreement() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountAgreementClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -170,9 +170,9 @@ func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.Resour
 	parameters := integrationaccountagreements.IntegrationAccountAgreement{
 		Properties: integrationaccountagreements.IntegrationAccountAgreementProperties{
 			AgreementType: integrationaccountagreements.AgreementType(d.Get("agreement_type").(string)),
-			GuestIdentity: expandIntegrationAccountAgreementBusinessIdentity(d.Get("guest_identity").([]interface{})),
+			GuestIdentity: expandIntegrationAccountAgreementBusinessIdentity(d.Get("guest_identity").([]any)),
 			GuestPartner:  d.Get("guest_partner_name").(string),
-			HostIdentity:  expandIntegrationAccountAgreementBusinessIdentity(d.Get("host_identity").([]interface{})),
+			HostIdentity:  expandIntegrationAccountAgreementBusinessIdentity(d.Get("host_identity").([]any)),
 			HostPartner:   d.Get("host_partner_name").(string),
 			Content:       agreementContent,
 		},
@@ -190,7 +190,7 @@ func resourceLogicAppIntegrationAccountAgreementCreateUpdate(d *pluginsdk.Resour
 	return resourceLogicAppIntegrationAccountAgreementRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountAgreementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,7 +243,7 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountAgreementDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountAgreementDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountAgreementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -260,11 +260,11 @@ func resourceLogicAppIntegrationAccountAgreementDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func expandIntegrationAccountAgreementBusinessIdentity(input []interface{}) integrationaccountagreements.BusinessIdentity {
+func expandIntegrationAccountAgreementBusinessIdentity(input []any) integrationaccountagreements.BusinessIdentity {
 	if len(input) == 0 {
 		return integrationaccountagreements.BusinessIdentity{}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return integrationaccountagreements.BusinessIdentity{
 		Qualifier: v["qualifier"].(string),
@@ -272,9 +272,9 @@ func expandIntegrationAccountAgreementBusinessIdentity(input []interface{}) inte
 	}
 }
 
-func flattenIntegrationAccountAgreementBusinessIdentity(input integrationaccountagreements.BusinessIdentity) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenIntegrationAccountAgreementBusinessIdentity(input integrationaccountagreements.BusinessIdentity) []any {
+	return []any{
+		map[string]any{
 			"qualifier": input.Qualifier,
 			"value":     input.Value,
 		},

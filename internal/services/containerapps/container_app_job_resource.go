@@ -43,7 +43,7 @@ type ContainerAppJobModel struct {
 	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
 	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
 	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags                      map[string]interface{}                     `tfschema:"tags"`
+	Tags                      map[string]any                             `tfschema:"tags"`
 
 	OutboundIPAddresses []string `tfschema:"outbound_ip_addresses"`
 	EventStreamEndpoint string   `tfschema:"event_stream_endpoint"`
@@ -51,7 +51,7 @@ type ContainerAppJobModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppJobResource{}
 
-func (r ContainerAppJobResource) ModelObject() interface{} {
+func (r ContainerAppJobResource) ModelObject() any {
 	return &ContainerAppJobModel{}
 }
 
@@ -367,6 +367,8 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 						}
 					}
 					state.WorkloadProfileName = pointer.From(props.WorkloadProfileName)
+					state.EventStreamEndpoint = pointer.From(props.EventStreamEndpoint)
+					state.OutboundIPAddresses = pointer.From(props.OutboundIPAddresses)
 				}
 			}
 

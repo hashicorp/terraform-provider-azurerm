@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
@@ -46,7 +45,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -61,14 +60,11 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(rbacs.RoleDefinitionTypeCustomRole),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(rbacs.RoleDefinitionTypeBuiltInRole),
-					string(rbacs.RoleDefinitionTypeCustomRole),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(rbacs.RoleDefinitionTypeCustomRole),
+				ValidateFunc: validation.StringInSlice(rbacs.PossibleValuesForRoleDefinitionType(), false),
 			},
 
 			"assignable_scopes": {
@@ -106,7 +102,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -140,7 +136,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	parameters := rbacs.SqlRoleDefinitionCreateUpdateParameters{
 		Properties: &rbacs.SqlRoleDefinitionResource{
 			RoleName:         pointer.To(d.Get("name").(string)),
-			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
+			AssignableScopes: pluginsdk.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
 			Type:             pointer.ToEnum[rbacs.RoleDefinitionType](d.Get("type").(string)),
 		},
@@ -155,7 +151,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleDefinitionRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -181,7 +177,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", pluginsdk.FlattenSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 
@@ -194,7 +190,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -226,7 +222,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("assignable_scopes") {
-		parameters.Properties.AssignableScopes = utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
+		parameters.Properties.AssignableScopes = pluginsdk.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("name") {
@@ -244,7 +240,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleDefinitionRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -265,29 +261,29 @@ func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission {
+func expandSqlRoleDefinitionPermissions(input []any) *[]rbacs.Permission {
 	results := make([]rbacs.Permission, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, rbacs.Permission{
-			DataActions: utils.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
+			DataActions: pluginsdk.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
 		})
 	}
 
 	return &results
 }
 
-func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
-			"data_actions": utils.FlattenStringSlice(item.DataActions),
+		results = append(results, map[string]any{
+			"data_actions": pluginsdk.FlattenSlice(item.DataActions),
 		})
 	}
 

@@ -4,10 +4,12 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
@@ -30,9 +32,31 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := rulesets.ParseRuleSetID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+
+			id, _ := rulesets.ParseRuleSetID(d.Id())
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if resp.Model == nil {
+				return nil, fmt.Errorf("retrieving %s: `model` was nil`", id)
+			}
+
+			if resp.Model.Properties == nil {
+				return nil, fmt.Errorf("retrieving %s: `properties` was nil`", id)
+			}
+
+			if pointer.From(resp.Model.Properties.BatchMode) {
+				return nil, fmt.Errorf("%s was provisioned using batch mode and cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead", id)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -47,13 +71,13 @@ func resourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
+				ValidateFunc: profiles.ValidateProfileID,
 			},
 		},
 	}
 }
 
-func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,7 +110,7 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCdnFrontDoorRuleSetRead(d, meta)
 }
 
-func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +136,7 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,8 +146,7 @@ func resourceCdnFrontDoorRuleSetDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive_test
 
 import (
@@ -172,11 +175,11 @@ provider "azurerm" {
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "acctest-uai-%d"
+  name                = "acctest-uai-%[2]d"
 }
 
 resource "azurerm_cognitive_account_project" "test" {
-  name                 = "acctest-%d"
+  name                 = "acctest-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   location             = azurerm_resource_group.test.location
   description          = "Test description"
@@ -192,7 +195,18 @@ resource "azurerm_cognitive_account_project" "test" {
     Purpose     = "AcceptanceTest"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_cognitive_account_project" "test2" {
+  name                 = "acctest-2-%[2]d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  location             = azurerm_resource_group.test.location
+  description          = "Test description Two"
+  display_name         = "Test Display Name Two"
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CognitiveAccountProjectResource) update(data acceptance.TestData) string {
