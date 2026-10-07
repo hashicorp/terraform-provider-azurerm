@@ -229,7 +229,13 @@ func (r NextGenerationFirewallMetricsResource) flatten(metadata sdk.ResourceMeta
 			state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
 		}
 
-		state.ApplicationInsightsID = props.ApplicationInsightsResourceId
+		if props.ApplicationInsightsResourceId != "" {
+			applicationInsightsId, err := componentsapis.ParseComponentIDInsensitively(props.ApplicationInsightsResourceId)
+			if err != nil {
+				return err
+			}
+			state.ApplicationInsightsID = applicationInsightsId.ID()
+		}
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
