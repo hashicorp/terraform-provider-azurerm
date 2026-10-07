@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks
@@ -8,20 +8,30 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type AccessConnectorResource struct{}
 
-var _ sdk.ResourceWithUpdate = AccessConnectorResource{}
+var (
+	_ sdk.ResourceWithUpdate   = AccessConnectorResource{}
+	_ sdk.ResourceWithIdentity = AccessConnectorResource{}
+)
+
+func (r AccessConnectorResource) Identity() resourceids.ResourceId {
+	return &accessconnector.AccessConnectorId{}
+}
 
 type AccessConnectorResourceModel struct {
 	Name          string            `tfschema:"name"`
@@ -43,7 +53,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -53,7 +63,7 @@ func (r AccessConnectorResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AccessConnectorResource) ModelObject() interface{} {
+func (r AccessConnectorResource) ModelObject() any {
 	return &AccessConnectorResourceModel{}
 }
 
@@ -77,16 +87,19 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := accessconnector.NewAccessConnectorID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing Databricks %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -98,11 +111,14 @@ func (r AccessConnectorResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, accessConnector); err != nil {
+			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, accessConnector, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating Databricks %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -131,7 +147,7 @@ func (r AccessConnectorResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("identity") {
 				// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
 				// once SDK Helpers PR #164 has been merged and integrated into the provider...
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -173,7 +189,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 
 			state := AccessConnectorResourceModel{
 				Name:          id.AccessConnectorName,
-				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
+				Location:      location.NormalizeNilable(pointer.To(resp.Model.Location)),
 				ResourceGroup: id.ResourceGroupName,
 			}
 
@@ -192,6 +208,9 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("setting `identity`: %+v", err)
 					}
 				}
+			}
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 			return metadata.Encode(&state)
 		},

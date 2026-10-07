@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -16,13 +16,6 @@ var _ resourceids.Id = ManagementGroupAssignmentId{}
 type ManagementGroupAssignmentId struct {
 	ManagementGroupName  string
 	PolicyAssignmentName string
-}
-
-func NewManagementGroupAssignmentID(managementGroupName, policyAssignmentName string) ManagementGroupAssignmentId {
-	return ManagementGroupAssignmentId{
-		ManagementGroupName:  managementGroupName,
-		PolicyAssignmentName: policyAssignmentName,
-	}
 }
 
 func (id ManagementGroupAssignmentId) String() string {

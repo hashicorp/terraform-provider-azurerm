@@ -32,11 +32,12 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "workspaceexamplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "workspaceexamplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -71,7 +72,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "exampl
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -90,11 +91,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace FQDN Network Outbound Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace FQDN Network Outbound Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace FQDN Network Outbound Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace FQDN Network Outbound Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace FQDN Network Outbound Rule.
 
 ## Import
@@ -104,3 +105,9 @@ Machine Learning Workspace FQDN Network Outbound Rule can be imported using the 
 ```shell
 terraform import azurerm_machine_learning_workspace_network_outbound_rule_fqdn.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/outboundRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

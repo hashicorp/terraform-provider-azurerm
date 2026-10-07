@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto6
@@ -26,6 +26,11 @@ func ImportedResource(ctx context.Context, fw *fwserver.ImportedResource) (*tfpr
 	state, diags := State(ctx, &fw.State)
 
 	proto6.State = state
+
+	identity, identityDiags := ResourceIdentity(ctx, fw.Identity)
+
+	diags = append(diags, identityDiags...)
+	proto6.Identity = identity
 
 	newPrivate, privateDiags := fw.Private.Bytes(ctx)
 

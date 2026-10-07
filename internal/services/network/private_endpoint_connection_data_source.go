@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -83,7 +83,7 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	nicsClient := meta.(*clients.Client).Network.NetworkInterfaces
@@ -132,14 +132,14 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func flattenNetworkInterface(networkInterfaceId string) interface{} {
+func flattenNetworkInterface(networkInterfaceId string) any {
 	id, err := commonids.ParseNetworkInterfaceID(networkInterfaceId)
 	if err != nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"id":   id.ID(),
 			"name": id.NetworkInterfaceName,
 		},
@@ -176,15 +176,15 @@ func getPrivateIpAddress(ctx context.Context, client *networkinterfaces.NetworkI
 	return privateIpAddress
 }
 
-func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
-	results := make([]interface{}, 0)
+func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []any {
+	results := make([]any, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
 	}
 
 	if serviceConnections != nil {
 		for _, item := range *serviceConnections {
-			result := make(map[string]interface{})
+			result := make(map[string]any)
 			result["private_ip_address"] = privateIpAddress
 
 			if v := item.Name; v != nil {
@@ -207,7 +207,7 @@ func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]pri
 
 	if manualServiceConnections != nil {
 		for _, item := range *manualServiceConnections {
-			result := make(map[string]interface{})
+			result := make(map[string]any)
 			result["private_ip_address"] = privateIpAddress
 
 			if v := item.Name; v != nil {

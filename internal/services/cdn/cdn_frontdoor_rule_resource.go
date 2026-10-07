@@ -1,310 +1,253 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	cdnFrontDoorRuleActions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
-	cdnFrontDoorRuleConditions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceCdnFrontDoorRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceCdnFrontDoorRuleCreate,
-		Read:   resourceCdnFrontDoorRuleRead,
-		Update: resourceCdnFrontDoorRuleUpdate,
-		Delete: resourceCdnFrontDoorRuleDelete,
+var (
+	_ sdk.ResourceWithUpdate         = CdnFrontDoorRuleResource{}
+	_ sdk.ResourceWithCustomImporter = CdnFrontDoorRuleResource{}
+)
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+type CdnFrontDoorRuleResource struct{}
+
+type CdnFrontDoorRuleResourceModel struct {
+	Name                    string                            `tfschema:"name"`
+	CdnFrontDoorRuleSetID   string                            `tfschema:"cdn_frontdoor_rule_set_id"`
+	BehaviourOnMatch        string                            `tfschema:"behaviour_on_match"`
+	Order                   int64                             `tfschema:"order"`
+	Actions                 []CdnFrontDoorRuleActionsModel    `tfschema:"actions"`
+	Conditions              []CdnFrontDoorRuleConditionsModel `tfschema:"conditions"`
+	CdnFrontDoorRuleSetName string                            `tfschema:"cdn_frontdoor_rule_set_name"`
+}
+
+func (c CdnFrontDoorRuleResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, rmd sdk.ResourceMetaData) error {
+		client := rmd.Client.Cdn.FrontDoorRuleSetsClient
+
+		id, err := rules.ParseRuleID(rmd.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+		ruleSetID := rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName)
+
+		resp, err := client.Get(ctx, ruleSetID)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", ruleSetID, err)
+		}
+
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: `model` was nil`", id)
+		}
+
+		if resp.Model.Properties == nil {
+			return fmt.Errorf("retrieving %s: `properties` was nil`", id)
+		}
+
+		if pointer.From(resp.Model.Properties.BatchMode) {
+			return fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetID)
+		}
+
+		return nil
+	}
+}
+
+func (c CdnFrontDoorRuleResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validateCdnFrontDoorRuleName,
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorRuleID(id)
-			return err
-		}),
+		"cdn_frontdoor_rule_set_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: rules.ValidateRuleSetID,
+		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.CdnFrontDoorRuleName,
-			},
+		"behaviour_on_match": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(rules.MatchProcessingBehaviorContinue),
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForMatchProcessingBehavior(), false),
+		},
 
-			"cdn_frontdoor_rule_set_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorRuleSetID,
-			},
+		"order": {
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(0),
+		},
 
-			"behavior_on_match": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(cdn.MatchProcessingBehaviorContinue),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.MatchProcessingBehaviorContinue),
-					string(cdn.MatchProcessingBehaviorStop),
-				}, false),
-			},
+		"actions": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"url_redirect": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"redirect_type": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRedirectType(), false),
+								},
 
-			"order": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
+								"redirect_protocol": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(rules.DestinationProtocolMatchRequest),
+									ValidateFunc: validation.StringInSlice(rules.PossibleValuesForDestinationProtocol(), false),
+								},
 
-			"actions": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
+								// Omit to preserve the incoming path. Issue #18249
+								"destination_path": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringStartsWithOneOf("/"),
+								},
 
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"url_redirect_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
+								// Omit to preserve the incoming host. Issue #18249
+								"destination_host_name": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringLenBetween(1, 2048),
+								},
 
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"redirect_type": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.RedirectTypeMoved),
-											string(cdn.RedirectTypeFound),
-											string(cdn.RedirectTypeTemporaryRedirect),
-											string(cdn.RedirectTypePermanentRedirect),
-										}, false),
-									},
+								// Omit to preserve the incoming query string. Issue #18249 & #19682
+								"query_string": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									// Update validation logic to match RP. Issue #19097
+									ValidateFunc: validateCdnFrontDoorUrlRedirectActionQueryString,
+								},
 
-									"redirect_protocol": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  string(cdn.DestinationProtocolMatchRequest),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.DestinationProtocolMatchRequest),
-											string(cdn.DestinationProtocolHTTP),
-											string(cdn.DestinationProtocolHTTPS),
-										}, false),
-									},
-
-									// NOTE: it is valid for the destination path to be an empty string,
-									// Leave blank to preserve the incoming path. Issue #18249
-									"destination_path": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      "",
-										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionDestinationPath,
-									},
-
-									// NOTE: it is valid for the destination hostname to be an empty string.
-									// Leave blank to preserve the incoming host. Issue #18249
-									"destination_hostname": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringLenBetween(0, 2048),
-									},
-
-									// NOTE: it is valid for the query string to be an empty string.
-									// Leave blank to preserve the incoming query string. Issue #18249 & #19682
-									"query_string": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										Default:  "",
-										// Update validation logic to match RP. Issue #19097
-										ValidateFunc: validate.CdnFrontDoorUrlRedirectActionQueryString,
-									},
-
-									// NOTE: it is valid for the destination fragment to be an empty string.
-									// Leave blank to preserve the incoming fragment. Issue #18249
-									"destination_fragment": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										Default:      "",
-										ValidateFunc: validation.StringLenBetween(0, 1024),
-									},
+								// NOTE: it is valid for the destination fragment to be an empty string.
+								// Leave blank to preserve the incoming fragment. Issue #18249
+								"destination_fragment": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.All(
+										validation.StringLenBetween(1, 1024),
+										validation.StringDoesNotStartWithOneOf("#"),
+									),
 								},
 							},
 						},
+					},
 
-						"url_rewrite_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
+					"url_rewrite": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"source_pattern": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringStartsWithOneOf("/"),
+								},
 
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"source_pattern": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
+								"destination_path": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringStartsWithOneOf("/"),
+								},
 
-									"destination": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"preserve_unmatched_path": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
+								"preserve_unmatched_path_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
 								},
 							},
 						},
+					},
 
-						"request_header_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
+					"modify_request_header": cdnFrontDoorRuleActionModifyHeaderSchema(),
 
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"header_action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.HeaderActionAppend),
-											string(cdn.HeaderActionOverwrite),
-											string(cdn.HeaderActionDelete),
-										}, false),
-									},
+					"modify_response_header": cdnFrontDoorRuleActionModifyHeaderSchema(),
 
-									"header_name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"value": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-
-						"response_header_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"header_action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.HeaderActionAppend),
-											string(cdn.HeaderActionOverwrite),
-											string(cdn.HeaderActionDelete),
-										}, false),
-									},
-
-									"header_name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"value": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-
-						"route_configuration_override_action": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"cdn_frontdoor_origin_group_id": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.FrontDoorOriginGroupID,
-									},
-
-									// Removed Default value for issue #18889
-									"forwarding_protocol": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.ForwardingProtocolHTTPOnly),
-											string(cdn.ForwardingProtocolHTTPSOnly),
-											string(cdn.ForwardingProtocolMatchRequest),
-										}, false),
-									},
-
-									// Removed Default value for issue #19008
-									"query_string_caching_behavior": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString),
-											string(cdn.RuleQueryStringCachingBehaviorUseQueryString),
-											string(cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings),
-											string(cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings),
-										}, false),
-									},
-
-									// NOTE: CSV implemented as a list, code already written for the expanded and flatten to CSV
-									// not valid when IncludeAll or ExcludeAll behavior is defined
-									"query_string_parameters": {
-										Type:     pluginsdk.TypeList,
-										Optional: true,
-										MaxItems: 100,
-
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
+					"route_configuration_override": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"origin_group": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"cdn_frontdoor_origin_group_id": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: afdorigingroups.ValidateOriginGroupID,
+											},
+											"forwarding_protocol": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringInSlice(rules.PossibleValuesForForwardingProtocol(), false),
+											},
 										},
 									},
+								},
 
-									"compression_enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-									},
-
-									// Exposed Disabled for issue #19008
-									"cache_behavior": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(cdn.RuleCacheBehaviorHonorOrigin),
-											string(cdn.RuleCacheBehaviorOverrideAlways),
-											string(cdn.RuleCacheBehaviorOverrideIfOriginMissing),
-											string(cdn.RuleIsCompressionEnabledDisabled),
-										}, false),
-									},
-
-									// Made Optional for issue #19008
-									"cache_duration": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.CdnFrontDoorCacheDuration,
+								"caching": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"behaviour": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringInSlice(PossibleValuesForRuleCacheBehavior(), false),
+											},
+											"duration": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validateCdnFrontDoorCacheDuration,
+											},
+											"compression_enabled": {
+												Type:     pluginsdk.TypeBool,
+												Optional: true,
+												Default:  false,
+											},
+											"query_string_behaviour": {
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRuleQueryStringCachingBehavior(), false),
+											},
+											"query_string_parameters": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												MaxItems: 100,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -312,921 +255,605 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 					},
 				},
 			},
+		},
 
-			"conditions": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"remote_address_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorRemoteAddress(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
+		"conditions": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"remote_address": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues([]string{string(rules.RemoteAddressOperatorGeoMatch), string(rules.RemoteAddressOperatorIPMatch)}), false),
 								},
+								"values": cdnFrontDoorRuleValuesRequiredSchema(),
 							},
 						},
+					},
 
-						"request_method_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorRequestMethodMatchValues(),
+					"request_method": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestMethodOperator()), false),
 								},
-							},
-						},
-
-						"query_string_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
-								},
-							},
-						},
-
-						"post_args_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									// In the API this is called selector
-									"post_args_name": {
+								"values": {
+									Type:     pluginsdk.TypeSet,
+									Required: true,
+									MinItems: 1,
+									MaxItems: 7,
+									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										Required:     true,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodMatchValue(), false),
+									},
+								},
+							},
+						},
+					},
+
+					"query_string": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForQueryStringOperator()), false),
+								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
+							},
+						},
+					},
+
+					"post_argument": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": cdnFrontDoorRuleConditionNameSchema(),
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForPostArgsOperator()), false),
+								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
+							},
+						},
+					},
+
+					"request_url": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestUriOperator()), false),
+								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
+							},
+						},
+					},
+
+					"request_header": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": cdnFrontDoorRuleConditionNameSchema(),
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestHeaderOperator()), false),
+								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
+							},
+						},
+					},
+
+					"request_body": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestBodyOperator()), false),
+								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
+							},
+						},
+					},
+
+					"request_scheme": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForRequestSchemeMatchConditionParametersOperator()), false),
+								},
+								"values": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									// This uses a List instead of a String to stay consistent with the other conditions, even though only 1 item can be defined
+									MaxItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchValue(), false),
+									},
+								},
+							},
+						},
+					},
+
+					"request_path": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForURLPathOperator()), false),
+								},
+								"values": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 25,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
 								},
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
 							},
 						},
+					},
 
-						"request_uri_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
+					"request_file_extension": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForURLFileExtensionOperator()), false),
 								},
-							},
-						},
-
-						"request_header_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									// In the API this is called selector
-									// match_values are invalid if operator is 'Any'
-									"header_name": {
+								"values": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									MaxItems: 25,
+									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
 								},
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
 							},
 						},
+					},
 
-						"request_body_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValuesRequired(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
+					"request_filename": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForURLFileNameOperator()), false),
 								},
+								// making optional for issue #23504
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
 							},
 						},
+					},
 
-						"request_scheme_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorProtocolMatchValues(),
+					"http_version": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForHTTPVersionOperator()), false),
 								},
+								"values": cdnFrontDoorRuleHttpVersionValuesSchema(),
 							},
 						},
+					},
 
-						"url_path_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorUrlPathConditionMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
+					"request_cookies": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": cdnFrontDoorRuleConditionNameSchema(),
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForCookiesOperator()), false),
 								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
 							},
 						},
+					},
 
-						"url_file_extension_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValuesRequired(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
+					"device_type": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForIsDeviceOperator()), false),
 								},
-							},
-						},
-
-						"url_filename_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									// making optional for issue #23504
-									"match_values": schemaCdnFrontDoorMatchValues(),
-									"transforms":   schemaCdnFrontDoorRuleTransforms(),
-								},
-							},
-						},
-
-						"http_version_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorHttpVersionMatchValues(),
-								},
-							},
-						},
-
-						"cookies_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									// In the API this is called selector
-									"cookie_name": {
+								"values": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MinItems: 1,
+									// This uses a List instead of a String to stay consistent with the other conditions, even though only 1 item can be defined
+									MaxItems: 1,
+									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(), false),
 									},
-
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
 								},
 							},
 						},
+					},
 
-						"is_device_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorIsDeviceMatchValues(),
+					"socket_address": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues([]string{string(rules.SocketAddrOperatorIPMatch)}), false),
 								},
+								"values": cdnFrontDoorSocketAddressValuesSchema(),
 							},
 						},
+					},
 
-						"socket_address_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorSocketAddress(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
+					"client_port": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForClientPortOperator()), false),
 								},
+								"values": cdnFrontDoorRuleValuesOptionalSchema(),
 							},
 						},
+					},
 
-						"client_port_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
+					"server_port": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForQueryStringOperator()), false),
 								},
+								"values": cdnFrontDoorServerPortValuesSchema(),
 							},
 						},
+					},
 
-						"server_port_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorServerPortMatchValues(),
+					"host_name": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForHostNameOperator()), false),
 								},
+								"values":     cdnFrontDoorRuleValuesOptionalSchema(),
+								"transforms": cdnFrontDoorRuleTransformsSchema(),
 							},
 						},
+					},
 
-						"host_name_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperator(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorMatchValues(),
-									"transforms":       schemaCdnFrontDoorRuleTransforms(),
+					"ssl_protocol": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"operator": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(cdnFrontDoorRuleConditionOperatorPossibleValues(rules.PossibleValuesForSslProtocolOperator()), false),
 								},
-							},
-						},
-
-						"ssl_protocol_condition": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"operator":         schemaCdnFrontDoorOperatorEqualOnly(),
-									"negate_condition": schemaCdnFrontDoorNegateCondition(),
-									"match_values":     schemaCdnFrontDoorSslProtocolMatchValues(),
+								"values": {
+									Type:     pluginsdk.TypeSet,
+									Required: true,
+									MinItems: 1,
+									MaxItems: 3,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice(rules.PossibleValuesForSslProtocol(), false),
+									},
 								},
 							},
 						},
 					},
 				},
 			},
-
-			"cdn_frontdoor_rule_set_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
 
-func resourceCdnFrontDoorRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	ruleSet, err := parse.FrontDoorRuleSetID(d.Get("cdn_frontdoor_rule_set_id").(string))
-	if err != nil {
-		return err
-	}
-
-	id := parse.NewFrontDoorRuleID(ruleSet.SubscriptionId, ruleSet.ResourceGroup, ruleSet.ProfileName, ruleSet.RuleSetName, d.Get("name").(string))
-
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule", id.ID())
-	}
-
-	matchProcessingBehaviorValue := cdn.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
-	order := d.Get("order").(int)
-
-	actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding 'actions': %+v", err)
-	}
-
-	conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding 'conditions': %+v", err)
-	}
-
-	props := cdn.Rule{
-		RuleProperties: &cdn.RuleProperties{
-			Actions:                 &actions,
-			Conditions:              &conditions,
-			MatchProcessingBehavior: matchProcessingBehaviorValue,
-			RuleSetName:             &ruleSet.RuleSetName,
-			Order:                   utils.Int32(int32(order)),
+func (c CdnFrontDoorRuleResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"cdn_frontdoor_rule_set_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
-
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName, props)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceCdnFrontDoorRuleRead(d, meta)
 }
 
-func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (c CdnFrontDoorRuleResource) ModelObject() any {
+	return &CdnFrontDoorRuleResourceModel{}
+}
 
-	id, err := parse.FrontDoorRuleID(d.Id())
-	if err != nil {
-		return err
-	}
+func (c CdnFrontDoorRuleResource) ResourceType() string {
+	return "azurerm_cdn_frontdoor_rule"
+}
 
-	ruleSet := parse.NewFrontDoorRuleSetID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.RuleSetName)
+func (c CdnFrontDoorRuleResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 4 * time.Hour,
+		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
+			client := rmd.Client.Cdn.FrontDoorRulesClient
+			ruleSetsClient := rmd.Client.Cdn.FrontDoorRuleSetsClient
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
+			config := CdnFrontDoorRuleResourceModel{}
+			if err := rmd.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %w", err)
+			}
+
+			ruleSetId, err := rulesets.ParseRuleSetID(config.CdnFrontDoorRuleSetID)
+			if err != nil {
+				return err
+			}
+
+			id := rules.NewRuleID(ruleSetId.SubscriptionId, ruleSetId.ResourceGroupName, ruleSetId.ProfileName, ruleSetId.RuleSetName, config.Name)
+
+			ruleSet, err := ruleSetsClient.Get(ctx, *ruleSetId)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", ruleSetId, err)
+			}
+
+			if ruleSet.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", ruleSetId)
+			}
+
+			if ruleSet.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", ruleSetId)
+			}
+
+			if pointer.From(ruleSet.Model.Properties.BatchMode) {
+				return fmt.Errorf("the parent ruleset (%s) was provisioned using batch mode, and individual rules for this cannot be managed by this resource, use `azurerm_cdn_frontdoor_batch_rule_set` instead, or create a non-batch Rule Set with `azurerm_cdn_frontdoor_rule_set`", ruleSetId)
+			}
+
+			if !rmd.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				result, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(result.HttpResponse) {
+						return fmt.Errorf("checking for existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(result.HttpResponse) {
+					return rmd.ResourceRequiresImport("azurerm_cdn_frontdoor_rule", id)
+				}
+			}
+
+			actions, err := expandCdnFrontDoorRuleActions(config.Actions)
+			if err != nil {
+				return fmt.Errorf("expanding `actions`: %+v", err)
+			}
+
+			conditions, err := expandCdnFrontDoorRuleConditions(config.Conditions)
+			if err != nil {
+				return fmt.Errorf("expanding `conditions`: %+v", err)
+			}
+
+			props := rules.Rule{
+				Properties: &rules.RuleProperties{
+					Actions:                 &actions,
+					Conditions:              &conditions,
+					MatchProcessingBehavior: pointer.ToEnum[rules.MatchProcessingBehavior](config.BehaviourOnMatch),
+					RuleSetName:             &ruleSetId.RuleSetName,
+					Order:                   pointer.To(config.Order),
+				},
+			}
+
+			if err := client.CreateCallbackThenPoll(ctx, id, props, rmd.SetIDCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+			rmd.SetID(id)
+
 			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	d.Set("name", id.RuleName)
-	d.Set("cdn_frontdoor_rule_set_id", ruleSet.ID())
-
-	if props := resp.RuleProperties; props != nil {
-		d.Set("behavior_on_match", props.MatchProcessingBehavior)
-		d.Set("order", props.Order)
-
-		// BUG: RuleSetName is not being returned by the API
-		// Tracking issue opened: https://github.com/Azure/azure-rest-api-specs/issues/20560
-		d.Set("cdn_frontdoor_rule_set_name", ruleSet.RuleSetName)
-
-		actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
-		if err != nil {
-			return fmt.Errorf("setting 'actions': %+v", err)
-		}
-		d.Set("actions", actions)
-
-		conditions, err := flattenFrontdoorDeliveryRuleConditions(props.Conditions)
-		if err != nil {
-			return fmt.Errorf("setting 'conditions': %+v", err)
-		}
-		d.Set("conditions", conditions)
-	}
-
-	return nil
-}
-
-func resourceCdnFrontDoorRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.FrontDoorRuleID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	props := cdn.RuleUpdateParameters{
-		RuleUpdatePropertiesParameters: &cdn.RuleUpdatePropertiesParameters{},
-	}
-
-	if d.HasChange("behavior_on_match") {
-		matchProcessingBehaviorValue := cdn.MatchProcessingBehavior(d.Get("behavior_on_match").(string))
-		props.RuleUpdatePropertiesParameters.MatchProcessingBehavior = matchProcessingBehaviorValue
-	}
-
-	if d.HasChange("order") {
-		order := d.Get("order").(int)
-		props.RuleUpdatePropertiesParameters.Order = utils.Int32(int32(order))
-	}
-
-	if d.HasChange("actions") {
-		actions, err := expandFrontdoorDeliveryRuleActions(d.Get("actions").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding 'actions': %+v", err)
-		}
-
-		props.RuleUpdatePropertiesParameters.Actions = &actions
-	}
-
-	if d.HasChange("conditions") {
-		conditions, err := expandFrontdoorDeliveryRuleConditions(d.Get("conditions").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding 'conditions': %+v", err)
-		}
-
-		if len(conditions) > 10 {
-			return fmt.Errorf("expanding 'conditions': configuration file exceeds the maximum of 10 match conditions, got %d", len(conditions))
-		}
-
-		props.RuleUpdatePropertiesParameters.Conditions = &conditions
-	}
-
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName, props)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
-	}
-
-	return resourceCdnFrontDoorRuleRead(d, meta)
-}
-
-func resourceCdnFrontDoorRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorRulesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.FrontDoorRuleID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
-	}
-
-	return nil
-}
-
-func expandFrontdoorDeliveryRuleActions(input []interface{}) ([]cdn.BasicDeliveryRuleAction, error) {
-	results := make([]cdn.BasicDeliveryRuleAction, 0)
-	if len(input) == 0 {
-		return results, nil
-	}
-
-	type expandfunc func(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error)
-
-	m := *cdnFrontDoorRuleActions.InitializeCdnFrontDoorActionMappings()
-
-	actions := map[string]expandfunc{
-		m.RouteConfigurationOverride.ConfigName: cdnFrontDoorRuleActions.ExpandCdnFrontDoorRouteConfigurationOverrideAction,
-		m.RequestHeader.ConfigName:              cdnFrontDoorRuleActions.ExpandCdnFrontDoorRequestHeaderAction,
-		m.ResponseHeader.ConfigName:             cdnFrontDoorRuleActions.ExpandCdnFrontDoorResponseHeaderAction,
-		m.URLRedirect.ConfigName:                cdnFrontDoorRuleActions.ExpandCdnFrontDoorUrlRedirectAction,
-		m.URLRewrite.ConfigName:                 cdnFrontDoorRuleActions.ExpandCdnFrontDoorUrlRewriteAction,
-	}
-
-	basicDeliveryRuleAction := input[0].(map[string]interface{})
-
-	for actionName, expand := range actions {
-		raw := basicDeliveryRuleAction[actionName].([]interface{})
-		expanded, err := expand(raw)
-		if err != nil {
-			return nil, err
-		}
-
-		if expanded != nil {
-			if actionName == m.URLRewrite.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_rewrite_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			if actionName == m.URLRedirect.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'url_redirect_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			if actionName == m.RouteConfigurationOverride.ConfigName && len(*expanded) > 1 {
-				return nil, fmt.Errorf("the 'route_configuration_override_action' is only allowed once in the 'actions' match block, got %d", len(*expanded))
-			}
-
-			results = append(results, *expanded...)
-		}
-	}
-
-	if len(results) > 5 {
-		return nil, fmt.Errorf("the 'actions' match block may only contain up to 5 match actions, got %d", len(results))
-	}
-
-	if err := validate.CdnFrontDoorActionsBlock(results); err != nil {
-		return nil, err
-	}
-
-	return results, nil
-}
-
-func expandFrontdoorDeliveryRuleConditions(input []interface{}) ([]cdn.BasicDeliveryRuleCondition, error) {
-	results := make([]cdn.BasicDeliveryRuleCondition, 0)
-	if len(input) == 0 || input[0] == nil {
-		return results, nil
-	}
-
-	type expandfunc func(input []interface{}) (*[]cdn.BasicDeliveryRuleCondition, error)
-	m := cdnFrontDoorRuleConditions.InitializeCdnFrontDoorConditionMappings()
-
-	conditions := map[string]expandfunc{
-		m.ClientPort.ConfigName:       cdnFrontDoorRuleConditions.ExpandCdnFrontDoorClientPortCondition,
-		m.Cookies.ConfigName:          cdnFrontDoorRuleConditions.ExpandCdnFrontDoorCookiesCondition,
-		m.HostName.ConfigName:         cdnFrontDoorRuleConditions.ExpandCdnFrontDoorHostNameCondition,
-		m.HttpVersion.ConfigName:      cdnFrontDoorRuleConditions.ExpandCdnFrontDoorHttpVersionCondition,
-		m.IsDevice.ConfigName:         cdnFrontDoorRuleConditions.ExpandCdnFrontDoorIsDeviceCondition,
-		m.PostArgs.ConfigName:         cdnFrontDoorRuleConditions.ExpandCdnFrontDoorPostArgsCondition,
-		m.QueryString.ConfigName:      cdnFrontDoorRuleConditions.ExpandCdnFrontDoorQueryStringCondition,
-		m.RemoteAddress.ConfigName:    cdnFrontDoorRuleConditions.ExpandCdnFrontDoorRemoteAddressCondition,
-		m.RequestBody.ConfigName:      cdnFrontDoorRuleConditions.ExpandCdnFrontDoorRequestBodyCondition,
-		m.RequestHeader.ConfigName:    cdnFrontDoorRuleConditions.ExpandCdnFrontDoorRequestHeaderCondition,
-		m.RequestMethod.ConfigName:    cdnFrontDoorRuleConditions.ExpandCdnFrontDoorRequestMethodCondition,
-		m.RequestScheme.ConfigName:    cdnFrontDoorRuleConditions.ExpandCdnFrontDoorRequestSchemeCondition,
-		m.RequestUri.ConfigName:       cdnFrontDoorRuleConditions.ExpandCdnFrontDoorRequestUriCondition,
-		m.ServerPort.ConfigName:       cdnFrontDoorRuleConditions.ExpandCdnFrontDoorServerPortCondition,
-		m.SocketAddress.ConfigName:    cdnFrontDoorRuleConditions.ExpandCdnFrontDoorSocketAddressCondition,
-		m.SslProtocol.ConfigName:      cdnFrontDoorRuleConditions.ExpandCdnFrontDoorSslProtocolCondition,
-		m.UrlFileExtension.ConfigName: cdnFrontDoorRuleConditions.ExpandCdnFrontDoorUrlFileExtensionCondition,
-		m.UrlFilename.ConfigName:      cdnFrontDoorRuleConditions.ExpandCdnFrontDoorUrlFileNameCondition,
-		m.UrlPath.ConfigName:          cdnFrontDoorRuleConditions.ExpandCdnFrontDoorUrlPathCondition,
-	}
-
-	basicDeliveryRuleCondition := input[0].(map[string]interface{})
-
-	for conditionName, expand := range conditions {
-		raw := basicDeliveryRuleCondition[conditionName].([]interface{})
-		if len(raw) > 0 {
-			expanded, err := expand(raw)
-			if err != nil {
-				return nil, err
-			}
-
-			if expanded != nil {
-				results = append(results, *expanded...)
-			}
-		}
-	}
-
-	if len(results) > 10 {
-		return nil, fmt.Errorf("the 'conditions' match block may only contain up to 10 match conditions, got %d", len(results))
-	}
-
-	return results, nil
-}
-
-func flattenFrontdoorDeliveryRuleConditions(input *[]cdn.BasicDeliveryRuleCondition) ([]interface{}, error) {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results, nil
-	}
-
-	c := cdnFrontDoorRuleConditions.InitializeCdnFrontDoorConditionMappings()
-
-	clientPortCondition := make([]interface{}, 0)
-	cookiesCondition := make([]interface{}, 0)
-	hostNameCondition := make([]interface{}, 0)
-	httpVersionCondition := make([]interface{}, 0)
-	isDeviceCondition := make([]interface{}, 0)
-	postArgsCondition := make([]interface{}, 0)
-	queryStringCondition := make([]interface{}, 0)
-	remoteAddressCondition := make([]interface{}, 0)
-	requestBodyCondition := make([]interface{}, 0)
-	requestHeaderCondition := make([]interface{}, 0)
-	requestMethodCondition := make([]interface{}, 0)
-	requestSchemeCondition := make([]interface{}, 0)
-	requestURICondition := make([]interface{}, 0)
-	serverPortCondition := make([]interface{}, 0)
-	socketAddressCondition := make([]interface{}, 0)
-	sslProtocolCondition := make([]interface{}, 0)
-	urlFileExtensionCondition := make([]interface{}, 0)
-	urlFilenameCondition := make([]interface{}, 0)
-	urlPathCondition := make([]interface{}, 0)
-
-	for _, BasicDeliveryRuleCondition := range *input {
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleClientPortCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorClientPortCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			clientPortCondition = append(clientPortCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleCookiesCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorCookiesCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			cookiesCondition = append(cookiesCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHostNameCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorHostNameCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			hostNameCondition = append(hostNameCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleHTTPVersionCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorHttpVersionCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-			httpVersionCondition = append(httpVersionCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleIsDeviceCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorIsDeviceCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			isDeviceCondition = append(isDeviceCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRulePostArgsCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorPostArgsCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			postArgsCondition = append(postArgsCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleQueryStringCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorQueryStringCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			queryStringCondition = append(queryStringCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRemoteAddressCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRemoteAddressCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			remoteAddressCondition = append(remoteAddressCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestBodyCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestBodyCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			requestBodyCondition = append(requestBodyCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestHeaderCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestHeaderCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			requestHeaderCondition = append(requestHeaderCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestMethodCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestMethodCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			requestMethodCondition = append(requestMethodCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestSchemeCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestSchemeCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			requestSchemeCondition = append(requestSchemeCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleRequestURICondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestUriCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			requestURICondition = append(requestURICondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleServerPortCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorServerPortCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			serverPortCondition = append(serverPortCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSocketAddrCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorSocketAddressCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			socketAddressCondition = append(socketAddressCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleSslProtocolCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorSslProtocolCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			sslProtocolCondition = append(sslProtocolCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileExtensionCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlFileExtensionCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			urlFileExtensionCondition = append(urlFileExtensionCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLFileNameCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlFileNameCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			urlFilenameCondition = append(urlFilenameCondition, flattened)
-			continue
-		}
-
-		if condition, ok := BasicDeliveryRuleCondition.AsDeliveryRuleURLPathCondition(); ok {
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlPathCondition(condition)
-			if err != nil {
-				return nil, err
-			}
-
-			urlPathCondition = append(urlPathCondition, flattened)
-			continue
-		}
-
-		return nil, fmt.Errorf("unknown BasicDeliveryRuleCondition encountered")
-	}
-
-	conditions := map[string]interface{}{
-		c.ClientPort.ConfigName:       clientPortCondition,
-		c.Cookies.ConfigName:          cookiesCondition,
-		c.HostName.ConfigName:         hostNameCondition,
-		c.HttpVersion.ConfigName:      httpVersionCondition,
-		c.IsDevice.ConfigName:         isDeviceCondition,
-		c.PostArgs.ConfigName:         postArgsCondition,
-		c.QueryString.ConfigName:      queryStringCondition,
-		c.RemoteAddress.ConfigName:    remoteAddressCondition,
-		c.RequestBody.ConfigName:      requestBodyCondition,
-		c.RequestHeader.ConfigName:    requestHeaderCondition,
-		c.RequestMethod.ConfigName:    requestMethodCondition,
-		c.RequestScheme.ConfigName:    requestSchemeCondition,
-		c.RequestUri.ConfigName:       requestURICondition,
-		c.ServerPort.ConfigName:       serverPortCondition,
-		c.SocketAddress.ConfigName:    socketAddressCondition,
-		c.SslProtocol.ConfigName:      sslProtocolCondition,
-		c.UrlFileExtension.ConfigName: urlFileExtensionCondition,
-		c.UrlFilename.ConfigName:      urlFilenameCondition,
-		c.UrlPath.ConfigName:          urlPathCondition,
-	}
-
-	// NOTE: Since we are always returning something no matter what this causes
-	// a perpetual diff during plan. Only return the conditions map if
-	// it actually has a condition defined within it, else return an empty
-	// slice
-	output := []interface{}{conditions}
-	if !ruleHasDeliveryRuleConditions(conditions) {
-		output = results
-	}
-
-	return output, nil
-}
-
-func flattenFrontdoorDeliveryRuleActions(input *[]cdn.BasicDeliveryRuleAction) ([]interface{}, error) {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results, nil
-	}
-
-	a := cdnFrontDoorRuleActions.InitializeCdnFrontDoorActionMappings()
-
-	requestHeaderActions := make([]interface{}, 0)
-	responseHeaderActions := make([]interface{}, 0)
-	routeConfigOverrideActions := make([]interface{}, 0)
-	urlRedirectActions := make([]interface{}, 0)
-	urlRewriteActions := make([]interface{}, 0)
-
-	for _, item := range *input {
-		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened, err := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
-			if err != nil {
-				return nil, fmt.Errorf("'route_configuration_override_action' unable to parse 'cdn_frontdoor_origin_group_id': %+v", err)
-			}
-
-			routeConfigOverrideActions = append(routeConfigOverrideActions, flattened)
-			continue
-		}
-
-		if action, ok := item.AsDeliveryRuleRequestHeaderAction(); ok {
-			if action.Parameters == nil {
-				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Request Header")
-			}
-			flattened := cdnFrontDoorRuleActions.FlattenHeaderActionParameters(action.Parameters)
-			requestHeaderActions = append(requestHeaderActions, flattened)
-			continue
-		}
-
-		if action, ok := item.AsDeliveryRuleResponseHeaderAction(); ok {
-			if action.Parameters == nil {
-				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Response Header")
-			}
-			flattened := cdnFrontDoorRuleActions.FlattenHeaderActionParameters(action.Parameters)
-			responseHeaderActions = append(responseHeaderActions, flattened)
-			continue
-		}
-
-		if action, ok := item.AsURLRedirectAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRedirectAction(*action)
-			urlRedirectActions = append(urlRedirectActions, flattened)
-			continue
-		}
-
-		if action, ok := item.AsURLRewriteAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRewriteAction(*action)
-			urlRewriteActions = append(urlRewriteActions, flattened)
-			continue
-		}
-	}
-
-	if len(requestHeaderActions) == 0 && len(responseHeaderActions) == 0 && len(routeConfigOverrideActions) == 0 && len(urlRedirectActions) == 0 && len(urlRewriteActions) == 0 {
-		return []interface{}{}, nil
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			a.RequestHeader.ConfigName:              requestHeaderActions,
-			a.ResponseHeader.ConfigName:             responseHeaderActions,
-			a.RouteConfigurationOverride.ConfigName: routeConfigOverrideActions,
-			a.URLRedirect.ConfigName:                urlRedirectActions,
-			a.URLRewrite.ConfigName:                 urlRewriteActions,
 		},
-	}, nil
+	}
+}
+
+func (c CdnFrontDoorRuleResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
+			client := rmd.Client.Cdn.FrontDoorRulesClient
+
+			id, err := rules.ParseRuleID(rmd.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			result, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return rmd.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			state := CdnFrontDoorRuleResourceModel{
+				Name:                    id.RuleName,
+				CdnFrontDoorRuleSetID:   rulesets.NewRuleSetID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName, id.RuleSetName).ID(),
+				CdnFrontDoorRuleSetName: id.RuleSetName,
+			}
+
+			if model := result.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.BehaviourOnMatch = pointer.FromEnum(props.MatchProcessingBehavior)
+					state.Order = pointer.From(props.Order)
+
+					actions, err := flattenCdnFrontDoorRuleActions(props.Actions)
+					if err != nil {
+						return fmt.Errorf("flattening `actions`: %+v", err)
+					}
+					state.Actions = actions
+
+					conditions, err := flattenCdnFrontDoorRuleConditions(props.Conditions)
+					if err != nil {
+						return fmt.Errorf("flattening `conditions`: %+v", err)
+					}
+					state.Conditions = conditions
+				}
+			}
+
+			return rmd.Encode(&state)
+		},
+	}
+}
+
+func (c CdnFrontDoorRuleResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 4 * time.Hour,
+		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
+			client := rmd.Client.Cdn.FrontDoorRulesClient
+
+			state := CdnFrontDoorRuleResourceModel{}
+			if err := rmd.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %w", err)
+			}
+
+			id, err := rules.ParseRuleID(rmd.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", id)
+			}
+			props := existing.Model.Properties
+
+			if rmd.ResourceData.HasChange("behaviour_on_match") {
+				props.MatchProcessingBehavior = pointer.ToEnum[rules.MatchProcessingBehavior](state.BehaviourOnMatch)
+			}
+
+			if rmd.ResourceData.HasChange("order") {
+				props.Order = pointer.To(state.Order)
+			}
+
+			if rmd.ResourceData.HasChange("actions") {
+				actions, err := expandCdnFrontDoorRuleActions(state.Actions)
+				if err != nil {
+					return fmt.Errorf("expanding `actions`: %+v", err)
+				}
+				props.Actions = &actions
+			}
+
+			if rmd.ResourceData.HasChange("conditions") {
+				conditions, err := expandCdnFrontDoorRuleConditions(state.Conditions)
+				if err != nil {
+					return fmt.Errorf("expanding `conditions`: %+v", err)
+				}
+
+				if len(conditions) > 10 {
+					return fmt.Errorf("expanding `conditions`: configuration file exceeds the maximum of 10 match conditions, got %d", len(conditions))
+				}
+
+				props.Conditions = &conditions
+			}
+
+			if err := client.CreateThenPoll(ctx, *id, *existing.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (c CdnFrontDoorRuleResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 6 * time.Hour,
+		Func: func(ctx context.Context, rmd sdk.ResourceMetaData) error {
+			client := rmd.Client.Cdn.FrontDoorRulesClient
+
+			id, err := rules.ParseRuleID(rmd.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (c CdnFrontDoorRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return rules.ValidateRuleID
 }

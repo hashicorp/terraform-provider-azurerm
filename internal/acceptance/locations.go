@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -31,7 +31,7 @@ func availableLocations() Regions {
 		os.Getenv("ARM_TEST_LOCATION_ALT2"),
 	}
 
-	// nolint: staticcheck
+	//nolint:staticcheck
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(locations), func(i, j int) {
 		locations[i], locations[j] = locations[j], locations[i]

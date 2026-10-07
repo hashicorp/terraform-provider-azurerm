@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,10 +32,10 @@ type ModuleHash struct {
 }
 
 type AutomationPowerShell72ModuleModel struct {
-	AutomationAccountID string                 `tfschema:"automation_account_id"`
-	Name                string                 `tfschema:"name"`
-	ModuleLink          []ModuleLinkModel      `tfschema:"module_link"`
-	Tags                map[string]interface{} `tfschema:"tags"`
+	AutomationAccountID string            `tfschema:"automation_account_id"`
+	Name                string            `tfschema:"name"`
+	ModuleLink          []ModuleLinkModel `tfschema:"module_link"`
+	Tags                map[string]any    `tfschema:"tags"`
 }
 
 type PowerShell72ModuleResource struct{}
@@ -95,7 +95,7 @@ func (r PowerShell72ModuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r PowerShell72ModuleResource) ModelObject() interface{} {
+func (r PowerShell72ModuleResource) ModelObject() any {
 	return &AutomationPowerShell72ModuleModel{}
 }
 
@@ -112,7 +112,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 
 			var model AutomationPowerShell72ModuleModel
 			if err := metadata.Decode(&model); err != nil {
@@ -125,18 +125,17 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 
 			id := module.NewPowerShell72ModuleID(subscriptionId, accountID.ResourceGroupName, accountID.AutomationAccountName, name)
 
-			existing, err := client.PowerShell72ModuleGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PowerShell72ModuleGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 
-			// for existing global module do update instead of raising ImportAsExistsError
-			isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
-			if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-				return tf.ImportAsExistsError("azurerm_automation_powershell72_module", id.ID())
+				// for existing global module do update instead of raising ImportAsExistsError
+				isGlobal := existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.IsGlobal)
+				if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			parameters := module.ModuleCreateOrUpdateParameters{
@@ -149,6 +148,8 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
@@ -177,7 +178,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 					string(module.ModuleProvisioningStateSucceeded),
 				},
 				MinTimeout: 30 * time.Second,
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					resp, err2 := client.PowerShell72ModuleGet(ctx, id)
 					if err2 != nil {
 						return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
@@ -204,8 +205,6 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
 			}
 
-			metadata.SetID(id)
-
 			return nil
 		},
 	}
@@ -216,7 +215,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -269,7 +268,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 					string(module.ModuleProvisioningStateSucceeded),
 				},
 				MinTimeout: 30 * time.Second,
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					resp, err2 := client.PowerShell72ModuleGet(ctx, *id)
 					if err2 != nil {
 						return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
@@ -308,7 +307,7 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -345,7 +344,7 @@ func (PowerShell72ModuleResource) Delete() sdk.ResourceFunc {
 
 		// the Func returns a function which deletes the Resource Group
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.Module
+			client := metadata.Client.Automation.ModuleClientV2023
 			id, err := module.ParsePowerShell72ModuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err

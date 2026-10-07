@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fromproto
@@ -7,6 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6"
 )
+
+func ValidateResourceConfigClientCapabilities(in *tfplugin6.ClientCapabilities) *tfprotov6.ValidateResourceConfigClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.ValidateResourceConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+
+	return resp
+}
 
 func ConfigureProviderClientCapabilities(in *tfplugin6.ClientCapabilities) *tfprotov6.ConfigureProviderClientCapabilities {
 	if in == nil {
@@ -75,6 +87,40 @@ func OpenEphemeralResourceClientCapabilities(in *tfplugin6.ClientCapabilities) *
 
 	resp := &tfprotov6.OpenEphemeralResourceClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
+	}
+
+	return resp
+}
+
+func PlanActionClientCapabilities(in *tfplugin6.ClientCapabilities) *tfprotov6.PlanActionClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.PlanActionClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+
+	return resp
+}
+
+func InvokeActionClientCapabilities(in *tfplugin6.ClientCapabilities) *tfprotov6.InvokeActionClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.InvokeActionClientCapabilities{}
+
+	return resp
+}
+
+func ConfigureStateStoreClientCapabilities(in *tfplugin6.StateStoreClientCapabilities) *tfprotov6.ConfigureStateStoreClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.ConfigureStateStoreClientCapabilities{
+		ChunkSize: in.ChunkSize,
 	}
 
 	return resp

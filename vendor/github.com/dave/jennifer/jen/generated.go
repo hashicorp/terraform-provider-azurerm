@@ -912,6 +912,136 @@ func (s *Statement) Close(c Code) *Statement {
 	return s
 }
 
+// Clear renders the clear built-in function.
+func Clear(c Code) *Statement {
+	return newStatement().Clear(c)
+}
+
+// Clear renders the clear built-in function.
+func (g *Group) Clear(c Code) *Statement {
+	s := Clear(c)
+	g.items = append(g.items, s)
+	return s
+}
+
+// Clear renders the clear built-in function.
+func (s *Statement) Clear(c Code) *Statement {
+	g := &Group{
+		close:     ")",
+		items:     []Code{c},
+		multi:     false,
+		name:      "clear",
+		open:      "clear(",
+		separator: ",",
+	}
+	*s = append(*s, g)
+	return s
+}
+
+// Min renders the min built-in function.
+func Min(args ...Code) *Statement {
+	return newStatement().Min(args...)
+}
+
+// Min renders the min built-in function.
+func (g *Group) Min(args ...Code) *Statement {
+	s := Min(args...)
+	g.items = append(g.items, s)
+	return s
+}
+
+// Min renders the min built-in function.
+func (s *Statement) Min(args ...Code) *Statement {
+	g := &Group{
+		close:     ")",
+		items:     args,
+		multi:     false,
+		name:      "min",
+		open:      "min(",
+		separator: ",",
+	}
+	*s = append(*s, g)
+	return s
+}
+
+// MinFunc renders the min built-in function.
+func MinFunc(f func(*Group)) *Statement {
+	return newStatement().MinFunc(f)
+}
+
+// MinFunc renders the min built-in function.
+func (g *Group) MinFunc(f func(*Group)) *Statement {
+	s := MinFunc(f)
+	g.items = append(g.items, s)
+	return s
+}
+
+// MinFunc renders the min built-in function.
+func (s *Statement) MinFunc(f func(*Group)) *Statement {
+	g := &Group{
+		close:     ")",
+		multi:     false,
+		name:      "min",
+		open:      "min(",
+		separator: ",",
+	}
+	f(g)
+	*s = append(*s, g)
+	return s
+}
+
+// Max renders the max built-in function.
+func Max(args ...Code) *Statement {
+	return newStatement().Max(args...)
+}
+
+// Max renders the max built-in function.
+func (g *Group) Max(args ...Code) *Statement {
+	s := Max(args...)
+	g.items = append(g.items, s)
+	return s
+}
+
+// Max renders the max built-in function.
+func (s *Statement) Max(args ...Code) *Statement {
+	g := &Group{
+		close:     ")",
+		items:     args,
+		multi:     false,
+		name:      "max",
+		open:      "max(",
+		separator: ",",
+	}
+	*s = append(*s, g)
+	return s
+}
+
+// MaxFunc renders the max built-in function.
+func MaxFunc(f func(*Group)) *Statement {
+	return newStatement().MaxFunc(f)
+}
+
+// MaxFunc renders the max built-in function.
+func (g *Group) MaxFunc(f func(*Group)) *Statement {
+	s := MaxFunc(f)
+	g.items = append(g.items, s)
+	return s
+}
+
+// MaxFunc renders the max built-in function.
+func (s *Statement) MaxFunc(f func(*Group)) *Statement {
+	g := &Group{
+		close:     ")",
+		multi:     false,
+		name:      "max",
+		open:      "max(",
+		separator: ",",
+	}
+	f(g)
+	*s = append(*s, g)
+	return s
+}
+
 // Complex renders the complex built-in function.
 func Complex(r Code, i Code) *Statement {
 	return newStatement().Complex(r, i)

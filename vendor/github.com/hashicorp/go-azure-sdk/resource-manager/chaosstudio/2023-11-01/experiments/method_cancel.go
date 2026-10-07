@@ -56,9 +56,20 @@ func (c ExperimentsClient) Cancel(ctx context.Context, id ExperimentId) (result 
 
 // CancelThenPoll performs Cancel then polls until it's completed
 func (c ExperimentsClient) CancelThenPoll(ctx context.Context, id ExperimentId) error {
+	return c.CancelCallbackThenPoll(ctx, id, nil)
+}
+
+// CancelCallbackThenPoll performs Cancel, runs the optional callback function, then polls until it's completed
+func (c ExperimentsClient) CancelCallbackThenPoll(ctx context.Context, id ExperimentId, callback func() error) error {
 	result, err := c.Cancel(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Cancel: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

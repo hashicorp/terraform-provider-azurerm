@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 resource "azurerm_resource_group" "example" {
@@ -15,9 +15,8 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "example_eventhub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name         = "example_eventhub"
+  namespace_id = azurerm_eventhub_namespace.example.id
 
   partition_count   = 2
   message_retention = 1
@@ -48,27 +47,10 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_name                  = azurerm_eventhub.example.name
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
 
-  dynamic "log" {
-    for_each = data.azurerm_monitor_diagnostic_categories.example.logs
+  dynamic "enabled_log" {
+    for_each = data.azurerm_monitor_diagnostic_categories.example.log_category_types
     content {
-      category = log.key
-
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
-    }
-  }
-  dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.example.metrics
-
-    content {
-      category = metric.key
-
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+      category = enabled_log.key
     }
   }
 }

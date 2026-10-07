@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -22,10 +22,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
@@ -35,11 +35,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetrollingupgrades"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -68,6 +69,7 @@ type Client struct {
 	SkusClient                                  *skus.SkusClient
 	SSHPublicKeysClient                         *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                             *snapshots.SnapshotsClient
+	StandbyVirtualMachinePoolsClient            *standbyvirtualmachinepools.StandbyVirtualMachinePoolsClient
 	VirtualMachinesClient                       *virtualmachines.VirtualMachinesClient
 	VirtualMachineExtensionsClient              *virtualmachineextensions.VirtualMachineExtensionsClient
 	VirtualMachineRunCommandsClient             *virtualmachineruncommands.VirtualMachineRunCommandsClient
@@ -211,6 +213,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(sshPublicKeysClient.Client, o.Authorizers.ResourceManager)
 
+	standbyVirtualMachinePoolsClient, err := standbyvirtualmachinepools.NewStandbyVirtualMachinePoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Standby Virtual Machine Pools client: %+v", err)
+	}
+	o.Configure(standbyVirtualMachinePoolsClient.Client, o.Authorizers.ResourceManager)
+
 	virtualMachinesClient, err := virtualmachines.NewVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachines client: %+v", err)
@@ -282,6 +290,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SkusClient:                                  skusClient,
 		SSHPublicKeysClient:                         sshPublicKeysClient,
 		SnapshotsClient:                             snapshotsClient,
+		StandbyVirtualMachinePoolsClient:            standbyVirtualMachinePoolsClient,
 		VirtualMachinesClient:                       virtualMachinesClient,
 		VirtualMachineExtensionsClient:              virtualMachineExtensionsClient,
 		VirtualMachineRunCommandsClient:             virtualMachineRunCommandsClient,
@@ -295,9 +304,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id virtualmachinescalesets.VirtualMachineScaleSetId) error {
 	// TODO replace with commonid once https://github.com/hashicorp/pandora/issues/4017 has been merged
-	virtualMachineScaleSetId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	rollingUpgradeId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 
-	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, virtualMachineScaleSetId)
+	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, rollingUpgradeId)
 	if err != nil {
 		// No rolling upgrades are running so skipping attempt to cancel them before deletion
 		if response.WasNotFound(resp.HttpResponse) {
@@ -313,23 +322,14 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 		}
 	}
 
-	// If lastest rolling upgrade is marked as completed, skip cancellation
+	// If latest rolling upgrade is marked as completed, skip cancellation
 	if upgradeStatus == virtualmachinescalesetrollingupgrades.RollingUpgradeStatusCodeCompleted {
 		return nil
 	}
 
-	future, err := c.VirtualMachineScaleSetRollingUpgradesClient.Cancel(ctx, virtualMachineScaleSetId)
-	if err != nil {
-		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
-		// we don't error out in this case
-		if response.WasConflict(future.HttpResponse) {
-			return nil
-		}
+	rollingId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	if err := c.VirtualMachineScaleSetRollingUpgradesClient.CancelThenPoll(ctx, rollingId); err != nil {
 		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for cancelling of rolling upgrades for %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] cancelled Virtual Machine Scale Set Rolling Upgrades for %s.", id)

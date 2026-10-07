@@ -1,14 +1,29 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tf6serverlogging
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
+
+// ValidateResourceConfigClientCapabilities generates a TRACE "Announced client capabilities" log.
+func ValidateResourceConfigClientCapabilities(ctx context.Context, capabilities *tfprotov6.ValidateResourceConfigClientCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced client capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyClientCapabilityWriteOnlyAttributesAllowed: capabilities.WriteOnlyAttributesAllowed,
+	}
+
+	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}
 
 // ConfigureProviderClientCapabilities generates a TRACE "Announced client capabilities" log.
 func ConfigureProviderClientCapabilities(ctx context.Context, capabilities *tfprotov6.ConfigureProviderClientCapabilities) {
@@ -92,4 +107,37 @@ func OpenEphemeralResourceClientCapabilities(ctx context.Context, capabilities *
 	}
 
 	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}
+
+// PlanActionClientCapabilities generates a TRACE "Announced client capabilities" log.
+func PlanActionClientCapabilities(ctx context.Context, capabilities *tfprotov6.PlanActionClientCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced client capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyClientCapabilityDeferralAllowed: capabilities.DeferralAllowed,
+	}
+
+	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}
+
+// ConfigureStateStoreClientCapabilities generates a TRACE "Announced client capabilities" log.
+func ConfigureStateStoreClientCapabilities(ctx context.Context, capabilities *tfprotov6.ConfigureStateStoreClientCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced client capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyClientCapabilityChunkSize: formatByteSizeToMB(capabilities.ChunkSize), // convert to megabytes for a nicer log message
+	}
+
+	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}
+
+func formatByteSizeToMB(byteSize int64) string {
+	megabytes := float64(byteSize) / float64(1024*1024)
+	return fmt.Sprintf("%gMB", megabytes)
 }

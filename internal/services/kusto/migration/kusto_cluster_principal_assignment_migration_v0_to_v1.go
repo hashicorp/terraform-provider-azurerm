@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusterprincipalassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -71,7 +71,7 @@ func (s KustoAttachedClusterPrincipalAssignmentV0ToV1) Schema() map[string]*plug
 }
 
 func (s KustoAttachedClusterPrincipalAssignmentV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		newId, err := clusterprincipalassignments.ParsePrincipalAssignmentIDInsensitively(oldId)
 		if err != nil {

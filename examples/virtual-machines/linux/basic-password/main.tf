@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -41,8 +41,8 @@ resource "azurerm_linux_virtual_machine" "main" {
   resource_group_name             = azurerm_resource_group.main.name
   location                        = azurerm_resource_group.main.location
   size                            = "Standard_D2s_v3"
-  admin_username                  = var.username
-  admin_password                  = var.password
+  admin_username                  = var.admin_username
+  admin_password                  = var.admin_password
   disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.main.id,

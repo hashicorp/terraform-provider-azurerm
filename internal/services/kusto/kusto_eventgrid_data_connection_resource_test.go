@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_test
@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -81,7 +82,6 @@ func TestAccKustoEventGridDataConnection_mappingRule(t *testing.T) {
 func TestAccKustoEventGridDataConnection_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
@@ -125,9 +125,7 @@ func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients 
 			return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
 		}
 
-		exists := value.Properties != nil
-
-		return &exists, nil
+		return pointer.To(value.Properties != nil), nil
 	} else {
 		return nil, fmt.Errorf("response model is empty")
 	}
@@ -186,8 +184,8 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
   skip_first_record       = true
 
-  database_routing_type = "Multi"
-  eventgrid_resource_id = azurerm_eventgrid_event_subscription.test.id
+  database_routing_type           = "Multi"
+  eventgrid_event_subscription_id = azurerm_eventgrid_event_subscription.test.id
 
   depends_on = [azurerm_eventgrid_event_subscription.test]
 }
@@ -231,7 +229,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   storage_account_id           = azurerm_storage_account.test.id
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+  managed_identity_id          = azurerm_user_assigned_identity.test.id
   depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
@@ -249,7 +247,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   storage_account_id           = azurerm_storage_account.test.id
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  managed_identity_resource_id = azurerm_kusto_cluster.test.id
+  managed_identity_id          = azurerm_kusto_cluster.test.id
   depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
@@ -310,11 +308,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
@@ -327,7 +324,7 @@ resource "azurerm_eventhub_consumer_group" "test" {
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                  = "acctest-eg-%d"
   scope                 = azurerm_storage_account.test.id
-  eventhub_endpoint_id  = azurerm_eventhub.test.id
+  eventhub_id           = azurerm_eventhub.test.id
   event_delivery_schema = "EventGridSchema"
   included_event_types  = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobRenamed"]
 

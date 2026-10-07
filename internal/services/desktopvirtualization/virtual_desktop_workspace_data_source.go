@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,7 +32,7 @@ type DesktopVirtualizationWorkspaceModel struct {
 
 var _ sdk.DataSource = DesktopVirtualizationWorkspaceDataSource{}
 
-func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() interface{} {
+func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() any {
 	return &DesktopVirtualizationWorkspaceModel{}
 }
 
@@ -102,7 +102,7 @@ func (d DesktopVirtualizationWorkspaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state.Location = location.NormalizeNilable(model.Location)
+			state.Location = location.Normalize(model.Location)
 			state.Tags = pointer.From(model.Tags)
 
 			if properties := model.Properties; properties != nil {
