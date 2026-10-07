@@ -33,14 +33,15 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		ContainerAppDataSource{},
-		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentCertificateDataSource{},
+		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentStorageDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ContainerAppCustomDomainResource{},
 		ContainerAppEnvironmentCertificateResource{},
 		ContainerAppEnvironmentCustomDomainResource{},
 		ContainerAppEnvironmentDaprComponentResource{},
@@ -48,9 +49,8 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerAppEnvironmentManagedCertificateResource{},
 		ContainerAppEnvironmentResource{},
 		ContainerAppEnvironmentStorageResource{},
-		ContainerAppResource{},
-		ContainerAppCustomDomainResource{},
 		ContainerAppJobResource{},
+		ContainerAppResource{},
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -78,7 +79,7 @@ func resourceCosmosDbSQLStoredProcedure() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -86,12 +87,14 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 
 	id := cosmosdb.NewStoredProcedureID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("database_name").(string), d.Get("container_name").(string), d.Get("name").(string))
 
-	existing, err := client.SqlResourcesGetSqlStoredProcedure(ctx, id)
-	if !response.WasNotFound(existing.HttpResponse) {
-		if err != nil {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.SqlResourcesGetSqlStoredProcedure(ctx, id)
+		if !response.WasNotFound(existing.HttpResponse) {
+			if err != nil {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
+			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_stored_procedure", id.ID())
 		}
-		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_stored_procedure", id.ID())
 	}
 
 	storedProcParams := cosmosdb.SqlStoredProcedureCreateUpdateParameters{
@@ -104,7 +107,7 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if err := client.SqlResourcesCreateUpdateSqlStoredProcedureThenPoll(ctx, id, storedProcParams); err != nil {
+	if err := client.SqlResourcesCreateUpdateSqlStoredProcedureCallbackThenPoll(ctx, id, storedProcParams, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -113,7 +116,7 @@ func resourceCosmosDbSQLStoredProcedureCreate(d *pluginsdk.ResourceData, meta in
 	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }
 
-func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,7 +148,7 @@ func resourceCosmosDbSQLStoredProcedureUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceCosmosDbSQLStoredProcedureRead(d, meta)
 }
 
-func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -179,7 +182,7 @@ func resourceCosmosDbSQLStoredProcedureRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLStoredProcedureDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

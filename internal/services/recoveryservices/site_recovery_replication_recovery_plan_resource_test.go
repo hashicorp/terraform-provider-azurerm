@@ -386,7 +386,9 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
-    target_subnet_name          = "snet-%[2]d_2"
+    ip_configuration {
+      target_subnet_name = "snet-%[2]d_2"
+    }
   }
 
   depends_on = [

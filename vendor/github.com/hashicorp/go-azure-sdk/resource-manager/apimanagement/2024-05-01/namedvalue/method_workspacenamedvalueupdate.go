@@ -91,9 +91,20 @@ func (c NamedValueClient) WorkspaceNamedValueUpdate(ctx context.Context, id Work
 
 // WorkspaceNamedValueUpdateThenPoll performs WorkspaceNamedValueUpdate then polls until it's completed
 func (c NamedValueClient) WorkspaceNamedValueUpdateThenPoll(ctx context.Context, id WorkspaceNamedValueId, input NamedValueUpdateParameters, options WorkspaceNamedValueUpdateOperationOptions) error {
+	return c.WorkspaceNamedValueUpdateCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// WorkspaceNamedValueUpdateCallbackThenPoll performs WorkspaceNamedValueUpdate, runs the optional callback function, then polls until it's completed
+func (c NamedValueClient) WorkspaceNamedValueUpdateCallbackThenPoll(ctx context.Context, id WorkspaceNamedValueId, input NamedValueUpdateParameters, options WorkspaceNamedValueUpdateOperationOptions, callback func() error) error {
 	result, err := c.WorkspaceNamedValueUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing WorkspaceNamedValueUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

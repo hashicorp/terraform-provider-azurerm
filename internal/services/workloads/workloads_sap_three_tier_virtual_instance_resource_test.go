@@ -183,7 +183,9 @@ resource "azurerm_subnet" "test" {
   address_prefixes                              = ["10.0.2.0/24"]
   private_endpoint_network_policies             = "Disabled"
   private_link_service_network_policies_enabled = true
-  service_endpoints                             = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_resource_group" "app" {
@@ -232,7 +234,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -254,7 +256,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -276,7 +278,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -331,7 +333,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -353,7 +355,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -375,7 +377,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "import" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -440,7 +442,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -462,7 +464,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -485,7 +487,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -685,7 +687,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -707,7 +709,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -730,7 +732,7 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
         image {
           offer     = "RHEL-SAP-HA"
           publisher = "RedHat"
-          sku       = "82sapha-gen2"
+          sku       = "86sapha-gen2"
           version   = "latest"
         }
 
@@ -883,7 +885,5 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
 
 func RandomInt() int {
 	rand.NewSource(time.Now().UnixNano())
-	num := rand.Intn(90) + 10
-
-	return num
+	return rand.Intn(90) + 10
 }
