@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -20,7 +20,7 @@ func (NamespaceAuthorizationRuleV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (NamespaceAuthorizationRuleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 
 		newId := strings.Replace(rawState["id"].(string), "/authorizationRules/", "/AuthorizationRules/", 1)
@@ -42,7 +42,7 @@ func (NamespaceAuthorizationRuleV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (NamespaceAuthorizationRuleV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 
 		newId := strings.Replace(rawState["id"].(string), "/AuthorizationRules/", "/authorizationRules/", 1)

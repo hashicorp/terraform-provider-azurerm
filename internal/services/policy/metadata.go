@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -12,13 +12,13 @@ import (
 )
 
 func metadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicyAssignmentsMetadata map[string]interface{}
+	var oldPolicyAssignmentsMetadata map[string]any
 	errOld := json.Unmarshal([]byte(old), &oldPolicyAssignmentsMetadata)
 	if errOld != nil {
 		return false
 	}
 
-	var newPolicyAssignmentsMetadata map[string]interface{}
+	var newPolicyAssignmentsMetadata map[string]any
 	if new != "" {
 		errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
 		if errNew != nil {
@@ -40,7 +40,7 @@ func metadataSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:             pluginsdk.TypeString,
 		Optional:         true,
-		Computed:         true,
+		Computed:         true, // azignore:AZS007 - pre-existing violation
 		ValidateFunc:     validation.StringIsJSON,
 		DiffSuppressFunc: metadataDiffSuppressFunc,
 	}

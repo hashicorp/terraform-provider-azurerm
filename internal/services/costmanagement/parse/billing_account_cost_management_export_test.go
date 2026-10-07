@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -12,14 +12,6 @@ import (
 )
 
 var _ resourceids.Id = BillingAccountCostManagementExportId{}
-
-func TestBillingAccountCostManagementExportIDFormatter(t *testing.T) {
-	actual := NewBillingAccountCostManagementExportID("12345678", "export1").ID()
-	expected := "/providers/Microsoft.Billing/billingAccounts/12345678/providers/Microsoft.CostManagement/exports/export1"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
 
 func TestBillingAccountCostManagementExportID(t *testing.T) {
 	testData := []struct {
