@@ -6,6 +6,7 @@ package resource
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,7 +72,7 @@ func resourceManagementLock() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,21 +103,11 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context was missing a deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Target: []string{
-			"OK",
-		},
-		Refresh:                   managementLockStateRefreshFunc(ctx, client, id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 12,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(12, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.GetByScope(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultCreationEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish create replication", id)
 	}
 
@@ -123,7 +115,7 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceManagementLockRead(d, meta)
 }
 
-func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementLockRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +146,7 @@ func resourceManagementLockRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,36 +166,13 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context was missing a deadline")
-	}
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Target: []string{
-			"NotFound",
-		},
-		Refresh:                   managementLockStateRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 12,
-		Timeout:                   time.Until(deadline),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(12, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.GetByScope(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish delete replication", id)
 	}
 
 	return nil
-}
-
-func managementLockStateRefreshFunc(ctx context.Context, client *managementlocks.ManagementLocksClient, id managementlocks.ScopedLockId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.GetByScope(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-			return nil, "Error", err
-		}
-		return "OK", "OK", nil
-	}
 }

@@ -72,7 +72,7 @@ func (l LogAnalyticsClusterResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (r LogAnalyticsClusterResource) ModelObject() interface{} {
+func (r LogAnalyticsClusterResource) ModelObject() any {
 	return &LogAnalyticsClusterModel{}
 }
 
@@ -118,13 +118,12 @@ func (r LogAnalyticsClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			capacityReservation := clusters.ClusterSkuNameEnumCapacityReservation
 			parameters := clusters.Cluster{
 				Location: location.Normalize(config.Location),
 				Identity: expandedIdentity,
 				Sku: &clusters.ClusterSku{
 					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
-					Name:     &capacityReservation,
+					Name:     pointer.To(clusters.ClusterSkuNameEnumCapacityReservation),
 				},
 				Tags: pointer.To(config.Tags),
 			}
@@ -246,8 +245,7 @@ func (r LogAnalyticsClusterResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
