@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -28,8 +28,8 @@ func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoors.Cu
 	return provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabling
 }
 
-func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []interface{} {
-	result := make([]interface{}, 0)
+func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []any {
+	result := make([]any, 0)
 
 	if input != nil {
 		for _, item := range *input {
@@ -39,8 +39,8 @@ func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType
 	return result
 }
 
-func FlattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []interface{} {
-	result := make([]interface{}, 0)
+func FlattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []any {
+	result := make([]any, 0)
 
 	if input != nil {
 		for _, item := range *input {

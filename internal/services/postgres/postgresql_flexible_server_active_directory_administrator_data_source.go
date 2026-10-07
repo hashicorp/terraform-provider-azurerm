@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -86,9 +86,9 @@ func (d PostgresqlFlexibleServerActiveDirectoryAdministratorDataSource) Read() s
 				return err
 			}
 
-			id := administrators.NewAdministratorID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, state.ObjectId)
+			id := administratormicrosoftentras.NewAdministratorID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, state.ObjectId)
 
-			resp, err := client.Get(ctx, id)
+			resp, err := client.AdministratorsMicrosoftEntraGet(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
@@ -103,7 +103,7 @@ func (d PostgresqlFlexibleServerActiveDirectoryAdministratorDataSource) Read() s
 
 			if model := resp.Model; model != nil {
 				state.PrincipalName = pointer.From(model.Properties.PrincipalName)
-				state.PrincipalType = string(pointer.From(model.Properties.PrincipalType))
+				state.PrincipalType = pointer.FromEnum(model.Properties.PrincipalType)
 				state.TenantId = pointer.From(model.Properties.TenantId)
 			}
 

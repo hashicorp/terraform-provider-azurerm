@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,7 +10,8 @@ import (
 	"strings"
 )
 
-func StorageAccountIpRule(v interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V013,V001 // false positive - this validates a CIDR; the string comparisons check for private IP ranges
+func StorageAccountIpRule(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(/([0-9]|[1-2][0-9]|30))?$`).MatchString(value) {

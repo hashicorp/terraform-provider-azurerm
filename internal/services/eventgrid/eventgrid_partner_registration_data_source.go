@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -90,6 +90,6 @@ func (EventGridPartnerRegistrationDataSource) ResourceType() string {
 	return "azurerm_eventgrid_partner_registration"
 }
 
-func (EventGridPartnerRegistrationDataSource) ModelObject() interface{} {
+func (EventGridPartnerRegistrationDataSource) ModelObject() any {
 	return &EventGridPartnerRegistrationDataSourceModel{}
 }

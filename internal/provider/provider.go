@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -19,67 +20,38 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func AzureProvider() *schema.Provider {
-	return azureProvider(false)
+	return azureProvider(false, "")
 }
 
 func TestAzureProvider() *schema.Provider {
-	return azureProvider(true)
+	return azureProvider(true, "")
 }
 
-func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
-	// ValidatePartnerID checks if partner_id is any of the following:
-	//  * a valid UUID - will add "pid-" prefix to the ID if it is not already present
-	//  * a valid UUID prefixed with "pid-"
-	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
-
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if v == "" {
-		return nil, nil
-	}
-
-	// Check for pid=<guid>-partnercenter format
-	if strings.HasPrefix(v, "pid-") && strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-		g = strings.TrimSuffix(g, "-partnercenter")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
-			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
-		}
-
-		logEntry("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
-		return nil, nil
-	}
-
-	// Check for pid=<guid> (without the -partnercenter suffix)
-	if strings.HasPrefix(v, "pid-") && !strings.HasSuffix(v, "-partnercenter") {
-		g := strings.TrimPrefix(v, "pid-")
-
-		if _, err := validation.IsUUID(g, ""); err != nil {
-			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
-		}
-
-		logEntry("[DEBUG] %q partner_id matches pid-<GUID>...", v)
-		return nil, nil
-	}
-
-	// Check for straight UUID
-	if _, err := validation.IsUUID(v, ""); err != nil {
-		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
-	} else {
-		logEntry("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
-		return nil, nil
-	}
+// AzureProviderWithTestName returns provider for a specific test name when testing under go-vcr where context-awareness
+// is required.
+func AzureProviderWithTestName(testName string) *schema.Provider {
+	return azureProvider(false, testName)
 }
 
-func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
+// ValidatePartnerID checks if partner_id is any of the following:
+//   - empty
+//   - a valid UUID - a "pid-" prefix will be added to the ID if it is not already present
+//   - a valid UUID prefixed with "pid-"
+//   - a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
+func ValidatePartnerID(i any, k string) ([]string, []error) {
+	uuid := `[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}`
+	return validation.Any(
+		validation.StringIsEmpty,
+		validation.StringMatch(regexp.MustCompile(`^(pid-)?`+uuid+`$`), "expected a valid UUID with an optional `pid-` prefix"),
+		validation.StringMatch(regexp.MustCompile(`^pid-`+uuid+`-partnercenter$`), "expected a valid UUID with a `pid-` prefix and `-partnercenter` suffix"),
+	)(i, k)
+}
+
+func azureProvider(supportLegacyTestSuite bool, testName string) *schema.Provider {
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
 
@@ -339,7 +311,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
 					resourceproviders.ProviderRegistrationsCore,
@@ -360,15 +332,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				},
 			},
 
-			// TODO: Remove `skip_provider_registration` in v5.0
-			"skip_provider_registration": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
-				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-				Deprecated:  "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-			},
-
 			"storage_use_azuread": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -381,16 +344,16 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	p.ConfigureContextFunc = providerConfigure(p)
+	p.ConfigureContextFunc = providerConfigure(p, testName)
 
 	return p
 }
 
 // providerConfigure is used to configure the cloud environment and authentication.
-// To configure behavioral aspects of the provider, use the buildClient function instead.
+// To configure behavioural aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
-func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
-	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func providerConfigure(p *schema.Provider, testName string) schema.ConfigureContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
 			if !d.Get("use_cli").(bool) {
@@ -399,8 +362,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		var auxTenants []string
-		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
-			auxTenants = *utils.ExpandStringSlice(v)
+		if v, ok := d.Get("auxiliary_tenant_ids").([]any); ok && len(v) > 0 {
+			auxTenants = *pluginsdk.ExpandStringSlice(v)
 		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
 			auxTenants = strings.Split(v, ";")
 		}
@@ -494,22 +457,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticationUsingADOPipelineOIDC:   enableOidc,
 		}
 
-		return buildClient(ctx, p, d, authConfig)
+		return buildClient(ctx, p, d, authConfig, testName)
 	}
 }
 
-// buildClient is used to configure behavioral aspects of the provider. To configure the
+// buildClient is used to configure behavioural aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
-func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
+func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, testName string) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)
-
-	// TODO: Remove in v5.0
-	if d.Get("skip_provider_registration").(bool) {
-		if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
-			return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
-		}
-		providerRegistrations = resourceproviders.ProviderRegistrationsNone
-	}
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
 	if err != nil {
@@ -517,22 +472,29 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	additionalProvidersToRegister := make(resourceproviders.ResourceProviders)
-	for _, rp := range d.Get("resource_providers_to_register").([]interface{}) {
+	for _, rp := range d.Get("resource_providers_to_register").([]any) {
 		additionalProvidersToRegister.Add(rp.(string))
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
+
+	features := expandFeatures(d.Get("features").([]any))
+
+	if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` block inside the `features` block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
+	}
 
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
 		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 		DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
-		Features:                    expandFeatures(d.Get("features").([]interface{})),
+		Features:                    features,
 		MetadataHost:                d.Get("metadata_host").(string),
 		PartnerID:                   d.Get("partner_id").(string),
 		RegisteredResourceProviders: requiredResourceProviders,
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		SubscriptionID:              d.Get("subscription_id").(string),
 		TerraformVersion:            p.TerraformVersion,
+		TestName:                    testName,
 
 		// this field is intentionally not exposed in the provider block, since it's only used for
 		// platform level tracing
@@ -557,8 +519,11 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
-		return nil, diag.FromErr(err)
+	// Skip this if we're running VCR, it creates too much noise in the cassette
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders, features.EnhancedValidation.ResourceProviders); err != nil {
+			return nil, diag.FromErr(err)
+		}
 	}
 
 	return client, nil

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -14,18 +14,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceNetAppAccount() *pluginsdk.Resource {
@@ -51,7 +50,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -71,7 +70,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.IPv4Address,
+								ValidateFunc: validation.IsIPv4Address,
 							},
 						},
 						"domain": {
@@ -165,18 +164,18 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := netappaccounts.NewNetAppAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := netappaccounts.NewNetAppAccountID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.AccountsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -189,14 +188,14 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	accountParameters := netappaccounts.NetAppAccount{
-		Location:   azure.NormalizeLocation(d.Get("location").(string)),
+		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: &netappaccounts.AccountProperties{},
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	activeDirectoryRaw := d.Get("active_directory")
 	if activeDirectoryRaw != nil {
-		activeDirectories := activeDirectoryRaw.([]interface{})
+		activeDirectories := activeDirectoryRaw.([]any)
 		activeDirectoriesExpanded := expandNetAppActiveDirectories(activeDirectories)
 		if len(pointer.From(activeDirectoriesExpanded)) > 0 {
 			accountParameters.Properties.ActiveDirectories = activeDirectoriesExpanded
@@ -205,7 +204,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	anfAccountIdentityRaw := d.Get("identity")
 	if anfAccountIdentityRaw != nil {
-		anfAccountIdentity, ok := anfAccountIdentityRaw.([]interface{})
+		anfAccountIdentity, ok := anfAccountIdentityRaw.([]any)
 
 		if ok && len(anfAccountIdentity) > 0 {
 			anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
@@ -218,7 +217,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	if err := client.AccountsCreateOrUpdateThenPoll(ctx, id, accountParameters); err != nil {
+	if err := client.AccountsCreateOrUpdateCallbackThenPoll(ctx, id, accountParameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -226,9 +225,10 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := netappaccounts.ParseNetAppAccountID(d.Id())
@@ -239,38 +239,52 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	update := netappaccounts.NetAppAccountPatch{
-		Properties: &netappaccounts.AccountProperties{},
+	existing, err := client.AccountsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	if ad := existing.Model.Properties.ActiveDirectories; ad != nil && len(*ad) > 0 {
+		// The API doesn't return these, so we'll set these values based on config.
+		// If there are no changes to the `active_directory` block this ensures we don't unintentionally wipe these values
+		existingAD := (*ad)[0]
+		existingAD.ServerRootCACertificate = pointer.To(d.Get("active_directory.0.server_root_ca_certificate").(string))
+		existingAD.Password = pointer.To(d.Get("active_directory.0.password").(string))
+		existing.Model.Properties.ActiveDirectories = pointer.To([]netappaccounts.ActiveDirectory{existingAD})
 	}
 
 	if d.HasChange("active_directory") {
-		activeDirectoriesRaw := d.Get("active_directory").([]interface{})
-		activeDirectories := expandNetAppActiveDirectories(activeDirectoriesRaw)
-		update.Properties.ActiveDirectories = activeDirectories
+		existing.Model.Properties.ActiveDirectories = expandNetAppActiveDirectories(d.Get("active_directory").([]any))
 	}
 
 	if d.HasChange("tags") {
-		tagsRaw := d.Get("tags").(map[string]interface{})
-		update.Tags = tags.Expand(tagsRaw)
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-
-		update.Identity = anfAccountIdentity
+		existing.Model.Identity = anfAccountIdentity
 	}
 
-	if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
+	if err := client.AccountsCreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id.ID(), err)
 	}
 
 	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -283,7 +297,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	resp, err := client.AccountsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] %s does not exist - removing from state", *id)
+			log.Printf("[DEBUG] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
@@ -294,40 +308,36 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
-		if model.Identity != nil {
-			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
+		anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
 
-			if err := d.Set("identity", anfAccountIdentity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
+		if err := d.Set("identity", anfAccountIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if model.Properties != nil {
+			// the API doesn't return values for `active_directory.0.password` and `active_directory.0.server_root_ca_certificate`, so we pass through current state values so change detection works
+			prevPassword := d.Get("active_directory.0.password").(string)
+			prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
+
+			if err = d.Set("active_directory", flattenNetAppActiveDirectories(model.Properties.ActiveDirectories, &prevPassword, &prevCaCert)); err != nil {
+				return fmt.Errorf("setting `active_directory`: %+v", err)
 			}
 		}
 
-		if model.Properties.ActiveDirectories != nil {
-			adProps := *model.Properties.ActiveDirectories
-			// response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
-			if len(adProps) > 0 {
-				// the API returns opaque('***') values for password and server_root_ca_certificate, so we pass through current state values so change detection works
-				prevPassword := d.Get("active_directory.0.password").(string)
-				prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
-
-				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0], &prevPassword, &prevCaCert)); err != nil {
-					return fmt.Errorf("setting `active_directory`: %+v", err)
-				}
-			}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
-
-		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
 }
 
-func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -347,31 +357,31 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.ActiveDirectory {
+func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirectory {
 	results := make([]netappaccounts.ActiveDirectory, 0)
 	if input == nil {
 		return &results
 	}
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
-		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
+		v := item.(map[string]any)
+		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]any)), ",")
 
 		result := netappaccounts.ActiveDirectory{
-			Dns:                        utils.String(dns),
-			Domain:                     utils.String(v["domain"].(string)),
-			OrganizationalUnit:         utils.String(v["organizational_unit"].(string)),
-			Password:                   utils.String(v["password"].(string)),
-			SmbServerName:              utils.String(v["smb_server_name"].(string)),
-			Username:                   utils.String(v["username"].(string)),
-			Site:                       utils.String(v["site_name"].(string)),
-			AdName:                     utils.String(v["kerberos_ad_name"].(string)),
-			KdcIP:                      utils.String(v["kerberos_kdc_ip"].(string)),
-			AesEncryption:              utils.Bool(v["aes_encryption_enabled"].(bool)),
-			AllowLocalNfsUsersWithLdap: utils.Bool(v["local_nfs_users_with_ldap_allowed"].(bool)),
-			LdapOverTLS:                utils.Bool(v["ldap_over_tls_enabled"].(bool)),
-			ServerRootCACertificate:    utils.String(v["server_root_ca_certificate"].(string)),
-			LdapSigning:                utils.Bool(v["ldap_signing_enabled"].(bool)),
+			Dns:                        pointer.To(dns),
+			Domain:                     pointer.To(v["domain"].(string)),
+			OrganizationalUnit:         pointer.To(v["organizational_unit"].(string)),
+			Password:                   pointer.To(v["password"].(string)),
+			SmbServerName:              pointer.To(v["smb_server_name"].(string)),
+			Username:                   pointer.To(v["username"].(string)),
+			Site:                       pointer.To(v["site_name"].(string)),
+			AdName:                     pointer.To(v["kerberos_ad_name"].(string)),
+			KdcIP:                      pointer.To(v["kerberos_kdc_ip"].(string)),
+			AesEncryption:              pointer.To(v["aes_encryption_enabled"].(bool)),
+			AllowLocalNfsUsersWithLdap: pointer.To(v["local_nfs_users_with_ldap_allowed"].(bool)),
+			LdapOverTLS:                pointer.To(v["ldap_over_tls_enabled"].(bool)),
+			ServerRootCACertificate:    pointer.To(v["server_root_ca_certificate"].(string)),
+			LdapSigning:                pointer.To(v["ldap_signing_enabled"].(bool)),
 		}
 
 		results = append(results, result)
@@ -379,27 +389,29 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 	return &results
 }
 
-func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []any {
+	if input == nil || len(*input) == 0 {
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"dns_servers":                       utils.FlattenStringSliceWithDelimiter(input.Dns, ","),
-			"domain":                            input.Domain,
-			"organizational_unit":               input.OrganizationalUnit,
+	v := (*input)[0]
+
+	return []any{
+		map[string]any{
+			"dns_servers":                       pluginsdk.FlattenStringSliceWithDelimiter(v.Dns, ","),
+			"domain":                            v.Domain,
+			"organizational_unit":               v.OrganizationalUnit,
 			"password":                          prevPassword,
-			"smb_server_name":                   input.SmbServerName,
-			"username":                          input.Username,
-			"site_name":                         input.Site,
-			"kerberos_ad_name":                  input.AdName,
-			"kerberos_kdc_ip":                   input.KdcIP,
-			"aes_encryption_enabled":            input.AesEncryption,
-			"local_nfs_users_with_ldap_allowed": input.AllowLocalNfsUsersWithLdap,
-			"ldap_over_tls_enabled":             input.LdapOverTLS,
+			"smb_server_name":                   v.SmbServerName,
+			"username":                          v.Username,
+			"site_name":                         v.Site,
+			"kerberos_ad_name":                  v.AdName,
+			"kerberos_kdc_ip":                   v.KdcIP,
+			"aes_encryption_enabled":            v.AesEncryption,
+			"local_nfs_users_with_ldap_allowed": v.AllowLocalNfsUsersWithLdap,
+			"ldap_over_tls_enabled":             v.LdapOverTLS,
 			"server_root_ca_certificate":        prevCaCert,
-			"ldap_signing_enabled":              input.LdapSigning,
+			"ldap_signing_enabled":              v.LdapSigning,
 		},
 	}
 }

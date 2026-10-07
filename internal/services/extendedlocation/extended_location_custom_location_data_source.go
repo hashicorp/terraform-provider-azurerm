@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package extendedlocation
@@ -102,7 +102,7 @@ func (r ExtendedLocationCustomLocationDataSource) Attributes() map[string]*plugi
 	}
 }
 
-func (r ExtendedLocationCustomLocationDataSource) ModelObject() interface{} {
+func (r ExtendedLocationCustomLocationDataSource) ModelObject() any {
 	return &ExtendedLocationCustomLocationDataSourceModel{}
 }
 
@@ -139,7 +139,7 @@ func (r ExtendedLocationCustomLocationDataSource) Read() sdk.ResourceFunc {
 					state.ClusterExtensionIds = pointer.From(props.ClusterExtensionIds)
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.HostResourceId = pointer.From(props.HostResourceId)
-					state.HostType = string(pointer.From(props.HostType))
+					state.HostType = pointer.FromEnum(props.HostType)
 					state.Namespace = pointer.From(props.Namespace)
 
 					if props.Authentication != nil && props.Authentication.Type != nil && props.Authentication.Value != nil {
