@@ -14,11 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	storageclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type StorageContainerResource struct{}
@@ -194,35 +191,6 @@ func TestAccStorageContainer_web(t *testing.T) {
 }
 
 func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
-		id, err := containers.ParseContainerID(state.ID, client.Storage.StorageDomainSuffix)
-		if err != nil {
-			return nil, err
-		}
-
-		var account *storageclient.AccountDetails
-
-		account, err = client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
-		}
-		if account == nil {
-			return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
-		}
-
-		containersClient, err := client.Storage.ContainersDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
-		if err != nil {
-			return nil, fmt.Errorf("building Containers Client: %+v", err)
-		}
-
-		prop, err := containersClient.Get(ctx, id.ContainerName)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving Container %q in %s: %+v", id.ContainerName, id.AccountId, err)
-		}
-
-		return pointer.To(prop != nil), nil
-	}
-
 	id, err := commonids.ParseStorageContainerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -274,37 +242,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) basicAzureADAuth(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  storage_use_azuread = true
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
@@ -349,21 +286,6 @@ resource "azurerm_storage_container" "import" {
 }
 
 func (r StorageContainerResource) update(data acceptance.TestData, accessType, metadataVal string) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "%s"
-  metadata = {
-    foo  = "bar"
-    test = "%s"
-  }
-}
-	`, r.template(data), accessType, metadataVal)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -380,25 +302,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) encryptionScope(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%[1]s
-
-resource "azurerm_storage_encryption_scope" "test" {
-  name               = "acctestEScontainer%[2]d"
-  storage_account_id = azurerm_storage_account.test.id
-  source             = "Microsoft.Storage"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-
-  default_encryption_scope = azurerm_storage_encryption_scope.test.name
-}
-	`, r.template(data), data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %[1]s
 
@@ -419,21 +322,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) metaData(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-
-  metadata = {
-    hello = "world"
-  }
-}
-	`, r.template(data))
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -450,22 +338,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) metaDataUpdated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-
-  metadata = {
-    hello = "world"
-    panda = "pops"
-  }
-}
-	`, r.template(data))
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -483,19 +355,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) metaDataEmpty(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-
-  metadata = {}
-}
-	`, r.template(data))
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -510,17 +369,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r StorageContainerResource) web(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-	%s
-
-resource "azurerm_storage_container" "test" {
-  name                  = "$web"
-  storage_account_name  = azurerm_storage_account.test.name
-  container_access_type = "private"
-}
-	`, r.template(data))
-	}
 	return fmt.Sprintf(`
 %s
 

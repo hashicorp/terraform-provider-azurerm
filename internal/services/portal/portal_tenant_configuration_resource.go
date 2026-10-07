@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -33,7 +33,7 @@ func resourcePortalTenantConfiguration() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.PortalTenantConfigurationID(id)
 			return err
 		}),
@@ -47,7 +47,7 @@ func resourcePortalTenantConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -87,7 +87,7 @@ func resourcePortalTenantConfigurationCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourcePortalTenantConfigurationRead(d, meta)
 }
 
-func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,7 +116,7 @@ func resourcePortalTenantConfigurationRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalTenantConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.TenantConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
