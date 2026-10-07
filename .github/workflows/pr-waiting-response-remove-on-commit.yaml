@@ -4,6 +4,7 @@ name: Pull Request New Commit
 # Removes the waiting-response label whenever new commits are pushed to a PR.
 
 permissions:
+  issues: write
   pull-requests: write
 
 # pull_request_target is used to label only; the PR head is never checked out
