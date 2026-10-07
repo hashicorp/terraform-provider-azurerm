@@ -153,14 +153,19 @@ fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
     hiddenVariable("env.TF_ACC", "1", "Set to a value to run the Acceptance Tests")
 }
 
+// Where Terraform Core and the providers are kept between builds. This can't live in the agent's work
+// directory: once a build finishes TeamCity deletes everything in there which isn't a checkout directory.
+// The agent's persistent cache directory is left alone until the agent runs short of disk space.
+const val terraformCacheDir = "%system.agent.persistent.cache%/terraform-cache"
+
 fun ParametrizedWithType.TerraformCoreBinaryTesting() {
     text("env.TERRAFORM_CORE_VERSION", defaultTerraformCoreVersion, "The version of Terraform Core which should be used for testing")
-    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%teamcity.agent.work.dir%/terraform-cache/core/%env.TERRAFORM_CORE_VERSION%/terraform", "The path where the Terraform Binary is located - shared by every build on the agent")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "$terraformCacheDir/core/%env.TERRAFORM_CORE_VERSION%/terraform", "The path where the Terraform Binary is located - shared by every build on the agent")
 }
 
 fun ParametrizedWithType.TerraformProviderMirror() {
-    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_MIRROR_PATH", "%teamcity.agent.work.dir%/terraform-cache/providers", "The directory of provider binaries shared by every build on the agent, which tests link to rather than downloading their own")
-    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE", "%teamcity.agent.work.dir%/terraform-cache/providers.tfrc", "The Terraform CLI config which has tests install providers from that directory when they are present")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_MIRROR_PATH", "$terraformCacheDir/providers", "The directory of provider binaries shared by every build on the agent, which tests link to rather than downloading their own")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE", "$terraformCacheDir/providers.tfrc", "The Terraform CLI config which has tests install providers from that directory when they are present")
     // TF_CLI_CONFIG_FILE is the name Terraform itself reads, so it has to be set for the tests to pick the config up
     hiddenVariable("env.TF_CLI_CONFIG_FILE", "%env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE%", "Points Terraform at the provider cache CLI config")
 }
