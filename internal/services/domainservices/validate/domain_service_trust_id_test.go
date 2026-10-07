@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestDomainServiceTrustID(t *testing.T) {
+func TestValidateDomainServiceTrustID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

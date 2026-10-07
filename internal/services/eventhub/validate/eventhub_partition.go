@@ -5,7 +5,8 @@ package validate
 
 import "errors"
 
-func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errs []error) {
+// lintignore:V012 // error message intentionally documents the standard vs dedicated cluster limits
+func ValidateEventHubPartitionCount(v any, _ string) (warnings []string, errs []error) {
 	value := v.(int)
 
 	if 1024 < value || value < 1 {

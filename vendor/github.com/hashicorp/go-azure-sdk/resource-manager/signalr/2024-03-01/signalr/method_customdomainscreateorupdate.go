@@ -61,9 +61,20 @@ func (c SignalRClient) CustomDomainsCreateOrUpdate(ctx context.Context, id Custo
 
 // CustomDomainsCreateOrUpdateThenPoll performs CustomDomainsCreateOrUpdate then polls until it's completed
 func (c SignalRClient) CustomDomainsCreateOrUpdateThenPoll(ctx context.Context, id CustomDomainId, input CustomDomain) error {
+	return c.CustomDomainsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CustomDomainsCreateOrUpdateCallbackThenPoll performs CustomDomainsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c SignalRClient) CustomDomainsCreateOrUpdateCallbackThenPoll(ctx context.Context, id CustomDomainId, input CustomDomain, callback func() error) error {
 	result, err := c.CustomDomainsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CustomDomainsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

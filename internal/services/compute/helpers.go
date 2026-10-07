@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
-func expandIDsToSubResources(input []interface{}) *[]virtualmachinescalesets.SubResource {
+func expandIDsToSubResources(input []any) *[]virtualmachinescalesets.SubResource {
 	ids := make([]virtualmachinescalesets.SubResource, 0)
 
 	for _, v := range input {
@@ -32,8 +32,8 @@ func expandIDsToSubResources(input []interface{}) *[]virtualmachinescalesets.Sub
 	return &ids
 }
 
-func flattenSubResourcesToIDs(input *[]virtualmachinescalesets.SubResource) []interface{} {
-	ids := make([]interface{}, 0)
+func flattenSubResourcesToIDs(input *[]virtualmachinescalesets.SubResource) []any {
+	ids := make([]any, 0)
 	if input == nil {
 		return ids
 	}
@@ -187,7 +187,7 @@ func resourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clien
 	// De-allocate
 	if shouldDeallocate {
 		log.Printf("[DEBUG] Deallocating %s.", virtualMachineId)
-		// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
+		// Upgrading to 2021-07-01 exposed a new hibernate parameter to the Deallocate method
 		if err := virtualMachinesClient.DeallocateThenPoll(ctx, *virtualMachineId, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
 			return fmt.Errorf("deallocating to %s: %+v", virtualMachineId, err)
 		}
@@ -195,8 +195,7 @@ func resourceManagedDiskUpdateWithVmShutDown(ctx context.Context, clients *clien
 	}
 
 	// Update Disk
-	err = diskClient.UpdateThenPoll(ctx, *id, diskUpdate)
-	if err != nil {
+	if err = diskClient.UpdateThenPoll(ctx, *id, diskUpdate); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

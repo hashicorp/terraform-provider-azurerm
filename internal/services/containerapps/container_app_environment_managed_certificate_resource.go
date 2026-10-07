@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -22,17 +22,17 @@ import (
 type ContainerAppEnvironmentManagedCertificateResource struct{}
 
 type ContainerAppEnvironmentManagedCertificateModel struct {
-	Name                      string                 `tfschema:"name"`
-	ContainerAppEnvironmentId string                 `tfschema:"container_app_environment_id"`
-	SubjectName               string                 `tfschema:"subject_name"`
-	DomainControlValidation   string                 `tfschema:"domain_control_validation"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
-	ValidationToken           string                 `tfschema:"validation_token"`
+	Name                      string         `tfschema:"name"`
+	ContainerAppEnvironmentId string         `tfschema:"container_app_environment_id"`
+	SubjectName               string         `tfschema:"subject_name"`
+	DomainControlValidation   string         `tfschema:"domain_control_validation"`
+	Tags                      map[string]any `tfschema:"tags"`
+	ValidationToken           string         `tfschema:"validation_token"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentManagedCertificateResource{}
 
-func (r ContainerAppEnvironmentManagedCertificateResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentManagedCertificateResource) ModelObject() any {
 	return &ContainerAppEnvironmentManagedCertificateModel{}
 }
 
@@ -118,15 +118,17 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 
 			id := managedenvironments.NewManagedCertificateID(envId.SubscriptionId, envId.ResourceGroupName, envId.ManagedEnvironmentName, model.Name)
 
-			existing, err := client.ManagedCertificatesGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ManagedCertificatesGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			env, err := client.Get(ctx, *envId)
@@ -142,12 +144,12 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 				Location: env.Model.Location,
 				Properties: &managedenvironments.ManagedCertificateProperties{
 					SubjectName:             pointer.To(model.SubjectName),
-					DomainControlValidation: pointer.To(managedenvironments.ManagedCertificateDomainControlValidation(model.DomainControlValidation)),
+					DomainControlValidation: pointer.ToEnum[managedenvironments.ManagedCertificateDomainControlValidation](model.DomainControlValidation),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if err := client.ManagedCertificatesCreateOrUpdateThenPoll(ctx, id, certificate); err != nil {
+			if err := client.ManagedCertificatesCreateOrUpdateCallbackThenPoll(ctx, id, certificate, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
