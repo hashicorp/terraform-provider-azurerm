@@ -69,7 +69,7 @@ func (r StorageActionsTaskDefinitionResource) Identity() resourceids.ResourceId 
 	return &storagetasks.StorageTaskId{}
 }
 
-func (r StorageActionsTaskDefinitionResource) ModelObject() interface{} {
+func (r StorageActionsTaskDefinitionResource) ModelObject() any {
 	return &StorageActionsTaskDefinitionModel{}
 }
 
