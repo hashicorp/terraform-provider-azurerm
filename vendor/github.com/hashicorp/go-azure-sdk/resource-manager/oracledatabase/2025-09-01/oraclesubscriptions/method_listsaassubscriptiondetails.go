@@ -59,9 +59,20 @@ func (c OracleSubscriptionsClient) ListSaasSubscriptionDetails(ctx context.Conte
 
 // ListSaasSubscriptionDetailsThenPoll performs ListSaasSubscriptionDetails then polls until it's completed
 func (c OracleSubscriptionsClient) ListSaasSubscriptionDetailsThenPoll(ctx context.Context, id commonids.SubscriptionId) error {
+	return c.ListSaasSubscriptionDetailsCallbackThenPoll(ctx, id, nil)
+}
+
+// ListSaasSubscriptionDetailsCallbackThenPoll performs ListSaasSubscriptionDetails, runs the optional callback function, then polls until it's completed
+func (c OracleSubscriptionsClient) ListSaasSubscriptionDetailsCallbackThenPoll(ctx context.Context, id commonids.SubscriptionId, callback func() error) error {
 	result, err := c.ListSaasSubscriptionDetails(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ListSaasSubscriptionDetails: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

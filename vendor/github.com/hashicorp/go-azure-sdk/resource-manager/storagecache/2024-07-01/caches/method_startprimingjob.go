@@ -60,9 +60,20 @@ func (c CachesClient) StartPrimingJob(ctx context.Context, id CacheId, input Pri
 
 // StartPrimingJobThenPoll performs StartPrimingJob then polls until it's completed
 func (c CachesClient) StartPrimingJobThenPoll(ctx context.Context, id CacheId, input PrimingJob) error {
+	return c.StartPrimingJobCallbackThenPoll(ctx, id, input, nil)
+}
+
+// StartPrimingJobCallbackThenPoll performs StartPrimingJob, runs the optional callback function, then polls until it's completed
+func (c CachesClient) StartPrimingJobCallbackThenPoll(ctx context.Context, id CacheId, input PrimingJob, callback func() error) error {
 	result, err := c.StartPrimingJob(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing StartPrimingJob: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
