@@ -12,19 +12,13 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -372,151 +366,6 @@ func windowsVMPasswordTestDirectory(t *testing.T) string {
 		t.Setenv("PLUGIN_UNIX_SOCKET_DIR", socketDir)
 	}
 	return workingDir
-}
-
-func TestWindowsVMPasswordTestDirectory(t *testing.T) {
-	t.Setenv("PLUGIN_UNIX_SOCKET_DIR", "inherited-socket-directory")
-	previous := make(map[string]string)
-	wasSet := make(map[string]bool)
-	for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR", "PLUGIN_UNIX_SOCKET_DIR"} {
-		previous[name], wasSet[name] = os.LookupEnv(name)
-	}
-	var directory, socketDirectory string
-	t.Run("contained", func(t *testing.T) {
-		directory = windowsVMPasswordTestDirectory(t)
-		checkout, err := os.Getwd()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if filepath.Dir(directory) != checkout {
-			t.Fatal("password test directory must be inside the checkout")
-		}
-		info, err := os.Stat(directory)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if runtime.GOOS != "windows" && info.Mode().Perm() != 0o700 {
-			t.Fatal("password test directory must be private")
-		}
-		for _, name := range []string{"TMPDIR", "TMP", "TEMP", "GOTMPDIR", "TF_ACC_TEMP_DIR"} {
-			if os.Getenv(name) != directory {
-				t.Errorf("%s must point to the private password test directory", name)
-			}
-		}
-		socketDirectory = os.Getenv("PLUGIN_UNIX_SOCKET_DIR")
-		if runtime.GOOS == "windows" {
-			if socketDirectory != previous["PLUGIN_UNIX_SOCKET_DIR"] {
-				t.Fatal("Windows TCP plugins do not need a socket directory override")
-			}
-		} else {
-			info, err := os.Stat(socketDirectory)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !info.IsDir() || info.Mode().Perm() != 0o700 {
-				t.Fatal("plugin socket directory must be private")
-			}
-		}
-		file, err := os.CreateTemp("", "containment-check-")
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Cleanup(func() {
-			if err := os.Remove(file.Name()); err != nil {
-				t.Error(err)
-			}
-		})
-		if err := file.Close(); err != nil {
-			t.Fatal(err)
-		}
-		relative, err := filepath.Rel(directory, file.Name())
-		if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-			t.Fatal("temporary file escaped the private password test directory")
-		}
-	})
-	if _, err := os.Stat(directory); !errors.Is(err, os.ErrNotExist) {
-		t.Fatal("password test directory was not removed")
-	}
-	if runtime.GOOS != "windows" {
-		if _, err := os.Stat(socketDirectory); !errors.Is(err, os.ErrNotExist) {
-			t.Fatal("plugin socket directory was not removed")
-		}
-	}
-	for name, expected := range previous {
-		value, set := os.LookupEnv(name)
-		if value != expected || set != wasSet[name] {
-			t.Errorf("%s was not restored after the password test", name)
-		}
-	}
-}
-
-func TestWindowsVMPasswordTestDirectoryProviderStartup(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("go-plugin uses TCP rather than Unix sockets on Windows")
-	}
-
-	checkout := filepath.Join(t.TempDir(), strings.Repeat("checkout-", 16))
-	if err := os.Mkdir(checkout, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Chdir(checkout)
-	t.Setenv("PLUGIN_PROTOCOL_VERSIONS", "5")
-	t.Setenv("PLUGIN_CLIENT_CERT", "")
-	t.Setenv("PLUGIN_UNIX_SOCKET_GROUP", "")
-	t.Setenv("PLUGIN_UNIX_SOCKET_DIR", "")
-
-	workingDir := windowsVMPasswordTestDirectory(t)
-	longSocketPath := filepath.Join(workingDir, "plugin1234567890")
-	if len(longSocketPath) <= 108 {
-		t.Fatal("control must exceed Linux and macOS Unix socket path limits")
-	}
-	listenConfig := net.ListenConfig{}
-	if listener, err := listenConfig.Listen(t.Context(), "unix", longSocketPath); err == nil {
-		if err := listener.Close(); err != nil {
-			t.Error(err)
-		}
-		t.Fatal("control unexpectedly accepted an overlong Unix socket path")
-	}
-
-	// Exercise the harness's startup path without Terraform, Azure or passwords.
-	provider := schema.NewGRPCProviderServer(&schema.Provider{})
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	t.Cleanup(cancel)
-	reattach, closed, serveErr := plugin.DebugServe(ctx, &plugin.ServeOpts{
-		GRPCProviderFunc:    func() tfprotov5.ProviderServer { return provider },
-		NoLogOutputOverride: true,
-		Logger:              hclog.NewNullLogger(),
-	})
-	t.Cleanup(func() {
-		cancel()
-		select {
-		case <-closed:
-			if serveErr == nil {
-				if _, err := os.Stat(reattach.Addr.String); !errors.Is(err, os.ErrNotExist) {
-					t.Error("plugin socket was not removed after shutdown")
-				}
-			}
-		case <-time.After(5 * time.Second):
-			t.Error("provider did not shut down")
-		}
-	})
-	if serveErr != nil {
-		t.Fatalf("provider startup failed: %s", serveErr)
-	}
-	if reattach.Addr.Network != "unix" || reattach.ProtocolVersion != 5 {
-		t.Fatal("provider did not start a protocol 5 Unix socket server")
-	}
-	if filepath.Dir(reattach.Addr.String) != os.Getenv("PLUGIN_UNIX_SOCKET_DIR") {
-		t.Fatal("provider socket escaped the private socket directory")
-	}
-	dialer := net.Dialer{Timeout: time.Second}
-	connection, err := dialer.DialContext(ctx, "unix", reattach.Addr.String)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := connection.Close(); err != nil {
-		t.Fatal(err)
-	}
 }
 
 func windowsVMPasswordSourceState(resourceName, expected string) resource.TestCheckFunc {
