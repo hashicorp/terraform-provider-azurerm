@@ -19,7 +19,7 @@ mkdir -p "$CACHE_DIR"
 if [ -x "$TERRAFORM_PATH" ]; then
   touch "$VERSION_DIR"
 fi
-find "$CACHE_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
+find "$CACHE_DIR" -mindepth 1 -maxdepth 1 -type d -atime +"$RETENTION_DAYS" -exec rm -rf {} +
 
 if [ -x "$TERRAFORM_PATH" ]; then
   echo "Terraform Core v$TERRAFORM_VERSION is already on this agent."
