@@ -13,9 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	prometheusrulegroups "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -64,7 +65,7 @@ func (r AlertPrometheusRuleGroupResource) ResourceType() string {
 	return "azurerm_monitor_alert_prometheus_rule_group"
 }
 
-func (r AlertPrometheusRuleGroupResource) ModelObject() interface{} {
+func (r AlertPrometheusRuleGroupResource) ModelObject() any {
 	return &AlertPrometheusRuleGroupResourceModel{}
 }
 
@@ -86,7 +87,7 @@ func (r AlertPrometheusRuleGroupResource) CustomizeDiff() sdk.ResourceFunc {
 					_, actionOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".action")
 					// Use raw config for severity so post-apply plans don't treat state-populated zero values as user-set.
 					severityOk := false
-					rawSeverity, diags := metadata.ResourceDiff.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i)))
+					rawSeverity, diags := metadata.ResourceDiff.GetRawConfigAt(ctyhelpers.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i)))
 					if !diags.HasError() {
 						severityOk = !rawSeverity.IsNull()
 					}
@@ -106,7 +107,7 @@ func (r AlertPrometheusRuleGroupResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (r AlertPrometheusRuleGroupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return prometheusrulegroups.ValidatePrometheusRuleGroupID
+	return prometheusrulegroupresources.ValidatePrometheusRuleGroupID
 }
 
 func (r AlertPrometheusRuleGroupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -274,19 +275,22 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := prometheusrulegroups.NewPrometheusRuleGroupID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.PrometheusRuleGroupsGet(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			id := prometheusrulegroupresources.NewPrometheusRuleGroupID(subscriptionId, model.ResourceGroupName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.PrometheusRuleGroupsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			properties := prometheusrulegroups.PrometheusRuleGroupResource{
+			properties := prometheusrulegroupresources.PrometheusRuleGroupResource{
 				Location: location.Normalize(model.Location),
-				Properties: prometheusrulegroups.PrometheusRuleGroupProperties{
+				Properties: prometheusrulegroupresources.PrometheusRuleGroupProperties{
 					Enabled: pointer.To(model.RuleGroupEnabled),
 					Scopes:  model.Scopes,
 				},
@@ -316,7 +320,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 
-			id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
+			id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -373,7 +377,7 @@ func (r AlertPrometheusRuleGroupResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 
-			id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
+			id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -413,7 +417,7 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 
-			id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
+			id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -427,11 +431,11 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroups.PrometheusRule {
-	outputList := make([]prometheusrulegroups.PrometheusRule, 0)
+func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroupresources.PrometheusRule {
+	outputList := make([]prometheusrulegroupresources.PrometheusRule, 0)
 
 	for i, v := range inputList {
-		output := prometheusrulegroups.PrometheusRule{
+		output := prometheusrulegroupresources.PrometheusRule{
 			Enabled:    pointer.To(v.Enabled),
 			Expression: v.Expression,
 			Labels:     pointer.To(v.Labels),
@@ -459,10 +463,10 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 	return outputList
 }
 
-func expandPrometheusRuleGroupActionModel(inputList []PrometheusRuleGroupActionModel) *[]prometheusrulegroups.PrometheusRuleGroupAction {
-	outputList := make([]prometheusrulegroups.PrometheusRuleGroupAction, 0)
+func expandPrometheusRuleGroupActionModel(inputList []PrometheusRuleGroupActionModel) *[]prometheusrulegroupresources.PrometheusRuleGroupAction {
+	outputList := make([]prometheusrulegroupresources.PrometheusRuleGroupAction, 0)
 	for _, v := range inputList {
-		output := prometheusrulegroups.PrometheusRuleGroupAction{
+		output := prometheusrulegroupresources.PrometheusRuleGroupAction{
 			ActionProperties: pointer.To(v.ActionProperties),
 		}
 		output.ActionGroupId = pointer.To(v.ActionGroupId)
@@ -472,13 +476,13 @@ func expandPrometheusRuleGroupActionModel(inputList []PrometheusRuleGroupActionM
 	return &outputList
 }
 
-func expandPrometheusRuleAlertResolutionModel(inputList []PrometheusRuleAlertResolutionModel) *prometheusrulegroups.PrometheusRuleResolveConfiguration {
+func expandPrometheusRuleAlertResolutionModel(inputList []PrometheusRuleAlertResolutionModel) *prometheusrulegroupresources.PrometheusRuleResolveConfiguration {
 	if len(inputList) == 0 {
 		return nil
 	}
 
 	input := &inputList[0]
-	output := prometheusrulegroups.PrometheusRuleResolveConfiguration{
+	output := prometheusrulegroupresources.PrometheusRuleResolveConfiguration{
 		AutoResolved: pointer.To(input.AutoResolved),
 	}
 	output.TimeToResolve = pointer.To(input.TimeToResolve)
@@ -486,7 +490,7 @@ func expandPrometheusRuleAlertResolutionModel(inputList []PrometheusRuleAlertRes
 	return &output
 }
 
-func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule) []PrometheusRuleModel {
+func flattenPrometheusRuleModel(inputList *[]prometheusrulegroupresources.PrometheusRule) []PrometheusRuleModel {
 	outputList := make([]PrometheusRuleModel, 0)
 	if inputList == nil {
 		return outputList
@@ -497,16 +501,14 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 			Expression: input.Expression,
 		}
 
-		actionsValue := flattenPrometheusRuleGroupActionModel(input.Actions)
-		output.Action = actionsValue
+		output.Action = flattenPrometheusRuleGroupActionModel(input.Actions)
 		output.Alert = pointer.From(input.Alert)
 		output.Annotations = pointer.From(input.Annotations)
 		output.Enabled = pointer.From(input.Enabled)
 		output.For = pointer.From(input.For)
 		output.Labels = pointer.From(input.Labels)
 		output.Record = pointer.From(input.Record)
-		resolveConfigurationValue := flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
-		output.AlertResolution = resolveConfigurationValue
+		output.AlertResolution = flattenPrometheusRuleAlertResolutionModel(input.ResolveConfiguration)
 		output.Severity = pointer.From(input.Severity)
 		outputList = append(outputList, output)
 	}
@@ -514,7 +516,7 @@ func flattenPrometheusRuleModel(inputList *[]prometheusrulegroups.PrometheusRule
 	return outputList
 }
 
-func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroups.PrometheusRuleGroupAction) []PrometheusRuleGroupActionModel {
+func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroupresources.PrometheusRuleGroupAction) []PrometheusRuleGroupActionModel {
 	outputList := make([]PrometheusRuleGroupActionModel, 0)
 	if inputList == nil {
 		return outputList
@@ -530,7 +532,7 @@ func flattenPrometheusRuleGroupActionModel(inputList *[]prometheusrulegroups.Pro
 	return outputList
 }
 
-func flattenPrometheusRuleAlertResolutionModel(input *prometheusrulegroups.PrometheusRuleResolveConfiguration) []PrometheusRuleAlertResolutionModel {
+func flattenPrometheusRuleAlertResolutionModel(input *prometheusrulegroupresources.PrometheusRuleResolveConfiguration) []PrometheusRuleAlertResolutionModel {
 	outputList := make([]PrometheusRuleAlertResolutionModel, 0)
 	if input == nil {
 		return outputList

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	prometheusrulegroups "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,7 +102,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 }
 
 func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(state.ID)
+	id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, client
 
 func (r AlertPrometheusRuleGroupTestResource) checkAlertRuleSeverity(alertName string, expectedSeverity int64) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(state.ID)
+		id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(state.ID)
 		if err != nil {
 			return err
 		}
@@ -250,6 +250,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   default_node_pool {
     name                    = "default"
     node_count              = 1
@@ -328,6 +332,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   default_node_pool {
     name                    = "default"
     node_count              = 1
@@ -348,6 +356,10 @@ resource "azurerm_kubernetes_cluster" "test2" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks2%[2]d"
+
+  node_provisioning_profile {
+    mode = "Manual"
+  }
 
   default_node_pool {
     name                    = "default"
@@ -548,6 +560,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   default_node_pool {
     name                    = "default"
     node_count              = 1
@@ -568,6 +584,10 @@ resource "azurerm_kubernetes_cluster" "test2" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks2%[2]d"
+
+  node_provisioning_profile {
+    mode = "Manual"
+  }
 
   default_node_pool {
     name                    = "default"
