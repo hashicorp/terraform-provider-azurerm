@@ -48,7 +48,7 @@ func (r ContainerRegistryTaskScheduleResource) ResourceType() string {
 	return "azurerm_container_registry_task_schedule_run_now"
 }
 
-func (r ContainerRegistryTaskScheduleResource) ModelObject() interface{} {
+func (r ContainerRegistryTaskScheduleResource) ModelObject() any {
 	return &ContainerRegistryTaskScheduleModel{}
 }
 
@@ -126,7 +126,7 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{string(registries.RunStatusQueued), string(registries.RunStatusStarted), string(registries.RunStatusRunning)},
 				Target:  []string{string(registries.RunStatusSucceeded)},
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					resp, err := runsClient.Get(ctx, runId)
 					if err != nil {
 						return nil, "", fmt.Errorf("getting the scheduled run: %v", err)

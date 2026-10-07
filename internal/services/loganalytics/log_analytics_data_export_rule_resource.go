@@ -100,7 +100,7 @@ func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
 	}
 }
 
-func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	return resourceOperationalinsightsDataExportRead(d, meta)
 }
 
-func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +226,7 @@ func resourceOperationalinsightsDataExportRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceOperationalinsightsDataExportDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceOperationalinsightsDataExportDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataExportClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

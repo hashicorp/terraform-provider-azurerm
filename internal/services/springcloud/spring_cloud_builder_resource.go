@@ -112,7 +112,7 @@ func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.BuildServiceBuilderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -143,7 +143,7 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 	builderResource := appplatform.BuilderResource{
 		Properties: &appplatform.BuilderProperties{
 			BuildpackGroups: expandBuildServiceBuilderBuildPacksGroupPropertiesArray(d.Get("build_pack_group").(*pluginsdk.Set).List()),
-			Stack:           expandBuildServiceBuilderStackProperties(d.Get("stack").([]interface{})),
+			Stack:           expandBuildServiceBuilderStackProperties(d.Get("stack").([]any)),
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, builderResource)
@@ -160,7 +160,7 @@ func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSpringCloudBuildServiceBuilderRead(d, meta)
 }
 
-func resourceSpringCloudBuildServiceBuilderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildServiceBuilderRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BuildServiceBuilderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceSpringCloudBuildServiceBuilderRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudBuildServiceBuilderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudBuildServiceBuilderDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BuildServiceBuilderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,30 +218,30 @@ func resourceSpringCloudBuildServiceBuilderDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func expandBuildServiceBuilderBuildPacksGroupPropertiesArray(input []interface{}) *[]appplatform.BuildpacksGroupProperties {
+func expandBuildServiceBuilderBuildPacksGroupPropertiesArray(input []any) *[]appplatform.BuildpacksGroupProperties {
 	results := make([]appplatform.BuildpacksGroupProperties, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, appplatform.BuildpacksGroupProperties{
 			Name:       pointer.To(v["name"].(string)),
-			Buildpacks: expandBuildServiceBuilderBuildPackPropertiesArray(v["build_pack_ids"].([]interface{})),
+			Buildpacks: expandBuildServiceBuilderBuildPackPropertiesArray(v["build_pack_ids"].([]any)),
 		})
 	}
 	return &results
 }
 
-func expandBuildServiceBuilderStackProperties(input []interface{}) *appplatform.StackProperties {
+func expandBuildServiceBuilderStackProperties(input []any) *appplatform.StackProperties {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &appplatform.StackProperties{
 		ID:      pointer.To(v["id"].(string)),
 		Version: pointer.To(v["version"].(string)),
 	}
 }
 
-func expandBuildServiceBuilderBuildPackPropertiesArray(input []interface{}) *[]appplatform.BuildpackProperties {
+func expandBuildServiceBuilderBuildPackPropertiesArray(input []any) *[]appplatform.BuildpackProperties {
 	results := make([]appplatform.BuildpackProperties, 0)
 	for _, item := range input {
 		results = append(results, appplatform.BuildpackProperties{
@@ -251,14 +251,14 @@ func expandBuildServiceBuilderBuildPackPropertiesArray(input []interface{}) *[]a
 	return &results
 }
 
-func flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(input *[]appplatform.BuildpacksGroupProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(input *[]appplatform.BuildpacksGroupProperties) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"name":           pointer.From(item.Name),
 			"build_pack_ids": flattenBuildServiceBuilderBuildPackPropertiesArray(item.Buildpacks),
 		})
@@ -266,21 +266,21 @@ func flattenBuildServiceBuilderBuildPacksGroupPropertiesArray(input *[]appplatfo
 	return results
 }
 
-func flattenBuildServiceBuilderStackProperties(input *appplatform.StackProperties) []interface{} {
+func flattenBuildServiceBuilderStackProperties(input *appplatform.StackProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"id":      pointer.From(input.ID),
 			"version": pointer.From(input.Version),
 		},
 	}
 }
 
-func flattenBuildServiceBuilderBuildPackPropertiesArray(input *[]appplatform.BuildpackProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenBuildServiceBuilderBuildPackPropertiesArray(input *[]appplatform.BuildpackProperties) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

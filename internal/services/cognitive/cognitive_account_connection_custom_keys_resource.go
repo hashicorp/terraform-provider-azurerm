@@ -41,7 +41,7 @@ func (r CognitiveAccountConnectionCustomKeysResource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_custom_keys"
 }
 
-func (r CognitiveAccountConnectionCustomKeysResource) ModelObject() interface{} {
+func (r CognitiveAccountConnectionCustomKeysResource) ModelObject() any {
 	return &CognitiveAccountConnectionCustomKeysModel{}
 }
 
