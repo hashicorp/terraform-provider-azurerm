@@ -194,10 +194,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Route.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Route.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Route.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Route.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Route.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Route.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Route.
 
 ## Import
 
@@ -206,3 +206,9 @@ Front Door Routes can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_route.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/afdEndpoints/endpoint1/routes/route1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-12-01
