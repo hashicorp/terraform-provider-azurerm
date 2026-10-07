@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,7 +100,7 @@ func TestAccHealthCareService_updateIdentitySystemAssigned(t *testing.T) {
 }
 
 func (HealthCareServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := service.ParseServiceID(state.ID)
+	id, err := resource.ParseServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
+    object_id = data.azuread_service_principal.cosmosdb.object_id
 
     key_permissions = [
       "Get",
@@ -389,7 +389,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azuread_service_principal.cosmosdb.id
+    object_id = data.azuread_service_principal.cosmosdb.object_id
 
     key_permissions = [
       "Get",

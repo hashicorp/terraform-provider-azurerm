@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -108,12 +108,12 @@ func TestAccVirtualNetworkGatewayNatRule_updatePortRange(t *testing.T) {
 }
 
 func (r VirtualNetworkGatewayNatRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := virtualnetworkgateways.ParseVirtualNetworkGatewayNatRuleID(state.ID)
+	id, err := networkgateways.ParseVirtualNetworkGatewayNatRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VirtualNetworkGateways.VirtualNetworkGatewayNatRulesGet(ctx, *id)
+	resp, err := clients.Network.NetworkGateways.VirtualNetworkGatewayNatRulesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
