@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfprotov6
@@ -65,6 +65,74 @@ type ProviderServer interface {
 	// ephemeral resource is to terraform-plugin-go, so they're their own
 	// interface that is composed into ProviderServer.
 	EphemeralResourceServer
+
+	/* // Add this back once temporary interface is removed
+	   // ListResourceServer is an interface encapsulating all the list
+	   // resource-related RPC requests.
+	   ListResourceServer*/
+
+	/* // Add this back once temporary interface is removed
+	   // ActionServer is an interface encapsulating all the action-related RPC requests.
+	   ActionServer*/
+
+	/* // Add this back once temporary interface is removed
+	   // StateStoreServer is an interface encapsulating all the state store related RPC requests.
+	   StateStoreServer*/
+}
+
+// ProviderServerWithListResource is a temporary interface for servers
+// to implement List Resource RPC handling with:
+//
+// - ListResource
+// - ValidateListResourceConfig
+//
+// Deprecated: All methods will be moved into the
+// ProviderServer and ResourceServer interfaces and this interface will be removed in a future
+// version.
+type ProviderServerWithListResource interface {
+	ProviderServer
+
+	// ListResourceServer is an interface encapsulating all the list
+	// resource-related RPC requests.
+	ListResourceServer
+}
+
+// ProviderServerWithActions is a temporary interface for servers
+// to implement Action RPCs
+//
+// - PlanAction
+// - InvokeAction
+//
+// Deprecated: All methods will be moved into the
+// ProviderServer interface and this interface will be removed in a future
+// version.
+type ProviderServerWithActions interface {
+	ProviderServer
+
+	// ActionServer is an interface encapsulating all the action-related RPC requests.
+	ActionServer
+}
+
+// ProviderServerWithStateStores is a temporary interface for servers
+// to implement StateStore RPCs
+//
+// - ValidateStateStoreConfig
+// - ConfigureStateStore
+// - GetStates
+// - DeleteState
+// - LockState
+// - UnlockState
+// - ReadStateBytes
+// - WriteStateBytes
+//
+// Deprecated: All methods will be moved into the
+// ProviderServer interface and this interface will be removed in a future
+// version.
+type ProviderServerWithStateStores interface {
+	ProviderServer
+
+	// StateStoreServer is an interface encapsulating all the state store related RPC requests.
+	StateStoreServer
 }
 
 // GetMetadataRequest represents a GetMetadata RPC request.
@@ -92,6 +160,15 @@ type GetMetadataResponse struct {
 
 	// EphemeralResources returns metadata for all ephemeral resources.
 	EphemeralResources []EphemeralResourceMetadata
+
+	// ListResources returns metadata for all list resources.
+	ListResources []ListResourceMetadata
+
+	// Actions returns metadata for all actions.
+	Actions []ActionMetadata
+
+	// StateStores returns metadata for all state stores.
+	StateStores []StateStoreMetadata
 }
 
 // GetProviderSchemaRequest represents a Terraform RPC request for the
@@ -144,6 +221,17 @@ type GetProviderSchemaResponse struct {
 	// shortname and an underscore. It should match the first label after
 	// `ephemeral` in a user's configuration.
 	EphemeralResourceSchemas map[string]*Schema
+
+	// ListResourceSchemas is a map of list resource schemas and names.
+	ListResourceSchemas map[string]*Schema
+
+	// ActionSchemas is a map of action names to their schema and action type.
+	// The name should be an action name that is prefixed with your provider's
+	// shortname and an underscore.
+	ActionSchemas map[string]*ActionSchema
+
+	// StateStoreSchemas is a map of state store name and its schema
+	StateStoreSchemas map[string]*Schema
 
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with

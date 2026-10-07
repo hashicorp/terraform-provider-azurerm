@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_test
@@ -305,7 +305,7 @@ func TestAccKustoCluster_newSkus(t *testing.T) {
 	})
 }
 
-func TestAccKustoCluster_removeLanguageExtension(t *testing.T) {
+func TestAccKustoCluster_languageExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
 
@@ -319,6 +319,13 @@ func TestAccKustoCluster_removeLanguageExtension(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleLanguageExtensions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -415,7 +422,46 @@ resource "azurerm_kusto_cluster" "test" {
   public_ip_type                     = "DualStack"
   outbound_network_access_restricted = true
 
-  language_extensions {
+  language_extension {
+    name  = "PYTHON"
+    image = "Python3_6_5"
+  }
+
+  sku {
+    name     = "Standard_L8s_v3"
+    capacity = 2
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (KustoClusterResource) multipleLanguageExtensions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                               = "acctestkc%s"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  allowed_fqdns                      = ["example.blob.core.windows.net"]
+  allowed_ip_ranges                  = ["0.0.0.0/0"]
+  public_network_access_enabled      = false
+  public_ip_type                     = "DualStack"
+  outbound_network_access_restricted = true
+
+  language_extension {
+    name  = "R"
+    image = "R"
+  }
+
+  language_extension {
     name  = "PYTHON"
     image = "Python3_6_5"
   }

@@ -23,7 +23,7 @@ output "api_management_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the API Management service.
 
@@ -67,7 +67,7 @@ output "api_management_id" {
 
 * `scm_url` - The SCM (Source Code Management) endpoint.
 
-* `sku` - A `sku` block as documented below.
+* `sku_name` - The SKU of the API Management Service consisting of the name and capacity, separated by an underscore.
 
 * `tenant_access` - A `tenant_access` block as defined below.
 
@@ -171,14 +171,6 @@ A `scm` block exports the following:
 
 ---
 
-A `sku` block exports the following:
-
-* `name` - Specifies the plan's pricing tier.
-
-* `capacity` - Specifies the number of units associated with this API Management service.
-
----
-
 A `tenant_access` block exports the following:
 
 * `enabled` - Is access to the Management API enabled (presumably "for this Tenant")?
@@ -193,7 +185,7 @@ A `tenant_access` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
 

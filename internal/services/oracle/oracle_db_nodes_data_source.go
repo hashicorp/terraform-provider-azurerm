@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbnodes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbnodes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -180,7 +180,7 @@ func (d DBNodesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DBNodesDataSource) ModelObject() interface{} {
+func (d DBNodesDataSource) ModelObject() any {
 	return &DBNodesDataModel{}
 }
 
@@ -237,7 +237,7 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 							Hostname:                   pointer.From(props.Hostname),
 							LifecycleDetails:           pointer.From(props.LifecycleDetails),
 							LifecycleState:             string(props.LifecycleState),
-							MaintenanceType:            string(pointer.From(props.MaintenanceType)),
+							MaintenanceType:            pointer.FromEnum(props.MaintenanceType),
 							MemorySizeInGbs:            pointer.From(props.MemorySizeInGbs),
 							Ocid:                       props.Ocid,
 							SoftwareStorageSizeInGb:    pointer.From(props.SoftwareStorageSizeInGb),
