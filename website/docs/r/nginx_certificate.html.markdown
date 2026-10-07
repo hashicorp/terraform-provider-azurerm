@@ -55,13 +55,11 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_nginx_deployment" "example" {
-  name                     = "example-nginx"
-  resource_group_name      = azurerm_resource_group.example.name
-  sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
-  location                 = azurerm_resource_group.example.location
-  managed_resource_group   = "example"
-  diagnose_support_enabled = true
-
+  name                   = "example-nginx"
+  resource_group_name    = azurerm_resource_group.example.name
+  sku                    = "publicpreview_Monthly_gmz7xq9ge3py"
+  location               = azurerm_resource_group.example.location
+  managed_resource_group = "example"
   frontend_public {
     ip_address = [azurerm_public_ip.example.id]
   }
@@ -73,11 +71,12 @@ resource "azurerm_nginx_deployment" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -141,11 +140,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NGINX Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the NGINX Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the NGINX Certificate.
 * `delete` - (Defaults to 10 minutes) Used when deleting the NGINX Certificate.
 
 ## Import
@@ -155,3 +154,9 @@ An NGINX Certificate can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_nginx_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/deploy1/certificates/cer1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Nginx.NginxPlus` - 2024-11-01-preview

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -115,13 +115,13 @@ func dataSourceDashboardGrafana() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dashboard.GrafanaResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := grafanaresource.NewGrafanaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := managedgrafanas.NewGrafanaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.GrafanaGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -139,7 +139,7 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.Normalize(*model.Location))
 		if properties := model.Properties; properties != nil {
 			if properties.ApiKey != nil {
-				if *properties.ApiKey == grafanaresource.ApiKeyEnabled {
+				if *properties.ApiKey == managedgrafanas.ApiKeyEnabled {
 					d.Set("api_key_enabled", true)
 				} else {
 					d.Set("api_key_enabled", false)
@@ -151,7 +151,7 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if properties.DeterministicOutboundIP != nil {
-				if *properties.DeterministicOutboundIP == grafanaresource.DeterministicOutboundIPEnabled {
+				if *properties.DeterministicOutboundIP == managedgrafanas.DeterministicOutboundIPEnabled {
 					d.Set("deterministic_outbound_ip_enabled", true)
 				} else {
 					d.Set("deterministic_outbound_ip_enabled", false)
@@ -179,7 +179,7 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if properties.PublicNetworkAccess != nil {
-				if *properties.PublicNetworkAccess == grafanaresource.PublicNetworkAccessEnabled {
+				if *properties.PublicNetworkAccess == managedgrafanas.PublicNetworkAccessEnabled {
 					d.Set("public_network_access_enabled", true)
 				} else {
 					d.Set("public_network_access_enabled", false)
@@ -187,7 +187,7 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if properties.ZoneRedundancy != nil {
-				if *properties.ZoneRedundancy == grafanaresource.ZoneRedundancyEnabled {
+				if *properties.ZoneRedundancy == managedgrafanas.ZoneRedundancyEnabled {
 					d.Set("zone_redundancy_enabled", true)
 				} else {
 					d.Set("zone_redundancy_enabled", false)
@@ -216,15 +216,10 @@ func dataSourceDashboardGrafanaRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-// AzureMonitorWorkspaceIntegration represents a struct for Azure Monitor Workspace Integration
-type AzureMonitorWorkspaceIntegration struct {
-	AzureMonitorWorkspaceResourceId *string `json:"azureMonitorWorkspaceResourceId,omitempty"`
-}
-
-func flattenAzureMonitorWorkspaceIntegrations(integrations []grafanaresource.AzureMonitorWorkspaceIntegration) []interface{} {
-	result := make([]interface{}, len(integrations))
+func flattenAzureMonitorWorkspaceIntegrations(integrations []managedgrafanas.AzureMonitorWorkspaceIntegration) []any {
+	result := make([]any, len(integrations))
 	for i, integration := range integrations {
-		result[i] = map[string]interface{}{
+		result[i] = map[string]any{
 			"resource_id": integration.AzureMonitorWorkspaceResourceId,
 		}
 	}

@@ -11,7 +11,7 @@ import (
 type AmazonS3CompatibleLinkedServiceTypeProperties struct {
 	AccessKeyId         *interface{} `json:"accessKeyId,omitempty"`
 	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
-	ForcePathStyle      *bool        `json:"forcePathStyle,omitempty"`
+	ForcePathStyle      *interface{} `json:"forcePathStyle,omitempty"`
 	SecretAccessKey     SecretBase   `json:"secretAccessKey"`
 	ServiceURL          *interface{} `json:"serviceUrl,omitempty"`
 }
@@ -22,7 +22,7 @@ func (s *AmazonS3CompatibleLinkedServiceTypeProperties) UnmarshalJSON(bytes []by
 	var decoded struct {
 		AccessKeyId         *interface{} `json:"accessKeyId,omitempty"`
 		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
-		ForcePathStyle      *bool        `json:"forcePathStyle,omitempty"`
+		ForcePathStyle      *interface{} `json:"forcePathStyle,omitempty"`
 		ServiceURL          *interface{} `json:"serviceUrl,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

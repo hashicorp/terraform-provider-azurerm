@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FrontDoorCustomDomainAssociationId{}
 
-func TestFrontDoorCustomDomainAssociationIDFormatter(t *testing.T) {
+func TestParseFrontDoorCustomDomainAssociationIDFormatter(t *testing.T) {
 	actual := NewFrontDoorCustomDomainAssociationID("12345678-1234-9876-4563-123456789012", "resGroup1", "profile1", "assoc1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestFrontDoorCustomDomainAssociationIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
+func TestParseFrontDoorCustomDomainAssociationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -65,11 +64,12 @@ type LinuxWebAppDataSourceModel struct {
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 }
 
 var _ sdk.DataSource = LinuxWebAppDataSource{}
 
-func (r LinuxWebAppDataSource) ModelObject() interface{} {
+func (r LinuxWebAppDataSource) ModelObject() any {
 	return &LinuxWebAppDataSourceModel{}
 }
 
@@ -242,7 +242,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 
 		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -251,6 +251,11 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"virtual_network_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 	}
@@ -277,9 +282,9 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("Linux %s not found", *id)
+					return fmt.Errorf("the Linux %s was not found", *id)
 				}
-				return fmt.Errorf("retreiving Linux %s: %+v", id, err)
+				return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 			}
 
 			webAppSiteConfig, err := client.GetConfiguration(ctx, *id)
@@ -367,13 +372,15 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				webApp.Location = location.Normalize(model.Location)
 				webApp.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
-					webApp.Availability = string(pointer.From(props.AvailabilityState))
+					webApp.Availability = pointer.FromEnum(props.AvailabilityState)
 					webApp.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					webApp.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
-					webApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					webApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					webApp.DefaultHostname = pointer.From(props.DefaultHostName)
+					webApp.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+
 					if props.Enabled != nil {
 						webApp.Enabled = *props.Enabled
 					}
@@ -389,7 +396,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 					webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
-					webApp.Usage = string(pointer.From(props.UsageState))
+					webApp.Usage = pointer.FromEnum(props.UsageState)
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						webApp.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
