@@ -25,19 +25,19 @@ type StackHCIStoragePathDataSource struct{}
 var _ sdk.DataSource = StackHCIStoragePathDataSource{}
 
 type StackHCIStoragePathDataSourceModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	CustomLocationId  string                 `tfschema:"custom_location_id"`
-	Path              string                 `tfschema:"path"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Location          string         `tfschema:"location"`
+	CustomLocationId  string         `tfschema:"custom_location_id"`
+	Path              string         `tfschema:"path"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (r StackHCIStoragePathDataSource) ResourceType() string {
 	return "azurerm_stack_hci_storage_path"
 }
 
-func (r StackHCIStoragePathDataSource) ModelObject() interface{} {
+func (r StackHCIStoragePathDataSource) ModelObject() any {
 	return &StackHCIStoragePathDataSourceModel{}
 }
 

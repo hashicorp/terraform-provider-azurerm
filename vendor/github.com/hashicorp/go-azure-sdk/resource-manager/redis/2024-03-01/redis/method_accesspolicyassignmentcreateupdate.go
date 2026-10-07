@@ -62,9 +62,20 @@ func (c RedisClient) AccessPolicyAssignmentCreateUpdate(ctx context.Context, id 
 
 // AccessPolicyAssignmentCreateUpdateThenPoll performs AccessPolicyAssignmentCreateUpdate then polls until it's completed
 func (c RedisClient) AccessPolicyAssignmentCreateUpdateThenPoll(ctx context.Context, id AccessPolicyAssignmentId, input RedisCacheAccessPolicyAssignment) error {
+	return c.AccessPolicyAssignmentCreateUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccessPolicyAssignmentCreateUpdateCallbackThenPoll performs AccessPolicyAssignmentCreateUpdate, runs the optional callback function, then polls until it's completed
+func (c RedisClient) AccessPolicyAssignmentCreateUpdateCallbackThenPoll(ctx context.Context, id AccessPolicyAssignmentId, input RedisCacheAccessPolicyAssignment, callback func() error) error {
 	result, err := c.AccessPolicyAssignmentCreateUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccessPolicyAssignmentCreateUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

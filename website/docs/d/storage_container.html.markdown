@@ -30,11 +30,7 @@ The following arguments are supported:
 
 * `name` - The name of the Container.
 
-* `storage_account_name` - (Optional) The name of the Storage Account where the Container exists. This property is deprecated in favour of `storage_account_id`.
-
-* `storage_account_id` - (Optional) The id of the Storage Account where the Container exists. This property will become Required in version 5.0 of the Provider.
-
-~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+* `storage_account_id` - (Required) The ID of the Storage Account where the Container exists.
 
 ## Attributes Reference
 
@@ -51,6 +47,8 @@ The following arguments are supported:
 * `metadata`  - A mapping of MetaData for this Container.
 
 * `id` - The Resource Manager ID of this Storage Container.
+
+* `url` - The data plane URL of the Storage Container in the format of `<storage blob endpoint>/<container name>`. E.g. `https://example.blob.core.windows.net/mycontainer`.
 
 ## Timeouts
 

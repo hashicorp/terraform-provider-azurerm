@@ -62,9 +62,20 @@ func (c CertificateObjectGlobalRulestackResourcesClient) CertificateObjectGlobal
 
 // CertificateObjectGlobalRulestackCreateOrUpdateThenPoll performs CertificateObjectGlobalRulestackCreateOrUpdate then polls until it's completed
 func (c CertificateObjectGlobalRulestackResourcesClient) CertificateObjectGlobalRulestackCreateOrUpdateThenPoll(ctx context.Context, id CertificateId, input CertificateObjectGlobalRulestackResource) error {
+	return c.CertificateObjectGlobalRulestackCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CertificateObjectGlobalRulestackCreateOrUpdateCallbackThenPoll performs CertificateObjectGlobalRulestackCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c CertificateObjectGlobalRulestackResourcesClient) CertificateObjectGlobalRulestackCreateOrUpdateCallbackThenPoll(ctx context.Context, id CertificateId, input CertificateObjectGlobalRulestackResource, callback func() error) error {
 	result, err := c.CertificateObjectGlobalRulestackCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CertificateObjectGlobalRulestackCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
