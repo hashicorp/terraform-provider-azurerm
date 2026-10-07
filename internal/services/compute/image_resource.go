@@ -205,7 +205,7 @@ func resourceImage() *pluginsdk.Resource {
 	}
 }
 
-func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -237,8 +237,8 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	storageProfile := images.ImageStorageProfile{
-		OsDisk:        expandImageOSDisk(d.Get("os_disk").([]interface{})),
-		DataDisks:     expandImageDataDisks(d.Get("data_disk").([]interface{})),
+		OsDisk:        expandImageOSDisk(d.Get("os_disk").([]any)),
+		DataDisks:     expandImageDataDisks(d.Get("data_disk").([]any)),
 		ZoneResilient: pointer.To(d.Get("zone_resilient").(bool)),
 	}
 
@@ -258,7 +258,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	payload := images.Image{
 		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: &props,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -275,7 +275,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceImageRead(d, meta)
 }
 
-func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -333,7 +333,7 @@ func resourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -350,9 +350,9 @@ func resourceImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
+func expandImageOSDisk(input []any) *images.ImageOSDisk {
 	if len(input) > 0 {
-		config := input[0].(map[string]interface{})
+		config := input[0].(map[string]any)
 
 		out := &images.ImageOSDisk{}
 
@@ -394,10 +394,10 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 	return nil
 }
 
-func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
+func expandImageDataDisks(disks []any) *[]images.ImageDataDisk {
 	output := make([]images.ImageDataDisk, 0)
 	for _, diskConfig := range disks {
-		config := diskConfig.(map[string]interface{})
+		config := diskConfig.(map[string]any)
 
 		item := images.ImageDataDisk{
 			BlobUri: pointer.To(config["blob_uri"].(string)),
@@ -432,8 +432,8 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 	return &output
 }
 
-func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImageOSDisk(input *images.ImageStorageProfile) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		if v := input.OsDisk; v != nil {
@@ -456,7 +456,7 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				diskEncryptionSetId = encryptionId.ID()
 			}
 
-			properties := map[string]interface{}{
+			properties := map[string]any{
 				"blob_uri":               blobUri,
 				"caching":                caching,
 				"managed_disk_id":        managedDiskId,
@@ -479,8 +479,8 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 	return output
 }
 
-func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImageDataDisks(input *images.ImageStorageProfile) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		if v := input.DataDisks; v != nil {
@@ -504,7 +504,7 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 					diskEncryptionSetId = encryptionId.ID()
 				}
 
-				properties := map[string]interface{}{
+				properties := map[string]any{
 					"blob_uri":               blobUri,
 					"caching":                caching,
 					"lun":                    int(disk.Lun),

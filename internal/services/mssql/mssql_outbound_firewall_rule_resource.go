@@ -53,7 +53,7 @@ func resourceMsSqlOutboundFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlOutboundFirewallRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlOutboundFirewallRuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.OutboundFirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +88,7 @@ func resourceMsSqlOutboundFirewallRuleCreate(d *pluginsdk.ResourceData, meta int
 	return resourceMsSqlOutboundFirewallRuleRead(d, meta)
 }
 
-func resourceMsSqlOutboundFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlOutboundFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.OutboundFirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +117,7 @@ func resourceMsSqlOutboundFirewallRuleRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceMsSqlOutboundFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlOutboundFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.OutboundFirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

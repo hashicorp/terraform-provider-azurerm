@@ -1975,8 +1975,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 
 // skipped
-//
-//nolint:unused
 func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

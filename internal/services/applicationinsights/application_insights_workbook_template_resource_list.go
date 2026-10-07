@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,9 +38,9 @@ func (ApplicationInsightsWorkbookTemplateListResource) ResourceFunc() *pluginsdk
 }
 
 func (ApplicationInsightsWorkbookTemplateListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"resource_group_name": listschema.StringAttribute{
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"resource_group_name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: resourcegroups.ValidateName},
@@ -75,7 +75,7 @@ func (ApplicationInsightsWorkbookTemplateListResource) List(ctx context.Context,
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := workbooktemplates.ParseWorkbookTemplateIDInsensitively(pointer.From(item.Id))
+			id, err := workbooktemplatesapis.ParseWorkbookTemplateIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", resource.ResourceType()), err)
 				return

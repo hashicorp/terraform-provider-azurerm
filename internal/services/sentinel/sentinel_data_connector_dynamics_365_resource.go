@@ -60,7 +60,7 @@ func (r DataConnectorDynamics365Resource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_dynamics_365"
 }
 
-func (r DataConnectorDynamics365Resource) ModelObject() interface{} {
+func (r DataConnectorDynamics365Resource) ModelObject() any {
 	return &DataConnectorDynamics365Model{}
 }
 
