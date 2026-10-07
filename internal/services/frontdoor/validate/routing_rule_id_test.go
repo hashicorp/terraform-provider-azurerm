@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestRoutingRuleID(t *testing.T) {
+func TestValidateRoutingRuleID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

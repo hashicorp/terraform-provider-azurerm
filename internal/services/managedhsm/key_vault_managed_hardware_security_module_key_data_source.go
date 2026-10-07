@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -19,17 +19,17 @@ import (
 )
 
 type KeyVaultMHSMKeyDataSourceModel struct {
-	ManagedHSMID   string                 `tfschema:"managed_hsm_id"`
-	Name           string                 `tfschema:"name"`
-	KeyType        string                 `tfschema:"key_type"`
-	KeyOpts        []string               `tfschema:"key_opts"`
-	KeySize        int64                  `tfschema:"key_size"`
-	Curve          string                 `tfschema:"curve"`
-	NotBeforeDate  string                 `tfschema:"not_before_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Tags           map[string]interface{} `tfschema:"tags"`
-	VersionedId    string                 `tfschema:"versioned_id"`
-	Version        string                 `tfschema:"version"`
+	ManagedHSMID   string         `tfschema:"managed_hsm_id"`
+	Name           string         `tfschema:"name"`
+	KeyType        string         `tfschema:"key_type"`
+	KeyOpts        []string       `tfschema:"key_opts"`
+	KeySize        int64          `tfschema:"key_size"`
+	Curve          string         `tfschema:"curve"`
+	NotBeforeDate  string         `tfschema:"not_before_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Tags           map[string]any `tfschema:"tags"`
+	VersionedId    string         `tfschema:"versioned_id"`
+	Version        string         `tfschema:"version"`
 }
 
 type KeyvaultMHSMKeyDataSource struct{}
@@ -101,7 +101,7 @@ func (k KeyvaultMHSMKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeyvaultMHSMKeyDataSource) ModelObject() interface{} {
+func (k KeyvaultMHSMKeyDataSource) ModelObject() any {
 	return &KeyVaultMHSMKeyDataSourceModel{}
 }
 

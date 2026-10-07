@@ -18,7 +18,7 @@ type ContainerGroupPropertiesProperties struct {
 	InstanceView                  *ContainerGroupPropertiesPropertiesInstanceView `json:"instanceView,omitempty"`
 	IsCreatedFromStandbyPool      *bool                                           `json:"isCreatedFromStandbyPool,omitempty"`
 	OsType                        *OperatingSystemTypes                           `json:"osType,omitempty"`
-	Priority                      *Priority                                       `json:"priority,omitempty"`
+	Priority                      *ContainerGroupPriority                         `json:"priority,omitempty"`
 	ProvisioningState             *string                                         `json:"provisioningState,omitempty"`
 	RestartPolicy                 *ContainerGroupRestartPolicy                    `json:"restartPolicy,omitempty"`
 	SecretReferences              *[]SecretReference                              `json:"secretReferences,omitempty"`

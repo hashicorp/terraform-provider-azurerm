@@ -352,7 +352,8 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
   }
 SETTINGS
 }
-`, r.domainDependencies(data))
+`, r.domainDependencies(data),
+	)
 }
 
 func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) setDomainUser(data acceptance.TestData) string {
@@ -372,7 +373,8 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
   }
 SETTINGS
 }
-`, r.domainDependencies(data))
+`, r.domainDependencies(data),
+	)
 }
 
 func (MsSqlVirtualMachineAvailabilityGroupListenerResource) domainDependencies(data acceptance.TestData) string {
