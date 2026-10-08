@@ -204,6 +204,12 @@ func TestAccKeyVaultSecret_update(t *testing.T) {
 		},
 		{
 			Config: r.basicUpdated(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("version")),
+					plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("resource_id")),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("szechuan"),

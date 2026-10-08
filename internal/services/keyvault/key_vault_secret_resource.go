@@ -119,10 +119,9 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
-			// `value_wo` is write-only so a change to it is invisible to the plan - `value_wo_version` is the signal
-			// that the value has changed. Updating the value creates a new version of the secret, so the version and
-			// the attributes derived from it are unknown until after apply.
-			if d.Id() != "" && d.HasChange("value_wo_version") {
+			// Updating `value` or `value_wo` creates a new version of the secret, so the version and the attributes derived from it are unknown until after apply.
+			// `value_wo_version` is checked because WriteOnly attributes (`value_wo`) carry no prior state.
+			if d.Id() != "" && d.HasChanges("value", "value_wo_version") {
 				for _, field := range []string{"version", "resource_id"} {
 					if err := d.SetNewComputed(field); err != nil {
 						return err
