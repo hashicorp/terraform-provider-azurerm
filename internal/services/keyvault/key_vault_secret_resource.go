@@ -118,7 +118,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 			"tags": commonschema.TagsWithMaximumElements(15),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 			// Updating `value` or `value_wo` creates a new version of the secret, so the version and the attributes derived from it are unknown until after apply.
 			// `value_wo_version` is checked because WriteOnly attributes (`value_wo`) carry no prior state.
 			if d.Id() != "" && d.HasChanges("value", "value_wo_version") {
