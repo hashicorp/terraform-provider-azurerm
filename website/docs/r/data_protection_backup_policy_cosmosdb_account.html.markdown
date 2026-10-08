@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_data_protection_backup_policy_cosmosdb_account
 
-Manages a Data Protection Backup Policy for Cosmos DB Database Accounts.
+Manages a Data Protection (Backup Vault) Backup Policy for Cosmos DB Database Accounts.
 
 ## Example Usage
 

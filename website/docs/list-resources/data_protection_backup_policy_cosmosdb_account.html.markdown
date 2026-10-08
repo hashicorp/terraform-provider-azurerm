@@ -3,12 +3,12 @@ subcategory: "DataProtection"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_protection_backup_policy_cosmosdb_account"
 description: |-
-  Lists Data Protection Backup Policy for Cosmos DB Database Account resources.
+  Lists Data Protection (Backup Vault) Backup Policy for Cosmos DB Database Account resources.
 ---
 
 # List resource: azurerm_data_protection_backup_policy_cosmosdb_account
 
-Lists Data Protection Backup Policy for Cosmos DB Database Account resources.
+Lists Data Protection (Backup Vault) Backup Policy for Cosmos DB Database Account resources.
 
 ## Example Usage
 
