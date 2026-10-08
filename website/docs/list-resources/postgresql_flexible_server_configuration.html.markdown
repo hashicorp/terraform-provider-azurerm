@@ -3,12 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_flexible_server_configuration"
 description: |-
-    Lists Postgresql Flexible Server Configuration resources.
+    Lists PostgresSQL Flexible Server Configuration resources.
 ---
 
 # List resource: azurerm_postgresql_flexible_server_configuration
 
-Lists Postgresql Flexible Server Configuration resources.
+Lists PostgresSQL Flexible Server Configuration resources.
 
 ## Example Usage
 

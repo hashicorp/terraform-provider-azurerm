@@ -18,7 +18,7 @@ import (
 )
 
 func TestAccPostgresqlFlexibleServerConfiguration_listByFlexibleServerID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "list")
 	r := PostgresqlFlexibleServerConfigurationResource{}
 
 	resource.Test(t, resource.TestCase{

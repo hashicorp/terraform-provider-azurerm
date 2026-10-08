@@ -60,13 +60,13 @@ func (PostgresqlFlexibleServerConfigurationListResource) List(ctx context.Contex
 		return
 	}
 
-	parentID, err := servers.ParseFlexibleServerID(data.FlexibleServerId.ValueString())
+	parentID, err := configurations.ParseFlexibleServerID(data.FlexibleServerId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Flexible Server ID for `%s`", azurePostgresqlFlexibleServerConfigurationResourceName), err)
 		return
 	}
 
-	resp, err := client.ListByServerComplete(ctx, configurations.NewFlexibleServerID(parentID.SubscriptionId, parentID.ResourceGroupName, parentID.FlexibleServerName))
+	resp, err := client.ListByServerComplete(ctx, *parentID)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azurePostgresqlFlexibleServerConfigurationResourceName), err)
 		return
