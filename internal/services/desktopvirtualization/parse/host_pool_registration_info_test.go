@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = HostPoolRegistrationInfoId{}
 
-func TestHostPoolRegistrationInfoIDFormatter(t *testing.T) {
+func TestParseHostPoolRegistrationInfoIDFormatter(t *testing.T) {
 	actual := NewHostPoolRegistrationInfoID("12345678-1234-9876-4563-123456789012", "resGroup1", "pool1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DesktopVirtualization/hostPools/pool1/registrationInfo/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestHostPoolRegistrationInfoIDFormatter(t *testing.T) {
 	}
 }
 
-func TestHostPoolRegistrationInfoID(t *testing.T) {
+func TestParseHostPoolRegistrationInfoID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestHostPoolRegistrationInfoID(t *testing.T) {
 	}
 }
 
-func TestHostPoolRegistrationInfoIDInsensitively(t *testing.T) {
+func TestParseHostPoolRegistrationInfoIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
