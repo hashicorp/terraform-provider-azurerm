@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FrontendIPConfigurationId{}
 
-func TestFrontendIPConfigurationIDFormatter(t *testing.T) {
+func TestParseFrontendIPConfigurationIDFormatter(t *testing.T) {
 	actual := NewFrontendIPConfigurationID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "feipconfig1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/frontendIPConfigurations/feipconfig1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestFrontendIPConfigurationIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFrontendIPConfigurationID(t *testing.T) {
+func TestParseFrontendIPConfigurationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestFrontendIPConfigurationID(t *testing.T) {
 	}
 }
 
-func TestFrontendIPConfigurationIDInsensitively(t *testing.T) {
+func TestParseFrontendIPConfigurationIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

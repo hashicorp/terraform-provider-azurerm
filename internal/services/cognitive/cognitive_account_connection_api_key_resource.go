@@ -41,7 +41,7 @@ func (r CognitiveAccountConnectionApiKeyResource) ResourceType() string {
 	return "azurerm_cognitive_account_connection_api_key"
 }
 
-func (r CognitiveAccountConnectionApiKeyResource) ModelObject() interface{} {
+func (r CognitiveAccountConnectionApiKeyResource) ModelObject() any {
 	return &CognitiveAccountConnectionApiKeyModel{}
 }
 

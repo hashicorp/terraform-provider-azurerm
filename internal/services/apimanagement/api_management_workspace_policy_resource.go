@@ -33,7 +33,7 @@ func (r ApiManagementWorkspacePolicyResource) ResourceType() string {
 	return "azurerm_api_management_workspace_policy"
 }
 
-func (r ApiManagementWorkspacePolicyResource) ModelObject() interface{} {
+func (r ApiManagementWorkspacePolicyResource) ModelObject() any {
 	return &ApiManagementWorkspacePolicyModel{}
 }
 

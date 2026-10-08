@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -31,8 +31,8 @@ func (r NetAppVolumeBucketWithServerResource) Identity() resourceids.ResourceId 
 	return &buckets.BucketId{}
 }
 
-func (r NetAppVolumeBucketWithServerResource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeBucketWithServerModel{}
+func (r NetAppVolumeBucketWithServerResource) ModelObject() any {
+	return &models.NetAppVolumeBucketWithServerModel{}
 }
 
 func (r NetAppVolumeBucketWithServerResource) ResourceType() string {
@@ -93,7 +93,7 @@ func (r NetAppVolumeBucketWithServerResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.NetApp.BucketsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppVolumeBucketWithServerModel
+			var model models.NetAppVolumeBucketWithServerModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -165,7 +165,7 @@ func (r NetAppVolumeBucketWithServerResource) Read() sdk.ResourceFunc {
 func (r NetAppVolumeBucketWithServerResource) flatten(metadata sdk.ResourceMetaData, id *buckets.BucketId, bucket *buckets.Bucket) error {
 	volumeID := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
 
-	model := netAppModels.NetAppVolumeBucketWithServerModel{
+	model := models.NetAppVolumeBucketWithServerModel{
 		Name:     id.BucketName,
 		VolumeID: volumeID.ID(),
 	}
@@ -174,8 +174,8 @@ func (r NetAppVolumeBucketWithServerResource) flatten(metadata sdk.ResourceMetaD
 		props := bucket.Properties
 
 		model.Path = pointer.From(props.Path)
-		model.Permissions = string(pointer.From(props.Permissions))
-		model.Status = string(pointer.From(props.Status))
+		model.Permissions = pointer.FromEnum(props.Permissions)
+		model.Status = pointer.FromEnum(props.Status)
 
 		if props.FileSystemUser != nil {
 			model.FileSystemNfsUser = flattenNetAppBucketNfsUser(props.FileSystemUser.NfsUser)
@@ -194,7 +194,7 @@ func (r NetAppVolumeBucketWithServerResource) flatten(metadata sdk.ResourceMetaD
 	// certificate_pem is never returned by the API; preserve from config/state.
 	if v, ok := metadata.ResourceData.GetOk("server.0.certificate_pem"); ok {
 		if len(model.Server) == 0 {
-			model.Server = []netAppModels.NetAppVolumeBucketServer{{}}
+			model.Server = []models.NetAppVolumeBucketServer{{}}
 		}
 		model.Server[0].CertificatePem = v.(string)
 	}
@@ -217,7 +217,7 @@ func (r NetAppVolumeBucketWithServerResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppVolumeBucketWithServerModel
+			var state models.NetAppVolumeBucketWithServerModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

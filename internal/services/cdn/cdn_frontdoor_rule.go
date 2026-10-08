@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -646,12 +645,12 @@ func expandCdnFrontDoorRuleRemoteAddressCondition(input CdnFrontDoorRuleConditio
 	switch rules.RemoteAddressOperator(operator) {
 	case rules.RemoteAddressOperatorGeoMatch:
 		for _, v := range input.Values {
-			if ok, _ := helperValidate.RegExHelper(v, "values", `^[A-Z]{2}$`); !ok {
+			if ok, _ := validation.RegExHelper(v, "values", `^[A-Z]{2}$`); !ok {
 				return nil, fmt.Errorf("when `conditions.remote_address.operator` is `%s` the values in `conditions.remote_address.values` must be valid country codes consisting of 2 uppercase characters, got `%s`", input.Operator, v)
 			}
 		}
 	case rules.RemoteAddressOperatorIPMatch:
-		values := make([]interface{}, 0, len(input.Values))
+		values := make([]any, 0, len(input.Values))
 		for _, matchValue := range input.Values {
 			values = append(values, matchValue)
 			if _, errs := validate.FrontDoorRuleCidrIsValid(matchValue, "values"); len(errs) > 0 {

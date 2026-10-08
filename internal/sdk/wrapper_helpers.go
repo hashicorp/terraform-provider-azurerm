@@ -23,7 +23,7 @@ func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*s
 			return nil, fmt.Errorf("%q already exists in the schema", k)
 		}
 
-		if v.Computed && !(v.Optional || v.Required) {
+		if v.Computed && (!v.Optional && !v.Required) {
 			return nil, fmt.Errorf("%q is a Computed-only field - this should be specified as an Attribute", k)
 		}
 
@@ -47,7 +47,7 @@ func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*s
 	return &out, nil
 }
 
-func runArgs(d *schema.ResourceData, meta interface{}, logger Logger) ResourceMetaData {
+func runArgs(d *schema.ResourceData, meta any, logger Logger) ResourceMetaData {
 	client := meta.(*clients.Client)
 	return ResourceMetaData{
 		Client:                   client,

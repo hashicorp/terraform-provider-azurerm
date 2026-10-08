@@ -10,10 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutegateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -155,7 +154,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +186,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 				Id: pointer.To(d.Get("express_route_circuit_peering_id").(string)),
 			},
 			EnableInternetSecurity:    pointer.To(d.Get("internet_security_enabled").(bool)),
-			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
+			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]any)),
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
@@ -206,7 +205,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceExpressRouteConnectionRead(d, meta)
 }
 
-func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +258,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -299,7 +298,7 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.HasChange("routing") {
-		props.RoutingConfiguration = expandExpressRouteConnectionRouting(d.Get("routing").([]interface{}))
+		props.RoutingConfiguration = expandExpressRouteConnectionRouting(d.Get("routing").([]any))
 	}
 
 	if d.HasChange("routing_weight") {
@@ -313,7 +312,7 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceExpressRouteConnectionRead(d, meta)
 }
 
-func resourceExpressRouteConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceExpressRouteConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteConnections
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -330,12 +329,12 @@ func resourceExpressRouteConnectionDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandExpressRouteConnectionRouting(input []interface{}) *expressrouteconnections.RoutingConfiguration {
+func expandExpressRouteConnectionRouting(input []any) *expressrouteconnections.RoutingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return &expressrouteconnections.RoutingConfiguration{}
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := expressrouteconnections.RoutingConfiguration{}
 
 	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
@@ -356,34 +355,34 @@ func expandExpressRouteConnectionRouting(input []interface{}) *expressrouteconne
 		}
 	}
 
-	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
+	if propagatedRouteTable := v["propagated_route_table"].([]any); len(propagatedRouteTable) != 0 {
 		result.PropagatedRouteTables = expandExpressRouteConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
 
 	return &result
 }
 
-func expandExpressRouteConnectionPropagatedRouteTable(input []interface{}) *expressrouteconnections.PropagatedRouteTable {
+func expandExpressRouteConnectionPropagatedRouteTable(input []any) *expressrouteconnections.PropagatedRouteTable {
 	if len(input) == 0 || input[0] == nil {
 		return &expressrouteconnections.PropagatedRouteTable{}
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := expressrouteconnections.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = helpers.ExpandStringSlice(labels)
+		result.Labels = pluginsdk.ExpandStringSlice(labels)
 	}
 
-	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
+	if routeTableIds := v["route_table_ids"].([]any); len(routeTableIds) != 0 {
 		result.Ids = expandExpressRouteIDsToSubResources(routeTableIds)
 	}
 
 	return &result
 }
 
-func expandExpressRouteIDsToSubResources(input []interface{}) *[]expressrouteconnections.SubResource {
+func expandExpressRouteIDsToSubResources(input []any) *[]expressrouteconnections.SubResource {
 	ids := make([]expressrouteconnections.SubResource, 0)
 
 	for _, v := range input {
@@ -395,9 +394,9 @@ func expandExpressRouteIDsToSubResources(input []interface{}) *[]expressroutecon
 	return &ids
 }
 
-func flattenExpressRouteConnectionRouting(input *expressrouteconnections.RoutingConfiguration) ([]interface{}, error) {
+func flattenExpressRouteConnectionRouting(input *expressrouteconnections.RoutingConfiguration) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
 	associatedRouteTableId := ""
@@ -409,7 +408,7 @@ func flattenExpressRouteConnectionRouting(input *expressrouteconnections.Routing
 		return nil, err
 	}
 
-	result := map[string]interface{}{
+	result := map[string]any{
 		"associated_route_table_id": routeTableId.ID(),
 		"propagated_route_table":    flattenExpressRouteConnectionPropagatedRouteTable(input.PropagatedRouteTables),
 	}
@@ -422,34 +421,34 @@ func flattenExpressRouteConnectionRouting(input *expressrouteconnections.Routing
 		result["outbound_route_map_id"] = input.OutboundRouteMap.Id
 	}
 
-	return []interface{}{result}, nil
+	return []any{result}, nil
 }
 
-func flattenExpressRouteConnectionPropagatedRouteTable(input *expressrouteconnections.PropagatedRouteTable) []interface{} {
+func flattenExpressRouteConnectionPropagatedRouteTable(input *expressrouteconnections.PropagatedRouteTable) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	labels := make([]interface{}, 0)
+	labels := make([]any, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenStringSlice(input.Labels)
+		labels = pluginsdk.FlattenSlice(input.Labels)
 	}
 
-	routeTableIds := make([]interface{}, 0)
+	routeTableIds := make([]any, 0)
 	if input.Ids != nil {
 		routeTableIds = flattenExpressRouteSubResourcesToIDs(input.Ids)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"labels":          labels,
 			"route_table_ids": routeTableIds,
 		},
 	}
 }
 
-func flattenExpressRouteSubResourcesToIDs(input *[]expressrouteconnections.SubResource) []interface{} {
-	ids := make([]interface{}, 0)
+func flattenExpressRouteSubResourcesToIDs(input *[]expressrouteconnections.SubResource) []any {
+	ids := make([]any, 0)
 	if input == nil {
 		return ids
 	}

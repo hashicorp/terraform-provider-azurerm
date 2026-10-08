@@ -12,9 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -188,7 +187,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +235,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
-		connection.Properties.RoutingConfiguration = expandVirtualHubConnectionRouting(v.([]interface{}))
+		connection.Properties.RoutingConfiguration = expandVirtualHubConnectionRouting(v.([]any))
 	}
 
 	if err := client.HubVirtualNetworkConnectionsCreateOrUpdateCallbackThenPoll(ctx, id, connection, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -263,7 +262,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceVirtualHubConnectionRead(d, meta)
 }
 
-func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +311,7 @@ func resourceVirtualHubConnectionFlatten(d *pluginsdk.ResourceData, id *virtualw
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -332,16 +331,16 @@ func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.RoutingConfiguration {
+func expandVirtualHubConnectionRouting(input []any) *virtualwans.RoutingConfiguration {
 	if len(input) == 0 {
 		return &virtualwans.RoutingConfiguration{}
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := &virtualwans.RoutingConfiguration{
 		VnetRoutes: &virtualwans.VnetRoute{
-			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
+			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]any)),
 			StaticRoutesConfig: &virtualwans.StaticRoutesConfig{
 				PropagateStaticRoutes:          pointer.To(v["static_vnet_propagate_static_routes_enabled"].(bool)),
 				VnetLocalRouteOverrideCriteria: pointer.ToEnum[virtualwans.VnetLocalRouteOverrideCriteria](v["static_vnet_local_route_override_criteria"].(string)),
@@ -367,34 +366,34 @@ func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.Routing
 		}
 	}
 
-	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
+	if propagatedRouteTable := v["propagated_route_table"].([]any); len(propagatedRouteTable) != 0 {
 		result.PropagatedRouteTables = expandVirtualHubConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
 
 	return result
 }
 
-func expandVirtualHubConnectionPropagatedRouteTable(input []interface{}) *virtualwans.PropagatedRouteTable {
+func expandVirtualHubConnectionPropagatedRouteTable(input []any) *virtualwans.PropagatedRouteTable {
 	if len(input) == 0 {
 		return &virtualwans.PropagatedRouteTable{}
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := virtualwans.PropagatedRouteTable{}
 
 	if labels := v["labels"].(*pluginsdk.Set).List(); len(labels) != 0 {
-		result.Labels = helpers.ExpandStringSlice(labels)
+		result.Labels = pluginsdk.ExpandStringSlice(labels)
 	}
 
-	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
+	if routeTableIds := v["route_table_ids"].([]any); len(routeTableIds) != 0 {
 		result.Ids = expandIDsToVirtualWANSubResources(routeTableIds)
 	}
 
 	return &result
 }
 
-func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwans.StaticRoute {
+func expandVirtualHubConnectionVnetStaticRoute(input []any) *[]virtualwans.StaticRoute {
 	if len(input) == 0 {
 		return nil
 	}
@@ -406,7 +405,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 			continue
 		}
 
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := virtualwans.StaticRoute{}
 
@@ -415,7 +414,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 		}
 
 		if addressPrefixes := v["address_prefixes"].(*pluginsdk.Set).List(); len(addressPrefixes) != 0 {
-			result.AddressPrefixes = helpers.ExpandStringSlice(addressPrefixes)
+			result.AddressPrefixes = pluginsdk.ExpandStringSlice(addressPrefixes)
 		}
 
 		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
@@ -428,7 +427,7 @@ func expandVirtualHubConnectionVnetStaticRoute(input []interface{}) *[]virtualwa
 	return &results
 }
 
-func expandIDsToVirtualWANSubResources(input []interface{}) *[]virtualwans.SubResource {
+func expandIDsToVirtualWANSubResources(input []any) *[]virtualwans.SubResource {
 	ids := make([]virtualwans.SubResource, 0)
 
 	for _, v := range input {
@@ -440,9 +439,9 @@ func expandIDsToVirtualWANSubResources(input []interface{}) *[]virtualwans.SubRe
 	return &ids
 }
 
-func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration) []interface{} {
+func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	associatedRouteTableId := ""
@@ -470,8 +469,8 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 		staticVnetPropagateStaticRoutes = pointer.From(input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"associated_route_table_id":                   associatedRouteTableId,
 			"inbound_route_map_id":                        inboundRouteMapId,
 			"outbound_route_map_id":                       outboundRouteMapId,
@@ -483,42 +482,42 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 	}
 }
 
-func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.PropagatedRouteTable) []interface{} {
+func flattenVirtualHubConnectionPropagatedRouteTable(input *virtualwans.PropagatedRouteTable) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	labels := make([]interface{}, 0)
+	labels := make([]any, 0)
 	if input.Labels != nil {
-		labels = helpers.FlattenStringSlice(input.Labels)
+		labels = pluginsdk.FlattenSlice(input.Labels)
 	}
 
-	routeTableIds := make([]interface{}, 0)
+	routeTableIds := make([]any, 0)
 	if input.Ids != nil {
 		routeTableIds = flattenVirtualWANSubResourcesToIDs(input.Ids)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"labels":          labels,
 			"route_table_ids": routeTableIds,
 		},
 	}
 }
 
-func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []any {
+	results := make([]any, 0)
 	if input == nil || input.StaticRoutes == nil {
 		return results
 	}
 
 	for _, item := range *input.StaticRoutes {
-		addressPrefixes := make([]interface{}, 0)
+		addressPrefixes := make([]any, 0)
 		if item.AddressPrefixes != nil {
-			addressPrefixes = helpers.FlattenStringSlice(item.AddressPrefixes)
+			addressPrefixes = pluginsdk.FlattenSlice(item.AddressPrefixes)
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":                pointer.From(item.Name),
 			"address_prefixes":    addressPrefixes,
 			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
@@ -530,8 +529,8 @@ func flattenVirtualHubConnectionVnetStaticRoute(input *virtualwans.VnetRoute) []
 	return results
 }
 
-func flattenVirtualWANSubResourcesToIDs(input *[]virtualwans.SubResource) []interface{} {
-	ids := make([]interface{}, 0)
+func flattenVirtualWANSubResourcesToIDs(input *[]virtualwans.SubResource) []any {
+	ids := make([]any, 0)
 	if input == nil {
 		return ids
 	}
@@ -548,7 +547,7 @@ func flattenVirtualWANSubResourcesToIDs(input *[]virtualwans.SubResource) []inte
 }
 
 func virtualHubConnectionProvisioningStateRefreshFunc(ctx context.Context, client *virtualwans.VirtualWANsClient, id virtualwans.HubVirtualNetworkConnectionId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.HubVirtualNetworkConnectionsGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

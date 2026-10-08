@@ -45,7 +45,7 @@ func (SynapseIntegrationRuntimeSelfHostedV1ToV2) Schema() map[string]*pluginsdk.
 }
 
 func (SynapseIntegrationRuntimeSelfHostedV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// the V0 -> V1 upgrader normalised the states that existed at the time, but IDs imported since
 		// were still parsed with the legacy resourceids.ParseAzureResourceID and can contain
 		// non-canonically cased static segments (e.g. `resourcegroups`, `microsoft.synapse`), which the

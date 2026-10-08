@@ -209,7 +209,7 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -258,7 +258,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-				clientCertMode = string(pointer.From(props.ClientCertMode))
+				clientCertMode = pointer.FromEnum(props.ClientCertMode)
 			}
 			d.Set("client_certificate_mode", clientCertMode)
 
@@ -365,15 +365,15 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {
-	results := make([]interface{}, 0)
+func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) any {
+	results := make([]any, 0)
 
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for k, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = v.Value
@@ -383,9 +383,9 @@ func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapp
 	return results
 }
 
-func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
+func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []any {
+	results := make([]any, 0)
+	result := make(map[string]any)
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -401,14 +401,14 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(pointer.From(input.ScmType))
-	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
+	result["scm_type"] = pointer.FromEnum(input.ScmType)
+	result["scm_min_tls_version"] = pointer.FromEnum(input.ScmMinTlsVersion)
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
 	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
-	result["ftps_state"] = string(pointer.From(input.FtpsState))
+	result["min_tls_version"] = pointer.FromEnum(input.MinTlsVersion)
+	result["ftps_state"] = pointer.FromEnum(input.FtpsState)
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
@@ -422,15 +422,15 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
-	result["ip_restriction_default_action"] = string(pointer.From(input.IPSecurityRestrictionsDefaultAction))
+	result["ip_restriction_default_action"] = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 
 	results = append(results, result)
 	return results
 }
 
-func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
+func flattenLogicAppStandardSiteCredential(input *webapps.User) []any {
+	results := make([]any, 0)
+	result := make(map[string]any)
 
 	if input == nil || input.Properties == nil {
 		log.Printf("[DEBUG] UserProperties is nil")
@@ -444,15 +444,15 @@ func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
 	return append(results, result)
 }
 
-func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interface{} {
-	results := make([]interface{}, 0)
+func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
-	allowedOrigins := make([]interface{}, 0)
+	allowedOrigins := make([]any, 0)
 	if s := input.AllowedOrigins; s != nil {
 		for _, v := range *s {
 			allowedOrigins = append(allowedOrigins, v)
@@ -467,9 +467,9 @@ func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interfac
 	return append(results, result)
 }
 
-func flattenHeaders(input map[string][]string) []interface{} {
-	output := make([]interface{}, 0)
-	headers := make(map[string]interface{})
+func flattenHeaders(input map[string][]string) []any {
+	output := make([]any, 0)
+	headers := make(map[string]any)
 	if input == nil {
 		return output
 	}

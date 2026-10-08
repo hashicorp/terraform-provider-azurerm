@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -745,7 +744,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -801,7 +800,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				if err := d.Set("api_server_authorized_ip_ranges", helpers.FlattenStringSlice(accessProfile.AuthorizedIPRanges)); err != nil {
+				if err := d.Set("api_server_authorized_ip_ranges", pluginsdk.FlattenSlice(accessProfile.AuthorizedIPRanges)); err != nil {
 					return fmt.Errorf("setting `api_server_authorized_ip_ranges`: %+v", err)
 				}
 
@@ -901,7 +900,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			// adminProfile is only available for RBAC enabled clusters with AAD and without local accounts disabled
-			adminKubeConfig := make([]interface{}, 0)
+			adminKubeConfig := make([]any, 0)
 			var adminKubeConfigRaw *string
 			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
 				adminCredentialsResp, err := client.ListClusterAdminCredentials(ctx, id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
@@ -939,8 +938,8 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	azureKeyVaultKms := make([]interface{}, 0)
+func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.ManagedClusterSecurityProfile) []any {
+	azureKeyVaultKms := make([]any, 0)
 
 	if input != nil && input.AzureKeyVaultKms != nil && input.AzureKeyVaultKms.Enabled != nil && *input.AzureKeyVaultKms.Enabled {
 		keyId := pointer.From(input.AzureKeyVaultKms.KeyId)
@@ -950,7 +949,7 @@ func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.Manage
 			networkAccess = string(*v)
 		}
 
-		azureKeyVaultKms = append(azureKeyVaultKms, map[string]interface{}{
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]any{
 			"key_vault_key_id":         keyId,
 			"key_vault_network_access": networkAccess,
 		})
@@ -959,8 +958,8 @@ func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.Manage
 	return azureKeyVaultKms
 }
 
-func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
-	storageProfile := make([]interface{}, 0)
+func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []any {
+	storageProfile := make([]any, 0)
 
 	if input != nil {
 		blobEnabled := false
@@ -983,7 +982,7 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 			snapshotController = *input.SnapshotController.Enabled
 		}
 
-		storageProfile = append(storageProfile, map[string]interface{}{
+		storageProfile = append(storageProfile, map[string]any{
 			"blob_driver_enabled":         blobEnabled,
 			"disk_driver_enabled":         diskEnabled,
 			"file_driver_enabled":         fileEnabled,
@@ -994,9 +993,9 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 	return storageProfile
 }
 
-func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResults, configName string) (*string, []interface{}) {
+func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResults, configName string) (*string, []any) {
 	if model == nil || model.Kubeconfigs == nil || len(*model.Kubeconfigs) < 1 {
-		return nil, []interface{}{}
+		return nil, []any{}
 	}
 
 	for _, c := range *model.Kubeconfigs {
@@ -1009,19 +1008,19 @@ func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResult
 				rawConfig = base64Decode(*kubeConfigRaw)
 			}
 
-			var flattenedKubeConfig []interface{}
+			var flattenedKubeConfig []any
 
 			if strings.Contains(rawConfig, "apiserver-id:") || strings.Contains(rawConfig, "exec") {
 				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
-					return pointer.To(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []any{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 			} else {
 				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
 				if err != nil {
-					return pointer.To(rawConfig), []interface{}{}
+					return pointer.To(rawConfig), []any{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
@@ -1031,11 +1030,11 @@ func flattenKubernetesClusterCredentials(model *managedclusters.CredentialResult
 		}
 	}
 
-	return nil, []interface{}{}
+	return nil, []any{}
 }
 
-func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) map[string]interface{} {
-	aciConnectors := make([]interface{}, 0)
+func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) map[string]any {
+	aciConnectors := make([]any, 0)
 	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
 	if enabled := aciConnector.Enabled; enabled {
 		subnetName := ""
@@ -1043,7 +1042,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 			subnetName = (*v)["SubnetName"]
 		}
 
-		aciConnectors = append(aciConnectors, map[string]interface{}{
+		aciConnectors = append(aciConnectors, map[string]any{
 			"subnet_name": subnetName,
 		})
 	}
@@ -1065,7 +1064,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 		httpApplicationRoutingZone = v
 	}
 
-	omsAgents := make([]interface{}, 0)
+	omsAgents := make([]any, 0)
 	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
@@ -1088,7 +1087,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
-		omsAgents = append(omsAgents, map[string]interface{}{
+		omsAgents = append(omsAgents, map[string]any{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
 			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
@@ -1096,7 +1095,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 		})
 	}
 
-	ingressApplicationGateways := make([]interface{}, 0)
+	ingressApplicationGateways := make([]any, 0)
 	ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
 	if enabled := ingressApplicationGateway.Enabled; enabled {
 		gatewayId := ""
@@ -1126,7 +1125,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 
 		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
 
-		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+		ingressApplicationGateways = append(ingressApplicationGateways, map[string]any{
 			"gateway_id":                           gatewayId,
 			"gateway_name":                         gatewayName,
 			"effective_gateway_id":                 effectiveGatewayId,
@@ -1142,7 +1141,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 		openServiceMeshEnabled = enabledVal
 	}
 
-	azureKeyVaultSecretsProviders := make([]interface{}, 0)
+	azureKeyVaultSecretsProviders := make([]any, 0)
 	azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
 	if enabled := azureKeyVaultSecretsProvider.Enabled; enabled {
 		enableSecretRotation := false
@@ -1157,14 +1156,14 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 
 		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyVaultSecretsProvider.Identity)
 
-		azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]interface{}{
+		azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]any{
 			"secret_rotation_enabled":  enableSecretRotation,
 			"secret_rotation_interval": rotationPollInterval,
 			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
 		})
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"aci_connector_linux":                aciConnectors,
 		"azure_policy_enabled":               azurePolicyEnabled,
 		"http_application_routing_enabled":   httpApplicationRoutingEnabled,
@@ -1176,54 +1175,14 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 	}
 }
 
-func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedclusters.ManagedClusterAgentPoolProfile) []interface{} {
-	agentPoolProfiles := make([]interface{}, 0)
+func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedclusters.ManagedClusterAgentPoolProfile) []any {
+	agentPoolProfiles := make([]any, 0)
 
 	if input == nil {
 		return agentPoolProfiles
 	}
 
 	for _, profile := range *input {
-		count := 0
-		if profile.Count != nil {
-			count = int(*profile.Count)
-		}
-
-		enableNodePublicIP := pointer.From(profile.EnableNodePublicIP)
-
-		minCount := 0
-		if profile.MinCount != nil {
-			minCount = int(*profile.MinCount)
-		}
-
-		maxCount := 0
-		if profile.MaxCount != nil {
-			maxCount = int(*profile.MaxCount)
-		}
-
-		enableAutoScaling := pointer.From(profile.EnableAutoScaling)
-
-		name := profile.Name
-
-		nodePublicIPPrefixID := profile.NodePublicIPPrefixID
-
-		osDiskSizeGb := 0
-		if profile.OsDiskSizeGB != nil {
-			osDiskSizeGb = int(*profile.OsDiskSizeGB)
-		}
-
-		vnetSubnetId := pointer.From(profile.VnetSubnetID)
-
-		orchestratorVersion := ""
-		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
-			orchestratorVersion = *profile.OrchestratorVersion
-		}
-
-		maxPods := 0
-		if profile.MaxPods != nil {
-			maxPods = int(*profile.MaxPods)
-		}
-
 		nodeLabels := make(map[string]string)
 		if profile.NodeLabels != nil {
 			for k, v := range *profile.NodeLabels {
@@ -1235,51 +1194,42 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			}
 		}
 
-		nodeTaints := make([]string, 0)
-		if profile.NodeTaints != nil {
-			nodeTaints = *profile.NodeTaints
-		}
-
-		vmSize := profile.VMSize
-
-		out := map[string]interface{}{
-			"count":                    count,
-			"auto_scaling_enabled":     enableAutoScaling,
-			"node_public_ip_enabled":   enableNodePublicIP,
-			"max_count":                maxCount,
-			"max_pods":                 maxPods,
-			"min_count":                minCount,
-			"name":                     name,
+		agentPoolProfiles = append(agentPoolProfiles, map[string]any{
+			"count":                    int(pointer.From(profile.Count)),
+			"auto_scaling_enabled":     pointer.From(profile.EnableAutoScaling),
+			"node_public_ip_enabled":   pointer.From(profile.EnableNodePublicIP),
+			"max_count":                int(pointer.From(profile.MaxCount)),
+			"max_pods":                 pointer.From(profile.MaxPods),
+			"min_count":                int(pointer.From(profile.MinCount)),
+			"name":                     profile.Name,
 			"node_labels":              nodeLabels,
-			"node_public_ip_prefix_id": nodePublicIPPrefixID,
-			"node_taints":              nodeTaints,
-			"orchestrator_version":     orchestratorVersion,
-			"os_disk_size_gb":          osDiskSizeGb,
-			"os_type":                  string(*profile.OsType),
+			"node_public_ip_prefix_id": profile.NodePublicIPPrefixID,
+			"node_taints":              pointer.From(profile.NodeTaints),
+			"orchestrator_version":     pointer.From(profile.OrchestratorVersion),
+			"os_disk_size_gb":          int(pointer.From(profile.OsDiskSizeGB)),
+			"os_type":                  pointer.FromEnum(profile.OsType),
 			"tags":                     tags.Flatten(profile.Tags),
-			"type":                     string(*profile.Type),
+			"type":                     pointer.FromEnum(profile.Type),
 			"upgrade_settings":         flattenKubernetesClusterDataSourceUpgradeSettings(profile.UpgradeSettings),
-			"vm_size":                  vmSize,
-			"vnet_subnet_id":           vnetSubnetId,
+			"vm_size":                  profile.VMSize,
+			"vnet_subnet_id":           pointer.From(profile.VnetSubnetID),
 			"zones":                    zones.FlattenUntyped(profile.AvailabilityZones),
-		}
-
-		agentPoolProfiles = append(agentPoolProfiles, out)
+		})
 	}
 
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties) []any {
+	results := make([]any, 0)
 	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := helpers.FlattenStringSlice(profile.AdminGroupObjectIDs)
+		adminGroupObjectIds := pluginsdk.FlattenSlice(profile.AdminGroupObjectIDs)
 
 		azureRbacEnabled := pointer.From(profile.EnableAzureRBAC)
 
 		tenantId := pointer.From(profile.TenantID)
 
-		result := map[string]interface{}{
+		result := map[string]any{
 			"admin_group_object_ids": adminGroupObjectIds,
 			"tenant_id":              tenantId,
 			"azure_rbac_enabled":     azureRbacEnabled,
@@ -1291,12 +1241,12 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 	return results
 }
 
-func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]managedclusters.UserAssignedIdentity) ([]interface{}, error) {
+func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]managedclusters.UserAssignedIdentity) ([]any, error) {
 	if profile == nil || *profile == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	kubeletIdentity := make([]interface{}, 0)
+	kubeletIdentity := make([]any, 0)
 	kubeletidentity := (*profile)["kubeletidentity"]
 	clientId := pointer.From(kubeletidentity.ClientId)
 
@@ -1311,7 +1261,7 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]manag
 		userAssignedIdentityId = parsedId.ID()
 	}
 
-	kubeletIdentity = append(kubeletIdentity, map[string]interface{}{
+	kubeletIdentity = append(kubeletIdentity, map[string]any{
 		"client_id":                 clientId,
 		"object_id":                 objectId,
 		"user_assigned_identity_id": userAssignedIdentityId,
@@ -1320,9 +1270,9 @@ func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]manag
 	return kubeletIdentity, nil
 }
 
-func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.ContainerServiceLinuxProfile) []interface{} {
-	values := make(map[string]interface{})
-	sshKeys := make([]interface{}, 0)
+func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.ContainerServiceLinuxProfile) []any {
+	values := make(map[string]any)
+	sshKeys := make([]any, 0)
 
 	if profile := input; profile != nil {
 		if username := profile.AdminUsername; username != "" {
@@ -1333,7 +1283,7 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.Conta
 		if keys := ssh.PublicKeys; keys != nil {
 			for _, sshKey := range keys {
 				if keyData := sshKey.KeyData; keyData != "" {
-					outputs := make(map[string]interface{})
+					outputs := make(map[string]any)
 					outputs["key_data"] = keyData
 					sshKeys = append(sshKeys, outputs)
 				}
@@ -1343,24 +1293,24 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *managedclusters.Conta
 
 	values["ssh_key"] = sshKeys
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenKubernetesClusterDataSourceWindowsProfile(input *managedclusters.ManagedClusterWindowsProfile) []interface{} {
+func flattenKubernetesClusterDataSourceWindowsProfile(input *managedclusters.ManagedClusterWindowsProfile) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	if username := input.AdminUsername; username != "" {
 		values["admin_username"] = username
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []interface{} {
-	values := make(map[string]interface{})
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.ContainerServiceNetworkProfile) []any {
+	values := make(map[string]any)
 
 	values["network_plugin"] = profile.NetworkPlugin
 
@@ -1386,25 +1336,25 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 
 	values["outbound_type"] = pointer.From(profile.OutboundType)
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *managedclusters.ManagedClusterServicePrincipalProfile) []interface{} {
+func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *managedclusters.ManagedClusterServicePrincipalProfile) []any {
 	if profile == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	if clientID := profile.ClientId; clientID != "" {
 		values["client_id"] = clientID
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) []interface{} {
-	values := make(map[string]interface{})
+func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) []any {
+	values := make(map[string]any)
 
 	cluster := config.Clusters[0].Cluster
 	user := config.Users[0].User
@@ -1416,11 +1366,11 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) 
 	values["client_key"] = user.ClientKeyData
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfigAAD) []interface{} {
-	values := make(map[string]interface{})
+func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfigAAD) []any {
+	values := make(map[string]any)
 
 	cluster := config.Clusters[0].Cluster
 
@@ -1433,31 +1383,31 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenClusterDataSourceIdentity(input *identity.SystemOrUserAssignedMap) (*[]interface{}, error) {
+func flattenClusterDataSourceIdentity(input *identity.SystemOrUserAssignedMap) (*[]any, error) {
 	return identity.FlattenSystemOrUserAssignedMap(input)
 }
 
-func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []any {
 	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || (input.Defender.SecurityMonitoring.Enabled != nil && !*input.Defender.SecurityMonitoring.Enabled) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"log_analytics_workspace_id": pointer.From(input.Defender.LogAnalyticsWorkspaceResourceId),
 		},
 	}
 }
 
-func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
+func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	if input.MaxSurge != nil {
 		values["max_surge"] = *input.MaxSurge
@@ -1479,5 +1429,5 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }

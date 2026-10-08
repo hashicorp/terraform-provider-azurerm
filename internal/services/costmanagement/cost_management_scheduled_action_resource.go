@@ -146,7 +146,7 @@ func (r CostManagementScheduledActionResource) Attributes() map[string]*pluginsd
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CostManagementScheduledActionResource) ModelObject() interface{} {
+func (r CostManagementScheduledActionResource) ModelObject() any {
 	return &CostManagementScheduledActionModel{}
 }
 

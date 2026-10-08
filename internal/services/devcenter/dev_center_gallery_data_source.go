@@ -48,7 +48,7 @@ func (DevCenterGalleryDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (DevCenterGalleryDataSource) ModelObject() interface{} {
+func (DevCenterGalleryDataSource) ModelObject() any {
 	return &DevCenterGalleryDataSourceModel{}
 }
 

@@ -92,7 +92,7 @@ func (AnomalyAlertResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AnomalyAlertResource) ModelObject() interface{} {
+func (AnomalyAlertResource) ModelObject() any {
 	return &AnomalyAlertModel{}
 }
 

@@ -45,7 +45,7 @@ type SubscriptionAssignmentModel struct {
 	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
 }
 
-func (r SubscriptionAssignmentResource) ModelObject() interface{} {
+func (r SubscriptionAssignmentResource) ModelObject() any {
 	return &SubscriptionAssignmentModel{}
 }
 

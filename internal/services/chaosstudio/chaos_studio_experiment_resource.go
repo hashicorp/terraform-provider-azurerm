@@ -38,7 +38,7 @@ const (
 
 type ChaosStudioExperimentResource struct{}
 
-func (r ChaosStudioExperimentResource) ModelObject() interface{} {
+func (r ChaosStudioExperimentResource) ModelObject() any {
 	return &ChaosStudioExperimentResourceSchema{}
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func IoTHubDpsCertificateName(v interface{}, k string) (warnings []string, errors []error) {
+func IoTHubDpsCertificateName(v any, k string) (warnings []string, errors []error) {
 	return validation.All(
 		validation.StringIsNotEmpty,
 		validation.StringLenBetween(1, 64),
