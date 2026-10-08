@@ -94,17 +94,7 @@ resource "azurerm_resource_group" "snap" {
   location = "%[2]s"
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dbv-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  soft_delete         = "Off"
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[4]s
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%[1]d"
@@ -251,7 +241,7 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     azurerm_role_assignment.test_vault_data_contributor_on_storage,
   ]
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, DataProtectionBackupVaultResource{}.template(data, "Off"))
 }
 
 func (r DataProtectionBackupInstanceKubernetesClusterResource) requiresImport(data acceptance.TestData) string {

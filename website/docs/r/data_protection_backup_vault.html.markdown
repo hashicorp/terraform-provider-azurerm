@@ -39,10 +39,12 @@ The following arguments are supported:
 
 * `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore` and `VaultStore`. Changing this forces a new resource to be created.
 
+~> **Note:** Azure requires `ArchiveStore` to be accompanied by a `VaultStore`. Both stores are configured with the `redundancy`.
+
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
 * `cross_region_restore_enabled` - (Optional) Whether to enable cross-region restore for the Backup Vault.
- 
+
 -> **Note:** The `cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`. Once `cross_region_restore_enabled` is enabled, it cannot be disabled.
 
 ---
