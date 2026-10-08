@@ -86,16 +86,6 @@ The following arguments are supported:
 
 ---
 
-An `identity` block supports the following:
-
-* `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
-
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kusto Cluster.
-
-~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
-
----
-
 A `callout_policy` block supports the following:
 
 * `callout_type` - (Required) The type of callout service. Possible values are `azure_digital_twins`, `azure_openai`, `cosmosdb`, `external_data`, `genevametrics`, `kusto`, `mysql`, `postgresql`, `sandbox_artifacts`, `sql`, and `webapi`.
@@ -103,6 +93,16 @@ A `callout_policy` block supports the following:
 * `callout_uri_regex` - (Required) A regular expression or the callout URI.
 
 * `outbound_access` - (Required) Whether outbound access is permitted for the specified service with the URI pattern. Possible values are `Allow` and `Deny`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kusto Cluster.
+
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

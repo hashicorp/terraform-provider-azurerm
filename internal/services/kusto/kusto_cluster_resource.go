@@ -322,7 +322,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if v, ok := d.GetOk("callout_policy"); ok {
-		clusterProperties.CalloutPolicies = expandKustoClusterCalloutPolicies(v.([]interface{}))
+		clusterProperties.CalloutPolicies = expandKustoClusterCalloutPolicies(v.([]any))
 	}
 
 	restrictOutboundNetworkAccess := clusters.ClusterNetworkAccessFlagDisabled
@@ -447,7 +447,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("callout_policy") {
-		props.CalloutPolicies = expandKustoClusterCalloutPolicies(d.Get("callout_policy").([]interface{}))
+		props.CalloutPolicies = expandKustoClusterCalloutPolicies(d.Get("callout_policy").([]any))
 	}
 
 	if d.HasChange("auto_stop_enabled") {
@@ -730,14 +730,14 @@ func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExten
 	return output
 }
 
-func expandKustoClusterCalloutPolicies(input []interface{}) *[]clusters.CalloutPolicy {
+func expandKustoClusterCalloutPolicies(input []any) *[]clusters.CalloutPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
 	policies := make([]clusters.CalloutPolicy, 0)
 	for _, item := range input {
-		policyMap := item.(map[string]interface{})
+		policyMap := item.(map[string]any)
 		policy := clusters.CalloutPolicy{
 			CalloutType:     pointer.ToEnum[clusters.CalloutType](policyMap["callout_type"].(string)),
 			CalloutUriRegex: pointer.To(policyMap["callout_uri_regex"].(string)),
@@ -749,14 +749,14 @@ func expandKustoClusterCalloutPolicies(input []interface{}) *[]clusters.CalloutP
 	return &policies
 }
 
-func flattenKustoClusterCalloutPolicies(input *[]clusters.CalloutPolicy) []interface{} {
+func flattenKustoClusterCalloutPolicies(input *[]clusters.CalloutPolicy) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, policy := range *input {
-		policyMap := map[string]interface{}{}
+		policyMap := map[string]any{}
 		policyMap["callout_type"] = pointer.FromEnum(policy.CalloutType)
 		policyMap["callout_uri_regex"] = pointer.From(policy.CalloutUriRegex)
 		policyMap["outbound_access"] = pointer.FromEnum(policy.OutboundAccess)
