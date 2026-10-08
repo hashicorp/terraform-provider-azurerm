@@ -16,6 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// These tests require the prince tier on subscription to be `Free`
+// Use ImportStep() to import existing non-free pricing tiers settings and then destroy to reset to free,
+// then perform normal acceptance tests.
 type SecurityCenterSubscriptionPricingResource struct{}
 
 func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
@@ -43,6 +46,17 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config:             r.tier("Free", "AppServices"),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "AppServices").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.tier("Free", "AppServices"),
+			Destroy: true,
+		},
+		{
 			Config: r.tier("Standard", "AppServices"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -58,6 +72,31 @@ func TestAccSecurityCenterSubscriptionPricing_multiplePricingResources(t *testin
 	r := SecurityCenterSubscriptionPricingResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.multiplePricingResources(),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "SqlServers").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:             r.multiplePricingResources(),
+			ResourceName:       "azurerm_security_center_subscription_pricing.test_key_vaults",
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "KeyVaults").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:             r.multiplePricingResources(),
+			ResourceName:       "azurerm_security_center_subscription_pricing.test_open_source_relational_databases",
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "OpenSourceRelationalDatabases").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.multiplePricingResources(),
+			Destroy: true,
+		},
 		{
 			Config: r.multiplePricingResources(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -79,6 +118,17 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config:             r.tier("Free", "CosmosDbs"),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "CosmosDbs").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.tier("Free", "CosmosDbs"),
+			Destroy: true,
+		},
+		{
 			Config: r.tier("Standard", "CosmosDbs"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -95,6 +145,17 @@ func testAccSecurityCenterSubscriptionPricing_storageAccountDefender(t *testing.
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config:             r.tier("Free", "StorageAccounts"),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "StorageAccounts").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.tier("Free", "StorageAccounts"),
+			Destroy: true,
+		},
+		{
 			Config: r.storageAccountDefender(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -109,6 +170,17 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T
 	r := SecurityCenterSubscriptionPricingResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.tier("Free", "CloudPosture"),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "CloudPosture").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.tier("Free", "CloudPosture"),
+			Destroy: true,
+		},
 		{
 			Config: r.cloudPostureExtension(),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -147,6 +219,17 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionFreeToStandar
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config:             r.tier("Free", "CloudPosture"),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "CloudPosture").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.tier("Free", "CloudPosture"),
+			Destroy: true,
+		},
+		{
 			Config: r.cloudPostureFree(),
 			Check: acceptance.ComposeTestCheckFunc(
 				// for `free` tier it can not be checked if exist
@@ -173,6 +256,17 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFre
 	r := SecurityCenterSubscriptionPricingResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.tier("Free", "CloudPosture"),
+			ResourceName:       data.ResourceName,
+			ImportState:        true,
+			ImportStateId:      pricings.NewPricingID(data.Subscriptions.Primary, "CloudPosture").ID(),
+			ImportStatePersist: true,
+		},
+		{
+			Config:  r.tier("Free", "CloudPosture"),
+			Destroy: true,
+		},
 		{
 			Config: r.cloudPostureExtension(),
 			Check: acceptance.ComposeTestCheckFunc(
