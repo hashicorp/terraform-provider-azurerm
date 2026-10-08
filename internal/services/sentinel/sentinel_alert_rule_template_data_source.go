@@ -35,7 +35,7 @@ func dataSourceSentinelAlertRuleTemplate() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -43,7 +43,7 @@ func dataSourceSentinelAlertRuleTemplate() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
@@ -146,7 +146,7 @@ func dataSourceSentinelAlertRuleTemplate() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleTemplateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRuleTemplatesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -320,13 +320,13 @@ func setForThreatIntelligenceAlertRuleTemplate(d *pluginsdk.ResourceData, templa
 	}
 }
 
-func flattenScheduledAlertRuleTemplate(input *alertruletemplates.ScheduledAlertRuleTemplateProperties) []interface{} {
+func flattenScheduledAlertRuleTemplate(input *alertruletemplates.ScheduledAlertRuleTemplateProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"description":       pointer.From(input.Description),
 			"tactics":           pointer.FromEnumSlice(input.Tactics),
 			"severity":          pointer.FromEnum(input.Severity),
@@ -339,13 +339,13 @@ func flattenScheduledAlertRuleTemplate(input *alertruletemplates.ScheduledAlertR
 	}
 }
 
-func flattenNrtAlertRuleTemplate(input *alertruletemplates.NrtAlertRuleTemplateProperties) []interface{} {
+func flattenNrtAlertRuleTemplate(input *alertruletemplates.NrtAlertRuleTemplateProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"description": pointer.From(input.Description),
 			"tactics":     pointer.FromEnumSlice(input.Tactics),
 			"severity":    string(input.Severity),
@@ -354,13 +354,13 @@ func flattenNrtAlertRuleTemplate(input *alertruletemplates.NrtAlertRuleTemplateP
 	}
 }
 
-func flattenMsSecurityIncidentAlertRuleTemplate(input *alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties) []interface{} {
+func flattenMsSecurityIncidentAlertRuleTemplate(input *alertruletemplates.MicrosoftSecurityIncidentCreationAlertRuleTemplateProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"description":    pointer.From(input.Description),
 			"product_filter": pointer.FromEnum(input.ProductFilter),
 		},

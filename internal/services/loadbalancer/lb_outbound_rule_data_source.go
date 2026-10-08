@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,7 +83,7 @@ func dataSourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,7 +128,7 @@ func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta i
 			d.Set("backend_address_pool_id", backendAddressPoolId)
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
 
-			frontendIpConfigurations := make([]interface{}, 0)
+			frontendIpConfigurations := make([]any, 0)
 			if configs := props.FrontendIPConfigurations; configs != nil {
 				for _, feConfig := range configs {
 					if feConfig.Id == nil {
@@ -139,7 +139,7 @@ func dataSourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta i
 						return err
 					}
 
-					frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
+					frontendIpConfigurations = append(frontendIpConfigurations, map[string]any{
 						"id":   feid.ID(),
 						"name": feid.FrontendIPConfigurationName,
 					})

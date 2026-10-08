@@ -73,7 +73,7 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -127,7 +127,7 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 		Timeout:                   time.Until(deadline),
 		NotFoundChecks:            10,
 		ContinuousTargetOccurence: 3,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.GetPublicCertificate(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -147,7 +147,7 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 	return resourceAppServicePublicCertificateRead(d, meta)
 }
 
-func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 		Timeout:                   time.Until(deadline),
 		NotFoundChecks:            10,
 		ContinuousTargetOccurence: 1,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.GetPublicCertificate(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -201,7 +201,7 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 	if cert, ok := resp.(webapps.GetPublicCertificateOperationResponse); ok {
 		if model := cert.Model; model != nil {
 			if properties := model.Properties; properties != nil {
-				d.Set("certificate_location", string(pointer.From(properties.PublicCertificateLocation)))
+				d.Set("certificate_location", pointer.FromEnum(properties.PublicCertificateLocation))
 				d.Set("blob", pointer.From(properties.Blob))
 				d.Set("thumbprint", pointer.From(properties.Thumbprint))
 			}
@@ -211,7 +211,7 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceAppServicePublicCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServicePublicCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
