@@ -173,6 +173,7 @@ func resourceCapacityReservationRead(d *pluginsdk.ResourceData, meta interface{}
 	return resourceCapacityReservationFlatten(d, id, resp.Model)
 }
 
+// Note: when adding new properties, ensure the `(CapacityReservationListResource).capacityReservationToCapacityReservations` function is updated as well.
 func resourceCapacityReservationFlatten(d *pluginsdk.ResourceData, id *capacityreservations.CapacityReservationId, model *capacityreservations.CapacityReservation) error {
 	d.Set("name", id.CapacityReservationName)
 	groupId := capacityreservationgroups.NewCapacityReservationGroupID(id.SubscriptionId, id.ResourceGroupName, id.CapacityReservationGroupName)

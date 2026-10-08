@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccCapacityReservation_listByCapacityReservationGroupID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_capacity_reservation", "list")
 	r := CapacityReservationResource{}
 	listResourceAddress := "azurerm_capacity_reservation.list"
 
@@ -36,7 +36,7 @@ func TestAccCapacityReservation_listByCapacityReservationGroupID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast(listResourceAddress, 2),
+					querycheck.ExpectLength(listResourceAddress, 2),
 					querycheck.ExpectIdentity(
 						listResourceAddress,
 						map[string]knownvalue.Check{

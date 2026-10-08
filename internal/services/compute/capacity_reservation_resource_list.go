@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -50,9 +51,8 @@ func (CapacityReservationListResource) ListResourceConfigSchema(_ context.Contex
 	}
 }
 
-func (CapacityReservationListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.Compute.CapacityReservationsClient
-	groupsClient := metadata.Client.Compute.CapacityReservationGroupsClient
+func (r CapacityReservationListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+	client := metadata.Client.Compute.CapacityReservationClient
 
 	var data CapacityReservationListModel
 	diags := request.Config.Get(ctx, &data)
@@ -61,24 +61,16 @@ func (CapacityReservationListResource) List(ctx context.Context, request list.Li
 		return
 	}
 
-	groupID, err := capacityreservationgroups.ParseCapacityReservationGroupID(data.CapacityReservationGroupId.ValueString())
+	groupID, err := capacityreservation.ParseCapacityReservationGroupID(data.CapacityReservationGroupId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", azureCapacityReservationResourceName), err)
 		return
 	}
-
-	groupResp, err := groupsClient.Get(ctx, *groupID, capacityreservationgroups.DefaultGetOperationOptions())
+	resp, err := client.ListByCapacityReservationGroupComplete(ctx, *groupID)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("retrieving Capacity Reservation Group for `%s`", azureCapacityReservationResourceName), err)
 		return
 	}
-	if groupResp.Model == nil || groupResp.Model.Properties == nil || groupResp.Model.Properties.CapacityReservations == nil {
-		stream.Results = func(push func(list.ListResult) bool) {}
-		return
-	}
-
-	reservationRefs := *groupResp.Model.Properties.CapacityReservations
-
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		sdk.SetResponseErrorDiagnostic(stream, "internal-error", fmt.Errorf("context had no deadline"))
@@ -89,18 +81,15 @@ func (CapacityReservationListResource) List(ctx context.Context, request list.Li
 		ctx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
-		for _, ref := range reservationRefs {
+		for _, item := range resp.Items {
 			result := request.NewListResult(ctx)
 
-			id, err := capacityreservations.ParseCapacityReservationIDInsensitively(pointer.From(ref.Id))
+			id, err := capacityreservations.ParseCapacityReservationIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", azureCapacityReservationResourceName), err)
 				return
 			}
 
-			result.DisplayName = id.CapacityReservationName
-
-			resp, err := client.Get(ctx, *id, capacityreservations.DefaultGetOperationOptions())
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("retrieving `%s`", azureCapacityReservationResourceName), err)
 				return
@@ -109,7 +98,7 @@ func (CapacityReservationListResource) List(ctx context.Context, request list.Li
 			rd := resourceCapacityReservation().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceCapacityReservationFlatten(rd, id, resp.Model); err != nil {
+			if err := resourceCapacityReservationFlatten(rd, id, r.capacityReservationToCapacityReservations(item)); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureCapacityReservationResourceName), err)
 				return
 			}
@@ -124,4 +113,17 @@ func (CapacityReservationListResource) List(ctx context.Context, request list.Li
 			}
 		}
 	}
+}
+
+// capacityReservationToCapacityReservations converts a returned capacity resevervation response to the type expected by the resource's flatten function
+func (r CapacityReservationListResource) capacityReservationToCapacityReservations(item capacityreservation.CapacityReservation) *capacityreservations.CapacityReservation {
+	result := &capacityreservations.CapacityReservation{
+		Name:  item.Name,
+		Type:  item.Type,
+		Zones: item.Zones,
+	}
+	result.Sku.Name = item.Sku.Name
+	result.Sku.Capacity = item.Sku.Capacity
+
+	return result
 }
