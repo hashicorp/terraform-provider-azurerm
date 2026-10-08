@@ -109,7 +109,7 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,7 +140,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata:   tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
 			SrvRecords: expandAzureRmPrivateDnsSrvRecords(d),
 		},
@@ -161,7 +161,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourcePrivateDnsSrvRecordRead(d, meta)
 }
 
-func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +200,7 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,8 +219,8 @@ func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
@@ -231,7 +231,7 @@ func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[s
 				continue
 			}
 
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"priority": *record.Priority,
 				"weight":   *record.Weight,
 				"port":     *record.Port,
@@ -248,7 +248,7 @@ func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]privatedns.
 	records := make([]privatedns.SrvRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		record := v.(map[string]interface{})
+		record := v.(map[string]any)
 
 		records[i] = privatedns.SrvRecord{
 			Priority: pointer.To(int64(record["priority"].(int))),
@@ -261,10 +261,10 @@ func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]privatedns.
 	return &records
 }
 
-func resourcePrivateDnsSrvRecordHash(v interface{}) int {
+func resourcePrivateDnsSrvRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%d-", m["priority"].(int))
 		fmt.Fprintf(&buf, "%d-", m["weight"].(int))
 		fmt.Fprintf(&buf, "%d-", m["port"].(int))

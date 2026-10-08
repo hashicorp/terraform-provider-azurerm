@@ -78,7 +78,7 @@ func (r FlowletDataFlowResource) Exists(ctx context.Context, clients *clients.Cl
 }
 
 func (r FlowletDataFlowResource) basic(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 %s
 
@@ -145,7 +145,7 @@ resource "azurerm_data_factory_flowlet_data_flow" "import" {
 }
 
 func (r FlowletDataFlowResource) complete(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 %s
 
