@@ -25,9 +25,9 @@ func (s BaseSimilarityImpl) Similarity() BaseSimilarityImpl {
 
 var _ Similarity = RawSimilarityImpl{}
 
-// RawSimilarityImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawSimilarityImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawSimilarityImpl struct {
 	similarity BaseSimilarityImpl
 	Type       string
@@ -36,6 +36,10 @@ type RawSimilarityImpl struct {
 
 func (s RawSimilarityImpl) Similarity() BaseSimilarityImpl {
 	return s.similarity
+}
+
+func (s RawSimilarityImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalSimilarityImplementation(input []byte) (Similarity, error) {

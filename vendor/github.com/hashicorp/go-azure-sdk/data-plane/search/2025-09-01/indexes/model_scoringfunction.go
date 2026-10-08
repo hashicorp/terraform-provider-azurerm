@@ -28,9 +28,9 @@ func (s BaseScoringFunctionImpl) ScoringFunction() BaseScoringFunctionImpl {
 
 var _ ScoringFunction = RawScoringFunctionImpl{}
 
-// RawScoringFunctionImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawScoringFunctionImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawScoringFunctionImpl struct {
 	scoringFunction BaseScoringFunctionImpl
 	Type            string
@@ -39,6 +39,10 @@ type RawScoringFunctionImpl struct {
 
 func (s RawScoringFunctionImpl) ScoringFunction() BaseScoringFunctionImpl {
 	return s.scoringFunction
+}
+
+func (s RawScoringFunctionImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalScoringFunctionImplementation(input []byte) (ScoringFunction, error) {
