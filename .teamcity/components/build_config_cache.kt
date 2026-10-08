@@ -3,6 +3,9 @@ import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.buildFeatures.BuildCacheFeature
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 
+// The test builds no longer fetch what this publishes: each agent keeps its own Go caches instead, see
+// GoCache(). It's left running so that fetching can be switched back on if that doesn't work out, and
+// can be removed once it's clear that it does.
 class buildCacheConfiguration(environment: String, vcsRootId: String) {
     val environment = environment
     val vcsRootId = vcsRootId

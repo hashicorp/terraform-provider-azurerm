@@ -35,7 +35,6 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
 
             features {
                 Golang()
-                BuildCacheFeature()
             }
 
             params {
