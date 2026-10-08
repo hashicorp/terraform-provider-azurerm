@@ -60,30 +60,6 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
 }
 ```
 
-### Vaulted backup of all present and future containers
-
-```hcl
-resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
-  name                                   = "example-backup-policy"
-  vault_id                               = azurerm_data_protection_backup_vault.example.id
-  operational_default_retention_duration = "P30D"
-  backup_repeating_time_intervals        = ["R/2024-05-08T11:30:00+00:00/P1W"]
-  vault_default_retention_duration       = "P7D"
-}
-
-resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
-  name                             = "example-backup-instance"
-  vault_id                         = azurerm_data_protection_backup_vault.example.id
-  location                         = azurerm_resource_group.example.location
-  storage_account_id               = azurerm_storage_account.example.id
-  backup_policy_id                 = azurerm_data_protection_backup_policy_blob_storage.example.id
-  auto_protection_enabled          = true
-  excluded_container_name_prefixes = ["temp-", "scratch-"]
-
-  depends_on = [azurerm_role_assignment.example]
-}
-```
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -98,17 +74,17 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
-* `storage_account_container_names` - (Optional) The list of the container names of the source Storage Account. Conflicts with `excluded_container_name_prefixes`.
+* `auto_protection_enabled` - (Optional) Whether all present and future containers of the source Storage Account should be backed up. Defaults to `false`.
 
--> **Note:** For a vaulted backup policy or an operational and vaulted hybrid backup policy either `storage_account_container_names` or `auto_protection_enabled` should be specified. Removing the `storage_account_container_names` will force a new resource to be created since it can't be removed once specified, unless `auto_protection_enabled` is set to `true` at the same time, which is supported as an in-place update.
+!> **Note:** Enabling `auto_protection_enabled` is irreversible. Once enabled it cannot be disabled again, and `storage_account_container_names` can only be specified again by recreating the Backup Instance, which deletes its vaulted recovery points.
 
-* `auto_protection_enabled` - (Optional) Whether all present and future containers of the source Storage Account should be backed up automatically. Defaults to `false`. Cannot be set to `true` together with `storage_account_container_names`.
+~> **Note:** Azure only protects new containers until the number of protected containers reaches `1000`. If the Storage Account contains more than `1000` containers, `excluded_container_name_prefixes` must be used to reduce the number of protected containers to `1000` or fewer.
 
-~> **Note:** Enabling auto protection is irreversible in Azure: once `auto_protection_enabled` has been set to `true` the Backup Instance cannot be switched back to `storage_account_container_names` or to no container selection at all. Changing `auto_protection_enabled` from `true` to `false` is therefore rejected during planning. To switch back the Backup Instance has to be re-created, e.g. via `terraform apply -replace=azurerm_data_protection_backup_instance_blob_storage.example`, which deletes its vaulted recovery points.
+* `excluded_container_name_prefixes` - (Optional) A list of container name prefixes to exclude from auto protection. Containers whose names start with one of these prefixes are not backed up. Can only be specified when `auto_protection_enabled` is set to `true`.
 
-~> **Note:** Azure automatically protects new containers until the number of protected containers reaches `1000`. When the Storage Account has more than `1000` containers, `excluded_container_name_prefixes` has to be used to bring the number of protected containers down to `1000` or below.
+* `storage_account_container_names` - (Optional) The list of the container names of the source Storage Account.
 
-* `excluded_container_name_prefixes` - (Optional) A list of container name prefixes. Containers whose name starts with one of these prefixes are excluded from auto protection. The prefixes are evaluated in the order given and must be literal strings, wildcards and regular expressions are not supported. Can only be set when `auto_protection_enabled` is `true`. Conflicts with `storage_account_container_names`.
+-> **Note:** For a vaulted backup policy or an operational and vaulted hybrid backup policy, either `storage_account_container_names` or `auto_protection_enabled` should be specified. Removing `storage_account_container_names` forces a new resource to be created, unless `auto_protection_enabled` is set to `true` at the same time.
 
 ## Attributes Reference
 

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -76,15 +77,6 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 			},
 
-			"storage_account_container_names": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-				ConflictsWith: []string{"excluded_container_name_prefixes"},
-			},
-
 			"auto_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -92,14 +84,27 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			},
 
 			"excluded_container_name_prefixes": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				MinItems: 1,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.All(
+						validation.StringLenBetween(1, 63),
+						validation.StringMatch(regexp.MustCompile(`^[0-9a-z][0-9a-z-]*$`), "only lowercase alphanumeric characters and hyphens are allowed, and the value must not start with a hyphen"),
+					),
 				},
 				RequiredWith:  []string{"auto_protection_enabled"},
 				ConflictsWith: []string{"storage_account_container_names"},
+			},
+
+			"storage_account_container_names": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+				ConflictsWith: []string{"excluded_container_name_prefixes"},
 			},
 
 			"protection_state": {
@@ -115,21 +120,12 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 }
 
 func resourceDataProtectionBackupInstanceBlobStorageCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
-	if !d.NewValueKnown("auto_protection_enabled") || !d.NewValueKnown("storage_account_container_names") || !d.NewValueKnown("excluded_container_name_prefixes") {
+	if !d.NewValueKnown("auto_protection_enabled") {
 		return nil
 	}
 
 	oldAutoProtection, newAutoProtection := d.GetChange("auto_protection_enabled")
 	autoProtectionEnabled := newAutoProtection.(bool)
-	oldContainerNames, newContainerNames := d.GetChange("storage_account_container_names")
-
-	if autoProtectionEnabled && len(newContainerNames.([]any)) > 0 {
-		return fmt.Errorf("`storage_account_container_names` cannot be set when `auto_protection_enabled` is `true`: auto protection covers all present and future containers of the Storage Account")
-	}
-
-	if !autoProtectionEnabled && len(d.Get("excluded_container_name_prefixes").([]any)) > 0 {
-		return fmt.Errorf("`excluded_container_name_prefixes` can only be set when `auto_protection_enabled` is `true`")
-	}
 
 	// Azure does not allow switching a Backup Instance back from auto protection to a container list (or to no
 	// container selection at all) once auto protection has been enabled - the only way out is to re-create the
@@ -137,6 +133,20 @@ func resourceDataProtectionBackupInstanceBlobStorageCustomizeDiff(_ context.Cont
 	// `ForceNew` so that the re-creation has to be requested explicitly.
 	if d.Id() != "" && oldAutoProtection.(bool) && !autoProtectionEnabled {
 		return fmt.Errorf("`auto_protection_enabled` cannot be changed from `true` to `false`: enabling auto protection for a Backup Instance is irreversible in Azure. To switch back to a container list the Backup Instance has to be re-created (e.g. via `terraform apply -replace=<resource address>`), which deletes its vaulted recovery points")
+	}
+
+	if !d.NewValueKnown("storage_account_container_names") || !d.NewValueKnown("excluded_container_name_prefixes") {
+		return nil
+	}
+
+	oldContainerNames, newContainerNames := d.GetChange("storage_account_container_names")
+
+	if autoProtectionEnabled && len(newContainerNames.([]any)) > 0 {
+		return fmt.Errorf("`storage_account_container_names` cannot be set when `auto_protection_enabled` is `true`: auto protection covers all present and future containers of the Storage Account")
+	}
+
+	if !autoProtectionEnabled && d.Get("excluded_container_name_prefixes").(*pluginsdk.Set).Len() > 0 {
+		return fmt.Errorf("`excluded_container_name_prefixes` can only be set when `auto_protection_enabled` is `true`")
 	}
 
 	// The `storage_account_container_names` can not be removed once specified - unless the Backup Instance is being
@@ -205,7 +215,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	if d.Get("auto_protection_enabled").(bool) {
 		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
 			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
-				expandBlobBackupAutoProtection(d.Get("excluded_container_name_prefixes").([]any)),
+				expandBlobBackupAutoProtection(d.Get("excluded_container_name_prefixes").(*pluginsdk.Set).List()),
 			},
 		}
 	} else if v, ok := d.GetOk("storage_account_container_names"); ok {
@@ -314,7 +324,7 @@ func expandBlobBackupAutoProtection(excludedContainerNamePrefixes []any) backupi
 		Enabled: true,
 	}
 
-	// rules are evaluated in the order provided; without any rules every present and future container is eligible
+	// without any rules every present and future container is eligible for auto protection
 	if len(excludedContainerNamePrefixes) > 0 {
 		rules := make([]backupinstanceresources.BlobBackupAutoProtectionRule, 0, len(excludedContainerNamePrefixes))
 		for _, prefix := range excludedContainerNamePrefixes {
