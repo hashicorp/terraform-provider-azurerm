@@ -168,7 +168,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_resource_group_cost_management_export" "test" {
   name                         = "accrg%d"
   resource_group_id            = azurerm_resource_group.test.id
-  recurrence_type              = "Monthly"
+  recurrence_type              = "Weekly"
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
   file_format                  = "Csv"
