@@ -82,7 +82,7 @@ func (s HyperVNetworkMappingResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (s HyperVNetworkMappingResource) ModelObject() interface{} {
+func (s HyperVNetworkMappingResource) ModelObject() any {
 	return &HyperVNetworkMappingModel{}
 }
 
