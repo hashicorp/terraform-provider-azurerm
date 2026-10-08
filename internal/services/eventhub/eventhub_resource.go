@@ -318,19 +318,25 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:         pointer.To(int64(d.Get("partition_count").(int))),
-			Status:                 &eventhubStatus,
-			MessageRetentionInDays: pointer.To(int64(d.Get("message_retention").(int))),
-			CaptureDescription:     expandEventHubCaptureDescription(d),
+			PartitionCount:     pointer.To(int64(d.Get("partition_count").(int))),
+			Status:             &eventhubStatus,
+			CaptureDescription: expandEventHubCaptureDescription(d),
 		},
+	}
+
+	rawConfig := d.GetRawConfig()
+	messageRetention := rawConfig.GetAttr("message_retention")
+	if messageRetention.IsKnown() && !messageRetention.IsNull() {
+		parameters.Properties.MessageRetentionInDays = pointer.To(int64(d.Get("message_retention").(int)))
+	}
+
+	retentionDescription := rawConfig.GetAttr("retention_description")
+	if retentionDescription.IsKnown() && !retentionDescription.IsNull() {
+		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
 	}
 
 	if d.HasChange("capture_description") {
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
-	}
-
-	if d.HasChange("retention_description") {
-		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
