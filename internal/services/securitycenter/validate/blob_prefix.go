@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func BlobPrefix(v interface{}, k string) (warnings []string, errors []error) {
+func BlobPrefix(v any, k string) (warnings []string, errors []error) {
 	values := strings.Split(v.(string), "/")
 	containerName := values[0]
 

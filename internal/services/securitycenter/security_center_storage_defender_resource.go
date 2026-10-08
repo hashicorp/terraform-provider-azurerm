@@ -420,7 +420,7 @@ func (s StorageDefenderResource) expandSecurityCenterStorageDefenderMalwareScann
 	onUploadFilter := &defenderforstorage.OnUploadFilters{}
 
 	if input[0].ExcludeBlobsLargerThan > 0 {
-		var excludeBlobsLargerThan interface{} = input[0].ExcludeBlobsLargerThan
+		var excludeBlobsLargerThan any = input[0].ExcludeBlobsLargerThan
 		onUploadFilter.ExcludeBlobsLargerThan = pointer.To(excludeBlobsLargerThan)
 	}
 
