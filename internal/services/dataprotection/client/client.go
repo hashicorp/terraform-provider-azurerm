@@ -20,6 +20,9 @@ type Client struct {
 	BackupInstanceClient *backupinstanceresources.BackupInstanceResourcesClient
 	ResourceGuardClient  *resourceguardresources.ResourceGuardResourcesClient
 
+	// Using 2026-06-01 only for resources requiring its new features.
+	// Backup vaults stay on 2025-07-01 because 2026-06-01 requires soft delete to be AlwaysOn,
+	// which would break existing configurations using other soft-delete settings.
 	BackupPolicyClient20260601 *basebackuppolicyresources20260601.BaseBackupPolicyResourcesClient
 }
 
