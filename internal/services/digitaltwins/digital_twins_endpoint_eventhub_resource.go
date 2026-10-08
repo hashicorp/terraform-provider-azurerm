@@ -84,7 +84,7 @@ func resourceDigitalTwinsEndpointEventHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -133,7 +133,7 @@ func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceDigitalTwinsEndpointEventHubRead(d, meta)
 }
 
-func resourceDigitalTwinsEndpointEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,7 +165,7 @@ func resourceDigitalTwinsEndpointEventHubRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDigitalTwinsEndpointEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

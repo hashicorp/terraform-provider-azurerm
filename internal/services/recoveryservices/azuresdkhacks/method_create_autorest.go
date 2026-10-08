@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -42,7 +45,7 @@ func (c VaultCertificatesClient) Create(ctx context.Context, id vaultcertificate
 
 // preparerForCreate prepares the Create request.
 func (c VaultCertificatesClient) preparerForCreate(ctx context.Context, id vaultcertificates.CertificateId, input CertificateRequest) (*http.Request, error) {
-	queryParameters := map[string]interface{}{
+	queryParameters := map[string]any{
 		"api-version": defaultApiVersion,
 	}
 

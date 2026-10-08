@@ -25,12 +25,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // TODO: this wants splitting into virtual resources with Virtual IDs
@@ -58,7 +57,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -69,13 +68,13 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					// Elevated access (aka User Access Administrator role) is needed to assign roles in the following scopes:
-					// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+					// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 					validation.StringMatch(regexp.MustCompile("/"), "Root scope (/) is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Capacity"), "Capacity scope is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.BillingBenefits"), "BillingBenefits scope is invalid"),
 
-					billingValidate.EnrollmentID,
+					validate.EnrollmentID,
 					commonids.ValidateManagementGroupID,
 					commonids.ValidateSubscriptionID,
 					commonids.ValidateResourceGroupID,
@@ -86,7 +85,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_id": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -95,7 +94,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"role_definition_name": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ForceNew:         true,
 				ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -111,7 +110,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"principal_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"User",
@@ -123,7 +122,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"skip_service_principal_aad_check": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"delegated_managed_identity_resource_id": {
@@ -148,7 +147,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			"condition_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",
@@ -158,7 +157,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionsClient
@@ -279,7 +278,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
-func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -345,7 +344,7 @@ func resourceArmRoleAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
-func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -410,7 +409,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -435,7 +434,7 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta interface{}, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta any, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -444,8 +443,6 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, param)
 		if err != nil {
 			switch {
-			case utils.ResponseErrorIsRetryable(err):
-				return pluginsdk.RetryableError(err)
 			case response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)

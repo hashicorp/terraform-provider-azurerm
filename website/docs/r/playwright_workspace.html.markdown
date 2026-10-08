@@ -29,7 +29,7 @@ resource "azurerm_playwright_workspace" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Playwright Workspace.
+* `name` - (Required) The name which should be used for this Playwright Workspace. Changing this forces a new Playwright Workspace to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Playwright Workspace should exist. Changing this forces a new Playwright Workspace to be created.
 
@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Playwright Workspace.
 
-* `dataplane_uri` - The data plane service API URI of the Playwright Workspace. The format of URI is `https://{location}.api.playwright.microsoft.com/playwrightworkspaces/{uuid}`. To use the Playwright Workspace remote browsers, apply the URI according to the [documentation](https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/quickstart-run-end-to-end-tests?tabs=playwrightcli&pivots=playwright-test-runner#configure-the-browser-endpoint).
+* `dataplane_uri` - The data plane service API URI of the Playwright Workspace. The format of URI is `https://{location}.api.playwright.microsoft.com/playwrightworkspaces/{uuid}`. To use the Playwright Workspace remote browsers, apply the URI according to the [documentation](https://learn.microsoft.com/azure/app-testing/playwright-workspaces/quickstart-run-end-to-end-tests?tabs=playwrightcli&pivots=playwright-test-runner#configure-the-browser-endpoint).
 
 * `uuid` - The ID in GUID format of the Playwright Workspace.
 

@@ -275,7 +275,7 @@ A `tcp_configuration` block supports the following:
 
 * `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
-* `destination_port_behavior` - (Optional) The destination port behavior for the TCP connection. Possible values are `None` and `ListenIfAvailable`.
+* `destination_port_behavior` - (Optional) The destination port behaviour for the TCP connection. Possible values are `None` and `ListenIfAvailable`.
 
 ---
 
@@ -318,4 +318,4 @@ terraform import azurerm_network_connection_monitor.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

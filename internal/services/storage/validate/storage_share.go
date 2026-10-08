@@ -12,7 +12,7 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
-func StorageShareDataPlaneID(input interface{}, key string) (warnings []string, errors []error) {
+func StorageShareDataPlaneID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
@@ -31,7 +31,7 @@ func StorageShareDataPlaneID(input interface{}, key string) (warnings []string, 
 }
 
 // StorageShareName follows the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx
-func StorageShareName(v interface{}, k string) ([]string, []error) {
+func StorageShareName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "only lowercase alphanumeric characters and hyphens allowed"),
 		validation.StringLenBetween(3, 63),

@@ -21,6 +21,6 @@ func dataSourceAutomationVariableInt() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAutomationVariableIntRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableIntRead(d *pluginsdk.ResourceData, meta any) error {
 	return dataSourceAutomationVariableRead(d, meta, "Int")
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceAzureFileStorage() *pluginsdk.Resource {
@@ -146,7 +146,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorage() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -205,7 +205,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		fileStorageLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		fileStorageLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -213,17 +213,16 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
-		password := v.([]interface{})
+		password := v.([]any)
 		fileStorageProperties.Password = expandAzureKeyVaultSecretReference(password)
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		fileStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
+		fileStorageLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		fileStorageLinkedService.Annotations = &annotations
+		fileStorageLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -239,7 +238,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *pluginsdk.R
 	return resourceDataFactoryLinkedServiceAzureFileStorageRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,13 +283,11 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 		d.Set("user_id", fileStorage.UserID.(string))
 	}
 
-	annotations := flattenDataFactoryAnnotations(fileStorage.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(fileStorage.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations` for Data Factory Azure File Storage %s: %+v", *id, err)
 	}
 
-	parameters := flattenLinkedServiceParameters(fileStorage.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(fileStorage.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -309,7 +306,7 @@ func resourceDataFactoryLinkedServiceAzureFileStorageRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceAzureFileStorageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

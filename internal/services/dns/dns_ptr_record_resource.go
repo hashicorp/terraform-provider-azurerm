@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -85,7 +86,7 @@ func resourceDnsPtrRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -112,7 +113,7 @@ func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := recordsets.RecordSet{
 		Properties: &recordsets.RecordSetProperties{
@@ -130,7 +131,7 @@ func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceDnsPtrRecordRead(d, meta)
 }
 
-func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +172,7 @@ func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -209,9 +210,8 @@ func expandAzureRmDnsPtrRecords(d *pluginsdk.ResourceData) *[]recordsets.PtrReco
 	records := make([]recordsets.PtrRecord, 0)
 
 	for _, v := range recordStrings {
-		fqdn := v.(string)
 		records = append(records, recordsets.PtrRecord{
-			Ptrdname: &fqdn,
+			Ptrdname: pointer.To(v.(string)),
 		})
 	}
 
