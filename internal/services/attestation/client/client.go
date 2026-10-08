@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders"
-	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
@@ -79,6 +79,6 @@ func (c *Client) DataPlaneClientWithEndpoint(endpoint string) (*attestation.Poli
 
 	policyClient := attestation.NewPolicyClient()
 	policyClient.RetryAttempts = 5
-	c.o.ConfigureClient(&policyClient.Client, authWrapper.AutorestAuthorizer(auth))
+	c.o.ConfigureClient(&policyClient.Client, autorest.AutorestAuthorizer(auth))
 	return &policyClient, nil
 }

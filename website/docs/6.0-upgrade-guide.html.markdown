@@ -97,6 +97,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_storage_account`
 
+* The `account_kind` property no longer accepts the `BlobStorage` and `Storage` values.
 * The deprecated `public_network_access_enabled` property has been removed.
 
 ## Breaking Changes in Data Sources

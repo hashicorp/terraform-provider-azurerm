@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,7 +56,7 @@ func (CdnFrontDoorSecurityPolicyDataSource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_security_policy"
 }
 
-func (CdnFrontDoorSecurityPolicyDataSource) ModelObject() interface{} {
+func (CdnFrontDoorSecurityPolicyDataSource) ModelObject() any {
 	return &CdnFrontDoorSecurityPolicyDataSourceModel{}
 }
 
@@ -196,7 +196,7 @@ func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.Security
 	wafPolicyId := ""
 
 	if wafParams.WafPolicy != nil {
-		parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
+		parsedId, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
 		if err != nil {
 			return results, err
 		}

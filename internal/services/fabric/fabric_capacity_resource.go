@@ -37,7 +37,7 @@ type SkuModel struct {
 	Tier string `tfschema:"tier"`
 }
 
-func (r FabricCapacityResource) ModelObject() interface{} {
+func (r FabricCapacityResource) ModelObject() any {
 	return &FabricCapacityResource{}
 }
 

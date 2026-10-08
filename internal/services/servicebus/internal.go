@@ -106,7 +106,7 @@ func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*plu
 	return s
 }
 
-func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")
@@ -122,7 +122,7 @@ func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDi
 	return nil
 }
 
-func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
+func waitForPairedNamespaceReplication(ctx context.Context, meta any, id namespaces.NamespaceId, timeout time.Duration) error {
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	resp, err := namespaceClient.Get(ctx, id)
 
@@ -153,7 +153,7 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 		Target:     []string{string(armdisasterrecoveries.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    timeout,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := disasterRecoveryClient.DisasterRecoveryConfigsGet(ctx, disasterRecoveryConfigId)
 			if err != nil {
 				return nil, "error", fmt.Errorf("wait read for %s: %v", disasterRecoveryConfigId, err)
@@ -174,7 +174,7 @@ func waitForPairedNamespaceReplication(ctx context.Context, meta interface{}, id
 	return waitErr
 }
 
-func waitForNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id namespaces.NamespaceId, timeout time.Duration) error {
+func waitForNamespaceStatusToBeReady(ctx context.Context, meta any, id namespaces.NamespaceId, timeout time.Duration) error {
 	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
@@ -196,7 +196,7 @@ func waitForNamespaceStatusToBeReady(ctx context.Context, meta interface{}, id n
 }
 
 func serviceBusNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving servicebus namespace error: %+v", err)

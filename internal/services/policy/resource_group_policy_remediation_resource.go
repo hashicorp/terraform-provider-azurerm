@@ -110,7 +110,7 @@ func resourceResourceGroupPolicyRemediation() *pluginsdk.Resource {
 	}
 }
 
-func resourceResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceResourceGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceResourceGroupPolicyRemediationRead(d, meta)
 }
 
-func resourceResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceResourceGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta 
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +218,7 @@ func resourceResourceGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, met
 }
 
 func resourceGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.ProviderRemediationId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.GetAtResourceGroup(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)

@@ -294,7 +294,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     subnet_id                  = azurerm_subnet.test.id
     zone                       = "2"
     volume_spec_name           = "ora-log"
-    storage_quota_in_gb        = 1024
+    storage_quota_in_gb        = 50
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
     security_style             = "unix"
