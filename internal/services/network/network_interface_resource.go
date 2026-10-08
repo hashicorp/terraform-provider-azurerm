@@ -219,36 +219,16 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				oldIPConfiguration, newIPconfiguration := diff.GetChange("ip_configuration")
-
-				oldIPConfig := oldIPConfiguration.([]interface{})
-				oldPrimaryIP := ""
-				for _, config := range oldIPConfig {
-					config := config.(map[string]interface{})
-					if config["primary"].(bool) {
-						oldPrimaryIP = config["private_ip_address"].(string)
-						break
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+				if diff.HasChange("ip_configuration") {
+					// Recompute exported addresses so dependent resources update in the same apply.
+					if err := diff.SetNewComputed("private_ip_address"); err != nil {
+						return err
 					}
+					return diff.SetNewComputed("private_ip_addresses")
 				}
-
-				newIPConfig := newIPconfiguration.([]interface{})
-				newPrimaryIP := ""
-				for _, config := range newIPConfig {
-					config := config.(map[string]interface{})
-					if config["primary"].(bool) {
-						newPrimaryIP = config["private_ip_address"].(string)
-						break
-					}
-				}
-
-				if oldPrimaryIP != newPrimaryIP {
-					diff.SetNewComputed("private_ip_address")
-				}
-
 				return nil
-			}),
+			},
 		),
 	}
 
@@ -780,6 +760,8 @@ func flattenNetworkInterfacePrivateIPAddresses(input *[]networkinterfaces.Networ
 	for idx, config := range *input {
 		if props := config.Properties; props != nil && props.PrivateIPAddress != nil {
 			privateIP := *props.PrivateIPAddress
+			// Preserve the existing first-address behavior: the resource requires the primary
+			// configuration first, matching Azure's ordering after an update.
 			if idx == 0 {
 				primary = privateIP
 			}
