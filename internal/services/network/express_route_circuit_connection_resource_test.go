@@ -175,7 +175,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "TTDotcom-Malaysia-Menara"
+  peering_location    = "AtTokyo-Tokyo-CC1"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
