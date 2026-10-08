@@ -47,19 +47,13 @@ list "azurerm_maintenance_assignment_arc_machine" "test" {
 					querycheck.ExpectLength("azurerm_maintenance_assignment_arc_machine.test", 1),
 					querycheck.ExpectResourceKnownValues("azurerm_maintenance_assignment_arc_machine.test", nil, []querycheck.KnownValueCheck{
 						{
-							Path:       tfjsonpath.New("name"),
-							KnownValue: knownvalue.StringExact(fmt.Sprintf("acctest-mc%d", data.RandomInteger)),
-						},
-						{
 							Path:       tfjsonpath.New("maintenance_configuration_id"),
 							KnownValue: knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf("(?i)^/subscriptions/%s/resourceGroups/acctestRG-maint-%d/providers/Microsoft.Maintenance/maintenanceConfigurations/acctest-mc%d$", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger))),
 						},
 					}),
 					querycheck.ExpectIdentity("azurerm_maintenance_assignment_arc_machine.test", map[string]knownvalue.Check{
-						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
-						"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf("(?i)^acctestRG-maint-%d$", data.RandomInteger))),
-						"machine_name":        knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf("(?i)^acctest-arc-%d$", data.RandomInteger))),
-						"name":                knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf("(?i)^acctest-mc%d$", data.RandomInteger))),
+						"scope": knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf("(?i)^/subscriptions/%s/resourceGroups/acctestRG-maint-%d/providers/Microsoft.HybridCompute/machines/acctest-arc-%d$", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger))),
+						"name":  knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf("(?i)^acctest-mc%d$", data.RandomInteger))),
 					}),
 				},
 			},

@@ -17,10 +17,8 @@ func TestAccMaintenanceAssignmentArcMachine_resourceIdentity(t *testing.T) {
 	r := MaintenanceAssignmentArcMachineResource{}
 
 	checkedFields := map[string]struct{}{
-		"name":                {},
-		"machine_name":        {},
-		"resource_group_name": {},
-		"subscription_id":     {},
+		"scope": {},
+		"name":  {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -28,10 +26,8 @@ func TestAccMaintenanceAssignmentArcMachine_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_maintenance_assignment_arc_machine.test", checkedFields),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_maintenance_assignment_arc_machine.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_maintenance_assignment_arc_machine.test", tfjsonpath.New("machine_name"), tfjsonpath.New("arc_machine_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_maintenance_assignment_arc_machine.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("arc_machine_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_maintenance_assignment_arc_machine.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("arc_machine_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_maintenance_assignment_arc_machine.test", tfjsonpath.New("scope"), tfjsonpath.New("arc_machine_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPathCaseInsensitive("azurerm_maintenance_assignment_arc_machine.test", tfjsonpath.New("name"), tfjsonpath.New("maintenance_configuration_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

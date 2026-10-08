@@ -74,8 +74,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Maintenance Assignment.
 
-* `name` - The name of the Maintenance Assignment.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

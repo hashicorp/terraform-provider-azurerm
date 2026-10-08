@@ -27,7 +27,6 @@ func TestAccMaintenanceAssignmentArcMachine_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-mc%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),

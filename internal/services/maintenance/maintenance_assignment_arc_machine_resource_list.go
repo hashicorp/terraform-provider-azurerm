@@ -12,13 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -83,14 +83,13 @@ func (MaintenanceAssignmentArcMachineListResource) List(ctx context.Context, req
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(assignment.Name)
 
-			id, err := parse.MaintenanceAssignmentArcMachineIDInsensitively(pointer.From(assignment.Id))
+			id, err := configurationassignments.ParseScopedConfigurationAssignmentIDInsensitively(pointer.From(assignment.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Maintenance Assignment ID", err)
 				return
 			}
 
 			rmd := sdk.NewResourceMetaData(metadata.Client, r)
-			rmd.SetID(id)
 			if err := r.flatten(rmd, id, &assignment); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return

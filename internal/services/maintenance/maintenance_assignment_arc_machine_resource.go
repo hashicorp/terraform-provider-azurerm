@@ -16,16 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:arc_machine_id,resource_group_name:arc_machine_id,machine_name:arc_machine_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "scope:arc_machine_id" -compare-values "name:maintenance_configuration_id" -has-id-casing-bug
 
 var (
-	_ sdk.Resource             = MaintenanceAssignmentArcMachineResource{}
-	_ sdk.ResourceWithIdentity = MaintenanceAssignmentArcMachineResource{}
+	_ sdk.Resource                   = MaintenanceAssignmentArcMachineResource{}
+	_ sdk.ResourceWithIdentity       = MaintenanceAssignmentArcMachineResource{}
+	_ sdk.ResourceWithCustomImporter = MaintenanceAssignmentArcMachineResource{}
 )
 
 type MaintenanceAssignmentArcMachineResource struct{}
@@ -33,7 +33,6 @@ type MaintenanceAssignmentArcMachineResource struct{}
 type MaintenanceAssignmentArcMachineModel struct {
 	ArcMachineId               string `tfschema:"arc_machine_id"`
 	MaintenanceConfigurationId string `tfschema:"maintenance_configuration_id"`
-	Name                       string `tfschema:"name"`
 }
 
 func (MaintenanceAssignmentArcMachineResource) Arguments() map[string]*pluginsdk.Schema {
@@ -59,12 +58,7 @@ func (MaintenanceAssignmentArcMachineResource) Arguments() map[string]*pluginsdk
 }
 
 func (MaintenanceAssignmentArcMachineResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (MaintenanceAssignmentArcMachineResource) ModelObject() any {
@@ -76,7 +70,24 @@ func (MaintenanceAssignmentArcMachineResource) ResourceType() string {
 }
 
 func (MaintenanceAssignmentArcMachineResource) Identity() resourceids.ResourceId {
-	return &parse.MaintenanceAssignmentArcMachineId{}
+	return &configurationassignments.ScopedConfigurationAssignmentId{}
+}
+
+func (MaintenanceAssignmentArcMachineResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		id, err := configurationassignments.ParseScopedConfigurationAssignmentID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		// The generic scoped ID also accepts assignments on VMs and Dedicated Hosts.
+		// Validate the parent so both ID and identity imports only accept Arc Machine assignments.
+		if _, err := machines.ParseMachineID(id.Scope); err != nil {
+			return err
+		}
+
+		return nil
+	}
 }
 
 func (r MaintenanceAssignmentArcMachineResource) Create() sdk.ResourceFunc {
@@ -102,11 +113,10 @@ func (r MaintenanceAssignmentArcMachineResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewMaintenanceAssignmentArcMachineID(arcMachineId.SubscriptionId, arcMachineId.ResourceGroupName, arcMachineId.MachineName, maintenanceConfigurationId.MaintenanceConfigurationName)
-			assignmentId := configurationassignments.NewScopedConfigurationAssignmentID(arcMachineId.ID(), id.ConfigurationAssignmentName)
+			id := configurationassignments.NewScopedConfigurationAssignmentID(arcMachineId.ID(), maintenanceConfigurationId.MaintenanceConfigurationName)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, assignmentId)
+				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
@@ -134,7 +144,7 @@ func (r MaintenanceAssignmentArcMachineResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, assignmentId, configurationAssignment); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, configurationAssignment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -151,14 +161,12 @@ func (r MaintenanceAssignmentArcMachineResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
 
-			id, err := parse.MaintenanceAssignmentArcMachineID(metadata.ResourceData.Id())
+			id, err := configurationassignments.ParseScopedConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroupName, id.MachineName)
-			assignmentId := configurationassignments.NewScopedConfigurationAssignmentID(arcMachineId.ID(), id.ConfigurationAssignmentName)
-			resp, err := client.Get(ctx, assignmentId)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -176,12 +184,15 @@ func (r MaintenanceAssignmentArcMachineResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (MaintenanceAssignmentArcMachineResource) flatten(metadata sdk.ResourceMetaData, id *parse.MaintenanceAssignmentArcMachineId, model *configurationassignments.ConfigurationAssignment) error {
-	arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroupName, id.MachineName)
+func (MaintenanceAssignmentArcMachineResource) flatten(metadata sdk.ResourceMetaData, id *configurationassignments.ScopedConfigurationAssignmentId, model *configurationassignments.ConfigurationAssignment) error {
+	arcMachineId, err := machines.ParseMachineIDInsensitively(id.Scope)
+	if err != nil {
+		return err
+	}
+	id.Scope = arcMachineId.ID()
 
 	state := MaintenanceAssignmentArcMachineModel{
 		ArcMachineId: arcMachineId.ID(),
-		Name:         id.ConfigurationAssignmentName,
 	}
 
 	if props := model.Properties; props != nil && props.MaintenanceConfigurationId != nil {
@@ -192,6 +203,7 @@ func (MaintenanceAssignmentArcMachineResource) flatten(metadata sdk.ResourceMeta
 		state.MaintenanceConfigurationId = configurationId.ID()
 	}
 
+	metadata.SetID(id)
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 		return err
 	}
@@ -205,14 +217,12 @@ func (r MaintenanceAssignmentArcMachineResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
 
-			id, err := parse.MaintenanceAssignmentArcMachineID(metadata.ResourceData.Id())
+			id, err := configurationassignments.ParseScopedConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroupName, id.MachineName)
-			assignmentId := configurationassignments.NewScopedConfigurationAssignmentID(arcMachineId.ID(), id.ConfigurationAssignmentName)
-			if resp, err := client.Delete(ctx, assignmentId); err != nil && !response.WasNotFound(resp.HttpResponse) {
+			if resp, err := client.Delete(ctx, *id); err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			return nil
@@ -221,17 +231,5 @@ func (r MaintenanceAssignmentArcMachineResource) Delete() sdk.ResourceFunc {
 }
 
 func (r MaintenanceAssignmentArcMachineResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input any, key string) (warnings []string, errors []error) {
-		v, ok := input.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
-		}
-
-		if _, err := parse.MaintenanceAssignmentArcMachineID(v); err != nil {
-			errors = append(errors, err)
-		}
-
-		return
-	}
+	return configurationassignments.ValidateScopedConfigurationAssignmentID
 }
