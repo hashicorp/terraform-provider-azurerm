@@ -90,11 +90,6 @@ func (r CapacityReservationListResource) List(ctx context.Context, request list.
 				return
 			}
 
-			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("retrieving `%s`", azureCapacityReservationResourceName), err)
-				return
-			}
-
 			rd := resourceCapacityReservation().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
