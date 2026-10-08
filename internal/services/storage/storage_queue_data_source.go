@@ -47,7 +47,7 @@ func dataSourceStorageQueue() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

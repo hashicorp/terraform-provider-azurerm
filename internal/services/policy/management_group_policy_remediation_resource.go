@@ -13,11 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
-	managmentGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,7 +56,7 @@ func resourceManagementGroupPolicyRemediation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: managmentGroupValidate.ManagementGroupID,
+				ValidateFunc: managementGroupValidate.ManagementGroupID,
 			},
 
 			"policy_assignment_id": {
@@ -108,12 +107,12 @@ func resourceManagementGroupPolicyRemediation() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managementID, err := managmentGroupParse.ManagementGroupID(d.Get("management_group_id").(string))
+	managementID, err := managementGroupParse.ManagementGroupID(d.Get("management_group_id").(string))
 	if err != nil {
 		return err
 	}
@@ -136,7 +135,7 @@ func resourceManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	var parameters remediations.Remediation
 	props := &remediations.RemediationProperties{
 		Filters: &remediations.RemediationFilters{
-			Locations: helpers.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+			Locations: pluginsdk.ExpandStringSlice(d.Get("location_filters").([]any)),
 		},
 		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
 		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
@@ -169,7 +168,7 @@ func resourceManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	return resourceManagementGroupPolicyRemediationRead(d, meta)
 }
 
-func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,13 +189,13 @@ func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.RemediationName)
-	managementGroupID := managmentGroupParse.NewManagementGroupId(id.ManagementGroupId)
+	managementGroupID := managementGroupParse.NewManagementGroupId(id.ManagementGroupId)
 	d.Set("management_group_id", managementGroupID.ID())
 
 	if props := resp.Model.Properties; props != nil {
-		locations := make([]interface{}, 0)
+		locations := make([]any, 0)
 		if filters := props.Filters; filters != nil {
-			locations = helpers.FlattenStringSlice(filters.Locations)
+			locations = pluginsdk.FlattenSlice(filters.Locations)
 		}
 		if err := d.Set("location_filters", locations); err != nil {
 			return fmt.Errorf("setting `location_filters`: %+v", err)
@@ -215,7 +214,7 @@ func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +253,7 @@ func resourceManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 func managementGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context,
 	client *remediations.RemediationsClient, id remediations.Providers2RemediationId,
 ) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.GetAtManagementGroup(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)

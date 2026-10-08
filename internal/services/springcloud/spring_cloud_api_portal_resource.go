@@ -53,7 +53,7 @@ func (s SpringCloudAPIPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_api_portal"
 }
 
-func (s SpringCloudAPIPortalResource) ModelObject() interface{} {
+func (s SpringCloudAPIPortalResource) ModelObject() any {
 	return &SpringCloudAPIPortalModel{}
 }
 

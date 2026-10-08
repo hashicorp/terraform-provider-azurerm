@@ -11,7 +11,7 @@ description: |-
 
 Manages a Network Watcher Flow Log.
 
-~> **Note:** The `azurerm_network_watcher_flow_log` creates a new storage lifecyle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
+~> **Note:** The `azurerm_network_watcher_flow_log` creates a new storage lifecycle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
 
 ## Example Usage
 
@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
 
-* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`. Defaults to `1`.
+* `version` - (Optional) The version (revision) of the flow log. Possible values are `1`, `2` and `5`. Defaults to `1`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Watcher Flow Log.
 
@@ -154,4 +154,4 @@ terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securityadminconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/securityadminconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +31,7 @@ func (r ManagerSecurityAdminConfigurationResource) ResourceType() string {
 	return "azurerm_network_manager_security_admin_configuration"
 }
 
-func (r ManagerSecurityAdminConfigurationResource) ModelObject() interface{} {
+func (r ManagerSecurityAdminConfigurationResource) ModelObject() any {
 	return &ManagerSecurityAdminConfigurationModel{}
 }
 
