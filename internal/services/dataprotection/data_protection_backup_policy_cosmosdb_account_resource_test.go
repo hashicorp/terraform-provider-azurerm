@@ -143,7 +143,6 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 
   daily_backup_enabled = false
-  time_zone            = "Coordinated Universal Time"
 
   retention_rule {
     name              = "Monthly"
