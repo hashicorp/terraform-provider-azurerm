@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
@@ -21,7 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = ContainerAppConnectorResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "container_app_name:container_app_id,resource_group_name:container_app_id,subscription_id:container_app_id" -test-name storageBlob
+
+var (
+	_ sdk.ResourceWithIdentity = ContainerAppConnectorResource{}
+	_ sdk.ResourceWithUpdate   = ContainerAppConnectorResource{}
+)
 
 type ContainerAppConnectorResource struct{}
 
@@ -34,6 +40,11 @@ type ContainerAppConnectorResourceModel struct {
 	VnetSolution     string             `tfschema:"vnet_solution"`
 	SecretStore      []SecretStoreModel `tfschema:"secret_store"`
 	Scope            string             `tfschema:"scope"`
+}
+
+// Expand the SDK's scope segment so identity includes the Container App, not just the connection name.
+type containerAppConnectionIdentity struct {
+	servicelinker.ScopedLinkerId
 }
 
 func (r ContainerAppConnectorResource) Arguments() map[string]*schema.Schema {
@@ -108,6 +119,10 @@ func (r ContainerAppConnectorResource) ResourceType() string {
 	return "azurerm_container_app_connection"
 }
 
+func (r ContainerAppConnectorResource) Identity() resourceids.ResourceId {
+	return &containerAppConnectionIdentity{}
+}
+
 func (r ContainerAppConnectorResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -177,7 +192,7 @@ func (r ContainerAppConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &containerAppConnectionIdentity{ScopedLinkerId: id})
 		},
 	}
 }
@@ -200,39 +215,52 @@ func (r ContainerAppConnectorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			pwd := metadata.ResourceData.Get("authentication.0.secret").(string)
-
-			if model := resp.Model; model != nil {
-				props := model.Properties
-				if props.AuthInfo == nil || props.TargetService == nil {
-					return nil
-				}
-
-				state := ContainerAppConnectorResourceModel{
-					Name:             id.LinkerName,
-					ContainerAppId:   id.ResourceUri,
-					TargetResourceId: flattenTargetService(props.TargetService),
-					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
-					Scope:            pointer.From(props.Scope),
-				}
-
-				if props.ClientType != nil {
-					state.ClientType = string(*props.ClientType)
-				}
-
-				if props.VNetSolution != nil && props.VNetSolution.Type != nil {
-					state.VnetSolution = string(*props.VNetSolution.Type)
-				}
-
-				if props.SecretStore != nil {
-					state.SecretStore = flattenSecretStore(*props.SecretStore)
-				}
-
-				return metadata.Encode(&state)
-			}
-			return nil
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r ContainerAppConnectorResource) flatten(metadata sdk.ResourceMetaData, id *servicelinker.ScopedLinkerId, model *servicelinker.LinkerResource) error {
+	if model == nil {
+		return fmt.Errorf("retrieving %s: response model was nil", *id)
+	}
+
+	props := model.Properties
+	if props.AuthInfo == nil || props.TargetService == nil {
+		return fmt.Errorf("retrieving %s: authentication or target service was missing", *id)
+	}
+
+	containerAppId, err := containerapps.ParseContainerAppIDInsensitively(id.ResourceUri)
+	if err != nil {
+		return fmt.Errorf("parsing Container App ID: %+v", err)
+	}
+
+	pwd := metadata.ResourceData.Get("authentication.0.secret").(string)
+	state := ContainerAppConnectorResourceModel{
+		Name:             id.LinkerName,
+		ContainerAppId:   containerAppId.ID(),
+		TargetResourceId: flattenTargetService(props.TargetService),
+		AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
+		Scope:            pointer.From(props.Scope),
+	}
+
+	if props.ClientType != nil {
+		state.ClientType = string(*props.ClientType)
+	}
+
+	if props.VNetSolution != nil && props.VNetSolution.Type != nil {
+		state.VnetSolution = string(*props.VNetSolution.Type)
+	}
+
+	if props.SecretStore != nil {
+		state.SecretStore = flattenSecretStore(*props.SecretStore)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &containerAppConnectionIdentity{ScopedLinkerId: *id}); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r ContainerAppConnectorResource) Delete() sdk.ResourceFunc {
@@ -311,4 +339,26 @@ func (r ContainerAppConnectorResource) Update() sdk.ResourceFunc {
 
 func (r ContainerAppConnectorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return servicelinker.ValidateScopedLinkerID
+}
+
+func (id containerAppConnectionIdentity) Segments() []resourceids.Segment {
+	segments := id.ScopedLinkerId.Segments()[1:]
+	// The parser requires distinct names for the two static "providers" segments.
+	segments[0].Name = "staticServiceLinkerProviders"
+	return append(containerapps.ContainerAppId{}.Segments(), segments...)
+}
+
+func (id *containerAppConnectionIdentity) FromParseResult(input resourceids.ParseResult) error {
+	containerAppId := containerapps.ContainerAppId{}
+	if err := containerAppId.FromParseResult(input); err != nil {
+		return err
+	}
+
+	name, ok := input.Parsed["linkerName"]
+	if !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "linkerName", input)
+	}
+
+	id.ScopedLinkerId = servicelinker.NewScopedLinkerID(containerAppId.ID(), name)
+	return nil
 }

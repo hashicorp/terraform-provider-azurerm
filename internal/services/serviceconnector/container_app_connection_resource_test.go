@@ -19,6 +19,8 @@ import (
 
 type ServiceConnectorContainerAppResource struct{}
 
+type ContainerAppConnectionResource = ServiceConnectorContainerAppResource
+
 func (r ServiceConnectorContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servicelinker.ParseScopedLinkerID(state.ID)
 	if err != nil {

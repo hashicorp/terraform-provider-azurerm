@@ -277,6 +277,20 @@ Container App Service Connector can be imported using the `resource id`, e.g.
 terraform import azurerm_container_app_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.App/containerApps/containerApp1/providers/Microsoft.ServiceLinker/linkers/link1
 ```
 
+On Terraform v1.12 or later, the resource can also be imported using an `identity` block:
+
+```hcl
+import {
+  to = azurerm_container_app_connection.example
+  identity = {
+    subscription_id     = "00000000-0000-0000-0000-000000000000"
+    resource_group_name = "group1"
+    container_app_name  = "containerApp1"
+    name                = "link1"
+  }
+}
+```
+
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
