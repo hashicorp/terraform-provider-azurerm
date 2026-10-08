@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/quota/2025-07-15/groupquotalimits"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/quota/2025-07-15/subscriptionquotaallocation"
-	sdkclient "github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
 // listAllGroupQuotaLimits retrieves all quota limits for a (managementGroup, groupQuota,
@@ -25,8 +25,8 @@ func listAllGroupQuotaLimits(ctx context.Context, c *groupquotalimits.GroupQuota
 		return []groupquotalimits.GroupQuotaLimit{}, resp.HttpResponse, nil
 	}
 
-	items := make([]groupquotalimits.GroupQuotaLimit, len(*resp.Model.Properties.Value))
-	copy(items, *resp.Model.Properties.Value)
+	items := make([]groupquotalimits.GroupQuotaLimit, 0, len(*resp.Model.Properties.Value))
+	items = append(items, *resp.Model.Properties.Value...)
 	latestHTTPResp := resp.HttpResponse
 
 	nextLink := resp.Model.Properties.NextLink
@@ -39,7 +39,7 @@ func listAllGroupQuotaLimits(ctx context.Context, c *groupquotalimits.GroupQuota
 			break
 		}
 
-		req, err := c.Client.NewRequest(ctx, sdkclient.RequestOptions{
+		req, err := c.Client.NewRequest(ctx, client.RequestOptions{
 			ContentType:         "application/json; charset=utf-8",
 			ExpectedStatusCodes: []int{http.StatusOK},
 			HttpMethod:          http.MethodGet,
@@ -86,8 +86,8 @@ func listAllSubscriptionAllocations(ctx context.Context, c *subscriptionquotaall
 		return []subscriptionquotaallocation.SubscriptionQuotaAllocations{}, resp.HttpResponse, nil
 	}
 
-	items := make([]subscriptionquotaallocation.SubscriptionQuotaAllocations, len(*resp.Model.Properties.Value))
-	copy(items, *resp.Model.Properties.Value)
+	items := make([]subscriptionquotaallocation.SubscriptionQuotaAllocations, 0, len(*resp.Model.Properties.Value))
+	items = append(items, *resp.Model.Properties.Value...)
 	latestHTTPResp := resp.HttpResponse
 
 	nextLink := resp.Model.Properties.NextLink
@@ -100,7 +100,7 @@ func listAllSubscriptionAllocations(ctx context.Context, c *subscriptionquotaall
 			break
 		}
 
-		req, err := c.Client.NewRequest(ctx, sdkclient.RequestOptions{
+		req, err := c.Client.NewRequest(ctx, client.RequestOptions{
 			ContentType:         "application/json; charset=utf-8",
 			ExpectedStatusCodes: []int{http.StatusOK},
 			HttpMethod:          http.MethodGet,

@@ -285,7 +285,6 @@ func (r QuotaGroupSubscriptionAllocationResource) Delete() sdk.ResourceFunc {
 				}
 				zeroed = append(zeroed, AllocationModel{
 					ResourceName: pointer.From(item.Properties.ResourceName),
-					Limit:        0,
 				})
 			}
 

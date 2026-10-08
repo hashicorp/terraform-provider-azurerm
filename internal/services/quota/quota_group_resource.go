@@ -357,7 +357,6 @@ func (r QuotaGroupResource) Update() sdk.ResourceFunc {
 							ResourceName:         rn,
 							Location:             loc,
 							ResourceProviderName: rp,
-							Limit:                0,
 						})
 					}
 				}
