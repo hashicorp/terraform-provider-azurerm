@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2026
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -33,13 +33,7 @@ func TestAccVirtualNetworkRoutingAppliance_sequential(t *testing.T) {
 		},
 	}
 
-	for group, tests := range testCases {
-		t.Run(group, func(t *testing.T) {
-			for name, test := range tests {
-				t.Run(name, test)
-			}
-		})
-	}
+	acceptance.RunTestsInSequence(t, testCases)
 }
 
 func testAccVirtualNetworkRoutingAppliance_basic(t *testing.T) {

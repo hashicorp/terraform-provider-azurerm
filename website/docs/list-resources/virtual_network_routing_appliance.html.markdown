@@ -12,10 +12,21 @@ Lists Virtual Network Routing Appliance resources.
 
 ## Example Usage
 
+### List all Virtual Network Routing Appliances in the subscription
+
 ```hcl
 list "azurerm_virtual_network_routing_appliance" "example" {
-  provider         = azurerm
-  include_resource = true
+  provider = azurerm
+
+  config {}
+}
+```
+
+### List all Virtual Network Routing Appliances in a specific Resource Group
+
+```hcl
+list "azurerm_virtual_network_routing_appliance" "example" {
+  provider = azurerm
 
   config {
     resource_group_name = "example-resource-group"
