@@ -1604,9 +1604,8 @@ func flattenVirtualNetworkGatewayRadiusServers(input *[]virtualnetworkgateways.R
 	for _, item := range *input {
 		results = append(results, map[string]any{
 			"address": item.RadiusServerAddress,
-			// Set `secret` to the value in configuration to avoid perpetual difference as value is not returned by GET request
-			"secret": pointer.From(item.RadiusServerSecret),
-			"score":  pointer.From(item.RadiusServerScore),
+			"secret":  pointer.From(item.RadiusServerSecret),
+			"score":   pointer.From(item.RadiusServerScore),
 		})
 	}
 
