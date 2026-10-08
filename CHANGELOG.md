@@ -1,4 +1,4 @@
-## v5.9.0 (October 8, 2026)
+## 5.9.0 (October 8, 2026)
 
 FEATURES:
 
