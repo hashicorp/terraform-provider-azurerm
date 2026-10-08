@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveDeploymentTestResource struct{}
+type CognitiveDeploymentResource struct{}
 
 func TestAccCognitiveDeployment_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
-	r := CognitiveDeploymentTestResource{}
+	r := CognitiveDeploymentResource{}
 	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -31,7 +31,7 @@ func TestAccCognitiveDeployment_regressionTest(t *testing.T) {
 
 func TestAccCognitiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
-	r := CognitiveDeploymentTestResource{}
+	r := CognitiveDeploymentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccCognitiveDeployment_basic(t *testing.T) {
 func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 
-	r := CognitiveDeploymentTestResource{}
+	r := CognitiveDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -61,7 +61,7 @@ func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
 
 func TestAccCognitiveDeployment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
-	r := CognitiveDeploymentTestResource{}
+	r := CognitiveDeploymentResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -76,7 +76,7 @@ func TestAccCognitiveDeployment_complete(t *testing.T) {
 
 func TestAccCognitiveDeployment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
-	r := CognitiveDeploymentTestResource{}
+	r := CognitiveDeploymentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -124,7 +124,7 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 	})
 }
 
-func (r CognitiveDeploymentTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CognitiveDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := deployments.ParseDeploymentID(state.ID)
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (r CognitiveDeploymentTestResource) Exists(ctx context.Context, clients *cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CognitiveDeploymentTestResource) template(data acceptance.TestData) string {
+func (r CognitiveDeploymentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -161,7 +161,7 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
-func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
+func (r CognitiveDeploymentResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -183,7 +183,7 @@ resource "azurerm_cognitive_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CognitiveDeploymentTestResource) requiresImport(data acceptance.TestData) string {
+func (r CognitiveDeploymentResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -203,7 +203,7 @@ resource "azurerm_cognitive_deployment" "import" {
 `, config)
 }
 
-func (r CognitiveDeploymentTestResource) complete(data acceptance.TestData) string {
+func (r CognitiveDeploymentResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -226,7 +226,7 @@ resource "azurerm_cognitive_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string {
+func (r CognitiveDeploymentResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -248,7 +248,7 @@ resource "azurerm_cognitive_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CognitiveDeploymentTestResource) updateVersion(data acceptance.TestData) string {
+func (r CognitiveDeploymentResource) updateVersion(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -270,7 +270,7 @@ resource "azurerm_cognitive_deployment" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CognitiveDeploymentTestResource) versionUpgradeOption(data acceptance.TestData, versionUpgradeOption string) string {
+func (r CognitiveDeploymentResource) versionUpgradeOption(data acceptance.TestData, versionUpgradeOption string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

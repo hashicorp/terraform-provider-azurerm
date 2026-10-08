@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CdnFrontDoorOriginResource struct{}
+type CdnFrontdoorOriginResource struct{}
 
 func TestAccCdnFrontDoorOrigin_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -30,7 +30,7 @@ func TestAccCdnFrontDoorOrigin_regressionTest(t *testing.T) {
 
 func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -44,7 +44,7 @@ func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 
 func TestAccCdnFrontDoorOrigin_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,7 +59,7 @@ func TestAccCdnFrontDoorOrigin_requiresImport(t *testing.T) {
 
 func TestAccCdnFrontDoorOrigin_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestAccCdnFrontDoorOrigin_complete(t *testing.T) {
 
 func TestAccCdnFrontDoorOrigin_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccCdnFrontDoorOrigin_privateLinkBlobPrimary(t *testing.T) {
 	t.Skip("@tombuildsstuff: temporarily skipping until the private link is manually approved as part of the test step")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,7 +119,7 @@ func TestAccCdnFrontDoorOrigin_privateLinkStorageStaticWebSite(t *testing.T) {
 	t.Skip("@tombuildsstuff: temporarily skipping until the private link is manually approved as part of the test step")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -140,7 +140,7 @@ func TestAccCdnFrontDoorOrigin_privateLinkAppServices(t *testing.T) {
 	t.Skip("@tombuildsstuff: temporarily skipping until the private link is manually approved as part of the test step")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 	// NOTE: The Private Link will not be approved at this point but it will
 	// be created. There is currently no way to automate the approval process.
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -162,7 +162,7 @@ func TestAccCdnFrontDoorOrigin_privateLinkLoadBalancer(t *testing.T) {
 	t.Skip("@tombuildsstuff: temporarily skipping until the private link is manually approved as part of the test step")
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	// NOTE: The Private Link will not be approved at this point but it will
 	// be created. There is currently no way to automate the approval process.
@@ -184,7 +184,7 @@ func TestAccCdnFrontDoorOrigin_privateLinkLoadBalancer(t *testing.T) {
 func TestAccCdnFrontDoorOrigin_removeOriginHostHeaderName(t *testing.T) {
 	// regression test case for issue 20617
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -207,7 +207,7 @@ func TestAccCdnFrontDoorOrigin_removeOriginHostHeaderName(t *testing.T) {
 func TestAccCdnFrontDoorOrigin_OriginHostHeaderRegression(t *testing.T) {
 	// regression test case for issue 20866
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.OriginHostHeaderRegression(data),
@@ -244,7 +244,7 @@ func TestAccCdnFrontDoorOrigin_OriginHostHeaderRegression(t *testing.T) {
 	})
 }
 
-func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorOriginResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := afdorigins.ParseOriginGroupOriginID(state.ID)
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func (r CdnFrontDoorOriginResource) Exists(ctx context.Context, clients *clients
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CdnFrontDoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) templatePrivateLinkStorage(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
@@ -285,8 +285,7 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
-// nolint: unused
-func (r CdnFrontDoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 
@@ -318,7 +317,7 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
-func (r CdnFrontDoorOriginResource) templatePrivateLinkLoadBalancer(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) templatePrivateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", true)
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
@@ -379,7 +378,7 @@ resource "azurerm_private_link_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) templatePrivateLinkWebApp(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 %s
@@ -457,7 +456,7 @@ resource "azurerm_linux_web_app" "test" {
 `, template, data.RandomInteger, data.RandomString)
 }
 
-func (r CdnFrontDoorOriginResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "Standard_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -482,7 +481,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -503,7 +502,7 @@ resource "azurerm_cdn_frontdoor_origin" "import" {
 `, config)
 }
 
-func (r CdnFrontDoorOriginResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) complete(data acceptance.TestData) string {
 	template := r.template(data, "Standard_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -528,7 +527,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) update(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) update(data acceptance.TestData) string {
 	template := r.template(data, "Standard_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -553,7 +552,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) privateLinkBlobPrimary(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorage(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -583,7 +582,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) privateLinkStaticWebSite(data acceptance.TestData) string {
 	template := r.templatePrivateLinkStorageStaticWebSite(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -613,7 +612,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) privateLinkAppServices(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) privateLinkAppServices(data acceptance.TestData) string {
 	template := r.templatePrivateLinkWebApp(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -643,7 +642,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) privateLinkLoadBalancer(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) privateLinkLoadBalancer(data acceptance.TestData) string {
 	template := r.templatePrivateLinkLoadBalancer(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -672,7 +671,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (CdnFrontDoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
+func (CdnFrontdoorOriginResource) template(data acceptance.TestData, profileSku string, isLoadBalancer bool) string {
 	// NOTE: This is a hack (the private link service dependency in the profile resource) for what I believe is a bug in
 	// the CDN Frontdoor API. I am currently speaking with the service team about how to correctly fix this issue,
 	// but in the meantime this is what we need to do to get this scenario to work.
@@ -707,7 +706,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, loadBalancerDependsOn, data.RandomInteger, profileSku, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) removeOriginHostHeader(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) removeOriginHostHeader(data acceptance.TestData) string {
 	template := r.template(data, "Standard_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -731,7 +730,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) OriginHostHeaderRegression(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) OriginHostHeaderRegression(data acceptance.TestData) string {
 	template := r.template(data, "Standard_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -756,7 +755,7 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorOriginResource) OriginHostHeaderRegressionUpdate(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) OriginHostHeaderRegressionUpdate(data acceptance.TestData) string {
 	template := r.template(data, "Standard_AzureFrontDoor", false)
 	return fmt.Sprintf(`
 provider "azurerm" {

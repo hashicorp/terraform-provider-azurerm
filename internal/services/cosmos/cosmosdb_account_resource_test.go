@@ -206,7 +206,7 @@ func TestAccCosmosDBAccount_updateMongoDBVersionCapabilities(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
+func TestAccCosmosDBAccount_keyVaultUriUpdateConsistency(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -1337,6 +1337,34 @@ func TestAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicWithLocalAuthenticationDisabled(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_localAuthenticationDisabled_mongo(t *testing.T) {
+	testAccCosmosDBAccount_localAuthenticationDisabled(t, cosmosdb.DatabaseAccountKindMongoDB)
+}
+
+func TestAccCosmosDBAccount_localAuthenticationDisabled_parse(t *testing.T) {
+	testAccCosmosDBAccount_localAuthenticationDisabled(t, cosmosdb.DatabaseAccountKindParse)
+}
+
+func TestAccCosmosDBAccount_localAuthenticationDisabled_table(t *testing.T) {
+	testAccCosmosDBAccount_localAuthenticationDisabled(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, "EnableTable")
+}
+
+func testAccCosmosDBAccount_localAuthenticationDisabled(t *testing.T, kind cosmosdb.DatabaseAccountKind, capabilities ...string) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithLocalAuthenticationDisabled(data, kind, cosmosdb.DefaultConsistencyLevelEventual, capabilities...),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
@@ -3264,7 +3292,7 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (CosmosDBAccountResource) managedHSMKey(data acceptance.TestData, uuids []string) string {
-	// Purge Protection must be enabled to configure Managed HSM Key: https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm#configure-your-azure-managed-hsm-key-vault
+	// Purge Protection must be enabled to configure Managed HSM Key: https://learn.microsoft.com/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm#configure-your-azure-managed-hsm-key-vault
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3804,7 +3832,6 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -4070,7 +4097,19 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, version, string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithLocalAuthenticationDisabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, additionalCapabilities ...string) string {
+	capabilityConfig := ""
+	if kind == cosmosdb.DatabaseAccountKindMongoDB {
+		additionalCapabilities = append([]string{"EnableMongo"}, additionalCapabilities...)
+	}
+	for _, capability := range additionalCapabilities {
+		capabilityConfig += fmt.Sprintf(`
+  capabilities {
+    name = "%s"
+  }
+`, capability)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4088,6 +4127,8 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%[3]s"
 
+  %[5]s
+
   consistency_policy {
     consistency_level = "%[4]s"
   }
@@ -4099,7 +4140,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   local_authentication_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, string(kind), string(consistency), capabilityConfig)
 }
 
 func (CosmosDBAccountResource) basicWithBurstCapacityEnabled(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
