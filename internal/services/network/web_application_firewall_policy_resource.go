@@ -289,13 +289,9 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 															// Although "None" is in the api list, it will be omitted.
 															"sensitivity_level": {
-																Type:     pluginsdk.TypeString,
-																Optional: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(webapplicationfirewallpolicies.SensitivityTypeLow),
-																	string(webapplicationfirewallpolicies.SensitivityTypeMedium),
-																	string(webapplicationfirewallpolicies.SensitivityTypeHigh),
-																}, false),
+																Type:         pluginsdk.TypeString,
+																Optional:     true,
+																ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForSensitivityType(), false),
 															},
 														},
 													},
@@ -459,7 +455,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-<<<<<<< HEAD
 func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	managedRules := d.GetRawConfig().GetAttr("managed_rules")
 	if !managedRules.IsKnown() || managedRules.IsNull() {
@@ -504,10 +499,7 @@ func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *plu
 	return nil
 }
 
-func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-=======
 func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
->>>>>>> upstream/main
 	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -1225,7 +1217,7 @@ func flattenWebApplicationFirewallPolicyOverrideRules(input *[]webapplicationfir
 
 		v["action"] = pointer.FromEnum(item.Action)
 
-		v["sensitivity_level"] = string(pointer.From(item.Sensitivity))
+		v["sensitivity_level"] = pointer.FromEnum(item.Sensitivity)
 
 		results = append(results, v)
 	}
