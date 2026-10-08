@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = VirtualNetworkGatewayPolicyGroupId{}
 
-func TestVirtualNetworkGatewayPolicyGroupIDFormatter(t *testing.T) {
+func TestParseVirtualNetworkGatewayPolicyGroupIDFormatter(t *testing.T) {
 	actual := NewVirtualNetworkGatewayPolicyGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "gw1", "policyGroup1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworkGateways/gw1/virtualNetworkGatewayPolicyGroups/policyGroup1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestVirtualNetworkGatewayPolicyGroupIDFormatter(t *testing.T) {
 	}
 }
 
-func TestVirtualNetworkGatewayPolicyGroupID(t *testing.T) {
+func TestParseVirtualNetworkGatewayPolicyGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -4,31 +4,31 @@ require (
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.30
 	github.com/Azure/go-autorest/autorest/date v0.3.1
-	github.com/Azure/go-autorest/autorest/to v0.4.0
-	github.com/Azure/go-autorest/autorest/validation v0.3.1
+	github.com/Azure/go-autorest/autorest/to v0.4.1
+	github.com/Azure/go-autorest/autorest/validation v0.3.2
 	github.com/Azure/go-autorest/tracing v0.6.1
-	github.com/agiledragon/gomonkey/v2 v2.13.0
+	github.com/agiledragon/gomonkey/v2 v2.14.3
 	github.com/btubbs/datetime v0.1.1
 	github.com/dave/jennifer v1.7.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.82.0
-	github.com/hashicorp/go-azure-sdk/data-plane v0.20260928.1201942
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260928.1201942
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260928.1201942
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20261005.1221110
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20261005.1221110
+	github.com/hashicorp/go-azure-sdk/sdk v0.20261005.1221110
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-set/v3 v3.0.1
-	github.com/hashicorp/go-uuid v1.0.3
+	github.com/hashicorp/go-uuid v1.0.4
 	github.com/hashicorp/go-version v1.9.0
-	github.com/hashicorp/terraform-json v0.27.2
+	github.com/hashicorp/terraform-json v0.28.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
-	github.com/hashicorp/terraform-plugin-framework-timeouts v0.6.0
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
 	github.com/hashicorp/terraform-plugin-mux v0.23.1
@@ -41,14 +41,14 @@ require (
 	github.com/mitchellh/cli v1.1.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/period v1.2.1
-	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sergi/go-diff v1.4.0
+	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/afero v1.15.0
-	github.com/spf13/cobra v1.10.1
-	golang.org/x/crypto v0.56.0
-	golang.org/x/text v0.41.0
-	golang.org/x/tools v0.49.0
-	gopkg.in/dnaeon/go-vcr.v4 v4.0.6
+	github.com/spf13/cobra v1.10.2
+	golang.org/x/crypto v0.57.0
+	golang.org/x/text v0.42.0
+	golang.org/x/tools v0.50.0
+	gopkg.in/dnaeon/go-vcr.v4 v4.0.7
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -100,12 +100,12 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.19.0 // indirect
-	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
+	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/grpc v1.83.2 // indirect
