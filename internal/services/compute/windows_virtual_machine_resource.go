@@ -1055,7 +1055,13 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 					}
 
 					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
-					d.Set("provision_vm_agent", config.ProvisionVMAgent)
+					// The API defaults an omitted provisionVMAgent to true. Treating
+					// nil as false prevents subsequent patch assessment updates.
+					provisionVMAgent := true
+					if config.ProvisionVMAgent != nil {
+						provisionVMAgent = *config.ProvisionVMAgent
+					}
+					d.Set("provision_vm_agent", provisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 					assessmentMode := string(virtualmachines.WindowsPatchAssessmentModeImageDefault)
