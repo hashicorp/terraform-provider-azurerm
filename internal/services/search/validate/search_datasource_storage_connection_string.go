@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func SearchDatasourceStorageConnectionString(v interface{}, k string) (warnings []string, errors []error) {
+func SearchDatasourceStorageConnectionString(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if value == "" {
 		errors = append(errors, fmt.Errorf("`%s` must not be empty", k))

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	searchSchema "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
 	searchValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,15 +26,15 @@ type SearchServiceDatasourceBlobResource struct{}
 var _ sdk.ResourceWithUpdate = SearchServiceDatasourceBlobResource{}
 
 type SearchServiceDatasourceBlobModel struct {
-	Name                      string                                            `tfschema:"name"`
-	SearchServiceEndpoint     string                                            `tfschema:"search_service_endpoint"`
-	ContainerName             string                                            `tfschema:"container_name"`
-	ConnectionStringWOVersion int64                                             `tfschema:"connection_string_wo_version"`
-	Description               string                                            `tfschema:"description"`
-	ContainerQuery            string                                            `tfschema:"container_query"`
-	SoftDeleteColumnName      string                                            `tfschema:"soft_delete_column_name"`
-	SoftDeleteMarkerValue     string                                            `tfschema:"soft_delete_marker_value"`
-	EncryptionKey             []searchSchema.SearchDatasourceEncryptionKeyModel `tfschema:"encryption_key"`
+	Name                      string                                      `tfschema:"name"`
+	SearchServiceEndpoint     string                                      `tfschema:"search_service_endpoint"`
+	ContainerName             string                                      `tfschema:"container_name"`
+	ConnectionStringWOVersion int64                                       `tfschema:"connection_string_wo_version"`
+	Description               string                                      `tfschema:"description"`
+	ContainerQuery            string                                      `tfschema:"container_query"`
+	SoftDeleteColumnName      string                                      `tfschema:"soft_delete_column_name"`
+	SoftDeleteMarkerValue     string                                      `tfschema:"soft_delete_marker_value"`
+	EncryptionKey             []schema.SearchDatasourceEncryptionKeyModel `tfschema:"encryption_key"`
 }
 
 func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.Schema {
@@ -86,7 +86,7 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"encryption_key": searchSchema.SearchDatasourceEncryptionKeySchema(),
+		"encryption_key": schema.SearchDatasourceEncryptionKeySchema(),
 
 		"soft_delete_column_name": {
 			Type:         pluginsdk.TypeString,
@@ -111,7 +111,7 @@ func (r SearchServiceDatasourceBlobResource) ResourceType() string {
 	return "azurerm_search_service_datasource_blob"
 }
 
-func (r SearchServiceDatasourceBlobResource) ModelObject() interface{} {
+func (r SearchServiceDatasourceBlobResource) ModelObject() any {
 	return &SearchServiceDatasourceBlobModel{}
 }
 
@@ -144,7 +144,7 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			encryptionKey, err := searchSchema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey)
+			encryptionKey, err := schema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey)
 			if err != nil {
 				return fmt.Errorf("expanding `encryption_key`: %+v", err)
 			}
@@ -219,7 +219,7 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 					state.SoftDeleteMarkerValue = pointer.From(policy.SoftDeleteMarkerValue)
 				}
 
-				encryptionKey, err := searchSchema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
+				encryptionKey, err := schema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
 				if err != nil {
 					return fmt.Errorf("flattening `encryption_key`: %+v", err)
 				}
@@ -285,7 +285,7 @@ func (r SearchServiceDatasourceBlobResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("encryption_key") {
-				encryptionKey, err := searchSchema.ExpandSearchDatasourceEncryptionKey(state.EncryptionKey)
+				encryptionKey, err := schema.ExpandSearchDatasourceEncryptionKey(state.EncryptionKey)
 				if err != nil {
 					return fmt.Errorf("expanding `encryption_key`: %+v", err)
 				}

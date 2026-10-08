@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/sharedprivatelinkresources"
-	dataplaneClient "github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -48,7 +48,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(searchSharedPrivateLinkResourceClient.Client, o.Authorizers.ResourceManager)
 
-	searchDataPlaneClient, err := searchDataPlane.NewClient(func(c *dataplaneClient.Client) {
+	searchDataPlaneClient, err := searchDataPlane.NewClient(func(c *dataplane.Client) {
 		o.Configure(c.Client, o.Authorizers.Search)
 	})
 	if err != nil {
