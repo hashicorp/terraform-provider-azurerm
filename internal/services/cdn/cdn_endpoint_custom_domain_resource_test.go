@@ -39,6 +39,9 @@ func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) *CdnEndpo
 }
 
 func TestAccCdnEndpointCustomDomain_regressionTest(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), os.Getenv("ARM_TEST_DNS_ZONE"))

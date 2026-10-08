@@ -19,7 +19,7 @@ func TestAccCdnFrontDoorRuleSetDataSource_regressionTest(t *testing.T) {
 	r := CdnFrontDoorRuleSetDataSource{}
 	data.DataSourceRegressionTest(t, []acceptance.TestStep{
 		{
-			Config: r.batchRuleSet(data),
+			Config: r.basic(data, false),
 		},
 	}, "")
 }
