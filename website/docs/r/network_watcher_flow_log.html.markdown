@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
 
-* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`. Defaults to `1`.
+* `version` - (Optional) The version (revision) of the flow log. Possible values are `1`, `2` and `5`. Defaults to `1`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Watcher Flow Log.
 

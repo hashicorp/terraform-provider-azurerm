@@ -1,3 +1,49 @@
+## 5.9.0 (October 8, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_app_service_custom_hostname_binding` ([#33423](https://github.com/hashicorp/terraform-provider-azurerm/issues/33423))
+* **New List Resource**: `azurerm_eventhub` ([#33376](https://github.com/hashicorp/terraform-provider-azurerm/issues/33376))
+* **New List Resource**: `azurerm_kubernetes_cluster_node_pool` ([#33399](https://github.com/hashicorp/terraform-provider-azurerm/issues/33399))
+* **New List Resource**: `azurerm_kubernetes_cluster_node_pool` ([#33399](https://github.com/hashicorp/terraform-provider-azurerm/issues/33399))
+
+ENHANCEMENTS:
+
+* dependencies: `github.com/Azure/go-autorest/autorest/to` - update to `v0.4.1` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `github.com/Azure/go-autorest/autorest/validation` - update to `v0.3.2` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `github.com/hashicorp/go-uuid` - update to `v1.0.4` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `github.com/hashicorp/terraform-json` - update to `v0.28.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `github.com/hashicorp/terraform-plugin-framework-timeouts` - update to `v0.7.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `go-azure-sdk` - update to `v0.20261005.1221110` ([#33574](https://github.com/hashicorp/terraform-provider-azurerm/issues/33574))
+* dependencies: `golang.org/x/crypto` - update to `v0.57.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `golang.org/x/mod` - update to `v0.41.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `golang.org/x/net` - update to `v0.59.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `golang.org/x/sync` - update to `v0.23.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `golang.org/x/sys` - update to `v0.48.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `golang.org/x/text` - update to `v0.42.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `golang.org/x/tools` - update to `v0.50.0` ([#33548](https://github.com/hashicorp/terraform-provider-azurerm/issues/33548))
+* dependencies: `mssqlmanagedinstance` - update API version to `2025-01-01` ([#33559](https://github.com/hashicorp/terraform-provider-azurerm/issues/33559))
+* Data Source: `azurerm_application_gateway` - export the `ssl_profile.client_authentication_mode` property ([#33536](https://github.com/hashicorp/terraform-provider-azurerm/issues/33536))
+* `azurerm_application_gateway` - add support for the `ssl_profile.client_authentication_mode` property ([#33536](https://github.com/hashicorp/terraform-provider-azurerm/issues/33536))
+* `azurerm_monitor_data_collection_rule` - add support for the `logs_ingestion_endpoint` and `metrics_ingestion_endpoint` properties ([#31317](https://github.com/hashicorp/terraform-provider-azurerm/issues/31317))
+* `azurerm_storage_blob_inventory_policy` - add support for the `filter.created_within_days` property ([#30675](https://github.com/hashicorp/terraform-provider-azurerm/issues/30675))
+* `azurerm_data_protection_backup_policy_kubernetes_cluster` - add support for `VaultStore` to the `default_retention_rule.life_cycle.data_store_type` property ([#32356](https://github.com/hashicorp/terraform-provider-azurerm/issues/32356))
+* `azurerm_data_protection_backup_policy_kubernetes_cluster` - add support for `VaultStore` to the `retention_rule.life_cycle.data_store_type` property ([#32356](https://github.com/hashicorp/terraform-provider-azurerm/issues/32356))
+* `azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint` - add support for `account` to the `sub_resource_target` property ([#28568](https://github.com/hashicorp/terraform-provider-azurerm/issues/28568))
+* `azurerm_monitor_data_collection_rule` - add support for the `Direct` kind ([#31317](https://github.com/hashicorp/terraform-provider-azurerm/issues/31317))
+* `azurerm_network_watcher_flow_log` - support the value `5` for the `version` property ([#33589](https://github.com/hashicorp/terraform-provider-azurerm/issues/33589))
+* `azurerm_orchestrated_virtual_machine_scale_set` - `os_disk.0.diff_disk_settings.0.placement` supports `NvmeDisk` ([#33578](https://github.com/hashicorp/terraform-provider-azurerm/issues/33578))
+* `azurerm_virtual_desktop_application` - expand validation for the `name` property to allow spaces, periods, underscores, and `@` ([#33522](https://github.com/hashicorp/terraform-provider-azurerm/issues/33522))
+* `azurerm_virtual_desktop_host_pool` - add support for `MultiplePersistent` to the  `load_balancer_type` property ([#32744](https://github.com/hashicorp/terraform-provider-azurerm/issues/32744))
+* `azurerm_virtual_network_gateway_connection` - skip unnecessary update request when only `shared_key` has changed ([#33392](https://github.com/hashicorp/terraform-provider-azurerm/issues/33392))
+
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - fix a serialization issue for the `timewindow_filter.start` and `timewindow_filter.end` properties which caused a broken config in Azure ([#32969](https://github.com/hashicorp/terraform-provider-azurerm/issues/32969))
+* `azurerm_dashboard_grafana` - fix an issue that prevented updates when `smtp` was set but not changed ([#32720](https://github.com/hashicorp/terraform-provider-azurerm/issues/32720))
+* `azurerm_kubernetes_cluster_node_pool` - add additional locking on the pod and node virtual network IDs to prevent conflicts when creating multiple node pools on the same virtual network ([#32682](https://github.com/hashicorp/terraform-provider-azurerm/issues/32682))
+* `azurerm_vpn_server_configuration` - fix a persistent diff on the `radius` property ([#33212](https://github.com/hashicorp/terraform-provider-azurerm/issues/33212))
+
 ## 5.8.0 (October 1, 2026)
 
 FEATURES:
