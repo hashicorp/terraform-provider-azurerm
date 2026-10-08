@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,7 +146,7 @@ func TestAccApplicationInsightsAPIKey_multiple_keys(t *testing.T) {
 }
 
 func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := apikeys.ParseApiKeyID(state.Attributes["id"])
+	id, err := componentapikeysapis.ParseApiKeyID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}

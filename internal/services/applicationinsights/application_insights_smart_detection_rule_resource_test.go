@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -111,7 +111,7 @@ func TestAccApplicationInsightsSmartDetectionRule_longDependencyDuration(t *test
 // but this still causes issues when the resource performs a d.IsNewResource() check, where the tf.ImportAsExistsError is thrown.
 
 func (t AppInsightsSmartDetectionRule) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := smartdetection.ParseProactiveDetectionConfigID(state.Attributes["id"])
+	id, err := componentproactivedetectionapis.ParseProactiveDetectionConfigID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}

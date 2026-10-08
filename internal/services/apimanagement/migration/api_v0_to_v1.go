@@ -266,7 +266,7 @@ func (ApiV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (ApiV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		apiId := fmt.Sprintf("%s;rev=%s", rawState["name"].(string), rawState["revision"].(string))
 		oldId, err := api.ParseApiIDInsensitively(rawState["id"].(string))
 		if err != nil {
