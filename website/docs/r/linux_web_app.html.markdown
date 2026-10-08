@@ -737,7 +737,7 @@ A `site_config` block supports the following:
 
 * `main_site_container` - (Optional) A `main_site_container` block as defined below.
 
-~> **Note:** `main_site_container` conflicts with `site_config.0.application_stack` - setting this block switches this Linux Web App in-place to Site Containers (multi-container/sidecar) mode. Additional (non-main) sidecar containers created out of band (e.g. via the Portal or Azure CLI) are not managed by this resource and are left untouched.
+~> **Note:** `main_site_container` conflicts with `site_config.0.application_stack` - setting this block switches this Linux Web App in-place to Site Containers (multi-container/sidecar) mode. Additional (non-main) sidecar containers created out of band (e.g. via the Portal or Azure CLI) are not managed by this resource and are left untouched. When switching back to an `application_stack`, App Service keeps the main Site Container (inactive) so the app can be switched back to Site Containers mode; it's only deleted when this block is removed without configuring an `application_stack`.
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`. Defaults to `Integrated`.
 
@@ -771,19 +771,11 @@ A `main_site_container` block supports the following:
 
 * `image` - (Required) The image to use for the main Site Container, e.g. `mcr.microsoft.com/appsvc/staticsite:latest`.
 
-* `environment_variable` - (Optional) One or more `environment_variable` blocks as defined below.
-
 * `target_port` - (Optional) The port the main Site Container listens on.
 
 * `volume_mount` - (Optional) One or more `volume_mount` blocks as defined below.
 
----
-
-An `environment_variable` block supports the following:
-
-* `name` - (Required) The name of the environment variable.
-
-* `value` - (Required) The value of the environment variable.
+~> **Note:** The main Site Container receives this Linux Web App's `app_settings` as environment variables; these can't be configured per container.
 
 ---
 

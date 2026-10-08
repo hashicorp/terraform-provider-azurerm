@@ -21,11 +21,6 @@ import (
 // out of band via the standalone `azurerm_linux_web_app_site_container` resource.
 const MainSiteContainerName = "main"
 
-type SiteContainerEnvironmentVariable struct {
-	Name  string `tfschema:"name"`
-	Value string `tfschema:"value"`
-}
-
 type SiteContainerVolumeMount struct {
 	ContainerMountPath string `tfschema:"container_mount_path"`
 	VolumeSubPath      string `tfschema:"volume_sub_path"`
@@ -33,10 +28,9 @@ type SiteContainerVolumeMount struct {
 }
 
 type MainSiteContainer struct {
-	Image                string                             `tfschema:"image"`
-	TargetPort           string                             `tfschema:"target_port"`
-	EnvironmentVariables []SiteContainerEnvironmentVariable `tfschema:"environment_variable"`
-	VolumeMounts         []SiteContainerVolumeMount         `tfschema:"volume_mount"`
+	Image        string                     `tfschema:"image"`
+	TargetPort   string                     `tfschema:"target_port"`
+	VolumeMounts []SiteContainerVolumeMount `tfschema:"volume_mount"`
 }
 
 func MainSiteContainerSchema() *pluginsdk.Schema {
@@ -63,8 +57,6 @@ func MainSiteContainerSchema() *pluginsdk.Schema {
 					Description: "The port the main Site Container listens on.",
 				},
 
-				"environment_variable": siteContainerEnvironmentVariableSchema(),
-
 				"volume_mount": siteContainerVolumeMountSchema(),
 			},
 		},
@@ -87,53 +79,7 @@ func MainSiteContainerSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"environment_variable": siteContainerEnvironmentVariableSchemaComputed(),
-
 				"volume_mount": siteContainerVolumeMountSchemaComputed(),
-			},
-		},
-	}
-}
-
-func siteContainerEnvironmentVariableSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the environment variable.",
-				},
-
-				"value": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The value of the environment variable.",
-				},
-			},
-		},
-	}
-}
-
-func siteContainerEnvironmentVariableSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
-				"value": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
 			},
 		},
 	}
@@ -214,10 +160,6 @@ func ExpandMainSiteContainer(input []MainSiteContainer) *webapps.SiteContainerPr
 		props.TargetPort = pointer.To(container.TargetPort)
 	}
 
-	if envVars := expandSiteContainerEnvironmentVariables(container.EnvironmentVariables); len(envVars) > 0 {
-		props.EnvironmentVariables = &envVars
-	}
-
 	if volumeMounts := expandSiteContainerVolumeMounts(container.VolumeMounts); len(volumeMounts) > 0 {
 		props.VolumeMounts = &volumeMounts
 	}
@@ -237,10 +179,9 @@ func FlattenMainSiteContainer(input *webapps.SiteContainer) []MainSiteContainer 
 
 	return []MainSiteContainer{
 		{
-			Image:                props.Image,
-			TargetPort:           pointer.From(props.TargetPort),
-			EnvironmentVariables: flattenSiteContainerEnvironmentVariables(props.EnvironmentVariables),
-			VolumeMounts:         flattenSiteContainerVolumeMounts(props.VolumeMounts),
+			Image:        props.Image,
+			TargetPort:   pointer.From(props.TargetPort),
+			VolumeMounts: flattenSiteContainerVolumeMounts(props.VolumeMounts),
 		},
 	}
 }
@@ -263,34 +204,6 @@ func FindMainSiteContainer(ctx context.Context, client *webapps.WebAppsClient, i
 	}
 
 	return nil, nil
-}
-
-func expandSiteContainerEnvironmentVariables(input []SiteContainerEnvironmentVariable) []webapps.EnvironmentVariable {
-	result := make([]webapps.EnvironmentVariable, 0, len(input))
-	for _, v := range input {
-		result = append(result, webapps.EnvironmentVariable{
-			Name:  v.Name,
-			Value: v.Value,
-		})
-	}
-
-	return result
-}
-
-func flattenSiteContainerEnvironmentVariables(input *[]webapps.EnvironmentVariable) []SiteContainerEnvironmentVariable {
-	if input == nil {
-		return []SiteContainerEnvironmentVariable{}
-	}
-
-	result := make([]SiteContainerEnvironmentVariable, 0, len(*input))
-	for _, v := range *input {
-		result = append(result, SiteContainerEnvironmentVariable{
-			Name:  v.Name,
-			Value: v.Value,
-		})
-	}
-
-	return result
 }
 
 func expandSiteContainerVolumeMounts(input []SiteContainerVolumeMount) []webapps.VolumeMount {

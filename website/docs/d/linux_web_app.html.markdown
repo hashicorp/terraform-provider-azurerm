@@ -637,19 +637,9 @@ A `main_site_container` block exports the following:
 
 * `image` - The image used for the main Site Container.
 
-* `environment_variable` - One or more `environment_variable` blocks as defined below.
-
 * `target_port` - The port the main Site Container listens on.
 
 * `volume_mount` - One or more `volume_mount` blocks as defined below.
-
----
-
-An `environment_variable` block exports the following:
-
-* `name` - The name of the environment variable.
-
-* `value` - The value of the environment variable.
 
 ---
 
