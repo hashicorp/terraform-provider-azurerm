@@ -175,7 +175,7 @@ func (r ContainerConnectedRegistryResource) ResourceType() string {
 	return "azurerm_container_connected_registry"
 }
 
-func (r ContainerConnectedRegistryResource) ModelObject() interface{} {
+func (r ContainerConnectedRegistryResource) ModelObject() any {
 	return &ContainerConnectedRegistryModel{}
 }
 

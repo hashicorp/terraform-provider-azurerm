@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func AutonomousDatabaseName(i interface{}, k string) ([]string, []error) {
+func AutonomousDatabaseName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^\p{L}`), "must start with a letter"),
 		validation.StringMatch(regexp.MustCompile(`^[\p{L}\p{N}]*$`), "must contain only letters and numbers"),
@@ -23,7 +23,7 @@ func AutonomousDatabaseName(i interface{}, k string) ([]string, []error) {
 
 // AutonomousDatabasePassword checks the password rules one at a time and never puts the value
 // itself in an error, since validation errors end up in logs.
-func AutonomousDatabasePassword(i interface{}, k string) ([]string, []error) {
+func AutonomousDatabasePassword(i any, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -49,7 +49,7 @@ func AutonomousDatabasePassword(i interface{}, k string) ([]string, []error) {
 	return nil, nil
 }
 
-func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []error) {
+func AdbsComputeModel(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))

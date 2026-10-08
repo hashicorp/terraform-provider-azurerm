@@ -51,7 +51,7 @@ func dataSourceTemplateSpecVersion() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceTemplateSpecVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceTemplateSpecVersionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.TemplateSpecsVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

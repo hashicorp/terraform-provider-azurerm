@@ -167,7 +167,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Datadog.MonitorsResource
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -194,16 +194,16 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	payload := monitorsresource.DatadogMonitorResource{
 		Location: location.Normalize(d.Get("location").(string)),
-		Identity: expandMonitorIdentityProperties(d.Get("identity").([]interface{})),
+		Identity: expandMonitorIdentityProperties(d.Get("identity").([]any)),
 		Sku: &monitorsresource.ResourceSku{
 			Name: d.Get("sku_name").(string),
 		},
 		Properties: &monitorsresource.MonitorProperties{
-			DatadogOrganizationProperties: expandMonitorOrganizationProperties(d.Get("datadog_organization").([]interface{})),
-			UserInfo:                      expandMonitorUserInfo(d.Get("user").([]interface{})),
+			DatadogOrganizationProperties: expandMonitorOrganizationProperties(d.Get("datadog_organization").([]any)),
+			UserInfo:                      expandMonitorUserInfo(d.Get("user").([]any)),
 			MonitoringStatus:              pointer.To(monitoringStatus),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.MonitorsCreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -214,7 +214,7 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceDatadogMonitorRead(d, meta)
 }
 
-func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.MonitorsResource
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,7 +271,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.MonitorsResource
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -297,7 +297,7 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Properties.MonitoringStatus = pointer.To(monitoringStatus)
 	}
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.MonitorsUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -306,7 +306,7 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceDatadogMonitorRead(d, meta)
 }
 
-func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.MonitorsResource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,22 +337,22 @@ func SkuNameDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	return old == new
 }
 
-func expandMonitorIdentityProperties(input []interface{}) *monitorsresource.IdentityProperties {
+func expandMonitorIdentityProperties(input []any) *monitorsresource.IdentityProperties {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &monitorsresource.IdentityProperties{
 		// @tombuildsstuff: this should be normalized in Pandora to a common identity type? is this a Swagger bag with SA & UA omitted?
 		Type: pointer.ToEnum[monitorsresource.ManagedIdentityTypes](v["type"].(string)),
 	}
 }
 
-func expandMonitorOrganizationProperties(input []interface{}) *monitorsresource.DatadogOrganizationProperties {
+func expandMonitorOrganizationProperties(input []any) *monitorsresource.DatadogOrganizationProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &monitorsresource.DatadogOrganizationProperties{
 		LinkingAuthCode: pointer.To(v["linking_auth_code"].(string)),
 		LinkingClientId: pointer.To(v["linking_client_id"].(string)),
@@ -363,11 +363,11 @@ func expandMonitorOrganizationProperties(input []interface{}) *monitorsresource.
 	}
 }
 
-func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
+func expandMonitorUserInfo(input []any) *monitorsresource.UserInfo {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &monitorsresource.UserInfo{
 		Name:         pointer.To(v["name"].(string)),
 		EmailAddress: pointer.To(v["email"].(string)),
@@ -375,17 +375,17 @@ func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
 	}
 }
 
-func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties) []interface{} {
+func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties) []any {
 	if input == nil || input.Type == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var t string
 	if *input.Type != "" {
 		t = string(*input.Type)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"type":         t,
 			"principal_id": pointer.From(input.PrincipalId),
 			"tenant_id":    pointer.From(input.TenantId),
@@ -393,15 +393,15 @@ func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties
 	}
 }
 
-func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganizationProperties, d *pluginsdk.ResourceData) []interface{} {
-	organisationProperties := d.Get("datadog_organization").([]interface{})
+func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganizationProperties, d *pluginsdk.ResourceData) []any {
+	organisationProperties := d.Get("datadog_organization").([]any)
 	if len(organisationProperties) == 0 {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
-	v := organisationProperties[0].(map[string]interface{})
+	v := organisationProperties[0].(map[string]any)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":              pointer.From(input.Name),
 			"api_key":           pointer.To(v["api_key"].(string)),
 			"application_key":   pointer.To(v["application_key"].(string)),

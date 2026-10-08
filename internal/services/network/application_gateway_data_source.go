@@ -1176,6 +1176,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"client_authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"trusted_client_certificate_names": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -1490,7 +1495,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

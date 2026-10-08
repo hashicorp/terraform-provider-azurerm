@@ -191,14 +191,14 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) != "" && new.(string) == ""
 			}),
 		),
 	}
 }
 
-func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -237,7 +237,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 			},
 			StorageProfile: galleryimageversions.GalleryImageVersionStorageProfile{},
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("end_of_life_date"); ok {
@@ -304,7 +304,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -355,7 +355,7 @@ func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -367,7 +367,7 @@ func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -460,7 +460,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -488,11 +488,11 @@ func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galleryimageversions.TargetRegion, error) {
-	vs := d.Get("target_region").([]interface{})
+	vs := d.Get("target_region").([]any)
 	results := make([]galleryimageversions.TargetRegion, 0)
 
 	for _, v := range vs {
-		input := v.(map[string]interface{})
+		input := v.(map[string]any)
 
 		name := input["name"].(string)
 		regionalReplicaCount := input["regional_replica_count"].(int)
@@ -525,12 +525,12 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 	return &results, nil
 }
 
-func flattenSharedImageVersionTargetRegions(input *[]galleryimageversions.TargetRegion) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSharedImageVersionTargetRegions(input *[]galleryimageversions.TargetRegion) []any {
+	results := make([]any, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 
 			output["name"] = location.Normalize(v.Name)
 

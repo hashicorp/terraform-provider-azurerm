@@ -57,7 +57,7 @@ func (r ResourceProviderFeatureRegistrationResource) Attributes() map[string]*pl
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ResourceProviderFeatureRegistrationResource) ModelObject() interface{} {
+func (r ResourceProviderFeatureRegistrationResource) ModelObject() any {
 	return &ResourceProviderFeatureRegistrationModel{}
 }
 

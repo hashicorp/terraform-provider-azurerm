@@ -85,7 +85,7 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -136,7 +136,7 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
