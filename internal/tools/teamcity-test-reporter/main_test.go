@@ -219,7 +219,7 @@ func TestReporter(t *testing.T) {
 			passed: false,
 		},
 		{
-			name:      "says how long each package's tests took to compile when told when `go test` started",
+			name:      "says when each package's tests started when told when `go test` started",
 			startedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
 			input: []string{
 				`{"Time":"2026-01-01T00:00:44.2Z","Action":"start","Package":"example.com/a"}`,
@@ -234,19 +234,19 @@ func TestReporter(t *testing.T) {
 				`{"Time":"2026-01-01T00:04:40Z","Action":"pass","Package":"example.com/b","Elapsed":1}`,
 			},
 			expected: []string{
-				`Compiled the tests in example.com/a after 45s, running them..`,
+				`Tests in example.com/a started after 44s.`,
 				`##teamcity[testStarted name='TestAccThing_basic' captureStandardOutput='false']`,
 				`##teamcity[testFinished name='TestAccThing_basic' duration='5200']`,
 				`##teamcity[testStarted name='TestAccThing_other' captureStandardOutput='false']`,
 				`##teamcity[testFinished name='TestAccThing_other' duration='6100']`,
-				`Compiled the tests in example.com/b after 4m39s, running them..`,
+				`Tests in example.com/b started after 4m39s.`,
 				`##teamcity[testStarted name='TestAccOther_basic' captureStandardOutput='false']`,
 				`##teamcity[testFinished name='TestAccOther_basic' duration='600']`,
 			},
 			passed: true,
 		},
 		{
-			name:      "says nothing about compiling a package which didn't build",
+			name:      "a package which didn't build is still only a build problem",
 			startedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
 			input: []string{
 				`{"ImportPath":"example.com/c [example.com/c.test]","Action":"build-output","Output":"c/c_test.go:6:2: undefined: undefinedFunction\n"}`,
@@ -256,6 +256,7 @@ func TestReporter(t *testing.T) {
 			},
 			expected: []string{
 				`c/c_test.go:6:2: undefined: undefinedFunction`,
+				`Tests in example.com/c started after 20s.`,
 				`##teamcity[buildProblem description='example.com/c failed to build']`,
 			},
 			passed: false,

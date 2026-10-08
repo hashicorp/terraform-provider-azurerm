@@ -14,7 +14,8 @@
 // Because the package is dropped, a test name used in two packages fails the build.
 //
 // Nothing is printed between `go test` being started and its first test ending, so when given
-// `-started-at` (seconds since the epoch) it also says how long each package's tests took to compile.
+// `-started-at` (seconds since the epoch) it also says when each package's tests started to run,
+// which for the first package is how long they took to compile.
 package main
 
 import (
@@ -72,9 +73,8 @@ type reporter struct {
 	duplicateOf    map[testKey]string
 	failedTests    map[string]int
 
-	// when `go test` was started, if known, and the packages whose tests have since begun to run
+	// when `go test` was started, if known
 	startedAt time.Time
-	started   map[string]bool
 
 	events int
 	failed bool
@@ -88,7 +88,6 @@ func newReporter(out io.Writer) *reporter {
 		packageForName: make(map[string]string),
 		duplicateOf:    make(map[testKey]string),
 		failedTests:    make(map[string]int),
-		started:        make(map[string]bool),
 	}
 }
 
@@ -140,6 +139,12 @@ func (r *reporter) handleLine(line []byte) {
 
 func (r *reporter) handlePackage(e event) {
 	switch e.Action {
+	case "start":
+		// the package's test binary has been compiled and is starting to run
+		if !r.startedAt.IsZero() && !e.Time.IsZero() {
+			r.print(fmt.Sprintf("Tests in %s started after %s.", e.Package, e.Time.Sub(r.startedAt).Round(time.Second)))
+		}
+
 	case "output":
 		r.print(e.Output)
 
@@ -163,8 +168,6 @@ func (r *reporter) handlePackage(e event) {
 }
 
 func (r *reporter) handleTest(e event) {
-	r.announceStart(e)
-
 	// subtests (`TestFoo/bar`) are folded into their top-level test
 	name, _, isSubtest := strings.Cut(e.Test, "/")
 	key := testKey{pkg: e.Package, name: name}
@@ -196,16 +199,6 @@ func (r *reporter) handleTest(e event) {
 			r.report(key, e.Action, e.Elapsed, "Test failed")
 		}
 	}
-}
-
-// announceStart says how long a package's tests took to compile, when its first test begins to run.
-func (r *reporter) announceStart(e event) {
-	if r.startedAt.IsZero() || e.Time.IsZero() || r.started[e.Package] {
-		return
-	}
-	r.started[e.Package] = true
-
-	r.print(fmt.Sprintf("Compiled the tests in %s after %s, running them..", e.Package, e.Time.Sub(r.startedAt).Round(time.Second)))
 }
 
 // checkNameIsUnique fails the build when a test uses a name already used by a test in another

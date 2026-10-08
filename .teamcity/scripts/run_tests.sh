@@ -10,6 +10,8 @@
 SERVICE_PATH="%SERVICE_PATH%"
 
 GO_CACHE="$(go env GOCACHE)"
+# compiled packages which no build has used for this many days are deleted
+RETENTION_DAYS=2
 # kept beside the cache rather than in it, so that it isn't emptied or published along with it
 LAST_USED_FILE="$(dirname "$GO_CACHE")/last-used"
 
@@ -17,6 +19,9 @@ LAST_USED_FILE="$(dirname "$GO_CACHE")/last-used"
 describe_go_cache() {
   local size="not there yet"
   if [ -d "$GO_CACHE" ]; then
+    # Go itself only drops entries unused for five days, which is longer than most agents live. Entries are
+    # files or directories named <hash>-a and <hash>-d, and Go rebuilds anything it finds missing.
+    find "$GO_CACHE" -mindepth 2 -maxdepth 2 \( -name '*-a' -o -name '*-d' \) -mmin +"$((RETENTION_DAYS * 24 * 60))" -exec rm -rf {} + 2>/dev/null
     # given up on rather than holding up the tests, should the cache have grown very large
     size="$(timeout 20 du -sh "$GO_CACHE" 2>/dev/null | awk '{print $1}')"
   fi
@@ -37,12 +42,13 @@ describe_go_cache() {
   echo "$(date +%s) ${TEAMCITY_BUILDCONF_NAME:-an unnamed build} #${BUILD_NUMBER:-?}" > "$LAST_USED_FILE"
 
   # asks Go which of the packages the tests are built from it already has compiled, which compiles
-  # nothing itself ("unsafe" is left out as it's never compiled)
+  # nothing itself. "unsafe" is never compiled, and the test binaries ("foo.test" and the "[foo.test]"
+  # variants of packages) are never cached, so they're left out.
   local packages
-  if packages="$(go list -deps -f '{{if ne .ImportPath "unsafe"}}{{.Stale}}{{end}}' "$SERVICE_PATH/..." 2>/dev/null)"; then
+  if packages="$(go list -deps -test -f '{{.Stale}} {{.ImportPath}}' "$SERVICE_PATH/..." 2>/dev/null | grep -v -e ' unsafe$' -e '\.test$' -e '\.test\]$')"; then
     local total compiled
     total="$(grep -c . <<< "$packages")"
-    compiled="$(grep -c '^false$' <<< "$packages")"
+    compiled="$(grep -c '^false ' <<< "$packages")"
     if [ "$compiled" -eq "$total" ]; then
       echo "All $total packages the tests are built from are already compiled."
     else

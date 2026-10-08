@@ -169,8 +169,7 @@ fun ParametrizedWithType.BuildStartTime() {
 
 // Each agent keeps its own Go caches between builds, so only the first build on an agent compiles everything.
 // They can't live in the agent's work directory: once a build finishes TeamCity deletes everything in there
-// which isn't a checkout directory. The agent's persistent cache directory is left alone until the agent runs
-// short of disk space.
+// which isn't a checkout directory. Nothing but Go and run_tests.sh touches the persistent cache directory.
 fun ParametrizedWithType.GoCache() {
     text("env.GOMODCACHE", "%system.agent.persistent.cache%/go-cache/mod", "The location of the Go Module Cache")
     text("env.GOCACHE", "%system.agent.persistent.cache%/go-cache/build", "The location of the Go Cache")
