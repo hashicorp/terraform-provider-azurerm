@@ -110,10 +110,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"account_kind": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKind(), false),
-				Default:      string(storageaccounts.KindStorageVTwo),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storageaccounts.KindBlockBlobStorage),
+					string(storageaccounts.KindFileStorage),
+					string(storageaccounts.KindStorageVTwo),
+				}, false),
+				Default: string(storageaccounts.KindStorageVTwo),
 			},
 
 			"account_tier": {
@@ -1124,6 +1128,20 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					accountKind, changedKind := d.GetChange("account_kind")
 					// Don't do the check for create case.
 					if accountKind != "" {
+						if !features.SixPointOh() {
+							// Prevent ForceNew on `StorageV2` -> `Storage`, this would fail as GPv1 accounts can no longer be provisioned
+							// Prevent ForceNew on `StorageV2` -> `BlobStorage`, this would fail as legacy Blob accounts can no longer be provisioned
+							// Azure is automatically migrating accounts in October due to this retirement.
+							if accountKind == string(storageaccounts.KindStorageVTwo) && (changedKind == string(storageaccounts.KindStorage) || changedKind == string(storageaccounts.KindBlobStorage)) {
+								url := "https://learn.microsoft.com/azure/storage/common/general-purpose-version-1-account-migration-overview#retirement-timeline-and-key-milestones"
+								if changedKind == string(storageaccounts.KindBlobStorage) {
+									url = "https://learn.microsoft.com/azure/storage/common/legacy-blob-storage-account-migration-overview#retirement-timeline-and-key-milestones"
+								}
+
+								return fmt.Errorf("`account_kind` of type `%[1]s` has been retired by Azure, changing from `%[2]s` to `%[1]s` is no longer possible. For additional information, see %[3]s", changedKind, storageaccounts.KindStorageVTwo, url)
+							}
+						}
+
 						if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
 							log.Printf("[DEBUG] recreate storage account, couldn't be migrated from %q to %q", accountKind, changedKind)
 							d.ForceNew("account_kind")
@@ -1228,6 +1246,27 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 
 	if !features.SixPointOh() {
+		r.Schema["account_kind"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.All(
+				validation.StringInSlice(storageaccounts.PossibleValuesForKind(), false),
+				func(i any, k string) ([]string, []error) {
+					v, ok := i.(string)
+					if !ok {
+						return nil, nil
+					}
+
+					if v == string(storageaccounts.KindStorage) || v == string(storageaccounts.KindBlobStorage) {
+						return []string{fmt.Sprintf("type `%s` has been retired by Azure and will be removed in v6.0 of the AzureRM provider", v)}, nil
+					}
+
+					return nil, nil
+				},
+			),
+			Default: string(storageaccounts.KindStorageVTwo),
+		}
+
 		r.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -2245,14 +2284,17 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []any {
 }
 
 func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
-	if accountKind == storageaccounts.KindStorage {
-		if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
-			return nil, fmt.Errorf("`queue_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
-		}
-		if tableEncryptionKeyType == storageaccounts.KeyTypeAccount {
-			return nil, fmt.Errorf("`table_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
+	if !features.SixPointOh() {
+		if accountKind == storageaccounts.KindStorage {
+			if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
+				return nil, fmt.Errorf("`queue_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
+			}
+			if tableEncryptionKeyType == storageaccounts.KeyTypeAccount {
+				return nil, fmt.Errorf("`table_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
+			}
 		}
 	}
+
 	if len(input) == 0 {
 		return &storageaccounts.Encryption{
 			KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointStorage),
@@ -2528,25 +2570,30 @@ func flattenAccountRoutingPreference(input *storageaccounts.RoutingPreference) [
 
 func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []any) (*blobservices.BlobServiceProperties, error) {
 	props := blobservices.BlobServicePropertiesProperties{
+		ChangeFeed: &blobservices.ChangeFeed{
+			Enabled: pointer.To(false),
+		},
 		Cors: &blobservices.CorsRules{
 			CorsRules: &[]blobservices.CorsRule{},
 		},
 		DeleteRetentionPolicy: &blobservices.DeleteRetentionPolicy{
 			Enabled: pointer.To(false),
 		},
+		IsVersioningEnabled:          pointer.To(false),
+		LastAccessTimeTrackingPolicy: &blobservices.LastAccessTimeTrackingPolicy{},
 	}
 
-	// `Storage` (v1) kind doesn't support:
-	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
-	// - ChangeFeed: See https://learn.microsoft.com/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
-	// - Versioning: See https://learn.microsoft.com/azure/storage/blobs/versioning-overview#how-blob-versioning-works
-	// - Restore Policy: See https://learn.microsoft.com/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
-	if kind != storageaccounts.KindStorage {
-		props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{}
-		props.ChangeFeed = &blobservices.ChangeFeed{
-			Enabled: pointer.To(false),
+	if !features.SixPointOh() {
+		// `Storage` (v1) kind doesn't support:
+		// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
+		// - ChangeFeed: See https://learn.microsoft.com/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
+		// - Versioning: See https://learn.microsoft.com/azure/storage/blobs/versioning-overview#how-blob-versioning-works
+		// - Restore Policy: See https://learn.microsoft.com/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+		if kind == storageaccounts.KindStorage {
+			props.LastAccessTimeTrackingPolicy = nil
+			props.ChangeFeed = nil
+			props.IsVersioningEnabled = nil
 		}
-		props.IsVersioningEnabled = pointer.To(false)
 	}
 
 	if len(input) > 0 {
@@ -2567,29 +2614,17 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []any) 
 			props.DefaultServiceVersion = pointer.To(version)
 		}
 
-		// `Storage` (v1) kind doesn't support:
-		// - LastAccessTimeTrackingPolicy
-		// - ChangeFeed
-		// - Versioning
-		// - RestorePolicy
 		lastAccessTimeEnabled := v["last_access_time_enabled"].(bool)
 		changeFeedEnabled := v["change_feed_enabled"].(bool)
 		changeFeedRetentionInDays := v["change_feed_retention_in_days"].(int)
 		restorePolicyRaw := v["restore_policy"].([]any)
 		versioningEnabled := v["versioning_enabled"].(bool)
-		if kind != storageaccounts.KindStorage {
-			props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{
-				Enable: lastAccessTimeEnabled,
-			}
-			props.ChangeFeed = &blobservices.ChangeFeed{
-				Enabled: pointer.To(changeFeedEnabled),
-			}
-			if changeFeedRetentionInDays != 0 {
-				props.ChangeFeed.RetentionInDays = pointer.To(int64(changeFeedRetentionInDays))
-			}
-			props.RestorePolicy = expandAccountBlobPropertiesRestorePolicy(restorePolicyRaw)
-			props.IsVersioningEnabled = &versioningEnabled
-		} else {
+		if !features.SixPointOh() && kind == storageaccounts.KindStorage {
+			// `Storage` (v1) kind doesn't support:
+			// - LastAccessTimeTrackingPolicy
+			// - ChangeFeed
+			// - Versioning
+			// - RestorePolicy
 			if lastAccessTimeEnabled {
 				return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
 			}
@@ -2605,6 +2640,18 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []any) 
 			if versioningEnabled {
 				return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
 			}
+		} else {
+			props.LastAccessTimeTrackingPolicy = &blobservices.LastAccessTimeTrackingPolicy{
+				Enable: lastAccessTimeEnabled,
+			}
+			props.ChangeFeed = &blobservices.ChangeFeed{
+				Enabled: pointer.To(changeFeedEnabled),
+			}
+			if changeFeedRetentionInDays != 0 {
+				props.ChangeFeed.RetentionInDays = pointer.To(int64(changeFeedRetentionInDays))
+			}
+			props.RestorePolicy = expandAccountBlobPropertiesRestorePolicy(restorePolicyRaw)
+			props.IsVersioningEnabled = &versioningEnabled
 		}
 
 		// Sanity check for the prerequisites of restore_policy
