@@ -1185,7 +1185,7 @@ func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup
 func uefiKeySchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
-			"certificate_base64": {
+			"values_base64": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				ForceNew: true,

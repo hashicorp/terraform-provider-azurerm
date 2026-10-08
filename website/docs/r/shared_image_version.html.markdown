@@ -105,14 +105,15 @@ The `target_region` block supports the following:
 
 ---
 
-The `uefi_settings` block supports the following:
+A `uefi_settings` block supports the following:
 
 * `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values are `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate` and `NoSignatureTemplate`. Changing this forces a new resource to be created.
 
 * `additional_signatures` - (Optional) An `additional_signatures` block as defined below. Changing this forces a new resource to be created.
 
+---
 
-The `additional_signatures` block supports the following:
+An `additional_signatures` block supports the following:
 
 * `db` - (Optional) One or more `db` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -122,35 +123,15 @@ The `additional_signatures` block supports the following:
 
 * `pk` - (Optional) A `pk` block as defined below. Changing this forces a new resource to be created.
 
+~> **Note:** At least one of `db`, `dbx`, `kek` or `pk` must be specified when an `additional_signatures` block is defined.
 
-A `db` block supports the following:
+---
 
-* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
-
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
-
-
-A `dbx` block supports the following:
-
-* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
+A `db`, `dbx`, `kek` or `pk` block supports the following:
 
 * `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
 
-
-A `kek` block supports the following:
-
-* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
-
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
-
-
-The `pk` block supports the following:
-
-* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
-
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
-
-
+* `values_base64` - (Required) A list of Base64-encoded values for this key. For `x509` keys this is the DER-encoded certificate, for `sha256` keys this is the hash. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
