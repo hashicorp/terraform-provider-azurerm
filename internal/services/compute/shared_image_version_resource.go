@@ -187,7 +187,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"uefi_settings": {
+			"uefi": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
@@ -215,21 +215,21 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 										Optional:     true,
 										ForceNew:     true,
 										Elem:         uefiKeySchema(),
-										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
 									},
 									"dbx": {
 										Type:         pluginsdk.TypeList,
 										Optional:     true,
 										ForceNew:     true,
 										Elem:         uefiKeySchema(),
-										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
 									},
 									"kek": {
 										Type:         pluginsdk.TypeList,
 										Optional:     true,
 										ForceNew:     true,
 										Elem:         uefiKeySchema(),
-										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
 									},
 									"pk": {
 										Type:         pluginsdk.TypeList,
@@ -237,7 +237,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 										ForceNew:     true,
 										MaxItems:     1,
 										Elem:         uefiKeySchema(),
-										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
 									},
 								},
 							},
@@ -336,7 +336,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta any) error
 		}
 	}
 
-	if v, ok := d.GetOk("uefi_settings"); ok {
+	if v, ok := d.GetOk("uefi"); ok {
 		version.Properties.SecurityProfile = &galleryimageversions.ImageVersionSecurityProfile{
 			UefiSettings: expandUefiSettings(v.([]any)),
 		}
@@ -521,8 +521,8 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 
 			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.UefiSettings != nil {
-				if err := d.Set("uefi_settings", flattenUefiSettings(securityProfile.UefiSettings)); err != nil {
-					return fmt.Errorf("setting `uefi_settings`: %+v", err)
+				if err := d.Set("uefi", flattenUefiSettings(securityProfile.UefiSettings)); err != nil {
+					return fmt.Errorf("setting `uefi`: %+v", err)
 				}
 			}
 		}

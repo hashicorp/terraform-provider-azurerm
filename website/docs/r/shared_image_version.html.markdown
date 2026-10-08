@@ -85,7 +85,7 @@ The following arguments are supported:
 
 -> **Note:** `blob_uri` and `storage_account_id` must be specified together
 
-* `uefi_settings` - (Optional) A `uefi_settings` block as defined below. Changing this forces a new resource to be created.
+* `uefi` - (Optional) A `uefi` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
@@ -105,7 +105,7 @@ The `target_region` block supports the following:
 
 ---
 
-A `uefi_settings` block supports the following:
+A `uefi` block supports the following:
 
 * `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values are `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate` and `NoSignatureTemplate`. Changing this forces a new resource to be created.
 

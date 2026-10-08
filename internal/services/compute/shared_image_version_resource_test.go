@@ -416,7 +416,7 @@ resource "azurerm_shared_image_version" "test" {
     regional_replica_count = 1
   }
 
-  uefi_settings {
+  uefi {
     signature_template_names = ["NoSignatureTemplate"]
 
     additional_signatures {
