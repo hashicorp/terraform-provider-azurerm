@@ -4,8 +4,10 @@
 package securitycenter
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -14,11 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -178,22 +179,19 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
-	pollerType := custompollers.NewSubscriptionPricingUpdatePoller(client, id, pricing)
-	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
+	updateResponse, err := updateSecurityCenterSubscriptionPricing(ctx, client, id, pricing)
+	if err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	// the extensions from backend might vary after pricing tier changed.
-	updateResponse := pollerType.Response
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil && updateResponse.Model.Properties.Extensions != nil {
 		extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
 	}
 
 	pricing.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 
-	poller = pollers.NewPoller(custompollers.NewSubscriptionPricingUpdatePoller(client, id, pricing), 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
+	if _, err := updateSecurityCenterSubscriptionPricing(ctx, client, id, pricing); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -261,14 +259,12 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		requiredAdditionalUpdate = currentlyFreeTier
 	}
 
-	pollerType := custompollers.NewSubscriptionPricingUpdatePoller(client, *id, update)
-	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
+	updateResponse, err := updateSecurityCenterSubscriptionPricing(ctx, client, *id, update)
+	if err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	// The extensions list from backend might vary after `tier` changed, thus we need to retrieve it again.
-	updateResponse := pollerType.Response
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil {
 		if updateResponse.Model.Properties.Extensions != nil {
 			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
@@ -277,8 +273,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	if requiredAdditionalUpdate {
 		update.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		poller = pollers.NewPoller(custompollers.NewSubscriptionPricingUpdatePoller(client, *id, update), 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
+		if _, err := updateSecurityCenterSubscriptionPricing(ctx, client, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -343,13 +338,30 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	poller := pollers.NewPoller(custompollers.NewSubscriptionPricingUpdatePoller(client, *id, pricing), 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
+	if _, err := updateSecurityCenterSubscriptionPricing(ctx, client, *id, pricing); err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil
+}
+
+func updateSecurityCenterSubscriptionPricing(ctx context.Context, client *pricings.PricingsClient, id pricings.PricingId, pricing pricings.Pricing) (pricings.UpdateOperationResponse, error) {
+	var updateResponse pricings.UpdateOperationResponse
+	// Azure can still return HTTP 409 after a previous pricing update has returned successfully.
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		var err error
+		updateResponse, err = client.Update(pollerCtx, id, pricing)
+		return updateResponse.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              30 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusConflict},
+	})
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return pricings.UpdateOperationResponse{}, err
+	}
+	return updateResponse, nil
 }
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []any, extensionsStatusFromBackend *[]pricings.Extension) *[]pricings.Extension {
