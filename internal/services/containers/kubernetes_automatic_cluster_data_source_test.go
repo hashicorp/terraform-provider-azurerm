@@ -64,7 +64,7 @@ func TestAccDataSourceKubernetesAutomaticCluster_serviceMesh(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
 				check.That(data.ResourceName).Key("service_mesh.0.internal_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh.0.external_ingress_gateway_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("service_mesh.0.revisions.0").HasValue("asm-1-28"),
+				check.That(data.ResourceName).Key("service_mesh.0.revisions.0").HasValue("asm-1-29"),
 			),
 		},
 	})
@@ -113,13 +113,48 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
 
 func (KubernetesAutomaticClusterDataSource) serviceMesh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_kubernetes_automatic_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  hosted_system {
+    node_subnet_id        = azurerm_subnet.node.id
+    system_node_subnet_id = azurerm_subnet.systemnode.id
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  api_server_access {
+    subnet_id = azurerm_subnet.api.id
+  }
+
+  service_mesh {
+    internal_ingress_gateway_enabled = true
+    external_ingress_gateway_enabled = true
+    revisions                        = ["asm-1-29"]
+  }
+}
 
 data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.serviceMeshProfile(data, true, true))
+`, data.RandomInteger, data.Locations.Primary, KubernetesAutomaticClusterResource{}.networkTemplate(data))
 }
 
 func (KubernetesAutomaticClusterDataSource) apiServerAuthorizedIPRanges(data acceptance.TestData) string {
