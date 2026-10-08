@@ -26,6 +26,9 @@ const (
 )
 
 func TestAccStackHCILogicalNetwork_regressionTest(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
 	r := StackHCILogicalNetworkResource{}
 

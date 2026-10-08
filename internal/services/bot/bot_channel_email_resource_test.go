@@ -21,6 +21,9 @@ import (
 type BotChannelEmailResource struct{}
 
 func TestAccBotChannelEmail_regressionTest(t *testing.T) {
+	if ok := skipEmailChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 

@@ -22,6 +22,10 @@ type StackHCIExtensionResource struct{}
 const arcSettingIdEnv = "ARM_TEST_STACK_HCI_ARC_SETTING_ID"
 
 func TestAccStackHCIExtension_regressionTest(t *testing.T) {
+	arcSettingId := os.Getenv(arcSettingIdEnv)
+	if arcSettingId == "" {
+		t.Skipf("skipping since %q has not been set", arcSettingIdEnv)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_extension", "test")
 	r := StackHCIExtensionResource{}
 

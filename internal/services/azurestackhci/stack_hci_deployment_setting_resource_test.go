@@ -35,6 +35,10 @@ func TestAccStackHCIDeploymentSetting_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_deployment_setting", "test")
 	r := StackHCIDeploymentSettingResource{}
 
+	if os.Getenv(imageIdEnv) == "" || os.Getenv(localAdminUserEnv) == "" || os.Getenv(domainAdminUserEnv) == "" || os.Getenv(domainAdminUserEnv) == "" || os.Getenv(domainAdminUserPasswordEnv) == "" || os.Getenv(deploymentUserEnv) == "" || os.Getenv(deploymentUserPasswordEnv) == "" {
+		t.Skipf("skip the test as one or more of below environment variables are not specified: %q, %q, %q, %q, %q, %q, %q", imageIdEnv, localAdminUserEnv, localAdminUserPasswordEnv, domainAdminUserEnv, domainAdminUserPasswordEnv, deploymentUserEnv, deploymentUserPasswordEnv)
+	}
+
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),

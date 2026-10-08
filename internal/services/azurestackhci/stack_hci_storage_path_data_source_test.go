@@ -15,6 +15,9 @@ import (
 type StackHCIStoragePathDataSource struct{}
 
 func TestAccStackHCIStoragePathDataSource_regressionTest(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_stack_hci_storage_path", "test")
 	r := StackHCIStoragePathDataSource{}
 

@@ -20,6 +20,9 @@ import (
 type StackHCIVirtualHardDiskResource struct{}
 
 func TestAccStackHCIVirtualHardDisk_regressionTest(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_virtual_hard_disk", "test")
 	r := StackHCIVirtualHardDiskResource{}
 

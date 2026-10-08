@@ -20,6 +20,9 @@ import (
 type StackHCIStoragePathResource struct{}
 
 func TestAccStackHCIStoragePath_regressionTest(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_storage_path", "test")
 	r := StackHCIStoragePathResource{}
 

@@ -23,6 +23,9 @@ type StackHCIMarketplaceGalleryImageResource struct {
 }
 
 func TestAccStackHCIMarketplaceGalleryImage_regressionTest(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_marketplace_gallery_image", "test")
 	r := StackHCIMarketplaceGalleryImageResource{
 		imageVersion: "20348.2402.240607",
