@@ -4,6 +4,8 @@
 package network
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -195,7 +198,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 													Required:     true,
 													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion,
 												},
-												"exception_rule_group": {
+												"rule_group": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
 													Elem: &pluginsdk.Resource{
@@ -521,6 +524,45 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+			exceptions := diff.Get("managed_rules.0.exception").([]any)
+			if len(exceptions) == 0 {
+				return nil
+			}
+
+			for i, raw := range exceptions {
+				exception := raw.(map[string]any)
+				matchVariable := exception["match_variable"].(string)
+				switch webapplicationfirewallpolicies.ExceptionEntryMatchVariable(matchVariable) {
+				case webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestHeader, webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestURI:
+					if len(exception["values"].([]any)) > 10 {
+						return fmt.Errorf("`managed_rules.0.exception.%d.values` cannot contain more than 10 items when `match_variable` is `%s`", i, matchVariable)
+					}
+				}
+			}
+
+			for i, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
+				ruleSet := raw.(map[string]any)
+				minimumVersion := ""
+				switch ruleSet["type"].(string) {
+				case "OWASP":
+					minimumVersion = "3.2"
+				case "Microsoft_DefaultRuleSet":
+					minimumVersion = "2.1"
+				default:
+					continue
+				}
+				configuredVersion, err := version.NewVersion(ruleSet["version"].(string))
+				if err != nil {
+					return fmt.Errorf("parsing `managed_rules.0.managed_rule_set.%d.version`: %+v", i, err)
+				}
+				if configuredVersion.GreaterThanOrEqual(version.Must(version.NewVersion(minimumVersion))) {
+					return nil
+				}
+			}
+			return errors.New("`managed_rules.0.exception` requires a `managed_rule_set` with `type` of `OWASP` and `version` of `3.2` or later, or `type` of `Microsoft_DefaultRuleSet` and `version` of `2.1` or later")
+		}),
 	}
 }
 
@@ -858,7 +900,7 @@ func expandWebApplicationFirewallPolicyExceptionManagedRuleSets(input []any) *[]
 			RuleSetType:    v["type"].(string),
 			RuleSetVersion: v["version"].(string),
 		}
-		if ruleGroups := v["exception_rule_group"].([]any); len(ruleGroups) > 0 {
+		if ruleGroups := v["rule_group"].([]any); len(ruleGroups) > 0 {
 			result.RuleGroups = expandWebApplicationFirewallPolicyExceptionManagedRuleGroups(ruleGroups)
 		}
 		results = append(results, result)
@@ -1198,7 +1240,7 @@ func flattenWebApplicationFirewallPolicyExceptionManagedRuleSets(input *[]webapp
 
 		v["type"] = item.RuleSetType
 		v["version"] = item.RuleSetVersion
-		v["exception_rule_group"] = flattenWebApplicationFirewallPolicyExceptionManagedRuleGroups(item.RuleGroups)
+		v["rule_group"] = flattenWebApplicationFirewallPolicyExceptionManagedRuleGroups(item.RuleGroups)
 
 		results = append(results, v)
 	}

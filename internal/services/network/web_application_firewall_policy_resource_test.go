@@ -6,6 +6,8 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -335,6 +337,52 @@ func TestAccWebApplicationFirewallPolicy_exceptions(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptionsInvalidValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	for _, matchVariable := range []string{"RequestURI", "RequestHeader"} {
+		t.Run(matchVariable, func(t *testing.T) {
+			config := strings.ReplaceAll(r.exceptions(data), `"RequestURI"`, fmt.Sprintf("%q", matchVariable))
+			config = strings.ReplaceAll(config, `["/login.php"]`, `[for i in range(11) : format("/path%d", i)]`)
+			data.ResourceTest(t, r, []acceptance.TestStep{
+				{
+					Config:      config,
+					PlanOnly:    true,
+					ExpectError: regexp.MustCompile("cannot contain more than 10 items"),
+				},
+			})
+		})
+	}
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptionsInvalidRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	config := strings.Replace(r.exceptions(data), `managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }`, `managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }`, 1)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      config,
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("requires a `managed_rule_set`"),
+		},
 	})
 }
 
@@ -1224,7 +1272,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
         type    = "Microsoft_DefaultRuleSet"
         version = "2.1"
 
-        exception_rule_group {
+        rule_group {
           rule_group_name = "SQLI"
           rules           = ["942100"]
         }
@@ -1240,7 +1288,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
         type    = "Microsoft_DefaultRuleSet"
         version = "2.1"
 
-        exception_rule_group {
+        rule_group {
           rule_group_name = "SQLI"
         }
       }
