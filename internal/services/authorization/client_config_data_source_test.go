@@ -26,6 +26,7 @@ func TestAccClientConfigDataSource_regressionTest(t *testing.T) {
 
 func TestAccClientConfigDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "current")
+	// lintignore: gradually-deprecated - this data source returns the Client ID in use, so the test has to read it
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
