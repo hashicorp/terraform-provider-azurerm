@@ -59,7 +59,7 @@ type MachineLearningRegistryModel struct {
 	Tags                                                    map[string]string                          `tfschema:"tags"`
 }
 
-func (r MachineLearningRegistryResource) ModelObject() interface{} {
+func (r MachineLearningRegistryResource) ModelObject() any {
 	return &MachineLearningRegistryModel{}
 }
 
@@ -275,17 +275,17 @@ func (r MachineLearningRegistryResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if metadata.ResourceDiff.Id() != "" && replicationRegionsKnown {
 				oldVal, newVal := metadata.ResourceDiff.GetChange("replication_region")
-				oldRegions := oldVal.([]interface{})
-				newRegions := newVal.([]interface{})
+				oldRegions := oldVal.([]any)
+				newRegions := newVal.([]any)
 
-				newRegionsByLocation := make(map[string]map[string]interface{})
+				newRegionsByLocation := make(map[string]map[string]any)
 				for _, r := range newRegions {
-					region := r.(map[string]interface{})
+					region := r.(map[string]any)
 					newRegionsByLocation[location.Normalize(region["location"].(string))] = region
 				}
 
 				for _, r := range oldRegions {
-					oldRegion := r.(map[string]interface{})
+					oldRegion := r.(map[string]any)
 					oldLocation := location.Normalize(oldRegion["location"].(string))
 					newRegion, exists := newRegionsByLocation[oldLocation]
 					if !exists {

@@ -6,6 +6,7 @@ package machinelearning
 import (
 	"context"
 	"fmt"
+	"maps"
 	"regexp"
 	"time"
 
@@ -44,7 +45,7 @@ type MachineLearningRegistryDataSourceModel struct {
 	Tags                                                    map[string]string                          `tfschema:"tags"`
 }
 
-func (d MachineLearningRegistryDataSource) ModelObject() interface{} {
+func (d MachineLearningRegistryDataSource) ModelObject() any {
 	return &MachineLearningRegistryDataSourceModel{}
 }
 
@@ -111,9 +112,7 @@ func (d MachineLearningRegistryDataSource) Attributes() map[string]*pluginsdk.Sc
 		"tags": commonschema.TagsDataSource(),
 	}
 
-	for k, v := range registryRegionDataSourceSchema() {
-		attributes[k] = v
-	}
+	maps.Copy(attributes, registryRegionDataSourceSchema())
 
 	return attributes
 }
