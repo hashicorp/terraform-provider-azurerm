@@ -157,10 +157,12 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			},
 
 			"version": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 2),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Default:  1,
+				// NOTE: the Azure Flow Log API currently supports versions 1, 2 and 5 - this list should be
+				// updated as the service adds support for additional versions.
+				ValidateFunc: validation.IntInSlice([]int{1, 2, 5}),
 			},
 
 			"location": {
