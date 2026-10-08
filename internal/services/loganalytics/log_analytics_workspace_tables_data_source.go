@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -83,7 +83,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Attributes() map[string]*pluginsd
 	}
 }
 
-func (k LogAnalyticsWorkspaceTablesDataSource) ModelObject() interface{} {
+func (k LogAnalyticsWorkspaceTablesDataSource) ModelObject() any {
 	return &LogAnalyticsWorkspaceTablesDataSourceModel{}
 }
 
@@ -148,7 +148,7 @@ func flattenLogAnalyticsWorkspaceTable(name string, properties *tables.TableProp
 	if properties != nil {
 		table.RetentionInDays = pointer.From(properties.RetentionInDays)
 		table.TotalRetentionInDays = pointer.From(properties.TotalRetentionInDays)
-		table.Plan = string(pointer.From(properties.Plan))
+		table.Plan = pointer.FromEnum(properties.Plan)
 	}
 
 	return table

@@ -3,18 +3,23 @@ subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_log_analytics_workspace_tables"
 description: |-
-  Gets all tables from an existing Log Analytics Workspace.
+  Gets information about tables within an existing Log Analytics Workspace.
 ---
 
 # Data Source: azurerm_log_analytics_workspace_tables
 
-Use this data source to access information about Tables within an existing Log Analytics Workspace.
+Gets information about tables within an existing Log Analytics Workspace.
 
 ## Example Usage
 
 ```hcl
+data "azurerm_log_analytics_workspace" "example" {
+  name                = "existing-log-analytics-workspace"
+  resource_group_name = "existing-resource-group"
+}
+
 data "azurerm_log_analytics_workspace_tables" "example" {
-  workspace_id = azurerm_log_analytics_workspace.example.id
+  workspace_id = data.azurerm_log_analytics_workspace.example.id
 }
 
 output "table_names" {
@@ -30,19 +35,21 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
-* `names` - A list containing names of tables that exist in this log analytics workspace.
+* `id` - The ID of the Log Analytics Workspace.
+
+* `names` - A list containing names of tables that exist in the Log Analytics Workspace.
 
 * `tables` - A list of `tables` blocks as defined below.
 
 ---
 
-Each element in `tables` block exports the following:
+A `tables` block exports the following:
 
 * `name` - The name of the table in the Log Analytics Workspace.
 
-* `plan` - The plan type for the table. Possible values are `Analytics` and `Basic`.
+* `plan` - The billing plan for the table.
 
 * `retention_in_days` - The table's data retention in days.
 
@@ -50,6 +57,12 @@ Each element in `tables` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace Tables.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2022-10-01
