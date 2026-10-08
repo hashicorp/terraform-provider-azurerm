@@ -455,7 +455,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func resourceWebApplicationFirewallPolicyCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	managedRules := d.GetRawConfig().GetAttr("managed_rules")
 	if !managedRules.IsKnown() || managedRules.IsNull() {
 		return nil
