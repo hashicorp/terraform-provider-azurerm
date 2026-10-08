@@ -262,7 +262,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "TTDotcom-Malaysia-Menara"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }

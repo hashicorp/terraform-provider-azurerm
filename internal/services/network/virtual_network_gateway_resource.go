@@ -779,7 +779,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta any) erro
 			return fmt.Errorf("setting `policy_group`: %+v", err)
 		}
 
-		vpnClientConfig, err := flattenVirtualNetworkGatewayVpnClientConfig(props.VpnClientConfiguration, d)
+		vpnClientConfig, err := flattenVirtualNetworkGatewayVpnClientConfig(props.VpnClientConfiguration)
 		if err != nil {
 			return err
 		}
@@ -1434,13 +1434,13 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 	return flat
 }
 
-func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration, d *pluginsdk.ResourceData) ([]any, error) {
+func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) ([]any, error) {
 	if cfg == nil {
 		return []any{}, nil
 	}
 	flat := map[string]any{
 		"ipsec_policy":  flattenVirtualNetworkGatewayIPSecPolicies(cfg.VpnClientIPsecPolicies),
-		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers, d),
+		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers),
 	}
 
 	connection, err := flattenVirtualNetworkGatewayClientConnections(cfg.VngClientConnectionConfigurations)
@@ -1511,8 +1511,9 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 		flat["radius_server_address"] = *v
 	}
 
-	// Set `radius_server_secret` to the value in configuration to avoid perpetual difference as value is not returned by GET request
-	flat["radius_server_secret"] = d.Get("vpn_client_configuration.0.radius_server_secret").(string)
+	if v := cfg.RadiusServerSecret; v != nil {
+		flat["radius_server_secret"] = *v
+	}
 
 	return []any{flat}, nil
 }
@@ -1594,17 +1595,17 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 	}
 }
 
-func flattenVirtualNetworkGatewayRadiusServers(input *[]virtualnetworkgateways.RadiusServer, d *pluginsdk.ResourceData) []any {
+func flattenVirtualNetworkGatewayRadiusServers(input *[]virtualnetworkgateways.RadiusServer) []any {
 	results := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
-	for i, item := range *input {
+	for _, item := range *input {
 		results = append(results, map[string]any{
 			"address": item.RadiusServerAddress,
 			// Set `secret` to the value in configuration to avoid perpetual difference as value is not returned by GET request
-			"secret": d.Get(fmt.Sprintf("vpn_client_configuration.0.radius_server.%d.secret", i)),
+			"secret": pointer.From(item.RadiusServerSecret),
 			"score":  pointer.From(item.RadiusServerScore),
 		})
 	}
