@@ -94,7 +94,17 @@ fun servicePath(packageName: String) : String {
     return "./internal/services/%s".format(packageName)
 }
 
-// Says what state the agent's Go cache is in, then runs the tests - see GoCache().
+// Says what state the agent's Go cache is in and drops what nothing has used lately - see GoCache().
+fun BuildSteps.PrepareGoCache(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Prepare Go Cache"
+        scriptContent = File("scripts/go_cache.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
+    })
+}
+
 fun BuildSteps.RunAcceptanceTests(packageName: String) {
     step(ScriptBuildStep {
         name = "Run Tests"
