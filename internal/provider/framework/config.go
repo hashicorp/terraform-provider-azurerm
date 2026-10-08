@@ -447,8 +447,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		if !features.PostgresqlFlexibleServerVirtualEndpoint.IsNull() && !features.PostgresqlFlexibleServerVirtualEndpoint.IsUnknown() {
 			var feature []PostgresqlFlexibleServerVirtualEndpoint
-			d := features.PostgresqlFlexibleServerVirtualEndpoint.ElementsAs(ctx, &feature, true)
-			diags.Append(d...)
+			diags.Append(features.PostgresqlFlexibleServerVirtualEndpoint.ElementsAs(ctx, &feature, true)...)
 			if diags.HasError() {
 				return
 			}
