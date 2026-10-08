@@ -135,7 +135,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
@@ -185,7 +185,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
@@ -210,7 +210,7 @@ resource "azurerm_subscription_cost_management_export" "import" {
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
