@@ -384,13 +384,13 @@ func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []any 
 	return securityProfile
 }
 
-func flattenBatchPoolManagedDisk(input *pool.ManagedDisk) []interface{} {
-	result := make([]interface{}, 0)
+func flattenBatchPoolManagedDisk(input *pool.ManagedDisk) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
 
-	managedDisk := make(map[string]interface{})
+	managedDisk := make(map[string]any)
 	managedDisk["storage_account_type"] = pointer.FromEnum(input.StorageAccountType)
 
 	if input.SecurityProfile != nil {
@@ -735,9 +735,11 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 		}
 	}
 	if v, ok := d.GetOk("managed_disk"); ok {
-		osDisk.ManagedDisk = expandBatchPoolManagedDisk(v.([]interface{}))
+		osDisk.ManagedDisk = expandBatchPoolManagedDisk(v.([]any))
 	}
-	result.OsDisk = osDisk
+	if osDisk.EphemeralOSDiskSettings != nil || osDisk.ManagedDisk != nil {
+		result.OsDisk = osDisk
+	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]any))
@@ -779,12 +781,12 @@ func expandBatchPoolSecurityProfile(profile []any) *pool.SecurityProfile {
 	return securityProfile
 }
 
-func expandBatchPoolManagedDisk(input []interface{}) *pool.ManagedDisk {
-	if len(input) == 0 {
+func expandBatchPoolManagedDisk(input []any) *pool.ManagedDisk {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	managedDisk := input[0].(map[string]interface{})
+	managedDisk := input[0].(map[string]any)
 
 	result := &pool.ManagedDisk{
 		StorageAccountType: pointer.ToEnum[pool.StorageAccountType](managedDisk["storage_account_type"].(string)),

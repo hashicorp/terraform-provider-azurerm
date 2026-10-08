@@ -128,6 +128,8 @@ The following arguments are supported:
 
 * `license_type` - (Optional) The type of on-premises license to be used when deploying the operating system. This only applies to images that contain the Windows operating system, and should only be used when you hold valid on-premises licenses for the nodes which will be deployed. If omitted, no on-premises licensing discount is applied. Values are: "Windows_Server" - The on-premises license is for Windows Server. "Windows_Client" - The on-premises license is for Windows Client.
 
+* `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
 * `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`. Changing this forces a new resource to be created.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale as defined below.
@@ -149,8 +151,6 @@ The following arguments are supported:
 * `node_placement` - (Optional) A `node_placement` block that describes the placement policy for allocating nodes in the pool as defined below.
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
-
-* `managed_disk` - (Optional) A `managed_disk` block as defined below.
 
 * `security_profile` - (Optional) A `security_profile` block that describes the security settings for the Batch pool as defined below. Changing this forces a new resource to be created.
 
@@ -181,16 +181,6 @@ A `data_disks` block supports the following:
 * `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
 
 * `storage_account_type` - (Optional) The storage account type to be used for the data disk. Values are: Possible values are `Standard_LRS` - The data disk should use standard locally redundant storage. `Premium_LRS` - The data disk should use premium locally redundant storage. Defaults to `Standard_LRS`.
-
----
-
-A `managed_disk` block supports the following:
-
-* `security_encryption_type` - (Optional) The encryption type of the managed disk. Possible values are `VMGuestStateOnly` and `NonPersistedTPM`.
-
-~> **Note:** `security_encryption_type` is required when `security_type` in the `security_profile` block is set to `confidentialVM` and must not be specified for other security types.
-
-* `storage_account_type` - (Optional) The storage account type to be used for the OS disk. Possible values are `Standard_LRS`, `Premium_LRS` and `StandardSSD_LRS`. Defaults to `Standard_LRS`.
 
 ---
 
@@ -226,6 +216,16 @@ If specified, the extensions mentioned in this configuration will be installed o
 * `protected_settings` - (Optional) JSON formatted protected settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function. The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
 
 * `provision_after_extensions` - (Optional) The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
+
+---
+
+A `managed_disk` block supports the following:
+
+* `security_encryption_type` - (Optional) The encryption type of the managed disk. Possible values are `VMGuestStateOnly` and `NonPersistedTPM`.
+
+~> **Note:** `security_encryption_type` is required when `security_type` in the `security_profile` block is set to `confidentialVM` and must not be specified for other security types.
+
+* `storage_account_type` - (Optional) The storage account type to be used for the OS disk. Possible values are `Standard_LRS`, `Premium_LRS`, and `StandardSSD_LRS`. Defaults to `Standard_LRS`.
 
 ---
 

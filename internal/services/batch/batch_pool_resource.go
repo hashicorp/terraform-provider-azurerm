@@ -642,9 +642,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 				),
 			},
 			"managed_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				AtLeastOneOf: []string{"managed_disk.0.security_encryption_type", "managed_disk.0.storage_account_type"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"security_encryption_type": {
@@ -801,7 +802,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 		SchemaFunc: pluginsdk.GenerateIdentitySchema(&pool.PoolId{}),
 	}
 
-	resource.CustomizeDiff = pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	resource.CustomizeDiff = pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 		securityType := d.Get("security_profile.0.security_type").(string)
 		encryptionType := d.Get("managed_disk.0.security_encryption_type").(string)
 
@@ -1037,7 +1038,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 				if vmConfig.OsDisk == nil {
 					vmConfig.OsDisk = &pool.OSDisk{}
 				}
-				vmConfig.OsDisk.ManagedDisk = expandBatchPoolManagedDisk(d.Get("managed_disk").([]interface{}))
+				vmConfig.OsDisk.ManagedDisk = expandBatchPoolManagedDisk(d.Get("managed_disk").([]any))
 			}
 		}
 	}
