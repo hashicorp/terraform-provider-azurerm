@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventHubResource struct{}
+type EventhubResource struct{}
 
 func TestAccEventHub_partitionCountValidation(t *testing.T) {
 	cases := []struct {
@@ -179,7 +179,7 @@ func TestAccEventHub_archiveNameFormatValidation(t *testing.T) {
 
 func TestAccEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -194,7 +194,7 @@ func TestAccEventHub_basic(t *testing.T) {
 
 func TestAccEventHub_basicOnePartition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -210,7 +210,7 @@ func TestAccEventHub_basicOnePartition(t *testing.T) {
 
 func TestAccEventHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -228,7 +228,7 @@ func TestAccEventHub_requiresImport(t *testing.T) {
 
 func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -250,7 +250,7 @@ func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 
 func TestAccEventHub_dedicatedClusterPartitionCountUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -274,7 +274,7 @@ func TestAccEventHub_dedicatedClusterPartitionCountUpdate(t *testing.T) {
 
 func TestAccEventHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -289,7 +289,7 @@ func TestAccEventHub_standard(t *testing.T) {
 
 func TestAccEventHub_retentionDescriptionWithDeleteCleanupPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -304,7 +304,7 @@ func TestAccEventHub_retentionDescriptionWithDeleteCleanupPolicy(t *testing.T) {
 
 func TestAccEventHub_retentionDescriptionWithCompactCleanupPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -319,7 +319,7 @@ func TestAccEventHub_retentionDescriptionWithCompactCleanupPolicy(t *testing.T) 
 
 func TestAccEventHub_retentionDescriptionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -339,7 +339,7 @@ func TestAccEventHub_retentionDescriptionUpdate(t *testing.T) {
 
 func TestAccEventHub_captureDescription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -356,7 +356,7 @@ func TestAccEventHub_captureDescription(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionSystemIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -373,7 +373,7 @@ func TestAccEventHub_captureDescriptionSystemIdentity(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionUserAssignIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -388,7 +388,7 @@ func TestAccEventHub_captureDescriptionUserAssignIdentity(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionUserAssignIdentityError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -400,7 +400,7 @@ func TestAccEventHub_captureDescriptionUserAssignIdentityError(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -436,7 +436,7 @@ func TestAccEventHub_captureDescriptionIdentityUpdate(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionManagedIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -465,7 +465,7 @@ func TestAccEventHub_captureDescriptionManagedIdentityUpdate(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -487,7 +487,7 @@ func TestAccEventHub_captureDescriptionDisabled(t *testing.T) {
 
 func TestAccEventHub_messageRetentionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -509,7 +509,7 @@ func TestAccEventHub_messageRetentionUpdate(t *testing.T) {
 
 func TestAccEventHub_eventhubStatus(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -529,7 +529,7 @@ func TestAccEventHub_eventhubStatus(t *testing.T) {
 	})
 }
 
-func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (EventhubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := eventhubs.ParseEventhubID(state.ID)
 	if err != nil {
 		return nil, err
@@ -543,7 +543,7 @@ func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, sta
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
+func (EventhubResource) basic(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -570,8 +570,8 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
-func (EventHubResource) requiresImport(data acceptance.TestData) string {
-	template := EventHubResource{}.basic(data, 2)
+func (EventhubResource) requiresImport(data acceptance.TestData) string {
+	template := EventhubResource{}.basic(data, 2)
 	return fmt.Sprintf(`
 %s
 
@@ -584,7 +584,7 @@ resource "azurerm_eventhub" "import" {
 `, template)
 }
 
-func (EventHubResource) partitionCount(data acceptance.TestData, partitionCount int) string {
+func (EventhubResource) partitionCount(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -611,7 +611,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
-func (EventHubResource) standard(data acceptance.TestData) string {
+func (EventhubResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -638,7 +638,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) dedicatedClusterStandardPartitionCountUpdate(data acceptance.TestData) string {
+func (EventhubResource) dedicatedClusterStandardPartitionCountUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -673,7 +673,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) dedicatedClusterStandard(data acceptance.TestData) string {
+func (EventhubResource) dedicatedClusterStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -708,7 +708,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r EventHubResource) captureDescription(data acceptance.TestData, enabled bool) string {
+func (r EventhubResource) captureDescription(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 %s
@@ -746,7 +746,7 @@ resource "azurerm_eventhub" "test" {
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
 
-func (r EventHubResource) captureDescriptionUsingSystemAssignedIdentity(data acceptance.TestData, enabled bool) string {
+func (r EventhubResource) captureDescriptionUsingSystemAssignedIdentity(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 %s
@@ -798,7 +798,7 @@ resource "azurerm_eventhub" "test" {
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
 
-func (r EventHubResource) captureDescriptionUsingUserAssignedIdentity(data acceptance.TestData, enabled bool) string {
+func (r EventhubResource) captureDescriptionUsingUserAssignedIdentity(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 %s
@@ -853,7 +853,7 @@ resource "azurerm_eventhub" "test" {
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
 
-func (r EventHubResource) captureDescriptionUsingUserAssignedIdentityError(data acceptance.TestData, enabled bool) string {
+func (r EventhubResource) captureDescriptionUsingUserAssignedIdentityError(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 %s
@@ -907,7 +907,7 @@ resource "azurerm_eventhub" "test" {
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
 
-func (EventHubResource) retentionDescriptionWithDeleteCleanupPolicy(data acceptance.TestData) string {
+func (EventhubResource) retentionDescriptionWithDeleteCleanupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -937,7 +937,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) retentionDescriptionWithCompactCleanupPolicy(data acceptance.TestData) string {
+func (EventhubResource) retentionDescriptionWithCompactCleanupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -967,7 +967,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) retentionDescriptionUpdate(data acceptance.TestData) string {
+func (EventhubResource) retentionDescriptionUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -997,7 +997,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) messageRetentionUpdate(data acceptance.TestData) string {
+func (EventhubResource) messageRetentionUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1024,7 +1024,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (EventHubResource) eventhubStatus(data acceptance.TestData, status string) string {
+func (EventhubResource) eventhubStatus(data acceptance.TestData, status string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1052,7 +1052,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
 }
 
-func (r EventHubResource) template(data acceptance.TestData) string {
+func (r EventhubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
