@@ -544,7 +544,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			for i, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
 				ruleSet := raw.(map[string]any)
-				minimumVersion := ""
+				var minimumVersion string
 				switch ruleSet["type"].(string) {
 				case "OWASP":
 					minimumVersion = "3.2"
