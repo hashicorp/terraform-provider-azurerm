@@ -81,6 +81,10 @@ The following arguments are supported:
 
 * `metrics_enabled` - (Optional) Whether metrics are enabled for this object replication. Defaults to `false`.
 
+* `priority_replication_enabled` - (Optional) Whether priority replication is enabled for this object replication. Defaults to `false`.
+
+* `tags_replication_enabled` - (Optional) Whether tag replication is enabled for this object replication. Defaults to `false`.
+
 ---
 
 A `rules` block supports the following:
