@@ -24,12 +24,6 @@ A Data Plane API provides access to data for resources provisioned via the Resou
 * The App Configuration Data Plane API allows for managing Keys and Features within an App Configuration.
 * The Storage Data Plane API allows for the uploading/downloading of Blobs within a Storage Container (within a Storage Account).
 
-### Embedded SDK
-
-An Embedded SDK is an SDK that has been added directly into the providers code base (usually into `services/{name}/sdk`) rather than using go modules and vendoring it into `/vendor`.
-
-Whilst we generally vendor SDKs instead, we have a number of SDKs which aren't available elsewhere and are instead vendored into the codebase (see [High Level Overview](high-level-overview.md) for more information).
-
 ### Resource ID Formatter
 
 A Resource ID Formatter is a Resource ID Struct which implements the `ID()` method - returning the (Azure) Resource ID as a string - which must be parseable using the associated Resource ID Parser.
@@ -94,7 +88,7 @@ A Terraform Managed Resource ID is a Resource ID defined in Terraform, rather th
 
 The Azure Provider is moving to use Terraform Managed Resource IDs for all resources, since these are known ahead of time - which avoids issues with APIs changing these Resource IDs over time (either in casing, or renaming segments altogether).
 
-At present these are defined in a `resourceids.go` file within each Service Package, which generates a Resource ID Formatter, Parser and Validator for this Resource ID.
+These come from the go-azure-sdk package for the service, or from `commonids` for IDs shared across services. A few older services still generate them from a `resourceids.go` file, see [Resource IDs](guide-resource-ids.md).
 
 ### Terraform Resource Data
 

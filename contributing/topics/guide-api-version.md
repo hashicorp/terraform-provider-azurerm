@@ -6,7 +6,7 @@ The provider should be implemented using stable Azure Resource Manager (ARM) API
 
 These breaking API changes often materialise into [breaking changes](guide-breaking-changes.md) which can involve non-trivial upgrade steps and/or require waiting until a major version release to make the breaking change. v3.0.0 was released in March 2022, v4.0.0 in August 2024, and v5.0.0 in July 2026.
 
-In November 2025 we implemented an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
+In December 2025 we added an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
 
 ### Rerunning checks locally
 

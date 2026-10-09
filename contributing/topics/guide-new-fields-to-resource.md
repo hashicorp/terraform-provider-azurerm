@@ -163,7 +163,7 @@ func resource() *pluginsdk.Resource {
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
+            Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v6.0 of the provider",
             ConflictsWith: []string{"compression_enabled"},
         }
     }
@@ -196,7 +196,7 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
-			Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
+			Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v6.0 of the provider",
 			ConflictsWith: []string{"compression_enabled"},
 		}
 	}

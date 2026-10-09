@@ -234,7 +234,7 @@ If your resource uses a **Virtual Identity** (a sub-resource that inherits its I
 The generator reduces boilerplate by using Abstract Syntax Tree (AST) inference to automatically map the properties of an ID struct to the resource schema.
 
 - **Typed SDK Wrappers:** It scans the `.go` file for the `Identity()` method to locate the identity struct, and the `IdentityType()` method to determine if it is a Virtual Identity.
-- **Legacy (Untyped) Resources:** It scans for the `pluginsdk.GenerateIdentitySchema(&struct{}, ...)` function call in the schema definition, extracting the identity struct from the first argument and checking if the second argument is `pluginsdk.ResourceTypeForIdentityVirtual` (or scanning for the older `VirtualIdentity()` method).
+- **Legacy (Untyped) Resources:** It scans for the `pluginsdk.GenerateIdentitySchema(&struct{}, ...)` function call in the schema definition, extracting the identity struct from the first argument and checking if the second argument is `pluginsdk.ResourceTypeForIdentityVirtual`.
 - By parsing the returned `commonids` or `resourceids` struct from either pattern, it inherently knows the fields required (e.g., `SubscriptionId`, `ResourceGroupName`, `StorageAccountName`).
 - It converts these properties to `snake_case` (e.g., `resource_group_name`).
 - By convention, the final identifier segment (e.g., `StorageAccountName`) is converted to `name` unless the resource is identified as a **Virtual Identity**.
@@ -247,7 +247,7 @@ The `generator-tests` tool has "self-correcting" capabilities. When you run `mak
 
 - **Flag Stripping:** If you provide explicit `-compare-values`, `-known-values`, or `-resource-name` flags that perfectly match what the AST infers, the generator will automatically strip those flags from your `.go` file to keep the tag clean and concise (Zero-Flags).
 - **Auto-Formatting:** When the generator rewrites the tag, it automatically runs `gofumpt` on the file so that no whitespace formatting issues are introduced.
-- **Virtual Identity Resolution:** If a resource is detected as Virtual (via `IdentityType()` or `VirtualIdentity()`) and you supply `-parent-id "xyz"`, the generator automatically expands the mapping for all the struct's fields (including `subscription_id`) to that `-parent-id`.
+- **Virtual Identity Resolution:** If a resource is detected as Virtual (via `IdentityType()`) and you supply `-parent-id "xyz"`, the generator automatically expands the mapping for all the struct's fields (including `subscription_id`) to that `-parent-id`.
 
 **What the self-correcting logic CANNOT do:**
 

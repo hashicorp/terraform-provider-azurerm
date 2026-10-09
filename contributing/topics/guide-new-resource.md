@@ -745,7 +745,7 @@ All new resources **must** include a List Resource implementation. This enables 
 Please reference the [List Resource](guide-list-resource.md) guide for detailed instructions.
 
 > [!NOTE]
-> A CI check (`enforce-list-resources`) will automatically verify that new resources include a `*_resource_list.go` file. If your resource cannot support listing, please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+> A CI check (Enforce List Resource for New Resources) will automatically verify that new resources include a `*_resource_list.go` file. If your resource cannot support listing, please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
 
 ### Step 7: Register the new Resource
 

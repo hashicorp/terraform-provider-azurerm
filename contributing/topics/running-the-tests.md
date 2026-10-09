@@ -23,10 +23,8 @@ The following Environment Variables must be set in your shell prior to running a
 * `ARM_CLIENT_SECRET`
 * `ARM_SUBSCRIPTION_ID`
 * `ARM_TENANT_ID`
-* `ARM_ENVIRONMENT`
-* `ARM_METADATA_HOST`
 * `ARM_TEST_LOCATION`
 * `ARM_TEST_LOCATION_ALT`
 * `ARM_TEST_LOCATION_ALT2`
 
-> **Note:** Acceptance tests create real resources in Azure which often cost money to run.
+`ARM_ENVIRONMENT` and `ARM_METADATA_HOST` are optional and only needed for clouds other than public.
