@@ -6,6 +6,7 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"testing"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -207,8 +210,7 @@ func TestAccLogicAppStandard_appSettingsVnetRouteAllEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
 			),
 		},
-		// `WEBSITE_VNET_ROUTE_ALL` set via `app_settings` is indistinguishable from the platform-injected value on
-		// import, so it is not round-tripped into `app_settings`; `site_config.0.vnet_route_all_enabled` carries it.
+		// Import represents routing through site_config because it cannot distinguish platform-injected app settings.
 		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
 	})
 }
@@ -833,6 +835,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -840,6 +843,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.updateStorageAccountKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -847,6 +851,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -1115,17 +1120,72 @@ func TestAccLogicAppStandard_onASE(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
 		{
-			Config: r.onASEUpdateAppSettings(data),
+			Config: r.onASEUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("app_settings.WEBSITE_NODE_DEFAULT_VERSION").HasValue("~20"),
+				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
+		{
+			Config: r.onASE(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
+			),
+		},
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
+		{
+			Config: r.onASEWithContentShare(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
+			),
+		},
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
+	})
+}
+
+func TestAccLogicAppStandard_onASEWithContentShare(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.onASEWithContentShare(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
+			),
+		},
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
+		{
+			Config: r.onASEUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
+			),
+		},
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
+		{
+			Config: r.onASEWithContentShare(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasRunningHost),
+			),
+		},
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
 	})
 }
 
@@ -1277,19 +1337,86 @@ func (r LogicAppStandardResource) hasAppSettings(shouldExist bool, settingNames 
 			present[strings.ToLower(k)] = struct{}{}
 		}
 
-		exists := false
 		for _, settingName := range settingNames {
-			if _, ok := present[strings.ToLower(settingName)]; ok {
-				exists = true
-				break
+			_, exists := present[strings.ToLower(settingName)]
+			if exists != shouldExist {
+				return fmt.Errorf("expected presence of %q to be %t but got %t", settingName, shouldExist, exists)
 			}
-		}
-		if exists != shouldExist {
-			return fmt.Errorf("expected presence of %v to be %t but got %t", settingNames, shouldExist, exists)
 		}
 
 		return nil
 	}
+}
+
+func (r LogicAppStandardResource) hasRunningHost(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := commonids.ParseLogicAppId(state.ID)
+	if err != nil {
+		return err
+	}
+
+	// Portal's Runtime version field uses this endpoint, not the site's provisioning state.
+	hostClient, err := resourcemanager.NewClient(clients.Account.Environment.ResourceManager, "web", "2025-05-01")
+	if err != nil {
+		return err
+	}
+	hostClient.Authorizer = clients.AppService.WebAppsClient.Client.Authorizer
+	hostClient.UserAgent = clients.AppService.WebAppsClient.Client.UserAgent
+	hostClient.Transport = clients.AppService.WebAppsClient.Client.Transport
+	// Expose HTTP 408 to the waiter instead of letting the SDK retry it until the request deadline.
+	hostClient.DisableRetries = true
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	wait := &pluginsdk.StateChangeConf{
+		Target:       []string{"Running"},
+		Timeout:      10 * time.Minute,
+		PollInterval: 10 * time.Second,
+		Refresh: func() (any, string, error) {
+			requestCtx, requestCancel := context.WithTimeout(ctx, 90*time.Second)
+			defer requestCancel()
+
+			req, err := hostClient.NewRequest(requestCtx, client.RequestOptions{
+				ContentType:         "application/json; charset=utf-8",
+				ExpectedStatusCodes: []int{http.StatusOK},
+				HttpMethod:          http.MethodGet,
+				Path:                id.ID() + "/host/default/properties/status",
+			})
+			if err != nil {
+				return nil, "", err
+			}
+
+			resp, err := req.Execute(requestCtx)
+			if resp != nil && resp.Response != nil {
+				defer resp.Body.Close()
+				if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+					return nil, "", err
+				}
+			}
+			if err != nil {
+				// With no Pending list, the waiter retries startup failures and retains the last error as its state.
+				return err, err.Error(), nil
+			}
+
+			var status struct {
+				Properties struct {
+					State   string `json:"state"`
+					Version string `json:"version"`
+				} `json:"properties"`
+			}
+			if err := resp.Unmarshal(&status); err != nil {
+				return nil, "", err
+			}
+			if status.Properties.State == "Running" && status.Properties.Version != "" {
+				return status, "Running", nil
+			}
+			return status, fmt.Sprintf("state=%q version=%q", status.Properties.State, status.Properties.Version), nil
+		},
+	}
+	if _, err := wait.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for the runtime host of %s: %w", id, err)
+	}
+	return nil
 }
 
 func (r LogicAppStandardResource) basic(data acceptance.TestData) string {
@@ -2641,17 +2768,89 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 func (r LogicAppStandardResource) onASE(data acceptance.TestData) string {
-	return r.onASEConfig(data, "")
-}
+	return fmt.Sprintf(`
+%s
 
-func (r LogicAppStandardResource) onASEUpdateAppSettings(data acceptance.TestData) string {
-	return r.onASEConfig(data, `
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  vnet_content_share_enabled = true
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
   app_settings = {
-    WEBSITE_NODE_DEFAULT_VERSION = "~20"
-  }`)
+    FUNCTIONS_INPROC_NET8_ENABLED = "1"
+    FUNCTIONS_WORKER_RUNTIME      = "dotnet"
+    WEBSITE_NODE_DEFAULT_VERSION  = "~20"
+    WEBSITE_VNET_ROUTE_ALL        = "1"
+  }
+
+  site_config {
+    always_on = true
+  }
+}
+`, r.onASETemplate(data), data.RandomInteger)
 }
 
-func (r LogicAppStandardResource) onASEConfig(data acceptance.TestData, appSettings string) string {
+func (r LogicAppStandardResource) onASEUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  vnet_content_share_enabled = true
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.secondary_access_key
+
+  app_settings = {
+    FUNCTIONS_INPROC_NET8_ENABLED = "1"
+    FUNCTIONS_WORKER_RUNTIME      = "dotnet"
+    WEBSITE_NODE_DEFAULT_VERSION  = "~20"
+    WEBSITE_VNET_ROUTE_ALL        = "1"
+    TEST_SETTING                  = "updated"
+  }
+
+  site_config {
+    always_on = true
+  }
+}
+`, r.onASETemplate(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) onASEWithContentShare(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  vnet_content_share_enabled = true
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_share_name = azurerm_storage_share.custom.name
+
+  app_settings = {
+    FUNCTIONS_INPROC_NET8_ENABLED = "1"
+    FUNCTIONS_WORKER_RUNTIME      = "dotnet"
+    WEBSITE_NODE_DEFAULT_VERSION  = "~20"
+    WEBSITE_VNET_ROUTE_ALL        = "1"
+  }
+
+  site_config {
+    always_on = true
+  }
+}
+`, r.onASETemplate(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) onASETemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2698,24 +2897,21 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "acctest-dnslink-%[1]d"
-  resource_group_name   = azurerm_resource_group.test.name
-  private_dns_zone_name = azurerm_private_dns_zone.test.name
-  virtual_network_id    = azurerm_virtual_network.test.id
+  name                = "acctest-dnslink-%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  virtual_network_id  = azurerm_virtual_network.test.id
 }
 
 resource "azurerm_private_dns_a_record" "test" {
   name                = "*"
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 3600
   records             = azurerm_app_service_environment_v3.test.internal_inbound_ip_addresses
 }
 
 resource "azurerm_private_dns_a_record" "scm" {
   name                = "*.scm"
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 3600
   records             = azurerm_app_service_environment_v3.test.internal_inbound_ip_addresses
 }
@@ -2737,17 +2933,12 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[1]d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  vnet_content_share_enabled = true
-%[4]s
+resource "azurerm_storage_share" "custom" {
+  name               = "custom-content"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, appSettings)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r LogicAppStandardResource) keyVaultReferenceIdentityInvalid(data acceptance.TestData) string {
