@@ -1,0 +1,106 @@
+
+## `github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments` Documentation
+
+The `environments` SDK allows for interaction with Azure Resource Manager `apicenter` (API Version `2024-03-01`).
+
+This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
+
+### Import Path
+
+```go
+import "github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
+```
+
+
+### Client Initialization
+
+```go
+client := environments.NewEnvironmentsClientWithBaseURI("https://management.azure.com")
+client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `EnvironmentsClient.CreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "workspaceName", "environmentName")
+
+payload := environments.Environment{
+	// ...
+}
+
+
+read, err := client.CreateOrUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `EnvironmentsClient.Delete`
+
+```go
+ctx := context.TODO()
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "workspaceName", "environmentName")
+
+read, err := client.Delete(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `EnvironmentsClient.Get`
+
+```go
+ctx := context.TODO()
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "workspaceName", "environmentName")
+
+read, err := client.Get(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `EnvironmentsClient.Head`
+
+```go
+ctx := context.TODO()
+id := environments.NewEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "workspaceName", "environmentName")
+
+read, err := client.Head(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `EnvironmentsClient.List`
+
+```go
+ctx := context.TODO()
+id := environments.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "workspaceName")
+
+// alternatively `client.List(ctx, id, environments.DefaultListOperationOptions())` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id, environments.DefaultListOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
