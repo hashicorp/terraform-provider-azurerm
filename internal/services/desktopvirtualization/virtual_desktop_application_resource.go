@@ -271,7 +271,7 @@ func resourceVirtualDesktopApplicationDelete(d *pluginsdk.ResourceData, meta any
 	return nil
 }
 
-func virtualDesktopApplicationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func virtualDesktopApplicationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	_, pathOk := d.GetOk("path")
 	applicationType, applicationTypeOk := d.GetOk("application_type")
 	msixPackageApplicationId := d.GetRawConfig().AsValueMap()["msix_package_application_id"]

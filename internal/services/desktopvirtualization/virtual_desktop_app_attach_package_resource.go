@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_desktop_app_attach_package -service-package-name desktopvirtualization -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity
 
 type VirtualDesktopAppAttachPackageResource struct{}
 
@@ -207,7 +207,7 @@ func (r VirtualDesktopAppAttachPackageResource) Attributes() map[string]*plugins
 	}
 }
 
-func (r VirtualDesktopAppAttachPackageResource) ModelObject() interface{} {
+func (r VirtualDesktopAppAttachPackageResource) ModelObject() any {
 	return &VirtualDesktopAppAttachPackageModel{}
 }
 
