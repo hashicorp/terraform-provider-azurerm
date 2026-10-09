@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 )
 
@@ -35,7 +35,7 @@ func waitForPolicyAssignmentToStabilize(ctx context.Context, client *policyassig
 	}
 
 	poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
-		resp, err := client.Get(pollerCtx, id)
+		resp, err := client.Get(pollerCtx, id, policyassignments.DefaultGetOperationOptions())
 		return resp.HttpResponse, err
 	}, pollerOpts)
 	if err := poller.PollUntilDone(ctx); err != nil {
