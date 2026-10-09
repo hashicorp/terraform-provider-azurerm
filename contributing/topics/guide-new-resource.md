@@ -853,11 +853,11 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ResourceGroupExampleTestResource struct{}
+type ResourceGroupExampleResource struct{}
 
 func TestAccResourceGroupExample_basic(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-    r := ResourceGroupExampleTestResource{}
+    r := ResourceGroupExampleResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
@@ -872,7 +872,7 @@ func TestAccResourceGroupExample_basic(t *testing.T) {
 
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-    r := ResourceGroupExampleTestResource{}
+    r := ResourceGroupExampleResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
@@ -887,7 +887,7 @@ func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 
 func TestAccResourceGroupExample_complete(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-    r := ResourceGroupExampleTestResource{}
+    r := ResourceGroupExampleResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
@@ -902,7 +902,7 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
 
 func TestAccResourceGroupExample_update(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-    r := ResourceGroupExampleTestResource{}
+    r := ResourceGroupExampleResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
@@ -922,7 +922,7 @@ func TestAccResourceGroupExample_update(t *testing.T) {
     })
 }
 
-func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ResourceGroupExampleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := commonids.ParseResourceGroupID(state.ID)
     if err != nil {
         return nil, err
@@ -936,7 +936,7 @@ func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clie
     return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupExampleTestResource) basic(data acceptance.TestData) string {
+func (ResourceGroupExampleResource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -949,7 +949,7 @@ resource "azurerm_resource_group_example" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ResourceGroupExampleTestResource) requiresImport(data acceptance.TestData) string {
+func (r ResourceGroupExampleResource) requiresImport(data acceptance.TestData) string {
     return fmt.Sprintf(`
 %s
 
@@ -960,7 +960,7 @@ resource "azurerm_resource_group_example" "import" {
 `, r.basic(data))
 }
 
-func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
+func (ResourceGroupExampleResource) complete(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1051,7 +1051,7 @@ Manages a Resource Group.
 
 ```hcl
 resource "azurerm_resource_group_example" "example" {
-  name     = "example"
+  name     = "example-resource-group"
   location = "West Europe"
 }
 ```

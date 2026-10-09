@@ -338,37 +338,37 @@ func defaultFeaturesList() types.List {
 2. Update `internal/services/serviceName/resourceName_test.go` in this case `internal/services/keyvault/key_vault_resource_test.go` to test the new feature.
 
 ```go
-func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
+func TestAccKeyVault_purgeSoftDeleteOnDestroyDisabled(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
     r := KeyVaultResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
-        	// create it regularly
-        	Config: r.softDeleteRecoveryDisabled(data),
-        	Check: acceptance.ComposeTestCheckFunc(
-             	check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-        	),
+            // create it regularly
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
         },
         data.ImportStep(),
         {
-            // delete the key vault
+            // destroy it with purging disabled, which leaves the soft-deleted key vault behind
             Config: r.softDeleteAbsent(data),
         },
         {
-            // attempting to re-create it requires recovery, which is enabled by default
+            // re-creating it with recovery disabled now fails, proving the key vault was not purged
             Config:      r.softDeleteRecoveryDisabled(data),
             ExpectError: regexp.MustCompile("An existing soft-deleted Key Vault exists with the Name"),
         },
     })
 }
 
-func (KeyVaultResource) softDeleteRecoveryDisabled(data acceptance.TestData) string {
+func (KeyVaultResource) softDeleteAbsent(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
+      purge_soft_delete_on_destroy    = false
       recover_soft_deleted_key_vaults = false
     }
   }

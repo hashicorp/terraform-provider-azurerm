@@ -550,7 +550,7 @@ Use this data source to access information about an existing Resource Group.
 
 ```hcl
 data "azurerm_resource_group_example" "example" {
-  name = "existing"
+  name = "example-resource-group"
 }
 
 output "id" {

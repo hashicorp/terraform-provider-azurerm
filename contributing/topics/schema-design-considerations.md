@@ -20,7 +20,7 @@ Terraform arguments are mostly ordered alphabetically (see the [ordering guide](
 
 Some Azure APIs use arrays or list collections instead of statically typed properties, which can introduce ambiguity in Terraform configuration. For example, two `retention_policy` blocks with `orchestration_state = "Completed"` can be supplied below, even though only one makes semantic sense:
 
-```terraform
+```hcl
 retention_policy {
   retention_period_in_days = 7
   orchestration_state      = "InProgress"
@@ -39,7 +39,7 @@ retention_policy {
 
 Instead, the schema for such an API should be designed to eliminate the ambiguity:
 
-```terraform
+```hcl
 retention_policy {
   completed_retention_period_in_days = 30
   in_progress_retention_period_in_days = 7
