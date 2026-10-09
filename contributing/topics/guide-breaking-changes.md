@@ -35,7 +35,6 @@ The steps outlined below uses an example resource that is deprecated, but the sa
             return "The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
         }
 
-
         // For resources that have a replacement
 
         var _ sdk.ResourceWithDeprecationReplacedBy = ResourceWithReplacement{}
@@ -134,9 +133,9 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
     If the Azure API can no longer provision new instances of the resource (e.g., the service is retired, the API returns errors, or provisioning is blocked), **remove the test file entirely** rather than skipping the tests.
 
-    > **Why remove instead of skip?** Skipped tests still need to compile and maintain valid references. When the API no longer works, keeping tests around adds maintenance burden with no benefit. Removing them keeps the codebase clean and avoids confusion about why tests exist but never execute.
+    > Skipped tests still have to compile against an API that is gone, so they cost upkeep and prove nothing.
 
-4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`.
+4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.html.markdown`.
 
     ```markdown
        ## Removed Resources
@@ -179,11 +178,11 @@ The following example follows a fictional resource that will have the following 
                 Type:     pluginsdk.TypeBool,
                 Optional: true,
                 Default: false,
-             },      
+             },
              "version": {
                 Type:     pluginsdk.TypeString,
                 Optional: true,
-                Default: 2,
+                Default: "2",
              },
           }
 
@@ -206,7 +205,7 @@ The following example follows a fictional resource that will have the following 
                 ConflictsWith: []string{"enable_scaling"},
              }
 
-             args["version"].Default = 1
+             args["version"].Default = "1"
           }
 
           return args
@@ -229,7 +228,7 @@ The following example follows a fictional resource that will have the following 
 
        if !features.SixPointOh() {
          if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
-           payload.EnableScaling = pointer.To(model.EnableScaling);
+           payload.EnableScaling = pointer.To(model.EnableScaling)
          }
        }
     ```
@@ -279,7 +278,7 @@ The following example follows a fictional resource that will have the following 
 
     > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
-4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`
+4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.html.markdown`
 
     Under the appropriate section of the upgrade guide, add a line for the deprecation
 
@@ -308,7 +307,7 @@ We have a property like the following and Azure added a new spark version `3.4` 
 
 In Terraform, we start with:
 
-```hcl
+```go
     "spark_version": {
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -324,7 +323,7 @@ In Terraform, we start with:
 
 Then we would want to update `ValidateFunc` to include the new accepted value and update `Default` to `3.4` to keep it in line with Azure like so:
 
-```hcl
+```go
     "spark_version": {
 		Type:     pluginsdk.TypeString,
 		Optional: true,
@@ -428,7 +427,7 @@ When adding a new property with a default value, we can introduce a similar brea
 
 It originally came in like this:
 
-```hcl
+```go
 "auto_stop_enabled": {
 	Type:     pluginsdk.TypeBool,
 	Optional: true,
@@ -437,7 +436,7 @@ It originally came in like this:
 
 Our tests were failing because the Azure API was returning this value as true while Terraform does not expect this value to be set because it isn't specified in the config file. To fix this breaking change, we need to add a Default like so:
 
-```hcl
+```go
 "auto_stop_enabled": {
 	Type:     pluginsdk.TypeBool,
 	Optional: true,

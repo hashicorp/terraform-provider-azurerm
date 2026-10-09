@@ -20,7 +20,7 @@ Terraform arguments are mostly ordered alphabetically (see the [ordering guide](
 
 Some Azure APIs use arrays or list collections instead of statically typed properties, which can introduce ambiguity in Terraform configuration. For example, two `retention_policy` blocks with `orchestration_state = "Completed"` can be supplied below, even though only one makes semantic sense:
 
-```terraform
+```hcl
 retention_policy {
   retention_period_in_days = 7
   orchestration_state      = "InProgress"
@@ -39,7 +39,7 @@ retention_policy {
 
 Instead, the schema for such an API should be designed to eliminate the ambiguity:
 
-```terraform
+```hcl
 retention_policy {
   completed_retention_period_in_days = 30
   in_progress_retention_period_in_days = 7
@@ -312,9 +312,7 @@ Fields that are in preview should not be supported until they reach General Avai
 
 ## Flattening nested properties
 
-When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
-
-**DO** flatten single-property blocks
+Flatten a `MaxItems: 1` block that holds a single field into a top-level property. If the service team has said more fields are coming, keep the block and leave a comment saying so.
 
 ```go
 "credential_certificate": {
@@ -322,7 +320,6 @@ When designing schemas, consider flattening properties with `MaxItems: 1` that c
     Optional: true,
     Elem:     &pluginsdk.Schema{
         Type:         pluginsdk.TypeString,
-        // NOTE: validation is intentionally minimal since there is no stable API contract for the certificate contents beyond a non-empty string.
         ValidateFunc: validation.StringIsNotEmpty,
     },
 }
@@ -377,79 +374,28 @@ When a `pluginsdk.TypeList` block has no required nested fields, conditional val
 }
 ```
 
-## Validation functions
+## Validation
 
-### String arguments must be validated against the API contract wherever possible
+Validate every argument against what the API accepts. The constraints are in the swagger spec, the SDK's constants or the service documentation.
 
-In practice, common shapes should use appropriate, specific validators:
+- Fixed set of values: the SDK's `PossibleValuesFor...` helper, or an explicit list when the provider supports only some of them.
+- Names and other patterned strings: `validation.StringMatch` with the pattern from the spec and a message saying what is allowed.
+- Resource IDs: the validator from `commonids` or the service's `validate` package.
+- Dates, IPs, ports, emails and URIs: the matching validator in `internal/tf/validation`.
+- Numbers: `IntBetween` / `FloatBetween` when both bounds are known, `IntAtLeast` / `FloatAtLeast` only when the API has no upper bound.
+- Passwords: reuse the validator the service already has, mark the field `Sensitive: true`, and treat tightening the rules later as a breaking change.
 
-- Validate `name`-like fields for length and allowed characters (use regex/patterns from the spec where available)
-- Use `commonids` or service-specific ID validators for resource IDs
-- Validate common formats like dates, IPs, ports, emails, and URIs
+`validation.StringIsNotEmpty` checks nothing useful on its own. Use it only for fields the API accepts as free text, where there is no rule to check.
 
-This means using constraints from the swagger/spec, SDK types/constants, or API documentation:
-
-- Allowed values (enums)
-- Patterns/regex
-- Length bounds
-- Formats (dates, IPs, ports, emails, URIs)
-- Resource ID shapes (prefer `commonids` or service-specific validators)
-
-`validation.StringIsNotEmpty` should only be used when the API accepts free-form text and nothing stricter applies. When it is used, add a comment saying why.
-
-**Example:**
+Before writing a new validator, look for an existing one in `commonids`, `internal/tf/validation` or `internal/services/<service>/validate`. The quickest way is to find a similar resource in the same service and search that package for `ValidateFunc:`.
 
 ```go
-"description": {
-    Type:     pluginsdk.TypeString,
-    Optional: true,
-    // NOTE: validation is intentionally minimal because the API accepts arbitrary free-form text for this field (no enum/pattern/length constraints found).
-    ValidateFunc: validation.StringIsNotEmpty,
-},
-```
-
-### Numeric arguments must be validated against the API contract wherever possible
-
-For numeric fields, prefer validators that match the API contract as closely as possible:
-
-- Validate numeric ranges using the documented minimum and maximum values
-- Use exact allowed values when the API only accepts a fixed set of numeric values
-- Validate percentages, capacities, counts, sizes, priorities, and similar fields against the bounds defined by the API
-- Use integer validators for integer fields and float validators for decimal fields
-- Prefer `IntBetween` / `FloatBetween` when both bounds are known, and only use `IntAtLeast` / `FloatAtLeast` when the API contract truly defines a lower bound without an upper bound
-
-**Example:**
-
-```go
-"parallelism": {
-    Type:         pluginsdk.TypeInt,
+"network_api_version": {
+    Type:         pluginsdk.TypeString,
     Optional:     true,
-    // NOTE: validation is intentionally minimal because the API only defines the lower bound value (no upper bound constraints found).
-    ValidateFunc: validation.IntAtLeast(1),
+    ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
 },
-```
 
-### Before writing a new validator, check whether one already exists
-
-Common places to look are:
-
-* `commonids` for common Azure Resource Manager ID shapes such as `subnets`, `virtual machines`, `managed disks`, `user-assigned identities`, and `resource groups`.
-
-* `internal/tf/validation` for generic string, number, and format validators such as `StringInSlice`, `StringLenBetween`, `IsURLWithHTTPS`, `IsPortNumber`, `IntBetween`, and `Any`.
-
-* `internal/services/<service>/validate` for service-specific validators, for example name rules, resource-specific IDs, or service-specific value constraints.
-
-> **Note:** The easiest way to discover existing validators is to first look at a similar resource in the same service and then search for `ValidateFunc:` usages in that package.
-
-### Avoid overly generic validators
-
-When adding or modifying schema fields, do not default to minimal validators if the API provides stronger constraints.
-
-**DO** validate using the API contract
-
-When the provider intentionally exposes only a subset of the API values, define that subset explicitly in the schema:
-
-```go
 "allocation_strategy": {
     Type:     pluginsdk.TypeString,
     Optional: true,
@@ -458,133 +404,64 @@ When the provider intentionally exposes only a subset of the API values, define 
         string(virtualmachinescalesets.AllocationStrategyPrioritized),
     }, false),
 },
-```
 
-When the SDK already exposes the exact set of values that the schema should accept, use the SDK helper directly:
-
-```go
-"network_api_version": {
-    Type:         pluginsdk.TypeString,
-    Optional:     true,
-    ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
-},
-```
-
-Use regex or other format validators when the API contract defines a pattern rather than a fixed list of values:
-
-```go
 "name": {
     Type:     pluginsdk.TypeString,
     Required: true,
+    ForceNew: true,
     ValidateFunc: validation.StringMatch(
         regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,79}$`),
-        "`name` must be between 1 and 80 characters and must start with an alphanumeric character and can contain alphanumeric characters, dots (.), hyphens (-), and underscores (_)",
+        "`name` must be between 1 and 80 characters, start with an alphanumeric character and contain only alphanumeric characters, dots (.), hyphens (-) and underscores (_)",
     ),
 },
-```
 
-**DO** use existing ID/format/range validators for well-known shapes
-
-```go
 "subnet_id": {
     Type:         pluginsdk.TypeString,
     Required:     true,
     ValidateFunc: commonids.ValidateSubnetID,
 },
-```
 
-```go
-"user_assigned_identity_id": {
+"namespace_id": {
     Type:         pluginsdk.TypeString,
-    Optional:     true,
-    ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+    Required:     true,
+    ForceNew:     true,
+    ValidateFunc: namespaces.ValidateNamespaceID,
 },
-```
 
-```go
 "output_blob_uri": {
     Type:         pluginsdk.TypeString,
     Optional:     true,
     ValidateFunc: validation.IsURLWithHTTPS,
 },
-```
 
-```go
-"extensions_time_budget": {
-    Type:         pluginsdk.TypeString,
-    Optional:     true,
-    ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
-},
-```
-
-```go
 "ip_address": {
     Type:         pluginsdk.TypeString,
     Optional:     true,
     ValidateFunc: validation.IsIPv4Address,
 },
-```
 
-```go
-"sim_policy_id": {
+"extensions_time_budget": {
     Type:         pluginsdk.TypeString,
     Optional:     true,
-    ValidateFunc: simpolicy.ValidateSimPolicyID,
+    Default:      "PT1H30M",
+    ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 },
-```
 
-```go
 "storage_size_in_gb": {
     Type:         pluginsdk.TypeInt,
     Optional:     true,
     ValidateFunc: validation.IntBetween(32, 16384),
 },
-```
 
-## Password Fields
-
-Password fields must be validated against the contract of the specific Azure service or resource.
-
-This is important because password rules are not always the same across Azure. Some resources use VM guest OS password rules, some use database or application-specific rules, and some password fields are simply passed through to another system. Because of that, do not assume that every password field in the provider can use one universal validator.
-
-When adding or updating password validation, use the following approach:
-
-* First, check whether the same kind of password field already exists elsewhere in the provider. If it does, reuse that validator. For example, VM guest admin passwords should reuse the existing VM password validators rather than introducing a new variation. This helps to avoid logical drift between the resources validation functions.
-
-* If you find the same password rules being enforced in multiple resources, create or reuse one shared validator for that resource family instead of copying the same checks into each resource. This keeps similar resources consistent and makes future updates easier.
-
-* Put shared password validation near the resources that own those rules. In practice, shared validators should normally live in that service or resource family's `validate` package, for example `internal/services/<service>/validate`, and the schema fields for those resources should all call that validator rather than each resource having its own copy of the same validation logic.
-
-* If the password rules only apply to one service, keep that validation with that service. That usually means adding or reusing a validator in `internal/services/<service>/validate`. Only extract shared validation when you can show that multiple resources are enforcing the same backend rules.
-
-* If you make password validation stricter, treat that as a potential `breaking change` and review it accordingly.
-
-For example, a shared validator for Windows VM guest admin passwords should live in the compute service's `validate` package, and each compute resource that uses those same guest password rules should call that validator:
-
-```go
-// internal/services/compute/validate/windows_admin_password.go
-package validate
-
-func WindowsAdminPassword(i interface{}, k string) (warnings []string, errors []error) {
-    // shared password validation logic
-    return warnings, errors
-}
-
-// Used by azurerm_windows_virtual_machine
-// internal/services/compute/windows_virtual_machine_resource.go
-"admin_password": {
-    Type:         pluginsdk.TypeString,
+"parallelism": {
+    Type:         pluginsdk.TypeInt,
     Optional:     true,
-    Sensitive:    true,
-    ValidateFunc: computeValidate.WindowsAdminPassword,
+    ValidateFunc: validation.IntAtLeast(1),
 },
 
-// Used by azurerm_windows_virtual_machine_scale_set
-// internal/services/compute/windows_virtual_machine_scale_set_resource.go
-"admin_password": {
+"description": {
     Type:         pluginsdk.TypeString,
     Optional:     true,
-    Sensitive:    true,
-    ValidateFunc: computeValidate.WindowsAdminPassword,
+    ValidateFunc: validation.StringIsNotEmpty,
 },
 ```
