@@ -68,7 +68,7 @@ The majority of tests in the provider are `Acceptance Tests` - which provisions 
 make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
 ```
 
-* `<service>` is the name of the folder which contains the file with the test(s) you want to run. The available folders are found in `internal/services/`. So examples are `mssql`, `compute` or `storage`
+* `<service>` is the name of the folder which contains the file with the test(s) you want to run. The available folders are found in `internal/services/`. So examples are `mssql`, `compute` or `network`
 * `<nameOfTheTest>` should be self-explanatory as it is the name of the test you want to run. An example could be `TestAccMsSqlServerExtendedAuditingPolicy_basic`. Since `-run` can be used with regular expressions you can use it to specify multiple tests like in `TestAccMsSqlServerExtendedAuditingPolicy_` to run all tests that match that expression
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:
