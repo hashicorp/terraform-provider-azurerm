@@ -276,12 +276,12 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_type": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because a default value for storage type will be returned by the service if it is not specified in the configuration and this is preferred behavior.
+			Computed:     true,
 			ForceNew:     true,
-			Default:      string(mongoclusters.StorageTypePremiumSSD),
 			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForStorageType(), false),
-			RequiredWith: []string{"storage_size_in_gb"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -417,10 +417,11 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			parameter.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 
 			if state.StorageSizeInGb != 0 {
-				parameter.Properties.Storage = &mongoclusters.StorageProperties{
-					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
+				storage, err := expandMongoClusterStorage(metadata, state.StorageSizeInGb, state.StorageType, nil)
+				if err != nil {
+					return err
 				}
+				parameter.Properties.Storage = storage
 			}
 
 			if state.Tags != nil {
@@ -559,10 +560,16 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
-				payload.Properties.Storage = &mongoclusters.StorageProperties{
-					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
+				var existingStorageType *mongoclusters.StorageType
+				if payload.Properties.Storage != nil {
+					existingStorageType = payload.Properties.Storage.Type
 				}
+
+				storage, err := expandMongoClusterStorage(metadata, state.StorageSizeInGb, state.StorageType, existingStorageType)
+				if err != nil {
+					return err
+				}
+				payload.Properties.Storage = storage
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -742,6 +749,14 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			requiresReplacement := false
+			for field, schema := range r.Arguments() {
+				if schema.ForceNew && metadata.ResourceDiff.HasChange(field) {
+					requiresReplacement = true
+					break
+				}
+			}
+
 			var state MongoClusterResourceModel
 			if err := metadata.DecodeDiff(&state); err != nil {
 				return fmt.Errorf("DecodeDiff: %+v", err)
@@ -807,6 +822,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if err := metadata.ResourceDiff.ForceNew("create_mode"); err != nil {
 					return err
 				}
+				requiresReplacement = true
 			}
 
 			if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["data_api_mode_enabled"].IsNull() && state.CreateMode != string(mongoclusters.CreateModeDefault) {
@@ -822,6 +838,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
 					return err
 				}
+				requiresReplacement = true
 			}
 
 			// When identity is added or removed from the configuration, it should trigger ForceNew.
@@ -833,11 +850,37 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
 					return err
 				}
+				requiresReplacement = true
+			}
+
+			storageTypeConfig, err := metadata.GetRawConfigAt("storage_type")
+			if err != nil {
+				return fmt.Errorf("retrieving raw config for `storage_type`: %+v", err)
+			}
+			if metadata.ResourceDiff.Id() != "" && storageTypeConfig.IsKnown() && storageTypeConfig.IsNull() && requiresReplacement {
+				return errors.New("`storage_type` must be explicitly configured when replacing an existing MongoDB Cluster")
 			}
 
 			return nil
 		},
 	}
+}
+
+func expandMongoClusterStorage(metadata sdk.ResourceMetaData, sizeInGb int64, storageType string, existingStorageType *mongoclusters.StorageType) (*mongoclusters.StorageProperties, error) {
+	result := &mongoclusters.StorageProperties{
+		SizeGb: pointer.To(sizeInGb),
+		Type:   existingStorageType,
+	}
+
+	storageTypeConfig, err := metadata.GetRawConfigAt("storage_type")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving raw config for `storage_type`: %+v", err)
+	}
+	if storageTypeConfig.IsKnown() && !storageTypeConfig.IsNull() {
+		result.Type = pointer.ToEnum[mongoclusters.StorageType](storageType)
+	}
+
+	return result, nil
 }
 
 func validateMongoClusterCosmosDBNetworkBypassEnabled(metadata sdk.ResourceMetaData, state MongoClusterResourceModel) error {
