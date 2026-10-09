@@ -17,8 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -50,6 +52,7 @@ type DataProtectionBackupInstanceKubernatesClusterResource struct{}
 var (
 	_ sdk.Resource             = DataProtectionBackupInstanceKubernatesClusterResource{}
 	_ sdk.ResourceWithIdentity = DataProtectionBackupInstanceKubernatesClusterResource{}
+	_ sdk.ResourceWithUpdate   = DataProtectionBackupInstanceKubernatesClusterResource{}
 )
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Identity() resourceids.ResourceId {
@@ -88,7 +91,6 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 		"backup_policy_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 		},
 
@@ -104,14 +106,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"excluded_namespaces": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -119,21 +119,18 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 					"excluded_resource_types": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"cluster_scoped_resources_enabled": {
 						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
 						Optional: true,
 						Default:  false,
 					},
 					"included_namespaces": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -141,7 +138,6 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 					"included_resource_types": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -149,14 +145,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 					"label_selectors": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"volume_snapshot_enabled": {
 						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
 						Optional: true,
 						Default:  false,
 					},
@@ -326,6 +320,82 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 				return err
 			}
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r DataProtectionBackupInstanceKubernatesClusterResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.DataProtection.BackupInstanceClient
+
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model BackupInstanceKubernatesClusterModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.BackupInstancesGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			parameters := *existing.Model
+			if parameters.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			if pointer.From(parameters.Properties.CurrentProtectionState) == backupinstanceresources.CurrentProtectionStateProtectionError {
+				protectionError := "no further details were returned by the service"
+				if errorDetails := parameters.Properties.ProtectionErrorDetails; errorDetails != nil {
+					protectionError = fmt.Sprintf("%s: %s", pointer.From(errorDetails.Code), pointer.From(errorDetails.Message))
+				}
+				return fmt.Errorf("%s cannot be updated whilst it is in the `ProtectionError` state (%s). This must be resolved before the Backup Instance can be updated", id, protectionError)
+			}
+
+			if metadata.ResourceData.HasChange("backup_policy_id") {
+				policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
+				if err != nil {
+					return err
+				}
+				parameters.Properties.PolicyInfo.PolicyId = policyId.ID()
+			}
+
+			if metadata.ResourceData.HasChange("backup_datasource_parameters") {
+				if parameters.Properties.PolicyInfo.PolicyParameters == nil {
+					parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{}
+				}
+				backupDatasourceParameters := expandBackupDatasourceParameters(model.BackupDatasourceParameters)
+				if backupDatasourceParameters == nil {
+					backupDatasourceParameters = &[]backupinstanceresources.BackupDatasourceParameters{
+						backupinstanceresources.KubernetesClusterBackupDatasourceParameters{},
+					}
+				}
+				parameters.Properties.PolicyInfo.PolicyParameters.BackupDatasourceParametersList = backupDatasourceParameters
+			}
+
+			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, *id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, *id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
+				backupinstanceresources.CurrentProtectionStateUpdatingProtection,
+			})
+			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			}
+
+			return nil
 		},
 	}
 }
