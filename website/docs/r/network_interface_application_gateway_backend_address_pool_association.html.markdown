@@ -139,6 +139,8 @@ The following arguments are supported:
 
 * `ip_configuration_name` - (Required) The Name of the IP Configuration within the Network Interface which should be connected to the Backend Address Pool. Changing this forces a new resource to be created.
 
+~> **Note:** The referenced IP Configuration must use IPv4 addressing. Application Gateway Backend Address Pools cannot be associated with an IP Configuration that uses IPv6 addressing.
+
 * `backend_address_pool_id` - (Required) The ID of the Application Gateway's Backend Address Pool which this Network Interface which should be connected to. Changing this forces a new resource to be created.
 
 ## Attributes Reference
