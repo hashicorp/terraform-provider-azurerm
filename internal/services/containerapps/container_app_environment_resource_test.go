@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -244,6 +245,7 @@ func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasWorkloadProfile("E4-01", "E4", 0, 2)),
 			),
 		},
 		data.ImportStep(),
@@ -258,6 +260,38 @@ func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppEnvironment_updateWorkloadProfileCounts(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workloadProfileCounts(data, 0, 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasWorkloadProfile("D4-01", "D4", 0, 3)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.workloadProfileCounts(data, 1, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasWorkloadProfile("D4-01", "D4", 1, 5)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.workloadProfileCounts(data, 0, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasWorkloadProfile("D4-01", "D4", 0, 2)),
 			),
 		},
 		data.ImportStep(),
@@ -446,6 +480,41 @@ func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *cli
 	}
 
 	return pointer.To(resp.Model != nil), nil
+}
+
+func (r ContainerAppEnvironmentResource) hasWorkloadProfile(name, profileType string, minimumCount, maximumCount int64) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := managedenvironments.ParseManagedEnvironmentID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
+		resp, err := client.ContainerApps.ManagedEnvironmentClient.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
+
+		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.WorkloadProfiles == nil {
+			return fmt.Errorf("retrieving %s: `workloadProfiles` was nil", *id)
+		}
+
+		for _, v := range *resp.Model.Properties.WorkloadProfiles {
+			if v.Name != name {
+				continue
+			}
+
+			if v.WorkloadProfileType != profileType || pointer.From(v.MinimumCount) != minimumCount || pointer.From(v.MaximumCount) != maximumCount {
+				return fmt.Errorf("expected workload profile %q of %s to have type %q, minimum count %d and maximum count %d, got type %q, minimum count %d and maximum count %d", name, *id, profileType, minimumCount, maximumCount, v.WorkloadProfileType, pointer.From(v.MinimumCount), pointer.From(v.MaximumCount))
+			}
+
+			return nil
+		}
+
+		return fmt.Errorf("workload profile %q was not found in %s", name, *id)
+	}
 }
 
 func (r ContainerAppEnvironmentResource) basic(data acceptance.TestData) string {
@@ -913,6 +982,30 @@ resource "azurerm_container_app_environment" "test" {
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) workloadProfileCounts(data acceptance.TestData, minimumCount, maximumCount int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
+
+  workload_profile {
+    maximum_count         = %[4]d
+    minimum_count         = %[3]d
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger, minimumCount, maximumCount)
 }
 
 func (r ContainerAppEnvironmentResource) completeZoneRedundant(data acceptance.TestData) string {
