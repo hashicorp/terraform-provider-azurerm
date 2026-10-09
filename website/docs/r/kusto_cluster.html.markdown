@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days). Defaults to `true`.
 
+* `callout_policy` - (Optional) A `callout_policy` block as defined below.
+
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted. Defaults to `false`.
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
@@ -81,6 +83,16 @@ The following arguments are supported:
 ~> **Note:** In v3.0 of `azurerm` a new or updated Kusto Cluster will only allow your own tenant by default. Explicit configuration of this setting will change from `trusted_external_tenants = ["MyTenantOnly"]` to `trusted_external_tenants = []`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
+
+---
+
+A `callout_policy` block supports the following:
+
+* `callout_type` - (Required) The type of callout service. Possible values are `azure_digital_twins`, `azure_openai`, `cosmosdb`, `external_data`, `genevametrics`, `kusto`, `mysql`, `postgresql`, `sandbox_artifacts`, `sql`, and `webapi`.
+
+* `callout_uri_regex` - (Required) A regular expression or the callout URI.
+
+* `outbound_access` - (Required) Whether outbound access is permitted for the specified service with the URI pattern. Possible values are `Allow` and `Deny`.
 
 ---
 
