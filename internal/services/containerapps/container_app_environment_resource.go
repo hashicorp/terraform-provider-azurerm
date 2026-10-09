@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -432,8 +433,14 @@ func (r ContainerAppEnvironmentResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+			// The operation endpoint can complete with an empty response that the SDK's
+			// LRO poller cannot decode. Verify deletion of the resource itself instead.
+			poller := custompollers.NewManagedEnvironmentDeletePoller(client, *id)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 
 			return nil

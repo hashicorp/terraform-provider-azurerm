@@ -53,6 +53,49 @@ resource "azurerm_linux_function_app" "example" {
 }
 ```
 
+### Container Apps Environment
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "linuxfunctionappsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_container_app_environment" "example" {
+  name                = "example-container-app-environment"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_linux_function_app" "example" {
+  name                         = "example-linux-function-app"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  container_app_environment_id = azurerm_container_app_environment.example.id
+
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+
+  site_config {
+    application_stack {
+      docker {
+        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"
+      }
+    }
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -63,7 +106,23 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
 
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+* `container_app_environment_id` - (Optional) The ID of the Container App Environment within which to create this Function App. Changing this forces a new Linux Function App to be created.
+
+-> **Note:** A `docker` block must be specified in `site_config.application_stack` when `container_app_environment_id` is specified.
+
+-> **Note:** `public_network_access_enabled` cannot be configured when `container_app_environment_id` is specified. Public network access must be configured on the Container App Environment.
+
+-> **Note:** Container Apps-hosted Function App names must contain at most 32 lowercase letters, digits or hyphens, start with a letter, end with a letter or digit, and must not contain consecutive hyphens.
+
+-> **Note:** When `container_app_environment_id` is specified, the supported `site_config` settings are `application_stack.docker`, `application_insights_key`, `application_insights_connection_string`, `container_registry_use_managed_identity`, `container_registry_managed_identity_client_id`, `elastic_instance_minimum` (minimum replicas) and `app_scale_limit` (maximum replicas). Other `site_config` settings cannot be explicitly configured. Their App Service schema defaults are not sent to Azure.
+
+-> **Note:** `enabled`, `https_only`, `client_certificate_enabled`, `client_certificate_mode`, `client_certificate_exclusion_paths`, `daily_memory_time_quota`, `vnet_image_pull_enabled`, `virtual_network_backup_restore_enabled` and `virtual_network_subnet_id` cannot be configured in this hosting mode. Networking is managed by the Container App Environment.
+
+-> **Note:** This resource does not support the App Service `auth_settings`, `auth_settings_v2`, `backup`, `connection_string`, `sticky_settings`, `storage_account`, `zip_deploy_file`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` settings for Container Apps-hosted Function Apps. Use `app_settings` for application connection strings. Deployment slots and publishing credentials are not exposed in this hosting mode. Defaults retained in state for inapplicable App Service settings do not describe Container Apps security or networking configuration.
+
+* `service_plan_id` - (Optional) The ID of the App Service Plan within which to create this Function App.
+
+-> **Note:** Exactly one of `container_app_environment_id` or `service_plan_id` must be specified.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 

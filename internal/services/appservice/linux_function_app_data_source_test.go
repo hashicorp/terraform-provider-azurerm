@@ -46,3 +46,31 @@ data "azurerm_linux_function_app" "test" {
 }
 `, LinuxFunctionAppResource{}.standardComplete(data))
 }
+
+func TestAccLinuxFunctionAppDataSource_containerAppEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_linux_function_app", "test")
+	d := LinuxFunctionAppDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.containerAppEnvironment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment.test").Key("id"),
+				),
+				check.That(data.ResourceName).Key("service_plan_id").HasValue(""),
+			),
+		},
+	})
+}
+
+func (LinuxFunctionAppDataSource) containerAppEnvironment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_linux_function_app" "test" {
+  name                = azurerm_linux_function_app.test.name
+  resource_group_name = azurerm_linux_function_app.test.resource_group_name
+}
+`, LinuxFunctionAppResource{}.containerAppEnvironment(data, "first"))
+}
