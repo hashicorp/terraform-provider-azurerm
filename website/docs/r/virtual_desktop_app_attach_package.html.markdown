@@ -90,7 +90,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   network_interface_ids = [
     azurerm_network_interface.example.id
   ]
-  size                = "Standard_F1als_v7"
+  size                = "Standard_F1alds_v7"
   admin_password      = "Password1234"
   admin_username      = "adminuser"
   secure_boot_enabled = true
