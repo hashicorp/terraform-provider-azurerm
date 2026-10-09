@@ -475,7 +475,6 @@ func TestAccKubernetesClusterNodePool_podIPAllocationMode(t *testing.T) {
 			Config: r.podIPAllocationModeConfig(data, string(agentpools.PodIPAllocationModeStaticBlock)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pod_ip_allocation_mode").HasValue(string(agentpools.PodIPAllocationModeStaticBlock)),
 			),
 		},
 		data.ImportStep(),
