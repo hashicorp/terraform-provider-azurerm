@@ -338,6 +338,12 @@ A `os_disk` block supports the following:
 
 ~> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
 
+* `tier` - (Optional) The performance tier of the OS Disk. Possible values are documented [here](https://learn.microsoft.com/azure/virtual-machines/disks-change-performance).
+
+-> **Note:** `tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`, and cannot be used with `diff_disk_settings`.
+
+~> **Note:** Changing this value is disruptive. The Virtual Machine will be shut down and de-allocated to action the change. Terraform will attempt to start the machine again after the update if it was in a `running` state when the apply was started.
+
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **Note:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
