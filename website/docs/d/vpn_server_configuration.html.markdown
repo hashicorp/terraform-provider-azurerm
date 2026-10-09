@@ -14,8 +14,8 @@ Use this data source to access information about an existing VPN Server Configur
 
 ```hcl
 data "azurerm_vpn_server_configuration" "example" {
-  name                = "existing-local-vpn-server-configuration"
-  resource_group_name = "existing-resource-group"
+  name                = "example-vpn-server-configuration"
+  resource_group_name = "example-resources"
 }
 
 output "azurerm_vpn_server_configuration" {

@@ -14,8 +14,8 @@ Use this data source to access information about an existing Resource Group Temp
 
 ```hcl
 data "azurerm_resource_group_template_deployment" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-deployment"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

@@ -13,12 +13,12 @@ Use this data source to access information about an existing Managed Disk.
 ## Example Usage
 
 ```hcl
-data "azurerm_managed_disks" "existing" {
+data "azurerm_managed_disks" "example" {
   resource_group_name = "example-resources"
 }
 
 output "first_disk_id" {
-  value = data.azurerm_managed_disk.existing.disk.0.id
+  value = data.azurerm_managed_disk.example.disk.0.id
 }
 ```
 

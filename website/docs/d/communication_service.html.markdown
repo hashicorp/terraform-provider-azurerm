@@ -14,8 +14,8 @@ Use this data source to access information about an existing Communication Servi
 
 ```hcl
 data "azurerm_communication_service" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-communication-service"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

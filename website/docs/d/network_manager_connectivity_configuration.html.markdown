@@ -14,7 +14,7 @@ Use this data source to access information about an existing Network Manager Con
 
 ```hcl
 data "azurerm_network_manager_connectivity_configuration" "example" {
-  name               = "existing"
+  name               = "example-connectivity-configuration"
   network_manager_id = "TODO"
 }
 

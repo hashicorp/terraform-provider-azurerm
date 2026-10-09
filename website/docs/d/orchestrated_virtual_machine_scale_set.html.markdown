@@ -14,8 +14,8 @@ Use this data source to access information about an existing Orchestrated Virtua
 
 ```hcl
 data "azurerm_orchestrated_virtual_machine_scale_set" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-scale-set"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

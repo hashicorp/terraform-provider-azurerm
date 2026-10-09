@@ -18,8 +18,8 @@ provider "azurerm" {
 }
 
 data "azurerm_storage_sync_group" "example" {
-  name            = "existing-ss-group"
-  storage_sync_id = "existing-ss-id"
+  name            = "example-sync-group"
+  storage_sync_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.StorageSync/storageSyncServices/example-storage-sync"
 }
 
 output "id" {

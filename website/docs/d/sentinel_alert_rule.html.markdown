@@ -23,7 +23,7 @@ data "azurerm_log_analytics_workspace" "example" {
 }
 
 data "azurerm_sentinel_alert_rule" "example" {
-  name                       = "existing"
+  name                       = "example-alert-rule"
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.example.id
 }
 

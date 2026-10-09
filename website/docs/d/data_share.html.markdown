@@ -23,7 +23,7 @@ data "azurerm_data_share_account" "example" {
 }
 
 data "azurerm_data_share" "example" {
-  name       = "existing"
+  name       = "exampleshare"
   account_id = data.azurerm_data_share_account.example.id
 }
 
