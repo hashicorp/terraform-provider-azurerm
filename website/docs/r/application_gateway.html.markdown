@@ -134,8 +134,6 @@ The following arguments are supported:
 
 ---
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
-
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `backend` - (Optional) One or more `backend` blocks as defined below.
@@ -206,14 +204,6 @@ The following arguments are supported:
 
 ---
 
-An `authentication_certificate` block supports the following:
-
-* `name` - (Required) The Name of the Authentication Certificate to use.
-
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
-
----
-
 A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Trusted Root Certificate to use.
@@ -272,8 +262,6 @@ A `backend_http_settings` block supports the following:
  
 * `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
-* `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
-
 * `certificate_chain_validation_enabled` - (Optional) Whether to validate the certificate chain and expiry on the backend HTTPS servers. Defaults to `true`.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
@@ -297,12 +285,6 @@ A `backend_http_settings` block supports the following:
 * `sni_validation_enabled` - (Optional) Whether to enable Server Name Indication (SNI) validation on the backend HTTPS servers. Defaults to `true`.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
----
-
-A `authentication_certificate_backend` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Authentication Certificate.
 
 ---
 
@@ -611,13 +593,19 @@ A `ssl_profile` block supports the following:
 
 * `name` - (Required) The name of the SSL Profile that is unique within this Application Gateway.
 
-* `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
+* `client_authentication_mode` - (Optional) Specifies the client authentication mode. Possible values are `Strict` and `Passthrough`. Defaults to `Strict`.
+
+* `ssl_policy` - (Optional) An `ssl_policy` block as defined below.
+
+* `trusted_client_certificate_names` - (Optional) The names of the Trusted Client Certificates that will be used to authenticate requests from clients.
 
 * `verify_client_certificate_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
- 
-* `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
 
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+~> **Note:** `verify_client_certificate_issuer_dn` cannot be set to `true` when `client_authentication_mode` is set to `Passthrough`.
+
+* `verify_client_certificate_revocation` - (Optional) Specifies the method to check client certificate revocation status. The only possible value is `OCSP`.
+
+~> **Note:** `verify_client_certificate_revocation` cannot be set to `OCSP` when `client_authentication_mode` is set to `Passthrough`.
 
 ---
 
@@ -1028,4 +1016,4 @@ terraform import azurerm_application_gateway.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

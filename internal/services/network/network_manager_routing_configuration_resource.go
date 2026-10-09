@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagerroutingconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagerroutingconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,7 +30,7 @@ func (ManagerRoutingConfigurationResource) ResourceType() string {
 	return "azurerm_network_manager_routing_configuration"
 }
 
-func (ManagerRoutingConfigurationResource) ModelObject() interface{} {
+func (ManagerRoutingConfigurationResource) ModelObject() any {
 	return &ManagerRoutingConfigurationResourceModel{}
 }
 

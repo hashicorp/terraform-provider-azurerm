@@ -36,10 +36,10 @@ type AIFoundryProjectModel struct {
 	PrimaryUserAssignedIdentity string                                     `tfschema:"primary_user_assigned_identity"`
 	FriendlyName                string                                     `tfschema:"friendly_name"`
 	ProjectId                   string                                     `tfschema:"project_id"`
-	Tags                        map[string]interface{}                     `tfschema:"tags"`
+	Tags                        map[string]any                             `tfschema:"tags"`
 }
 
-func (r AIFoundryProject) ModelObject() interface{} {
+func (r AIFoundryProject) ModelObject() any {
 	return &AIFoundryProjectModel{}
 }
 
@@ -181,7 +181,7 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.Identity) > 0 {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -274,7 +274,7 @@ func (r AIFoundryProject) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

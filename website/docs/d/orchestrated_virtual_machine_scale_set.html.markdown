@@ -65,7 +65,7 @@ A `network_interface` block exports the following:
 
 * `dns_servers` - An array of the DNS servers in use.
 
-* `ip_configuration` - An `ip_configuration` block as documented below.
+* `ip_configuration` - An `ip_configuration` block as defined below.
 
 * `ip_forwarding_enabled` - Is IP forwarding enabled?
 
@@ -145,4 +145,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01
+* `Microsoft.Compute` - 2025-04-01

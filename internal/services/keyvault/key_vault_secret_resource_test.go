@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -64,6 +66,14 @@ func TestAccKeyVaultSecret_writeOnlyValue(t *testing.T) {
 			data.ImportStep("value", "value_wo_version"),
 			{
 				Config: r.writeOnlyValue(data, "szechuan", 2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						// changing `value_wo_version` creates a new version of the secret, so `version` and the
+						// attributes derived from it must be planned as unknown
+						plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("version")),
+						plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("resource_id")),
+					},
+				},
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("value").IsEmpty(),
@@ -194,6 +204,12 @@ func TestAccKeyVaultSecret_update(t *testing.T) {
 		},
 		{
 			Config: r.basicUpdated(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("version")),
+					plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("resource_id")),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("szechuan"),
@@ -530,6 +546,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -583,6 +600,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -631,6 +649,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7

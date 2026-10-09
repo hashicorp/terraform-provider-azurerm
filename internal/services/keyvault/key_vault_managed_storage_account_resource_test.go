@@ -173,7 +173,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 data "azuread_service_principal" "test" {
-  # https://docs.microsoft.com/en-us/azure/key-vault/secrets/overview-storage-keys-powershell#service-principal-application-id
+  # https://docs.microsoft.com/azure/key-vault/secrets/overview-storage-keys-powershell#service-principal-application-id
   # application_id = "cfa8b339-82a2-471a-a3c9-0fc0be7a4093"
   display_name = "Azure Key Vault"
 }
@@ -244,11 +244,12 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id

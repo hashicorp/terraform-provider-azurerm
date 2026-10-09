@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
 
-* `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
+* `bgp_settings` - (Optional) A `bgp_settings` block which is defined below. In this block the BGP specific settings can be defined.
 
 * `custom_route` - (Optional) A `custom_route` block as defined below. Specifies a custom routes address space for a virtual network gateway and a VpnClient.
 
@@ -146,6 +146,18 @@ The following arguments are supported:
 
 * `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
 
+* `maximum_scale_unit` - (Optional) The maximum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> **Note:** `maximum_scale_unit` is only supported for the `ErGwScale` SKU.
+
+* `minimum_scale_unit` - (Optional) The minimum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> **Note:** `minimum_scale_unit` is only supported for the `ErGwScale` SKU.
+
+~> **Note:** To configure a `fixed-size` gateway, set `minimum_scale_unit` and `maximum_scale_unit` to the same value. To enable `autoscaling`, set `minimum_scale_unit` to `2` or higher and `maximum_scale_unit` up to `40`. When `maximum_scale_unit` is set to `1`, `minimum_scale_unit` must also be set to `1`.
+
+~> **Note:** Changing the `sku` between an availability-zone SKU (`ErGwScale`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`) and a non-availability-zone SKU (`Standard`, `HighPerformance`, `UltraPerformance`) forces a new resource to be created.
+
 * `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
 
 * `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
@@ -154,7 +166,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is defined below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
@@ -203,7 +215,7 @@ The `vpn_client_configuration` block supports:
 * `aad_tenant` - (Optional) AzureAD Tenant URL
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
-    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
@@ -356,4 +368,4 @@ terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

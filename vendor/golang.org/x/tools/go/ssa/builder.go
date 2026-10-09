@@ -85,30 +85,29 @@ import (
 	"slices"
 
 	"golang.org/x/tools/internal/typeparams"
+	"golang.org/x/tools/internal/typesinternal"
 	"golang.org/x/tools/internal/versions"
 )
-
-type opaqueType struct{ name string }
-
-func (t *opaqueType) String() string         { return t.name }
-func (t *opaqueType) Underlying() types.Type { return t }
 
 var (
 	varOk    = newVar("ok", tBool)
 	varIndex = newVar("index", tInt)
 
 	// Type constants.
-	tBool       = types.Typ[types.Bool]
-	tByte       = types.Typ[types.Byte]
-	tRune       = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
-	tInt        = types.Typ[types.Int]
-	tInvalid    = types.Typ[types.Invalid]
-	tString     = types.Typ[types.String]
-	tUntypedNil = types.Typ[types.UntypedNil]
+	tBool          = types.Typ[types.Bool]
+	tByte          = types.Typ[types.Byte]
+	tRune          = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
+	tInt           = types.Typ[types.Int]
+	tInvalid       = types.Typ[types.Invalid]
+	tString        = types.Typ[types.String]
+	tUntypedNil    = types.Typ[types.UntypedNil]
+	tUnsafePointer = types.Typ[types.UnsafePointer]
+	tRangeIter     = ssaNamedType("rangeIter", tUnsafePointer)  // the type of all "range" iterators
+	tDeferStack    = ssaNamedType("deferStack", tUnsafePointer) // the type of a "deferStack" from ssa:deferstack()
+	tEface         = types.NewInterfaceType(nil, nil).Complete()
 
-	tRangeIter  = &opaqueType{"iter"}                         // the type of all "range" iterators
-	tDeferStack = types.NewPointer(&opaqueType{"deferStack"}) // the type of a "deferStack" from ssa:deferstack()
-	tEface      = types.NewInterfaceType(nil, nil).Complete()
+	// Fake package for fake ssa types.
+	ssaFakeTypesPackage = types.NewPackage("$ssa", "ssa")
 
 	// SSA Value constants.
 	vZero     = intConst(0)
@@ -124,9 +123,14 @@ var (
 	// The ssa:deferstack intrinsic returns the current function's defer stack.
 	vDeferStack = &Builtin{
 		name: "ssa:deferstack",
-		sig:  types.NewSignatureType(nil, nil, nil, nil, types.NewTuple(anonVar(tDeferStack)), false),
+		sig:  types.NewSignatureType(nil, nil, nil, nil, typesinternal.TupleOf(tDeferStack), false),
 	}
 )
+
+func ssaNamedType(name string, underlying types.Type) *types.Named {
+	obj := types.NewTypeName(token.NoPos, ssaFakeTypesPackage, name, nil)
+	return types.NewNamed(obj, underlying, nil)
+}
 
 // builder holds state associated with the package currently being built.
 // Its methods contain all the logic for AST-to-SSA conversion.
@@ -583,33 +587,6 @@ func (b *builder) assign(fn *Function, loc lvalue, e ast.Expr, isZero bool, sb *
 			}
 			return
 		}
-
-		if _, ok := loc.(*address); ok {
-			if isNonTypeParamInterface(loc.typ()) {
-				// e.g. var x interface{} = T{...}
-				// Can't in-place initialize an interface value.
-				// Fall back to copying.
-			} else {
-				// x = T{...} or x := T{...}
-				addr := loc.address(fn)
-				if sb != nil {
-					b.compLit(fn, addr, e, isZero, sb)
-				} else {
-					var sb storebuf
-					b.compLit(fn, addr, e, isZero, &sb)
-					sb.emit(fn)
-				}
-
-				// Subtle: emit debug ref for aggregate types only;
-				// slice and map are handled by store ops in compLit.
-				switch typeparams.CoreType(loc.typ()).(type) {
-				case *types.Struct, *types.Array:
-					emitDebugRef(fn, e, addr, true)
-				}
-
-				return
-			}
-		}
 	}
 
 	// simple case: just copy
@@ -667,11 +644,13 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			info:           fn.info,
 			goversion:      fn.goversion,
 			build:          (*builder).buildFromSyntax,
-			topLevelOrigin: nil,           // use anonIdx to lookup an anon instance's origin.
-			typeparams:     fn.typeparams, // share the parent's type parameters.
-			typeargs:       fn.typeargs,   // share the parent's type arguments.
-			subst:          fn.subst,      // share the parent's type substitutions.
-			uniq:           fn.uniq,       // start from parent's unique values
+			topLevelOrigin: nil,               // use anonIdx to lookup an anon instance's origin.
+			recvtypeparams: fn.recvtypeparams, // share the parent's receiver type parameters.
+			recvtypeargs:   fn.recvtypeargs,   // share the parent's receiver type arguments.
+			typeparams:     fn.typeparams,     // share the parent's type parameters.
+			typeargs:       fn.typeargs,       // share the parent's type arguments.
+			subst:          fn.subst,          // share the parent's type substitutions.
+			uniq:           fn.uniq,           // start from parent's unique values
 		}
 		fn.AnonFuncs = append(fn.AnonFuncs, anon)
 		// Build anon immediately, as it may cause fn's locals to escape.
@@ -825,8 +804,8 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			}
 			callee := v.(*Function) // (func)
 			if callee.typeparams.Len() > 0 {
-				targs := fn.subst.types(instanceArgs(fn.info, e))
-				callee = callee.instance(targs, b)
+				targs := fn.subtargs(e)
+				callee = callee.instance(nil, targs, b)
 			}
 			return callee
 		}
@@ -847,15 +826,16 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 		case types.MethodExpr:
 			// (*T).f or T.f, the method f from the method-set of type T.
 			// The result is a "thunk".
-			thunk := createThunk(fn.Prog, sel)
+			targs := fn.subtargs(e.Sel)
+			thunk := createThunk(fn.Prog, sel, targs)
 			b.enqueue(thunk)
-			return emitConv(fn, thunk, fn.typ(tv.Type))
+			return thunk
 
 		case types.MethodVal:
 			// e.f where e is an expression and f is a method.
 			// The result is a "bound".
-			obj := sel.obj.(*types.Func)
-			rt := fn.typ(recvType(obj))
+			m := sel.obj.(*types.Func)
+			rt := fn.typ(recvType(m))
 			wantAddr := isPointer(rt)
 			escaping := true
 			v := b.receiver(fn, e.X, wantAddr, escaping, sel)
@@ -886,11 +866,13 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 					emitTypeAssert(fn, v, rt, e.Sel.Pos())
 				}
 			}
-			if targs := receiverTypeArgs(obj); len(targs) > 0 {
-				// obj is generic.
-				obj = fn.Prog.canon.instantiateMethod(obj, fn.subst.types(targs), fn.Prog.ctxt)
+
+			if rtargs := fn.subrtargs(m); len(rtargs) > 0 {
+				m = fn.Prog.canon.instantiateMethod(m, rtargs, fn.Prog.ctxt)
 			}
-			bound := createBound(fn.Prog, obj)
+
+			targs := fn.subtargs(e.Sel)
+			bound := createBound(fn.Prog, m, targs)
 			b.enqueue(bound)
 
 			// The assignment may widen a type parameter to its
@@ -902,7 +884,7 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 				Bindings: []Value{v},
 			}
 			c.setPos(e.Sel.Pos())
-			c.setType(fn.typ(tv.Type))
+			c.setType(bound.Signature)
 			return fn.emit(c)
 
 		case types.FieldVal:
@@ -1015,8 +997,15 @@ func (b *builder) receiver(fn *Function, e ast.Expr, wantAddr, escaping bool, se
 func (b *builder) setCallFunc(fn *Function, e *ast.CallExpr, c *CallCommon) {
 	c.pos = e.Lparen
 
-	// Is this a method call?
-	if selector, ok := ast.Unparen(e.Fun).(*ast.SelectorExpr); ok {
+	// Is this a (possibly generic) method call?
+	m := ast.Unparen(e.Fun)
+	switch e := m.(type) {
+	case *ast.IndexExpr:
+		m = e.X
+	case *ast.IndexListExpr:
+		m = e.X
+	}
+	if selector, ok := m.(*ast.SelectorExpr); ok {
 		sel := fn.selection(selector)
 		if sel != nil && sel.kind == types.MethodVal {
 			obj := sel.obj.(*types.Func)
@@ -1031,7 +1020,8 @@ func (b *builder) setCallFunc(fn *Function, e *ast.CallExpr, c *CallCommon) {
 				c.Method = obj
 			} else {
 				// "Call"-mode call.
-				c.Value = fn.Prog.objectMethod(obj, b)
+				targs := fn.subtargs(selector.Sel)
+				c.Value = fn.Prog.objectMethod(obj, targs, b)
 				c.Args = append(c.Args, v)
 			}
 			return
@@ -1150,8 +1140,8 @@ func (b *builder) setCall(fn *Function, e *ast.CallExpr, c *CallCommon) {
 	b.setCallFunc(fn, e, c)
 
 	// Then append the other actual parameters.
-	sig, _ := typeparams.CoreType(fn.typeOf(e.Fun)).(*types.Signature)
-	if sig == nil {
+	sig, ok := typeparams.CoreType(fn.typeOf(e.Fun)).(*types.Signature)
+	if !ok {
 		panic(fmt.Sprintf("no signature for call of %s", e.Fun))
 	}
 	c.Args = b.emitCallArgs(fn, sig, e, c.Args)
@@ -1735,7 +1725,7 @@ func (b *builder) selectStmt(fn *Function, s *ast.SelectStmt, label *lblock) {
 	for _, st := range states {
 		if st.Dir == types.RecvOnly {
 			chtyp := typeparams.CoreType(fn.typ(st.Chan.Type())).(*types.Chan)
-			vars = append(vars, anonVar(chtyp.Elem()))
+			vars = append(vars, newVar("", chtyp.Elem()))
 		}
 	}
 	sel.setType(types.NewTuple(vars...))
@@ -2550,6 +2540,8 @@ func (b *builder) rangeFunc(fn *Function, x Value, rng *ast.RangeStmt, label *lb
 		goversion:      fn.goversion,
 		build:          (*builder).buildYieldFunc,
 		topLevelOrigin: nil,
+		recvtypeparams: fn.recvtypeparams,
+		recvtypeargs:   fn.recvtypeargs,
 		typeparams:     fn.typeparams,
 		typeargs:       fn.typeargs,
 		subst:          fn.subst,
@@ -3029,9 +3021,9 @@ func (b *builder) buildYieldFunc(fn *Function) {
 		fn.lblocks[label] = &lblock{
 			label:     label,
 			resolved:  true,
-			_goto:     ycont,
 			_continue: ycont,
-			// `break label` statement targets fn.parent.targets._break
+			// `goto label` searches the parent lblock, and
+			// `break label` targets fn.parent.targets._break.
 		}
 	}
 	fn.targets = &targets{

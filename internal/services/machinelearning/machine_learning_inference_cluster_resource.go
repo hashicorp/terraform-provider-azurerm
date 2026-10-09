@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -67,15 +67,11 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 			},
 
 			"cluster_purpose": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(machinelearningcomputes.ClusterPurposeFastProd),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ClusterPurposeDevTest),
-					string(machinelearningcomputes.ClusterPurposeFastProd),
-					string(machinelearningcomputes.ClusterPurposeDenseProd),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(machinelearningcomputes.ClusterPurposeFastProd),
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForClusterPurpose(), false),
 			},
 
 			"description": {
@@ -136,7 +132,7 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	aksClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -180,7 +176,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("AKS not found")
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -189,7 +185,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 		Properties: expandAksComputeProperties(aksID.ID(), aksModel, d),
 		Identity:   identity,
 		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	id := machinelearningcomputes.NewComputeID(meta.(*clients.Client).Account.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
@@ -202,7 +198,7 @@ func resourceAksInferenceClusterCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceAksInferenceClusterRead(d, meta)
 }
 
-func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +237,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("kubernetes_cluster_id", aksId.ID())
 	clusterPurpose := ""
 	if aksComputeProperties.Properties != nil {
-		clusterPurpose = string(pointer.From(aksComputeProperties.Properties.ClusterPurpose))
+		clusterPurpose = pointer.FromEnum(aksComputeProperties.Properties.ClusterPurpose)
 	}
 	d.Set("cluster_purpose", clusterPurpose)
 	d.Set("description", aksComputeProperties.Description)
@@ -262,7 +258,7 @@ func resourceAksInferenceClusterRead(d *pluginsdk.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, computeResource.Model.Tags)
 }
 
-func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,8 +290,8 @@ func expandAksComputeProperties(aksId string, aks *managedclusters.ManagedCluste
 	return machinelearningcomputes.AKS{
 		Properties: &machinelearningcomputes.AKSSchemaProperties{
 			ClusterFqdn:      pointer.To(*fqdn),
-			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
-			ClusterPurpose:   pointer.To(machinelearningcomputes.ClusterPurpose(d.Get("cluster_purpose").(string))),
+			SslConfiguration: expandSSLConfig(d.Get("ssl").([]any)),
+			ClusterPurpose:   pointer.ToEnum[machinelearningcomputes.ClusterPurpose](d.Get("cluster_purpose").(string)),
 		},
 		ComputeLocation: pointer.To(aks.Location),
 		Description:     pointer.To(d.Get("description").(string)),
@@ -303,12 +299,12 @@ func expandAksComputeProperties(aksId string, aks *managedclusters.ManagedCluste
 	}
 }
 
-func expandSSLConfig(input []interface{}) *machinelearningcomputes.SslConfiguration {
+func expandSSLConfig(input []any) *machinelearningcomputes.SslConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	// SSL Certificate default values
 	sslStatus := "Disabled"
@@ -323,7 +319,7 @@ func expandSSLConfig(input []interface{}) *machinelearningcomputes.SslConfigurat
 	}
 
 	return &machinelearningcomputes.SslConfiguration{
-		Status:                  pointer.To(machinelearningcomputes.SslConfigStatus(sslStatus)),
+		Status:                  pointer.ToEnum[machinelearningcomputes.SslConfigStatus](sslStatus),
 		Cert:                    pointer.To(v["cert"].(string)),
 		Key:                     pointer.To(v["key"].(string)),
 		Cname:                   pointer.To(v["cname"].(string)),

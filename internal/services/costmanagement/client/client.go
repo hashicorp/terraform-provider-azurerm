@@ -6,16 +6,16 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ExportClient           *exports.ExportsClient
-	ScheduledActionsClient *scheduledactions.ScheduledActionsClient
-	ViewsClient            *views.ViewsClient
+	ExportClient                        *exports.ExportsClient
+	ScheduledActionOperationGroupClient *scheduledactionoperationgroup.ScheduledActionOperationGroupClient
+	ViewOperationGroupClient            *viewoperationgroup.ViewOperationGroupClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -25,21 +25,21 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(exportClient.Client, o.Authorizers.ResourceManager)
 
-	scheduledActionsClient, err := scheduledactions.NewScheduledActionsClientWithBaseURI(o.Environment.ResourceManager)
+	scheduledActionOperationGroupClient, err := scheduledactionoperationgroup.NewScheduledActionOperationGroupClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building ScheduledActions client: %+v", err)
+		return nil, fmt.Errorf("building Scheduled Actions Operation Group client: %+v", err)
 	}
-	o.Configure(scheduledActionsClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(scheduledActionOperationGroupClient.Client, o.Authorizers.ResourceManager)
 
-	viewsClient, err := views.NewViewsClientWithBaseURI(o.Environment.ResourceManager)
+	viewOperationGroupClient, err := viewoperationgroup.NewViewOperationGroupClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Views client: %+v", err)
+		return nil, fmt.Errorf("building View Operation Group client: %+v", err)
 	}
-	o.Configure(viewsClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(viewOperationGroupClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ExportClient:           exportClient,
-		ScheduledActionsClient: scheduledActionsClient,
-		ViewsClient:            viewsClient,
+		ExportClient:                        exportClient,
+		ScheduledActionOperationGroupClient: scheduledActionOperationGroupClient,
+		ViewOperationGroupClient:            viewOperationGroupClient,
 	}, nil
 }

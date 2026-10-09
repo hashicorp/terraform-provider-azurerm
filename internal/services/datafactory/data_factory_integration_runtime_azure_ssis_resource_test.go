@@ -318,14 +318,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "setup-files"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 30
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 30
 }
 
 data "azurerm_storage_account_blob_container_sas" "test" {
@@ -366,10 +366,10 @@ resource "azurerm_data_factory_linked_custom_service" "test" {
   data_factory_id      = azurerm_data_factory.test.id
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
-{
-  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
-}
-JSON
+	{
+	  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+	}
+	JSON
 }
 
 resource "azurerm_data_factory_linked_custom_service" "file_share_linked_service" {
@@ -377,14 +377,14 @@ resource "azurerm_data_factory_linked_custom_service" "file_share_linked_service
   data_factory_id      = azurerm_data_factory.test.id
   type                 = "AzureFileStorage"
   type_properties_json = <<JSON
-{
-  "host": "${azurerm_storage_share.test.url}",
-  "password": {
-    "type": "SecureString",
-    "value": "${azurerm_storage_account.test.primary_access_key}"
-  }
-}
-JSON
+	{
+	  "host": "${azurerm_storage_share.test.url}",
+	  "password": {
+	    "type": "SecureString",
+	    "value": "${azurerm_storage_account.test.primary_access_key}"
+	  }
+	}
+	JSON
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
@@ -458,7 +458,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
     path                                 = "containerpath"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, pricingTier)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, pricingTier)
 }
 
 func (IntegrationRuntimeManagedSsisResource) vnetIntegration(data acceptance.TestData) string {
@@ -521,11 +521,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -583,14 +584,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "setup-files"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 30
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 30
 }
 
 data "azurerm_storage_account_blob_container_sas" "test" {
@@ -631,10 +632,10 @@ resource "azurerm_data_factory_linked_custom_service" "test" {
   data_factory_id      = azurerm_data_factory.test.id
   type                 = "AzureBlobStorage"
   type_properties_json = <<JSON
-{
-  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
-}
-JSON
+	{
+	  "connectionString": "${azurerm_storage_account.test.primary_connection_string}"
+	}
+	JSON
 }
 
 resource "azurerm_data_factory_linked_custom_service" "file_share_linked_service" {
@@ -642,14 +643,14 @@ resource "azurerm_data_factory_linked_custom_service" "file_share_linked_service
   data_factory_id      = azurerm_data_factory.test.id
   type                 = "AzureFileStorage"
   type_properties_json = <<JSON
-{
-  "host": "${azurerm_storage_share.test.url}",
-  "password": {
-    "type": "SecureString",
-    "value": "${azurerm_storage_account.test.primary_access_key}"
-  }
-}
-JSON
+	{
+	  "host": "${azurerm_storage_share.test.url}",
+	  "password": {
+	    "type": "SecureString",
+	    "value": "${azurerm_storage_account.test.primary_access_key}"
+	  }
+	}
+	JSON
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
@@ -743,7 +744,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
     path                                 = "containerpath"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (IntegrationRuntimeManagedSsisResource) aadAuth(data acceptance.TestData) string {

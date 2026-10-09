@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -111,12 +111,12 @@ func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
 }
 
 func (t CostManagementScheduledAction) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := scheduledactions.ParseScopedScheduledActionID(state.ID)
+	id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ScheduledActionsClient.GetByScope(ctx, *id)
+	resp, err := clients.CostManagement.ScheduledActionOperationGroupClient.ScheduledActionsGetByScope(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
@@ -138,7 +138,7 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:DailyCosts"
 
   display_name         = "CostByServiceView%s"
   email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 50)
@@ -166,9 +166,9 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:DailyCosts"
 
-  display_name         = "CostByServiceView%s"
+  display_name         = "CostByService%s"
   message              = "Hi"
   email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 50)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
@@ -197,9 +197,9 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:DailyCosts"
 
-  display_name         = "CostByServiceView%s"
+  display_name         = "CostByService%s"
   message              = "Hi"
   email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 50)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]
@@ -228,9 +228,9 @@ data "azurerm_subscription" "test" {}
 resource "azurerm_cost_management_scheduled_action" "test" {
   name = "testcostview%s"
 
-  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:DailyCosts"
 
-  display_name         = "CostByServiceView%s"
+  display_name         = "CostByService%s"
   message              = "Hi"
   email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 50)
   email_addresses      = ["test@test.com", "hashicorp@test.com"]

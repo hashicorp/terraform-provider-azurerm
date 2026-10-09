@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -130,7 +130,7 @@ resource "azurerm_resource_group" "test" {
 
 
 data "azuread_service_principal" "test" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -199,7 +199,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 data "azuread_service_principal" "test" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
 
 resource "azurerm_role_assignment" "test" {

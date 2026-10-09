@@ -11,32 +11,33 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name eventhub -properties "name" -compare-values "subscription_id:namespace_id,resource_group_name:namespace_id,namespace_name:namespace_id" -test-name standard
+
 var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceEventHubCreate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubUpdate,
 		Delete: resourceEventHubDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := eventhubs.ParseEventhubID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&eventhubs.EventhubId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&eventhubs.EventhubId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -69,7 +70,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			"message_retention": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 				ExactlyOneOf: []string{"retention_description", "message_retention"},
 			},
@@ -78,17 +79,14 @@ func resourceEventHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"cleanup_policy": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.CleanupPolicyRetentionDescriptionDelete),
-								string(eventhubs.CleanupPolicyRetentionDescriptionCompact),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(eventhubs.PossibleValuesForCleanupPolicyRetentionDescription(), false),
 						},
 
 						"retention_time_in_hours": {
@@ -122,12 +120,9 @@ func resourceEventHub() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"encoding": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(eventhubs.EncodingCaptureDescriptionAvro),
-								string(eventhubs.EncodingCaptureDescriptionAvroDeflate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(eventhubs.PossibleValuesForEncodingCaptureDescription(), false),
 						},
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
@@ -172,7 +167,7 @@ func resourceEventHub() *pluginsdk.Resource {
 										ValidateFunc: commonids.ValidateStorageAccountID,
 									},
 
-									// Storage SAS is the default authentication type for capture destination, it's not supported by the API, so hard coding the value to align with azure portal behavior.
+									// Storage SAS is the default authentication type for capture destination, it's not supported by the API, so hard coding the value to align with azure portal behaviour.
 									"storage_authentication_type": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -215,7 +210,11 @@ func resourceEventHub() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+			if d.Id() == "" && d.Get("status").(string) == string(eventhubs.EntityStatusSendDisabled) {
+				return fmt.Errorf("`status` cannot be set to `%s` when creating an Event Hub, it can only be set on an existing Event Hub", string(eventhubs.EntityStatusSendDisabled))
+			}
+
 			capture := d.GetRawConfig().AsValueMap()["capture_description"]
 			if !capture.IsNull() && len(capture.AsValueSlice()) > 0 {
 				destination := capture.AsValueSlice()[0].AsValueMap()["destination"].AsValueSlice()[0].AsValueMap()
@@ -226,39 +225,9 @@ func resourceEventHub() *pluginsdk.Resource {
 			return nil
 		}),
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["namespace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			ValidateFunc: namespaces.ValidateNamespaceID,
-		}
-
-		r.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ValidateEventHubNamespaceName(),
-			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-
-		r.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ExactlyOneOf: []string{"namespace_id", "resource_group_name"},
-			ValidateFunc: resourcegroups.ValidateName,
-			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return r
 }
 
-func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -273,11 +242,6 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		namespaceName = namespaceId.NamespaceName
 		resourceGroupName = namespaceId.ResourceGroupName
-	}
-
-	if !features.FivePointOh() && namespaceName == "" {
-		namespaceName = d.Get("namespace_name").(string)
-		resourceGroupName = d.Get("resource_group_name").(string)
 	}
 
 	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
@@ -320,11 +284,14 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceEventHubRead(d, meta)
 }
 
-func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -381,7 +348,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceEventHubRead(d, meta)
 }
 
-func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -400,24 +367,22 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
-	d.Set("name", id.EventhubName)
+	return resourceEventHubFlatten(d, id, resp.Model)
+}
 
-	if !features.FivePointOh() {
-		d.Set("namespace_name", id.NamespaceName)
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
+func resourceEventHubFlatten(d *pluginsdk.ResourceData, id *eventhubs.EventhubId, model *eventhubs.Eventhub) error {
+	d.Set("name", id.EventhubName)
 
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	d.Set("namespace_id", namespaceId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("partition_count", props.PartitionCount)
 			d.Set("partition_ids", props.PartitionIds)
 			d.Set("status", string(*props.Status))
 
-			captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
-			if err := d.Set("capture_description", captureDescription); err != nil {
+			if err := d.Set("capture_description", flattenEventHubCaptureDescription(props.CaptureDescription)); err != nil {
 				return err
 			}
 
@@ -425,17 +390,16 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if props.RetentionDescription == nil || props.RetentionDescription.TombstoneRetentionTimeInHours == nil {
 				d.Set("message_retention", props.MessageRetentionInDays)
 			}
-			retentionDescription := flattenEventHubRetentionDescription(props.RetentionDescription)
-			if err := d.Set("retention_description", retentionDescription); err != nil {
+			if err := d.Set("retention_description", flattenEventHubRetentionDescription(props.RetentionDescription)); err != nil {
 				return err
 			}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -458,16 +422,16 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.RetentionDescription {
-	inputs := d.Get("retention_description").([]interface{})
+	inputs := d.Get("retention_description").([]any)
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	cleanupPolicy := input["cleanup_policy"].(string)
 
 	retentionDescription := eventhubs.RetentionDescription{
-		CleanupPolicy: pointer.To(eventhubs.CleanupPolicyRetentionDescription(cleanupPolicy)),
+		CleanupPolicy: pointer.ToEnum[eventhubs.CleanupPolicyRetentionDescription](cleanupPolicy),
 	}
 
 	if cleanupPolicy == string(eventhubs.CleanupPolicyRetentionDescriptionDelete) {
@@ -482,11 +446,11 @@ func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.Re
 }
 
 func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
-	inputs := d.Get("capture_description").([]interface{})
+	inputs := d.Get("capture_description").([]any)
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	enabled := input["enabled"].(bool)
 	encoding := input["encoding"].(string)
@@ -497,8 +461,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	captureDescription := eventhubs.CaptureDescription{
 		Enabled: pointer.To(enabled),
 		Encoding: func() *eventhubs.EncodingCaptureDescription {
-			v := eventhubs.EncodingCaptureDescription(encoding)
-			return &v
+			return pointer.ToEnum[eventhubs.EncodingCaptureDescription](encoding)
 		}(),
 		IntervalInSeconds: pointer.To(int64(intervalInSeconds)),
 		SizeLimitInBytes:  pointer.To(int64(sizeLimitInBytes)),
@@ -506,9 +469,9 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	}
 
 	if v, ok := input["destination"]; ok {
-		destinations := v.([]interface{})
+		destinations := v.([]any)
 		if len(destinations) > 0 {
-			destination := destinations[0].(map[string]interface{})
+			destination := destinations[0].(map[string]any)
 
 			destinationName := destination["name"].(string)
 			archiveNameFormat := destination["archive_name_format"].(string)
@@ -534,8 +497,7 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 			}
 
 			if destinationAuthTypeId := destination["storage_authentication_id"]; destinationAuthTypeId != nil && destinationAuthTypeId.(string) != "" {
-				authId := destinationAuthTypeId.(string)
-				captureDescription.Destination.Identity.UserAssignedIdentity = &authId
+				captureDescription.Destination.Identity.UserAssignedIdentity = pointer.To(destinationAuthTypeId.(string))
 			}
 		}
 	}
@@ -543,11 +505,11 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	return &captureDescription
 }
 
-func flattenEventHubRetentionDescription(description *eventhubs.RetentionDescription) []interface{} {
-	results := make([]interface{}, 0)
+func flattenEventHubRetentionDescription(description *eventhubs.RetentionDescription) []any {
+	results := make([]any, 0)
 
 	if description != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if cleanupPolicy := description.CleanupPolicy; cleanupPolicy != nil {
 			output["cleanup_policy"] = pointer.FromEnum(cleanupPolicy)
@@ -567,11 +529,11 @@ func flattenEventHubRetentionDescription(description *eventhubs.RetentionDescrip
 	return results
 }
 
-func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription) []interface{} {
-	results := make([]interface{}, 0)
+func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription) []any {
+	results := make([]any, 0)
 
 	if description != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if enabled := description.Enabled; enabled != nil {
 			output["enabled"] = *enabled
@@ -596,7 +558,7 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 		}
 
 		if destination := description.Destination; destination != nil {
-			destinationOutput := make(map[string]interface{})
+			destinationOutput := make(map[string]any)
 
 			if name := destination.Name; name != nil {
 				destinationOutput["name"] = *name
@@ -622,7 +584,7 @@ func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription
 				destinationOutput["storage_authentication_id"] = pointer.From(storageIdentity.UserAssignedIdentity)
 			}
 
-			output["destination"] = []interface{}{destinationOutput}
+			output["destination"] = []any{destinationOutput}
 		}
 
 		results = append(results, output)

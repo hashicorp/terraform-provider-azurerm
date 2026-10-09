@@ -80,6 +80,24 @@ func TestAccMonitorDataCollectionRule_kindWorkspaceTransforms(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_kindDirect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindDirect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("Direct"),
+				check.That(data.ResourceName).Key("logs_ingestion_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("metrics_ingestion_endpoint").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -119,7 +137,7 @@ func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
@@ -157,7 +175,7 @@ func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
@@ -195,7 +213,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
 func (r MonitorDataCollectionRuleResource) kindDirectToStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	%[1]s
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acceventn%[2]d"
@@ -206,11 +224,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -227,13 +244,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_table" "test" {
-  name                 = "acctable%[2]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctable%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_monitor_data_collection_rule" "test" {
@@ -282,7 +299,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+	`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MonitorDataCollectionRuleResource) kindWorkspaceTransforms(data acceptance.TestData) string {
@@ -316,6 +333,62 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MonitorDataCollectionRuleResource) kindDirect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
+  name         = "MyCustomStream_CL"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+  column {
+    name = "TimeGenerated"
+    type = "dateTime"
+  }
+  column {
+    name = "RawData"
+    type = "string"
+  }
+}
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "Direct"
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "test-destination-log"
+    }
+  }
+  data_flow {
+    streams       = ["Custom-MyCustomStream_CL"]
+    destinations  = ["test-destination-log"]
+    output_stream = "Custom-MyCustomStream_CL"
+  }
+  stream_declaration {
+    stream_name = "Custom-MyCustomStream_CL"
+    column {
+      name = "TimeGenerated"
+      type = "datetime"
+    }
+    column {
+      name = "RawData"
+      type = "string"
+    }
+  }
+  depends_on = [
+    azurerm_log_analytics_workspace_table_custom_log.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r MonitorDataCollectionRuleResource) systemAssigned(data acceptance.TestData) string {
@@ -469,7 +542,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
 
 func (r MonitorDataCollectionRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	%[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestuai-%[2]d"
@@ -506,11 +579,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "accevent%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "accevent%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_storage_account" "test" {
@@ -527,7 +599,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acccontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -751,7 +823,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     azurerm_log_analytics_solution.test,
   ]
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+	`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MonitorDataCollectionRuleResource) requiresImport(data acceptance.TestData) string {

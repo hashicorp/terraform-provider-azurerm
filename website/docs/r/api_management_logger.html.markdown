@@ -57,13 +57,13 @@ The following arguments are supported:
 
 * `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
-* `application_insights` - (Optional) An `application_insights` block as documented below. Changing this forces a new resource to be created.
+* `application_insights` - (Optional) An `application_insights` block as defined below. Changing this forces a new resource to be created.
 
 * `buffered` - (Optional) Specifies whether records should be buffered in the Logger prior to publishing. Defaults to `true`.
 
 * `description` - (Optional) A description of this Logger.
 
-* `eventhub` - (Optional) An `eventhub` block as documented below. Changing this forces a new resource to be created.
+* `eventhub` - (Optional) An `eventhub` block as defined below. Changing this forces a new resource to be created.
 
 * `resource_id` - (Optional) The target resource id which will be linked in the API-Management portal page. Changing this forces a new resource to be created.
 
@@ -75,7 +75,11 @@ An `application_insights` block supports the following:
 
 * `instrumentation_key` - (Optional) The instrumentation key used to push data to Application Insights.
 
+* `identity_client_id` - (Optional) The Client Id of the User Assigned Identity, or `SystemAssigned` to use the System Assigned Identity, that has the "Monitoring Metrics Publisher" role on the target Application Insights resource. Requires `connection_string` to be set. Cannot be used with `instrumentation_key`.
+
 ~> **Note:** Either `connection_string` or `instrumentation_key` have to be specified.
+
+~> **Note:** `identity_client_id` enables AAD-based ingestion to Application Insights using a Managed Identity on the API Management Service and is required when local authentication is disabled on the Application Insights resource. Set it to the Client Id of a User Assigned Identity, or to `SystemAssigned` to use the System Assigned Identity.
 
 ---
 

@@ -31,7 +31,7 @@ type AutomationRunbookDataSourceModel struct {
 	RunbookType           string            `tfschema:"runbook_type"`
 	LogActivityTrace      int64             `tfschema:"log_activity_trace_level"`
 	Content               string            `tfschema:"content"`
-	Tags                  map[string]string `tfschema:"tags "`
+	Tags                  map[string]string `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = AutomationRunbookDataSource{}
@@ -92,7 +92,7 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d AutomationRunbookDataSource) ModelObject() interface{} {
+func (d AutomationRunbookDataSource) ModelObject() any {
 	return &AutomationRunbookDataSourceModel{}
 }
 
@@ -145,7 +145,7 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model.Properties.RunbookType != nil {
-				state.RunbookType = string(pointer.From(model.Properties.RunbookType))
+				state.RunbookType = pointer.FromEnum(model.Properties.RunbookType)
 			}
 
 			if model.Properties.LogVerbose != nil {
