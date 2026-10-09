@@ -78,7 +78,7 @@ Go does not require a specific function order, but for readability it is recomme
 
 ### Test Package
 
-While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:
+While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aadb2c/aadb2c_directory_data_source_test.go` the package should be:
 
 ```go
 package aadb2c_test

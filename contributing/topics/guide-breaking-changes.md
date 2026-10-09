@@ -136,7 +136,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
     > **Why remove instead of skip?** Skipped tests still need to compile and maintain valid references. When the API no longer works, keeping tests around adds maintenance burden with no benefit. Removing them keeps the codebase clean and avoids confusion about why tests exist but never execute.
 
-4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`.
+4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.html.markdown`.
 
     ```markdown
        ## Removed Resources
@@ -279,7 +279,7 @@ The following example follows a fictional resource that will have the following 
 
     > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
-4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.markdown`
+4. Update the upgrade guide under `website/docs/6.0-upgrade-guide.html.markdown`
 
     Under the appropriate section of the upgrade guide, add a line for the deprecation
 

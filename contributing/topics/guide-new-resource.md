@@ -40,7 +40,7 @@ This section covers how to add and configure the SDK Client.
 
 Determining which SDK Client you should be using is a little complicated unfortunately.
 
-The Client for the Service Package can be found in `./internal/services/{name}/client/client.go` - and we can add an instance of the SDK Client we want to use (here `resources.GroupsClient`) and configure it (adding credentials etc):
+The Client for the Service Package can be found in `./internal/services/{name}/client/client.go` - and we can add an instance of the SDK Client we want to use (here `resourcegroups.ResourceGroupsClient`) and configure it (adding credentials etc):
 
 ```go
 package client
@@ -48,25 +48,25 @@ package client
 import (
     "fmt"
 
-    "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
+    "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
     "github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-    GroupsClient *resources.GroupsClient
+    ResourceGroupsClient *resourcegroups.ResourceGroupsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-    groupsClient, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
+    resourceGroupsClient, err := resourcegroups.NewResourceGroupsClientWithBaseURI(o.Environment.ResourceManager)
     if err != nil {
-        return nil, fmt.Errorf("building Resources Client: %+v", err)
+        return nil, fmt.Errorf("building Resource Groups Client: %+v", err)
     }
-    o.Configure(groupsClient.Client, o.Authorizer.ResourceManager)
+    o.Configure(resourceGroupsClient.Client, o.Authorizer.ResourceManager)
 
     // ...
 
     return &Client{
-        GroupsClient: groupsClient,
+        ResourceGroupsClient: resourceGroupsClient,
     }, nil
 }
 ```
@@ -84,10 +84,16 @@ client := metadata.Client.{ServicePackage}.{ClientField}
 For example, in this case:
 
 ```go
-client := metadata.Client.Resource.GroupsClient
+client := metadata.Client.Resource.ResourceGroupsClient
 ```
 
-### Step 3: Scaffold an empty/new Resource
+### Step 3: Define the Resource ID
+
+Every resource is tracked by its Azure Resource ID, both in Terraform state and when calling the API. Most IDs come from the go-azure-sdk package for the service. The ones shared across services, such as resource groups, subnets and user assigned identities, come from `commonids`. A Resource Group uses `commonids.ResourceGroupId`, which gives us `NewResourceGroupID`, `ParseResourceGroupID` and `ValidateResourceGroupID`.
+
+See [Resource IDs](guide-resource-ids.md) for the details.
+
+### Step 4: Scaffold an empty/new Resource
 
 Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at `./internal/services/resource`.
 
@@ -195,7 +201,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 
         // the Func returns a function which retrieves the current state of the Resource Group into the state
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
             // retrieve the Name for this Resource Group from the Terraform Config
             // and then create a Resource ID for this Resource Group
@@ -206,7 +212,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
             if err := metadata.Decode(&config); err != nil {
                 return fmt.Errorf("decoding: %+v", err)
             }
-            id := resources.NewResourceGroupID(subscriptionId, config.Name)
+            id := commonids.NewResourceGroupID(subscriptionId, config.Name)
 
             // then we want to check for the presence of an existing resource with the resource's ID
             // this is because the Azure API uses the `name` as a unique identifier and Upserts
@@ -223,8 +229,8 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
             }
 
             // create the Resource Group
-            param := resources.Group{
-                Location: pointer.To(location.Normalize(config.Location)),
+            param := resourcegroups.ResourceGroup{
+                Location: location.Normalize(config.Location),
                 Tags:     pointer.To(config.Tags),
             }
 
@@ -288,10 +294,10 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 
         // the Func returns a function which retrieves the current state of the Resource Group into the state
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
             // parse the existing Resource ID from the State
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
@@ -327,8 +333,8 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             //
             // However since a Resource Group only has one field which is updatable (tags) we'll only
             // enter the update function if `tags` has been updated.
-            param := resources.Group{
-                Location: pointer.To(location.Normalize(config.Location)),
+            param := resourcegroups.ResourceGroup{
+                Location: location.Normalize(config.Location),
                 Tags:     pointer.To(config.Tags),
             }
             if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
@@ -358,10 +364,10 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 
         // the Func returns a function which looks up the state of the Resource Group and sets it into the state
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
             // parse the Resource Group ID from the `id` field
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
@@ -405,7 +411,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
                 // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
                 // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
                 // for users
-                state.Location = location.NormalizeNilable(model.Location)
+                state.Location = location.Normalize(model.Location)
                 state.Tags = pointer.From(model.Tags)
                 if props := model.Properties; props != nil {
                     // if there are properties to set into state do that here
@@ -431,9 +437,9 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
 
         // the Func returns a function which deletes the Resource Group
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
@@ -441,7 +447,7 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
             // trigger the deletion of the Resource Group
             // Delete calls that require request options can be populated by the `DefaultDeleteOperationOptions()`
             // method in the SDK
-            if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
+            if err := client.DeleteThenPoll(ctx, *id, resourcegroups.DefaultDeleteOperationOptions()); err != nil {
                 return fmt.Errorf("deleting %s: %+v", *id, err)
             }
             return nil
@@ -456,7 +462,7 @@ Finally we can add the `IDValidationFunc` function:
 
 ```go
 func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-    return resources.ValidateResourceGroupID
+    return commonids.ValidateResourceGroupID
 }
 ```
 
@@ -472,12 +478,15 @@ import (
     "fmt"
     "time"
 
-    "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+    "github.com/hashicorp/go-azure-helpers/lang/response"
+    "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
     "github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
     "github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-    "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+    "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = ResourceGroupExampleResource{}
@@ -520,14 +529,14 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
             subscriptionId := metadata.Client.Account.SubscriptionId
 
             var config ResourceGroupExampleResourceModel
             if err := metadata.Decode(&config); err != nil {
                 return fmt.Errorf("decoding: %+v", err)
             }
-            id := resources.NewResourceGroupID(subscriptionId, config.Name)
+            id := commonids.NewResourceGroupID(subscriptionId, config.Name)
 
             existing, err := client.Get(ctx, id)
             if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -537,8 +546,8 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
                 return metadata.ResourceRequiresImport(r.ResourceType(), id)
             }
 
-            param := resources.Group{
-                Location: pointer.To(location.Normalize(config.Location)),
+            param := resourcegroups.ResourceGroup{
+                Location: location.Normalize(config.Location),
                 Tags:     pointer.To(config.Tags),
             }
             if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
@@ -555,9 +564,9 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
@@ -567,8 +576,8 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
                 return fmt.Errorf("decoding: %+v", err)
             }
 
-            param := resources.Group{
-                Location: pointer.To(location.Normalize(config.Location)),
+            param := resourcegroups.ResourceGroup{
+                Location: location.Normalize(config.Location),
                 Tags:     pointer.To(config.Tags),
             }
             if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
@@ -583,9 +592,9 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
@@ -605,7 +614,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
             }
 
             if model := resp.Model; model != nil {
-                state.Location = location.NormalizeNilable(model.Location)
+                state.Location = location.Normalize(model.Location)
                 state.Tags = pointer.From(model.Tags)
                 if props := model.Properties; props != nil {
                     // if there are properties to set into state do that here
@@ -620,14 +629,14 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+            client := metadata.Client.Resource.ResourceGroupsClient
 
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            id, err := commonids.ParseResourceGroupID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
 
-            if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
+            if err := client.DeleteThenPoll(ctx, *id, resourcegroups.DefaultDeleteOperationOptions()); err != nil {
                 return fmt.Errorf("deleting %s: %+v", *id, err)
             }
 
@@ -637,7 +646,7 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
 }
 
 func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-    return resources.ValidateResourceGroupID
+    return commonids.ValidateResourceGroupID
 }
 ```
 
@@ -837,12 +846,12 @@ import (
     "fmt"
     "testing"
 
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+    "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
     "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
     "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
     "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-    "github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupExampleTestResource struct{}
@@ -915,12 +924,12 @@ func TestAccResourceGroupExample_update(t *testing.T) {
 }
 
 func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-    id, err := resources.ParseResourceGroupID(state.ID)
+    id, err := commonids.ParseResourceGroupID(state.ID)
     if err != nil {
         return nil, err
     }
 
-    resp, err := client.Resource.GroupsClient.Get(ctx, *id)
+    resp, err := client.Resource.ResourceGroupsClient.Get(ctx, *id)
     if err != nil {
         return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
     }
@@ -1016,7 +1025,7 @@ ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource	
 
 ### Step 10: Add Documentation for this Resource
 
-At this point in time documentation for each Resource (and Data Source) is written manually, located within the `./website` folder - in this case this will be located at `./website/docs/d/resource_group_example.html.markdown`.
+At this point in time documentation for each Resource (and Data Source) is written manually, located within the `./website` folder - in this case this will be located at `./website/docs/r/resource_group_example.html.markdown`.
 
 There is a tool within the repository to help scaffold the documentation for a Resource - the documentation for this Resource can be scaffolded via the following command:
 

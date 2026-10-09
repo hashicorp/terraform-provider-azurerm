@@ -41,7 +41,7 @@ func Default() UserFeatures {
 
 ### Updating `internal/provider`
 
-1. Update `internal/provider/feature.go` with what the Terraform schema will look like and how to thread it into the features block
+1. Update `internal/provider/features.go` with what the Terraform schema will look like and how to thread it into the features block
 
     ```go
     func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
@@ -80,7 +80,7 @@ func Default() UserFeatures {
     }
     ```
 
-2. Update `internal/provider/feature_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
+2. Update `internal/provider/features_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
 
 ```go
 func TestExpandFeatures(t *testing.T) {
@@ -323,7 +323,7 @@ func defaultFeaturesList() types.List {
 
 ### Update the resource
 
-1. Update `internal/service/serviceName/resourceName.go` in this case `internal/service/keyvault/key_vault_resource.go` to include the functionality of the added feature.
+1. Update `internal/services/serviceName/resourceName.go` in this case `internal/services/keyvault/key_vault_resource.go` to include the functionality of the added feature.
 
     ```go
     func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
@@ -335,7 +335,7 @@ func defaultFeaturesList() types.List {
     }
     ```
 
-2. Update `internal/service/serviceName/resourceName_test.go` in this case `internal/service/keyvault/key_vault_resource_test.go` to test the new feature.
+2. Update `internal/services/serviceName/resourceName_test.go` in this case `internal/services/keyvault/key_vault_resource_test.go` to test the new feature.
 
 ```go
 func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {

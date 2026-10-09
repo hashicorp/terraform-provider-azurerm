@@ -123,8 +123,8 @@ In this case, you need to specify the `name` of the Resource (in this case `Reso
 
 Running `make generate` - will output the following files:
 
-* `./internal/service/resource/parse/resource_group_example.go` - contains the Resource ID Struct, Formatter and Parser.
-* `./internal/service/resource/parse/resource_group_example_test.go` - contains tests for those ^.
-* `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
+* `./internal/services/resource/parse/resource_group_example.go` - contains the Resource ID Struct, Formatter and Parser.
+* `./internal/services/resource/parse/resource_group_example_test.go` - contains tests for those ^.
+* `./internal/services/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
 > **Note:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.

@@ -86,7 +86,7 @@ Note that a Service Registration can be both a Typed and Untyped Service Registr
 
 ### State Migration
 
-A State Migration is used when a resource has been changed to expect something different in the state than what previous version of the provider have written to it. An example of this is if Azure started to return a Resource ID value in a different case. rather than showing this during the plan, we can write a state migration to update the ID values transparently with no action required by a user. These are found in `services/service/migrations` and documentation on how to write them can be found in the [Terraform Plugin SDK](https://www.terraform.io/plugin/sdkv2/resources/state-migration) documentation.
+A State Migration is used when a resource has been changed to expect something different in the state than what previous version of the provider have written to it. An example of this is if Azure started to return a Resource ID value in a different case. rather than showing this during the plan, we can write a state migration to update the ID values transparently with no action required by a user. These are found in `services/{service}/migration` and documentation on how to write them can be found in the [Terraform Plugin SDK](https://www.terraform.io/plugin/sdkv2/resources/state-migration) documentation.
 
 ### Terraform Managed Resource ID
 
