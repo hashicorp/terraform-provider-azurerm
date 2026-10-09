@@ -278,6 +278,34 @@ func TestAccMsSqlVirtualMachine_storageConfiguration(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlVirtualMachine_storageConfigurationUseStoragePool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MssqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageConfigurationUseStoragePool(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_configuration.0.data_settings.0.use_storage_pool").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_configuration.0.log_settings.0.use_storage_pool").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_configuration.0.temp_db_settings.0.use_storage_pool").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageConfigurationUseStoragePool(data, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_configuration.0.data_settings.0.use_storage_pool").HasValue("false"),
+				check.That(data.ResourceName).Key("storage_configuration.0.log_settings.0.use_storage_pool").HasValue("false"),
+				check.That(data.ResourceName).Key("storage_configuration.0.temp_db_settings.0.use_storage_pool").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlVirtualMachine_storageConfigurationSystemDbOnDataDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MssqlVirtualMachineResource{}
@@ -1026,6 +1054,61 @@ resource "azurerm_mssql_virtual_machine" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlVirtualMachineResource) storageConfigurationUseStoragePool(data acceptance.TestData, dataLogPool bool, tempDbPool bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "accmd-sqlvm-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "OLTP"
+
+    data_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLData"
+      use_storage_pool  = %[3]t
+    }
+
+    log_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLLog"
+      use_storage_pool  = %[3]t
+    }
+
+    temp_db_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLTemp"
+      log_file_size_mb  = 512
+      use_storage_pool  = %[4]t
+    }
+  }
+
+  depends_on = [
+    azurerm_virtual_machine_data_disk_attachment.test
+  ]
+}
+`, r.template(data), data.RandomInteger, dataLogPool, tempDbPool)
 }
 
 func (r MssqlVirtualMachineResource) storageConfigurationSystemDbOnDataDisk(data acceptance.TestData, enabled bool) string {
