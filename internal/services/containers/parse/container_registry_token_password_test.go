@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ContainerRegistryTokenPasswordId{}
 
-func TestContainerRegistryTokenPasswordIDFormatter(t *testing.T) {
+func TestParseContainerRegistryTokenPasswordIDFormatter(t *testing.T) {
 	actual := NewContainerRegistryTokenPasswordID("12345678-1234-9876-4563-123456789012", "resGroup1", "registry1", "token1", "password").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/tokens/token1/passwords/password"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestContainerRegistryTokenPasswordIDFormatter(t *testing.T) {
 	}
 }
 
-func TestContainerRegistryTokenPasswordID(t *testing.T) {
+func TestParseContainerRegistryTokenPasswordID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
