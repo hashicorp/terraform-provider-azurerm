@@ -25,6 +25,7 @@ type ResourceManagerAccount struct {
 	ObjectId       string
 	SubscriptionId string
 	TenantId       string
+	PrincipalType  string
 
 	AuthenticatedAsAServicePrincipal bool
 	RegisteredResourceProviders      resourceproviders.ResourceProviders
@@ -118,6 +119,11 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		return nil, errors.New("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
 	}
 
+	principalType := "User"
+	if authenticatedAsServicePrincipal {
+		principalType = "ServicePrincipal"
+	}
+
 	account := ResourceManagerAccount{
 		Environment: config.Environment,
 
@@ -125,6 +131,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		ObjectId:       objectId,
 		SubscriptionId: subscriptionId,
 		TenantId:       tenantId,
+		PrincipalType:  principalType,
 
 		AuthenticatedAsAServicePrincipal: authenticatedAsServicePrincipal,
 		RegisteredResourceProviders:      registeredResourceProviders,
