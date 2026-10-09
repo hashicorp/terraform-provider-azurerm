@@ -27,6 +27,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTests(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
@@ -38,7 +39,6 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
-                BuildCacheFeature()
             }
 
             params {
