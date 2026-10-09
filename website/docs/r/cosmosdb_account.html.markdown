@@ -178,6 +178,8 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) Whether local authentication is enabled, when disabled only MSI and AAD can be used exclusively for authentication. Defaults to `true`.
 
+~> **Note:** When local authentication is disabled, the account key and connection string attributes are empty.
+
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `cors_rule` - (Optional) A `cors_rule` block as defined below.
