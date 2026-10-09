@@ -120,14 +120,13 @@ func TestAccBackupProtectedFileShare_stopAndRetainData(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
 		},
 		data.ImportStep(),
 		{
-			// vault cannot be deleted unless we unregister all backups
+			// Keep the container registered until the retained backup has been checked and deleted.
 			Config: r.protectionStopOnDestroy(data),
-			Check:  data.CheckWithClientWithoutResource(r.checkRetainedProtectionStateAndDelete(data, protecteditems.ProtectionStateProtectionStopped)),
+			Check:  data.CheckWithClientWithoutResource(r.checkRetainedProtectionStateAndDelete(data)),
 		},
 	})
 }
@@ -143,19 +142,18 @@ func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading Recovery Service Protected File Share (%s): %+v", id.String(), err)
 	}
 
-	// Soft delete is enabled by default, the back up file share will be purged after 14days, the GET response will be 200 in this status.
-	// It does not block deleting the vault. doc: https://learn.microsoft.com/en-us/azure/backup/secure-by-default?tabs=preview
+	// Soft-deleted items can still be returned by the API until their retention period expires.
 	existing := resp.Model != nil
 	if existing && resp.Model.Properties != nil {
-		if item, ok := resp.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok && item.ProtectionState != nil {
-			existing = *item.ProtectionState != protecteditems.ProtectionStateProtectionStopped
+		if item, ok := resp.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok {
+			existing = !pointer.From(item.IsScheduledForDeferredDelete)
 		}
 	}
 
 	return pointer.To(existing), nil
 }
 
-func (BackupProtectedFileShareResource) checkRetainedProtectionStateAndDelete(data acceptance.TestData, expected protecteditems.ProtectionState) acceptance.ClientCheckFunc {
+func (BackupProtectedFileShareResource) checkRetainedProtectionStateAndDelete(data acceptance.TestData) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) error {
 		resourceGroupName := fmt.Sprintf("acctestRG-backup-%d", data.RandomInteger)
 		vaultName := fmt.Sprintf("acctest-VAULT-%d", data.RandomInteger)
@@ -180,17 +178,21 @@ func (BackupProtectedFileShareResource) checkRetainedProtectionStateAndDelete(da
 				continue
 			}
 
-			if fileShare.ProtectionState == nil || string(*fileShare.ProtectionState) != string(expected) {
-				return fmt.Errorf("expected protected file share %q to have protection state %q, got %q", fileShareName, expected, pointer.From(fileShare.ProtectionState))
-			}
-
-			protectedItemId, err := protecteditems.ParseProtectedItemID(pointer.From(protectedItem.Id))
+			protectedItemId, err := protecteditems.ParseProtectedItemIDInsensitively(pointer.From(protectedItem.Id))
 			if err != nil {
 				return err
 			}
 
 			if err := clients.RecoveryServices.ProtectedItemsClient.DeleteThenPoll(ctx, *protectedItemId); err != nil {
 				return fmt.Errorf("deleting retained protected file share %s: %+v", protectedItemId, err)
+			}
+
+			// Check the response captured before cleanup, including whether the backup was soft-deleted.
+			if pointer.From(fileShare.ProtectionState) != backupprotecteditems.ProtectionStateProtectionStopped {
+				return fmt.Errorf("expected protected file share %q to have protection state ProtectionStopped, got %q", fileShareName, pointer.From(fileShare.ProtectionState))
+			}
+			if pointer.From(fileShare.IsScheduledForDeferredDelete) {
+				return fmt.Errorf("protected file share %q was soft-deleted instead of retained", fileShareName)
 			}
 
 			return nil
@@ -242,8 +244,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 
-  soft_delete_enabled = true
-  immutability        = "Disabled"
+  immutability = "Disabled"
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {

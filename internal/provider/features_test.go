@@ -1831,8 +1831,8 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 	for _, testCase := range testData {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
-			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		if !reflect.DeepEqual(result.RecoveryService, testCase.Expected.RecoveryService) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.RecoveryService, result.RecoveryService)
 		}
 	}
 }

@@ -311,7 +311,7 @@ The `recovery_service` block supports the following:
 
 * `vm_backup_suspend_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and suspend protection instead of destroying the backup protected vm? Defaults to `false`.
 
-* `file_share_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected file share? Defaults to `false`.
+* `file_share_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should destroying an `azurerm_backup_protected_file_share` stop protection and retain its backup data? Defaults to `false`. When enabled, the backup remains in Azure.
 
 * `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
 

@@ -80,9 +80,10 @@ func Default() UserFeatures {
 			PurgeSoftDeletedWorkspaceOnDestroy: false,
 		},
 		RecoveryService: RecoveryServiceFeatures{
-			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
-			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
-			PurgeProtectedItemsFromVaultOnDestroy:           false,
+			VMBackupStopProtectionAndRetainDataOnDestroy:        false,
+			VMBackupSuspendProtectionAndRetainDataOnDestroy:     false,
+			FileShareBackupStopProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:               false,
 		},
 		NetApp: NetAppFeatures{
 			DeleteBackupsOnBackupVaultDestroy: false,

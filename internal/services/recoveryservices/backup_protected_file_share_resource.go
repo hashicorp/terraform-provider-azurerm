@@ -316,22 +316,25 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta any)
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		targetState := protecteditems.ProtectionStateProtectionStopped
-
-		if existing.Model != nil && existing.Model.Properties != nil {
-			if item, ok := existing.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok {
-				item.ProtectionState = &targetState
-				update := protecteditems.ProtectedItemResource{
-					Properties: item,
-				}
-
-				if err := client.CreateOrUpdateThenPoll(ctx, *id, update); err != nil {
-					return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", targetState, *id, err)
-				}
-
-				return nil
-			}
+		if existing.Model == nil {
+			return fmt.Errorf("retrieving %s: model was nil", *id)
 		}
+
+		item, ok := existing.Model.Properties.(protecteditems.AzureFileshareProtectedItem)
+		if !ok {
+			return fmt.Errorf("retrieving %s: expected AzureFileshareProtectedItem, got %T", *id, existing.Model.Properties)
+		}
+
+		item.ProtectionState = pointer.To(protecteditems.ProtectionStateProtectionStopped)
+		update := protecteditems.ProtectedItemResource{
+			Properties: item,
+		}
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, update); err != nil {
+			return fmt.Errorf("stopping protection and retaining data for %s: %+v", *id, err)
+		}
+
+		return nil
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
