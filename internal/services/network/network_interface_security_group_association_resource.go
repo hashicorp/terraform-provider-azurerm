@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -109,6 +110,26 @@ func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.Resourc
 
 	d.SetId(id.ID())
 
+	// The Network Interfaces API can be eventually consistent - even once the poller above reports the update as
+	// complete, an immediately following `Get` (such as the one in Read, below) can still return a stale response
+	// without the Security Group attached. Read then interprets that as the association having been removed and
+	// clears the resource from state, which surfaces to users as `Provider produced inconsistent result after apply`.
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+	log.Printf("[DEBUG] Waiting for Security Group Association for %s to become available..", *nicId)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Waiting"},
+		Target:     []string{"Associated"},
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(deadline),
+		Refresh:    networkInterfaceSecurityGroupAssociationRefreshFunc(ctx, client, *nicId),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Security Group Association for %s to become available: %+v", *nicId, err)
+	}
+
 	return resourceNetworkInterfaceSecurityGroupAssociationRead(d, meta)
 }
 
@@ -185,4 +206,19 @@ func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.Resourc
 	}
 
 	return nil
+}
+
+func networkInterfaceSecurityGroupAssociationRefreshFunc(ctx context.Context, client *networkinterfaces.NetworkInterfacesClient, id commonids.NetworkInterfaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+		}
+
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.NetworkSecurityGroup != nil && resp.Model.Properties.NetworkSecurityGroup.Id != nil {
+			return resp, "Associated", nil
+		}
+
+		return resp, "Waiting", nil
+	}
 }
