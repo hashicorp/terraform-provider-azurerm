@@ -81,13 +81,13 @@ resource "azurerm_storage_account" "example" {
 
 - The example looks up something that already exists. Do not create it in the example.
 - Include only the arguments needed to find it, plus an output showing the result.
-- Name the looked-up things `existing-...`.
+- Name the looked-up things `example-...`, the same as in resource examples.
 
 ```hcl
 data "azurerm_subnet" "example" {
-  name                 = "existing-subnet"
-  virtual_network_name = "existing-virtual-network"
-  resource_group_name  = "existing-resource-group"
+  name                 = "example-subnet"
+  virtual_network_name = "example-virtual-network"
+  resource_group_name  = "example-resource-group"
 }
 
 output "subnet_id" {

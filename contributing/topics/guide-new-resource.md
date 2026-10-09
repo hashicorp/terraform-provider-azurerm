@@ -649,8 +649,6 @@ Things worth noting here:
 
 For example, in this case:
 
-**DO** declare only the more specific interface
-
 ```
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 ```
@@ -660,8 +658,6 @@ var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 - Argument names must be wrapped in backticks in error messages.
 
 For example, in this case:
-
-**DO** wrap argument names in backticks
 
 ```
 "name": {
@@ -678,8 +674,6 @@ For example, in this case:
 - Wrap `model` and `properties` in backticks in error messages.
 
 For example, in this case:
-
-**DO** wrap `model` and `properties` in backticks
 
 ```
 func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
@@ -704,8 +698,6 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 ```
 
 - Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
-
-**DO** use `ForceNew` in `CustomizeDiff`
 
 ```go
 func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {

@@ -361,15 +361,11 @@ Every source file (Go, Terraform, shell, YAML, etc.) starts with the licensing h
 
 - `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
 
-**DO** use `pointer.From`
-
 ```go
 output.Name = pointer.From(input.Name)
 ```
 
 - Use `pointer.To` to take the address of a value without declaring temporary variables.
-
-**DO** use `pointer.To`
 
 ```go
 if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
@@ -378,8 +374,6 @@ if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch
 ```
 
 - Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
-
-**DO** use `pointer.ToEnum`
 
 ```go
 return &managedclusters.ManagedClusterBootstrapProfile{
