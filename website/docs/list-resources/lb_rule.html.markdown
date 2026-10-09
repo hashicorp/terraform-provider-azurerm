@@ -18,7 +18,7 @@ Lists Load Balancer Rule resources.
 list "azurerm_lb_rule" "example" {
   provider = azurerm
   config {
-    loadbalancer_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/loadBalancers/example-lb"
+    load_balancer_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/loadBalancers/example-lb"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_lb_rule" "example" {
 
 This list resource supports the following arguments:
 
-* `loadbalancer_id` - (Required) The ID of the Load Balancer to query.
+* `load_balancer_id` - (Required) The ID of the Load Balancer to query.

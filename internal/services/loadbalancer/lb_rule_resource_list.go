@@ -20,12 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-const azurermLbRuleResourceName = "azurerm_lb_rule"
-
 type (
 	LoadBalancerRuleListResource struct{}
 	LoadBalancerRuleListModel    struct {
-		LoadBalancerId types.String `tfsdk:"loadbalancer_id"`
+		LoadBalancerId types.String `tfsdk:"load_balancer_id"`
 	}
 )
 
@@ -42,7 +40,7 @@ func (LoadBalancerRuleListResource) ResourceFunc() *pluginsdk.Resource {
 func (LoadBalancerRuleListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"loadbalancer_id": schema.StringAttribute{
+			"load_balancer_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: loadbalancers.ValidateLoadBalancerID},
@@ -61,25 +59,13 @@ func (LoadBalancerRuleListResource) List(ctx context.Context, request list.ListR
 		return
 	}
 
-	lbId, err := loadbalancers.ParseLoadBalancerID(data.LoadBalancerId.ValueString())
+	lbId, err := loadbalancers.ParseProviderLoadBalancerID(data.LoadBalancerId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", azurermLbRuleResourceName), err)
 		return
 	}
 
-	plbId := loadbalancers.ProviderLoadBalancerId{
-		SubscriptionId:    lbId.SubscriptionId,
-		ResourceGroupName: lbId.ResourceGroupName,
-		LoadBalancerName:  lbId.LoadBalancerName,
-	}
-
-	lbResp, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
-	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("retrieving Load Balancer for `%s`", azurermLbRuleResourceName), err)
-		return
-	}
-
-	resp, err := client.LoadBalancerLoadBalancingRulesListComplete(ctx, plbId)
+	resp, err := client.LoadBalancerLoadBalancingRulesListComplete(ctx, *lbId)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azurermLbRuleResourceName), err)
 		return
@@ -99,7 +85,7 @@ func (LoadBalancerRuleListResource) List(ctx context.Context, request list.ListR
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceArmLoadBalancerRuleFlatten(rd, id, lbResp.Model); err != nil {
+			if err := resourceArmLoadBalancerRuleFlatten(rd, id, &item); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azurermLbRuleResourceName), err)
 				return
 			}

@@ -24,6 +24,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const azurermLbRuleResourceName = "azurerm_lb_rule"
+
 //go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
 
 func resourceArmLoadBalancerRule() *pluginsdk.Resource {
@@ -120,7 +122,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta any
 	loadBalancer.Model.Properties.LoadBalancingRules = &lbRules
 
 	if d.IsNewResource() {
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *loadBalancer.Model, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, plbId, *loadBalancer.Model, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
@@ -157,21 +159,27 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta any) error 
 		return fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
-	return resourceArmLoadBalancerRuleFlatten(d, id, loadBalancer.Model)
-}
-
-func resourceArmLoadBalancerRuleFlatten(d *pluginsdk.ResourceData, id *loadbalancers.LoadBalancingRuleId, model *loadbalancers.LoadBalancer) error {
-	if model != nil {
-		config, _, exists := FindLoadBalancerRuleByName(model, id.LoadBalancingRuleName)
+	var config *loadbalancers.LoadBalancingRule
+	if model := loadBalancer.Model; model != nil {
+		var exists bool
+		config, _, exists = FindLoadBalancerRuleByName(model, id.LoadBalancingRuleName)
 		if !exists {
 			d.SetId("")
-			log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", id.LoadBalancerName)
+			log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", id.LoadBalancingRuleName)
 			return nil
 		}
+	}
 
-		d.Set("name", config.Name)
+	return resourceArmLoadBalancerRuleFlatten(d, id, config)
+}
 
-		if props := config.Properties; props != nil {
+func resourceArmLoadBalancerRuleFlatten(d *pluginsdk.ResourceData, id *loadbalancers.LoadBalancingRuleId, model *loadbalancers.LoadBalancingRule) error {
+	d.Set("name", model.Name)
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+	d.Set("loadbalancer_id", lbId.ID())
+
+	if model != nil {
+		if props := model.Properties; props != nil {
 			d.Set("disable_outbound_snat", pointer.From(props.DisableOutboundSnat))
 			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
@@ -179,30 +187,16 @@ func resourceArmLoadBalancerRuleFlatten(d *pluginsdk.ResourceData, id *loadbalan
 			d.Set("backend_port", int(pointer.From(props.BackendPort)))
 
 			// The backendAddressPools is designed for Gateway LB, while the backendAddressPool is designed for other skus.
-			// Thought currently the API returns both, but for the sake of stability, we do use different fields here depending on the LB sku.
-			var isGateway bool
-			if model.Sku != nil && pointer.From(model.Sku.Name) == loadbalancers.LoadBalancerSkuNameGateway {
-				isGateway = true
-			}
-			var (
-				backendAddressPoolId  string
-				backendAddressPoolIds []any
-			)
-			if isGateway {
-				// The gateway LB rule can have up to 2 backend address pools.
-				// In case there is only one BAP, we set it to both "backendAddressPoolId" and "backendAddressPoolIds".
-				// Otherwise, we leave the "backendAddressPoolId" as empty.
-				if props.BackendAddressPools != nil {
-					for _, p := range *props.BackendAddressPools {
-						if p.Id != nil {
-							backendAddressPoolIds = append(backendAddressPoolIds, *p.Id)
-						}
-					}
+			// Though currently the API returns both, but for the sake of stability, we do use different fields here depending on the LB sku.
+			var backendAddressPoolIds []string
+
+			if props.BackendAddressPools != nil {
+				for _, p := range *props.BackendAddressPools {
+					backendAddressPoolIds = append(backendAddressPoolIds, pointer.From(p.Id))
 				}
 			} else {
-				if props.BackendAddressPool != nil && props.BackendAddressPool.Id != nil {
-					backendAddressPoolId = *props.BackendAddressPool.Id
-					backendAddressPoolIds = []any{backendAddressPoolId}
+				if props.BackendAddressPool != nil {
+					backendAddressPoolIds = []string{pointer.From(props.BackendAddressPool.Id)}
 				}
 			}
 			d.Set("backend_address_pool_ids", backendAddressPoolIds)

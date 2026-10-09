@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-func TestAccAzureRMDataSourceLbRuleResource_basic(t *testing.T) {
+func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
 	r := LbRuleResource{}
 
@@ -29,7 +29,7 @@ func TestAccAzureRMDataSourceLbRuleResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataSourceLbRuleResource_complete(t *testing.T) {
+func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
 	r := LbRuleResource{}
 
