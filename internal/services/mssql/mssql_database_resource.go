@@ -337,7 +337,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 			Collation:                        pointer.To(d.Get("collation").(string)),
 			ElasticPoolId:                    pointer.To(elasticPoolId),
 			LicenseType:                      pointer.ToEnum[databases.DatabaseLicenseType](d.Get("license_type").(string)),
-			MinCapacity:                      pointer.To(d.Get("min_capacity").(float64)),
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
 			SampleName:                       pointer.ToEnum[databases.SampleName](d.Get("sample_name").(string)),
 			RequestedBackupStorageRedundancy: pointer.ToEnum[databases.BackupStorageRedundancy](d.Get("storage_account_type").(string)),
@@ -347,6 +346,13 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
+	}
+
+	// NOTE: `min_capacity` is only supported by serverless SKUs and is `Optional`/`Computed`. Only send it when it has
+	// been explicitly configured, otherwise the provider forces `min_capacity: 0`, which the API rejects for SKUs that
+	// do not support a minimum capacity of `0` (e.g. `GP_S_Gen5_8`). When omitted, the service applies its own default.
+	if rawMinCapacity := d.GetRawConfig().AsValueMap()["min_capacity"]; rawMinCapacity.IsKnown() && !rawMinCapacity.IsNull() {
+		input.Properties.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
@@ -739,7 +745,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("min_capacity") {
-		props.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
+		// Only send `min_capacity` when it is explicitly set in the config, otherwise the provider would force
+		// `min_capacity: 0`, which the API rejects for SKUs that do not support a minimum capacity of `0`. See #32873.
+		if rawMinCapacity := d.GetRawConfig().AsValueMap()["min_capacity"]; rawMinCapacity.IsKnown() && !rawMinCapacity.IsNull() {
+			props.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
+		}
 	}
 
 	if d.HasChange("read_replica_count") {
