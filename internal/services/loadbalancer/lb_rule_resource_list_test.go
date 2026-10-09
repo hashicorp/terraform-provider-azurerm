@@ -82,7 +82,7 @@ resource "azurerm_lb_rule" "test" {
 func (r LbRuleResource) basicQuery() string {
 	return `
 list "azurerm_lb_rule" "list" {
-  provider = azurerm
+  provider         = azurerm
   include_resource = true
   config {
     load_balancer_id = azurerm_lb.test.id
