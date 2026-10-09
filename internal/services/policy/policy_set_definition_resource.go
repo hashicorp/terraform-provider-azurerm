@@ -364,6 +364,7 @@ func (r PolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// `parameters` cannot have values removed or renamed so we'll ForceNew if any existing parameter is missing between Terraform runs
 			if metadata.ResourceDiff.HasChange("parameters") {
 				oldParametersRaw, newParametersRaw := metadata.ResourceDiff.GetChange("parameters")
 				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
@@ -382,7 +383,7 @@ func (r PolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(*newParameters) < len(*oldParameters) {
+					if parametersRemoved(pointer.From(oldParameters), pointer.From(newParameters)) {
 						return metadata.ResourceDiff.ForceNew("parameters")
 					}
 				}

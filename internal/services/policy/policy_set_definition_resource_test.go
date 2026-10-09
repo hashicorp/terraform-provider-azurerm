@@ -309,6 +309,33 @@ func TestAccAzureRMPolicySetDefinition_removeParameter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_renameParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResourceTest{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.builtIn(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.renamedParameter(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureRMPolicySetDefinition_updateMultiplePolicyDefinitionReferences(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	r := PolicySetDefinitionResourceTest{}
@@ -1085,6 +1112,42 @@ VALUES
 VALUES
   }
 }`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicySetDefinitionResourceTest) renamedParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestpolset-%d"
+  policy_type  = "Custom"
+  display_name = "acctestpolset-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "locations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+    parameter_values     = <<VALUES
+    {
+      "listOfAllowedLocations": {"value": "[parameters('locations')]"}
+    }
+VALUES
+  }
+}
+`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PolicySetDefinitionResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
