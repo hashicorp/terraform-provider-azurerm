@@ -51,6 +51,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `display_name` - The display name of the API Connection.
 
+* `kind` - The kind of the API Connection. Possible values are `V1` and `V2`.
+
 * `parameter_values` - A mapping of parameter names to their values for the API Connection.
 
 * `tags` - A mapping of tags assigned to the API Connection.
