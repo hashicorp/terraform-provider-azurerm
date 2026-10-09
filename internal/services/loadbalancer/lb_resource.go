@@ -5,6 +5,7 @@ package loadbalancer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -25,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -32,8 +34,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const loadBalancerBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU load balancers is no longer permitted following its retirement. For more information, see https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance"
+
 func resourceArmLoadBalancer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerCreate,
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerUpdate,
@@ -65,11 +69,14 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"sku": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(loadbalancers.LoadBalancerSkuNameStandard),
+					string(loadbalancers.LoadBalancerSkuNameGateway),
+				}, false),
 			},
 
 			"sku_tier": {
@@ -198,6 +205,16 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+				if !features.SixPointOh() {
+					sku := d.Get("sku").(string)
+					if strings.EqualFold(sku, string(loadbalancers.LoadBalancerSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "edge_zone", "sku", "sku_tier", "frontend_ip_configuration") {
+						return errors.New(loadBalancerBasicSkuCreateDeprecationMessage)
+					}
+				}
+
+				return nil
+			}),
 			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
 				old, new := d.GetChange("frontend_ip_configuration")
 				switch {
@@ -227,6 +244,12 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.SixPointOh() {
+		resource.Schema["sku"].ValidateFunc = validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false)
+	}
+
+	return resource
 }
 
 func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta any) error {
