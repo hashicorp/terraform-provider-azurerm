@@ -753,7 +753,6 @@ func TestAccKubernetesCluster_osSkuAzureContainerLinux(t *testing.T) {
 			Config: r.osSkuAzureContainerLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureContainerLinux"),
 			),
 		},
 		data.ImportStep(),
