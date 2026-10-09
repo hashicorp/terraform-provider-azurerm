@@ -214,7 +214,7 @@ Just like the schema, Resource Identity tests are entirely generated. This is do
 
 The schema is generated for us by taking different parts of the ID and converting them to snake_case. By default, if the last segment ends in `Name`, it will not be converted to snake case in the schema but rather set to `name`.
 
-For the vast majority of resources, the `generator-tests` tool uses Abstract Syntax Tree (AST) inference to automatically inspect the Go file, locate the ID struct, and infer the correct property mappings. This means you can simply provide the base command with zero flags:
+For most resources no flags are needed. The tool reads the ID struct from the file, from `Identity()` on a typed resource or the `GenerateIdentitySchema` call on an untyped one, and maps each field to its snake_case name, with the last segment becoming `name`:
 
 ```go
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -271,7 +271,7 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-// A basic example where the AST parser infers everything (Zero-Flags)
+// A basic example where the tool infers everything
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 // An example where the resource is a sub-resource utilizing a Virtual Identity

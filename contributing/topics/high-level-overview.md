@@ -71,18 +71,14 @@ Some Service Packages may also contain:
 
 ## Types of Data Sources/Resources within the Provider
 
-Whilst the Azure Provider is built on-top of [the Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) - as this is a large codebase with a number of behavioural similarities across the Provider, we've added an abstraction atop the Terraform Plugin SDK to make development easier.
+The provider is built on [the Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk), with a Typed SDK of our own layered on top in [`internal/sdk`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk). That gives four kinds of Data Source and Resource:
 
-This means that at this point in time, there are four types of Data Source/Resources which can be added in this Provider:
+1. Untyped Data Sources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_data_source.go#L16-L131)).
+2. Untyped Resources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_resource.go#L24-L289)).
+3. Typed Data Sources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
+4. Typed Resources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
 
-1. (Untyped) Data Sources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_data_source.go#L16-L131)).
-2. (Untyped) Resources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_resource.go#L24-L289)).
-3. Typed Data Sources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
-4. Typed Resources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
-
-At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead. For differences between these two patterns, see [the Typed vs Untyped guide](best-practices.md#typed-vs-untyped-resources).
-
-Ultimately this approach will allow us to switch from using the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) to [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework), enabling us to fix a number of long-standing issues in the Provider - whilst reducing the lines of code needed for each resource.
+Most of the codebase is still untyped. New work is typed, and existing resources move across over time, which is also what will let the provider move to the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework) later. See [Typed vs Untyped](best-practices.md#typed-vs-untyped-resources) for the differences.
 
 ## Interaction with Azure
 

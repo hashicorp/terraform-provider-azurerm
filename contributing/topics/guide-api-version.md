@@ -18,7 +18,7 @@ go run internal/tools/preview-api-version-linter/main.go
 
 ### Obtaining exception to use preview API
 
-> **Warning:** Using a preview API version can be risky, prone to human error, and can result in a substandard user experience. An exception is a last resort only when all the consequences are fully understood and there is no alternative.
+> **Warning:** Exceptions are rare. Preview APIs change without notice and the breakage lands on users.
 
 To add an exception to use preview API version, the following criteria must be met:
 
