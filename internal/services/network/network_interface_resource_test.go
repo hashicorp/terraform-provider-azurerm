@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -227,20 +228,6 @@ func TestAccNetworkInterface_multipleIPConfigurations(t *testing.T) {
 	})
 }
 
-func TestAccNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	r := NetworkInterfaceResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.multipleIPConfigurationsSecondaryAsPrimary(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccNetworkInterface_publicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
@@ -294,6 +281,87 @@ func TestAccNetworkInterface_static(t *testing.T) {
 			Config: r.static(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_staticIPUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.staticIPUpdate(data, "10.0.2.15"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.single", "records.*", "10.0.2.15"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.multiple", "records.*", "10.0.2.15"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.staticIPUpdate(data, "10.0.2.16"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.single", "records.*", "10.0.2.16"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.multiple", "records.*", "10.0.2.16"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.staticIPUpdate(data, "10.0.2.15"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.single", "records.*", "10.0.2.15"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.multiple", "records.*", "10.0.2.15"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetworkInterface_primaryIPUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.primaryIPUpdate(data, "second", "10.0.2.16", "first", "10.0.2.15"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.16"),
+				check.That("data.azurerm_network_interface.test").Key("private_ip_address").HasValue("10.0.2.16"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.test", "records.*", "10.0.2.16"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.primaryIPUpdate(data, "second", "10.0.2.17", "first", "10.0.2.15"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.17"),
+				check.That("data.azurerm_network_interface.test").Key("private_ip_address").HasValue("10.0.2.17"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.test", "records.*", "10.0.2.17"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.primaryIPUpdate(data, "first", "10.0.2.15", "second", "10.0.2.17"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.15"),
+				check.That("data.azurerm_network_interface.test").Key("private_ip_address").HasValue("10.0.2.15"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.test", "records.*", "10.0.2.15"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.primaryIPUpdate(data, "second", "10.0.2.16", "first", "10.0.2.15"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_ip_address").HasValue("10.0.2.16"),
+				check.That("data.azurerm_network_interface.test").Key("private_ip_address").HasValue("10.0.2.16"),
+				resource.TestCheckTypeSetElemAttr("azurerm_dns_a_record.test", "records.*", "10.0.2.16"),
 			),
 		},
 		data.ImportStep(),
@@ -780,31 +848,6 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkInterfaceResource) multipleIPConfigurationsSecondaryAsPrimary(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestni-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "primary"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-
-  ip_configuration {
-    name                          = "secondary"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    primary                       = true
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r NetworkInterfaceResource) publicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -890,6 +933,93 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkInterfaceResource) staticIPUpdate(data acceptance.TestData, address string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctest-%d.example.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_a_record" "single" {
+  name                = "single"
+  zone_name           = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+  records             = [azurerm_network_interface.test.private_ip_address]
+}
+
+resource "azurerm_dns_a_record" "multiple" {
+  name                = "multiple"
+  zone_name           = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+  records             = azurerm_network_interface.test.private_ip_addresses
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "%s"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, address)
+}
+
+func (r NetworkInterfaceResource) primaryIPUpdate(data acceptance.TestData, primaryName, primaryAddress, secondaryName, secondaryAddress string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctest-%d.example.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_a_record" "test" {
+  name                = "primary"
+  zone_name           = azurerm_dns_zone.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+  records             = [azurerm_network_interface.test.private_ip_address]
+}
+
+data "azurerm_network_interface" "test" {
+  name                = azurerm_network_interface.test.name
+  resource_group_name = azurerm_network_interface.test.resource_group_name
+  depends_on          = [azurerm_network_interface.test]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "%s"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "%s"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "%s"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "%s"
+    primary                       = false
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, primaryName, primaryAddress, secondaryName, secondaryAddress)
 }
 
 func (r NetworkInterfaceResource) tags(data acceptance.TestData) string {

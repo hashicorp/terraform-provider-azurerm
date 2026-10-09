@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -216,6 +217,19 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+				if diff.HasChange("ip_configuration") {
+					// Recompute exported addresses so dependent resources update in the same apply.
+					if err := diff.SetNewComputed("private_ip_address"); err != nil {
+						return err
+					}
+					return diff.SetNewComputed("private_ip_addresses")
+				}
+				return nil
+			},
+		),
 	}
 
 	if !features.SixPointOh() {
@@ -746,6 +760,8 @@ func flattenNetworkInterfacePrivateIPAddresses(input *[]networkinterfaces.Networ
 	for idx, config := range *input {
 		if props := config.Properties; props != nil && props.PrivateIPAddress != nil {
 			privateIP := *props.PrivateIPAddress
+			// Preserve the existing first-address behavior: the resource requires the primary
+			// configuration first, matching Azure's ordering after an update.
 			if idx == 0 {
 				primary = privateIP
 			}
