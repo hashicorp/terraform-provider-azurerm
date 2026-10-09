@@ -384,7 +384,7 @@ Validate every argument against what the API accepts. The constraints are in the
 - Dates, IPs, ports, emails and URIs: the matching validator in `internal/tf/validation`.
 - Numbers: `IntBetween` / `FloatBetween` when both bounds are known, `IntAtLeast` / `FloatAtLeast` only when the API has no upper bound.
 
-`validation.StringIsNotEmpty` is for fields the API accepts as free text. Say so in a comment.
+`validation.StringIsNotEmpty` checks nothing useful on its own. Use it only for fields the API accepts as free text, where there is no rule to check.
 
 Before writing a new validator, look for an existing one in `commonids`, `internal/tf/validation` or `internal/services/<service>/validate`. The quickest way is to find a similar resource in the same service and search that package for `ValidateFunc:`.
 
@@ -454,13 +454,13 @@ Before writing a new validator, look for an existing one in `commonids`, `intern
 "parallelism": {
     Type:         pluginsdk.TypeInt,
     Optional:     true,
-    ValidateFunc: validation.IntAtLeast(1), // the API has no upper bound
+    ValidateFunc: validation.IntAtLeast(1),
 },
 
 "description": {
     Type:         pluginsdk.TypeString,
     Optional:     true,
-    ValidateFunc: validation.StringIsNotEmpty, // free text
+    ValidateFunc: validation.StringIsNotEmpty,
 },
 ```
 
