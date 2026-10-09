@@ -80,6 +80,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 ---
 
+### `azurerm_api_management_api_operation_tag`
+
+* The deprecated `display_name` property has been removed in favour of the `azurerm_api_management_tag` resource. This resource no longer creates the tag, it only assigns an existing tag to the operation.
+
 ### `azurerm_databricks_workspace`
 
 * The deprecated `managed_disk_cmk_key_vault_id` property has been removed.
