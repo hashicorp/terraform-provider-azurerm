@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,7 +99,7 @@ func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -353,6 +354,18 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		arguments["pricing_model"] = &pluginsdk.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			// NOTE: O+C to preserve existing free instances when omitted, avoiding an unintended upgrade to paid pricing in 5.x.
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPricingModel(), false),
+		}
+	}
+
+	return arguments
 }
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -428,34 +441,41 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			oldPricingModel, newPricingModel := rd.GetChange("pricing_model")
-			if oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
+			// An unknown pricing model may resolve to Freemium, which requires replacement.
+			if oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && (!rd.NewValueKnown("pricing_model") || newPricingModel.(string) == string(managedinstances.PricingModelFreemium)) {
+				if !features.SixPointOh() && !rd.NewValueKnown("pricing_model") {
+					// Preserve the unknown O+C value when the SDK recalculates the replacement diff.
+					if err := rd.SetNewComputed("pricing_model"); err != nil {
+						return err
+					}
+				}
 				if err := rd.ForceNew("pricing_model"); err != nil {
 					return err
 				}
 			}
 
 			if newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
-				if sku := rd.Get("sku_name").(string); sku != "GP_Gen5" {
-					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `sku_name` is `GP_Gen5`, got `%s`", sku)
+				if sku := rd.Get("sku_name").(string); rd.NewValueKnown("sku_name") && sku != "GP_Gen5" {
+					return fmt.Errorf("`sku_name` must be `GP_Gen5` when `pricing_model` is `Freemium`, got `%s`", sku)
 				}
 
 				vcores := rd.Get("vcores").(int)
-				if vcores != 4 && vcores != 8 {
-					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `vcores` is `4` or `8`, got `%d`", vcores)
+				if rd.NewValueKnown("vcores") && vcores != 4 && vcores != 8 {
+					return fmt.Errorf("`vcores` must be `4` or `8` when `pricing_model` is `Freemium`, got `%d`", vcores)
 				}
 
 				storageSizeInGb := rd.Get("storage_size_in_gb").(int)
-				if storageSizeInGb != 64 {
-					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `storage_size_in_gb` is `64`, got `%d`", storageSizeInGb)
+				if rd.NewValueKnown("storage_size_in_gb") && storageSizeInGb != 64 {
+					return fmt.Errorf("`storage_size_in_gb` must be `64` when `pricing_model` is `Freemium`, got `%d`", storageSizeInGb)
 				}
 
 				storageAccountType := rd.Get("storage_account_type").(string)
-				if storageAccountType != StorageAccountTypeLRS {
-					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `storage_account_type` is `LRS`, got `%s`", storageAccountType)
+				if rd.NewValueKnown("storage_account_type") && storageAccountType != StorageAccountTypeLRS {
+					return fmt.Errorf("`storage_account_type` must be `LRS` when `pricing_model` is `Freemium`, got `%s`", storageAccountType)
 				}
 
-				if rd.Get("zone_redundant_enabled").(bool) {
-					return fmt.Errorf("`pricing_model` can only be set to `Freemium` when `zone_redundant_enabled` is `false`")
+				if rd.NewValueKnown("zone_redundant_enabled") && rd.Get("zone_redundant_enabled").(bool) {
+					return fmt.Errorf("`zone_redundant_enabled` must be `false` when `pricing_model` is `Freemium`")
 				}
 			}
 

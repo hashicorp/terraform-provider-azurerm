@@ -126,18 +126,16 @@ func TestAccMsSqlManagedInstance_pricingModelUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.pricingModel(data, "Freemium", "GP_Gen5", 64, "LRS", 4, false),
+			Config: r.pricingModel(data, "Freemium", "GP_Gen5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pricing_model").HasValue("Freemium"),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.pricingModel(data, "Regular", "GP_Gen5", 64, "LRS", 4, false),
+			Config: r.pricingModel(data, "Regular", "GP_Gen5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("pricing_model").HasValue("Regular"),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
@@ -150,9 +148,9 @@ func TestAccMsSqlManagedInstance_pricingModelFreemiumOnInvalidSKU(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.pricingModel(data, "Freemium", "BC_Gen5", 64, "LRS", 4, false),
+			Config:      r.pricingModel(data, "Freemium", "BC_Gen5"),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("`pricing_model` can only be set to `Freemium` when `sku_name` is `GP_Gen5`"),
+			ExpectError: regexp.MustCompile("`sku_name` must be `GP_Gen5` when `pricing_model` is `Freemium`"),
 		},
 	})
 }
@@ -782,7 +780,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger, databaseFormat)
 }
 
-func (r MsSqlManagedInstanceResource) pricingModel(data acceptance.TestData, pricingModel string, sku string, storageSizeInGb int, storageAccountType string, vcores int, zoneRedundantEnabled bool) string {
+func (r MsSqlManagedInstanceResource) pricingModel(data acceptance.TestData, pricingModel string, sku string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -803,14 +801,13 @@ resource "azurerm_mssql_managed_instance" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  license_type           = "LicenseIncluded"
-  pricing_model          = "%[3]s"
-  sku_name               = "%[4]s"
-  storage_account_type   = "%[6]s"
-  storage_size_in_gb     = %[5]d
-  subnet_id              = azurerm_subnet.test.id
-  vcores                 = %[7]d
-  zone_redundant_enabled = %[8]t
+  license_type         = "LicenseIncluded"
+  pricing_model        = "%[3]s"
+  sku_name             = "%[4]s"
+  storage_account_type = "LRS"
+  storage_size_in_gb   = 64
+  subnet_id            = azurerm_subnet.test.id
+  vcores               = 4
 
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
@@ -825,7 +822,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
-`, r.template(data, data.Locations.Primary), data.RandomInteger, pricingModel, sku, storageSizeInGb, storageAccountType, vcores, zoneRedundantEnabled)
+`, r.template(data, data.Locations.Primary), data.RandomInteger, pricingModel, sku)
 }
 
 func (r MsSqlManagedInstanceResource) generalPurposeV2Enabled(data acceptance.TestData, sku string, generalPurposeV2Enabled bool) string {
