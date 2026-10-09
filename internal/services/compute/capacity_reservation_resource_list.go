@@ -66,6 +66,7 @@ func (r CapacityReservationListResource) List(ctx context.Context, request list.
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", azureCapacityReservationResourceName), err)
 		return
 	}
+
 	resp, err := client.ListByCapacityReservationGroupComplete(ctx, *groupID)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("retrieving Capacity Reservation Group for `%s`", azureCapacityReservationResourceName), err)
@@ -73,7 +74,6 @@ func (r CapacityReservationListResource) List(ctx context.Context, request list.
 	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
-
 		for _, item := range resp.Items {
 			result := request.NewListResult(ctx)
 
