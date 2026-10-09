@@ -6,12 +6,14 @@ package workloads_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -29,6 +31,32 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, sapVISNameSuffix),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"three_tier_configuration.0.application_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.central_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+			"three_tier_configuration.0.database_server_configuration.0.virtual_machine_configuration.0.os_profile.0.ssh_private_key",
+		),
+	})
+}
+
+func TestAccWorkloadsSAPThreeTierVirtualInstance_customImage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test")
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
+	sapVISNameSuffix := RandomInt()
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sourceImagePrep(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.generalizeSourceVirtualMachine(), "azurerm_linux_virtual_machine.source"),
+			),
+		},
+		{
+			Config: r.customImage(data, sapVISNameSuffix),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -197,6 +225,234 @@ resource "azurerm_resource_group" "app" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r WorkloadsSapThreeTierVirtualInstanceResource) generalizeSourceVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := virtualmachines.ParseVirtualMachineID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+			defer cancel()
+		}
+
+		log.Printf("[DEBUG] Deallocating %s..", *id)
+		if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+			return fmt.Errorf("deallocating %s: %+v", *id, err)
+		}
+
+		log.Printf("[DEBUG] Generalizing %s..", *id)
+		if _, err = client.Compute.VirtualMachinesClient.Generalize(ctx, *id); err != nil {
+			return fmt.Errorf("generalizing %s: %+v", *id, err)
+		}
+
+		return nil
+	}
+}
+
+func (r WorkloadsSapThreeTierVirtualInstanceResource) sourceImagePrep(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_network_interface" "source" {
+  name                = "acctest-nic-source-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "source" {
+  name                            = "acctest-vm-source-%d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  size                            = "Standard_D2s_v3"
+  admin_username                  = "testAdmin"
+  disable_password_authentication = true
+
+  network_interface_ids = [
+    azurerm_network_interface.source.id,
+  ]
+
+  admin_ssh_key {
+    username   = "testAdmin"
+    public_key = data.tls_public_key.test.public_key_openssh
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    offer     = "RHEL-SAP-HA"
+    publisher = "RedHat"
+    sku       = "86sapha-gen2"
+    version   = "latest"
+  }
+
+  # deprovisioning too early races with (and permanently corrupts) the VM Agent's own
+  # initial provisioning handshake with Azure on this image, so wait for the agent to be
+  # up and give it a buffer before deprovisioning
+  custom_data = base64encode(<<-EOT
+#!/bin/bash
+for i in $(seq 1 60); do
+  if systemctl is-active waagent >/dev/null 2>&1; then
+    sleep 60
+    break
+  fi
+  sleep 5
+done
+waagent -force -deprovision+user
+EOT
+  )
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WorkloadsSapThreeTierVirtualInstanceResource) sourceImageTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "gallery_reader" {
+  scope                = azurerm_shared_image_gallery.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctest-image-%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  hyper_v_generation  = "V2"
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image.test.gallery_name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_shared_image.test.resource_group_name
+  location            = azurerm_shared_image.test.location
+  managed_image_id    = azurerm_linux_virtual_machine.source.id
+
+  target_region {
+    name                   = azurerm_shared_image.test.location
+    regional_replica_count = 1
+  }
+}
+`, r.sourceImagePrep(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r WorkloadsSapThreeTierVirtualInstanceResource) customImage(data acceptance.TestData, sapVISNameSuffix int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
+  name                        = "X%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  environment                 = "NonProd"
+  sap_product                 = "S4HANA"
+  managed_resource_group_name = "acctestManagedRG%d"
+  app_location                = azurerm_resource_group.app.location
+  sap_fqdn                    = "sap.bpaas.com"
+
+  three_tier_configuration {
+    app_resource_group_name = azurerm_resource_group.app.name
+
+    application_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_D16ds_v4"
+        source_image_id      = azurerm_shared_image_version.test.id
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+    }
+
+    central_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_D16ds_v4"
+        source_image_id      = azurerm_shared_image_version.test.id
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+    }
+
+    database_server_configuration {
+      instance_count = 1
+      subnet_id      = azurerm_subnet.test.id
+
+      virtual_machine_configuration {
+        virtual_machine_size = "Standard_E16ds_v4"
+        source_image_id      = azurerm_shared_image_version.test.id
+
+        os_profile {
+          admin_username  = "testAdmin"
+          ssh_private_key = tls_private_key.test.private_key_pem
+          ssh_public_key  = data.tls_public_key.test.public_key_openssh
+        }
+      }
+    }
+  }
+
+  identity {
+    type = "UserAssigned"
+
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_role_assignment.gallery_reader,
+  ]
+}
+`, r.sourceImageTemplate(data), sapVISNameSuffix, data.RandomInteger)
 }
 
 func (r WorkloadsSapThreeTierVirtualInstanceResource) basic(data acceptance.TestData, sapVISNameSuffix int) string {
