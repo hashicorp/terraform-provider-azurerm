@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,11 +55,11 @@ func URLRedirect() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionUrlRedirect(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		params := cdn.URLRedirectActionParameters{
 			OdataType:    pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlRedirectActionParameters"),
@@ -95,7 +95,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule url redirect action")
@@ -129,7 +129,7 @@ func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"fragment":      fragment,
 		"hostname":      customHostname,
 		"query_string":  queryString,

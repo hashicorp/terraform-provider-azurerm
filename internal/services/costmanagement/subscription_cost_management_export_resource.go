@@ -59,7 +59,7 @@ func (r SubscriptionCostManagementExportResource) Attributes() map[string]*plugi
 	return r.base.attributes()
 }
 
-func (r SubscriptionCostManagementExportResource) ModelObject() interface{} {
+func (r SubscriptionCostManagementExportResource) ModelObject() any {
 	return &SubscriptionCostManagementExportModel{}
 }
 

@@ -47,7 +47,7 @@ func (r WorkspaceResource) ResourceType() string {
 	return "azurerm_monitor_workspace"
 }
 
-func (r WorkspaceResource) ModelObject() interface{} {
+func (r WorkspaceResource) ModelObject() any {
 	return &WorkspaceResourceModel{}
 }
 

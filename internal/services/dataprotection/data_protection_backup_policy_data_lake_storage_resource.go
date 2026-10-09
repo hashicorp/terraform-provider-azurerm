@@ -57,7 +57,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) ResourceType() string
 	return "azurerm_data_protection_backup_policy_data_lake_storage"
 }
 
-func (r DataProtectionBackupPolicyDataLakeStorageResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyDataLakeStorageResource) ModelObject() any {
 	return &BackupPolicyDataLakeStorageModel{}
 }
 

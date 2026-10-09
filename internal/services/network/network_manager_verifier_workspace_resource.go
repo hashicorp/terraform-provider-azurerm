@@ -33,7 +33,7 @@ func (ManagerVerifierWorkspaceResource) ResourceType() string {
 	return "azurerm_network_manager_verifier_workspace"
 }
 
-func (ManagerVerifierWorkspaceResource) ModelObject() interface{} {
+func (ManagerVerifierWorkspaceResource) ModelObject() any {
 	return &ManagerVerifierWorkspaceResourceModel{}
 }
 

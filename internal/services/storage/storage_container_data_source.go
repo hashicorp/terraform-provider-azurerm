@@ -72,7 +72,7 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
