@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -70,9 +71,49 @@ func resourceApiConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"parameter_values": {
-				Type:     pluginsdk.TypeMap,
+			"kind": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// Note: O+C because Azure sets a default `kind` (e.g. `V1`) when it is not specified.
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"parameter_value_set": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"parameter_value_type"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"values": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"parameter_value_type": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"parameter_value_set", "parameter_values"},
+			},
+
+			"parameter_values": {
+				Type:          pluginsdk.TypeMap,
+				Optional:      true,
+				ConflictsWith: []string{"parameter_value_type"},
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -84,7 +125,7 @@ func resourceApiConnection() *pluginsdk.Resource {
 }
 
 func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,19 +149,33 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
 	location := location.Normalize(managedAppId.LocationName)
-	model := connections.ApiConnectionDefinition{
+	model := azuresdkhacks.ApiConnectionDefinition{
 		Location: pointer.To(location),
-		Properties: &connections.ApiConnectionDefinitionProperties{
+		Properties: &azuresdkhacks.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
 				Id: pointer.To(managedAppId.ID()),
 			},
-			DisplayName:     pointer.To(d.Get("display_name").(string)),
-			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]any)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if v := d.Get("display_name").(string); v != "" {
 		model.Properties.DisplayName = pointer.To(v)
+	}
+
+	if v := d.Get("kind").(string); v != "" {
+		model.Kind = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("parameter_values"); ok {
+		model.Properties.ParameterValues = pointer.To(v.(map[string]any))
+	}
+
+	if v := d.Get("parameter_value_type").(string); v != "" {
+		model.Properties.ParameterValueType = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("parameter_value_set"); ok {
+		model.Properties.ParameterValueSet = expandParameterValueSet(v.([]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
@@ -132,7 +187,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 }
 
 func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -154,6 +209,8 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
+		d.Set("kind", pointer.From(model.Kind))
+
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 
@@ -168,6 +225,12 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 			if err := d.Set("parameter_values", flattenParameterValues(pointer.From(props.NonSecretParameterValues))); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
+
+			d.Set("parameter_value_type", pointer.From(props.ParameterValueType))
+
+			if err := d.Set("parameter_value_set", flattenParameterValueSet(props.ParameterValueSet)); err != nil {
+				return fmt.Errorf("setting `parameter_value_set`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -179,7 +242,7 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 }
 
 func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -210,8 +273,24 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
 	// so we remove `NonSecretParameterValues` from the request to avoid conflicting parameters.
 	// this is fixed in later (preview) versions of the API but these don't have an API spec available.
 	props.NonSecretParameterValues = nil
+
+	if d.HasChange("kind") {
+		existing.Model.Kind = pointer.To(d.Get("kind").(string))
+	}
+
 	if d.HasChange("parameter_values") {
 		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]any))
+	}
+
+	if d.HasChange("parameter_value_type") {
+		props.ParameterValueType = nil
+		if v := d.Get("parameter_value_type").(string); v != "" {
+			props.ParameterValueType = pointer.To(v)
+		}
+	}
+
+	if d.HasChange("parameter_value_set") {
+		props.ParameterValueSet = expandParameterValueSet(d.Get("parameter_value_set").([]any))
 	}
 
 	if d.HasChange("tags") {
@@ -252,4 +331,61 @@ func flattenParameterValues(input map[string]any) map[string]string {
 	}
 
 	return output
+}
+
+func expandParameterValueSet(input []any) *azuresdkhacks.ParameterValueSet {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	result := &azuresdkhacks.ParameterValueSet{
+		Name: pointer.To(v["name"].(string)),
+	}
+
+	if values, ok := v["values"].(map[string]any); ok && len(values) > 0 {
+		expandedValues := make(map[string]any)
+		for key, val := range values {
+			expandedValues[key] = map[string]any{
+				"value": val,
+			}
+		}
+		result.Values = pointer.To(expandedValues)
+	}
+
+	return result
+}
+
+func flattenParameterValueSet(input *azuresdkhacks.ParameterValueSet) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"name":   pointer.From(input.Name),
+			"values": flattenParameterValueSetValues(input.Values),
+		},
+	}
+}
+
+// flattenParameterValueSetValues extracts values from the API's parameter value set format.
+// The API returns values in the format {"key": {"value": "actualValue"}}
+// This function extracts the "value" field for each key.
+func flattenParameterValueSetValues(input *map[string]any) map[string]string {
+	values := make(map[string]string)
+	if input == nil {
+		return values
+	}
+
+	for key, val := range *input {
+		if valueMap, ok := val.(map[string]any); ok {
+			if v, exists := valueMap["value"]; exists {
+				values[key] = fmt.Sprintf("%v", v)
+			}
+		} else {
+			values[key] = fmt.Sprintf("%v", val)
+		}
+	}
+	return values
 }
