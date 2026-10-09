@@ -405,15 +405,28 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 			Config: r.diskOSImportManagedDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("patch_mode").HasValue("AutomaticByPlatform"),
+				check.That(data.ResourceName).Key("patch_assessment_mode").HasValue("AutomaticByPlatform"),
 			),
 		},
 		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
 		{
-			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
+			Config:             r.diskOSImportManagedDisk(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
+		},
+		{
 			Config: r.diskOSImportManagedDiskUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("patch_mode").HasValue("AutomaticByOS"),
+				check.That(data.ResourceName).Key("patch_assessment_mode").HasValue("ImageDefault"),
 			),
+		},
+		{
+			Config:             r.diskOSImportManagedDiskUpdate(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
 		},
 		data.ImportStep(),
 	})
@@ -548,6 +561,9 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
 
+  patch_mode            = "AutomaticByPlatform"
+  patch_assessment_mode = "AutomaticByPlatform"
+
   os_disk {
     caching = "ReadWrite"
   }
@@ -616,6 +632,9 @@ resource "azurerm_windows_virtual_machine" "test" {
   ]
 
   os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
+
+  patch_mode            = "AutomaticByOS"
+  patch_assessment_mode = "ImageDefault"
 
   os_disk {
     caching = "ReadOnly"
