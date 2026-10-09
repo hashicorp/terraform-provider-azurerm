@@ -250,27 +250,7 @@ A `block_attribute` block exports the following:
 
 ## Notes
 
-Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.
-
-In the past, there have been different approaches to how notes were formatted, some examples are:
-
-- Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
-- Capitalization differences, e.g. `Note:` vs `NOTE:`.
-- Whether or not a colon is included, e.g. `Note:` vs `Note`.
-
-Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
-
-Breaking changes have previously been added as notes to the resource documentation.
-These should no longer be included. Instead, follow these guidelines:
-
-- Breaking changes in a minor version should be added to the top of the changelog.
-- Breaking changes in a major version should be added to the upgrade guide.
-
-> We may revisit the guidelines above and/or add a specific place in the documentation for all breaking changes in minor versions.
-
-<!--
-    - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
--->
+Every note is `-> **Note:**`, `~> **Note:**` or `!> **Note:**`, picked by how serious it is. Breaking changes do not go in notes: minor-version ones go at the top of the changelog, major-version ones in the upgrade guide.
 
 ### Informational Note
 

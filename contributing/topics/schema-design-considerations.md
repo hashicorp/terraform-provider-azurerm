@@ -312,7 +312,7 @@ Fields that are in preview should not be supported until they reach General Avai
 
 ## Flattening nested properties
 
-When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
+Flatten a `MaxItems: 1` block that holds a single field into a top-level property. If the service team has said more fields are coming, keep the block and leave a comment saying so.
 
 ```go
 "credential_certificate": {
@@ -383,6 +383,7 @@ Validate every argument against what the API accepts. The constraints are in the
 - Resource IDs: the validator from `commonids` or the service's `validate` package.
 - Dates, IPs, ports, emails and URIs: the matching validator in `internal/tf/validation`.
 - Numbers: `IntBetween` / `FloatBetween` when both bounds are known, `IntAtLeast` / `FloatAtLeast` only when the API has no upper bound.
+- Passwords: reuse the validator the service already has, mark the field `Sensitive: true`, and treat tightening the rules later as a breaking change.
 
 `validation.StringIsNotEmpty` checks nothing useful on its own. Use it only for fields the API accepts as free text, where there is no rule to check.
 
@@ -464,20 +465,3 @@ Before writing a new validator, look for an existing one in `commonids`, `intern
 },
 ```
 
-## Password fields
-
-Password rules differ between services. A VM guest password, a database login and a value passed through to another system each have their own, so there is no single password validator.
-
-- Mark the field `Sensitive: true` so the value is not shown in plans or logs.
-- Reuse the validator for that kind of password where one exists. VM guest passwords use the ones in the compute service's `validate` package.
-- When several resources in a service enforce the same rules, share one validator in `internal/services/<service>/validate` rather than copying the checks.
-- Making an existing password validator stricter can be a breaking change. Review it as one.
-
-```go
-"admin_password": {
-    Type:         pluginsdk.TypeString,
-    Optional:     true,
-    Sensitive:    true,
-    ValidateFunc: validate.WindowsAdminPassword,
-},
-```
