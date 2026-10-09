@@ -25,7 +25,7 @@ func TestAccContainerAppResource_regressionTest(t *testing.T) {
 	r := ContainerAppResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data, "rev1"),
 		},
 	}, "")
 }

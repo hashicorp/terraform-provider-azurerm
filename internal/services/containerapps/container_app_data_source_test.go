@@ -18,7 +18,7 @@ func TestAccContainerAppDataSource_regressionTest(t *testing.T) {
 	r := ContainerAppDataSource{}
 	data.DataSourceRegressionTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data, "rev1"),
 		},
 	}, "")
 }

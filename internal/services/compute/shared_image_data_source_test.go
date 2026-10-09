@@ -18,7 +18,7 @@ func TestAccDataSourceSharedImage_regressionTest(t *testing.T) {
 	r := SharedImageDataSource{}
 	data.DataSourceRegressionTest(t, []acceptance.TestStep{
 		{
-			Config: r.withHibernationEnabled(data),
+			Config: r.complete(data, "V1"),
 		},
 	}, "")
 }
