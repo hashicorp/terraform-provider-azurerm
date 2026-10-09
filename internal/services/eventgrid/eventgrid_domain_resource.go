@@ -61,6 +61,13 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"data_residency_boundary": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(domains.DataResidencyBoundaryWithinGeopair),
+				ValidateFunc: validation.StringInSlice(domains.PossibleValuesForDataResidencyBoundary(), false),
+			},
+
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"input_schema": {
@@ -138,6 +145,15 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.TlsVersionOnePointTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.TlsVersionOnePointTwo),
+				}, false),
 			},
 
 			"public_network_access_enabled": {
@@ -239,10 +255,12 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 		Properties: &domains.DomainProperties{
 			AutoCreateTopicWithFirstSubscription: pointer.To(d.Get("auto_create_topic_with_first_subscription").(bool)),
 			AutoDeleteTopicWithLastSubscription:  pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+			DataResidencyBoundary:                pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string)),
 			DisableLocalAuth:                     pointer.To(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
 			InputSchema:                          pointer.ToEnum[domains.InputSchema](d.Get("input_schema").(string)),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
+			MinimumTlsVersionAllowed:             pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string)),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
@@ -282,6 +300,14 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("data_residency_boundary") {
+		payload.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
+	}
+
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -369,6 +395,8 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta any) error {
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 
+			d.Set("data_residency_boundary", pointer.FromEnum(props.DataResidencyBoundary))
+
 			inputSchema := ""
 			if props.InputSchema != nil {
 				inputSchema = string(*props.InputSchema)
@@ -382,6 +410,8 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta any) error {
 			if err := d.Set("input_mapping_default_values", flattenDomainInputMappingDefaultValues(props.InputSchemaMapping)); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
+
+			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersionAllowed))
 
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == domains.PublicNetworkAccessDisabled {
