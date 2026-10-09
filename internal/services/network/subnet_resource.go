@@ -1033,16 +1033,13 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 	}
 }
 
-func subnetServiceEndpointDiffSuppress(k, _, _ string, d *schema.ResourceData) bool {
+func subnetServiceEndpointDiffSuppress(_, _, _ string, d *schema.ResourceData) bool {
 	if d == nil {
 		return false
 	}
 
 	// Resolve the base list attribute name from the key path (e.g. "service_endpoint.0.service" -> "service_endpoint")
 	listKey := "service_endpoint"
-	if idx := strings.Index(k, "."); idx != -1 {
-		listKey = k[:idx]
-	}
 
 	oldRaw, newRaw := d.GetChange(listKey)
 	if oldRaw == nil || newRaw == nil {
