@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databaseoperations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasevulnerabilityassessmentrulebaselines"
@@ -48,6 +49,7 @@ import (
 type Client struct {
 	BackupShortTermRetentionPoliciesClient             *backupshorttermretentionpolicies.BackupShortTermRetentionPoliciesClient
 	BlobAuditingPoliciesClient                         *blobauditing.BlobAuditingClient
+	DatabaseOperationsClient                           *databaseoperations.DatabaseOperationsClient
 	DatabaseSecurityAlertPoliciesClient                *databasesecurityalertpolicies.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *databasevulnerabilityassessmentrulebaselines.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 	DatabasesClient                                    *databases.DatabasesClient
@@ -96,6 +98,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Blob Auditing Policies Client: %+v", err)
 	}
 	o.Configure(databaseExtendedBlobAuditingPoliciesClient.Client, o.Authorizers.ResourceManager)
+
+	databaseOperationsClient, err := databaseoperations.NewDatabaseOperationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Database Operations Client: %+v", err)
+	}
+	o.Configure(databaseOperationsClient.Client, o.Authorizers.ResourceManager)
 
 	databaseSecurityAlertPoliciesClient, err := databasesecurityalertpolicies.NewDatabaseSecurityAlertPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -303,6 +311,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		BlobAuditingPoliciesClient:                         databaseExtendedBlobAuditingPoliciesClient,
+		DatabaseOperationsClient:                           databaseOperationsClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: databaseVulnerabilityAssessmentRuleBaselinesClient,
 		EncryptionProtectorClient:                          encryptionProtectorClient,
 		FailoverGroupsClient:                               failoverGroupsClient,

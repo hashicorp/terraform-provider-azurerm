@@ -16,9 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -73,14 +76,82 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
 
+	omittedBehaviorAction := plancheck.ResourceActionNoop
+	if features.SixPointOh() {
+		omittedBehaviorAction = plancheck.ResourceActionReplace
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeTier(data),
+			Config: r.freeTier(data, "true", "", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("free_limit_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("AutoPause"),
+				check.That(data.ResourceName).Key("min_capacity").HasValue("0.5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeTier(data, "true", "BillOverUsage", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:             r.freeTier(data, "true", "AutoPause", false),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		{
+			Config:             r.freeTier(data, "true", "", !features.SixPointOh()),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: features.SixPointOh(),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, omittedBehaviorAction),
+				},
+			},
+		},
+		{
+			Config:             r.freeTier(data, "null", "", true),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: features.SixPointOh(),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, omittedBehaviorAction),
+				},
+			},
+		},
+	})
+}
+
+func TestAccMsSqlDatabase_freeLimitValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// `free_limit_exhaustion_behavior` cannot be set without `free_limit_enabled = true`
+			Config:      r.freeLimitExhaustionBehaviorWithoutEnabled(data),
+			ExpectError: regexp.MustCompile("`free_limit_exhaustion_behavior` can only be set when `free_limit_enabled` is `true`"),
+		},
+		{
+			// `free_limit_enabled` requires a serverless General Purpose SKU
+			Config:      r.freeLimitEnabledNonServerlessSku(data),
+			ExpectError: regexp.MustCompile("`free_limit_enabled` can only be set to `true` when `sku_name` is a serverless General Purpose SKU"),
+		},
+		{
+			// the default `AutoPause` exhaustion behavior requires `Local` backup storage
+			Config:      r.freeLimitEnabledNonLocalStorage(data),
+			ExpectError: regexp.MustCompile("`storage_account_type` must be `Local` when `free_limit_enabled` is `true`"),
+		},
 	})
 }
 
@@ -255,7 +326,7 @@ func TestAccMsSqlDatabase_bc(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("read_scale").HasValue("true"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("BC_Gen5_2"),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1044,6 +1115,9 @@ func TestAccMsSqlDatabase_namedReplicationZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
 
+	// Limited regional availability for ZRS
+	data.Locations.Primary = "westeurope"
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.namedReplicationZoneRedundant(data),
@@ -1376,14 +1450,64 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
+func (r MssqlDatabaseResource) freeTier(data acceptance.TestData, freeLimitEnabled, exhaustionBehavior string, geoBackupEnabled bool) string {
+	behaviorConfig := ""
+	if exhaustionBehavior != "" {
+		behaviorConfig = fmt.Sprintf("free_limit_exhaustion_behavior = %q", exhaustionBehavior)
+	}
+
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[2]d"
-  server_id = azurerm_mssql_server.test.id
-  sku_name  = "Free"
+  name                        = "acctest-db-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  auto_pause_delay_in_minutes = 60
+  min_capacity                = 0.5
+  sku_name                    = "GP_S_Gen5_2"
+  free_limit_enabled          = %[3]s
+  storage_account_type        = "Local"
+  geo_backup_enabled          = %[5]t
+  %[4]s
+}
+`, r.template(data), data.RandomInteger, freeLimitEnabled, behaviorConfig, geoBackupEnabled)
+}
+
+func (r MssqlDatabaseResource) freeLimitExhaustionBehaviorWithoutEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  free_limit_exhaustion_behavior = "AutoPause"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitEnabledNonServerlessSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  sku_name           = "Basic"
+  free_limit_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeLimitEnabledNonLocalStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                 = "acctest-db-%[2]d"
+  server_id            = azurerm_mssql_server.test.id
+  sku_name             = "GP_S_Gen5_2"
+  free_limit_enabled   = true
+  storage_account_type = "Geo"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1813,11 +1937,10 @@ func (r MssqlDatabaseResource) bc(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%[2]d"
-  server_id      = azurerm_mssql_server.test.id
-  read_scale     = true
-  sku_name       = "BC_Gen5_2"
-  zone_redundant = true
+  name       = "acctest-db-%[2]d"
+  server_id  = azurerm_mssql_server.test.id
+  read_scale = true
+  sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1827,11 +1950,10 @@ func (r MssqlDatabaseResource) bcUpdate(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%[2]d"
-  server_id      = azurerm_mssql_server.test.id
-  read_scale     = false
-  sku_name       = "BC_Gen5_2"
-  zone_redundant = false
+  name       = "acctest-db-%[2]d"
+  server_id  = azurerm_mssql_server.test.id
+  read_scale = false
+  sku_name   = "BC_Gen5_2"
 }
 `, r.template(data), data.RandomInteger)
 }

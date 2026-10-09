@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -507,6 +509,40 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// The SQL Managed Instance LRO can complete before the resource is consistently readable.
+			// Wait for consecutive successful GETs so follow-up operations do not hit transient ResourceNotFound responses.
+			poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, id, managedinstances.DefaultGetOperationOptions())
+				if err != nil {
+					if response.WasNotFound(resp.HttpResponse) {
+						return resp.HttpResponse, err
+					}
+					return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+				}
+				if resp.Model == nil {
+					return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
+				}
+				if resp.Model.Properties == nil {
+					return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
+				}
+
+				switch provisioningState := pointer.From(resp.Model.Properties.ProvisioningState); provisioningState {
+				case managedinstances.ProvisioningStateSucceeded:
+					return resp.HttpResponse, nil
+				case managedinstances.ProvisioningStateFailed, managedinstances.ProvisioningStateCanceled:
+					return nil, fmt.Errorf("creating %s: `provisioningState` was %q", id, provisioningState)
+				}
+
+				return nil, nil
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:              10 * time.Second,
+				TargetStatusCode:      pointer.To(http.StatusOK),
+				RetryErrorStatusCodes: []int{http.StatusNotFound},
+			})
+			if err = poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
