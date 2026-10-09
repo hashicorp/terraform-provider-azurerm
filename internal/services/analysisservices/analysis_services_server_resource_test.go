@@ -21,6 +21,16 @@ import (
 
 type AnalysisServicesServerResource struct{}
 
+func TestAccAnalysisServicesServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	r := AnalysisServicesServerResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}

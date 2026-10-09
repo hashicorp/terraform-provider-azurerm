@@ -13,6 +13,16 @@ import (
 
 type AadB2cDirectoryDataSource struct{}
 
+func TestAccAadB2cDirectoryDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_aadb2c_directory", "test")
+	r := AadB2cDirectoryDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAadB2cDirectoryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_aadb2c_directory", "test")
 	d := AadB2cDirectoryDataSource{}

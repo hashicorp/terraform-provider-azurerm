@@ -18,6 +18,16 @@ import (
 
 type ApiManagementProductPolicyResource struct{}
 
+func TestAccApiManagementProductPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
+	r := ApiManagementProductPolicyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementProductPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 	r := ApiManagementProductPolicyResource{}

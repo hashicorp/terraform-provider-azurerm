@@ -19,6 +19,16 @@ import (
 
 type ApiManagementApiSchemaResource struct{}
 
+func TestAccApiManagementApiSchema_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
+	r := ApiManagementApiSchemaResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementApiSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}

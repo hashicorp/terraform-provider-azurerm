@@ -18,6 +18,16 @@ import (
 
 type ApiManagementWorkspaceCertificateResource struct{}
 
+func TestAccApiManagementWorkspaceCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_certificate", "test")
+	r := ApiManagementWorkspaceCertificateResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementWorkspaceCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_certificate", "test")
 	r := ApiManagementWorkspaceCertificateResource{}

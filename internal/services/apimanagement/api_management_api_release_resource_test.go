@@ -18,6 +18,16 @@ import (
 
 type ApiManagementApiReleaseResource struct{}
 
+func TestAccApiManagementApiRelease_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_release", "test")
+	r := ApiManagementApiReleaseResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementApiRelease_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_release", "test")
 	r := ApiManagementApiReleaseResource{}

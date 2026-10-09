@@ -18,6 +18,16 @@ import (
 
 type ApiManagementOpenIDConnectProviderResource struct{}
 
+func TestAccApiManagementOpenIDConnectProvider_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
+	r := ApiManagementOpenIDConnectProviderResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 	r := ApiManagementOpenIDConnectProviderResource{}

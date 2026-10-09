@@ -19,6 +19,16 @@ import (
 
 type ApimanagementRedisCacheResource struct{}
 
+func TestAccApiManagementRedisCache_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_redis_cache", "test")
+	r := ApimanagementRedisCacheResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementRedisCache_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_redis_cache", "test")
 	r := ApimanagementRedisCacheResource{}

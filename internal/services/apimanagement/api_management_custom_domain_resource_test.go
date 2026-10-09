@@ -20,6 +20,16 @@ import (
 
 type ApiManagementCustomDomainResource struct{}
 
+func TestAccApiManagementCustomDomain_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
+	r := ApiManagementCustomDomainResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
 	r := ApiManagementCustomDomainResource{}
