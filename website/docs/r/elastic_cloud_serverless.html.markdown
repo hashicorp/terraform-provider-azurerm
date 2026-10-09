@@ -23,13 +23,13 @@ resource "azurerm_elastic_cloud_serverless" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  kind                        = "elastic-serverless-search"
-  sku_name                    = "ess-consumption-2024_Monthly"
-  project_type                = "Elasticsearch"
   configuration_type          = "GeneralPurpose"
-  offer_id                    = "ec-azure-pp"
-  term_id                     = "n7ja87drquhy"
   elastic_cloud_email_address = "alice@example.com"
+  kind                        = "elastic-serverless-search"
+  offer_id                    = "ec-azure-pp"
+  project_type                = "Elasticsearch"
+  sku                         = "ess-consumption-2024_Monthly"
+  term_id                     = "n7ja87drquhy"
 
   tags = {
     Environment = "Production"
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `project_type` - (Required) Specifies the Elastic project type. Possible values are `Elasticsearch`, `Observability`, and `Security`. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specifies the name of the Elastic Marketplace SKU. Changing this forces a new resource to be created.
+* `sku` - (Required) Specifies the name of the Elastic Marketplace SKU. Changing this forces a new resource to be created.
 
 * `term_id` - (Required) Specifies the Elastic Marketplace term ID associated with the selected SKU. Changing this forces a new resource to be created.
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Elastic Cloud Serverless project. Changing this forces a new resource to be created.
 
-~> **Note:** `kind`, `sku_name`, `project_type`, `configuration_type`, `offer_id`, `plan_id`, `publisher_id`, and `term_id` describe one Elastic Marketplace plan and must be supplied as a compatible combination.
+~> **Note:** `kind`, `sku`, `project_type`, `configuration_type`, `offer_id`, `plan_id`, `publisher_id`, and `term_id` describe one Elastic Marketplace plan and must be supplied as a compatible combination.
 
 ## Attributes Reference
 

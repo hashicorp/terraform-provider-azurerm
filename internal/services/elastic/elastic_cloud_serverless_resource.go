@@ -34,22 +34,22 @@ type ElasticCloudServerlessResourceModel struct {
 	Name                     string            `tfschema:"name"`
 	ResourceGroupName        string            `tfschema:"resource_group_name"`
 	Location                 string            `tfschema:"location"`
-	Kind                     string            `tfschema:"kind"`
-	SkuName                  string            `tfschema:"sku_name"`
-	ProjectType              string            `tfschema:"project_type"`
 	ConfigurationType        string            `tfschema:"configuration_type"`
-	OfferID                  string            `tfschema:"offer_id"`
-	TermID                   string            `tfschema:"term_id"`
 	ElasticCloudEmailAddress string            `tfschema:"elastic_cloud_email_address"`
+	Kind                     string            `tfschema:"kind"`
+	OfferID                  string            `tfschema:"offer_id"`
+	ProjectType              string            `tfschema:"project_type"`
+	Sku                      string            `tfschema:"sku"`
+	TermID                   string            `tfschema:"term_id"`
 	GenerateAPIKey           bool              `tfschema:"generate_api_key"`
 	MonitoringEnabled        bool              `tfschema:"monitoring_enabled"`
 	PlanID                   string            `tfschema:"plan_id"`
 	PublisherID              string            `tfschema:"publisher_id"`
+	Tags                     map[string]string `tfschema:"tags"`
 	ElasticCloudDeploymentID string            `tfschema:"elastic_cloud_deployment_id"`
 	ElasticsearchServiceURL  string            `tfschema:"elasticsearch_service_url"`
 	KibanaServiceURL         string            `tfschema:"kibana_service_url"`
 	KibanaSSOURI             string            `tfschema:"kibana_sso_uri"`
-	Tags                     map[string]string `tfschema:"tags"`
 }
 
 func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema {
@@ -105,7 +105,7 @@ func (r ElasticCloudServerlessResource) Arguments() map[string]*pluginsdk.Schema
 			}, false),
 		},
 
-		"sku_name": {
+		"sku": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -227,7 +227,7 @@ func (r ElasticCloudServerlessResource) Create() sdk.ResourceFunc {
 					},
 				},
 				Sku: &elasticmonitorresources.ResourceSku{
-					Name: model.SkuName,
+					Name: model.Sku,
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -346,7 +346,7 @@ func (r ElasticCloudServerlessResource) flatten(metadata sdk.ResourceMetaData, i
 	}
 
 	if model.Sku != nil {
-		state.SkuName = model.Sku.Name
+		state.Sku = model.Sku.Name
 	}
 
 	props := model.Properties

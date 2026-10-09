@@ -82,7 +82,7 @@ func (r ElasticCloudServerlessResource) Exists(ctx context.Context, client *clie
 }
 
 func (r ElasticCloudServerlessResource) basic(data acceptance.TestData) string {
-	return r.config(data, "ess-consumption-2024_Monthly", "elastic-serverless-search", "Elasticsearch", "GeneralPurpose", "ec-azure-pp", "n7ja87drquhy", "")
+	return r.config(data, "")
 }
 
 func (r ElasticCloudServerlessResource) requiresImport(data acceptance.TestData) string {
@@ -93,23 +93,23 @@ resource "azurerm_elastic_cloud_serverless" "import" {
   name                        = azurerm_elastic_cloud_serverless.test.name
   resource_group_name         = azurerm_elastic_cloud_serverless.test.resource_group_name
   location                    = azurerm_elastic_cloud_serverless.test.location
-  kind                        = azurerm_elastic_cloud_serverless.test.kind
-  sku_name                    = azurerm_elastic_cloud_serverless.test.sku_name
-  project_type                = azurerm_elastic_cloud_serverless.test.project_type
   configuration_type          = azurerm_elastic_cloud_serverless.test.configuration_type
-  offer_id                    = azurerm_elastic_cloud_serverless.test.offer_id
-  term_id                     = azurerm_elastic_cloud_serverless.test.term_id
   elastic_cloud_email_address = azurerm_elastic_cloud_serverless.test.elastic_cloud_email_address
+  kind                        = azurerm_elastic_cloud_serverless.test.kind
+  offer_id                    = azurerm_elastic_cloud_serverless.test.offer_id
+  project_type                = azurerm_elastic_cloud_serverless.test.project_type
+  sku                         = azurerm_elastic_cloud_serverless.test.sku
+  term_id                     = azurerm_elastic_cloud_serverless.test.term_id
 }
 `, r.basic(data))
 }
 
 func (r ElasticCloudServerlessResource) complete(data acceptance.TestData) string {
-	return r.config(data, "ess-consumption-2024_Monthly", "elastic-serverless-search", "Elasticsearch", "GeneralPurpose", "ec-azure-pp", "n7ja87drquhy", `
-	generate_api_key    = false
-	monitoring_enabled = true
-	plan_id             = "ess-consumption-2024"
-	publisher_id        = "elastic"
+	return r.config(data, `
+  generate_api_key    = false
+  monitoring_enabled = true
+  plan_id            = "ess-consumption-2024"
+  publisher_id       = "elastic"
 
   tags = {
     Environment = "LiveTest"
@@ -117,7 +117,7 @@ func (r ElasticCloudServerlessResource) complete(data acceptance.TestData) strin
   }`)
 }
 
-func (r ElasticCloudServerlessResource) config(data acceptance.TestData, skuName, kind, projectType, configurationType, offerId, termId, tags string) string {
+func (r ElasticCloudServerlessResource) config(data acceptance.TestData, optionalConfig string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -132,14 +132,14 @@ resource "azurerm_elastic_cloud_serverless" "test" {
   name                        = "acctest-es-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  kind                        = %[2]q
-  sku_name                    = %[3]q
-  project_type                = %[4]q
-  configuration_type          = %[5]q
-  offer_id                    = %[6]q
-  term_id                     = %[7]q
+  configuration_type          = "GeneralPurpose"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
-%[8]s
+  kind                        = "elastic-serverless-search"
+  offer_id                    = "ec-azure-pp"
+  project_type                = "Elasticsearch"
+  sku                         = "ess-consumption-2024_Monthly"
+  term_id                     = "n7ja87drquhy"
+%[2]s
 }
-`, data.RandomInteger, kind, skuName, projectType, configurationType, offerId, termId, tags)
+`, data.RandomInteger, optionalConfig)
 }

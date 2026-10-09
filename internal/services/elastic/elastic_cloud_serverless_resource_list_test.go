@@ -64,13 +64,13 @@ resource "azurerm_elastic_cloud_serverless" "test" {
   name                        = "acctest-es-${count.index}-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  kind                        = "elastic-serverless-search"
-  sku_name                    = "ess-consumption-2024_Monthly"
-  project_type                = "Elasticsearch"
   configuration_type          = "GeneralPurpose"
-  offer_id                    = "ec-azure-pp"
-  term_id                     = "n7ja87drquhy"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
+  kind                        = "elastic-serverless-search"
+  offer_id                    = "ec-azure-pp"
+  project_type                = "Elasticsearch"
+  sku                         = "ess-consumption-2024_Monthly"
+  term_id                     = "n7ja87drquhy"
 }
 `, data.RandomInteger)
 }
