@@ -34,7 +34,7 @@ output "databricks_workspace_private_endpoint_connection_status" {
 
 * `private_endpoint_id` - The resource ID of the Private Endpoint.
 
-* `connections` - A `connections` block as documented below.
+* `connections` - A `connections` block as defined below.
 
 ---
 

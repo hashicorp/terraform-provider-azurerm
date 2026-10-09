@@ -7,15 +7,15 @@
 # Warns and closes PRs that have had failing CI for an extended period.
 # Checks CI status directly via the GitHub API (does not depend on labels).
 #
-# - After 7 days of failing CI: leaves a warning comment
-# - After 14 days of failing CI: closes the PR with a polite message
+# - After 53 days of failing CI: leaves a warning comment
+# - After 60 days of failing CI: closes the PR with a polite message
 # - PRs with "ci-ignore-failure" label are skipped
 
 set -euo pipefail
 
 DRY_RUN=true
-WARN_DAYS=7
-CLOSE_DAYS=14
+WARN_DAYS=53
+CLOSE_DAYS=60
 IGNORE_LABEL="ci-ignore-failure"
 WARNING_MARKER="<!-- ci-failure-warning -->"
 
@@ -381,7 +381,7 @@ for pr in "${all_prs[@]}"; do
 
     if [[ "$DRY_RUN" == "false" ]]; then
       comment_body="${WARNING_MARKER}
-Thank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than 14 days.
+Thank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than ${CLOSE_DAYS} days.
 
 Please feel free to reopen this PR once the CI issues have been resolved.${guidance}
 
@@ -422,9 +422,9 @@ Thank you for your understanding!"
 
     if [[ "$DRY_RUN" == "false" ]]; then
       comment_body="${WARNING_MARKER}
-Hi @${pr_author}, we have noticed that the CI on this pull request has been failing for 7 days.
+Hi @${pr_author}, we have noticed that the CI on this pull request has been failing for ${WARN_DAYS} days.
 
-If the CI failures are not resolved within the next 7 days, we will close this pull request.${guidance}
+If the CI failures are not resolved within the next $((CLOSE_DAYS - WARN_DAYS)) days, we will close this pull request.${guidance}
 
 If you need help, please leave a comment and we will do our best to assist. Thank you!"
 
