@@ -6,6 +6,7 @@ package securitycenter_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -79,12 +80,16 @@ func TestAccSecurityCenterStorageDefender_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.update(data, false),
+			ExpectError: regexp.MustCompile("`malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`"),
+		},
 	})
 }
 
@@ -93,6 +98,18 @@ func TestAccSecurityCenterStorageDefender_reapply(t *testing.T) {
 	r := SecurityCenterStorageDefenderResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -141,6 +158,21 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterStorageDefender_writeResultsOnTagsEnabledWithMalwareScanningDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
+	r := SecurityCenterStorageDefenderResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.writeResultsOnTagsEnabledWithMalwareScanningDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -172,18 +204,28 @@ resource "azurerm_security_center_storage_defender" "test" {
 `, r.template(data))
 }
 
-func (r SecurityCenterStorageDefenderResource) update(data acceptance.TestData) string {
+func (r SecurityCenterStorageDefenderResource) update(data acceptance.TestData, malwareScanningOnUploadEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_security_center_storage_defender" "test" {
-  storage_account_id                          = azurerm_storage_account.test.id
-  override_subscription_settings_enabled      = false
-  malware_scanning_on_upload_enabled          = false
-  malware_scanning_on_upload_cap_gb_per_month = 6
-  sensitive_data_discovery_enabled            = false
+  storage_account_id                             = azurerm_storage_account.test.id
+  override_subscription_settings_enabled         = true
+  malware_scanning_on_upload_enabled             = %t
+  malware_scanning_on_upload_cap_gb_per_month    = 6
+  sensitive_data_discovery_enabled               = false
+  malware_scanning_write_results_on_tags_enabled = false
+
+  malware_scanning_on_upload_filters {
+    exclude_blobs_larger_than_in_bytes = 131072
+
+    exclude_blobs_with_prefix = [
+      "container-2/blob",
+      "container-3/blob-0"
+    ]
+  }
 }
-`, r.template(data))
+`, r.template(data), malwareScanningOnUploadEnabled)
 }
 
 func (r SecurityCenterStorageDefenderResource) complete(data acceptance.TestData) string {
@@ -191,11 +233,28 @@ func (r SecurityCenterStorageDefenderResource) complete(data acceptance.TestData
 %s
 
 resource "azurerm_security_center_storage_defender" "test" {
-  storage_account_id                          = azurerm_storage_account.test.id
-  override_subscription_settings_enabled      = true
-  malware_scanning_on_upload_enabled          = true
-  malware_scanning_on_upload_cap_gb_per_month = 4
-  sensitive_data_discovery_enabled            = true
+  storage_account_id                             = azurerm_storage_account.test.id
+  override_subscription_settings_enabled         = true
+  malware_scanning_on_upload_enabled             = true
+  malware_scanning_on_upload_cap_gb_per_month    = 4
+  malware_scanning_write_results_on_tags_enabled = true
+  sensitive_data_discovery_enabled               = true
+
+  malware_scanning_on_upload_filters {
+    exclude_blobs_larger_than_in_bytes = 65536
+
+    exclude_blobs_with_prefix = [
+      "container-0",
+      "container-1/",
+      "container-2/blob",
+      "container-3/blob-0"
+    ]
+
+    exclude_blobs_with_suffix = [
+      ".jpg",
+      ".cpkt.index"
+    ]
+  }
 }
 `, r.template(data))
 }
@@ -227,4 +286,17 @@ resource "azurerm_security_center_storage_defender" "test" {
   scan_results_event_grid_topic_id       = azurerm_eventgrid_topic.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SecurityCenterStorageDefenderResource) writeResultsOnTagsEnabledWithMalwareScanningDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_security_center_storage_defender" "test" {
+  storage_account_id                             = azurerm_storage_account.test.id
+  override_subscription_settings_enabled         = true
+  malware_scanning_on_upload_enabled             = false
+  malware_scanning_write_results_on_tags_enabled = true
+}
+`, r.template(data))
 }
