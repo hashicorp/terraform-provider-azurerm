@@ -73,8 +73,6 @@ func (r CapacityReservationListResource) List(ctx context.Context, request list.
 	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
-		ctx, cancel := context.WithDeadline(context.Background(), deadline)
-		defer cancel()
 
 		for _, item := range resp.Items {
 			result := request.NewListResult(ctx)
