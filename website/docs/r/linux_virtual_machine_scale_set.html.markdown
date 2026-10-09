@@ -152,6 +152,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
+* `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for this Virtual Machine Scale Set. Possible values are `SCSI` and `NVMe`.
+
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine Scale Set should exist. Changing this forces a new Linux Virtual Machine Scale Set to be created.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?

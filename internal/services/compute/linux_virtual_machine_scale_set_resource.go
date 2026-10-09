@@ -246,6 +246,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 		},
 	}
 
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachinescalesets.DiskControllerTypes](diskControllerType.(string))
+	}
+
 	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]any)); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
 			GalleryApplications: galleryApplications,
@@ -621,11 +625,15 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
+	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference", "disk_controller_type") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
 			updateProps.VirtualMachineProfile.StorageProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateStorageProfile{}
+		}
+
+		if d.HasChange("disk_controller_type") {
+			updateProps.VirtualMachineProfile.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachinescalesets.DiskControllerTypes](d.Get("disk_controller_type").(string))
 		}
 
 		if d.HasChange("data_disk") {
@@ -952,6 +960,8 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any
 						return fmt.Errorf("setting `data_disk`: %+v", err)
 					}
 
+					d.Set("disk_controller_type", pointer.FromEnum(storageProfile.DiskControllerType))
+
 					var storageImageId string
 					if storageProfile.ImageReference != nil && storageProfile.ImageReference.Id != nil {
 						storageImageId = *storageProfile.ImageReference.Id
@@ -1218,6 +1228,14 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"disk_controller_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure assigns a default disk controller type based on the VM size and image when not specified
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiskControllerTypes(), false),
 		},
 
 		"do_not_run_extensions_on_overprovisioned_machines": {
