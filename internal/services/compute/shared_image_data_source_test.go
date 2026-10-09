@@ -13,6 +13,16 @@ import (
 
 type SharedImageDataSource struct{}
 
+func TestAccDataSourceSharedImage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
+	r := SharedImageDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "V1"),
+		},
+	}, "")
+}
+
 func TestAccDataSourceSharedImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
 	r := SharedImageDataSource{}

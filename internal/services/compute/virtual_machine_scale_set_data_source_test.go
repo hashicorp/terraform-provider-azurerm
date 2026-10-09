@@ -13,6 +13,16 @@ import (
 
 type VirtualMachineScaleSetDataSource struct{}
 
+func TestAccDataSourceVirtualMachineScaleSet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
+	r := VirtualMachineScaleSetDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicLinux(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceVirtualMachineScaleSet_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
 	r := VirtualMachineScaleSetDataSource{}

@@ -13,6 +13,16 @@ import (
 
 type ImageDataSource struct{}
 
+func TestAccDataSourceImage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
+	r := ImageDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
 	r := ImageDataSource{}

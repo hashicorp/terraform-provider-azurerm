@@ -26,6 +26,16 @@ type containerAppEnvironmentAlternateSubscription struct {
 	subscriptionId string
 }
 
+func TestAccContainerAppEnvironment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}

@@ -13,6 +13,20 @@ import (
 
 type DiskAccessDataSource struct{}
 
+func TestAccDataSourceDiskAccess_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_disk_access", "test")
+	r := DiskAccessDataSource{}
+
+	name := fmt.Sprintf("acctestdiskaccess-%d", data.RandomInteger)
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data, name, resourceGroupName),
+		},
+	}, "")
+}
+
 func TestAccDataSourceDiskAccess_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_disk_access", "test")
 	r := DiskAccessDataSource{}

@@ -18,6 +18,16 @@ import (
 
 type SnapshotResource struct{}
 
+func TestAccSnapshot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fromManagedDisk(data),
+		},
+	}, "")
+}
+
 func TestAccSnapshot_fromManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 	r := SnapshotResource{}
