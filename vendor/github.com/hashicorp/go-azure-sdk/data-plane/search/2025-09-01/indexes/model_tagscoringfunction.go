@@ -1,0 +1,56 @@
+package indexes
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+var _ ScoringFunction = TagScoringFunction{}
+
+type TagScoringFunction struct {
+	Tag TagScoringParameters `json:"tag"`
+
+	// Fields inherited from ScoringFunction
+
+	Boost         float64                       `json:"boost"`
+	FieldName     string                        `json:"fieldName"`
+	Interpolation *ScoringFunctionInterpolation `json:"interpolation,omitempty"`
+	Type          string                        `json:"type"`
+}
+
+func (s TagScoringFunction) ScoringFunction() BaseScoringFunctionImpl {
+	return BaseScoringFunctionImpl{
+		Boost:         s.Boost,
+		FieldName:     s.FieldName,
+		Interpolation: s.Interpolation,
+		Type:          s.Type,
+	}
+}
+
+var _ json.Marshaler = TagScoringFunction{}
+
+func (s TagScoringFunction) MarshalJSON() ([]byte, error) {
+	type wrapper TagScoringFunction
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling TagScoringFunction: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling TagScoringFunction: %+v", err)
+	}
+
+	decoded["type"] = "tag"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling TagScoringFunction: %+v", err)
+	}
+
+	return encoded, nil
+}
