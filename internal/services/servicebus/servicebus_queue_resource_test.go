@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceBusQueueResource struct{}
+type ServicebusQueueResource struct{}
 
 func TestAccServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -37,7 +37,7 @@ func TestAccServiceBusQueue_basic(t *testing.T) {
 
 func TestAccServiceBusQueue_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -53,7 +53,7 @@ func TestAccServiceBusQueue_requiresImport(t *testing.T) {
 
 func TestAccServiceBusQueue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -78,7 +78,7 @@ func TestAccServiceBusQueue_update(t *testing.T) {
 
 func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enablePartitioningStandard(data),
@@ -94,7 +94,7 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 
 func TestAccServiceBusQueue_maxMessageSizePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.PremiumNamespaceNonPartitioned(data),
@@ -108,7 +108,7 @@ func TestAccServiceBusQueue_maxMessageSizePremium(t *testing.T) {
 
 func TestAccServiceBusQueue_partitionedPremiumNamespace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.PremiumNamespacePartitioned(data, false),
@@ -128,7 +128,7 @@ func TestAccServiceBusQueue_partitionedPremiumNamespace(t *testing.T) {
 
 func TestAccServiceBusQueue_nonPartitionedPremiumNamespaceError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.nonPartitionedPremiumNamespaceError(data),
@@ -139,7 +139,7 @@ func TestAccServiceBusQueue_nonPartitionedPremiumNamespaceError(t *testing.T) {
 
 func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableDuplicateDetection(data),
@@ -153,7 +153,7 @@ func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 
 func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableRequiresSession(data),
@@ -167,7 +167,7 @@ func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 
 func TestAccServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -189,7 +189,7 @@ func TestAccServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T)
 
 func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -211,7 +211,7 @@ func TestAccServiceBusQueue_lockDuration(t *testing.T) {
 
 func TestAccServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.isoTimeSpanAttributes(data),
@@ -229,7 +229,7 @@ func TestAccServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 
 func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -248,7 +248,7 @@ func TestAccServiceBusQueue_maxDeliveryCount(t *testing.T) {
 
 func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -270,7 +270,7 @@ func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 
 func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -292,7 +292,7 @@ func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 
 func TestAccServiceBusQueue_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	r := ServiceBusQueueResource{}
+	r := ServicebusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -353,7 +353,7 @@ func TestAccServiceBusQueue_status(t *testing.T) {
 	})
 }
 
-func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusQueueResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := queues.ParseQueueID(state.ID)
 	if err != nil {
 		return nil, err
@@ -367,7 +367,7 @@ func (t ServiceBusQueueResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ServiceBusQueueResource) basic(data acceptance.TestData) string {
+func (ServicebusQueueResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -392,7 +392,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ServiceBusQueueResource) requiresImport(data acceptance.TestData) string {
+func (r ServicebusQueueResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -403,7 +403,7 @@ resource "azurerm_servicebus_queue" "import" {
 `, r.basic(data))
 }
 
-func (ServiceBusQueueResource) PremiumNamespaceNonPartitioned(data acceptance.TestData) string {
+func (ServicebusQueueResource) PremiumNamespaceNonPartitioned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -434,7 +434,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
+func (ServicebusQueueResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
 	// Limited regional availability for premium namespace partitions
 	data.Locations.Primary = "westus"
 	return fmt.Sprintf(`
@@ -467,7 +467,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (ServiceBusQueueResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
+func (ServicebusQueueResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -496,7 +496,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) update(data acceptance.TestData) string {
+func (ServicebusQueueResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -524,7 +524,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) enablePartitioningStandard(data acceptance.TestData) string {
+func (ServicebusQueueResource) enablePartitioningStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -551,7 +551,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) enableDuplicateDetection(data acceptance.TestData) string {
+func (ServicebusQueueResource) enableDuplicateDetection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -577,7 +577,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) enableRequiresSession(data acceptance.TestData) string {
+func (ServicebusQueueResource) enableRequiresSession(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -604,7 +604,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) enableDeadLetteringOnMessageExpiration(data acceptance.TestData) string {
+func (ServicebusQueueResource) enableDeadLetteringOnMessageExpiration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -631,7 +631,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) lockDuration(data acceptance.TestData) string {
+func (ServicebusQueueResource) lockDuration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -657,7 +657,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) lockDurationUpdated(data acceptance.TestData) string {
+func (ServicebusQueueResource) lockDurationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -683,7 +683,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) isoTimeSpanAttributes(data acceptance.TestData) string {
+func (ServicebusQueueResource) isoTimeSpanAttributes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -712,7 +712,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) maxDeliveryCount(data acceptance.TestData) string {
+func (ServicebusQueueResource) maxDeliveryCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -738,7 +738,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) forwardTo(data acceptance.TestData) string {
+func (ServicebusQueueResource) forwardTo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -769,7 +769,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) forwardDeadLetteredMessagesTo(data acceptance.TestData) string {
+func (ServicebusQueueResource) forwardDeadLetteredMessagesTo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -800,7 +800,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) status(data acceptance.TestData, status string) string {
+func (ServicebusQueueResource) status(data acceptance.TestData, status string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
