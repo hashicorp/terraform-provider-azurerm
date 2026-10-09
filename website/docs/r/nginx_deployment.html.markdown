@@ -61,6 +61,10 @@ resource "azurerm_nginx_deployment" "example" {
   location                  = azurerm_resource_group.example.location
   automatic_upgrade_channel = "stable"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   frontend_public {
     ip_address = [azurerm_public_ip.example.id]
   }
@@ -100,7 +104,7 @@ The following arguments are supported:
 
 * `email` - (Optional) Specify the preferred support contact email address for receiving alerts and notifications.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `frontend_private` - (Optional) One or more `frontend_private` blocks as defined below.
 
@@ -118,11 +122,11 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the NGINX Deployment. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned`.
+* `type` - (Required) Specifies the identity type of the NGINX Deployment. Possible values are `SystemAssigned` or `SystemAssigned, UserAssigned`. A system-assigned managed identity is required for all NGINXaaS deployments.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
+* `identity_ids` - (Optional) Specifies a single user-assigned managed identity ID to be assigned. Only one user-assigned managed identity is supported.
 
-~> **Note:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** `identity_ids` is required when `type` is set to `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -249,4 +253,4 @@ terraform import azurerm_nginx_deployment.example /subscriptions/12345678-1234-9
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Nginx.NginxPlus` - 2024-11-01-preview
+* `Nginx.NginxPlus` - 2025-11-01
