@@ -35,7 +35,7 @@ func TestAccLbBackendAddressPool_listByLoadBalancerID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_lb_backend_address_pool.list", 3),
+					querycheck.ExpectLength("azurerm_lb_backend_address_pool.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_lb_backend_address_pool.list",
 						map[string]knownvalue.Check{
@@ -72,7 +72,7 @@ func (r LbBackendAddressPoolResource) basicQuery() string {
 list "azurerm_lb_backend_address_pool" "list" {
   provider = azurerm
   config {
-    loadbalancer_id = azurerm_lb.test.id
+    load_balancer_id = azurerm_lb.test.id
   }
 }
 `

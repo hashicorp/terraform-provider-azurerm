@@ -25,7 +25,7 @@ func TestAccLbBackendAddressPool_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicSkuBasic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_lb_backend_address_pool.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_lb_backend_address_pool.test", tfjsonpath.New("name"), tfjsonpath.New("name")),

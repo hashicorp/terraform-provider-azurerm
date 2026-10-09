@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id" --test-name "basicSkuBasic"
 
 const backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
 

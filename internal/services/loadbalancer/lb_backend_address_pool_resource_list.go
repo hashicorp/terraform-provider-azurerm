@@ -5,6 +5,7 @@ package loadbalancer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -22,7 +23,7 @@ import (
 type LoadBalancerBackendAddressPoolListResource struct{}
 
 type ArmLoadBalancerBackendAddressPoolListModel struct {
-	LoadBalancerId types.String `tfsdk:"loadbalancer_id"`
+	LoadBalancerId types.String `tfsdk:"load_balancer_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(LoadBalancerBackendAddressPoolListResource)
@@ -38,7 +39,7 @@ func (LoadBalancerBackendAddressPoolListResource) ResourceFunc() *pluginsdk.Reso
 func (LoadBalancerBackendAddressPoolListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"loadbalancer_id": schema.StringAttribute{
+			"load_balancer_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: loadbalancers.ValidateLoadBalancerID},
@@ -59,7 +60,7 @@ func (LoadBalancerBackendAddressPoolListResource) List(ctx context.Context, requ
 
 	parentID, err := loadbalancers.ParseLoadBalancerID(data.LoadBalancerId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "parsing parent ID for "+backendAddressPoolResourceName, err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", backendAddressPoolResourceName), err)
 		return
 	}
 
@@ -67,7 +68,7 @@ func (LoadBalancerBackendAddressPoolListResource) List(ctx context.Context, requ
 
 	resp, err := client.LoadBalancerBackendAddressPoolsListComplete(ctx, plbId)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "listing "+backendAddressPoolResourceName, err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", backendAddressPoolResourceName), err)
 		return
 	}
 
@@ -80,13 +81,13 @@ func (LoadBalancerBackendAddressPoolListResource) List(ctx context.Context, requ
 
 			id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing "+backendAddressPoolResourceName+" ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", backendAddressPoolResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			if err := resourceArmLoadBalancerBackendAddressPoolFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding "+backendAddressPoolResourceName+" resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", backendAddressPoolResourceName), err)
 				return
 			}
 

@@ -293,10 +293,6 @@ resource "azurerm_lb_backend_address_pool" "import" {
 `, template)
 }
 
-func (r LbBackendAddressPoolResource) basic(data acceptance.TestData) string {
-	return r.standardSkuBasic(data)
-}
-
 func (r LbBackendAddressPoolResource) standardSkuBasic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
