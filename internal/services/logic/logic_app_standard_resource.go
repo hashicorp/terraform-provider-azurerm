@@ -57,6 +57,7 @@ type LogicAppResourceModel struct {
 	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
 	Version                     string                                     `tfschema:"version"`
 	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
+	ContentShareForceEnabled    bool                                       `tfschema:"content_share_force_enabled"`
 	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
 	Tags                        map[string]string                          `tfschema:"tags"`
 
@@ -257,6 +258,13 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"vnet_content_share_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+		},
+
+		"content_share_force_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "Should the content share settings (`WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` and `WEBSITE_CONTENTSHARE`) be enabled? Defaults to `true`. Set to `false` when deploying the Logic App to an App Service Environment (ASE) that uses the internal storage account. Note: when set to `false`, any value supplied for `storage_account_share_name` is ignored.",
 		},
 
 		"virtual_network_subnet_id": {
@@ -639,6 +647,12 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 				}
 
 				state.StorageAccountShareName = appSettings[contentShareAppSettingName]
+
+				// Infer content_share_force_enabled from the presence of content share settings
+				_, hasContentFileConnString := appSettings[contentFileConnStringAppSettingName]
+				_, hasContentShare := appSettings[contentShareAppSettingName]
+				state.ContentShareForceEnabled = hasContentFileConnString || hasContentShare
+
 				delete(appSettings, contentFileConnStringAppSettingName)
 				delete(appSettings, "APP_KIND")
 				delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
@@ -780,6 +794,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				"storage_account_name",
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
+				"content_share_force_enabled",
 			) {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
@@ -866,6 +881,43 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
+			// When toggling content_share_force_enabled, we need to explicitly update
+			// app settings via the dedicated API since SiteConfig.AppSettings changes
+			// may not be fully applied during CreateOrUpdate for existing resources.
+			if metadata.ResourceData.HasChange("content_share_force_enabled") {
+				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("listing application settings for %s: %+v", *id, err)
+				}
+
+				if appSettingsResp.Model != nil {
+					currentSettings := pointer.From(appSettingsResp.Model.Properties)
+
+					if !data.ContentShareForceEnabled {
+						delete(currentSettings, contentShareAppSettingName)
+						delete(currentSettings, contentFileConnStringAppSettingName)
+					} else {
+						if data.StorageKeyVaultSecretID != "" {
+							currentSettings[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmtKV, data.StorageKeyVaultSecretID)
+						} else {
+							storageSuffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+							currentSettings[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmt, data.StorageAccountName, data.StorageAccountAccessKey, *storageSuffix)
+						}
+
+						if data.StorageAccountShareName != "" {
+							currentSettings[contentShareAppSettingName] = data.StorageAccountShareName
+						} else {
+							currentSettings[contentShareAppSettingName] = strings.ToLower(data.Name) + "-content"
+						}
+					}
+
+					appSettingsResp.Model.Properties = &currentSettings
+					if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsResp.Model); err != nil {
+						return fmt.Errorf("updating application settings for %s: %+v", *id, err)
+					}
+				}
+			}
+
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStrings := helpers.ExpandConnectionStrings(data.ConnectionStrings)
 				if connectionStrings.Properties != nil {
@@ -926,8 +978,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		{Name: &storageAppSettingName, Value: &storageConnection},
 		{Name: &functionVersionAppSettingName, Value: pointer.To(d.Version)},
 		{Name: pointer.To("APP_KIND"), Value: pointer.To("workflowApp")},
-		{Name: &contentShareAppSettingName, Value: &contentShare},
-		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+	}
+
+	if d.ContentShareForceEnabled {
+		basicSettings = append(basicSettings,
+			webapps.NameValuePair{Name: &contentShareAppSettingName, Value: &contentShare},
+			webapps.NameValuePair{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+		)
 	}
 
 	if d.UseExtensionBundle {
@@ -1205,6 +1262,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		"storage_account_access_key",
 		"version",
 		"storage_key_vault_secret_id",
+		"content_share_force_enabled",
 	) {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
@@ -1256,10 +1314,14 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 	oMap := f(old)
 	cMap := f(new)
 
+	contentShareForceEnabled := metadata.ResourceData.Get("content_share_force_enabled").(bool)
+
 	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") && metadata.ResourceData.Get("storage_key_vault_secret_id").(string) != "" {
 		kvRef := fmt.Sprintf(helpers.StorageStringFmtKV, metadata.ResourceData.Get("storage_key_vault_secret_id").(string))
 		eMap[storageAppSettingName] = kvRef
-		eMap[contentFileConnStringAppSettingName] = kvRef
+		if contentShareForceEnabled {
+			eMap[contentFileConnStringAppSettingName] = kvRef
+		}
 	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
@@ -1267,10 +1329,12 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 
 		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
 		eMap[storageAppSettingName] = conn
-		eMap[contentFileConnStringAppSettingName] = conn
+		if contentShareForceEnabled {
+			eMap[contentFileConnStringAppSettingName] = conn
+		}
 	}
 
-	if metadata.ResourceData.HasChange("storage_account_share_name") {
+	if metadata.ResourceData.HasChange("storage_account_share_name") && contentShareForceEnabled {
 		n := metadata.ResourceData.Get("storage_account_share_name").(string)
 
 		if n != "" {
@@ -1278,6 +1342,29 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 		} else {
 			name := metadata.ResourceData.Get("name").(string)
 			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+		}
+	}
+
+	if metadata.ResourceData.HasChange("content_share_force_enabled") {
+		if !contentShareForceEnabled {
+			delete(eMap, contentShareAppSettingName)
+			delete(eMap, contentFileConnStringAppSettingName)
+		} else {
+			// Toggling from false to true — re-add content share settings
+			if kvSecretId := metadata.ResourceData.Get("storage_key_vault_secret_id").(string); kvSecretId != "" {
+				eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmtKV, kvSecretId)
+			} else {
+				accountName := metadata.ResourceData.Get("storage_account_name").(string)
+				accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
+				suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+				eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
+			}
+			if n := metadata.ResourceData.Get("storage_account_share_name").(string); n != "" {
+				eMap[contentShareAppSettingName] = n
+			} else {
+				name := metadata.ResourceData.Get("name").(string)
+				eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+			}
 		}
 	}
 
