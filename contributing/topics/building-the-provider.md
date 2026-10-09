@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* [Terraform (Core)](https://www.terraform.io/downloads.html) - version 1.x (0.12.x and above are compatible however 1.x is recommended)
+* [Terraform](https://developer.hashicorp.com/terraform/install) 1.x. Some features need a newer release, for example list resources need 1.14.
 * [Go](https://golang.org/doc/install) at the version in `.go-version`
 
 ### On Windows
@@ -31,19 +31,16 @@ You may get errors when cloning the repository on Windows that end with `Filenam
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](https://go.dev/) installed on your machine. You'll also need to correctly setup a [GOPATH](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable), as well as adding `$GOPATH/bin` to your `$PATH`.
-
-First clone the repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-azurerm`
+Clone the repository anywhere and run `make` from its root. Add `$HOME/go/bin` (or `$GOPATH/bin` if you set one) to your `PATH`, since that is where the built provider goes.
 
 ```sh
-mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
 git clone git@github.com:hashicorp/terraform-provider-azurerm
-cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
+cd terraform-provider-azurerm
 ```
 
 The tooling the provider uses is pinned (Go tools such as golangci-lint, terrafmt and gofumpt in `.tools/go.mod`; shellcheck, yamllint and markdownlint-cli2 in the `GNUmakefile`) and installed into `.tools/bin` by make as needed, so nothing has to be installed by hand; `make tools` installs all of it up front. The non-Go tools need `python3` and `npm` on the machine; terraform itself is expected to already be on your PATH.
 
-At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+At this point you can compile the provider by running `make build`, which puts the binary in `$HOME/go/bin` (or `$GOPATH/bin`).
 
 ```sh
 make build

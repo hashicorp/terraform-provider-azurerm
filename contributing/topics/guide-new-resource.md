@@ -25,8 +25,7 @@ This guide covers adding a new Typed Resource, which makes uses the Typed SDK wi
 10. Add Documentation for this Resource.
 11. Send the Pull Request.
 
-> [!IMPORTANT]
-> **Resource Identity** and **List Resource** implementations are mandatory for all new resources. Pull requests adding new resources without these will not pass CI checks. If your resource genuinely cannot support one of these (e.g. no List API exists), please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label.
+> **Note:** Every new resource needs Resource Identity and a List Resource, and CI checks for the list file. If the API has no list operation, say so in the PR and a maintainer will add the `list-not-supported` label.
 
 We'll go through each of those steps in turn, presuming that we're creating a Resource for a Resource Group.
 
@@ -733,19 +732,11 @@ func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
 
 ### Step 5: Adding Resource Identity (Required)
 
-All new resources **must** add support for Resource Identity. Please reference the [Resource Identity](guide-resource-identity.md) guide for detailed instructions.
-
-> [!IMPORTANT]
-> Resource Identity is a prerequisite for List Resources (Step 6). Ensure this is implemented before proceeding.
+Every new resource adds Resource Identity, and the List Resource in step 6 depends on it. See the [Resource Identity](guide-resource-identity.md) guide.
 
 ### Step 6: Adding a List Resource (Required)
 
-All new resources **must** include a List Resource implementation. This enables support for Terraform's `list` block (Terraform >= 1.14), allowing users to query and enumerate existing instances of the resource.
-
-Please reference the [List Resource](guide-list-resource.md) guide for detailed instructions.
-
-> [!NOTE]
-> A CI check (Enforce List Resource for New Resources) will automatically verify that new resources include a `*_resource_list.go` file. If your resource cannot support listing, please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+Every new resource includes a List Resource, which backs Terraform's `list` block (Terraform 1.14 and later). See the [List Resource](guide-list-resource.md) guide.
 
 ### Step 7: Register the new Resource
 

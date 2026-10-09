@@ -2,8 +2,7 @@
 
 This guide covers how to add a List Resource for an existing resource, using `azurerm_network_profile` as an example. For more information on Lists, see [Resources - List](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/list).
 
-> [!IMPORTANT]
-> **List Resource implementations are mandatory for all new resources.** A CI check (Enforce List Resource for New Resources) will verify that every new resource file (`*_resource.go`) has a corresponding `*_resource_list.go` file. If your resource genuinely cannot support listing (e.g. no List API exists), please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+Every new resource needs one, and CI checks for the `*_resource_list.go` file. If the API has no list operation, say so in the PR and a maintainer will add the `list-not-supported` label.
 
 ## Prerequisites
 

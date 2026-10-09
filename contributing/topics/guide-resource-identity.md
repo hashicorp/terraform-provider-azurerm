@@ -2,8 +2,7 @@
 
 This guide covers adding Resource Identity to a new or existing resource. For more information on Resource Identity, see [Resources - Identity](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/identity).
 
-> [!IMPORTANT]
-> **Resource Identity is mandatory for all new resources.** It is also a prerequisite for [List Resources](guide-list-resource.md), which are equally required. If your resource cannot support Resource Identity (see caveats below), please explain why in the PR description.
+Every new resource needs Resource Identity, and [List Resources](guide-list-resource.md) depend on it. If yours cannot support it, see the caveats below and say so in the PR.
 
 > The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
 
