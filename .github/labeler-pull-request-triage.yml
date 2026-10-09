@@ -47,6 +47,11 @@ service/app-service:
   - any-glob-to-any-file:
     - internal/services/appservice/**/*
 
+service/application-gateway:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/appgateway/**/*
+
 service/application-insights:
 - changed-files:
   - any-glob-to-any-file:
@@ -244,6 +249,11 @@ service/event-hubs:
   - any-glob-to-any-file:
     - internal/services/eventhub/**/*
 
+service/express-route:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/expressroute/**/*
+
 service/extended-location:
 - changed-files:
   - any-glob-to-any-file:
@@ -413,6 +423,16 @@ service/network-function:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/networkfunction/**/*
+
+service/network-gateway:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/networkgateway/**/*
+
+service/network-manager:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/networkmanager/**/*
 
 service/nginx:
 - changed-files:
@@ -594,6 +614,11 @@ service/virtual-desktops:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/desktopvirtualization/**/*
+
+service/virtual-wan:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/virtualwan/**/*
 
 service/vmware:
 - changed-files:

@@ -36,59 +36,24 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ManagerConnectivityConfigurationDataSource{},
-		ManagerDataSource{},
-		ManagerIpamPoolDataSource{},
-		ManagerNetworkGroupDataSource{},
-		NetworkSecurityPerimeterDataSource{},
-		NetworkSecurityPerimeterProfileDataSource{},
 		VirtualNetworkPeeringDataSource{},
-		VPNServerConfigurationDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CustomIpPrefixResource{},
-		ManagerAdminRuleCollectionResource{},
-		ManagerAdminRuleResource{},
-		ManagerConnectivityConfigurationResource{},
-		ManagerDeploymentResource{},
-		ManagerIpamPoolResource{},
-		ManagerIpamPoolStaticCidrResource{},
-		ManagerManagementGroupConnectionResource{},
-		ManagerNetworkGroupResource{},
-		ManagerResource{},
-		ManagerRoutingConfigurationResource{},
-		ManagerRoutingRuleCollectionResource{},
-		ManagerRoutingRuleResource{},
-		ManagerScopeConnectionResource{},
-		ManagerSecurityAdminConfigurationResource{},
-		ManagerStaticMemberResource{},
-		ManagerSubscriptionConnectionResource{},
-		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
-		ManagerVerifierWorkspaceResource{},
-		NetworkSecurityPerimeterAccessRuleResource{},
-		NetworkSecurityPerimeterAssociationResource{},
-		NetworkSecurityPerimeterProfileResource{},
-		NetworkSecurityPerimeterResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
-		RouteMapResource{},
-		VirtualHubRoutingIntentResource{},
 	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_application_gateway":                       dataSourceApplicationGateway(),
 		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                              dataSourceBastionHost(),
-		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
-		"azurerm_express_route_circuit_peering":             dataSourceExpressRouteCircuitPeering(),
 		"azurerm_ip_group":                                  dataSourceIpGroup(),
 		"azurerm_ip_groups":                                 dataSourceIpGroups(),
-		"azurerm_local_network_gateway":                     dataSourceLocalNetworkGateway(),
 		"azurerm_nat_gateway":                               dataSourceNatGateway(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                         dataSourceNetworkInterface(),
@@ -101,38 +66,19 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_public_ip":                                 dataSourcePublicIP(),
 		"azurerm_public_ip_prefix":                          dataSourcePublicIpPrefix(),
 		"azurerm_public_ips":                                dataSourcePublicIPs(),
-		"azurerm_route_filter":                              dataSourceRouteFilter(),
 		"azurerm_route_table":                               dataSourceRouteTable(),
 		"azurerm_subnet":                                    dataSourceSubnet(),
-		"azurerm_virtual_hub":                               dataSourceVirtualHub(),
-		"azurerm_virtual_hub_connection":                    dataSourceVirtualHubConnection(),
-		"azurerm_virtual_hub_route_table":                   dataSourceVirtualHubRouteTable(),
 		"azurerm_virtual_network":                           dataSourceVirtualNetwork(),
-		"azurerm_virtual_network_gateway":                   dataSourceVirtualNetworkGateway(),
-		"azurerm_virtual_network_gateway_connection":        dataSourceVirtualNetworkGatewayConnection(),
-		"azurerm_virtual_wan":                               dataSourceVirtualWan(),
-		"azurerm_vpn_gateway":                               dataSourceVPNGateway(),
-		"azurerm_web_application_firewall_policy":           dataWebApplicationFirewallPolicy(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_application_gateway":                      resourceApplicationGateway(),
 		"azurerm_application_security_group":               resourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                             resourceBastionHost(),
-		"azurerm_express_route_circuit":                    resourceExpressRouteCircuit(),
-		"azurerm_express_route_circuit_authorization":      resourceExpressRouteCircuitAuthorization(),
-		"azurerm_express_route_circuit_connection":         resourceExpressRouteCircuitConnection(),
-		"azurerm_express_route_circuit_peering":            resourceExpressRouteCircuitPeering(),
-		"azurerm_express_route_connection":                 resourceExpressRouteConnection(),
-		"azurerm_express_route_gateway":                    resourceExpressRouteGateway(),
-		"azurerm_express_route_port":                       resourceArmExpressRoutePort(),
-		"azurerm_express_route_port_authorization":         resourceExpressRoutePortAuthorization(),
 		"azurerm_ip_group":                                 resourceIpGroup(),
 		"azurerm_ip_group_cidr":                            resourceIpGroupCidr(),
-		"azurerm_local_network_gateway":                    resourceLocalNetworkGateway(),
 		"azurerm_nat_gateway":                              resourceNatGateway(),
 		"azurerm_nat_gateway_public_ip_association":        resourceNATGatewayPublicIpAssociation(),
 		"azurerm_nat_gateway_public_ip_prefix_association": resourceNATGatewayPublicIpPrefixAssociation(),
@@ -151,44 +97,22 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_network_security_rule":                     resourceNetworkSecurityRule(),
 		"azurerm_network_watcher":                           resourceNetworkWatcher(),
 		"azurerm_network_watcher_flow_log":                  resourceNetworkWatcherFlowLog(),
-		"azurerm_point_to_site_vpn_gateway":                 resourcePointToSiteVPNGateway(),
 		"azurerm_private_endpoint":                          resourcePrivateEndpoint(),
 		"azurerm_private_link_service":                      resourcePrivateLinkService(),
 		"azurerm_public_ip":                                 resourcePublicIp(),
 		"azurerm_public_ip_prefix":                          resourcePublicIpPrefix(),
 		"azurerm_route":                                     resourceRoute(),
-		"azurerm_route_filter":                              resourceRouteFilter(),
-		"azurerm_route_server":                              resourceRouteServer(),
-		"azurerm_route_server_bgp_connection":               resourceRouteServerBgpConnection(),
 		"azurerm_route_table":                               resourceRouteTable(),
 		"azurerm_subnet":                                    resourceSubnet(),
 		"azurerm_subnet_nat_gateway_association":            resourceSubnetNatGatewayAssociation(),
 		"azurerm_subnet_network_security_group_association": resourceSubnetNetworkSecurityGroupAssociation(),
 		"azurerm_subnet_route_table_association":            resourceSubnetRouteTableAssociation(),
 		"azurerm_subnet_service_endpoint_storage_policy":    resourceSubnetServiceEndpointStoragePolicy(),
-		"azurerm_virtual_hub":                               resourceVirtualHub(),
-		"azurerm_virtual_hub_bgp_connection":                resourceVirtualHubBgpConnection(),
-		"azurerm_virtual_hub_connection":                    resourceVirtualHubConnection(),
-		"azurerm_virtual_hub_ip":                            resourceVirtualHubIP(),
-		"azurerm_virtual_hub_route_table":                   resourceVirtualHubRouteTable(),
-		"azurerm_virtual_hub_route_table_route":             resourceVirtualHubRouteTableRoute(),
-		"azurerm_virtual_hub_security_partner_provider":     resourceVirtualHubSecurityPartnerProvider(),
 		"azurerm_virtual_machine_packet_capture":            resourceVirtualMachinePacketCapture(),
 		"azurerm_virtual_machine_scale_set_packet_capture":  resourceVirtualMachineScaleSetPacketCapture(),
 		"azurerm_virtual_network":                           resourceVirtualNetwork(),
 		"azurerm_virtual_network_dns_servers":               resourceVirtualNetworkDnsServers(),
-		"azurerm_virtual_network_gateway":                   resourceVirtualNetworkGateway(),
-		"azurerm_virtual_network_gateway_connection":        resourceVirtualNetworkGatewayConnection(),
-		"azurerm_virtual_network_gateway_nat_rule":          resourceVirtualNetworkGatewayNatRule(),
 		"azurerm_virtual_network_peering":                   resourceVirtualNetworkPeering(),
-		"azurerm_virtual_wan":                               resourceVirtualWan(),
-		"azurerm_vpn_gateway":                               resourceVPNGateway(),
-		"azurerm_vpn_gateway_connection":                    resourceVPNGatewayConnection(),
-		"azurerm_vpn_gateway_nat_rule":                      resourceVPNGatewayNatRule(),
-		"azurerm_vpn_server_configuration":                  resourceVPNServerConfiguration(),
-		"azurerm_vpn_server_configuration_policy_group":     resourceVPNServerConfigurationPolicyGroup(),
-		"azurerm_vpn_site":                                  resourceVpnSite(),
-		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}
 }
 
@@ -198,7 +122,6 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		ApplicationGatewayListResource{},
 		ApplicationSecurityGroupListResource{},
 		IpGroupListResource{},
 		NatGatewayListResource{},
@@ -212,10 +135,8 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		RouteListResource{},
 		RouteTableListResource{},
 		SubnetListResource{},
-		VirtualHubConnectionListResource{},
 		VirtualNetworkListResource{},
 		VirtualNetworkPeeringListResource{},
-		WebApplicationFirewallPolicyListResource{},
 	}
 }
 

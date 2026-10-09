@@ -29,6 +29,7 @@ import (
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
+	appgateway "github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/client"
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
@@ -72,6 +73,7 @@ import (
 	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
+	expressroute "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	extendedlocation "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 	fabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
@@ -107,6 +109,8 @@ import (
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	networkfunction "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/client"
+	networkgateway "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/client"
+	networkmanager "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	newrelic "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
@@ -144,6 +148,7 @@ import (
 	systemCenterVirtualMachineManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
+	virtualwan "github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
@@ -165,6 +170,7 @@ type Client struct {
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
 	ApiManagement                     *apiManagement.Client
 	AppConfiguration                  *appConfiguration.Client
+	AppGateway                        *appgateway.Client
 	AppInsights                       *applicationInsights.Client
 	AppPlatform                       *appPlatform.Client
 	AppService                        *appService.Client
@@ -209,6 +215,7 @@ type Client struct {
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid.Client
 	Eventhub                          *eventhub.Client
+	ExpressRoute                      *expressroute.Client
 	ExtendedLocation                  *extendedlocation.Client
 	Fabric                            *fabric.Client
 	FluidRelay                        *fluidrelay_2022_05_26.Client
@@ -244,6 +251,8 @@ type Client struct {
 	NetApp                            *netapp.Client
 	Network                           *network.Client
 	NetworkFunction                   *networkfunction.Client
+	NetworkGateway                    *networkgateway.Client
+	NetworkManager                    *networkmanager.Client
 	NewRelic                          *newrelic.Client
 	Nginx                             *nginx_2024_11_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
@@ -280,6 +289,7 @@ type Client struct {
 	SystemCenterVirtualMachineManager *systemcentervirtualmachinemanager_2023_10_07.Client
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
+	VirtualWan                        *virtualwan.Client
 	Vmware                            *vmware.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
@@ -319,6 +329,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
+	}
+	if client.AppGateway, err = appgateway.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppGateway: %+v", err)
 	}
 	if client.AppInsights, err = applicationInsights.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ApplicationInsights: %+v", err)
@@ -452,6 +465,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
+	if client.ExpressRoute, err = expressroute.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ExpressRoute: %+v", err)
+	}
 	if client.ExtendedLocation, err = extendedlocation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ExtendedLocation: %+v", err)
 	}
@@ -554,6 +570,12 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.NetworkFunction, err = networkfunction.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NetworkFunction: %+v", err)
+	}
+	if client.NetworkGateway, err = networkgateway.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetworkGateway: %+v", err)
+	}
+	if client.NetworkManager, err = networkmanager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetworkManager: %+v", err)
 	}
 	if client.NewRelic, err = newrelic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NewRelic: %+v", err)
@@ -665,6 +687,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 
 	if client.VideoIndexer, err = videoindexer.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Video Indexer: %+v", err)
+	}
+
+	if client.VirtualWan, err = virtualwan.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for VirtualWan: %+v", err)
 	}
 
 	if client.Vmware, err = vmware.NewClient(o); err != nil {

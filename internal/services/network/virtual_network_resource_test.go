@@ -270,6 +270,22 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_ipAddressPool_sequential(t *testing.T) {
+	testCases := map[string]func(t *testing.T){
+		"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+		"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+		"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+		"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+		"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			tc(t)
+		})
+	}
+}
+
 func testAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
