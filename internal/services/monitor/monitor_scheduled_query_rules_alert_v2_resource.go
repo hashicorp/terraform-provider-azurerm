@@ -36,7 +36,7 @@ type ScheduledQueryRulesAlertV2Model struct {
 	MuteActionsDuration                   string                                     `tfschema:"mute_actions_after_alert_duration"`
 	OverrideQueryTimeRange                string                                     `tfschema:"query_time_range_override"`
 	Scopes                                []string                                   `tfschema:"scopes"`
-	Severity                              scheduledqueryrules.AlertSeverity          `tfschema:"severity"`
+	Severity                              string                                     `tfschema:"severity"`
 	SkipQueryValidation                   bool                                       `tfschema:"skip_query_validation"`
 	Tags                                  map[string]string                          `tfschema:"tags"`
 	TargetResourceTypes                   []string                                   `tfschema:"target_resource_types"`
@@ -249,10 +249,13 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"severity": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(0, 4),
-		},
+    Type:             pluginsdk.TypeString,
+    Optional:         true,
+    Default:          "0",
+    ValidateFunc:     validateMonitorSeverity,
+    StateFunc:        normalizeMonitorSeverityState,
+    DiffSuppressFunc: suppressMonitorSeverityDiff,
+},
 
 		"window_duration": {
 			Type:     pluginsdk.TypeString,
@@ -424,6 +427,12 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			severityLevel, err := normalizeMonitorSeverity(model.Severity)
+			if err != nil {
+				return fmt.Errorf("invalid severity %q: %s", model.Severity, err)
+			}
+			severity := scheduledqueryrules.AlertSeverity(severityLevel)
+
 			client := metadata.Client.Monitor.ScheduledQueryRulesV2Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := scheduledqueryrules.NewScheduledQueryRuleID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -447,7 +456,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 					CheckWorkspaceAlertsStorageConfigured: &model.CheckWorkspaceAlertsStorageConfigured,
 					Enabled:                               &model.Enabled,
 					Scopes:                                &model.Scopes,
-					Severity:                              &model.Severity,
+					Severity:                              &severity,
 					SkipQueryValidation:                   &model.SkipQueryValidation,
 					TargetResourceTypes:                   &model.TargetResourceTypes,
 				},
@@ -586,7 +595,12 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("severity") {
-				model.Properties.Severity = &resourceModel.Severity
+				severityLevel, err := normalizeMonitorSeverity(resourceModel.Severity)
+				if err != nil {
+					return fmt.Errorf("invalid severity %q: %s", resourceModel.Severity, err)
+				}
+				severity := scheduledqueryrules.AlertSeverity(severityLevel)
+				model.Properties.Severity = &severity
 			}
 
 			if metadata.ResourceData.HasChange("skip_query_validation") {
@@ -688,7 +702,7 @@ func (r ScheduledQueryRulesAlertV2Resource) flatten(metadata sdk.ResourceMetaDat
 		state.MuteActionsDuration = pointer.From(properties.MuteActionsDuration)
 		state.OverrideQueryTimeRange = pointer.From(properties.OverrideQueryTimeRange)
 		state.Scopes = pointer.From(properties.Scopes)
-		state.Severity = pointer.From(properties.Severity)
+		state.Severity = fmt.Sprintf("%d", pointer.From(properties.Severity))
 		state.SkipQueryValidation = pointer.From(properties.SkipQueryValidation)
 		state.TargetResourceTypes = pointer.From(properties.TargetResourceTypes)
 		state.WindowSize = pointer.From(properties.WindowSize)
