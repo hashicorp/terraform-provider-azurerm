@@ -14,7 +14,7 @@ Use this data source to access information about an existing Tenant Template Dep
 
 ```hcl
 data "azurerm_tenant_template_deployment" "example" {
-  name = "existing"
+  name = "example-deployment"
 }
 
 output "id" {

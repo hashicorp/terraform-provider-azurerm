@@ -14,17 +14,17 @@ Use this data source to access information about an existing Elastic SAN Volume 
 
 ```hcl
 data "azurerm_elastic_san" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-elastic-san"
+  resource_group_name = "example-resources"
 }
 
 data "azurerm_elastic_san_volume_group" "example" {
-  name           = "existing"
+  name           = "example-volume-group"
   elastic_san_id = data.azurerm_elastic_san.example.id
 }
 
 data "azurerm_elastic_san_volume_snapshot" "example" {
-  name            = "existing"
+  name            = "example-snapshot"
   volume_group_id = data.azurerm_elastic_san_volume_group.example.id
 }
 

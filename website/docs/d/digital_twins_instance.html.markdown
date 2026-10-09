@@ -18,8 +18,8 @@ provider "azurerm" {
 }
 
 data "azurerm_digital_twins_instance" "example" {
-  name                = "existing-digital-twins"
-  resource_group_name = "existing-resgroup"
+  name                = "example-digital-twins"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

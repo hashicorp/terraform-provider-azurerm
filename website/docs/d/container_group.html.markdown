@@ -14,8 +14,8 @@ Use this data source to access information about an existing Container Group ins
 
 ```hcl
 data "azurerm_container_group" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-container-group"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
