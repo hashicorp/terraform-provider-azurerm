@@ -724,6 +724,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"geo_priority_replication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1196,6 +1202,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					keys := sortedKeysFromSlice(storageKindsSupportHns)
 					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
 				}
+
+				if d.Get("geo_priority_replication_enabled").(bool) {
+					replicationType := strings.ToUpper(d.Get("account_replication_type").(string))
+					if replicationType != "GRS" && replicationType != "GZRS" {
+						return fmt.Errorf("`geo_priority_replication_enabled` can only be used when `account_replication_type` is `GRS` or `GZRS`")
+					}
+				}
+
 				return nil
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
@@ -1362,10 +1376,13 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 			IsHnsEnabled:                 pointer.To(isHnsEnabled),
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 			IsSftpEnabled:                pointer.To(d.Get("sftp_enabled").(bool)),
-			MinimumTlsVersion:            pointer.ToEnum[storageaccounts.MinimumTlsVersion](d.Get("min_tls_version").(string)),
-			NetworkAcls:                  expandAccountNetworkRules(d.Get("network_rules").([]any), tenantId),
-			PublicNetworkAccess:          pointer.To(publicNetworkAccess),
-			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]any)),
+			GeoPriorityReplicationStatus: &storageaccounts.GeoPriorityReplicationStatus{
+				IsBlobEnabled: pointer.To(d.Get("geo_priority_replication_enabled").(bool)),
+			},
+			MinimumTlsVersion:   pointer.ToEnum[storageaccounts.MinimumTlsVersion](d.Get("min_tls_version").(string)),
+			NetworkAcls:         expandAccountNetworkRules(d.Get("network_rules").([]any), tenantId),
+			PublicNetworkAccess: pointer.To(publicNetworkAccess),
+			SasPolicy:           expandAccountSASPolicy(d.Get("sas_policy").([]any)),
 		},
 		Sku: storageaccounts.Sku{
 			Name: storageaccounts.SkuName(fmt.Sprintf("%s%s_%s", string(accountTier), provisionedBillingModelVersion, replicationType)),
@@ -1635,6 +1652,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		IsNfsV3Enabled:                        existing.Model.Properties.IsNfsV3Enabled,
 		IsSftpEnabled:                         existing.Model.Properties.IsSftpEnabled,
 		IsLocalUserEnabled:                    existing.Model.Properties.IsLocalUserEnabled,
+		GeoPriorityReplicationStatus:          existing.Model.Properties.GeoPriorityReplicationStatus,
 		IsHnsEnabled:                          existing.Model.Properties.IsHnsEnabled,
 		MinimumTlsVersion:                     existing.Model.Properties.MinimumTlsVersion,
 		NetworkAcls:                           existing.Model.Properties.NetworkAcls,
@@ -1758,6 +1776,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 	if d.HasChange("sftp_enabled") {
 		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
+	}
+	if d.HasChange("geo_priority_replication_enabled") {
+		props.GeoPriorityReplicationStatus = &storageaccounts.GeoPriorityReplicationStatus{
+			IsBlobEnabled: pointer.To(d.Get("geo_priority_replication_enabled").(bool)),
+		}
 	}
 	if d.HasChange("immutability_policy") {
 		props.ImmutableStorageWithVersioning = expandAccountImmutabilityPolicy(d.Get("immutability_policy").([]any))
@@ -2035,6 +2058,12 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		}
 		d.Set("secondary_location", pointer.From(props.SecondaryLocation))
 		d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
+
+		geoPriorityReplicationEnabled := false
+		if props.GeoPriorityReplicationStatus != nil {
+			geoPriorityReplicationEnabled = pointer.From(props.GeoPriorityReplicationStatus.IsBlobEnabled)
+		}
+		d.Set("geo_priority_replication_enabled", geoPriorityReplicationEnabled)
 		d.Set("allow_nested_items_to_be_public", pointer.From(props.AllowBlobPublicAccess))
 		d.Set("default_to_oauth_authentication", pointer.From(props.DefaultToOAuthAuthentication))
 
