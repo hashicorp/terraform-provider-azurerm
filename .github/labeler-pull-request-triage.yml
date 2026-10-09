@@ -219,6 +219,11 @@ service/domain-services:
   - any-glob-to-any-file:
     - internal/services/domainservices/**/*
 
+service/durable-task-scheduler:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/durabletaskscheduler/**/*
+
 service/dynatrace:
 - changed-files:
   - any-glob-to-any-file:
