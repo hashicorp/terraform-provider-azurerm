@@ -108,6 +108,8 @@ The following arguments are supported:
 
 ~> **Note:** `rolling_upgrade_policy` is required when `upgrade_mode` is set to `Rolling`, cannot be specified when `upgrade_mode` is set to `Manual`, and requires a valid application health extension when `upgrade_mode` is set to `Rolling`.
 
+* `secure_boot_enabled` - (Optional) Specifies whether secure boot should be enabled on the Virtual Machine Scale Set. Changing this forces a new resource to be created.
+
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Possible values are `true` or `false`.
 
 -> **Note:** `single_placement_group` behaves differently for Flexible orchestration Virtual Machine Scale Sets than it does for Uniform orchestration Virtual Machine Scale Sets. It is recommended that you do not define the `single_placement_group` field in your configuration file as the service will determine what this value should be based off of the value contained within the `sku_name` field of your configuration file. You may set the `single_placement_group` field to `true`, however once you set it to `false` you will not be able to revert it back to `true`.
@@ -137,6 +139,8 @@ The following arguments are supported:
 * `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **Note:** This can only be set to `true` when one or more `zones` are configured.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) Specifies a list of Availability Zones across which the Virtual Machine Scale Set will create instances.
 
