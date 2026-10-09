@@ -79,6 +79,6 @@ Examples of poorly written PR titles:
 
 ### Body
 
-GitHub pre-fills the body from [the pull request template](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/.github/PULL_REQUEST_TEMPLATE.md). Fill in the description, say which issues it closes using [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword), and tick the boxes that apply. Leave the community note as it is.
+GitHub pre-fills the body from [the pull request template](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/.github/pull_request_template.md). Fill in the description, say which issues it closes using [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword), and tick the boxes that apply. Leave the community note as it is.
 
 > **Note:** If this PR changes meaningfully during the course of review please update the title and description as required.
