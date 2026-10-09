@@ -46,6 +46,8 @@ type resourceIdentityData struct {
 	TestEnvVars            []string
 	TestExpectNonEmptyPlan bool
 	TestSequential         bool
+	Skip                   bool
+	SkipReason             string
 	RewriteTag             bool
 }
 
@@ -132,6 +134,8 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
 	argSet.BoolVar(&d.TestSequential, "test-sequential", false, "(Optional) generates a lowercase test function name for use in sequential test suites. Defaults to `false`.")
+	argSet.BoolVar(&d.Skip, "skip", false, "(Optional) adds a t.Skip call at the start of the test function. Defaults to `false`.")
+	argSet.StringVar(&d.SkipReason, "skip-reason", "", "(Optional) the reason message passed to t.Skip. Only used when -skip is set.")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
