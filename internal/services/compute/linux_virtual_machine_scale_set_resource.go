@@ -247,7 +247,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 	}
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
-		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(diskControllerType.(string)))
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachinescalesets.DiskControllerTypes](diskControllerType.(string))
 	}
 
 	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]any)); galleryApplications != nil {
@@ -633,7 +633,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 		}
 
 		if d.HasChange("disk_controller_type") {
-			updateProps.VirtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(d.Get("disk_controller_type").(string)))
+			updateProps.VirtualMachineProfile.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachinescalesets.DiskControllerTypes](d.Get("disk_controller_type").(string))
 		}
 
 		if d.HasChange("data_disk") {
@@ -960,7 +960,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any
 						return fmt.Errorf("setting `data_disk`: %+v", err)
 					}
 
-					d.Set("disk_controller_type", string(pointer.From(storageProfile.DiskControllerType)))
+					d.Set("disk_controller_type", pointer.FromEnum(storageProfile.DiskControllerType))
 
 					var storageImageId string
 					if storageProfile.ImageReference != nil && storageProfile.ImageReference.Id != nil {
@@ -1233,11 +1233,9 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"disk_controller_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachinescalesets.DiskControllerTypesNVMe),
-				string(virtualmachinescalesets.DiskControllerTypesSCSI),
-			}, false),
+			// Note: O+C because Azure assigns a default disk controller type based on the VM size and image when not specified
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiskControllerTypes(), false),
 		},
 
 		"do_not_run_extensions_on_overprovisioned_machines": {
