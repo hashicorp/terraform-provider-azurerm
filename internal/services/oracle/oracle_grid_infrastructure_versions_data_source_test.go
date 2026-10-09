@@ -4,6 +4,7 @@
 package oracle_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -18,7 +19,7 @@ func TestAccGridInfrastructureVersionsDataSource_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").IsNotEmpty(),
 				check.That(data.ResourceName).Key("versions.0.id").Exists(),
@@ -35,7 +36,7 @@ func TestAccGridInfrastructureVersionsDataSource_complete(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.complete(),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").IsNotEmpty(),
 				check.That(data.ResourceName).Key("versions.0.id").Exists(),
@@ -46,28 +47,42 @@ func TestAccGridInfrastructureVersionsDataSource_complete(t *testing.T) {
 	})
 }
 
-func (d GridInfrastructureVersionsDataSource) basic() string {
-	return `
+func (d GridInfrastructureVersionsDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
 provider "azurerm" {
   features {}
 }
 
 data "azurerm_oracle_grid_infrastructure_versions" "test" {
-  location = "eastus"
+  location = local.location
 }
-`
+`, d.template(data))
 }
 
-func (d GridInfrastructureVersionsDataSource) complete() string {
-	return `
+func (d GridInfrastructureVersionsDataSource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
 provider "azurerm" {
   features {}
 }
 
 data "azurerm_oracle_grid_infrastructure_versions" "test" {
-  location = "eastus"
+  location = local.location
   shape    = "Exadata.X9M"
-  zone     = "2"
+  zone     = local.zone
 }
-`
+`, d.template(data))
+}
+
+func (a GridInfrastructureVersionsDataSource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+locals {
+  zone       = "1"
+  location   = "%[1]s"
+}
+
+`, data.Locations.Primary)
 }
