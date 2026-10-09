@@ -261,9 +261,9 @@ The following arguments are supported:
 
 * `pricing_model` - (Optional) Specifies the pricing model for the SQL Managed Instance. Possible values are `Freemium` and `Regular`.
 
-~> **Note:** When `pricing_model` is set to `Freemium`, `sku_name` must be `GP_Gen5`, `vcores` must be `4` or `8`, `storage_size_in_gb` must be `64`, `storage_account_type` must be `LRS`, and `zone_redundant_enabled` must be `false`. Azure allows only one free SQL Managed Instance per subscription.
+~> **Note:** When `pricing_model` is set to `Freemium`, `sku_name` must be `GP_Gen5`, `vcores` must be `4` or `8`, `storage_size_in_gb` must be `64`, `storage_account_type` must be `LRS`, and `zone_redundant_enabled` must be `false`. Azure allows [only one free SQL Managed Instance per subscription](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer?view=azuresql#prerequisites).
 
-~> **Note:** Changing `pricing_model` from `Regular` to `Freemium` forces a new SQL Managed Instance to be created.
+!> **Note:** Changing `pricing_model` from `Regular` to `Freemium` forces a new SQL Managed Instance to be created.
 
 * `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Possible values are `Proxy` and `Redirect`. Defaults to `Redirect`.
 
