@@ -321,6 +321,14 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForOSType(), false),
 		},
 
+		"pod_ip_allocation_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"pod_subnet_id"},
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
+		},
+
 		"pod_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -616,6 +624,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		profile.PodSubnetID = pointer.To(podSubnetID.ID())
 		resourceIDsToLock = append(resourceIDsToLock, commonids.NewVirtualNetworkID(podSubnetID.SubscriptionId, podSubnetID.ResourceGroupName, podSubnetID.VirtualNetworkName).ID())
 		resourceIDsToLock = append(resourceIDsToLock, podSubnetID.ID())
+	}
+
+	if podIPAllocationMode, ok := d.GetOk("pod_ip_allocation_mode"); ok {
+		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode.(string))
 	}
 
 	if nodeSubnetID != nil {
@@ -1185,6 +1197,7 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			d.Set("os_sku", string(*v))
 		}
 		d.Set("pod_subnet_id", props.PodSubnetID)
+		d.Set("pod_ip_allocation_mode", pointer.FromEnum(props.PodIPAllocationMode))
 
 		// not returned from the API if not Spot
 		priority := string(managedclusters.ScaleSetPriorityRegular)
