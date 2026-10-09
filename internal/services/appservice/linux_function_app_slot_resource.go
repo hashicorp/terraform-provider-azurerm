@@ -74,6 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
+	VnetContentShareEnabled            bool                                       `tfschema:"vnet_content_share_enabled"`
 	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
 }
 
@@ -299,6 +300,13 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Default:     false,
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		},
+
+		"vnet_content_share_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the traffic for the content share be routed over virtual network? Defaults to `false`. Required for cross-stamp scaling on Elastic Premium and Dedicated plans when storage is restricted to virtual network.",
 		},
 	}
 }
@@ -544,6 +552,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					DailyMemoryTimeQuota:      pointer.To(functionAppSlot.DailyMemoryTimeQuota),
 					VnetBackupRestoreEnabled:  pointer.To(functionAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetImagePullEnabled:      pointer.To(functionAppSlot.VnetImagePullEnabled),
+					VnetContentShareEnabled:   pointer.To(functionAppSlot.VnetContentShareEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 					EndToEndEncryptionEnabled: pointer.To(functionAppSlot.EndToEndTLSEncryptionEnabled),
 				},
@@ -761,6 +770,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.VnetContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
@@ -959,6 +969,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
 			}
 
 			storageString := state.StorageAccountName
