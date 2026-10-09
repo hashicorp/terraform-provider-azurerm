@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,12 +85,12 @@ func TestAccResourceAnomalyAlert_update(t *testing.T) {
 }
 
 func (AnomalyAlertResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := scheduledactions.ParseScopedScheduledActionID(state.ID)
+	id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.CostManagement.ScheduledActionsClient.GetByScope(ctx, *id)
+	resp, err := client.CostManagement.ScheduledActionOperationGroupClient.ScheduledActionsGetByScope(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
