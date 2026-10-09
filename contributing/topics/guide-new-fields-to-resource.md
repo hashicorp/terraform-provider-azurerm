@@ -102,7 +102,7 @@ return metadata.Encode(&state)
 
 * Property ordering within the docs should follow the conventions in the [documentation standards guide](reference-documentation-standards.md).
 
-* `Computed` only values should be added under `Attribute Reference`
+* `Computed` only values should be added under `Attributes Reference`
 
 ## Renaming and Deprecating a Property
 
