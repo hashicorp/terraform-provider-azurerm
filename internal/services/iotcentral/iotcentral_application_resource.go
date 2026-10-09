@@ -102,7 +102,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -142,7 +142,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		displayName = id.IotAppName
 	}
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -161,7 +161,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		},
 		Identity: identity,
 		Location: d.Get("location").(string),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, app, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -180,7 +180,7 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceIotCentralAppRead(d, meta)
 }
 
-func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,11 +218,11 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -244,7 +244,7 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceIotCentralAppRead(d, meta)
 }
 
-func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -295,7 +295,7 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
