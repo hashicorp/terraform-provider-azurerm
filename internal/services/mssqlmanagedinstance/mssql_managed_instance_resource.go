@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,6 +51,7 @@ type MsSqlManagedInstanceModel struct {
 	MaintenanceConfigurationName      string                              `tfschema:"maintenance_configuration_name"`
 	MinimumTlsVersion                 string                              `tfschema:"minimum_tls_version"`
 	Name                              string                              `tfschema:"name"`
+	PricingModel                      string                              `tfschema:"pricing_model"`
 	ProxyOverride                     string                              `tfschema:"proxy_override"`
 	PublicDataEndpointEnabled         bool                                `tfschema:"public_data_endpoint_enabled"`
 	ResourceGroupName                 string                              `tfschema:"resource_group_name"`
@@ -97,7 +99,7 @@ func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -285,6 +287,13 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"pricing_model": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      string(managedinstances.PricingModelRegular),
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPricingModel(), false),
+		},
+
 		"proxy_override": {
 			Type:     schema.TypeString,
 			Optional: true,
@@ -345,6 +354,18 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		arguments["pricing_model"] = &pluginsdk.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			// NOTE: O+C to preserve existing free instances when omitted, avoiding an unintended upgrade to paid pricing in 5.x.
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPricingModel(), false),
+		}
+	}
+
+	return arguments
 }
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -417,6 +438,45 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			// https://learn.microsoft.com/azure/azure-sql/managed-instance/high-availability-sla-local-zone-redundancy#next-gen-general-purpose-service-tier
 			if rd.Get("zone_redundant_enabled").(bool) && rd.Get("general_purpose_v2_enabled").(bool) {
 				return errors.New("`zone_redundant_enabled` cannot be set to `true` when `general_purpose_v2_enabled` is `true`")
+			}
+
+			oldPricingModel, newPricingModel := rd.GetChange("pricing_model")
+			// An unknown pricing model may resolve to Freemium, which requires replacement.
+			if oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && (!rd.NewValueKnown("pricing_model") || newPricingModel.(string) == string(managedinstances.PricingModelFreemium)) {
+				if !features.SixPointOh() && !rd.NewValueKnown("pricing_model") {
+					// Preserve the unknown O+C value when the SDK recalculates the replacement diff.
+					if err := rd.SetNewComputed("pricing_model"); err != nil {
+						return err
+					}
+				}
+				if err := rd.ForceNew("pricing_model"); err != nil {
+					return err
+				}
+			}
+
+			if newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
+				if sku := rd.Get("sku_name").(string); rd.NewValueKnown("sku_name") && sku != "GP_Gen5" {
+					return fmt.Errorf("`sku_name` must be `GP_Gen5` when `pricing_model` is `Freemium`, got `%s`", sku)
+				}
+
+				vcores := rd.Get("vcores").(int)
+				if rd.NewValueKnown("vcores") && vcores != 4 && vcores != 8 {
+					return fmt.Errorf("`vcores` must be `4` or `8` when `pricing_model` is `Freemium`, got `%d`", vcores)
+				}
+
+				storageSizeInGb := rd.Get("storage_size_in_gb").(int)
+				if rd.NewValueKnown("storage_size_in_gb") && storageSizeInGb != 64 {
+					return fmt.Errorf("`storage_size_in_gb` must be `64` when `pricing_model` is `Freemium`, got `%d`", storageSizeInGb)
+				}
+
+				storageAccountType := rd.Get("storage_account_type").(string)
+				if rd.NewValueKnown("storage_account_type") && storageAccountType != StorageAccountTypeLRS {
+					return fmt.Errorf("`storage_account_type` must be `LRS` when `pricing_model` is `Freemium`, got `%s`", storageAccountType)
+				}
+
+				if rd.NewValueKnown("zone_redundant_enabled") && rd.Get("zone_redundant_enabled").(bool) {
+					return fmt.Errorf("`zone_redundant_enabled` must be `false` when `pricing_model` is `Freemium`")
+				}
 			}
 
 			return nil
@@ -505,6 +565,10 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if model.PricingModel != "" {
+				parameters.Properties.PricingModel = pointer.ToEnum[managedinstances.PricingModel](model.PricingModel)
+			}
+
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -565,6 +629,10 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("license_type") {
 				props.LicenseType = pointer.ToEnum[managedinstances.ManagedInstanceLicenseType](state.LicenseType)
+			}
+
+			if metadata.ResourceData.HasChange("pricing_model") {
+				props.PricingModel = pointer.ToEnum[managedinstances.PricingModel](state.PricingModel)
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
@@ -766,6 +834,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 				if props := existing.Model.Properties; props != nil {
 					model.LicenseType = pointer.FromEnum(props.LicenseType)
+					model.PricingModel = pointer.FromEnum(props.PricingModel)
 					model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 					model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 
