@@ -6,7 +6,6 @@ package logic_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"testing"
@@ -14,11 +13,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/sdk/client"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1354,66 +1353,12 @@ func (r LogicAppStandardResource) hasRunningHost(ctx context.Context, clients *c
 		return err
 	}
 
-	// Portal's Runtime version field uses this endpoint, not the site's provisioning state.
-	hostClient, err := resourcemanager.NewClient(clients.Account.Environment.ResourceManager, "web", "2025-05-01")
-	if err != nil {
-		return err
-	}
-	hostClient.Authorizer = clients.AppService.WebAppsClient.Client.Authorizer
-	hostClient.UserAgent = clients.AppService.WebAppsClient.Client.UserAgent
-	hostClient.Transport = clients.AppService.WebAppsClient.Client.Transport
-	// Expose HTTP 408 to the waiter instead of letting the SDK retry it until the request deadline.
-	hostClient.DisableRetries = true
-
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 
-	wait := &pluginsdk.StateChangeConf{
-		Target:       []string{"Running"},
-		Timeout:      10 * time.Minute,
-		PollInterval: 10 * time.Second,
-		Refresh: func() (any, string, error) {
-			requestCtx, requestCancel := context.WithTimeout(ctx, 90*time.Second)
-			defer requestCancel()
-
-			req, err := hostClient.NewRequest(requestCtx, client.RequestOptions{
-				ContentType:         "application/json; charset=utf-8",
-				ExpectedStatusCodes: []int{http.StatusOK},
-				HttpMethod:          http.MethodGet,
-				Path:                id.ID() + "/host/default/properties/status",
-			})
-			if err != nil {
-				return nil, "", err
-			}
-
-			resp, err := req.Execute(requestCtx)
-			if resp != nil && resp.Response != nil {
-				defer resp.Body.Close()
-				if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-					return nil, "", err
-				}
-			}
-			if err != nil {
-				// With no Pending list, the waiter retries startup failures and retains the last error as its state.
-				return err, err.Error(), nil
-			}
-
-			var status struct {
-				Properties struct {
-					State   string `json:"state"`
-					Version string `json:"version"`
-				} `json:"properties"`
-			}
-			if err := resp.Unmarshal(&status); err != nil {
-				return nil, "", err
-			}
-			if status.Properties.State == "Running" && status.Properties.Version != "" {
-				return status, "Running", nil
-			}
-			return status, fmt.Sprintf("state=%q version=%q", status.Properties.State, status.Properties.Version), nil
-		},
-	}
-	if _, err := wait.WaitForStateContext(ctx); err != nil {
+	pollerType := custompollers.NewLogicAppRuntimeTestPoller(clients.AppService.WebAppsClient.Client, *id)
+	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for the runtime host of %s: %w", id, err)
 	}
 	return nil
