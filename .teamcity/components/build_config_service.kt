@@ -26,6 +26,8 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTests(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
@@ -37,13 +39,13 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
-                BuildCacheFeature()
             }
 
             params {
                 TerraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformCoreBinaryTesting()
+                TerraformProviderMirror()
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)

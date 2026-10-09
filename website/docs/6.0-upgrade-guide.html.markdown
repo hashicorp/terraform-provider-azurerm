@@ -106,7 +106,7 @@ To retain existing free-offer settings, explicitly configure both properties bef
 
 ### `azurerm_storage_account`
 
-* The `account_kind` property no longer accepts the `Storage` value.
+* The `account_kind` property no longer accepts the `BlobStorage` and `Storage` values.
 * The deprecated `public_network_access_enabled` property has been removed.
 
 ## Breaking Changes in Data Sources
