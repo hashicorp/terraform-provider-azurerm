@@ -421,10 +421,11 @@ Before writing a new validator, look for an existing one in `commonids`, `intern
     ValidateFunc: commonids.ValidateSubnetID,
 },
 
-"sim_policy_id": {
+"namespace_id": {
     Type:         pluginsdk.TypeString,
-    Optional:     true,
-    ValidateFunc: simpolicy.ValidateSimPolicyID,
+    Required:     true,
+    ForceNew:     true,
+    ValidateFunc: namespaces.ValidateNamespaceID,
 },
 
 "output_blob_uri": {

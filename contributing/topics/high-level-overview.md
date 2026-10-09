@@ -85,7 +85,7 @@ Most of the codebase is still untyped. New work is typed, and existing resources
 This Provider makes use of a number of SDKs to interact with both the Azure Resource Manager and a number of associated Data Plane APIs, these are:
 
 * [go-azure-sdk](https://github.com/hashicorp/go-azure-sdk) - HashiCorp's generated SDK for Azure Resource Manager and a number of Data Plane APIs. New work uses this.
-* [The Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go) - the older Microsoft SDK, built on [Azure/go-autorest](https://github.com/Azure/go-autorest). A handful of services still use it and are being moved to go-azure-sdk.
+* [The Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go) - the older Microsoft SDK, built on [Azure/go-autorest](https://github.com/Azure/go-autorest). A handful of services still use it and are being moved to go-azure-sdk. New work does not build on it: no new resources, and no new fields on a resource that still uses it until that resource has moved.
 * [Giovanni](https://github.com/jackofallops/giovanni) - for interaction with the Azure Storage Data Plane APIs.
 
 ## Testing the Provider
