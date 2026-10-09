@@ -75,6 +75,7 @@ func (r Registration) Resources() []sdk.Resource {
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
+		VirtualNetworkRoutingApplianceResource{},
 	}
 }
 
@@ -215,6 +216,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		VirtualHubConnectionListResource{},
 		VirtualNetworkListResource{},
 		VirtualNetworkPeeringListResource{},
+		VirtualNetworkRoutingApplianceListResource{},
 		WebApplicationFirewallPolicyListResource{},
 	}
 }
