@@ -279,7 +279,7 @@ func TestAccStaticWebApp_publicNetworkAccessDisabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccessDisabled(data),
+			Config: r.publicNetworkAccess(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
@@ -295,7 +295,15 @@ func TestAccStaticWebApp_publicNetworkAccessUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.publicNetworkAccess(data, "null"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access_enabled").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
@@ -303,18 +311,10 @@ func TestAccStaticWebApp_publicNetworkAccessUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.publicNetworkAccessDisabled(data),
+			Config: r.publicNetworkAccess(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -656,7 +656,7 @@ resource "azurerm_static_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StaticWebAppResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
+func (r StaticWebAppResource) publicNetworkAccess(data acceptance.TestData, value string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -674,9 +674,9 @@ resource "azurerm_static_web_app" "test" {
   sku_size            = "Free"
   sku_tier            = "Free"
 
-  public_network_access_enabled = false
+  public_network_access_enabled = %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, value)
 }
 
 func (r StaticWebAppResource) withPrivateEndpoint(data acceptance.TestData) string {
