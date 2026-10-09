@@ -173,6 +173,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
         "oracle" to testConfiguration(disableTriggers = true),
 
+        // `azurerm_geo_catalog` is only available in `canadacentral`, `northcentralus`, `westeurope`, and `uksouth`
+        "orbitalplanetarycomputer" to testConfiguration(locationOverride = LocationConfiguration("uksouth", "westeurope", "northcentralus", false)),
+
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
