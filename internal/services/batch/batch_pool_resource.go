@@ -774,6 +774,25 @@ func resourceBatchPool() *pluginsdk.Resource {
 					},
 				},
 			},
+			"application_package": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"version": {
+							Type:         pluginsdk.TypeString,
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -884,6 +903,14 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if v, ok := d.GetOk("target_node_communication_mode"); ok {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](v.(string))
+	}
+
+	if v, ok := d.GetOk("application_package"); ok {
+		applicationPackageReference, err := ExpandBatchPoolApplicationPackages(v.([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `application_package`: %+v", err)
+		}
+		parameters.Properties.ApplicationPackages = &applicationPackageReference
 	}
 
 	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
@@ -1021,6 +1048,15 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.ToEnum[pool.NodeCommunicationMode](d.Get("target_node_communication_mode").(string))
 	}
 
+	if d.HasChange("application_package") {
+		v := d.Get("application_package")
+		applicationPackageReference, err := ExpandBatchPoolApplicationPackages(v.([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `application_package`: %+v", err)
+		}
+		parameters.Properties.ApplicationPackages = &applicationPackageReference
+	}
+
 	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
@@ -1082,6 +1118,12 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 				}
 				if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(d, scaleSettings.FixedScale)); err != nil {
 					return fmt.Errorf("flattening `fixed_scale `: %+v", err)
+				}
+			}
+
+			if applicationPackage := props.ApplicationPackages; applicationPackage != nil {
+				if err := d.Set("application_package", flattenBatchPoolApplicationPackages(applicationPackage)); err != nil {
+					return fmt.Errorf("flattening `application_package`: %+v", err)
 				}
 			}
 
