@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
-	resourceguardproxy "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,14 +38,14 @@ type DataProtectionBackupVaultResourceGuardAssociationResource struct{}
 var _ sdk.ResourceWithIdentity = DataProtectionBackupVaultResourceGuardAssociationResource{}
 
 func (r DataProtectionBackupVaultResourceGuardAssociationResource) Identity() resourceids.ResourceId {
-	return &resourceguardproxy.BackupResourceGuardProxyId{}
+	return &resourceguardproxybaseresources.BackupResourceGuardProxyId{}
 }
 
 func (r DataProtectionBackupVaultResourceGuardAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return resourceguardproxy.ValidateBackupResourceGuardProxyID
+	return resourceguardproxybaseresources.ValidateBackupResourceGuardProxyID
 }
 
-func (r DataProtectionBackupVaultResourceGuardAssociationResource) ModelObject() interface{} {
+func (r DataProtectionBackupVaultResourceGuardAssociationResource) ModelObject() any {
 	return &DataProtectionBackupVaultResourceGuardAssociationModel{}
 }
 
@@ -81,7 +81,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Create() sdk.
 				return err
 			}
 
-			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, dataProtectionBackupVaultResourceGuardAssociationProxyName)
+			id := resourceguardproxybaseresources.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, dataProtectionBackupVaultResourceGuardAssociationProxyName)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.DppResourceGuardProxyGet(ctx, id)
@@ -96,8 +96,8 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Create() sdk.
 				}
 			}
 
-			proxy := resourceguardproxy.ResourceGuardProxyBaseResource{
-				Properties: &resourceguardproxy.ResourceGuardProxyBase{
+			proxy := resourceguardproxybaseresources.ResourceGuardProxyBaseResource{
+				Properties: &resourceguardproxybaseresources.ResourceGuardProxyBase{
 					ResourceGuardResourceId: pointer.To(model.DataProtectionResourceGuardId),
 				},
 			}
@@ -122,7 +122,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Read() sdk.Re
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.ResourceGuardProxyClient
 
-			id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
+			id, err := resourceguardproxybaseresources.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -165,7 +165,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Delete() sdk.
 
 			client := metadata.Client.DataProtection.ResourceGuardProxyClient
 
-			id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
+			id, err := resourceguardproxybaseresources.ParseBackupResourceGuardProxyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -176,11 +176,11 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Delete() sdk.
 			}
 
 			requestId := resourceguards.NewDeleteResourceGuardProxyRequestID(guardId.SubscriptionId, guardId.ResourceGroupName, guardId.ResourceGuardName, dataProtectionBackupVaultResourceGuardAssociationDeleteRequestName)
-			unlock := resourceguardproxy.UnlockDeleteRequest{
+			unlock := resourceguardproxybaseresources.UnlockDeleteRequest{
 				ResourceGuardOperationRequests: pointer.To([]string{requestId.ID()}),
 			}
 
-			if _, err = client.DppResourceGuardProxyUnlockDelete(ctx, *id, unlock, resourceguardproxy.DefaultDppResourceGuardProxyUnlockDeleteOperationOptions()); err != nil {
+			if _, err = client.DppResourceGuardProxyUnlockDelete(ctx, *id, unlock, resourceguardproxybaseresources.DefaultDppResourceGuardProxyUnlockDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("unlocking delete for %s: %+v", *id, err)
 			}
 
@@ -193,7 +193,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationResource) Delete() sdk.
 	}
 }
 
-func (DataProtectionBackupVaultResourceGuardAssociationResource) flatten(id resourceguardproxy.BackupResourceGuardProxyId, model *resourceguardproxy.ResourceGuardProxyBaseResource) (*DataProtectionBackupVaultResourceGuardAssociationModel, error) {
+func (DataProtectionBackupVaultResourceGuardAssociationResource) flatten(id resourceguardproxybaseresources.BackupResourceGuardProxyId, model *resourceguardproxybaseresources.ResourceGuardProxyBaseResource) (*DataProtectionBackupVaultResourceGuardAssociationModel, error) {
 	vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	state := &DataProtectionBackupVaultResourceGuardAssociationModel{
 		DataProtectionBackupVaultId: vaultId.ID(),

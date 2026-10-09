@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
-	resourceguardproxy "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,9 +37,9 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) ResourceF
 }
 
 func (r DataProtectionBackupVaultResourceGuardAssociationListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"data_protection_backup_vault_id": listschema.StringAttribute{
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"data_protection_backup_vault_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -67,7 +67,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx 
 		return
 	}
 
-	proxyVaultId := resourceguardproxy.NewBackupVaultID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName)
+	proxyVaultId := resourceguardproxybaseresources.NewBackupVaultID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName)
 	resp, err := client.DppResourceGuardProxyListComplete(ctx, proxyVaultId)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", dataProtectionBackupVaultResourceGuardAssociationResourceType), err)
@@ -81,7 +81,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx 
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(proxy.Name)
 
-			id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(pointer.From(proxy.Id))
+			id, err := resourceguardproxybaseresources.ParseBackupResourceGuardProxyID(pointer.From(proxy.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Data Protection Backup Vault Resource Guard Association ID", err)
 				return

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	resourceguardproxy "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -50,7 +50,7 @@ func TestAccDataProtectionBackupVaultResourceGuardAssociation_requiresImport(t *
 }
 
 func (r DataProtectionBackupVaultResourceGuardAssociationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := resourceguardproxy.ParseBackupResourceGuardProxyID(state.ID)
+	id, err := resourceguardproxybaseresources.ParseBackupResourceGuardProxyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

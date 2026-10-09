@@ -5,13 +5,18 @@ package dataprotection_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck/queryfilter"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
@@ -21,6 +26,7 @@ func TestAccDataProtectionBackupVaultResourceGuardAssociation_listByBackupVaultI
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault_resource_guard_association", "test")
 	r := DataProtectionBackupVaultResourceGuardAssociationResource{}
 	listResourceAddress := "azurerm_data_protection_backup_vault_resource_guard_association.list"
+	resourceGroupName := fmt.Sprintf("acctest-dataprotection-%d", data.RandomInteger)
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -33,7 +39,7 @@ func TestAccDataProtectionBackupVaultResourceGuardAssociation_listByBackupVaultI
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 1),
 					querycheck.ExpectIdentity(
@@ -51,10 +57,11 @@ func TestAccDataProtectionBackupVaultResourceGuardAssociation_listByBackupVaultI
 	})
 }
 
-func (r DataProtectionBackupVaultResourceGuardAssociationResource) basicQuery(data acceptance.TestData) string {
+func (r DataProtectionBackupVaultResourceGuardAssociationResource) basicQuery() string {
 	return `
 list "azurerm_data_protection_backup_vault_resource_guard_association" "list" {
-  provider = azurerm
+  provider         = azurerm
+  include_resource = true
   config {
     data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   }
