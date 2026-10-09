@@ -139,12 +139,11 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"auxiliary_sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAEight),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAFour),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuAOne),
-					string(networkinterfaces.NetworkInterfaceAuxiliarySkuATwo),
-				}, false),
+				// `None` is returned by the API to represent an unset value - reject it here since setting it explicitly would always show a diff after apply
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringNotInSlice([]string{string(networkinterfaces.NetworkInterfaceAuxiliarySkuNone)}, true),
+				),
 				RequiredWith: []string{"auxiliary_mode"},
 			},
 
