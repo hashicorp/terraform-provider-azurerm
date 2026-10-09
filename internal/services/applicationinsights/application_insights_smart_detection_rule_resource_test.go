@@ -18,6 +18,16 @@ import (
 
 type AppInsightsSmartDetectionRule struct{}
 
+func TestAccApplicationInsightsSmartDetectionRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
+	r := AppInsightsSmartDetectionRule{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApplicationInsightsSmartDetectionRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_smart_detection_rule", "test")
 	r := AppInsightsSmartDetectionRule{}
