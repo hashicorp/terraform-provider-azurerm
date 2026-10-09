@@ -520,13 +520,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 	}
 
 	if d.HasChange("gallery_application") {
-		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
-
 		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
 			existing.Model.Properties.VirtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{}
 		}
 
-		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
+		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]any))
 
 		// Add a separate create or update then poll method here, since application profile isn't supported in the current sdk patch method
 		// Azure Rest API Specs issue: https://github.com/Azure/azure-rest-api-specs/issues/36582
