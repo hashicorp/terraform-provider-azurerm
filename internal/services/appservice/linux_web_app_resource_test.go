@@ -1463,6 +1463,61 @@ func TestAccLinuxWebApp_updateAppStack(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_mainSiteContainer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "20-lts"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.mainSiteContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("sitecontainers"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.image").HasValue("mcr.microsoft.com/appsvc/sample-hello-world:latest"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.target_port").HasValue("80"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.mainSiteContainerVolumeMount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("sitecontainers"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.target_port").HasValue("8080"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.volume_mount.#").HasValue("2"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.volume_mount.0.read_only").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.volume_mount.1.read_only").HasValue("false"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.node(data, "20-lts"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|20-lts"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.mainSiteContainer(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("sitecontainers"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.target_port").HasValue("80"),
+				check.That(data.ResourceName).Key("site_config.0.main_site_container.0.volume_mount.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // TODO - Needs more property tests for autoheal
 func TestAccLinuxWebApp_withAutoHealRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
@@ -3304,6 +3359,65 @@ resource "azurerm_linux_web_app" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
+}
+
+func (r LinuxWebAppResource) mainSiteContainer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    main_site_container {
+      image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+      target_port = "80"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppResource) mainSiteContainerVolumeMount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    main_site_container {
+      image       = "mcr.microsoft.com/appsvc/sample-hello-world:latest"
+      target_port = "8080"
+
+      volume_mount {
+        container_mount_path = "/mnt/config"
+        volume_sub_path      = "/data/config"
+        read_only            = true
+      }
+
+      volume_mount {
+        container_mount_path = "/mnt/shared"
+        volume_sub_path      = "/data/shared"
+      }
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) java(data acceptance.TestData, javaVersion, javaServer, javaServerVersion string) string {
