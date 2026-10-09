@@ -132,6 +132,7 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -145,12 +146,13 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceMeshProfile(data, true, false),
+			Config: r.serviceMeshProfile(data, true, false, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue(meta.LatestMeshRevision),
 			),
 		},
 		data.ImportStep(),
@@ -1569,7 +1571,19 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
+func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool, revisions ...string) string {
+	if len(revisions) == 0 {
+		meta, err := obtainAKSMetadata(data.Locations.Primary)
+		if err == nil {
+			revisions = []string{meta.LatestMeshRevision}
+		}
+	}
+
+	var formattedRevisions []string
+	for _, r := range revisions {
+		formattedRevisions = append(formattedRevisions, fmt.Sprintf("%q", r))
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1637,11 +1651,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
-    revisions                        = ["asm-1-28"]
+    revisions                        = [%[5]s]
   }
 
 }
-`, data.RandomInteger, data.Locations.Primary, internalIngressEnabled, externalIngressEnabled)
+`, data.RandomInteger, data.Locations.Primary, internalIngressEnabled, externalIngressEnabled, strings.Join(formattedRevisions, ", "))
 }
 
 func (KubernetesClusterResource) serviceMeshProfileDisabled(data acceptance.TestData) string {
@@ -3165,6 +3179,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) standardLoadBalancerConfig(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3228,7 +3243,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
@@ -3318,6 +3333,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) standardLoadBalancerProfileConfig(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3384,10 +3400,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3463,10 +3480,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3535,10 +3553,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, meta.CurrentKubernetesVersion)
 }
 
 func (KubernetesClusterResource) basicLoadBalancerProfileConfig(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3605,10 +3624,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) unsetPrefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3682,10 +3702,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3766,10 +3787,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3850,10 +3872,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3934,10 +3957,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) unsetLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4018,10 +4042,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) httpProxyConfigUpdate(data acceptance.TestData, noProxy string) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -4193,10 +4218,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     no_proxy    = [%s]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger, noProxy)
 }
 
 func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData, noProxy string) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -4370,10 +4396,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger, noProxy)
 }
 
 func (KubernetesClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -4549,10 +4576,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4667,7 +4695,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) networkDataPlane(data acceptance.TestData, networkDataPlane string) string {
