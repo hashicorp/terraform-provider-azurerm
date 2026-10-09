@@ -91,6 +91,8 @@ The following arguments are supported:
 
 -> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
+-> **Note:** An IP Address Management (IPAM) Pool association that was established outside of Terraform (e.g. for a Virtual Network created with `address_space`) is preserved as long as `address_space` remains unchanged, consistent with the behaviour of ARM templates. Changing `address_space` removes such an association.
+
 * `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
 
 -> **Note:** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
