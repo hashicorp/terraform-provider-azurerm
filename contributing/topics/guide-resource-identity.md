@@ -162,7 +162,7 @@ To add Resource Identity to an untyped resource, follow the steps below.
 3. Update the `resourceExampleCreate()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
-    func resourceExampleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+    func resourceExampleCreate(d *pluginsdk.ResourceData, meta any) error {
         Timeout: 30 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := meta.(*clients.Client).Compute.DedicatedHostsClient
@@ -193,7 +193,7 @@ To add Resource Identity to an untyped resource, follow the steps below.
 4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
-        func resourceExampleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+        func resourceExampleRead(d *pluginsdk.ResourceData, meta any) error {
             client := meta.(*clients.Client).Service.ExampleClient
             ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
             defer cancel()

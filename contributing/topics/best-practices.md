@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+    Tags: tags.Expand(d.Get("tags").(map[string]any)),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -46,7 +46,7 @@ if existing.Model == nil {
 }
 
 if d.HasChanges("tags") {
-  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 }
 
 if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
@@ -70,7 +70,7 @@ A PATCH-based Update would look similar to below:
 payload := resources.GroupUpdate{}
 if d.HasChanges("tags") {
   // all fields in a PATCH model are pointers so only the fields that are set are sent
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -130,19 +130,19 @@ func someResource() *pluginsdk.Resource {
 	}
 }
 
-func someResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	// create logic is defined here
 }
 
-func someResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// update logic is defined here
 }
 
-func someResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	// read logic is defined here
 }
 
-func someResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	// delete logic is defined here
 }
 
@@ -171,7 +171,7 @@ func (r SomeResource) ResourceType() string {
 	return "azurerm_some_resource"
 }
 
-func (r SomeResource) ModelObject() interface{} {
+func (r SomeResource) ModelObject() any {
 	return &SomeResourceModel{}
 }
 

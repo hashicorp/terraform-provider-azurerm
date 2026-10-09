@@ -52,7 +52,7 @@ We will step through an example on how to add a state migration for a made up re
    }
    
    func (CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-       return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+       return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
            // TODO implement me!
            return nil, nil
        }
@@ -114,7 +114,7 @@ We will step through an example on how to add a state migration for a made up re
    }
    
    func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-       return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+       return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
            oldId := rawState["id"].(string)
            parsed, err := capybaras.ParseCapybaraIDInsensitively(oldId)
            if err != nil {

@@ -108,7 +108,7 @@ In this case the interface `sdk.DataSource` defines all of the methods required 
 type DataSource interface {
     Arguments() map[string]*schema.Schema
     Attributes() map[string]*schema.Schema
-    ModelObject() interface{}
+    ModelObject() any
     ResourceType() string
 	Read() ResourceFunc
 }
@@ -147,7 +147,7 @@ func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (ResourceGroupExampleDataSource) ModelObject() interface{} {
+func (ResourceGroupExampleDataSource) ModelObject() any {
 	return &ResourceGroupExampleDataSourceModel{}
 }
 
@@ -293,7 +293,7 @@ func (d ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (d ResourceGroupExampleDataSource) ModelObject() interface{} {
+func (d ResourceGroupExampleDataSource) ModelObject() any {
 	return nil
 }
 

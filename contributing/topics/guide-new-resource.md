@@ -113,7 +113,7 @@ In this case the interface `sdk.Resource` defines all of the methods required fo
 type Resource interface {
     Arguments() map[string]*schema.Schema
     Attributes() map[string]*schema.Schema
-    ModelObject() interface{}
+    ModelObject() any
     ResourceType() string
     Create() ResourceFunc
     Read() ResourceFunc
@@ -158,7 +158,7 @@ func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{}
 }
 
-func (ResourceGroupExampleResource) ModelObject() interface{} {
+func (ResourceGroupExampleResource) ModelObject() any {
     return &ResourceGroupExampleResourceModel{}
 }
 
@@ -508,7 +508,7 @@ func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{}
 }
 
-func (ResourceGroupExampleResource) ModelObject() interface{} {
+func (ResourceGroupExampleResource) ModelObject() any {
     return &ResourceGroupExampleResourceModel{}
 }
 

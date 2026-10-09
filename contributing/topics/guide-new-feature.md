@@ -65,12 +65,12 @@ func Default() UserFeatures {
         }
     }
 
-    func expandFeatures(input []interface{}) features.UserFeatures {
+    func expandFeatures(input []any) features.UserFeatures {
         ...
         if raw, ok := val["key_vault"]; ok {
-            items := raw.([]interface{})
+            items := raw.([]any)
             if len(items) > 0 && items[0] != nil {
-                keyVaultRaw := items[0].(map[string]interface{})
+                keyVaultRaw := items[0].(map[string]any)
                 if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
                     featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
                 }
@@ -86,13 +86,13 @@ func Default() UserFeatures {
 func TestExpandFeatures(t *testing.T) {
     testData := []struct {
         Name     string
-        Input    []interface{}
-        EnvVars  map[string]interface{}
+        Input    []any
+        EnvVars  map[string]any
         Expected features.UserFeatures
     }{
         {
             Name:  "Empty Block",
-            Input: []interface{}{},
+            Input: []any{},
             Expected: features.UserFeatures{
                 ...
                 KeyVault: features.KeyVaultFeatures{
@@ -103,11 +103,11 @@ func TestExpandFeatures(t *testing.T) {
         },
         {
             Name: "Complete Enabled",
-            Input: []interface{}{
-                map[string]interface{}{
+            Input: []any{
+                map[string]any{
                     ...
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+                    "key_vault": []any{
+                        map[string]any{
     	                    "purge_soft_delete_on_destroy": true,
     	                },
     	            },   
@@ -124,11 +124,11 @@ func TestExpandFeatures(t *testing.T) {
         },
         {
             Name: "Complete Disabled",
-            Input: []interface{}{
-                map[string]interface{}{
+            Input: []any{
+                map[string]any{
                     ...
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+                    "key_vault": []any{
+                        map[string]any{
                             "purge_soft_delete_on_destroy": false,
                         },
                     },
@@ -150,15 +150,15 @@ func TestExpandFeatures(t *testing.T) {
 func TestExpandFeaturesKeyVault(t *testing.T) {
     testData := []struct {
         Name     string
-        Input    []interface{}
-        EnvVars  map[string]interface{}
+        Input    []any
+        EnvVars  map[string]any
         Expected features.UserFeatures
     }{
         {
             Name: "Empty Block",
-            Input: []interface{}{
-                map[string]interface{}{
-                    "key_vault": []interface{}{},
+            Input: []any{
+                map[string]any{
+                    "key_vault": []any{},
                 },
             },
             Expected: features.UserFeatures{
@@ -169,10 +169,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
         },
         {
             Name: "Purge Soft Delete On Destroy",
-            Input: []interface{}{
-                map[string]interface{}{
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+            Input: []any{
+                map[string]any{
+                    "key_vault": []any{
+                        map[string]any{
                             "purge_soft_delete_on_destroy": true,
                         },
                     },
@@ -186,10 +186,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
         },
         {
             Name: "Purge Soft Delete On Destroy Disabled",
-            Input: []interface{}{
-                map[string]interface{}{
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+            Input: []any{
+                map[string]any{
+                    "key_vault": []any{
+                        map[string]any{
                             "purge_soft_delete_on_destroy": false,
                         },
                     },
@@ -326,7 +326,7 @@ func defaultFeaturesList() types.List {
 1. Update `internal/service/serviceName/resourceName.go` in this case `internal/service/keyvault/key_vault_resource.go` to include the functionality of the added feature.
 
     ```go
-    func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+    func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
         ...
         if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
             // Purge the Keyvault
