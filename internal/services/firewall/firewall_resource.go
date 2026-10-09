@@ -81,6 +81,28 @@ func resourceFirewall() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(azurefirewalls.PossibleValuesForAzureFirewallSkuTier(), false),
 			},
 
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(2),
+							AtLeastOneOf: []string{"autoscale_configuration.0.min_capacity", "autoscale_configuration.0.max_capacity"},
+						},
+						"max_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(2),
+							AtLeastOneOf: []string{"autoscale_configuration.0.min_capacity", "autoscale_configuration.0.max_capacity"},
+						},
+					},
+				},
+			},
+
 			"firewall_policy_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -247,6 +269,10 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
+	if err := validateFirewallAutoscaleConfiguration(d.Get("sku_tier").(string), d.Get("autoscale_configuration").([]any)); err != nil {
+		return fmt.Errorf("validating %s: %+v", id, err)
+	}
+
 	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]any)
 	i := d.Get("ip_configuration").([]any)
@@ -304,6 +330,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if policyId := d.Get("firewall_policy_id").(string); policyId != "" {
 		parameters.Properties.FirewallPolicy = &azurefirewalls.SubResource{Id: &policyId}
 	}
+
+	parameters.Properties.AutoscaleConfiguration = expandFirewallAutoscaleConfiguration(d.Get("autoscale_configuration").([]any))
 
 	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any))
 	if ok {
@@ -450,6 +478,10 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 
 			if err := d.Set("private_ip_ranges", flattenFirewallPrivateIpRange(props.AdditionalProperties)); err != nil {
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
+			}
+
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 
 			firewallPolicyId := ""
@@ -726,6 +758,40 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []any {
 	return pluginsdk.FlattenSlice(&rangeSlice)
 }
 
+func expandFirewallAutoscaleConfiguration(input []any) *azurefirewalls.AzureFirewallAutoscaleConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+
+	output := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
+
+	// the API uses `null` to reset a value back to the service default, so only send the values which have been configured
+	if minCapacity := v["min_capacity"].(int); minCapacity != 0 {
+		output.MinCapacity = pointer.To(int64(minCapacity))
+	}
+
+	if maxCapacity := v["max_capacity"].(int); maxCapacity != 0 {
+		output.MaxCapacity = pointer.To(int64(maxCapacity))
+	}
+
+	return &output
+}
+
+func flattenFirewallAutoscaleConfiguration(input *azurefirewalls.AzureFirewallAutoscaleConfiguration) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"min_capacity": int(pointer.From(input.MinCapacity)),
+			"max_capacity": int(pointer.From(input.MaxCapacity)),
+		},
+	}
+}
+
 func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
@@ -811,6 +877,18 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 			"private_ip_address":  privateIp,
 		},
 	}
+}
+
+func validateFirewallAutoscaleConfiguration(skuTier string, configs []any) error {
+	if len(configs) == 0 {
+		return nil
+	}
+
+	if skuTier == string(azurefirewalls.AzureFirewallSkuTierBasic) {
+		return fmt.Errorf("`autoscale_configuration` cannot be configured when `sku_tier` is set to `Basic`")
+	}
+
+	return nil
 }
 
 func validateFirewallIPConfigurationSettings(configs []any) error {
