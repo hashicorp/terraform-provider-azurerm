@@ -23,7 +23,7 @@ func TestAccCdnFrontDoorSecretDataSource_regressionTest(t *testing.T) {
 
 	data.DataSourceRegressionTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 		},
 	}, "")
 }

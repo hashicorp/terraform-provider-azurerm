@@ -24,7 +24,7 @@ func TestAccEmailServiceDomain_regressionTest(t *testing.T) {
 	r := EmailCommunicationServiceDomainResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data, "false"),
 		},
 	}, "")
 }

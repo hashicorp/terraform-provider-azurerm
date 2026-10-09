@@ -21,10 +21,10 @@ type CdnFrontDoorRuleSetResource struct{}
 
 func TestAccCdnFrontDoorRuleSet_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule_set", "test")
-	r := CdnFrontdoorBatchRuleSetResource{}
+	r := CdnFrontDoorRuleSetResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disableCacheAndNoOriginGroup(data),
+			Config: r.complete(data, false),
 		},
 	}, "")
 }

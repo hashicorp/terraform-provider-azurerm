@@ -24,7 +24,7 @@ func TestAccCdnFrontDoorRule_regressionTest(t *testing.T) {
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.disableCacheError(data),
+			Config: r.complete(data, false),
 		},
 	}, "")
 }
