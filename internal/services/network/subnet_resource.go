@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -194,6 +196,7 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
+				DiffSuppressFunc: subnetServiceEndpointDiffSuppress,
 			},
 
 			"service_endpoint_policy_ids": {
@@ -1028,4 +1031,65 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 		}
 		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
+}
+
+func subnetServiceEndpointDiffSuppress(_, _, _ string, d *schema.ResourceData) bool {
+	if d == nil {
+		return false
+	}
+
+	// Resolve the base list attribute name from the key path (e.g. "service_endpoint.0.service" -> "service_endpoint")
+	listKey := "service_endpoint"
+
+	oldRaw, newRaw := d.GetChange(listKey)
+	if oldRaw == nil || newRaw == nil {
+		return false
+	}
+
+	oldList, okOld := oldRaw.([]any)
+	newList, okNew := newRaw.([]any)
+	if !okOld || !okNew {
+		return false
+	}
+
+	if len(oldList) != len(newList) {
+		return false
+	}
+
+	type endpointItem struct {
+		service           string
+		networkIdentifier string
+	}
+
+	canonicalize := func(rawList []any) []endpointItem {
+		items := make([]endpointItem, 0, len(rawList))
+		for _, raw := range rawList {
+			m, ok := raw.(map[string]any)
+			if !ok {
+				continue
+			}
+			item := endpointItem{}
+			if s, ok := m["service"].(string); ok {
+				item.service = s
+			}
+			if ni, ok := m["network_identifier"].(string); ok {
+				item.networkIdentifier = ni
+			}
+			items = append(items, item)
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			if items[i].service != items[j].service {
+				return items[i].service < items[j].service
+			}
+			return items[i].networkIdentifier < items[j].networkIdentifier
+		})
+
+		return items
+	}
+
+	canonicalOld := canonicalize(oldList)
+	canonicalNew := canonicalize(newList)
+
+	return reflect.DeepEqual(canonicalOld, canonicalNew)
 }
