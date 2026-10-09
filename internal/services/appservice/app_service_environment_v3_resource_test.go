@@ -300,8 +300,7 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "asedelegation"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }
@@ -376,6 +375,7 @@ func (r AppServiceEnvironmentV3Resource) updateVnet(data acceptance.TestData) st
 	template := r.template(data)
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_virtual_network" "test2" {
@@ -393,8 +393,7 @@ resource "azurerm_subnet" "test2" {
   delegation {
     name = "asedelegation"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }
@@ -477,8 +476,7 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "asedelegation"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }

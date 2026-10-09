@@ -100,6 +100,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The `account_kind` property no longer accepts the `BlobStorage` and `Storage` values.
 * The deprecated `public_network_access_enabled` property has been removed.
 
+### `azurerm_subnet`
+
+* The deprecated `actions` property within the `delegation.service_delegation` block is now read-only and can no longer be set, as this is not configurable through the API.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
