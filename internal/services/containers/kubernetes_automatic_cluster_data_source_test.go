@@ -42,12 +42,8 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("network.0.load_balancer_sku").Exists(),
 				check.That(data.ResourceName).Key("network.0.service_cidr").Exists(),
 				check.That(data.ResourceName).Key("network.0.dns_service_ip").Exists(),
+				// AKS Automatic may return no agent pools, or only an AKS-managed pool with most fields unset
 				check.That(data.ResourceName).Key("agent_pools.#").Exists(),
-				check.That(data.ResourceName).Key("agent_pools.0.name").Exists(),
-				check.That(data.ResourceName).Key("agent_pools.0.type").Exists(),
-				check.That(data.ResourceName).Key("agent_pools.0.vm_size").Exists(),
-				check.That(data.ResourceName).Key("agent_pools.0.os_type").Exists(),
-				check.That(data.ResourceName).Key("agent_pools.0.orchestrator_version").Exists(),
 			),
 		},
 	})
