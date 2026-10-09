@@ -31,6 +31,16 @@ func (a Python3PackageResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccPython3Package_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.Python3PackageResource{}.ResourceType(), "test")
+	r := Python3PackageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccPython3Package_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.Python3PackageResource{}.ResourceType(), "test")
 	r := Python3PackageResource{}

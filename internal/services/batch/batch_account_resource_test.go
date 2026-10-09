@@ -19,6 +19,16 @@ import (
 
 type BatchAccountResource struct{}
 
+func TestAccBatchAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
+	r := BatchAccountResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBatchAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}

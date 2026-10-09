@@ -70,6 +70,16 @@ resource "azurerm_automation_connection_type" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
+func TestAccAutomationConnectionType_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.AutomationConnectionTypeResource{}.ResourceType(), "test")
+	r := AutomationConnectionTypeResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationConnectionType_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.AutomationConnectionTypeResource{}.ResourceType(), "test")
 	r := AutomationConnectionTypeResource{}

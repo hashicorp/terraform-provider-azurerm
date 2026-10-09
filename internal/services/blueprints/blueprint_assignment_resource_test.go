@@ -19,6 +19,17 @@ import (
 type BlueprintAssignmentResource struct{}
 
 // Scenario: Basic BP, no artefacts etc.  Stored and applied at Subscription.
+func TestAccBlueprintAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
+	r := BlueprintAssignmentResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+		},
+	}, "")
+}
+
 func TestAccBlueprintAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 	r := BlueprintAssignmentResource{}
