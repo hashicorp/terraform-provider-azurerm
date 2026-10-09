@@ -10,10 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2026-04-01/tenantconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -81,12 +81,12 @@ func testAccPortalTenantConfiguration_update(t *testing.T) {
 }
 
 func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PortalTenantConfigurationID(state.ID)
+	id, err := tenantconfigurations.ParseTenantConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Portal.TenantConfigurationsClient.Get(ctx)
+	resp, err := client.Portal.TenantConfigurationsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
@@ -95,12 +95,12 @@ func (r PortalTenantConfigurationResource) Exists(ctx context.Context, client *c
 }
 
 func (r PortalTenantConfigurationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PortalTenantConfigurationID(state.ID)
+	id, err := tenantconfigurations.ParseTenantConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Portal.TenantConfigurationsClient.Delete(ctx)
+	resp, err := client.Portal.TenantConfigurationsClient.Delete(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("deleting %s: %+v", *id, err)

@@ -25,7 +25,15 @@ func TestDashboardProperties(t *testing.T) {
 			expected: true,
 		},
 		{
+			input:    "{\"lenses\":[]}",
+			expected: true,
+		},
+		{
 			input:    "{\"lenses\": {\"0\": {\"order\": 0,\"parts\": {\"0\": {\"position\": {\"x\": 0,\"y\": 0,\"rowSpan\": 2,\"colSpan\": 3},\"metadata\": {\"inputs\": [],\"type\": \"Extension/HubsExtension/PartType/MarkdownPart\",\"settings\": {\"content\": {\"settings\": {\"content\": \"## This is only a test :)\",\"subtitle\": \"\",\"title\": \"Test MD Tile\"}}}}}}}}}",
+			expected: true,
+		},
+		{
+			input:    "{\"lenses\":[{\"order\":0,\"parts\":[{\"position\":{\"x\":0,\"y\":0,\"rowSpan\":2,\"colSpan\":3},\"metadata\":{\"type\":\"Extension/HubsExtension/PartType/MarkdownPart\"}}]}]}",
 			expected: true,
 		},
 	}
