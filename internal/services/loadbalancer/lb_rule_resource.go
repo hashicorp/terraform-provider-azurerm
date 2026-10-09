@@ -189,15 +189,12 @@ func resourceArmLoadBalancerRuleFlatten(d *pluginsdk.ResourceData, id *loadbalan
 			// The backendAddressPools is designed for Gateway LB, while the backendAddressPool is designed for other skus.
 			// Though currently the API returns both, but for the sake of stability, we do use different fields here depending on the LB sku.
 			var backendAddressPoolIds []string
-
 			if props.BackendAddressPools != nil {
 				for _, p := range *props.BackendAddressPools {
 					backendAddressPoolIds = append(backendAddressPoolIds, pointer.From(p.Id))
 				}
-			} else {
-				if props.BackendAddressPool != nil {
-					backendAddressPoolIds = []string{pointer.From(props.BackendAddressPool.Id)}
-				}
+			} else if props.BackendAddressPool != nil {
+				backendAddressPoolIds = []string{pointer.From(props.BackendAddressPool.Id)}
 			}
 			d.Set("backend_address_pool_ids", backendAddressPoolIds)
 
