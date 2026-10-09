@@ -136,6 +136,8 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine should be allocated to.
 
+~> **Note:** Changing this field on an existing VM will cause the VM to be deallocated and restarted (rebooted). For **zonal** VMs this is possible without deallocation, but the feature is currently in **Preview**. See [Associate a VM to a capacity reservation group](https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-associate-vm).
+
 ~> **Note:** `capacity_reservation_group_id` cannot be used with `availability_set_id` or `proximity_placement_group_id`
 
 * `computer_name` - (Optional) Specifies the Hostname which should be used for this Virtual Machine. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name`, then you must specify `computer_name`. Changing this forces a new resource to be created.
