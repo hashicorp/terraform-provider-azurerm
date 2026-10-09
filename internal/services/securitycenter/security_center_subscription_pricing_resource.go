@@ -4,8 +4,10 @@
 package securitycenter
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -176,9 +179,9 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
-	updateResponse, updateErr := client.Update(ctx, id, pricing)
-	if updateErr != nil {
-		return fmt.Errorf("setting %s: %+v", id, updateErr)
+	updateResponse, err := updateSecurityCenterSubscriptionPricing(ctx, client, id, pricing)
+	if err != nil {
+		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	// the extensions from backend might vary after pricing tier changed.
@@ -188,9 +191,8 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 
 	pricing.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 
-	_, updateErr = client.Update(ctx, id, pricing)
-	if updateErr != nil {
-		return fmt.Errorf("updating %s: %+v", id, updateErr)
+	if _, err := updateSecurityCenterSubscriptionPricing(ctx, client, id, pricing); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -250,13 +252,14 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	// Update from `free` tier to `Standard`, we need to update it to `standard` tier first without extensions
 	// Then do an additional update for the `extensions`
+	// The service will enable extensions in the first update
 	requiredAdditionalUpdate := false
-	if d.HasChange("extension") && update.Properties.PricingTier == pricings.PricingTierStandard {
+	if update.Properties.PricingTier == pricings.PricingTierStandard {
 		update.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		requiredAdditionalUpdate = currentlyFreeTier
 	}
 
-	updateResponse, err := client.Update(ctx, *id, update)
+	updateResponse, err := updateSecurityCenterSubscriptionPricing(ctx, client, *id, update)
 	if err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
@@ -270,7 +273,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	if requiredAdditionalUpdate {
 		update.Properties.Extensions = expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		if _, err := client.Update(ctx, *id, update); err != nil {
+		if _, err := updateSecurityCenterSubscriptionPricing(ctx, client, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -335,12 +338,30 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if _, err := client.Update(ctx, *id, pricing); err != nil {
+	if _, err := updateSecurityCenterSubscriptionPricing(ctx, client, *id, pricing); err != nil {
 		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil
+}
+
+func updateSecurityCenterSubscriptionPricing(ctx context.Context, client *pricings.PricingsClient, id pricings.PricingId, pricing pricings.Pricing) (pricings.UpdateOperationResponse, error) {
+	var updateResponse pricings.UpdateOperationResponse
+	// Azure can still return HTTP 409 after a previous pricing update has returned successfully.
+	poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
+		var err error
+		updateResponse, err = client.Update(pollerCtx, id, pricing)
+		return updateResponse.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              30 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusConflict},
+	})
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return pricings.UpdateOperationResponse{}, err
+	}
+	return updateResponse, nil
 }
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []any, extensionsStatusFromBackend *[]pricings.Extension) *[]pricings.Extension {
