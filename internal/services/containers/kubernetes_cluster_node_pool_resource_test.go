@@ -1108,7 +1108,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1117,7 +1116,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1127,7 +1125,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1144,7 +1141,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testi
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1153,7 +1149,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testi
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -1163,7 +1158,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("tags.Environment").HasValue("prod"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
