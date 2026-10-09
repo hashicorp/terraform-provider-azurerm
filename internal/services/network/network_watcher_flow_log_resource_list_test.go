@@ -70,7 +70,7 @@ resource "azurerm_network_security_group" "test" {
 
 # Provisioning 3 virtual networks as the network watcher flow log must target distinct resources
 resource "azurerm_virtual_network" "test" {
-  count = 3
+  count               = 3
   name                = "acctestvn-%[1]d${count.index}"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
