@@ -5,11 +5,11 @@ package cdn
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -42,7 +42,7 @@ func (CdnFrontDoorCustomDomainListResource) ListResourceConfigSchema(_ context.C
 			"cdn_frontdoor_profile_id": listschema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{Func: profiles.ValidateProfileID},
+					typehelpers.WrappedStringValidator{Func: afddomains.ValidateProfileID},
 				},
 			},
 		},
@@ -59,7 +59,7 @@ func (CdnFrontDoorCustomDomainListResource) List(ctx context.Context, request li
 		return
 	}
 
-	parsedParentID, err := profiles.ParseProfileID(data.ProfileId.ValueString())
+	parsedParentID, err := afddomains.ParseProfileID(data.ProfileId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, "parsing `cdn_frontdoor_profile_id`", err)
 		return
@@ -69,7 +69,7 @@ func (CdnFrontDoorCustomDomainListResource) List(ctx context.Context, request li
 
 	resp, err := client.AFDCustomDomainsListByProfileComplete(ctx, parentID)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "listing "+azurermCdnFrontDoorCustomDomainResourceName, err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azurermCdnFrontDoorCustomDomainResourceName), err)
 		return
 	}
 
@@ -81,13 +81,13 @@ func (CdnFrontDoorCustomDomainListResource) List(ctx context.Context, request li
 			rd := resourceCdnFrontDoorCustomDomain().Data(&terraform.InstanceState{})
 			id, err := afddomains.ParseCustomDomainIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing "+azurermCdnFrontDoorCustomDomainResourceName+" ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", azurermCdnFrontDoorCustomDomainResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			if err := resourceCdnFrontDoorCustomDomainFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding "+azurermCdnFrontDoorCustomDomainResourceName+" resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azurermCdnFrontDoorCustomDomainResourceName), err)
 				return
 			}
 

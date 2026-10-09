@@ -18,7 +18,7 @@ Lists CDN FrontDoor Custom Domain resources.
 list "azurerm_cdn_frontdoor_custom_domain" "example" {
   provider = azurerm
   config {
-    cdn_frontdoor_profile_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1"
+    cdn_frontdoor_profile_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Cdn/profiles/example-profile"
   }
 }
 ```

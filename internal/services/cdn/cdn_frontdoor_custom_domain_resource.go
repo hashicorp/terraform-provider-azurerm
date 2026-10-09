@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id cdn_frontdoor_profile_id -test-env-vars "ARM_TEST_DATA_RESOURCE_GROUP,ARM_TEST_DNS_ZONE"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id" -test-env-vars "ARM_TEST_DATA_RESOURCE_GROUP,ARM_TEST_DNS_ZONE"
 
 const azurermCdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
 
@@ -256,7 +256,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta any)
 
 	props.Properties.TlsSettings = tlsSettings
 
-	if err := client.AFDCustomDomainsCreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.AFDCustomDomainsCreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

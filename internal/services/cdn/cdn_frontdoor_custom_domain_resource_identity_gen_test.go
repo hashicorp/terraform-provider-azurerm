@@ -35,7 +35,7 @@ func TestAccCdnFrontdoorCustomDomain_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_cdn_frontdoor_custom_domain.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_custom_domain.test", tfjsonpath.New("name"), tfjsonpath.New("cdn_frontdoor_profile_id")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_cdn_frontdoor_custom_domain.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_custom_domain.test", tfjsonpath.New("profile_name"), tfjsonpath.New("cdn_frontdoor_profile_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_custom_domain.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("cdn_frontdoor_profile_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_cdn_frontdoor_custom_domain.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("cdn_frontdoor_profile_id")),
