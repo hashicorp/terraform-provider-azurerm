@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -24,16 +25,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "named_value_id:name,resource_group_name,service_name:api_management_name"
+
+const azureApiManagementNamedValueResourceName = "azurerm_api_management_named_value"
+
 func resourceApiManagementNamedValue() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementNamedValueCreateUpdate,
 		Read:   resourceApiManagementNamedValueRead,
 		Update: resourceApiManagementNamedValueCreateUpdate,
 		Delete: resourceApiManagementNamedValueDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namedvalue.ParseNamedValueID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&namedvalue.NamedValueId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&namedvalue.NamedValueId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -146,10 +152,13 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
@@ -180,11 +189,15 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta any) er
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceApiManagementNamedValueFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementNamedValueFlatten(d *pluginsdk.ResourceData, id *namedvalue.NamedValueId, model *namedvalue.NamedValueContract) error {
 	d.Set("name", id.NamedValueId)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("secret", pointer.From(props.Secret))
@@ -199,7 +212,7 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta any) er
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta any) error {
