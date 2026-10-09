@@ -34,6 +34,8 @@ func TestAccNetworkWatcher_sequential(t *testing.T) {
 			"complete":       testAccNetworkWatcher_complete,
 			"update":         testAccNetworkWatcher_update,
 			"disappears":     testAccNetworkWatcher_disappears,
+			"list":           testAccNetworkWatcher_listBySubscriptionAndRG,
+			"identity":       testAccNetworkWatcher_resourceIdentity,
 		},
 		"DataSource": {
 			"basic": testAccDataSourceNetworkWatcher_basic,
