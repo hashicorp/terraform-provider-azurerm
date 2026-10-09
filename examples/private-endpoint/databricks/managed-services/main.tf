@@ -147,12 +147,20 @@ resource "azurerm_private_dns_zone" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_private_dns_cname_record" "example" {
+resource "azurerm_private_dns_a_record" "example" {
   name                = azurerm_databricks_workspace.example.workspace_url
   zone_name           = azurerm_private_dns_zone.example.name
   resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
-  record              = "eastus2-c2.azuredatabricks.net"
+  records             = [azurerm_private_endpoint.databricks.private_service_connection[0].private_ip_address]
+}
+
+resource "azurerm_private_dns_cname_record" "example" {
+  name                = "eastus2-c2.pl-auth"
+  zone_name           = azurerm_private_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  ttl                 = 300
+  record              = azurerm_databricks_workspace.example.workspace_url
 }
 
 resource "azurerm_key_vault" "example" {
