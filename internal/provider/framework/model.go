@@ -220,11 +220,13 @@ var ManagedDiskAttributes = map[string]attr.Type{
 }
 
 type Storage struct {
-	DataPlaneAvailable types.Bool `tfsdk:"data_plane_available"`
+	DataPlaneAvailable    types.Bool `tfsdk:"data_plane_available"`
+	SkipStoringAccessKeys types.Bool `tfsdk:"skip_storing_access_keys"`
 }
 
 var StorageAttributes = map[string]attr.Type{
-	"data_plane_available": types.BoolType,
+	"data_plane_available":     types.BoolType,
+	"skip_storing_access_keys": types.BoolType,
 }
 
 type Subscription struct {
