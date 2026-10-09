@@ -71,11 +71,6 @@ func (r CapacityReservationListResource) List(ctx context.Context, request list.
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("retrieving Capacity Reservation Group for `%s`", azureCapacityReservationResourceName), err)
 		return
 	}
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		sdk.SetResponseErrorDiagnostic(stream, "internal-error", fmt.Errorf("context had no deadline"))
-		return
-	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		ctx, cancel := context.WithDeadline(context.Background(), deadline)
