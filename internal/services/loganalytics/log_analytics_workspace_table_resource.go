@@ -51,15 +51,15 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
-		},
-
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
 		},
 
 		"plan": {
@@ -135,6 +135,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			updateInput.Properties.TotalRetentionInDays = pointer.To(int64(-1))
 			if model.TotalRetentionInDays != 0 {
 				updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}
@@ -166,45 +167,55 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Log Analytics Workspace Table %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
-			if model := existing.Model; model != nil {
-				if props := model.Properties; props != nil {
-					updateInput := tables.Table{
-						Properties: &tables.TableProperties{
-							Plan: props.Plan,
-						},
-					}
+			props := existing.Model.Properties
+			if props.Schema != nil {
+				// Azure rejects StandardColumns in CreateOrUpdate requests.
+				props.Schema.StandardColumns = nil
+			}
 
-					if metadata.ResourceData.HasChange("plan") {
-						updateInput.Properties.Plan = pointer.ToEnum[tables.TablePlanEnum](state.Plan)
-					}
+			if pointer.From(props.RetentionInDaysAsDefault) {
+				props.RetentionInDays = pointer.To(int64(-1))
+			}
+			if pointer.From(props.TotalRetentionInDaysAsDefault) {
+				props.TotalRetentionInDays = pointer.To(int64(-1))
+			}
 
-					if state.Plan == string(tables.TablePlanEnumAnalytics) {
-						if metadata.ResourceData.HasChange("retention_in_days") {
-							updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
-							// `0` is not a valid value for `retention_in_days`, and the service will return HTTP 400
-							// to reset it to its default value, we need to pass `-1`
-							if state.RetentionInDays == 0 {
-								updateInput.Properties.RetentionInDays = pointer.To(int64(-1))
-							}
-						}
-					}
+			if metadata.ResourceData.HasChange("plan") {
+				props.Plan = pointer.ToEnum[tables.TablePlanEnum](state.Plan)
+			}
 
-					if metadata.ResourceData.HasChange("total_retention_in_days") {
-						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
-						// `0` is not a valid value for `total_retention_in_days`, and the service will return HTTP 400
-						// to reset it to its default value, we need to pass `-1`
-						if state.TotalRetentionInDays == 0 {
-							updateInput.Properties.TotalRetentionInDays = pointer.To(int64(-1))
-						}
-					}
-
-					if err := client.UpdateThenPoll(ctx, *id, updateInput); err != nil {
-						return fmt.Errorf("failed to update table: %s: %+v", id.TableName, err)
+			if state.Plan == string(tables.TablePlanEnumAnalytics) {
+				if metadata.ResourceData.HasChange("retention_in_days") {
+					props.RetentionInDays = pointer.To(state.RetentionInDays)
+					// Azure uses -1 to reset retention to the workspace default.
+					if state.RetentionInDays == 0 {
+						props.RetentionInDays = pointer.To(int64(-1))
 					}
 				}
+			} else {
+				// Retention is read-only for Basic tables.
+				props.RetentionInDays = nil
+			}
+
+			if metadata.ResourceData.HasChange("total_retention_in_days") {
+				props.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
+				// Azure uses -1 to reset total retention to the table retention.
+				if state.TotalRetentionInDays == 0 {
+					props.TotalRetentionInDays = pointer.To(int64(-1))
+				}
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -218,13 +229,10 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := tables.ParseTableID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
-			workspaceId, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Get("workspace_id").(string))
-			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
-			}
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
 			client := metadata.Client.LogAnalytics.TablesClient
 

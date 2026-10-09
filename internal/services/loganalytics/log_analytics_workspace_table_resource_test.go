@@ -18,7 +18,7 @@ import (
 
 type LogAnalyticsWorkspaceTableResource struct{}
 
-func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
+func TestAccLogAnalyticsWorkspaceTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
 	r := LogAnalyticsWorkspaceTableResource{}
 
@@ -27,23 +27,45 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("10"),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
+	r := LogAnalyticsWorkspaceTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateRetention(data),
+			Config: r.retention(data, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.removeRetention(data),
+			Config: r.retention(data, 7),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("0"), // since it's removed, we will not set a value to it to state.
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.totalRetention(data, 180),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.retention(data, 10),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -53,26 +75,33 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.totalRetention(data, 180),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.totalRetention(data, 120),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("45"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.updateTotalRetention(data),
+			Config: r.totalRetention(data, 180),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("35"),
 			),
 		},
-		{
-			Config: r.removeRetention(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("0"),
-			),
-		},
+		data.ImportStep(),
 	})
 }
 
@@ -87,6 +116,21 @@ func TestAccLogAnalyticsWorkspaceTable_plan(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.planWithTotalRetention(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.plan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -101,107 +145,60 @@ func (t LogAnalyticsWorkspaceTableResource) Exists(ctx context.Context, clients 
 		return nil, fmt.Errorf("reading Log Analytics Workspace Table (%s): %+v", id.ID(), err)
 	}
 
-	return pointer.To(resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (LogAnalyticsWorkspaceTableResource) basic(data acceptance.TestData) string {
+func (r LogAnalyticsWorkspaceTableResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+%s
+
+resource "azurerm_log_analytics_workspace_table" "test" {
+  name         = "AppEvents"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+}
+`, r.template(data))
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  retention_in_days   = 30
-}
+func (r LogAnalyticsWorkspaceTableResource) retention(data acceptance.TestData, retentionInDays int) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
-  retention_in_days       = 10
-  total_retention_in_days = 45
+  retention_in_days       = %d
+  total_retention_in_days = 180
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), retentionInDays)
 }
 
-func (LogAnalyticsWorkspaceTableResource) updateRetention(data acceptance.TestData) string {
+func (r LogAnalyticsWorkspaceTableResource) totalRetention(data acceptance.TestData, totalRetentionInDays int) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  retention_in_days   = 30
-}
+%s
 
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
-  retention_in_days       = 7
-  total_retention_in_days = 45
+  total_retention_in_days = %d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), totalRetentionInDays)
 }
 
-func (LogAnalyticsWorkspaceTableResource) updateTotalRetention(data acceptance.TestData) string {
+func (r LogAnalyticsWorkspaceTableResource) plan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  retention_in_days   = 30
-}
+%s
 
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name                    = "AppEvents"
-  workspace_id            = azurerm_log_analytics_workspace.test.id
-  retention_in_days       = 10
-  total_retention_in_days = 35
+  name         = "AppTraces"
+  workspace_id = azurerm_log_analytics_workspace.test.id
+  plan         = "Basic"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data))
 }
 
-func (LogAnalyticsWorkspaceTableResource) plan(data acceptance.TestData) string {
+func (r LogAnalyticsWorkspaceTableResource) planWithTotalRetention(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  retention_in_days   = 30
-}
+%s
 
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppTraces"
@@ -209,10 +206,10 @@ resource "azurerm_log_analytics_workspace_table" "test" {
   plan                    = "Basic"
   total_retention_in_days = 45
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data))
 }
 
-func (LogAnalyticsWorkspaceTableResource) removeRetention(data acceptance.TestData) string {
+func (LogAnalyticsWorkspaceTableResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -228,11 +225,6 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
-}
-
-resource "azurerm_log_analytics_workspace_table" "test" {
-  name         = "AppEvents"
-  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
