@@ -87,6 +87,8 @@ A `db_system_shapes` block exports the following:
 
 * `runtime_minimum_core_count` - The runtime minimum number of compute servers available for this shape.
 
+* `shape_attributes` - The shapeAttributes of the DB system shape.
+
 * `shape_family` - The family of the shape used for the DB system.
 
 ## Timeouts

@@ -16,9 +16,10 @@ Gets a list of supported GI versions.
 
 ```hcl
 data "azurerm_oracle_gi_versions" "example" {
-  location = "eastus"
-  zone     = "2"
-  shape    = "Exadata.X9M"
+  location        = "eastus"
+  zone            = "2"
+  shape           = "Exadata.X9M"
+  shape_attribute = "SMART_STORAGE"
 }
 
 output "example" {
@@ -33,6 +34,8 @@ The following arguments are supported:
 * `location` - (Required) The Azure Region to query for the GI Versions in.
 
 * `shape` - (Optional) The model name of the Cloud Exadata Infrastructure resource. Possible values are `ExaDbXS`, `Exadata.X9M`, and `Exadata.X11M`. This is used to filter out the available GI versions compatible with the given model.
+
+* `shape_attribute` - (Optional) Filters the available GI versions for the given Shape Attribute. Possible values are `BLOCK_STORAGE` and `SMART_STORAGE`.
 
 * `zone` - (Optional) Indicates the Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.
 

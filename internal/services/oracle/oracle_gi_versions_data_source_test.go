@@ -20,7 +20,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("versions.#").HasValue("10"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("12"),
 			),
 		},
 	})
@@ -35,6 +35,22 @@ func TestGiVersionsDataSource_complete(t *testing.T) {
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").HasValue("2"),
+			),
+		},
+	})
+}
+
+func TestGiVersionsDataSource_completeShapeAttribute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
+	r := GiVersionsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.completeShapeAttribute(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("versions.#").HasValue("2"),
+				check.That(data.ResourceName).Key("shape").HasValue("Exadata.X11M"),
+				check.That(data.ResourceName).Key("shape_attribute").HasValue("SMART_STORAGE"),
 			),
 		},
 	})
@@ -62,6 +78,21 @@ data "azurerm_oracle_gi_versions" "test" {
   location = "eastus"
   shape    = "Exadata.X9M"
   zone     = "2"
+}
+`
+}
+
+func (d GiVersionsDataSource) completeShapeAttribute() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_oracle_gi_versions" "test" {
+  location        = "eastus"
+  shape           = "Exadata.X11M"
+  shape_attribute = "SMART_STORAGE"
+  zone            = "2"
 }
 `
 }

@@ -20,6 +20,7 @@ func TestDbSystemShapesDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("db_system_shapes.#").HasValue("8"),
 				check.That(data.ResourceName).Key("db_system_shapes.0.available_core_count").Exists(),
 			),
 		},
@@ -34,6 +35,7 @@ func TestDbSystemShapesDataSource_complete(t *testing.T) {
 		{
 			Config: r.complete(),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("db_system_shapes.#").HasValue("4"),
 				check.That(data.ResourceName).Key("db_system_shapes.0.available_core_count").Exists(),
 			),
 		},
@@ -59,8 +61,9 @@ provider "azurerm" {
 }
 
 data "azurerm_oracle_db_system_shapes" "test" {
-  location = "eastus"
-  zone     = "2"
+  location        = "eastus"
+  zone            = "2"
+  shape_attribute = "SMART_STORAGE"
 }
 `
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/dbsystemshapes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,34 +28,41 @@ type DbSystemShapesModel struct {
 }
 
 type DbSystemShapeModel struct {
-	AreServerTypesSupported            bool    `tfschema:"are_server_types_supported"`
-	AvailableCoreCount                 int64   `tfschema:"available_core_count"`
-	AvailableCoreCountPerNode          int64   `tfschema:"available_core_count_per_node"`
-	AvailableDataStorageInTbs          int64   `tfschema:"available_data_storage_in_tbs"`
-	AvailableDataStoragePerServerInTbs float64 `tfschema:"available_data_storage_per_server_in_tbs"`
-	AvailableDbNodePerNodeInGbs        int64   `tfschema:"available_db_node_per_node_in_gbs"`
-	AvailableDbNodeStorageInGbs        int64   `tfschema:"available_db_node_storage_in_gbs"`
-	AvailableMemoryInGbs               int64   `tfschema:"available_memory_in_gbs"`
-	AvailableMemoryPerNodeInGbs        int64   `tfschema:"available_memory_per_node_in_gbs"`
-	ComputeModel                       string  `tfschema:"compute_model"`
-	CoreCountIncrement                 int64   `tfschema:"core_count_increment"`
-	DisplayName                        string  `tfschema:"display_name"`
-	MaxStorageCount                    int64   `tfschema:"maximum_storage_count"`
-	MaximumNodeCount                   int64   `tfschema:"maximum_node_count"`
-	MinCoreCountPerNode                int64   `tfschema:"minimum_core_count_per_node"`
-	MinDataStorageInTbs                int64   `tfschema:"minimum_data_storage_in_tbs"`
-	MinDbNodeStoragePerNodeInGbs       int64   `tfschema:"minimum_db_node_storage_per_node_in_gbs"`
-	MinMemoryPerNodeInGbs              int64   `tfschema:"minimum_memory_per_node_in_gbs"`
-	MinStorageCount                    int64   `tfschema:"minimum_storage_count"`
-	MinimumCoreCount                   int64   `tfschema:"minimum_core_count"`
-	MinimumNodeCount                   int64   `tfschema:"minimum_node_count"`
-	RuntimeMinimumCoreCount            int64   `tfschema:"runtime_minimum_core_count"`
-	ShapeFamily                        string  `tfschema:"shape_family"`
+	AreServerTypesSupported            bool     `tfschema:"are_server_types_supported"`
+	AvailableCoreCount                 int64    `tfschema:"available_core_count"`
+	AvailableCoreCountPerNode          int64    `tfschema:"available_core_count_per_node"`
+	AvailableDataStorageInTbs          int64    `tfschema:"available_data_storage_in_tbs"`
+	AvailableDataStoragePerServerInTbs float64  `tfschema:"available_data_storage_per_server_in_tbs"`
+	AvailableDbNodePerNodeInGbs        int64    `tfschema:"available_db_node_per_node_in_gbs"`
+	AvailableDbNodeStorageInGbs        int64    `tfschema:"available_db_node_storage_in_gbs"`
+	AvailableMemoryInGbs               int64    `tfschema:"available_memory_in_gbs"`
+	AvailableMemoryPerNodeInGbs        int64    `tfschema:"available_memory_per_node_in_gbs"`
+	ComputeModel                       string   `tfschema:"compute_model"`
+	CoreCountIncrement                 int64    `tfschema:"core_count_increment"`
+	DisplayName                        string   `tfschema:"display_name"`
+	MaxStorageCount                    int64    `tfschema:"maximum_storage_count"`
+	MaximumNodeCount                   int64    `tfschema:"maximum_node_count"`
+	MinCoreCountPerNode                int64    `tfschema:"minimum_core_count_per_node"`
+	MinDataStorageInTbs                int64    `tfschema:"minimum_data_storage_in_tbs"`
+	MinDbNodeStoragePerNodeInGbs       int64    `tfschema:"minimum_db_node_storage_per_node_in_gbs"`
+	MinMemoryPerNodeInGbs              int64    `tfschema:"minimum_memory_per_node_in_gbs"`
+	MinStorageCount                    int64    `tfschema:"minimum_storage_count"`
+	MinimumCoreCount                   int64    `tfschema:"minimum_core_count"`
+	MinimumNodeCount                   int64    `tfschema:"minimum_node_count"`
+	RuntimeMinimumCoreCount            int64    `tfschema:"runtime_minimum_core_count"`
+	ShapeAttributes                    []string `tfschema:"shape_attributes"`
+	ShapeFamily                        string   `tfschema:"shape_family"`
 }
 
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
+		"shape_attribute": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(exadbvmclusters.PossibleValuesForShapeAttribute(), false),
+			Description:  "Filter the versions by Shape Attribute. Possible values are `BLOCK_STORAGE` or `SMART_STORAGE`.",
+		},
 		"zone": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
@@ -157,6 +166,13 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+					"shape_attributes": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
 					"shape_family": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -239,6 +255,7 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 							MinimumCoreCount:                   pointer.From(props.MinimumCoreCount),
 							MinimumNodeCount:                   pointer.From(props.MinimumNodeCount),
 							RuntimeMinimumCoreCount:            pointer.From(props.RuntimeMinimumCoreCount),
+							ShapeAttributes:                    pointer.From(props.ShapeAttributes),
 							ShapeFamily:                        pointer.From(props.ShapeFamily),
 						})
 					}
