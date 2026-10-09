@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `managed_image_id` - (Optional) The ID of the Managed Image or Virtual Machine ID which should be used for this Shared Image Version. Changing this forces a new resource to be created.
 
--> **Note:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
+-> **Note:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html), or it can be a Virtual Machine ID in the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}`.
 
 -> **Note:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
 
@@ -84,6 +84,8 @@ The following arguments are supported:
 * `storage_account_id` - (Optional) The ID of the Storage Account where the Blob exists. Changing this forces a new resource to be created.
 
 -> **Note:** `blob_uri` and `storage_account_id` must be specified together
+
+* `uefi` - (Optional) A `uefi` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
@@ -100,6 +102,36 @@ The `target_region` block supports the following:
 * `exclude_from_latest_enabled` - (Optional) Specifies whether this Shared Image Version should be excluded when querying for the `latest` version. Defaults to `false`.
 
 * `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS`, `Premium_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
+
+---
+
+A `uefi` block supports the following:
+
+* `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values are `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate` and `NoSignatureTemplate`. Changing this forces a new resource to be created.
+
+* `additional_signatures` - (Optional) An `additional_signatures` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+An `additional_signatures` block supports the following:
+
+* `db` - (Optional) One or more `db` blocks as defined below. Changing this forces a new resource to be created.
+
+* `dbx` - (Optional) One or more `dbx` blocks as defined below. Changing this forces a new resource to be created.
+
+* `kek` - (Optional) One or more `kek` blocks as defined below. Changing this forces a new resource to be created.
+
+* `pk` - (Optional) A `pk` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** At least one of `db`, `dbx`, `kek` or `pk` must be specified when an `additional_signatures` block is defined.
+
+---
+
+A `db`, `dbx`, `kek` or `pk` block supports the following:
+
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
+
+* `values_base64` - (Required) A list of Base64-encoded values for this key. For `x509` keys this is the DER-encoded certificate, for `sha256` keys this is the hash. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

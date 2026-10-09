@@ -53,7 +53,7 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupManagedDisks(data),
+			Config: r.setupManagedDisksForHyperVGeneration(data, "V2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
@@ -273,12 +273,23 @@ func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *c
 }
 
 func (r ImageResource) setupManagedDisks(data acceptance.TestData) string {
+	return r.setupManagedDisksForHyperVGeneration(data, "")
+}
+
+func (r ImageResource) setupManagedDisksForHyperVGeneration(data acceptance.TestData, hyperVGen string) string {
+	sku := "22_04-lts"
+	size := "Standard_D1_v2"
+	if hyperVGen == "V2" {
+		sku = "22_04-lts-gen2"
+		size = "Standard_B1ls"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
 resource "azurerm_network_interface" "testsource" {
   name                = "acctnicsource-${local.number}"
@@ -298,12 +309,12 @@ resource "azurerm_linux_virtual_machine" "testsource" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
-  size                  = "Standard_D1_v2"
+  size                  = "%[3]s"
 
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    sku       = "%[2]s"
     version   = "latest"
   }
 
@@ -328,7 +339,7 @@ data "azurerm_managed_disk" "testsource" {
   name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, r.template(data))
+`, r.template(data), sku, size)
 }
 
 func (r ImageResource) setupManagedDisksWithKV(data acceptance.TestData) string {
@@ -423,7 +434,7 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
     storage_type    = "Standard_LRS"
   }`
 
-	template := r.setupManagedDisks(data)
+	template := r.setupManagedDisksForHyperVGeneration(data, hyperVGen)
 
 	return fmt.Sprintf(`
 %[1]s

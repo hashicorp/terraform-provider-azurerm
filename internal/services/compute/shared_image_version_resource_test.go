@@ -105,6 +105,30 @@ func TestAccSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 	})
 }
 
+func TestAccSharedImageVersion_uefiSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config:  r.setupGen2(data),
+			Destroy: false,
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
+			),
+		},
+		{
+			Config: r.uefiSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSharedImageVersion_specializedImageVersionBySnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
@@ -307,8 +331,21 @@ func (SharedImageVersionResource) setup(data acceptance.TestData) string {
 	return ImageResource{}.setupManagedDisks(data)
 }
 
-func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "")
+// setupGen2 provisions a Gen2 source VM, as required for Trusted Launch image definitions
+func (SharedImageVersionResource) setupGen2(data acceptance.TestData) string {
+	return ImageResource{}.setupManagedDisksForHyperVGeneration(data, "V2")
+}
+
+func (SharedImageVersionResource) provision(data acceptance.TestData, hyperVGen string, trustedLaunchSupported bool) string {
+	template := ImageResource{}.standaloneImageProvision(data, hyperVGen)
+	hyperVGenAtt := ""
+	if hyperVGen != "" {
+		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
+	}
+	trustedLaunchAtt := ""
+	if trustedLaunchSupported {
+		trustedLaunchAtt = `trusted_launch_supported = true`
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -325,17 +362,20 @@ resource "azurerm_shared_image" "test" {
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
 
+  %s
+  %s
+
   identifier {
     publisher = "AccTesPublisher%d"
     offer     = "AccTesOffer%d"
     sku       = "AccTesSku%d"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, hyperVGenAtt, trustedLaunchAtt, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 
@@ -357,6 +397,52 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 `, template)
+}
+
+func (r SharedImageVersionResource) uefiSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  uefi {
+    signature_template_names = ["NoSignatureTemplate"]
+
+    additional_signatures {
+      db {
+        type          = "x509"
+        values_base64 = [filebase64("testdata/uefi_test_certificate.der")]
+      }
+
+      dbx {
+        type          = "x509"
+        values_base64 = [filebase64("testdata/uefi_test_certificate.der")]
+      }
+
+      kek {
+        type          = "x509"
+        values_base64 = [filebase64("testdata/uefi_test_certificate.der")]
+      }
+
+      pk {
+        type          = "x509"
+        values_base64 = [filebase64("testdata/uefi_test_certificate.der")]
+      }
+    }
+  }
+}
+`, r.provision(data, "V2", true))
 }
 
 func (r SharedImageVersionResource) provisionSpecialized(data acceptance.TestData) string {
@@ -448,7 +534,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionStorageAccountType(data acceptance.TestData, storageAccountType string) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 
@@ -490,7 +576,7 @@ resource "azurerm_shared_image_version" "import" {
 }
 
 func (r SharedImageVersionResource) imageVersionUpdated(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 
@@ -516,7 +602,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) diskEncryptionSetID(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 
@@ -620,7 +706,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) endOfLifeDate(data acceptance.TestData, endOfLifeDate string) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 
@@ -642,7 +728,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) replicationMode(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 
@@ -664,7 +750,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) replicatedRegionDeletion(data acceptance.TestData) string {
-	template := r.provision(data)
+	template := r.provision(data, "", false)
 	return fmt.Sprintf(`
 %s
 

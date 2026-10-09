@@ -187,6 +187,65 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"uefi": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"signature_template_names": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForUefiSignatureTemplateName(), false),
+							},
+						},
+						"additional_signatures": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"db": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+									"dbx": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+									"kek": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+									"pk": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										MaxItems:     1,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -274,6 +333,12 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta any) error
 				StorageAccountId: pointer.To(d.Get("storage_account_id").(string)),
 				Uri:              pointer.To(v.(string)),
 			},
+		}
+	}
+
+	if v, ok := d.GetOk("uefi"); ok {
+		version.Properties.SecurityProfile = &galleryimageversions.ImageVersionSecurityProfile{
+			UefiSettings: expandUefiSettings(v.([]any)),
 		}
 	}
 
@@ -377,7 +442,9 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, galleryimageversions.DefaultGetOperationOptions())
+	resp, err := client.Get(ctx, *id, galleryimageversions.GetOperationOptions{
+		Expand: pointer.To(galleryimageversions.ReplicationStatusTypesUefiSettings),
+	})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", id)
@@ -452,6 +519,12 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 			if safetyProfile := props.SafetyProfile; safetyProfile != nil {
 				d.Set("deletion_of_replicated_locations_enabled", pointer.From(safetyProfile.AllowDeletionOfReplicatedLocations))
 			}
+
+			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.UefiSettings != nil {
+				if err := d.Set("uefi", flattenUefiSettings(securityProfile.UefiSettings)); err != nil {
+					return fmt.Errorf("setting `uefi`: %+v", err)
+				}
+			}
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -523,6 +596,161 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 	}
 
 	return &results, nil
+}
+
+func expandUefiSettings(input []any) *galleryimageversions.GalleryImageVersionUefiSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	result := &galleryimageversions.GalleryImageVersionUefiSettings{}
+
+	if templateNamesSet, ok := v["signature_template_names"].(*pluginsdk.Set); ok {
+		result.SignatureTemplateNames = expandSignatureTemplateNames(templateNamesSet.List())
+	}
+
+	if additionalSignatures, ok := v["additional_signatures"].([]any); ok {
+		result.AdditionalSignatures = expandAdditionalSignatures(additionalSignatures)
+	}
+
+	return result
+}
+
+func expandSignatureTemplateNames(input []any) *[]galleryimageversions.UefiSignatureTemplateName {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]galleryimageversions.UefiSignatureTemplateName, 0)
+	for _, v := range input {
+		result = append(result, galleryimageversions.UefiSignatureTemplateName(v.(string)))
+	}
+	return &result
+}
+
+func expandAdditionalSignatures(input []any) *galleryimageversions.UefiKeySignatures {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	result := &galleryimageversions.UefiKeySignatures{}
+
+	if db, ok := v["db"].([]any); ok {
+		result.Db = expandUefiKeyList(db)
+	}
+
+	if dbx, ok := v["dbx"].([]any); ok {
+		result.Dbx = expandUefiKeyList(dbx)
+	}
+
+	if kek, ok := v["kek"].([]any); ok {
+		result.Kek = expandUefiKeyList(kek)
+	}
+
+	if pk, ok := v["pk"].([]any); ok {
+		result.Pk = expandUefiKey(pk)
+	}
+
+	return result
+}
+
+func expandUefiKeyList(input []any) *[]galleryimageversions.UefiKey {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]galleryimageversions.UefiKey, 0)
+	for _, v := range input {
+		if item := expandUefiKey([]any{v}); item != nil {
+			result = append(result, *item)
+		}
+	}
+	return &result
+}
+
+func expandUefiKey(input []any) *galleryimageversions.UefiKey {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	data := input[0].(map[string]any)
+
+	certData := make([]string, 0)
+	if certList, ok := data["values_base64"].([]any); ok {
+		for _, item := range certList {
+			if str, ok := item.(string); ok {
+				certData = append(certData, str)
+			}
+		}
+	}
+
+	return &galleryimageversions.UefiKey{
+		Type:  pointer.ToEnum[galleryimageversions.UefiKeyType](data["type"].(string)),
+		Value: &certData,
+	}
+}
+
+func flattenUefiSettings(input *galleryimageversions.GalleryImageVersionUefiSettings) []any {
+	results := make([]any, 0)
+
+	if input == nil {
+		return results
+	}
+
+	results = append(results, map[string]any{
+		"signature_template_names": pointer.From(input.SignatureTemplateNames),
+		"additional_signatures":    flattenAdditionalSignatures(input.AdditionalSignatures),
+	})
+
+	return results
+}
+
+func flattenAdditionalSignatures(input *galleryimageversions.UefiKeySignatures) []any {
+	results := make([]any, 0)
+
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]any)
+	result["db"] = flattenUefiKeyList(input.Db)
+	result["dbx"] = flattenUefiKeyList(input.Dbx)
+	result["kek"] = flattenUefiKeyList(input.Kek)
+	result["pk"] = flattenUefiKey(input.Pk)
+
+	return append(results, result)
+}
+
+func flattenUefiKeyList(input *[]galleryimageversions.UefiKey) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		if item := flattenUefiKey(&v); len(item) > 0 {
+			results = append(results, item[0])
+		}
+	}
+
+	return results
+}
+
+func flattenUefiKey(input *galleryimageversions.UefiKey) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]any)
+	if input.Value != nil && len(*input.Value) > 0 {
+		result["values_base64"] = *input.Value
+	}
+	result["type"] = pointer.From(input.Type)
+
+	return append(results, result)
 }
 
 func flattenSharedImageVersionTargetRegions(input *[]galleryimageversions.TargetRegion) []any {
