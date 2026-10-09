@@ -4,6 +4,8 @@
 package network
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -172,6 +175,86 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"exception": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MinItems: 1,
+							MaxItems: 60, // https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions#limitations
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"exception_rule_set": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"type": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetType,
+												},
+												"version": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion,
+												},
+												"rule_group": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"rule_group_name": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+															},
+															"rules": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																Elem: &pluginsdk.Schema{
+																	Type:         pluginsdk.TypeString,
+																	ValidateFunc: validation.StringIsNotEmpty,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									"match_variable": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForExceptionEntryMatchVariable(), false),
+									},
+									"value_match_operator": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForExceptionEntryValueMatchOperator(), false),
+									},
+									"values": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										MinItems: 1,
+										MaxItems: 600, // https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions#limitations
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringLenBetween(1, 256),
+										},
+									},
+									"selector": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"selector_match_operator": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForExceptionEntrySelectorMatchOperator(), false),
+									},
+								},
+							},
+						},
 						"exclusion": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -441,6 +524,45 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+			exceptions := diff.Get("managed_rules.0.exception").([]any)
+			if len(exceptions) == 0 {
+				return nil
+			}
+
+			for i, raw := range exceptions {
+				exception := raw.(map[string]any)
+				matchVariable := exception["match_variable"].(string)
+				switch webapplicationfirewallpolicies.ExceptionEntryMatchVariable(matchVariable) {
+				case webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestHeader, webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestURI:
+					if len(exception["values"].([]any)) > 10 {
+						return fmt.Errorf("`managed_rules.0.exception.%d.values` cannot contain more than 10 items when `match_variable` is `%s`", i, matchVariable)
+					}
+				}
+			}
+
+			for i, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
+				ruleSet := raw.(map[string]any)
+				var minimumVersion string
+				switch ruleSet["type"].(string) {
+				case "OWASP":
+					minimumVersion = "3.2"
+				case "Microsoft_DefaultRuleSet":
+					minimumVersion = "2.1"
+				default:
+					continue
+				}
+				configuredVersion, err := version.NewVersion(ruleSet["version"].(string))
+				if err != nil {
+					return fmt.Errorf("parsing `managed_rules.0.managed_rule_set.%d.version`: %+v", i, err)
+				}
+				if configuredVersion.GreaterThanOrEqual(version.Must(version.NewVersion(minimumVersion))) {
+					return nil
+				}
+			}
+			return errors.New("`managed_rules.0.exception` requires a `managed_rule_set` with `type` of `OWASP` and `version` of `3.2` or later, or `type` of `Microsoft_DefaultRuleSet` and `version` of `2.1` or later")
+		}),
 	}
 }
 
@@ -738,18 +860,70 @@ func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []any) *weba
 	}
 	v := input[0].(map[string]any)
 
-	exclusions := v["exclusion"].([]any)
-	managedRuleSets := v["managed_rule_set"].([]any)
-
-	expandedManagedRuleSets := expandWebApplicationFirewallPolicyManagedRuleSet(managedRuleSets)
-
 	return &webapplicationfirewallpolicies.ManagedRulesDefinition{
-		Exclusions:      expandWebApplicationFirewallPolicyExclusions(exclusions),
-		ManagedRuleSets: *expandedManagedRuleSets,
+		Exceptions:      expandWebApplicationFirewallPolicyExceptions(v["exception"].([]any)),
+		Exclusions:      expandWebApplicationFirewallPolicyExclusions(v["exclusion"].([]any)),
+		ManagedRuleSets: *expandWebApplicationFirewallPolicyManagedRuleSet(v["managed_rule_set"].([]any)),
 	}
 }
 
-func expandWebApplicationFirewallPolicyExclusionManagedRules(input []any) *[]webapplicationfirewallpolicies.ExclusionManagedRule {
+func expandWebApplicationFirewallPolicyExceptions(input []any) *[]webapplicationfirewallpolicies.ExceptionEntry {
+	results := make([]webapplicationfirewallpolicies.ExceptionEntry, 0)
+	for _, item := range input {
+		v := item.(map[string]any)
+		result := webapplicationfirewallpolicies.ExceptionEntry{
+			MatchVariable:      webapplicationfirewallpolicies.ExceptionEntryMatchVariable(v["match_variable"].(string)),
+			ValueMatchOperator: webapplicationfirewallpolicies.ExceptionEntryValueMatchOperator(v["value_match_operator"].(string)),
+		}
+		if managedRuleSets := v["exception_rule_set"].([]any); len(managedRuleSets) > 0 {
+			result.ExceptionManagedRuleSets = expandWebApplicationFirewallPolicyExceptionManagedRuleSets(managedRuleSets)
+		}
+		if selector := v["selector"].(string); selector != "" {
+			result.Selector = pointer.To(selector)
+		}
+		if selectorMatchOperator := v["selector_match_operator"].(string); selectorMatchOperator != "" {
+			result.SelectorMatchOperator = pointer.ToEnum[webapplicationfirewallpolicies.ExceptionEntrySelectorMatchOperator](selectorMatchOperator)
+		}
+		if values := v["values"].([]any); len(values) > 0 {
+			result.Values = pluginsdk.ExpandStringSlice(values)
+		}
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExceptionManagedRuleSets(input []any) *[]webapplicationfirewallpolicies.ExclusionManagedRuleSet {
+	results := make([]webapplicationfirewallpolicies.ExclusionManagedRuleSet, 0)
+	for _, item := range input {
+		v := item.(map[string]any)
+		result := webapplicationfirewallpolicies.ExclusionManagedRuleSet{
+			RuleSetType:    v["type"].(string),
+			RuleSetVersion: v["version"].(string),
+		}
+		if ruleGroups := v["rule_group"].([]any); len(ruleGroups) > 0 {
+			result.RuleGroups = expandWebApplicationFirewallPolicyExceptionManagedRuleGroups(ruleGroups)
+		}
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExceptionManagedRuleGroups(input []any) *[]webapplicationfirewallpolicies.ExclusionManagedRuleGroup {
+	results := make([]webapplicationfirewallpolicies.ExclusionManagedRuleGroup, 0)
+	for _, item := range input {
+		v := item.(map[string]any)
+		result := webapplicationfirewallpolicies.ExclusionManagedRuleGroup{
+			RuleGroupName: v["rule_group_name"].(string),
+		}
+		if rules := v["rules"].([]any); len(rules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyManagedRuleIDs(rules)
+		}
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyManagedRuleIDs(input []any) *[]webapplicationfirewallpolicies.ExclusionManagedRule {
 	results := make([]webapplicationfirewallpolicies.ExclusionManagedRule, 0)
 	for _, item := range input {
 		ruleID := item.(string)
@@ -775,7 +949,7 @@ func expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(input []any) *[
 		}
 
 		if excludedRules := v["excluded_rules"].([]any); len(excludedRules) > 0 {
-			result.Rules = expandWebApplicationFirewallPolicyExclusionManagedRules(excludedRules)
+			result.Rules = expandWebApplicationFirewallPolicyManagedRuleIDs(excludedRules)
 		}
 
 		results = append(results, result)
@@ -1031,6 +1205,7 @@ func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input webapplicat
 
 	v := make(map[string]any)
 
+	v["exception"] = flattenWebApplicationFirewallPolicyExceptions(input.Exceptions)
 	v["exclusion"] = flattenWebApplicationFirewallPolicyExclusions(input.Exclusions)
 	v["managed_rule_set"] = flattenWebApplicationFirewallPolicyManagedRuleSets(input.ManagedRuleSets)
 
@@ -1039,7 +1214,60 @@ func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input webapplicat
 	return results
 }
 
-func flattenWebApplicationFirewallPolicyExclusionManagedRules(input *[]webapplicationfirewallpolicies.ExclusionManagedRule) []string {
+func flattenWebApplicationFirewallPolicyExceptionManagedRuleGroups(input *[]webapplicationfirewallpolicies.ExclusionManagedRuleGroup) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+	for _, item := range *input {
+		v := make(map[string]any)
+
+		v["rule_group_name"] = item.RuleGroupName
+		v["rules"] = flattenWebApplicationFirewallPolicyManagedRuleIDs(item.Rules)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExceptionManagedRuleSets(input *[]webapplicationfirewallpolicies.ExclusionManagedRuleSet) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+	for _, item := range *input {
+		v := make(map[string]any)
+
+		v["type"] = item.RuleSetType
+		v["version"] = item.RuleSetVersion
+		v["rule_group"] = flattenWebApplicationFirewallPolicyExceptionManagedRuleGroups(item.RuleGroups)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExceptions(input *[]webapplicationfirewallpolicies.ExceptionEntry) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+	for _, item := range *input {
+		v := make(map[string]any)
+
+		v["match_variable"] = string(item.MatchVariable)
+		v["selector"] = pointer.From(item.Selector)
+		v["selector_match_operator"] = pointer.FromEnum(item.SelectorMatchOperator)
+		v["value_match_operator"] = string(item.ValueMatchOperator)
+		v["values"] = pointer.From(item.Values)
+		v["exception_rule_set"] = flattenWebApplicationFirewallPolicyExceptionManagedRuleSets(item.ExceptionManagedRuleSets)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyManagedRuleIDs(input *[]webapplicationfirewallpolicies.ExclusionManagedRule) []string {
 	results := make([]string, 0)
 	if input == nil || len(*input) == 0 {
 		return results
@@ -1062,7 +1290,7 @@ func flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(input *[]weba
 		v := make(map[string]any)
 
 		v["rule_group_name"] = item.RuleGroupName
-		v["excluded_rules"] = flattenWebApplicationFirewallPolicyExclusionManagedRules(item.Rules)
+		v["excluded_rules"] = flattenWebApplicationFirewallPolicyManagedRuleIDs(item.Rules)
 
 		results = append(results, v)
 	}

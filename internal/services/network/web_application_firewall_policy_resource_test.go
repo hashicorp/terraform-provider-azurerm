@@ -6,6 +6,8 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -306,6 +308,81 @@ func TestAccWebApplicationFirewallPolicy_excludedRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.exceptions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.exceptionsComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.exceptions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptionsInvalidValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	for _, matchVariable := range []string{"RequestURI", "RequestHeader"} {
+		t.Run(matchVariable, func(t *testing.T) {
+			config := strings.ReplaceAll(r.exceptions(data), `"RequestURI"`, fmt.Sprintf("%q", matchVariable))
+			config = strings.ReplaceAll(config, `["/login.php"]`, `[for i in range(11) : format("/path%d", i)]`)
+			data.ResourceTest(t, r, []acceptance.TestStep{
+				{
+					Config:      config,
+					PlanOnly:    true,
+					ExpectError: regexp.MustCompile("cannot contain more than 10 items"),
+				},
+			})
+		})
+	}
+}
+
+func TestAccWebApplicationFirewallPolicy_exceptionsInvalidRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	config := strings.Replace(r.exceptions(data), `managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }`, `managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }`, 1)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      config,
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("requires a `managed_rule_set`"),
+		},
 	})
 }
 
@@ -1115,6 +1192,123 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallPolicyResource) exceptions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    exception {
+      match_variable       = "RequestURI"
+      value_match_operator = "EndsWith"
+      values               = ["/login.php"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+      }
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallPolicyResource) exceptionsComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    exception {
+      match_variable          = "RequestHeader"
+      selector                = "x-company-secret-header"
+      selector_match_operator = "Equals"
+      value_match_operator    = "Contains"
+      values                  = ["allowed-value"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+
+        rule_group {
+          rule_group_name = "SQLI"
+          rules           = ["942100"]
+        }
+      }
+    }
+
+    exception {
+      match_variable       = "RequestURI"
+      value_match_operator = "EndsWith"
+      values               = ["/login.php", "/logout.php"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+
+        rule_group {
+          rule_group_name = "SQLI"
+        }
+      }
+    }
+
+    exception {
+      match_variable       = "RemoteAddr"
+      value_match_operator = "IPMatch"
+      values               = ["192.0.2.1", "198.51.100.0/24"]
+
+      exception_rule_set {
+        type    = "Microsoft_DefaultRuleSet"
+        version = "2.1"
+      }
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
