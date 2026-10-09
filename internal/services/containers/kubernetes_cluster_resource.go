@@ -2553,7 +2553,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			existing.Model.Properties.SecurityProfile.Defender = nil
 		}
 
-		if err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		// if Tags are the only thing that's changed we can use the lighter-weight Update Tags API, which issues a
+		// PATCH, rather than the full Create/Update API, which issues a PUT and can trigger an unnecessary cluster
+		// reconcile
+		if d.HasChange("tags") && !d.HasChangesExcept("tags") {
+			tagsObject := managedclusters.TagsObject{
+				Tags: existing.Model.Tags,
+			}
+			if err = clusterClient.UpdateTagsThenPoll(ctx, *id, tagsObject, managedclusters.DefaultUpdateTagsOperationOptions()); err != nil {
+				return fmt.Errorf("updating tags for %s: %+v", *id, err)
+			}
+		} else if err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 	}
