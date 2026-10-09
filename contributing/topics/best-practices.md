@@ -294,7 +294,7 @@ The following CustomizeDiff validation that asserts `customize_managed_key_ident
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff == nil {
 				return nil
@@ -323,7 +323,7 @@ Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig(
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff == nil {
 				return nil

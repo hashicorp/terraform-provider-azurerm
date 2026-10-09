@@ -2,21 +2,21 @@
 
 In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on.
 
-This document defines standards for resource and data source reference documentation in `website\docs\r` and `website\docs\d`. It does not define standards for other documentation types such as `guides`, `functions`, `actions`, `upgrade guides`, or `list` pages.
+This document defines standards for resource and data source reference documentation in `website/docs/r` and `website/docs/d`. It does not define standards for other documentation types such as `guides`, `functions`, `actions`, `upgrade guides`, or `list` pages.
 
 This page will grow over time, and suggestions are welcome!
 
 ## Documentation Locations
 
-Resource and data source reference documentation is located under the `website\docs` directory in the repository. This documentation is split between `resources` and `data sources` which are kept in different sub-directories of the `website\docs` directory.
+Resource and data source reference documentation is located under the `website/docs` directory in the repository. This documentation is split between `resources` and `data sources` which are kept in different sub-directories of the `website/docs` directory.
 
-- Resource documentation is in the `website\docs\r` directory.
-- Data source documentation is in the `website\docs\d` directory.
+- Resource documentation is in the `website/docs/r` directory.
+- Data source documentation is in the `website/docs/d` directory.
 
 Reference documentation should follow the name of the Terraform resource or data source it is documenting.
 
-- If you are documenting the resource `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website\docs\r` directory.
-- If you are documenting the data source `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website\docs\d` directory.
+- If you are documenting the resource `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website/docs/r` directory.
+- If you are documenting the data source `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website/docs/d` directory.
 
 ## Front Matter
 

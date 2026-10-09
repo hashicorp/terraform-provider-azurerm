@@ -185,7 +185,7 @@ Schema fields should be ordered as follows:
 4. Optional fields, sorted alphabetically. (The `tags` field is a special case and must always be listed last even though it's an `optional` field.)
 5. Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the `Attributes` method)
 
--> **Note:** This ordering applies to both `typed` and `untyped` resources; typed implementations still need their documentation to follow this sequence even if the schema wiring differs.
+> **Note:** This ordering applies to both `typed` and `untyped` resources; typed implementations still need their documentation to follow this sequence even if the schema wiring differs.
 
 ---
 
@@ -342,7 +342,6 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             }
 
             return nil
-			// The Update function in **untyped** resources should return `Read()`
         },
     }
 }
@@ -717,7 +716,7 @@ func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
 			o, n := metadata.ResourceDiff.GetChange("zone_balancing_enabled")
 			if o.(bool) != n.(bool) {
 				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
-				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+				if !o.(bool) && n.(bool) && metadata.ResourceDiff.Get("worker_count").(int) < 2 {
 					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
 						return err
 					}

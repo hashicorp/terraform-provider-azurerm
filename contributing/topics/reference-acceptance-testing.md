@@ -310,7 +310,7 @@ This test is intended to confirm that the logic within the create function (to c
 Since this test is attempting to provision the same resource, with the same identifier, twice - this test typically reuses the `Basic` test as a part of it - interpolating it's values as required.
 
 ```go
-func TestAccExampleResource_basic(t *testing.T) {
+func TestAccExampleResource_requiresImport(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
         r := ExampleResource{}
 
@@ -402,7 +402,7 @@ func TestAccExampleResource_someSetting(t *testing.T) {
     })
 }
 
-func (ExampleResource) someSettingEnabled(data acceptance.TestData) string {
+func (ExampleResource) someSetting(data acceptance.TestData, enabled bool) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -410,8 +410,9 @@ provider "azurerm" {
 
 resource "azurerm_example_resource" "example" {
   name                 = "my_example_resource"
-  location             = "%s"
+  location             = "%[1]s"
+  some_setting_enabled = %[2]t
 }
-`, data.Locations.Primary)
+`, data.Locations.Primary, enabled)
 }
 ```

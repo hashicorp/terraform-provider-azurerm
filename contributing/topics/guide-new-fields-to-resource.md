@@ -33,9 +33,9 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		"logging_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-		}
+		},
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": commonschema.Tags(),
 	}
 }
 ```
@@ -64,7 +64,7 @@ props := machinelearning.Workspace{
 
 ```go
 if metadata.ResourceData.HasChange("logging_enabled") {
-	existing.Model.Properties.LoggingEnabled = pointer.From(model.LoggingEnabled)
+	existing.Model.Properties.LoggingEnabled = pointer.To(model.LoggingEnabled)
 }
 ```
 
@@ -120,6 +120,7 @@ Schema: map[string]*pluginsdk.Schema{
 	"enable_compression": {
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
+	},
 },
 ```
 
@@ -132,6 +133,7 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+	}
 }
 ```
 
@@ -150,19 +152,19 @@ func resource() *pluginsdk.Resource {
     }
 
     if !features.SixPointOh() {
-        resource["compression_enabled"] = &pluginsdk.Schema{
+        resource.Schema["compression_enabled"] = &pluginsdk.Schema{
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            ConflictsWith: []string{"enable_compression"}
+            ConflictsWith: []string{"enable_compression"},
         }
 
-        resource["enable_compression"] = &pluginsdk.Schema{
-            Type:	   pluginsdk.TypeBool,
-            Optional:   true,
-            Computed:   true,
-            Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
-            ConflictsWith: []string{"compression_enabled"}
+        resource.Schema["enable_compression"] = &pluginsdk.Schema{
+            Type:          pluginsdk.TypeBool,
+            Optional:      true,
+            Computed:      true,
+            Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
+            ConflictsWith: []string{"compression_enabled"},
         }
     }
 
@@ -175,28 +177,27 @@ Here is an example for a typed resource:
 ```go
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
-			// The deprecated property is moved out of the schema and conditionally added back via the feature flag
-			"compression_enabled": {
-				Type:	   pluginsdk.TypeBool,
-				Optional:   true,
-			},
-		}
+		// The deprecated property is moved out of the schema and conditionally added back via the feature flag
+		"compression_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 	}
 
 	if !features.SixPointOh() {
 		schema["compression_enabled"] = &pluginsdk.Schema{
-			Type:	       pluginsdk.TypeBool,
+			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: []string{"enable_compression"}
+			ConflictsWith: []string{"enable_compression"},
 		}
 
 		schema["enable_compression"] = &pluginsdk.Schema{
-			Type:	   pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
-			ConflictsWith: []string{"compression_enabled"}
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the provider",
+			ConflictsWith: []string{"compression_enabled"},
 		}
 	}
 
@@ -237,12 +238,10 @@ Here is an example for a typed resource:
 ```go
 func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
-	compressionEnabled := false
-	if !features.SixPointOh() {
+	compressionEnabled := model.CompressionEnabled
+	if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_compression") {
 		compressionEnabled = model.EnableCompression
 	}
-
-	compressionEnabled = model.CompressionEnabled
 	...
 }
 

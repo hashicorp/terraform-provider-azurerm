@@ -110,7 +110,7 @@ func TestExpandFeatures(t *testing.T) {
                         map[string]any{
     	                    "purge_soft_delete_on_destroy": true,
     	                },
-    	            },   
+    	            },
      	            ...
     	        },
             },
@@ -143,7 +143,7 @@ func TestExpandFeatures(t *testing.T) {
                 ...
             },
         },
-    },	
+    },
 }
 
 
@@ -272,7 +272,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
                         },
                     },
                 },
-            },	
+            },
             ...
         }
     }

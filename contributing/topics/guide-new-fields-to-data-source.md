@@ -29,11 +29,11 @@ func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 		},
-		
+
 		"public_network_access_enabled": {
 			Type: pluginsdk.TypeBool,
 			Computed: true,
-        },       
+        },
 
 		"tags": commonschema.TagsDataSource(),
 	}

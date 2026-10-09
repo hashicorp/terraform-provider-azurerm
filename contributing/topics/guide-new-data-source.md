@@ -176,7 +176,7 @@ Schema fields should be ordered as follows:
 4. Optional fields, sorted alphabetically. (As with resources, `tags` is a special case and must always be the final entry in the `optional`/`Attributes` fields list.)
 5. Computed fields, sorted alphabetically. (Although in a typed data source these are always added within the `Attributes` method)
 
--> **Note:** This ordering applies to both `typed` and `untyped` data sources; even when the schema is generated via `Attributes()`, the documentation must follow the same rules.
+> **Note:** This ordering applies to both `typed` and `untyped` data sources; even when the schema is generated via `Attributes()`, the documentation must follow the same rules.
 
 ---
 
@@ -305,7 +305,7 @@ func (d ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schem
 }
 
 func (d ResourceGroupExampleDataSource) ModelObject() any {
-	return nil
+	return &ResourceGroupExampleDataSourceModel{}
 }
 
 func (d ResourceGroupExampleDataSource) ResourceType() string {
@@ -346,7 +346,7 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 }
 ```
 
-At this point in time this Data Source is now code-complete - there's an optional extension to make this cleaner by using a Typed Model, however this isn't necessary.
+At this point in time this Data Source is now code-complete.
 
 ### Step 5: Register the new Data Source
 
@@ -533,9 +533,7 @@ $ make scaffold-website BRAND_NAME="Resource Group Example" RESOURCE_NAME="azure
 
 The documentation should look something like below - containing both an example usage and the required, optional and computed fields:
 
-> **Note:** In the example below you'll need to replace each `[]` with a backtick "`" - as otherwise this gets rendered incorrectly, unfortunately.
-
-```markdown
+````markdown
 ---
 subcategory: "Base"
 layout: "azurerm"
@@ -550,7 +548,7 @@ Use this data source to access information about an existing Resource Group.
 
 ## Example Usage
 
-[][][]hcl
+```hcl
 data "azurerm_resource_group_example" "example" {
   name = "existing"
 }
@@ -558,7 +556,7 @@ data "azurerm_resource_group_example" "example" {
 output "id" {
   value = data.azurerm_resource_group_example.example.id
 }
-[][][]
+```
 
 ## Arguments Reference
 
@@ -581,9 +579,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
-```
-
-> **Note:** In the example above you'll need to replace each `[]` with a backtick "`" - as otherwise this gets rendered incorrectly, unfortunately.
+````
 
 ### Step 9: Send the Pull Request
 

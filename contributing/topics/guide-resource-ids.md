@@ -21,7 +21,7 @@ func (r MachineLearningWorkspace) Create() sdk.ResourceFunc {
 
 func (r MachineLearningWorkspace) Read() sdk.ResourceFunc {
     ...
-    id := workspaces.ParseWorkspaceID(subscriptionId, resourceGroupName, workspaceName)
+    id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 	...
 }
 ```
@@ -33,17 +33,17 @@ Some resource types that are referenced across multiple services, will have thei
 This is done to avoid having to convert the same ID between different types.
 
 ```go
-import `github.com/hashicorp/go-azure-helpers/resourcemanager/commonids`
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 func (r AppServicePlan) Create() sdk.ResourceFunc {
     ...
-    id := commonids.NewAppServicePlanID(subscriptionId, resourceGroupName, workspaceName)
+    id := commonids.NewAppServicePlanID(subscriptionId, resourceGroupName, appServicePlanName)
 	...
 }
 
 func (r AppServicePlan) Read() sdk.ResourceFunc {
     ...
-    id := commonids.ParseAppServicePlanID(subscriptionId, resourceGroupName, workspaceName)
+    id, err := commonids.ParseAppServicePlanID(metadata.ResourceData.Id())
 	...
 }
 ```
@@ -53,7 +53,7 @@ func (r AppServicePlan) Read() sdk.ResourceFunc {
 Resource IDs that consist of a scope ID and a resource ID separated by a `|` e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1` should be handled using the Composite Resource ID functions in the `hashicorp/go-azure-helpers` `commonids` package.
 
 ```go
-import `github.com/hashicorp/go-azure-helpers/resourcemanager/commonids`
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 func (r NatGatewayPublicIpAssociation) Create() sdk.ResourceFunc {
     ...
@@ -62,7 +62,7 @@ func (r NatGatewayPublicIpAssociation) Create() sdk.ResourceFunc {
     if err != nil {
 		return err
     }
-    
+
     natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
     if err != nil {
         return err

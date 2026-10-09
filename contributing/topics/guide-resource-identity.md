@@ -19,7 +19,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     package example
 
     import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-   
+
     type ExampleResource struct{}
 
     var _ sdk.ResourceWithIdentity = ExampleResource{}
@@ -29,14 +29,14 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
 
     ```go
     package example
-    
+
     import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     import "github.com/hashicorp/go-azure-helpers/resourceids"
-    
+
     type ExampleResource struct{}
-    
+
     var _ sdk.ResourceWithIdentity = ExampleResource{}
-    
+
     func (r ExampleResource) Identity() resourceids.ResourceId {
         return &examplepackage.ExampleResourceId{}
     }
@@ -50,16 +50,16 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
             Timeout: 30 * time.Minute,
             Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
                 client := metadata.Client.Service.ExampleClient
-                
+
                 id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
                 ...
-                
+
                 // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
                 if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
                     return fmt.Errorf("creating %s: %+v", &id, err)
                 }
-                
+
                 metadata.SetID(id)
                 return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
             },
@@ -81,13 +81,13 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
                 if err != nil {
                     return err
                 }
-                 
+
                 ...
-                 
+
                 if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
                     return err
                 }
-                
+
                 return metadata.Encode(&model)
             },
         }
@@ -104,28 +104,28 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
     package example
-    
+
     import (
         "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
     )
-    
+
     func resourceExample() *pluginsdk.Resource {
         return &pluginsdk.Resource{
             Create: resourceExampleCreate,
             Read: resourceExampleRead,
             Update: resourceExampleUpdate,
             Delete: resourceExampleDelete,
-    
+
             Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
                 _, err := examplepackage.ParseExampleID(id)
                 return err
             }),
-            
+
             // We will be including the new `Identity` field
             Identity: &schema.ResourceIdentity{
                 SchemaFunc: pluginsdk.GenerateIdentitySchema(&examplepackage.ExampleId{}),
             },
-            
+
             ...
         }
     }
@@ -135,25 +135,25 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
         package example
-        
+
         import (
             "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
         )
-        
+
         func resourceExample() *pluginsdk.Resource {
             return &pluginsdk.Resource{
                 Create: resourceExampleCreate,
                 Read: resourceExampleRead,
                 Update: resourceExampleUpdate,
                 Delete: resourceExampleDelete,
-        
+
                 Importer: pluginsdk.ImporterValidatingIdentity(&examplepackage.ExampleId{}),
-                
+
                 // We will be including the new `Identity` field
                 Identity: &schema.ResourceIdentity{
                     SchemaFunc: pluginsdk.GenerateIdentitySchema(&examplepackage.ExampleId{}),
                 },
-                
+
                 ...
             }
         }
@@ -163,28 +163,25 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
     func resourceExampleCreate(d *pluginsdk.ResourceData, meta any) error {
-        Timeout: 30 * time.Minute,
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := meta.(*clients.Client).Compute.DedicatedHostsClient
-            ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-            defer cancel()
-            
-            id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+        client := meta.(*clients.Client).Service.ExampleClient
+        ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+        defer cancel()
 
-            ...
+        id := examplepackage.NewExampleResourceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-            // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
-            if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
-               return fmt.Errorf("creating %s: %+v", &id, err)
-            }
-            
-            d.SetId(id.ID())
-            if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-                return err
-            }
-            
-            return resourceExampleRead(d, meta)
+        ...
+
+        // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallback`.
+        if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+            return fmt.Errorf("creating %s: %+v", id, err)
         }
+
+        d.SetId(id.ID())
+        if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+            return err
+        }
+
+        return resourceExampleRead(d, meta)
     }
     ```
 
@@ -197,14 +194,14 @@ To add Resource Identity to an untyped resource, follow the steps below.
             client := meta.(*clients.Client).Service.ExampleClient
             ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
             defer cancel()
-    
+
             id, err := examplepackage.ParseExampleResourceID(d.Id())
             if err != nil {
                 return err
             }
-            
+
             ...
-            
+
             // Usually we can simply replace the final `return nil` line with the return below.
             return pluginsdk.SetResourceIdentityData(d, id)
         }
@@ -266,12 +263,12 @@ There are edge cases where the AST inference cannot automatically map the proper
 
 Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
 
- ```go
+```go
 package example
-     
+
 import (
     "time"
-      
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -285,13 +282,13 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -no-subscription-id
 
 type ExampleResource struct{}
-  
+
 var _ sdk.ResourceWithIdentity = ExampleResource{}
-  
+
 func (r ExampleResource) Identity() resourceids.ResourceId {
     return &examplepackage.ExampleResourceId{}
 }
-  
+
 func (r ExampleResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 5 * time.Minute,
@@ -301,15 +298,15 @@ func (r ExampleResource) Read() sdk.ResourceFunc {
             if err != nil {
                 return err
             }
-             
+
             ...
-              
+
             if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
                 return err
             }
-             
+
             return metadata.Encode(&model)
         },
     }
 }
- ```
+```
