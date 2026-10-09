@@ -21,45 +21,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_target_endpoint -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_smb_file_share_target_endpoint -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
 
-type StorageMoverTargetEndpointModel struct {
-	Name                 string `tfschema:"name"`
-	StorageMoverId       string `tfschema:"storage_mover_id"`
-	StorageAccountId     string `tfschema:"storage_account_id"`
-	StorageContainerName string `tfschema:"storage_container_name"`
-	Description          string `tfschema:"description"`
+type StorageMoverSmbFileShareTargetEndpointModel struct {
+	Name             string `tfschema:"name"`
+	StorageMoverId   string `tfschema:"storage_mover_id"`
+	StorageAccountId string `tfschema:"storage_account_id"`
+	FileShareName    string `tfschema:"file_share_name"`
+	Description      string `tfschema:"description"`
 }
 
-type StorageMoverTargetEndpointResource struct{}
+type StorageMoverSmbFileShareTargetEndpointResource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity       = StorageMoverTargetEndpointResource{}
-	_ sdk.ResourceWithUpdate         = StorageMoverTargetEndpointResource{}
-	_ sdk.ResourceWithCustomImporter = StorageMoverTargetEndpointResource{}
+	_ sdk.ResourceWithIdentity       = StorageMoverSmbFileShareTargetEndpointResource{}
+	_ sdk.ResourceWithUpdate         = StorageMoverSmbFileShareTargetEndpointResource{}
+	_ sdk.ResourceWithCustomImporter = StorageMoverSmbFileShareTargetEndpointResource{}
 )
 
-func (r StorageMoverTargetEndpointResource) Identity() resourceids.ResourceId {
-	return &endpoints.EndpointId{}
+func (r StorageMoverSmbFileShareTargetEndpointResource) ResourceType() string {
+	return "azurerm_storage_mover_smb_file_share_target_endpoint"
 }
 
-func (r StorageMoverTargetEndpointResource) ResourceType() string {
-	return "azurerm_storage_mover_target_endpoint"
+func (r StorageMoverSmbFileShareTargetEndpointResource) ModelObject() any {
+	return &StorageMoverSmbFileShareTargetEndpointModel{}
 }
 
-func (r StorageMoverTargetEndpointResource) ModelObject() any {
-	return &StorageMoverTargetEndpointModel{}
-}
-
-func (r StorageMoverTargetEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r StorageMoverSmbFileShareTargetEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return endpoints.ValidateEndpointID
 }
 
-func (r StorageMoverTargetEndpointResource) CustomImporter() sdk.ResourceRunFunc {
+func (r StorageMoverSmbFileShareTargetEndpointResource) CustomImporter() sdk.ResourceRunFunc {
 	return r.Read().Func
 }
 
-func (r StorageMoverTargetEndpointResource) Arguments() map[string]*pluginsdk.Schema {
+func (r StorageMoverSmbFileShareTargetEndpointResource) Identity() resourceids.ResourceId {
+	return &endpoints.EndpointId{}
+}
+
+func (r StorageMoverSmbFileShareTargetEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -78,6 +78,13 @@ func (r StorageMoverTargetEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: storagemovers.ValidateStorageMoverID,
 		},
 
+		"file_share_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareName,
+		},
+
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -85,30 +92,23 @@ func (r StorageMoverTargetEndpointResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
-		"storage_container_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageContainerName,
-		},
-
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
 
-func (r StorageMoverTargetEndpointResource) Attributes() map[string]*pluginsdk.Schema {
+func (r StorageMoverSmbFileShareTargetEndpointResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
+func (r StorageMoverSmbFileShareTargetEndpointResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model StorageMoverTargetEndpointModel
+			var model StorageMoverSmbFileShareTargetEndpointModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -120,7 +120,6 @@ func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			id := endpoints.NewEndpointID(storageMoverId.SubscriptionId, storageMoverId.ResourceGroupName, storageMoverId.StorageMoverName, model.Name)
-
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -133,14 +132,14 @@ func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := endpoints.Endpoint{
-				Properties: endpoints.AzureStorageBlobContainerEndpointProperties{
-					BlobContainerName:        model.StorageContainerName,
+				Properties: endpoints.AzureStorageSmbFileShareEndpointProperties{
+					FileShareName:            model.FileShareName,
 					StorageAccountResourceId: model.StorageAccountId,
 				},
 			}
 
 			if model.Description != "" {
-				if v, ok := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
+				if v, ok := properties.Properties.(endpoints.AzureStorageSmbFileShareEndpointProperties); ok {
 					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
@@ -159,7 +158,7 @@ func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
+func (r StorageMoverSmbFileShareTargetEndpointResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -170,7 +169,7 @@ func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model StorageMoverTargetEndpointModel
+			var model StorageMoverSmbFileShareTargetEndpointModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -186,7 +185,7 @@ func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				if v, ok := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
+				if v, ok := properties.Properties.(endpoints.AzureStorageSmbFileShareEndpointProperties); ok {
 					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
@@ -201,7 +200,7 @@ func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageMoverTargetEndpointResource) Read() sdk.ResourceFunc {
+func (r StorageMoverSmbFileShareTargetEndpointResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -226,21 +225,24 @@ func (r StorageMoverTargetEndpointResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageMoverTargetEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
+func (r StorageMoverSmbFileShareTargetEndpointResource) flatten(metadata sdk.ResourceMetaData, id *endpoints.EndpointId, model *endpoints.Endpoint) error {
 	if err := r.checkEndpointType(*id, model); err != nil {
 		return err
 	}
 
-	state := StorageMoverTargetEndpointModel{
+	state := StorageMoverSmbFileShareTargetEndpointModel{
 		Name:           id.EndpointName,
 		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
 	}
 
 	if model != nil {
-		if v, ok := model.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
-			state.StorageContainerName = v.BlobContainerName
-			state.StorageAccountId = v.StorageAccountResourceId
-
+		if v, ok := model.Properties.(endpoints.AzureStorageSmbFileShareEndpointProperties); ok {
+			storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(v.StorageAccountResourceId)
+			if err != nil {
+				return err
+			}
+			state.FileShareName = v.FileShareName
+			state.StorageAccountId = storageAccountId.ID()
 			state.Description = pointer.From(v.Description)
 		}
 	}
@@ -252,7 +254,7 @@ func (r StorageMoverTargetEndpointResource) flatten(metadata sdk.ResourceMetaDat
 	return metadata.Encode(&state)
 }
 
-func (r StorageMoverTargetEndpointResource) Delete() sdk.ResourceFunc {
+func (r StorageMoverSmbFileShareTargetEndpointResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -283,12 +285,12 @@ func (r StorageMoverTargetEndpointResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageMoverTargetEndpointResource) checkEndpointType(id endpoints.EndpointId, model *endpoints.Endpoint) error {
+func (r StorageMoverSmbFileShareTargetEndpointResource) checkEndpointType(id endpoints.EndpointId, model *endpoints.Endpoint) error {
 	if model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
-	if _, ok := model.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); !ok {
-		return fmt.Errorf("retrieving %s: expected a Blob Container endpoint, got %T", id, model.Properties)
+	if _, ok := model.Properties.(endpoints.AzureStorageSmbFileShareEndpointProperties); !ok {
+		return fmt.Errorf("retrieving %s: expected an SMB File Share endpoint, got %T", id, model.Properties)
 	}
 	return nil
 }
