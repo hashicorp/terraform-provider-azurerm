@@ -24,7 +24,7 @@ func TestAccBotChannelDirectline_regressionTest(t *testing.T) {
 	r := BotChannelDirectlineResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicConfig(data),
+			Config: r.completeConfig(data),
 		},
 	}, "")
 }

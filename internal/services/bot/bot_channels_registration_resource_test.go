@@ -23,7 +23,7 @@ func TestAccBotChannelsRegistration_regressionTest(t *testing.T) {
 	r := BotChannelsRegistrationResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicConfig(data),
+			Config: r.completeConfig(data),
 		},
 	}, "")
 }

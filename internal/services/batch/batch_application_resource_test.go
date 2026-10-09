@@ -28,7 +28,7 @@ func TestAccBatchApplication_regressionTest(t *testing.T) {
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data, ""),
+			Config: r.complete(data, ""),
 		},
 	}, "")
 }
