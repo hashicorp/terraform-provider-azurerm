@@ -6,6 +6,7 @@ package mssqlmanagedinstance
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -325,6 +326,17 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if !features.SixPointOh() {
+				var existing SqlManagedInstanceStartStopScheduleModel
+				if err := metadata.Decode(&existing); err != nil {
+					return fmt.Errorf("decoding: %+v", err)
+				}
+
+				// Azure reorders schedules as their next execution times change. Preserve the
+				// list order only when all entries still match, so actual changes remain visible.
+				state.Schedule = preserveScheduleItemOrder(state.Schedule, existing.Schedule)
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -385,4 +397,24 @@ func flattenScheduleItemModelArray(inputList []startstopmanagedinstanceschedules
 		outputList = append(outputList, output)
 	}
 	return outputList
+}
+
+func preserveScheduleItemOrder(actual, existing []ScheduleItemModel) []ScheduleItemModel {
+	if len(actual) != len(existing) {
+		return actual
+	}
+
+	counts := make(map[ScheduleItemModel]int, len(actual))
+	for _, item := range actual {
+		counts[item]++
+	}
+
+	for _, item := range existing {
+		if counts[item] == 0 {
+			return actual
+		}
+		counts[item]--
+	}
+
+	return slices.Clone(existing)
 }
