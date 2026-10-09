@@ -25,7 +25,7 @@ func TestAccApiManagementLogger_regressionTest(t *testing.T) {
 	r := ApiManagementLoggerResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicEventHub(data),
+			Config: r.complete(data, "Logger from Terraform test", "false"),
 		},
 	}, "")
 }

@@ -23,7 +23,7 @@ func TestAccApiManagementGroup_regressionTest(t *testing.T) {
 	r := ApiManagementGroupResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data, "Test Group", "A test description."),
 		},
 	}, "")
 }
