@@ -39,7 +39,7 @@ output "azurerm_data_protection_backup_vault_principal_id" {
 
 * `location` -  The Azure Region where the Backup Vault exists.
 
-* `datastore_type` - Specifies the type of the data store.
+* `datastore_type` - Specifies the type of the data store. When the Backup Vault contains both `ArchiveStore` and `VaultStore`, `ArchiveStore` is returned.
 
 * `redundancy` -  Specifies the backup storage redundancy.
 

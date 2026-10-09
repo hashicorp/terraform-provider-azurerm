@@ -122,17 +122,7 @@ resource "azurerm_storage_container" "test" {
   storage_account_id = azurerm_storage_account.test.id
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  soft_delete         = "Off"
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[4]s
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
@@ -147,7 +137,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   default_retention_duration = "P4M"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), DataProtectionBackupVaultResource{}.template(data, "Off"))
 }
 
 func (r DataProtectionBackupInstanceDataLakeStorageResource) templateComplete(data acceptance.TestData) string {
