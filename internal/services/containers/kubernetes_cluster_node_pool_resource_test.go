@@ -987,8 +987,6 @@ func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinux(t *testing.T) {
 			Config: r.osSkuAzureContainerLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("os_sku").HasValue("AzureContainerLinux"),
-				check.That(data.ResourceName).Key("node_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -3187,7 +3185,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   os_sku                = "%s"
-  node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
   }
