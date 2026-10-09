@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -41,6 +42,14 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 
 			"address_space": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"advertised_gateway_prefixes": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
@@ -110,6 +119,14 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta any) error {
 
 		if props := model.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
+
+			advertisedGatewayPrefixes := make([]string, 0)
+			if props.SummarizedGatewayPrefixes != nil {
+				advertisedGatewayPrefixes = pointer.From(props.SummarizedGatewayPrefixes.AddressPrefixes)
+			}
+			if err := d.Set("advertised_gateway_prefixes", advertisedGatewayPrefixes); err != nil {
+				return fmt.Errorf("setting `advertised_gateway_prefixes`: %+v", err)
+			}
 
 			if as := props.AddressSpace; as != nil {
 				if err := d.Set("address_space", pluginsdk.FlattenSlice(as.AddressPrefixes)); err != nil {

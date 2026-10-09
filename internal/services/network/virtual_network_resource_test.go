@@ -90,6 +90,49 @@ func TestAccVirtualNetwork_updateFlowTimeoutInMinutes(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_advertisedGatewayPrefixes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advertisedGatewayPrefixes(data, `["10.0.0.0/8"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advertisedGatewayPrefixes(data, `["10.0.0.0/8", "fd00::/48"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advertisedGatewayPrefixes(data, `["10.0.0.0/8", "192.168.0.0/16", "fd00::/48", "fd01::/48"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualNetwork_basicUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -575,6 +618,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                           = "acctestvirtnet%d"
   address_space                  = ["10.0.0.0/16", "10.10.0.0/16"]
+  advertised_gateway_prefixes    = ["10.0.0.0/8"]
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   dns_servers                    = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
@@ -595,6 +639,27 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) advertisedGatewayPrefixes(data acceptance.TestData, prefixes string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                        = "acctestvirtnet%d"
+  address_space               = ["10.0.0.0/16"]
+  advertised_gateway_prefixes = %s
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, prefixes)
 }
 
 func (r VirtualNetworkResource) requiresImport(data acceptance.TestData) string {
