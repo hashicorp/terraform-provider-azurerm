@@ -1451,17 +1451,13 @@ func (r ContainerAppResource) withWorkloadProfile(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-locals {
-  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
-}
-
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.0.name
+  workload_profile_name = "D4-01"
 
   template {
     container {
@@ -1492,12 +1488,9 @@ resource "azurerm_container_app" "test" {
 }
 
 func (r ContainerAppResource) withMultipleWorkloadProfiles(data acceptance.TestData, workloadProfileIndex int) string {
+	workloadProfileNames := []string{"D4-01", "D4-02"}
 	return fmt.Sprintf(`
 %s
-
-locals {
-  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
-}
 
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
@@ -1505,7 +1498,7 @@ resource "azurerm_container_app" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.%[3]d.name
+  workload_profile_name = "%[3]s"
 
   template {
     container {
@@ -1532,16 +1525,12 @@ resource "azurerm_container_app" "test" {
     accTest = "1"
   }
 }
-`, r.templateMultipleWorkloadProfiles(data), data.RandomInteger, workloadProfileIndex)
+`, r.templateMultipleWorkloadProfiles(data), data.RandomInteger, workloadProfileNames[workloadProfileIndex])
 }
 
 func (r ContainerAppResource) withSmallerGranularityCPUMemoryCombinations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-locals {
-  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
-}
 
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
@@ -1549,7 +1538,7 @@ resource "azurerm_container_app" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.0.name
+  workload_profile_name = "D4-01"
 
   template {
     container {
