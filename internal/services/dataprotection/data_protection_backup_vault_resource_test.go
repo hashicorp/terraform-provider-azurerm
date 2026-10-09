@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,11 +23,17 @@ type DataProtectionBackupVaultResource struct{}
 func TestAccDataProtectionBackupVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultResource{}
+	alertsForAllJobFailures := "true"
+	if !features.SixPointOh() {
+		alertsForAllJobFailures = "false"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue(alertsForAllJobFailures),
 			),
 		},
 		data.ImportStep(),
@@ -85,20 +92,46 @@ func TestAccDataProtectionBackupVault_requiresImport(t *testing.T) {
 func TestAccDataProtectionBackupVault_alertsForAllJobFailures(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultResource{}
+	alertsForAllJobFailures := "true"
+	if !features.SixPointOh() {
+		alertsForAllJobFailures = "false"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.alertsForAllJobFailuresDisabled(data),
+			Config: r.alertsForAllJobFailures(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.alertsForAllJobFailuresEnabled(data),
+			Config: r.alertsForAllJobFailures(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.alertsForAllJobFailures(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue(alertsForAllJobFailures),
 			),
 		},
 		data.ImportStep(),
@@ -414,8 +447,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupVaultResource) alertsForAllJobFailuresDisabled(data acceptance.TestData) string {
-	template := r.template(data)
+func (r DataProtectionBackupVaultResource) alertsForAllJobFailures(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -426,24 +458,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 
-  alerts_for_all_job_failures_enabled = false
+  alerts_for_all_job_failures_enabled = %t
 }
-`, template, data.RandomInteger)
-}
-
-func (r DataProtectionBackupVaultResource) alertsForAllJobFailuresEnabled(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-bv-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-
-  alerts_for_all_job_failures_enabled = true
-}
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger, enabled)
 }
