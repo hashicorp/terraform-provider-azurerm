@@ -265,6 +265,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+
+						"chown_mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForChownMode(), false),
+						},
 					},
 				},
 			},
@@ -1348,8 +1355,14 @@ func expandNetAppVolumeExportPolicyRule(input []any) *volumes.VolumePropertiesEx
 			kerberos5pro := v["kerberos_5p_read_only_enabled"].(bool)
 			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
+			var chownMode *volumes.ChownMode
+			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
+				chownMode = pointer.ToEnum[volumes.ChownMode](chownModeRaw.(string))
+			}
+
 			result := volumes.ExportPolicyRule{
 				AllowedClients:      pointer.To(allowedClients),
+				ChownMode:           chownMode,
 				Cifs:                pointer.To(cifsEnabled),
 				Nfsv3:               pointer.To(nfsv3Enabled),
 				Nfsv41:              pointer.To(nfsv41Enabled),
@@ -1424,8 +1437,14 @@ func expandNetAppVolumeExportPolicyRulePatch(input []any, overrideProtocols []st
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
+			var chownMode *volumes.ChownMode
+			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
+				chownMode = pointer.ToEnum[volumes.ChownMode](chownModeRaw.(string))
+			}
+
 			result := volumes.ExportPolicyRule{
 				AllowedClients: pointer.To(allowedClients),
+				ChownMode:      chownMode,
 				Cifs:           pointer.To(cifsEnabled),
 				Nfsv3:          pointer.To(nfsv3Enabled),
 				Nfsv41:         pointer.To(nfsv41Enabled),
@@ -1467,8 +1486,14 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
+		chownMode := ""
+		if item.ChownMode != nil {
+			chownMode = string(*item.ChownMode)
+		}
+
 		results = append(results, map[string]any{
 			"allowed_clients":                pluginsdk.FlattenSlice(&allowedClients),
+			"chown_mode":                     chownMode,
 			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
 			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
 			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),
