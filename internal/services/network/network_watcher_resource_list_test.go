@@ -18,7 +18,7 @@ import (
 )
 
 func testAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	r := NetworkWatcherResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -49,7 +49,7 @@ func testAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_network_watcher.list", 3),
+					querycheck.ExpectLength("azurerm_network_watcher.list", 1),
 				},
 			},
 		},

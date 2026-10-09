@@ -22,7 +22,7 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -test-name basicConfig -test-sequential true
 
-var azureNetworkWatcherResourceName = "azurerm_network_watcher"
+const azureNetworkWatcherResourceName = "azurerm_network_watcher"
 
 func resourceNetworkWatcher() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

@@ -70,7 +70,7 @@ func (NetworkWatcherListResource) List(ctx context.Context, request list.ListReq
 			rd := resourceNetworkWatcher().Data(&terraform.InstanceState{})
 			id, err := networkwatchers.ParseNetworkWatcherIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", azureNetworkWatcherResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", azureNetworkWatcherResourceName), err)
 				return
 			}
 			rd.SetId(id.ID())
