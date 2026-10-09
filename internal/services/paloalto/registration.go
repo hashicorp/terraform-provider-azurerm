@@ -28,6 +28,12 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		LocalRulestackDataSource{},
+		NextGenerationFirewallVHubLocalRulestackDataSource{},
+		NextGenerationFirewallVHubPanoramaDataSource{},
+		NextGenerationFirewallVHubStrataCloudManagerDataSource{},
+		NextGenerationFirewallVNetLocalRulestackDataSource{},
+		NextGenerationFirewallVNetPanoramaDataSource{},
+		NextGenerationFirewallVNetStrataCloudManagerDataSource{},
 	}
 }
 
