@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -31,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupVaultCreateUpdate,
 		Read:   resourceDataProtectionBackupVaultRead,
 		Update: resourceDataProtectionBackupVaultCreateUpdate,
@@ -76,6 +77,14 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
+			},
+
+			"alerts_for_all_job_failures_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				// Azure Monitor alerts for job failures are enabled by default for Backup vaults.
+				// https://learn.microsoft.com/azure/backup/backup-azure-monitoring-alerts?tabs=backup-vaults#turn-on-azure-monitor-alerts-for-job-failure-scenarios
+				Default: true,
 			},
 
 			"cross_region_restore_enabled": {
@@ -136,6 +145,17 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["alerts_for_all_job_failures_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// NOTE: O+C Preserve existing Azure alert settings when omitted in 5.x rather than enabling alerts on upgrade.
+			Computed: true,
+		}
+	}
+
+	return r
 }
 
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
@@ -188,6 +208,22 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]any)),
+	}
+
+	alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
+	if d.Get("alerts_for_all_job_failures_enabled").(bool) {
+		alertsForAllJobFailures = backupvaultresources.AlertsStateEnabled
+	}
+	parameters.Properties.MonitoringSettings = &backupvaultresources.MonitoringSettings{
+		AzureMonitorAlertSettings: &backupvaultresources.AzureMonitorAlertSettings{
+			AlertsForAllJobFailures: pointer.To(alertsForAllJobFailures),
+		},
+	}
+
+	if !features.SixPointOh() {
+		if pluginsdk.IsExplicitlyNullInConfig(d, "alerts_for_all_job_failures_enabled") {
+			parameters.Properties.MonitoringSettings = nil
+		}
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
@@ -267,6 +303,16 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) 
 			}
 		}
 		d.Set("immutability", string(immutability))
+
+		alertsForAllJobFailures := false
+		if monitoringSetting := model.Properties.MonitoringSettings; monitoringSetting != nil {
+			if alertSettings := monitoringSetting.AzureMonitorAlertSettings; alertSettings != nil {
+				if pointer.From(alertSettings.AlertsForAllJobFailures) == backupvaultresources.AlertsStateEnabled {
+					alertsForAllJobFailures = true
+				}
+			}
+		}
+		d.Set("alerts_for_all_job_failures_enabled", alertsForAllJobFailures)
 
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
