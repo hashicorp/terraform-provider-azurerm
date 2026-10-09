@@ -230,6 +230,11 @@ resource "azurerm_data_protection_backup_instance_disk" "test" {
   disk_id                      = azurerm_managed_disk.test.id
   snapshot_resource_group_name = azurerm_resource_group.test.name
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
+
+  depends_on = [
+    azurerm_role_assignment.test1,
+    azurerm_role_assignment.test2,
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -262,6 +267,11 @@ resource "azurerm_data_protection_backup_instance_disk" "test" {
   disk_id                      = azurerm_managed_disk.test.id
   snapshot_resource_group_name = azurerm_resource_group.test.name
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
+
+  depends_on = [
+    azurerm_role_assignment.test1,
+    azurerm_role_assignment.test2,
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -280,6 +290,11 @@ resource "azurerm_data_protection_backup_instance_disk" "test" {
   snapshot_resource_group_name = azurerm_resource_group.test.name
   snapshot_subscription_id     = data.azurerm_client_config.current.subscription_id
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
+
+  depends_on = [
+    azurerm_role_assignment.test1,
+    azurerm_role_assignment.test2,
+  ]
 }
 `, r.template(data), data.RandomInteger)
 }
