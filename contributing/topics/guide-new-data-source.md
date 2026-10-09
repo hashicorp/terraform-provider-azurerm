@@ -285,7 +285,6 @@ type ResourceGroupExampleDataSourceModel struct {
 	Tags     map[string]string `tfschema:"tags"`
 }
 
-
 func (d ResourceGroupExampleDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

@@ -35,7 +35,6 @@ The steps outlined below uses an example resource that is deprecated, but the sa
             return "The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v6.0 of the AzureRM Provider"
         }
 
-
         // For resources that have a replacement
 
         var _ sdk.ResourceWithDeprecationReplacedBy = ResourceWithReplacement{}

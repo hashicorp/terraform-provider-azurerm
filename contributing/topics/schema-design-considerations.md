@@ -464,4 +464,3 @@ Before writing a new validator, look for an existing one in `commonids`, `intern
     ValidateFunc: validation.StringIsNotEmpty,
 },
 ```
-

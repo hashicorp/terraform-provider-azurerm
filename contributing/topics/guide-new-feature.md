@@ -146,7 +146,6 @@ func TestExpandFeatures(t *testing.T) {
     },
 }
 
-
 func TestExpandFeaturesKeyVault(t *testing.T) {
     testData := []struct {
         Name     string

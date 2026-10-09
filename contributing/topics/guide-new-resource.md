@@ -579,7 +579,6 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
                 return fmt.Errorf("retrieving %s: %+v", id, err)
             }
 
-
             state := ResourceGroupExampleResourceModel{
                 Name: id.ResourceGroupName,
             }
