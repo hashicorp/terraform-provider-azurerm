@@ -218,8 +218,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
-
-			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
 }
@@ -363,6 +361,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	aadOnlyAuthenticationsEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]any))
+	if _, ok := d.GetOk("administrator_login_password"); ok && aadOnlyAuthenticationsEnabled && d.HasChange("administrator_login_password") {
+		return fmt.Errorf("`administrator_login_password` cannot be changed when `azuread_administrator.0.azuread_authentication_only = true`")
+	}
 
 	id, err := commonids.ParseSqlServerID(d.Id())
 	if err != nil {
@@ -761,14 +764,6 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	// todo remove `old != "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
 	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
-	}
-	return
-}
-
-func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
-	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
-	if old.(bool) && d.HasChange("administrator_login_password") {
-		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 	return
 }
