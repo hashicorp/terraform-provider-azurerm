@@ -321,6 +321,22 @@ func TestAccSubnet_delegation(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_ipAddressPool_sequential(t *testing.T) {
+	testCases := map[string]func(t *testing.T){
+		"ipAddressPool":              testAccSubnet_ipAddressPool,
+		"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
+		"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
+		"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
+		"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			tc(t)
+		})
+	}
+}
+
 func testAccSubnet_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}

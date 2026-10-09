@@ -1,0 +1,388 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package networkmanager
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+type ManagerModel struct {
+	CrossTenantScopes []ManagerCrossTenantScopeModel `tfschema:"cross_tenant_scopes"`
+	Scope             []ManagerScopeModel            `tfschema:"scope"`
+	ScopeAccesses     []string                       `tfschema:"scope_accesses"`
+	Description       string                         `tfschema:"description"`
+	Name              string                         `tfschema:"name"`
+	Location          string                         `tfschema:"location"`
+	ResourceGroupName string                         `tfschema:"resource_group_name"`
+	Tags              map[string]any                 `tfschema:"tags"`
+}
+
+type ManagerScopeModel struct {
+	ManagementGroups []string `tfschema:"management_group_ids"`
+	Subscriptions    []string `tfschema:"subscription_ids"`
+}
+
+type ManagerCrossTenantScopeModel struct {
+	TenantId         string   `tfschema:"tenant_id"`
+	ManagementGroups []string `tfschema:"management_groups"`
+	Subscriptions    []string `tfschema:"subscriptions"`
+}
+
+var (
+	_ sdk.ResourceWithUpdate   = ManagerResource{}
+	_ sdk.ResourceWithIdentity = ManagerResource{}
+)
+
+//go:generate go run ../../tools/generator-tests resourceidentity -test-sequential
+
+type ManagerResource struct{}
+
+func (r ManagerResource) Identity() resourceids.ResourceId {
+	return &networkmanagers.NetworkManagerId{}
+}
+
+func (r ManagerResource) ResourceType() string {
+	return "azurerm_network_manager"
+}
+
+func (r ManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return networkmanagers.ValidateNetworkManagerID
+}
+
+func (r ManagerResource) ModelObject() any {
+	return &ManagerModel{}
+}
+
+func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
+
+		"scope": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"management_group_ids": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.ManagementGroupID,
+						},
+						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
+					},
+					"subscription_ids": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: commonids.ValidateSubscriptionID,
+						},
+						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
+					},
+				},
+			},
+		},
+
+		"scope_accesses": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(networkmanagers.ConfigurationTypeConnectivity),
+					string(networkmanagers.ConfigurationTypeRouting),
+					string(networkmanagers.ConfigurationTypeSecurityAdmin),
+				}, false),
+			},
+		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"tags": commonschema.Tags(),
+	}
+}
+
+func (r ManagerResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"cross_tenant_scopes": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"subscriptions": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+					"management_groups": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (r ManagerResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var state ManagerModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			client := metadata.Client.NetworkManager.NetworkManagers
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			id := networkmanagers.NewNetworkManagerID(subscriptionId, state.ResourceGroupName, state.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
+			}
+
+			input := networkmanagers.NetworkManager{
+				Location: pointer.To(location.Normalize(state.Location)),
+				Name:     pointer.To(state.Name),
+				Properties: &networkmanagers.NetworkManagerProperties{
+					Description:                 pointer.To(state.Description),
+					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
+					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
+				},
+				Tags: pluginsdk.ExpandPtrMapStringString(state.Tags),
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id, input); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r ManagerResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetworkManager.NetworkManagers
+			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := resp.Model.Properties
+			var description string
+			var scope []ManagerScopeModel
+			var scopeAccesses []string
+			if properties.Description != nil {
+				description = *properties.Description
+			}
+			scope = flattenNetworkManagerScope(properties.NetworkManagerScopes)
+			scopeAccesses = flattenNetworkManagerScopeAccesses(properties.NetworkManagerScopeAccesses)
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
+			return metadata.Encode(&ManagerModel{
+				CrossTenantScopes: flattenNetworkManagerCrossTenantScopes(properties.NetworkManagerScopes.CrossTenantScopes),
+				Description:       description,
+				Location:          location.NormalizeNilable(resp.Model.Location),
+				Name:              id.NetworkManagerName,
+				ResourceGroupName: id.ResourceGroupName,
+				ScopeAccesses:     scopeAccesses,
+				Scope:             scope,
+				Tags:              pluginsdk.FlattenPtrMapStringString(resp.Model.Tags),
+			})
+		},
+	}
+}
+
+func (r ManagerResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			client := metadata.Client.NetworkManager.NetworkManagers
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			var state ManagerModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				existing.Model.Properties.Description = pointer.To(state.Description)
+			}
+
+			if metadata.ResourceData.HasChange("scope") {
+				existing.Model.Properties.NetworkManagerScopes = expandNetworkManagerScope(state.Scope)
+			}
+
+			if metadata.ResourceData.HasChange("scope_accesses") {
+				existing.Model.Properties.NetworkManagerScopeAccesses = expandNetworkManagerScopeAccesses(state.ScopeAccesses)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Model.Tags = pluginsdk.ExpandPtrMapStringString(state.Tags)
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+			return nil
+		},
+	}
+}
+
+func (r ManagerResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetworkManager.NetworkManagers
+			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
+				Force: pointer.To(true),
+			}); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandNetworkManagerScope(input []ManagerScopeModel) networkmanagers.NetworkManagerPropertiesNetworkManagerScopes {
+	return networkmanagers.NetworkManagerPropertiesNetworkManagerScopes{
+		ManagementGroups: pointer.To(input[0].ManagementGroups),
+		Subscriptions:    pointer.To(input[0].Subscriptions),
+	}
+}
+
+func expandNetworkManagerScopeAccesses(input []string) *[]networkmanagers.ConfigurationType {
+	result := make([]networkmanagers.ConfigurationType, 0)
+	for _, v := range input {
+		result = append(result, networkmanagers.ConfigurationType(v))
+	}
+	return &result
+}
+
+func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNetworkManagerScopes) []ManagerScopeModel {
+	return []ManagerScopeModel{{
+		ManagementGroups: pointer.From(input.ManagementGroups),
+		Subscriptions:    pointer.From(input.Subscriptions),
+	}}
+}
+
+func flattenNetworkManagerScopeAccesses(input *[]networkmanagers.ConfigurationType) []string {
+	result := make([]string, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, v := range *input {
+		result = append(result, string(v))
+	}
+	return result
+}
+
+func flattenNetworkManagerCrossTenantScopes(input *[]networkmanagers.CrossTenantScopes) []ManagerCrossTenantScopeModel {
+	if input == nil {
+		return make([]ManagerCrossTenantScopeModel, 0)
+	}
+
+	results := make([]ManagerCrossTenantScopeModel, 0, len(*input))
+	for _, v := range *input {
+		results = append(results, ManagerCrossTenantScopeModel{
+			TenantId:         pointer.From(v.TenantId),
+			ManagementGroups: pointer.From(v.ManagementGroups),
+			Subscriptions:    pointer.From(v.Subscriptions),
+		})
+	}
+	return results
+}
