@@ -23,7 +23,7 @@ func TestAccApplicationInsights_regressionTest(t *testing.T) {
 	r := ApplicationInsightsResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWorkspaceMode(data),
+			Config: r.complete(data, "web"),
 		},
 	}, "")
 }

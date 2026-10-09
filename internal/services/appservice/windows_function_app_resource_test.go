@@ -28,7 +28,7 @@ func TestAccWindowsFunctionApp_regressionTest(t *testing.T) {
 	r := WindowsFunctionAppResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.stickySettings(data),
+			Config: r.consumptionComplete(data),
 		},
 	}, "")
 }

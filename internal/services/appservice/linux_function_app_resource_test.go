@@ -36,7 +36,7 @@ func TestAccLinuxFunctionApp_regressionTest(t *testing.T) {
 	r := LinuxFunctionAppResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withIPRestrictions(data),
+			Config: r.consumptionComplete(data),
 		},
 	}, "")
 }

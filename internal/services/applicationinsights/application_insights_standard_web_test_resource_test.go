@@ -24,7 +24,7 @@ func TestAccApplicationInsightsStandardWebTest_regressionTest(t *testing.T) {
 	r := ApplicationInsightsStandardWebTestResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicConfig(data),
+			Config: r.completeConfig(data),
 		},
 	}, "")
 }

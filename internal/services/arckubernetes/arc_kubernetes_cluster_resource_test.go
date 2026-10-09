@@ -33,7 +33,7 @@ func TestAccArcKubernetesCluster_regressionTest(t *testing.T) {
 	r := ArcKubernetesClusterResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, credential, privateKey, publicKey),
+			Config: r.complete(data, credential, privateKey, publicKey),
 		},
 	}, "")
 }

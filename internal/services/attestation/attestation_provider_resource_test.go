@@ -41,10 +41,14 @@ func TestAccAttestationProvider_regressionTest(t *testing.T) {
 	r := AttestationProviderResource{
 		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
 	}
+	testCertificate, err := testGenerateTestCertificate("ENCOM")
+	if err != nil {
+		t.Fatalf("Test case failed: '%+v'", err)
+	}
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.completeString(data, testCertificate),
 		},
 	}, "")
 }

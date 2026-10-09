@@ -25,7 +25,7 @@ func TestAccRoleDefinition_regressionTest(t *testing.T) {
 	r := RoleDefinitionResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.emptyId(data),
+			Config: r.complete(uuid.New().String(), data),
 		},
 	}, "")
 }
