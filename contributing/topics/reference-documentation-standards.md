@@ -50,21 +50,17 @@ description: |-
 
 ## Examples
 
-Each resource/data source must include an example HCL configuration block in the documentation to show the end-user how to correctly use the resource/data source.
+Each resource and data source needs an example showing how to use it.
 
-### General Shared Rules
+- Name the instance `example`, as in `resource "azurerm_resource_group" "example"`.
+- One example is enough. Larger or unusual configurations belong in the `examples` folder of the repository.
+- Do not include `terraform` or `provider` blocks.
 
-- Generally the resource or data source instance name should simply be `example`. e.g. `resource "azurerm_resource_group" "example"` or `data "azurerm_resource_group" "example"`.
-- Avoid multiple examples unless a specific configuration is particularly difficult to configure. If there are many complex examples to document, consider using the `examples` folder in the repository instead.
-- Resource/Data Source examples should not define a `terraform` or `provider` block.
+### Resources
 
-### Resource Examples
-
-- Resource examples MUST be functional and self-contained, meaning that if a user copies the example and runs `terraform plan`, no errors should be returned.
-- Resource examples don't need to include every argument, generally the same configuration as the basic acceptance test will suffice (including any resource dependencies, such as the configuration from the template).
-- Resource name arguments within the example configuration should use simple example values that match the Terraform resource being defined. Where naming restrictions and field validation allow, prefer values prefixed with `example-`. If a field's validation or naming restrictions do not allow that pattern, use the simplest valid value for that field. Avoid overly complex naming, and ensure any naming restrictions and validation are followed. e.g. `name = example-resource-group`.
-
-#### Example: Resource
+- The example must plan cleanly when copied as-is, so declare everything it references.
+- Include what the basic acceptance test does, dependencies included. Not every argument is needed.
+- Name things `example-...` where validation allows, otherwise the simplest valid value. A storage account is `examplestorageacct` because its name must be 3 to 24 lowercase letters and numbers.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -81,18 +77,11 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
-This is a good resource example because it is self-contained and can be planned on its own. Avoid resource examples that rely on undeclared existing infrastructure, for example a Resource Group name such as `existing-resource-group` without also declaring that Resource Group in the same example.
+### Data Sources
 
-> **Note:** The storage account example uses `examplestorageacct` intentionally because the resource schema's `ValidationFunc` controls what is valid for `name`, and for storage accounts that means a value between 3 and 24 characters long containing only lowercase letters and numbers.
-
-### Data Source Examples
-
-- Data source examples MUST be functional for the intended lookup scenario.
-- Data source examples may assume the looked-up object already exists and do not need to declare the backing resource in the same example.
-- Data source examples only need the arguments required to identify the looked-up object.
-- Data source name arguments within the example configuration should use simple values that reflect an existing object. Where practical, prefer values prefixed with `existing-`. If that pattern would not make sense for the field being demonstrated, use the simplest clear existing-object value instead. e.g. `name = "existing-subnet"`.
-
-#### Example: Data Source
+- The example looks up something that already exists. Do not create it in the example.
+- Include only the arguments needed to find it, plus an output showing the result.
+- Name the looked-up things `existing-...`.
 
 ```hcl
 data "azurerm_subnet" "example" {
@@ -100,9 +89,11 @@ data "azurerm_subnet" "example" {
   virtual_network_name = "existing-virtual-network"
   resource_group_name  = "existing-resource-group"
 }
-```
 
-This is a good data source example because it demonstrates the intended lookup scenario for an existing object using the identifying arguments required to find it. Avoid data source examples that add unnecessary resource scaffolding just to create the lookup target, as this treats the data source like a resource example rather than a lookup for an existing object.
+output "subnet_id" {
+  value = data.azurerm_subnet.example.id
+}
+```
 
 ## Code Fences
 
@@ -110,7 +101,7 @@ The following conventions apply to code fences:
 
 - Use the most specific code fence language that matches the snippet.
 - Terraform configuration should use `hcl` code fences. Do not use `terraform` code fences for HCL configuration blocks.
-- Keep Terraform examples copy/pasteable. Resource examples should be self-contained, while data source examples may assume an existing object when demonstrating lookup behavior.
+- Keep Terraform examples copy/pasteable.
 
 ## Arguments
 
