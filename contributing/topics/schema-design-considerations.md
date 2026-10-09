@@ -314,7 +314,7 @@ Fields that are in preview should not be supported until they reach General Avai
 
 When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
 
-**DO**
+**DO** flatten single-property blocks
 
 ```go
 "credential_certificate": {
@@ -379,21 +379,23 @@ When a `pluginsdk.TypeList` block has no required nested fields, conditional val
 
 ## Validation functions
 
-### String arguments must be validated against the API contract wherever possible.
+### String arguments must be validated against the API contract wherever possible
 
 In practice, common shapes should use appropriate, specific validators:
+
 - Validate `name`-like fields for length and allowed characters (use regex/patterns from the spec where available)
 - Use `commonids` or service-specific ID validators for resource IDs
 - Validate common formats like dates, IPs, ports, emails, and URIs
 
 This means using constraints from the swagger/spec, SDK types/constants, or API documentation:
+
 - Allowed values (enums)
 - Patterns/regex
 - Length bounds
 - Formats (dates, IPs, ports, emails, URIs)
 - Resource ID shapes (prefer `commonids` or service-specific validators)
 
-> **Note:** `validation.StringIsNotEmpty` is a **LAST RESORT ONLY**. It is only acceptable when you have confirmed the API truly accepts arbitrary free-form text and there are no stable rules to validate. If you use `validation.StringIsNotEmpty`, you **MUST** add an inline comment explaining why stronger validation cannot be applied and what you checked.
+`validation.StringIsNotEmpty` should only be used when the API accepts free-form text and nothing stricter applies. When it is used, add a comment saying why.
 
 **Example:**
 
@@ -406,16 +408,15 @@ This means using constraints from the swagger/spec, SDK types/constants, or API 
 },
 ```
 
-### Numeric arguments must be validated against the API contract wherever possible.
+### Numeric arguments must be validated against the API contract wherever possible
 
 For numeric fields, prefer validators that match the API contract as closely as possible:
+
 - Validate numeric ranges using the documented minimum and maximum values
 - Use exact allowed values when the API only accepts a fixed set of numeric values
 - Validate percentages, capacities, counts, sizes, priorities, and similar fields against the bounds defined by the API
 - Use integer validators for integer fields and float validators for decimal fields
 - Prefer `IntBetween` / `FloatBetween` when both bounds are known, and only use `IntAtLeast` / `FloatAtLeast` when the API contract truly defines a lower bound without an upper bound
-
-> **Note:** `validation.IntAtLeast` and `validation.FloatAtLeast` are **LAST RESORT ONLY**. They are only acceptable when you have confirmed that the API defines a lower bound, but does not define a stable upper bound or fixed set of allowed values to validate against.
 
 **Example:**
 
@@ -428,7 +429,7 @@ For numeric fields, prefer validators that match the API contract as closely as 
 },
 ```
 
-### Before writing a new validator, check whether one already exists.
+### Before writing a new validator, check whether one already exists
 
 Common places to look are:
 
@@ -440,7 +441,7 @@ Common places to look are:
 
 > **Note:** The easiest way to discover existing validators is to first look at a similar resource in the same service and then search for `ValidateFunc:` usages in that package.
 
-### Avoid overly-generic ValidateFunc (no "lazy validation")
+### Avoid overly generic validators
 
 When adding or modifying schema fields, do not default to minimal validators if the API provides stronger constraints.
 
@@ -453,8 +454,8 @@ When the provider intentionally exposes only a subset of the API values, define 
     Type:     pluginsdk.TypeString,
     Optional: true,
     ValidateFunc: validation.StringInSlice([]string{
-        string(compute.AllocationStrategyAutomatic),
-        string(compute.AllocationStrategyPrioritized),
+        string(virtualmachinescalesets.AllocationStrategyLowestPrice),
+        string(virtualmachinescalesets.AllocationStrategyPrioritized),
     }, false),
 },
 ```
@@ -512,7 +513,7 @@ Use regex or other format validators when the API contract defines a pattern rat
 "extensions_time_budget": {
     Type:         pluginsdk.TypeString,
     Optional:     true,
-    ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
+    ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 },
 ```
 
