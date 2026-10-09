@@ -37,7 +37,17 @@ The following arguments are supported:
 
 ---
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Communication Service.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Communication Service. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Communication Service.
 
 ## Attributes Reference
 
@@ -49,6 +59,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_key` - The primary key of the Communication Service.
 * `secondary_key` - The secondary key of the Communication Service.
 * `hostname` - The hostname of the Communication Service
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Communication Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Communication Service.
 
 ## Timeouts
 
