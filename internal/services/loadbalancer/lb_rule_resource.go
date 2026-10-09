@@ -4,7 +4,6 @@
 package loadbalancer
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -39,7 +38,7 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.LoadBalancingRuleId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.LoadBalancingRuleId{}, loadBalancerRuleResourceImporter),
+		Importer: pluginsdk.ImporterValidatingIdentity(&loadbalancers.LoadBalancingRuleId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -50,17 +49,6 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 
 		Schema: resourceArmLoadBalancerRuleSchema(),
 	}
-}
-
-func loadBalancerRuleResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ any) ([]*pluginsdk.ResourceData, error) {
-	id, err := loadbalancers.ParseLoadBalancingRuleID(d.Id())
-	if err != nil {
-		return nil, err
-	}
-	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-	d.Set("loadbalancer_id", lbId.ID())
-
-	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {

@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck/queryfilter"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
@@ -45,6 +47,16 @@ func TestAccLbRule_listByLoadBalancerID(t *testing.T) {
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
+					querycheck.ExpectResourceKnownValues(
+						"azurerm_lb_rule.list",
+						queryfilter.ByDisplayName(knownvalue.StringExact(fmt.Sprintf("acctest-lb-rule-%d0", data.RandomInteger%100000000))),
+						[]querycheck.KnownValueCheck{
+							{
+								Path:       tfjsonpath.New("loadbalancer_id"),
+								KnownValue: knownvalue.StringExact(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/acctest-loadbalancer-%d", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger)),
+							},
+						},
+					),
 				},
 			},
 		},
@@ -71,6 +83,7 @@ func (r LbRuleResource) basicQuery() string {
 	return `
 list "azurerm_lb_rule" "list" {
   provider = azurerm
+  include_resource = true
   config {
     load_balancer_id = azurerm_lb.test.id
   }

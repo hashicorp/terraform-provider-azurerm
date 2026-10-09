@@ -4,7 +4,6 @@
 package loadbalancer
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -37,7 +36,7 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.ProbeId{}),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&loadbalancers.ProbeId{}, loadBalancerProbeResourceImporter),
+		Importer: pluginsdk.ImporterValidatingIdentity(&loadbalancers.ProbeId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -116,18 +115,6 @@ func resourceArmLoadBalancerProbe() *pluginsdk.Resource {
 			},
 		},
 	}
-}
-
-func loadBalancerProbeResourceImporter(_ context.Context, d *pluginsdk.ResourceData, _ any) ([]*pluginsdk.ResourceData, error) {
-	id, err := loadbalancers.ParseProbeID(d.Id())
-	if err != nil {
-		return nil, err
-	}
-
-	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-	d.Set("loadbalancer_id", lbId.ID())
-
-	return []*pluginsdk.ResourceData{d}, nil
 }
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
