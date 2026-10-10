@@ -204,7 +204,7 @@ func TestDataSourceStorageAccountSas_servicesString(t *testing.T) {
 	}
 }
 
-func TestAccDataSourceStorageAccountSas_permissionsString(t *testing.T) {
+func TestDataSourceStorageAccountSas_permissionsString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]any
 		expected string

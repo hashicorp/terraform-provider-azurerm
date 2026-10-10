@@ -18,7 +18,7 @@ import (
 // since this depends on GetAuthConfig which lives in this package
 // unfortunately this has to live in a different package to the other func
 
-func TestEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
+func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	config := GetAuthConfig(t)
 	if config == nil {
 		return
