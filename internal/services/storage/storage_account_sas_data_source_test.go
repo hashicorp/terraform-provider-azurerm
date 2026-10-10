@@ -165,7 +165,7 @@ data "azurerm_storage_account_sas" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, ipAddresses, startDate, endDate)
 }
 
-func TestAccDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {
+func TestDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]any
 		expected string
@@ -184,7 +184,7 @@ func TestAccDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {
 	}
 }
 
-func TestAccDataSourceStorageAccountSas_servicesString(t *testing.T) {
+func TestDataSourceStorageAccountSas_servicesString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]any
 		expected string

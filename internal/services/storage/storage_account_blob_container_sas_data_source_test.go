@@ -272,7 +272,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
-func TestAccDataSourceStorageAccountBlobContainerSas_permissionsString(t *testing.T) {
+func TestDataSourceStorageAccountBlobContainerSas_permissionsString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]any
 		expected string
