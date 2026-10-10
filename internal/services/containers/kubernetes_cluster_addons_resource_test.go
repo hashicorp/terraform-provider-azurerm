@@ -325,21 +325,21 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28", "asm-1-29"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-29", "asm-1-30"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-28"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-30"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1325,7 +1325,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (k KubernetesClusterResource) addonProfileServiceMeshProfileCertificateAuthorityConfig(data acceptance.TestData) string {
+func (r KubernetesClusterResource) addonProfileServiceMeshProfileCertificateAuthorityConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1582,7 +1582,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-28"]
+    revisions                        = ["asm-1-30"]
     certificate_authority {
       key_vault_id           = azurerm_key_vault.test.id
       root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name

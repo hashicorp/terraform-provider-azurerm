@@ -206,6 +206,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			validateLocalDNSProfileOverrides("default_node_pool.0."),
 		),
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -3269,6 +3270,7 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 	}
 
 	apiAccessProfile := &managedclusters.ManagedClusterAPIServerAccessProfile{
+		AuthorizedIPRanges:             new(make([]string, 0)),
 		EnablePrivateCluster:           &enablePrivateCluster,
 		EnablePrivateClusterPublicFQDN: pointer.To(d.Get("private_cluster_public_fqdn_enabled").(bool)),
 		DisableRunCommand:              pointer.To(!d.Get("run_command_enabled").(bool)),

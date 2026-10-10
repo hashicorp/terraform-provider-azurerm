@@ -25,6 +25,16 @@ import (
 
 type KubernetesClusterNodePoolResource struct{}
 
+func TestAccKubernetesClusterNodePool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -1269,7 +1279,7 @@ func TestAccKubernetesClusterNodePool_gpuDriver(t *testing.T) {
 	})
 }
 
-func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agentpools.ParseAgentPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1487,6 +1497,26 @@ func TestAccKubernetesClusterNodePool_VMSizeOmitted(t *testing.T) {
 		},
 		data.ImportStep("vm_size"),
 	})
+}
+
+func (r KubernetesClusterNodePoolResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_B2als_v2"
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateConfig(data))
 }
 
 func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
@@ -4185,4 +4215,316 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func TestAccKubernetesClusterNodePool_localDNSProfile_kubeDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfileKubeDNSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_localDNSProfile_vnetDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfileVnetDNSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r KubernetesClusterNodePoolResource) localDNSProfileRemovedConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "test"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_A4_v2"
+  node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) localDNSProfileKubeDNSConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "test"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_A4_v2"
+  node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  local_dns {
+    mode = "Preferred"
+
+    kube_dns_override {
+      domain      = "."
+      protocol    = "ForceTCP"
+      serve_stale = "Immediate"
+    }
+  }
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) localDNSProfileVnetDNSConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "test"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_A4_v2"
+  node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  local_dns {
+    mode = "Preferred"
+
+    virtual_network_dns_override {
+      domain      = "."
+      protocol    = "ForceTCP"
+      serve_stale = "Immediate"
+    }
+  }
+}
+`, r.templateConfig(data))
+}
+
+func TestAccKubernetesClusterNodePool_localDNSProfile_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfileRemovedConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.localDNSProfileKubeDNSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileCompleteUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileRemovedConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r KubernetesClusterNodePoolResource) localDNSProfileComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "test"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_A4_v2"
+  node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  local_dns {
+    mode = "Required"
+
+    kube_dns_override {
+      domain                          = "."
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Random"
+      maximum_concurrent              = 100
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Immediate"
+      serve_stale_duration_in_seconds = 120
+    }
+
+
+    kube_dns_override {
+      domain                          = "cluster.local"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Random"
+      maximum_concurrent              = 100
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Immediate"
+      serve_stale_duration_in_seconds = 120
+    }
+
+    virtual_network_dns_override {
+      domain                          = "."
+      cache_duration_in_seconds       = 60
+      forward_destination             = "VnetDNS"
+      forward_policy                  = "Random"
+      maximum_concurrent              = 100
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Verify"
+      serve_stale_duration_in_seconds = 120
+    }
+
+
+    virtual_network_dns_override {
+      domain                          = "cluster.local"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Random"
+      maximum_concurrent              = 100
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Verify"
+      serve_stale_duration_in_seconds = 120
+    }
+  }
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) localDNSProfileCompleteUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "test"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_A4_v2"
+  node_count            = 1
+
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  local_dns {
+    mode = "Preferred"
+
+    kube_dns_override {
+      domain                          = "."
+      cache_duration_in_seconds       = 120
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "RoundRobin"
+      maximum_concurrent              = 200
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Disable"
+      serve_stale_duration_in_seconds = 60
+    }
+
+    kube_dns_override {
+      domain                          = "cluster.local"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Sequential"
+      maximum_concurrent              = 150
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Immediate"
+      serve_stale_duration_in_seconds = 240
+    }
+
+    virtual_network_dns_override {
+      domain                          = "."
+      cache_duration_in_seconds       = 120
+      forward_destination             = "VnetDNS"
+      forward_policy                  = "RoundRobin"
+      maximum_concurrent              = 200
+      protocol                        = "ForceTCP"
+      query_logging                   = "Log"
+      serve_stale                     = "Disable"
+      serve_stale_duration_in_seconds = 60
+    }
+
+    virtual_network_dns_override {
+      domain                          = "cluster.local"
+      cache_duration_in_seconds       = 60
+      forward_destination             = "ClusterCoreDNS"
+      forward_policy                  = "Sequential"
+      maximum_concurrent              = 150
+      protocol                        = "PreferUDP"
+      query_logging                   = "Error"
+      serve_stale                     = "Immediate"
+      serve_stale_duration_in_seconds = 240
+    }
+  }
+}
+`, r.templateConfig(data))
 }
