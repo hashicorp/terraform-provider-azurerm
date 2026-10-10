@@ -333,7 +333,7 @@ func TestAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
