@@ -101,21 +101,6 @@ func TestAccLinuxVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_disksOSDiskEphemeralResourceDisk(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
-	r := LinuxVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.diskOSEphemeralResourceDisk(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_disksOSDiskEphemeralNvmeDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}

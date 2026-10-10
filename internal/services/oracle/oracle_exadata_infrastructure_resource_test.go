@@ -31,7 +31,7 @@ func (a ExadataInfraResource) Exists(ctx context.Context, client *clients.Client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestExaInfra_basic(t *testing.T) {
+func TestAccExaInfra_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func TestExaInfra_basic(t *testing.T) {
 	})
 }
 
-func TestExaInfra_noZones(t *testing.T) {
+func TestAccExaInfra_noZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -59,7 +59,7 @@ func TestExaInfra_noZones(t *testing.T) {
 	})
 }
 
-func TestExaInfra_complete(t *testing.T) {
+func TestAccExaInfra_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -73,7 +73,7 @@ func TestExaInfra_complete(t *testing.T) {
 	})
 }
 
-func TestExaInfra_requiresImport(t *testing.T) {
+func TestAccExaInfra_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -87,7 +87,7 @@ func TestExaInfra_requiresImport(t *testing.T) {
 	})
 }
 
-func TestExaInfra_update(t *testing.T) {
+func TestAccExaInfra_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

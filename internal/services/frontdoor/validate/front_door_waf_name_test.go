@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAccFrontDoorFirewallPolicy_validateName(t *testing.T) {
+func TestFrontDoorFirewallPolicy_validateName(t *testing.T) {
 	cases := []struct {
 		Name        string
 		Input       string

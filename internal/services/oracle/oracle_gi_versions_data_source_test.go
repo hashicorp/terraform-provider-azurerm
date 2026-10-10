@@ -12,7 +12,7 @@ import (
 
 type GiVersionsDataSource struct{}
 
-func TestGiVersionsDataSource_basic(t *testing.T) {
+func TestAccGiVersionsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
 	r := GiVersionsDataSource{}
 
@@ -26,7 +26,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestGiVersionsDataSource_complete(t *testing.T) {
+func TestAccGiVersionsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
 	r := GiVersionsDataSource{}
 
