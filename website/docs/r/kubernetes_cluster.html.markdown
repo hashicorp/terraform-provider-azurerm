@@ -778,6 +778,8 @@ A `bootstrap_profile` block supports the following:
 
 * `artifact_source` - (Optional) The artifact source. The source where the artifacts are downloaded from. Possible values are `Cache` and `Direct`. Defaults to `Direct`.
 
+-> **Note:** To migrate an existing cluster to `outbound_type = "none"`, first apply `artifact_source = "Cache"` while retaining the current outbound type. Reimage all node pools and wait for the upgrade to finish before applying `outbound_type = "none"`. See the [AKS migration steps](https://learn.microsoft.com/azure/aks/network-isolated#update-an-existing-aks-cluster-to-network-isolated-type).
+
 ~> **Note:** If the `artifact_source` is set to `Cache` and the `outbound_type` has been specified, the managed ACR and related resources will **not** be automatically deleted and must be removed manually. Please see the product [documentation](https://learn.microsoft.com/azure/aks/concepts-network-isolated#how-a-network-isolated-cluster-works) for more information.
 
 * `container_registry_id` - (Optional) The resource Id of Azure Container Registry.
