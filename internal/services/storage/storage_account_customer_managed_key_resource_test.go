@@ -23,7 +23,7 @@ import (
 
 type StorageAccountCustomerManagedKeyResource struct{}
 
-func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) { //azignore:AZT008 - builds test data for the storage account on purpose, to import it and check its settings once the key resource is removed
+func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) { // azignore:AZT008 - builds test data for the storage account on purpose, to import it and check its settings once the key resource is removed
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountCustomerManagedKeyResource{}
 
