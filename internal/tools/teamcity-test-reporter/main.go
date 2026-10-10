@@ -12,21 +12,33 @@
 // interleaved with the tests running alongside it. Subtests are folded into their top-level test.
 //
 // Because the package is dropped, a test name used in two packages fails the build.
+//
+// Nothing is printed between `go test` being started and its first test ending, so when given
+// `-started-at` (seconds since the epoch) it also says when each package's tests started to run,
+// which for the first package is how long they took to compile.
 package main
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 func main() {
+	startedAt := flag.Int64("started-at", 0, "when go test was started, in seconds since the epoch")
+	flag.Parse()
+
 	r := newReporter(os.Stdout)
+	if *startedAt > 0 {
+		r.startedAt = time.Unix(*startedAt, 0)
+	}
 	if !r.run(os.Stdin) {
 		os.Exit(1)
 	}
@@ -34,12 +46,13 @@ func main() {
 
 // event is a line of `go test -json` output, see `go doc test2json`.
 type event struct {
-	Action      string  `json:"Action"`
-	Package     string  `json:"Package"`
-	Test        string  `json:"Test"`
-	Elapsed     float64 `json:"Elapsed"`
-	Output      string  `json:"Output"`
-	FailedBuild string  `json:"FailedBuild"`
+	Time        time.Time `json:"Time"`
+	Action      string    `json:"Action"`
+	Package     string    `json:"Package"`
+	Test        string    `json:"Test"`
+	Elapsed     float64   `json:"Elapsed"`
+	Output      string    `json:"Output"`
+	FailedBuild string    `json:"FailedBuild"`
 }
 
 type testKey struct {
@@ -59,6 +72,9 @@ type reporter struct {
 	packageForName map[string]string
 	duplicateOf    map[testKey]string
 	failedTests    map[string]int
+
+	// when `go test` was started, if known
+	startedAt time.Time
 
 	events int
 	failed bool
@@ -123,6 +139,12 @@ func (r *reporter) handleLine(line []byte) {
 
 func (r *reporter) handlePackage(e event) {
 	switch e.Action {
+	case "start":
+		// the package's test binary has been compiled and is starting to run
+		if !r.startedAt.IsZero() && !e.Time.IsZero() {
+			r.print(fmt.Sprintf("Tests in %s started after %s.", e.Package, e.Time.Sub(r.startedAt).Round(time.Second)))
+		}
+
 	case "output":
 		r.print(e.Output)
 

@@ -19,7 +19,7 @@ data "azurerm_storage_account" "example" {
 }
 
 data "azurerm_storage_encryption_scope" "example" {
-  name               = "existingStorageES"
+  name               = "exampleencryptionscope"
   storage_account_id = data.azurerm_storage_account.example.id
 }
 

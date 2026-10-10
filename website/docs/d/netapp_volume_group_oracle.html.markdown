@@ -14,9 +14,9 @@ Use this data source to access information about an existing Application Volume 
 
 ```hcl
 data "azurerm_netapp_volume_group_oracle" "example" {
-  name                = "existing application volume group name"
+  name                = "example-volume-group"
   resource_group_name = "resource group name where the account and volume group belong to"
-  account_name        = "existing account where the application volume group belong to"
+  account_name        = "example-netapp-account"
 }
 
 output "id" {

@@ -197,10 +197,11 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 					"orchestrator_version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true, // azignore:AZS007 - pre-existing violation
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						Computed:         true, // azignore:AZS007 - pre-existing violation
+						ValidateFunc:     validation.StringIsNotEmpty,
+						DiffSuppressFunc: suppressKubernetesVersionDiff,
 					},
 					"pod_subnet_id": {
 						Type:         pluginsdk.TypeString,

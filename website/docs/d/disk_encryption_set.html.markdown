@@ -13,13 +13,13 @@ Use this data source to access information about an existing Disk Encryption Set
 ## Example Usage
 
 ```hcl
-data "azurerm_disk_encryption_set" "existing" {
+data "azurerm_disk_encryption_set" "example" {
   name                = "example-des"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = data.azurerm_disk_encryption_set.existing.id
+  value = data.azurerm_disk_encryption_set.example.id
 }
 ```
 

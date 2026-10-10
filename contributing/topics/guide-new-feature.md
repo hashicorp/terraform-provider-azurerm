@@ -41,7 +41,7 @@ func Default() UserFeatures {
 
 ### Updating `internal/provider`
 
-1. Update `internal/provider/feature.go` with what the Terraform schema will look like and how to thread it into the features block
+1. Update `internal/provider/features.go` with what the Terraform schema will look like and how to thread it into the features block
 
     ```go
     func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
@@ -65,12 +65,12 @@ func Default() UserFeatures {
         }
     }
 
-    func expandFeatures(input []interface{}) features.UserFeatures {
+    func expandFeatures(input []any) features.UserFeatures {
         ...
         if raw, ok := val["key_vault"]; ok {
-            items := raw.([]interface{})
+            items := raw.([]any)
             if len(items) > 0 && items[0] != nil {
-                keyVaultRaw := items[0].(map[string]interface{})
+                keyVaultRaw := items[0].(map[string]any)
                 if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
                     featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
                 }
@@ -80,19 +80,19 @@ func Default() UserFeatures {
     }
     ```
 
-2. Update `internal/provider/feature_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
+2. Update `internal/provider/features_test.go` to include a test for every permutation of the feature you are adding to the TestExpandFeatures test and a test dedicated to the service package of the feature.
 
 ```go
 func TestExpandFeatures(t *testing.T) {
     testData := []struct {
         Name     string
-        Input    []interface{}
-        EnvVars  map[string]interface{}
+        Input    []any
+        EnvVars  map[string]any
         Expected features.UserFeatures
     }{
         {
             Name:  "Empty Block",
-            Input: []interface{}{},
+            Input: []any{},
             Expected: features.UserFeatures{
                 ...
                 KeyVault: features.KeyVaultFeatures{
@@ -103,14 +103,14 @@ func TestExpandFeatures(t *testing.T) {
         },
         {
             Name: "Complete Enabled",
-            Input: []interface{}{
-                map[string]interface{}{
+            Input: []any{
+                map[string]any{
                     ...
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+                    "key_vault": []any{
+                        map[string]any{
     	                    "purge_soft_delete_on_destroy": true,
     	                },
-    	            },   
+    	            },
      	            ...
     	        },
             },
@@ -124,11 +124,11 @@ func TestExpandFeatures(t *testing.T) {
         },
         {
             Name: "Complete Disabled",
-            Input: []interface{}{
-                map[string]interface{}{
+            Input: []any{
+                map[string]any{
                     ...
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+                    "key_vault": []any{
+                        map[string]any{
                             "purge_soft_delete_on_destroy": false,
                         },
                     },
@@ -143,22 +143,21 @@ func TestExpandFeatures(t *testing.T) {
                 ...
             },
         },
-    },	
+    },
 }
-
 
 func TestExpandFeaturesKeyVault(t *testing.T) {
     testData := []struct {
         Name     string
-        Input    []interface{}
-        EnvVars  map[string]interface{}
+        Input    []any
+        EnvVars  map[string]any
         Expected features.UserFeatures
     }{
         {
             Name: "Empty Block",
-            Input: []interface{}{
-                map[string]interface{}{
-                    "key_vault": []interface{}{},
+            Input: []any{
+                map[string]any{
+                    "key_vault": []any{},
                 },
             },
             Expected: features.UserFeatures{
@@ -169,10 +168,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
         },
         {
             Name: "Purge Soft Delete On Destroy",
-            Input: []interface{}{
-                map[string]interface{}{
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+            Input: []any{
+                map[string]any{
+                    "key_vault": []any{
+                        map[string]any{
                             "purge_soft_delete_on_destroy": true,
                         },
                     },
@@ -186,10 +185,10 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
         },
         {
             Name: "Purge Soft Delete On Destroy Disabled",
-            Input: []interface{}{
-                map[string]interface{}{
-                    "key_vault": []interface{}{
-                        map[string]interface{}{
+            Input: []any{
+                map[string]any{
+                    "key_vault": []any{
+                        map[string]any{
                             "purge_soft_delete_on_destroy": false,
                         },
                     },
@@ -272,7 +271,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
                         },
                     },
                 },
-            },	
+            },
             ...
         }
     }
@@ -323,10 +322,10 @@ func defaultFeaturesList() types.List {
 
 ### Update the resource
 
-1. Update `internal/service/serviceName/resourceName.go` in this case `internal/service/keyvault/key_vault_resource.go` to include the functionality of the added feature.
+1. Update `internal/services/serviceName/resourceName.go` in this case `internal/services/keyvault/key_vault_resource.go` to include the functionality of the added feature.
 
     ```go
-    func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+    func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
         ...
         if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
             // Purge the Keyvault
@@ -335,40 +334,40 @@ func defaultFeaturesList() types.List {
     }
     ```
 
-2. Update `internal/service/serviceName/resourceName_test.go` in this case `internal/service/keyvault/key_vault_resource_test.go` to test the new feature.
+2. Update `internal/services/serviceName/resourceName_test.go` in this case `internal/services/keyvault/key_vault_resource_test.go` to test the new feature.
 
 ```go
-func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
+func TestAccKeyVault_purgeSoftDeleteOnDestroyDisabled(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
     r := KeyVaultResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
-        	// create it regularly
-        	Config: r.softDeleteRecoveryDisabled(data),
-        	Check: acceptance.ComposeTestCheckFunc(
-             	check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
-        	),
+            // create it regularly
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
         },
         data.ImportStep(),
         {
-            // delete the key vault
+            // destroy it with purging disabled, which leaves the soft-deleted key vault behind
             Config: r.softDeleteAbsent(data),
         },
         {
-            // attempting to re-create it requires recovery, which is enabled by default
+            // re-creating it with recovery disabled now fails, proving the key vault was not purged
             Config:      r.softDeleteRecoveryDisabled(data),
             ExpectError: regexp.MustCompile("An existing soft-deleted Key Vault exists with the Name"),
         },
     })
 }
 
-func (KeyVaultResource) softDeleteRecoveryDisabled(data acceptance.TestData) string {
+func (KeyVaultResource) softDeleteAbsent(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {
     key_vault {
+      purge_soft_delete_on_destroy    = false
       recover_soft_deleted_key_vaults = false
     }
   }

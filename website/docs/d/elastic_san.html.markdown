@@ -14,8 +14,8 @@ Use this data source to access information about an existing Elastic SAN.
 
 ```hcl
 data "azurerm_elastic_san" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-elastic-san"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

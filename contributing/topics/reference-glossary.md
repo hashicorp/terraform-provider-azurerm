@@ -24,12 +24,6 @@ A Data Plane API provides access to data for resources provisioned via the Resou
 * The App Configuration Data Plane API allows for managing Keys and Features within an App Configuration.
 * The Storage Data Plane API allows for the uploading/downloading of Blobs within a Storage Container (within a Storage Account).
 
-### Embedded SDK
-
-An Embedded SDK is an SDK that has been added directly into the providers code base (usually into `services/{name}/sdk`) rather than using go modules and vendoring it into `/vendor`.
-
-Whilst we generally vendor SDKs instead, we have a number of SDKs which aren't available elsewhere and are instead vendored into the codebase (see [High Level Overview](high-level-overview.md) for more information).
-
 ### Resource ID Formatter
 
 A Resource ID Formatter is a Resource ID Struct which implements the `ID()` method - returning the (Azure) Resource ID as a string - which must be parseable using the associated Resource ID Parser.
@@ -86,7 +80,7 @@ Note that a Service Registration can be both a Typed and Untyped Service Registr
 
 ### State Migration
 
-A State Migration is used when a resource has been changed to expect something different in the state than what previous version of the provider have written to it. An example of this is if Azure started to return a Resource ID value in a different case. rather than showing this during the plan, we can write a state migration to update the ID values transparently with no action required by a user. These are found in `services/service/migrations` and documentation on how to write them can be found in the [Terraform Plugin SDK](https://www.terraform.io/plugin/sdkv2/resources/state-migration) documentation.
+A State Migration is used when a resource has been changed to expect something different in the state than what previous version of the provider have written to it. An example of this is if Azure started to return a Resource ID value in a different case. rather than showing this during the plan, we can write a state migration to update the ID values transparently with no action required by a user. These are found in `services/{service}/migration` and documentation on how to write them can be found in the [Terraform Plugin SDK](https://www.terraform.io/plugin/sdkv2/resources/state-migration) documentation.
 
 ### Terraform Managed Resource ID
 
@@ -94,7 +88,7 @@ A Terraform Managed Resource ID is a Resource ID defined in Terraform, rather th
 
 The Azure Provider is moving to use Terraform Managed Resource IDs for all resources, since these are known ahead of time - which avoids issues with APIs changing these Resource IDs over time (either in casing, or renaming segments altogether).
 
-At present these are defined in a `resourceids.go` file within each Service Package, which generates a Resource ID Formatter, Parser and Validator for this Resource ID.
+These come from the go-azure-sdk package for the service, or from `commonids` for IDs shared across services. A few older services still generate them from a `resourceids.go` file, see [Resource IDs](guide-resource-ids.md).
 
 ### Terraform Resource Data
 

@@ -1,12 +1,14 @@
 # Guide: ARM API Versions
 
+## Avoid preview versions
+
 The provider should be implemented using stable Azure Resource Manager (ARM) API/SDK version. Preview versions are prone to sudden breaking changes which can result in a less than ideal user experience (eg: removed property or behavioural change). There are [automated checks on azure-rest-api-specs that prevents breaking changes against stable version](https://github.com/Azure/azure-rest-api-specs/blob/main/documentation/ci-fix.md#sdk-breaking-change-review) but they do not catch everything and are not applicable to preview versions.
 
 These breaking API changes often materialise into [breaking changes](guide-breaking-changes.md) which can involve non-trivial upgrade steps and/or require waiting until a major version release to make the breaking change. v3.0.0 was released in March 2022, v4.0.0 in August 2024, and v5.0.0 in July 2026.
 
-In November 2025 we implemented an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
+In December 2025 we added an API version check on PRs that prevents the use of preview versions. All historical usages of preview versions have been allow-listed as exceptions. See `internal/tools/preview-api-version-linter` for the implementation details.
 
-## Rerunning checks locally
+### Rerunning checks locally
 
 If you came to this page through a build failure, once you have removed the preview API dependency, rerun this check locally using the command:
 
@@ -14,9 +16,9 @@ If you came to this page through a build failure, once you have removed the prev
 go run internal/tools/preview-api-version-linter/main.go
 ```
 
-## Obtaining exception to use preview API
+### Obtaining exception to use preview API
 
-> **Warning:** Using a preview API version can be risky, prone to human error, and can result in a substandard user experience. An exception is a last resort only when all the consequences are fully understood and there is no alternative.
+> **Warning:** Exceptions are rare. Preview APIs change without notice and the breakage lands on users.
 
 To add an exception to use preview API version, the following criteria must be met:
 
@@ -47,3 +49,7 @@ To add an exception, insert an entry to `internal/tools/preview-api-version-lint
 Entries have to be sorted alphabetically by `module`, `service` and `version`.
 
 Once added, check the linter is passing by running `go run internal/tools/preview-api-version-linter/main.go`.
+
+## Avoid mixing API versions within the same service
+
+A service should use a single API version. Mixing different API versions risks bugs, unexpected behaviour, and technical debt from naming conflicts and aliasing. If a feature depends on a newer API version, first raise a PR to update the service to that version and ensure the acceptance tests pass.

@@ -14,8 +14,8 @@ Use this data source to access information about an existing PostgreSQL Flexible
 
 ```hcl
 data "azurerm_postgresql_flexible_server" "example" {
-  name                = "existing-postgresql-fs"
-  resource_group_name = "existing-postgresql-resgroup"
+  name                = "example-postgresql-flexible-server"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -101,14 +101,14 @@ func (AnomalyAlertResource) ResourceType() string {
 }
 
 func (AnomalyAlertResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return scheduledactions.ValidateScopedScheduledActionID
+	return scheduledactionoperationgroup.ValidateScopedScheduledActionID
 }
 
 func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient
+			client := metadata.Client.CostManagement.ScheduledActionOperationGroupClient
 
 			var config AnomalyAlertModel
 			if err := metadata.Decode(&config); err != nil {
@@ -119,10 +119,10 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			if subscriptionId == "" {
 				subscriptionId = commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId).ID()
 			}
-			id := scheduledactions.NewScopedScheduledActionID(subscriptionId, config.Name)
+			id := scheduledactionoperationgroup.NewScopedScheduledActionID(subscriptionId, config.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.GetByScope(ctx, id)
+				existing, err := client.ScheduledActionsGetByScope(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
@@ -132,10 +132,10 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			viewId := views.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
+			viewId := viewoperationgroup.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
-			schedule := scheduledactions.ScheduleProperties{
-				Frequency: scheduledactions.ScheduleFrequencyDaily,
+			schedule := scheduledactionoperationgroup.ScheduleProperties{
+				Frequency: scheduledactionoperationgroup.ScheduleFrequencyDaily,
 			}
 			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
 			schedule.SetStartDateAsTime(time.Now())
@@ -145,17 +145,17 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 				notificationEmail = config.NotificationEmail
 			}
 
-			param := scheduledactions.ScheduledAction{
-				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
-				Properties: &scheduledactions.ScheduledActionProperties{
+			param := scheduledactionoperationgroup.ScheduledAction{
+				Kind: pointer.To(scheduledactionoperationgroup.ScheduledActionKindInsightAlert),
+				Properties: &scheduledactionoperationgroup.ScheduledActionProperties{
 					DisplayName: config.DisplayName,
-					Status:      scheduledactions.ScheduledActionStatusEnabled,
+					Status:      scheduledactionoperationgroup.ScheduledActionStatusEnabled,
 					ViewId:      viewId.ID(),
-					FileDestination: &scheduledactions.FileDestination{
-						FileFormats: &[]scheduledactions.FileFormat{},
+					FileDestination: &scheduledactionoperationgroup.FileDestination{
+						FileFormats: &[]scheduledactionoperationgroup.FileFormat{},
 					},
 					NotificationEmail: &notificationEmail,
-					Notification: scheduledactions.NotificationProperties{
+					Notification: scheduledactionoperationgroup.NotificationProperties{
 						Subject: config.EmailSubject,
 						Message: pointer.To(config.Message),
 						To:      config.EmailAddresses,
@@ -163,7 +163,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 					Schedule: schedule,
 				},
 			}
-			if _, err := client.CreateOrUpdateByScope(ctx, id, param, scheduledactions.DefaultCreateOrUpdateByScopeOperationOptions()); err != nil {
+			if _, err := client.ScheduledActionsCreateOrUpdateByScope(ctx, id, param, scheduledactionoperationgroup.DefaultScheduledActionsCreateOrUpdateByScopeOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -177,9 +177,9 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient
+			client := metadata.Client.CostManagement.ScheduledActionOperationGroupClient
 
-			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
+			id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -189,7 +189,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.GetByScope(ctx, *id)
+			resp, err := client.ScheduledActionsGetByScope(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
@@ -204,10 +204,10 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			if subscriptionId == "" {
 				subscriptionId = commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId).ID()
 			}
-			viewId := views.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
+			viewId := viewoperationgroup.NewScopedViewID(subscriptionId, "ms:DailyAnomalyByResourceGroup")
 
-			schedule := scheduledactions.ScheduleProperties{
-				Frequency: scheduledactions.ScheduleFrequencyDaily,
+			schedule := scheduledactionoperationgroup.ScheduleProperties{
+				Frequency: scheduledactionoperationgroup.ScheduleFrequencyDaily,
 			}
 			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
 			schedule.SetStartDateAsTime(time.Now())
@@ -217,15 +217,15 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 				notificationEmail = config.NotificationEmail
 			}
 
-			param := scheduledactions.ScheduledAction{
-				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
+			param := scheduledactionoperationgroup.ScheduledAction{
+				Kind: pointer.To(scheduledactionoperationgroup.ScheduledActionKindInsightAlert),
 				ETag: resp.Model.ETag,
-				Properties: &scheduledactions.ScheduledActionProperties{
+				Properties: &scheduledactionoperationgroup.ScheduledActionProperties{
 					DisplayName:       config.DisplayName,
-					Status:            scheduledactions.ScheduledActionStatusEnabled,
+					Status:            scheduledactionoperationgroup.ScheduledActionStatusEnabled,
 					ViewId:            viewId.ID(),
 					NotificationEmail: &notificationEmail,
-					Notification: scheduledactions.NotificationProperties{
+					Notification: scheduledactionoperationgroup.NotificationProperties{
 						Subject: config.EmailSubject,
 						Message: pointer.To(config.Message),
 						To:      config.EmailAddresses,
@@ -233,7 +233,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 					Schedule: schedule,
 				},
 			}
-			if _, err := client.CreateOrUpdateByScope(ctx, *id, param, scheduledactions.DefaultCreateOrUpdateByScopeOperationOptions()); err != nil {
+			if _, err := client.ScheduledActionsCreateOrUpdateByScope(ctx, *id, param, scheduledactionoperationgroup.DefaultScheduledActionsCreateOrUpdateByScopeOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -247,14 +247,14 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient
+			client := metadata.Client.CostManagement.ScheduledActionOperationGroupClient
 
-			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
+			id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.GetByScope(ctx, *id)
+			resp, err := client.ScheduledActionsGetByScope(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -288,14 +288,14 @@ func (AnomalyAlertResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient
+			client := metadata.Client.CostManagement.ScheduledActionOperationGroupClient
 
-			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
+			id, err := scheduledactionoperationgroup.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err = client.DeleteByScope(ctx, *id); err != nil {
+			if _, err = client.ScheduledActionsDeleteByScope(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
