@@ -32,7 +32,7 @@ func (a ResourceAnchorResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestResourceAnchorResource_basic(t *testing.T) {
+func TestAccResourceAnchorResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -46,7 +46,7 @@ func TestResourceAnchorResource_basic(t *testing.T) {
 	})
 }
 
-func TestResourceAnchorResource_complete(t *testing.T) {
+func TestAccResourceAnchorResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -60,7 +60,7 @@ func TestResourceAnchorResource_complete(t *testing.T) {
 	})
 }
 
-func TestResourceAnchorResource_update(t *testing.T) {
+func TestAccResourceAnchorResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -89,7 +89,7 @@ func TestResourceAnchorResource_update(t *testing.T) {
 	})
 }
 
-func TestResourceAnchorResource_requiresImport(t *testing.T) {
+func TestAccResourceAnchorResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorResource{}.ResourceType(), "test")
 	r := ResourceAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

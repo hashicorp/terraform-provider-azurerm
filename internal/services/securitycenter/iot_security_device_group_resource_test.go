@@ -18,7 +18,7 @@ import (
 
 type DeviceSecurityGroupResource struct{}
 
-func TestIotSecurityDeviceGroup_basic(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -33,7 +33,7 @@ func TestIotSecurityDeviceGroup_basic(t *testing.T) {
 	})
 }
 
-func TestIotSecurityDeviceGroup_requiresImport(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -48,7 +48,7 @@ func TestIotSecurityDeviceGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestIotSecurityDeviceGroup_complete(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 
@@ -63,7 +63,7 @@ func TestIotSecurityDeviceGroup_complete(t *testing.T) {
 	})
 }
 
-func TestIotSecurityDeviceGroup_update(t *testing.T) {
+func TestAccIotSecurityDeviceGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_security_device_group", "test")
 	r := DeviceSecurityGroupResource{}
 

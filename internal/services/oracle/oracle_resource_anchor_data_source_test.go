@@ -14,7 +14,7 @@ import (
 
 type ResourceAnchorDataSource struct{}
 
-func TestResourceAnchorDataSource_basic(t *testing.T) {
+func TestAccResourceAnchorDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorDataSource{}.ResourceType(), "test")
 	r := ResourceAnchorDataSource{}
 

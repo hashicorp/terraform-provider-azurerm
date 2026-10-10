@@ -19,7 +19,7 @@ import (
 
 type CosmosDbPostgreSQLRoleResource struct{}
 
-func TestCosmosDbPostgreSQLRole_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLRole_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_role", "test")
 	r := CosmosDbPostgreSQLRoleResource{}
 
@@ -34,7 +34,7 @@ func TestCosmosDbPostgreSQLRole_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLRole_requiresImport(t *testing.T) {
+func TestAccCosmosDbPostgreSQLRole_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_role", "test")
 	r := CosmosDbPostgreSQLRoleResource{}
 
