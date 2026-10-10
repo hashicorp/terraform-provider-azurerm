@@ -69,7 +69,7 @@ A `schedule` block exports the following:
 
 * `minutes` - Minutes of the hour on which the trigger is scheduled.
 
-* `monthly` - A `monthly` block as documented below, which specifies the days of the month on which the trigger is scheduled.
+* `monthly` - A `monthly` block as defined below, which specifies the days of the month on which the trigger is scheduled.
 
 ---
 

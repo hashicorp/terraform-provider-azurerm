@@ -1391,6 +1391,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Required: true,
 						},
 
+						"client_authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(applicationgateways.ApplicationGatewayClientAuthVerificationModesStrict),
+							ValidateFunc: validation.StringInSlice(
+								applicationgateways.PossibleValuesForApplicationGatewayClientAuthVerificationModes(),
+								false,
+							),
+						},
+
 						"trusted_client_certificate_names": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -4466,6 +4476,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			Properties: &applicationgateways.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &applicationgateways.ApplicationGatewayClientAuthConfiguration{
 					VerifyClientCertIssuerDN: pointer.To(v["verify_client_certificate_issuer_dn"].(bool)),
+					VerifyClientAuthMode:     pointer.ToEnum[applicationgateways.ApplicationGatewayClientAuthVerificationModes](v["client_authentication_mode"].(string)),
 					VerifyClientRevocation:   pointer.To(verifyClientCertificateRevocation),
 				},
 			},
@@ -4517,6 +4528,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 		output["name"] = *v.Name
 		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.Properties.SslPolicy)
 
+		clientAuthenticationMode := string(applicationgateways.ApplicationGatewayClientAuthVerificationModesStrict)
 		verifyClientCertIssuerDn := false
 		verifyClientCertificateRevocation := ""
 
@@ -4525,6 +4537,9 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 				verifyClientCertIssuerDn = pointer.From(props.ClientAuthConfiguration.VerifyClientCertIssuerDN)
 				if *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
 					verifyClientCertificateRevocation = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientRevocation)
+				}
+				if props.ClientAuthConfiguration.VerifyClientAuthMode != nil {
+					clientAuthenticationMode = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientAuthMode)
 				}
 			}
 
@@ -4544,6 +4559,7 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 				}
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
+			output["client_authentication_mode"] = clientAuthenticationMode
 			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}
@@ -5088,6 +5104,15 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 			if policy, ok := v["ssl_policy"]; ok && policy != nil {
 				if err := checkSslPolicy(policy.([]any)); err != nil {
 					return err
+				}
+			}
+
+			if v["client_authentication_mode"].(string) == string(applicationgateways.ApplicationGatewayClientAuthVerificationModesPassthrough) {
+				if v["verify_client_certificate_issuer_dn"].(bool) {
+					return fmt.Errorf("`verify_client_certificate_issuer_dn` cannot be set to `true` when `client_authentication_mode` is `Passthrough` for `ssl_profile` %q", v["name"].(string))
+				}
+				if v["verify_client_certificate_revocation"].(string) == string(applicationgateways.ApplicationGatewayClientRevocationOptionsOCSP) {
+					return fmt.Errorf("`verify_client_certificate_revocation` cannot be set to `OCSP` when `client_authentication_mode` is `Passthrough` for `ssl_profile` %q", v["name"].(string))
 				}
 			}
 		}
