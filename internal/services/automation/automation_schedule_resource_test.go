@@ -321,7 +321,7 @@ resource "azurerm_automation_schedule" "test" {
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, startTime)
 }
 
-// nolint unparam
+//nolint:unparam
 func (AutomationScheduleResource) recurring_basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 %s

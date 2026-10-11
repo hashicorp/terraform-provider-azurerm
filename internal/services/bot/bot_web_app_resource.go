@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
@@ -42,7 +41,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseBotServiceID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Bot.BotClient
 
 			id, err := commonids.ParseBotServiceID(d.Id())
@@ -85,13 +84,10 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.SkuNameF0),
-					string(botservice.SkuNameS1),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 			},
 
 			"microsoft_app_id": {
@@ -102,14 +98,10 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			},
 
 			"microsoft_app_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(botservice.MsaAppTypeMultiTenant),
-					string(botservice.MsaAppTypeSingleTenant),
-					string(botservice.MsaAppTypeUserAssignedMSI),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 			},
 
 			"microsoft_app_tenant_id": {
@@ -129,7 +121,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -179,7 +171,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -213,7 +205,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        pluginsdk.ExpandStringSlice(d.Get("luis_app_ids").([]any)),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -221,7 +213,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
 		Kind: botservice.KindSdk,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
@@ -240,7 +232,7 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	return resourceBotWebAppRead(d, meta)
 }
 
-func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +276,7 @@ func resourceBotWebAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -308,7 +300,7 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
 			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
 			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
-			LuisAppIds:                        helpers.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
+			LuisAppIds:                        pluginsdk.ExpandStringSlice(d.Get("luis_app_ids").([]any)),
 			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
 		Location: pointer.To(d.Get("location").(string)),
@@ -316,7 +308,7 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
 		Kind: botservice.KindSdk,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("microsoft_app_tenant_id"); ok {
@@ -334,7 +326,7 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	return resourceBotWebAppRead(d, meta)
 }
 
-func resourceBotWebAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotWebAppDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

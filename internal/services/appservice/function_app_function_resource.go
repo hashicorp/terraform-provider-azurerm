@@ -47,7 +47,7 @@ type FunctionFiles struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppFunctionResource{}
 
-func (r FunctionAppFunctionResource) ModelObject() interface{} {
+func (r FunctionAppFunctionResource) ModelObject() any {
 	return &FunctionAppFunctionModel{}
 }
 
@@ -216,7 +216,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			var confJSON interface{}
+			var confJSON any
 			if err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON); err != nil {
 				return fmt.Errorf("error preparing config data to send: %+v", err)
 			}
@@ -240,7 +240,7 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			createWait := &pluginsdk.StateChangeConf{
 				Pending: []string{"busy", "unknown"},
 				Target:  []string{"ready"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					function, err := client.Get(ctx, *appId)
 					if err != nil || function.Model == nil || function.Model.Properties == nil {
 						return "unknown", "unknown", err
@@ -314,8 +314,8 @@ func (r FunctionAppFunctionResource) Read() sdk.ResourceFunc {
 
 					if filesRaw, ok := metadata.ResourceData.GetOk("file"); ok {
 						files := make([]FunctionFiles, 0)
-						for _, v := range filesRaw.([]interface{}) {
-							file := v.(map[string]interface{})
+						for _, v := range filesRaw.([]any) {
+							file := v.(map[string]any)
 							files = append(files, FunctionFiles{
 								Name:    file["name"].(string),
 								Content: file["content"].(string),
@@ -357,7 +357,7 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 			deleteWait := &pluginsdk.StateChangeConf{
 				Pending: []string{"busy", "unknown"},
 				Target:  []string{"ready"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					function, err := client.Get(ctx, appId)
 					if err != nil || function.Model == nil || function.Model.Properties == nil || function.Model.Properties.SiteConfig == nil {
 						return "unknown", "unknown", err
@@ -414,7 +414,7 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 			model := *existing.Model
 
 			if metadata.ResourceData.HasChange("config_json") {
-				var confJSON interface{}
+				var confJSON any
 				if err = json.Unmarshal([]byte(appFunction.ConfigJSON), &confJSON); err != nil {
 					return fmt.Errorf("error preparing config data to send: %+v", err)
 				}
@@ -437,7 +437,7 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 			updateWait := &pluginsdk.StateChangeConf{
 				Pending: []string{"busy", "unknown"},
 				Target:  []string{"ready"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					function, err := client.Get(ctx, appId)
 					if err != nil || function.Model == nil || function.Model.Properties == nil || function.Model.Properties.SiteConfig == nil {
 						return "unknown", "unknown", err
@@ -480,7 +480,7 @@ func expandFunctionFiles(input []FunctionFiles) *map[string]string {
 	return &result
 }
 
-func flattenFunctionFiles(input interface{}) (*string, error) {
+func flattenFunctionFiles(input any) (*string, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -489,6 +489,5 @@ func flattenFunctionFiles(input interface{}) (*string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal `config_json`: %+v", err)
 	}
-	result := string(raw)
-	return &result, nil
+	return pointer.To(string(raw)), nil
 }

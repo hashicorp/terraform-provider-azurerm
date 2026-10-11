@@ -160,7 +160,7 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -210,7 +210,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("disk_size_gb", props.DiskSizeGB)
 			d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 			d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-			d.Set("os_type", string(pointer.From(props.OsType)))
+			d.Set("os_type", pointer.FromEnum(props.OsType))
 
 			diskEncryptionSetId := ""
 			if props.Encryption != nil && props.Encryption.DiskEncryptionSetId != nil {

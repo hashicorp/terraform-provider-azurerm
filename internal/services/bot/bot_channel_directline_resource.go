@@ -156,7 +156,7 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -209,7 +209,7 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,7 +258,7 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +292,7 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +312,7 @@ func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
+func expandDirectlineSites(input []any) *[]botservice.DirectLineSite {
 	sites := make([]botservice.DirectLineSite, 0)
 
 	for _, element := range input {
@@ -320,7 +320,7 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 			continue
 		}
 
-		site := element.(map[string]interface{})
+		site := element.(map[string]any)
 		expanded := botservice.DirectLineSite{
 			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
 			IsEndpointParametersEnabled: pointer.To(site["endpoint_parameters_enabled"].(bool)),
@@ -357,11 +357,11 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 	return &sites
 }
 
-func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
-	sites := make([]interface{}, len(input))
+func flattenDirectlineSites(input []botservice.DirectLineSite) []any {
+	sites := make([]any, len(input))
 
 	for i, element := range input {
-		site := make(map[string]interface{})
+		site := make(map[string]any)
 
 		if v := element.SiteName; v != nil {
 			site["name"] = *v

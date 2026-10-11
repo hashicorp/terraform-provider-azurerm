@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+    Tags: tags.Expand(d.Get("tags").(map[string]any)),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -23,37 +23,54 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 The update method should be checking if the updatable fields (in this example, only tags) - have changes (using `d.HasChanges` - which will flag updated values in the config if they're not ignored via `ignore_changes`).
 
-Depending on the API there are two types of Updates, a patch/delta update (where only the fields containing changes are sent) - and a full update (which requires sending the full payload) - these are differentiable via the method name in the SDK, patch/delta updates are generally called `Update`, with a full update being called `CreateOrUpdate`.
+### Updates should default to the PUT method
 
-A patch/delta update would look similar to below:
+Depending on the API there can be two ways to perform an Update - a PUT (a full update requiring the complete payload to be sent, generally called `CreateOrUpdate` in the SDK) - and a PATCH (a partial/delta update where only the fields being changed are sent, generally called `Update` in the SDK).
 
-```go
-payload := resources.GroupUpdate{}
-if d.HasChanges("tags") {
-  // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
-}
+**Updates should default to using the PUT API: retrieve the existing resource from the API, apply the changed fields to the retrieved model, and send the full payload back.**
 
-if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
-  return fmt.Errorf("updating %s: %+v", id, err)
-}
-```
+The reason for this comes from Terraform's declarative model. The user's configuration is the desired state, so removing an optional field from the configuration means "unset this value" - which means an Update method must be able to *clear* any optional field, not just set it. PATCH semantics are the opposite - an absent field means "leave it unchanged" - and since the SDK structs generated from the OpenAPI spec use `omitempty` JSON tags, a `nil` field is omitted from the payload entirely, so the explicit `"field": null` that a PATCH requires to clear a value can never be sent.
 
-A full update would retrieve the existing object from the API and then patch it, for example:
+This makes PATCH-based Updates a trap: setting and changing values works fine, but when a user removes an optional field from their configuration the plan shows the field being removed, the apply "succeeds", and the next plan shows the same diff again - permanent drift that the provider cannot correct. Because this only surfaces when a field is *removed* from the configuration (a case frequently missing from acceptance tests) the failure is silent. A PUT does not have this gap - a full payload with the field absent resets it on the server - and its failure modes are loud (the API rejects the payload) rather than silent drift.
+
+A PUT-based Update retrieves the existing object from the API, applies the changed fields, and sends it back, for example:
 
 ```go
-resp, err := client.Get(ctx, id)
+existing, err := client.Get(ctx, id)
 if err != nil {
   return fmt.Errorf("retrieving %s: %+v", id, err)
 }
 
-if resp.Model == nil {
-  return fmt.Errorf("retrieving %s: model was nil", id)
+if existing.Model == nil {
+  return fmt.Errorf("retrieving %s: `model` was nil", id)
 }
 
-payload := *resp.Model
 if d.HasChanges("tags") {
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
+}
+
+if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
+  return fmt.Errorf("updating %s: %+v", id, err)
+}
+```
+
+Starting from the retrieved model (rather than rebuilding the payload from the configuration) preserves any server-set or externally-managed fields that a full replacement would otherwise wipe, and gating each field on `d.HasChanges` keeps `ignore_changes` working. Note that some APIs return read-only or write-once fields in the GET response which they then reject in a PUT - these need to be removed from the payload before sending.
+
+The PATCH API should only be used when:
+
+* the API does not offer a PUT, or
+* a property can only be set through the PATCH API and the PUT ignores it (e.g. `networkBypassMode` on a MongoDB cluster, which has to be applied with a separate PATCH after the cluster is created)
+
+**and** no updatable field ever needs to be cleared (or the PATCH model is able to send an explicit empty value, e.g. a non-pointer map that serialises to `{}`). The burden of proof sits on choosing PATCH - if PATCH is used, there must be a comment above the request explaining why the PUT could not be.
+
+A PATCH-based Update would look similar to below:
+
+```go
+// PATCH is used here because <reason the PUT cannot be used for this API>
+payload := resources.GroupUpdate{}
+if d.HasChanges("tags") {
+  // all fields in a PATCH model are pointers so only the fields that are set are sent
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -78,7 +95,7 @@ Data Sources and Resources built using the Typed SDK have a number of benefits o
     2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus not able to be referenced in user configs.
 * Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
 * Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
-  
+
 To facilitate the migration across to Typed Resources, we ask that any new Data Source or Resource which is added to the Provider is added as a Typed Data Source/Resource. Enhancements to existing Data Sources/Resources which are Untyped Resources can remain as Untyped Resources, however these will need to be migrated across in the future.
 
 Here is an example of an Untyped Resource:
@@ -113,19 +130,19 @@ func someResource() *pluginsdk.Resource {
 	}
 }
 
-func someResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	// create logic is defined here
 }
 
-func someResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// update logic is defined here
 }
 
-func someResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	// read logic is defined here
 }
 
-func someResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	// delete logic is defined here
 }
 
@@ -154,7 +171,7 @@ func (r SomeResource) ResourceType() string {
 	return "azurerm_some_resource"
 }
 
-func (r SomeResource) ModelObject() interface{} {
+func (r SomeResource) ModelObject() any {
 	return &SomeResourceModel{}
 }
 
@@ -178,7 +195,7 @@ func (r SomeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func:    func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// create logic is defined here 
+			// create logic is defined here
 		},
 	}
 }
@@ -234,6 +251,7 @@ Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
 However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
+
 * The properties are in this sequence: Optional, Explanatory Comment, Computed
 * The comment should start with `// NOTE: O+C `, and then explain the reason for the field being `Optional` and `Computed`
 
@@ -276,7 +294,7 @@ The following CustomizeDiff validation that asserts `customize_managed_key_ident
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff == nil {
 				return nil
@@ -305,7 +323,7 @@ Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig(
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff == nil {
 				return nil
@@ -330,12 +348,12 @@ func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 
 However if the logic depends on the known-after-apply value itself, then CustomizeDiff has to abstain.
 
-## Go File Header Comments
+## File Header Comments
 
-When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
+Every source file (Go, Terraform, shell, YAML, etc.) starts with the licensing header below, placed at the very beginning of the file with no preceding blank lines. CI enforces this with [license-eye](https://github.com/apache/skywalking-eyes) (config in `.licenserc.yaml`) - run `make copyright-fix` to add missing headers. Existing headers keep the year they have.
 
 ```go
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 ```
 
@@ -343,15 +361,11 @@ When adding or updating the licensing header at the top of a Go source file, alw
 
 - `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
 
-:white_check_mark: **DO**
-
 ```go
 output.Name = pointer.From(input.Name)
 ```
 
 - Use `pointer.To` to take the address of a value without declaring temporary variables.
-
-:white_check_mark: **DO**
 
 ```go
 if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
@@ -360,8 +374,6 @@ if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch
 ```
 
 - Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
-
-:white_check_mark: **DO**
 
 ```go
 return &managedclusters.ManagedClusterBootstrapProfile{

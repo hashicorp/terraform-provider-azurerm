@@ -88,7 +88,7 @@ func (m Python3PackageResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m Python3PackageResource) ModelObject() interface{} {
+func (m Python3PackageResource) ModelObject() any {
 	return &Python3PackageModel{}
 }
 
@@ -245,7 +245,6 @@ func (m Python3PackageResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Automation.Python3Package
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

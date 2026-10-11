@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubConsumerGroup() *pluginsdk.Resource {
@@ -68,7 +68,7 @@ func resourceIotHubConsumerGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -94,7 +94,7 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 
 	consumerGroupBody := devices.EventHubConsumerGroupBodyDescription{
 		// The properties are currently undocumented. See also:
-		// https://docs.microsoft.com/en-us/azure/templates/microsoft.devices/2021-03-31/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
+		// https://docs.microsoft.com/azure/templates/microsoft.devices/2021-03-31/iothubs/eventhubendpoints/consumergroups?tabs=json#eventhubconsumergroupname
 		//
 		// There is an example where the name is repeated in the properties,
 		// so that seems to be the "proper" way. See also:
@@ -113,7 +113,7 @@ func resourceIotHubConsumerGroupCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceIotHubConsumerGroupRead(d, meta)
 }
 
-func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +141,7 @@ func resourceIotHubConsumerGroupRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

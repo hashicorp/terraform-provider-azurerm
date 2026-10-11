@@ -57,7 +57,7 @@ func dataSourceDedicatedHostGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

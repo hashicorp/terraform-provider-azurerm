@@ -16,7 +16,7 @@ import (
 // the last release where the `id` could have been stored in state with lowercased static segments via an import using a non-canonical ID.
 func TestAccCdnFrontDoorOrigin_V0ToV1_4810(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-	r := CdnFrontDoorOriginResource{}
+	r := CdnFrontdoorOriginResource{}
 
 	importedResourceName := data.ResourceName + "-import"
 
@@ -43,7 +43,7 @@ func TestAccCdnFrontDoorOrigin_V0ToV1_4810(t *testing.T) {
 	}, "4.81.0")
 }
 
-func (r CdnFrontDoorOriginResource) basicV0(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) basicV0(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -79,7 +79,7 @@ import {
 `, r.template(data, "Standard_AzureFrontDoor", false), data.RandomInteger, data.Subscriptions.Primary)
 }
 
-func (r CdnFrontDoorOriginResource) basicImported(data acceptance.TestData) string {
+func (r CdnFrontdoorOriginResource) basicImported(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

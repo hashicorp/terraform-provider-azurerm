@@ -83,7 +83,7 @@ func (r BatchJobResource) ResourceType() string {
 	return "azurerm_batch_job"
 }
 
-func (r BatchJobResource) ModelObject() interface{} {
+func (r BatchJobResource) ModelObject() any {
 	return &BatchJobModel{}
 }
 
@@ -317,7 +317,7 @@ func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]
 
 func (r BatchJobResource) flattenEnvironmentSettings(input *[]jobs.EnvironmentSetting) map[string]string {
 	if input == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	m := make(map[string]string)

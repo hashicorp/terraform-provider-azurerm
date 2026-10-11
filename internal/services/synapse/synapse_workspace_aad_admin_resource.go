@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
@@ -65,7 +65,7 @@ func resourceSynapseWorkspaceAADAdmin() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func resourceSynapseWorkspaceAADAdminCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceSynapseWorkspaceAADAdminRead(d, meta)
 }
 
-func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceSynapseWorkspaceAADAdminDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceAADAdminDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	azureADOnlyAuthenticationsClient := meta.(*clients.Client).Synapse.WorkspaceAzureADOnlyAuthenticationsClient

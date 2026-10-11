@@ -53,7 +53,7 @@ func resourceStorageSyncGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -85,7 +85,7 @@ func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageSyncGroupRead(d, meta)
 }
 
-func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +114,7 @@ func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceStorageSyncGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

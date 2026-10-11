@@ -33,21 +33,21 @@ type KeyVaultMHSMKeyResource struct{}
 
 var _ sdk.ResourceWithUpdate = KeyVaultMHSMKeyResource{}
 
-func (r KeyVaultMHSMKeyResource) ModelObject() interface{} {
+func (r KeyVaultMHSMKeyResource) ModelObject() any {
 	return &KeyVaultMHSMKeyResourceSchema{}
 }
 
 type KeyVaultMHSMKeyResourceSchema struct {
-	Name           string                 `tfschema:"name"`
-	ManagedHSMID   string                 `tfschema:"managed_hsm_id"`
-	KeyType        string                 `tfschema:"key_type"`
-	KeyOpts        []string               `tfschema:"key_opts"`
-	KeySize        int64                  `tfschema:"key_size"`
-	Curve          string                 `tfschema:"curve"`
-	NotBeforeDate  string                 `tfschema:"not_before_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Tags           map[string]interface{} `tfschema:"tags"`
-	VersionedId    string                 `tfschema:"versioned_id"`
+	Name           string         `tfschema:"name"`
+	ManagedHSMID   string         `tfschema:"managed_hsm_id"`
+	KeyType        string         `tfschema:"key_type"`
+	KeyOpts        []string       `tfschema:"key_opts"`
+	KeySize        int64          `tfschema:"key_size"`
+	Curve          string         `tfschema:"curve"`
+	NotBeforeDate  string         `tfschema:"not_before_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Tags           map[string]any `tfschema:"tags"`
+	VersionedId    string         `tfschema:"versioned_id"`
 }
 
 func (r KeyVaultMHSMKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -255,14 +255,12 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
@@ -276,7 +274,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						stateConf := &pluginsdk.StateChangeConf{
 							Pending:                   []string{"pending"},
 							Target:                    []string{"available"},
-							Refresh:                   managedHSMKeyRefreshFunc(*kid),
+							Refresh:                   managedHSMKeyRefreshFunc(ctx, *kid),
 							Delay:                     30 * time.Second,
 							PollInterval:              10 * time.Second,
 							ContinuousTargetOccurence: 10,
@@ -405,14 +403,12 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
-				notBeforeUnixTime := date.UnixTime(notBeforeDate)
-				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
+				parameters.KeyAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
 			}
 
 			if config.ExpirationDate != "" {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
-				expirationUnixTime := date.UnixTime(expirationDate)
-				parameters.KeyAttributes.Expires = &expirationUnixTime
+				parameters.KeyAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
 			}
 
 			resp, err := client.UpdateKey(ctx, id.BaseUri(), config.Name, "", parameters)

@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSslProfileID(t *testing.T) {
+func TestValidateSslProfileID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
