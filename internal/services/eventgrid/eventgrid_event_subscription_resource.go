@@ -89,9 +89,9 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"azure_alert_monitor": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
-				utils.RemoveFromStringArray(
+				slices.DeleteFunc(
 					possibleEventSubscriptionEndpointTypes(),
-					string(AzureAlertMonitor),
+					func(s string) bool { return s == string(AzureAlertMonitor) },
 				),
 			),
 

@@ -15,7 +15,7 @@ import (
 func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscriptions.EventSubscriptionDestination {
 	deliveryMappings := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]any))
 
-	if v, ok := d.GetOk("azure_alert_monitor"); ok && len(v.([]interface{})) == 1 {
+	if val, ok := d.GetOk("azure_alert_monitor"); ok && len(val.([]any)) == 1 {
 		return expandEventGridEventSubscriptionAzureAlertMonitor(d.Get("azure_alert_monitor").([]any))
 	}
 
@@ -89,15 +89,15 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []any, deliveryMappin
 	return webhookDestination
 }
 
-func expandEventGridEventSubscriptionAzureAlertMonitor(input []interface{}) eventsubscriptions.MonitorAlertEventSubscriptionDestination {
-	item := input[0].(map[string]interface{})
+func expandEventGridEventSubscriptionAzureAlertMonitor(input []any) eventsubscriptions.MonitorAlertEventSubscriptionDestination {
+	item := input[0].(map[string]any)
 	props := eventsubscriptions.MonitorAlertEventSubscriptionDestinationProperties{
 		Description: pointer.To(item["description"].(string)),
-		Severity:    pointer.To(eventsubscriptions.MonitorAlertSeverity(item["severity"].(string))),
+		Severity:    pointer.ToEnum[eventsubscriptions.MonitorAlertSeverity](item["severity"].(string)),
 	}
 
 	if v, ok := item["action_groups"]; ok && v != nil {
-		props.ActionGroups = utils.ExpandStringSlice(v.([]interface{}))
+		props.ActionGroups = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	return eventsubscriptions.MonitorAlertEventSubscriptionDestination{
@@ -105,12 +105,12 @@ func expandEventGridEventSubscriptionAzureAlertMonitor(input []interface{}) even
 	}
 }
 
-func flattenEventSubscriptionDestinationAzureAlertMonitor(input interface{}) []interface{} {
-	output := make([]interface{}, 0)
+func flattenEventSubscriptionDestinationAzureAlertMonitor(input any) []any {
+	output := make([]any, 0)
 	val, ok := input.(eventsubscriptions.MonitorAlertEventSubscriptionDestination)
 
 	if ok && val.Properties != nil {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"severity":      pointer.From(val.Properties.Severity),
 			"description":   pointer.From(val.Properties.Description),
 			"action_groups": val.Properties.ActionGroups,
