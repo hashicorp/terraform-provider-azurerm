@@ -14,8 +14,8 @@ Use this data source to access information about an existing Azure Arc machine.
 
 ```hcl
 data "azurerm_arc_machine" "example" {
-  name                = "existing-hcmachine"
-  resource_group_name = "existing-rg"
+  name                = "example-machine"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
