@@ -67,7 +67,7 @@ func resourceDataFactoryLinkedServiceKeyVault() *pluginsdk.Resource {
 			"key_vault_base_url_dynamic_expression": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+				ValidateFunc: func(val any, key string) ([]string, []error) {
 					var warnings []string
 					var errors []error
 
