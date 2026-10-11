@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = LinkedServiceId{}
 
-func TestLinkedServiceIDFormatter(t *testing.T) {
+func TestParseLinkedServiceIDFormatter(t *testing.T) {
 	actual := NewLinkedServiceID("12345678-1234-9876-4563-123456789012", "resGroup1", "factory1", "linkedService1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/factory1/linkedservices/linkedService1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestLinkedServiceIDFormatter(t *testing.T) {
 	}
 }
 
-func TestLinkedServiceID(t *testing.T) {
+func TestParseLinkedServiceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

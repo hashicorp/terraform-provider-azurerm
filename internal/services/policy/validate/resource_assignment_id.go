@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,7 +13,7 @@ import (
 func ResourceAssignmentId() pluginsdk.SchemaValidateFunc {
 	return validation.All(
 		validation.None(
-			map[string]func(interface{}, string) ([]string, []error){
+			map[string]func(any, string) ([]string, []error){
 				"Management Group ID": commonids.ValidateManagementGroupID,
 				"Resource Group ID":   commonids.ValidateResourceGroupID,
 				"Subscription ID":     commonids.ValidateSubscriptionID,

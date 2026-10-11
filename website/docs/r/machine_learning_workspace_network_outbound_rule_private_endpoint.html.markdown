@@ -32,11 +32,12 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "workspaceexamplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                       = "workspaceexamplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -90,12 +91,13 @@ The following arguments are supported:
 
 * `service_resource_id` - (Required) Specifies the Service Resource ID to connect. Changing this forces a new resource to be created.
 
-~> **Note:** Supported service resources: **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
+~> **Note:** Supported service resources: **Cognitive Account**, **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
 
-* `sub_resource_target` - (Required) Specifies the Sub Resource of the service resource to connect to. Possible values are `vault`,`amlworkspace`,`blob`,`table`,`queue`,`file`,`web`,`dfs`, `redisCache`. Changing this forces a new resource to be created.
-  
+* `sub_resource_target` - (Required) Specifies the Sub Resource of the service resource to connect to. Possible values are `vault`, `amlworkspace`, `blob`, `table`, `queue`, `file`, `web`, `dfs`, `redisCache`, and `account`. Changing this forces a new resource to be created.
+
   | Service                    | Sub Resource Type                         |
   |----------------------------|-------------------------------------------|
+  | Cognitive Services         | `account`                                 |
   | Machine Learning Workspace | `amlworkspace`                            |
   | Redis                      | `redisCache`                              |
   | Storage Account            | `blob`,`table`,`queue`,`file`,`web`,`dfs` |

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package blueprints
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -38,7 +38,7 @@ func dataSourceBlueprintPublishedVersion() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
-					mgValidate.ManagementGroupID,
+					validate.ManagementGroupID,
 				),
 			},
 
@@ -82,7 +82,7 @@ func dataSourceBlueprintPublishedVersion() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBlueprintPublishedVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBlueprintPublishedVersionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.PublishedBlueprintsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

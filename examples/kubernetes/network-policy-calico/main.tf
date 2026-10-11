@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -35,6 +35,10 @@ resource "azurerm_kubernetes_cluster" "example" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.internal.id
+  }
+
+  node_provisioning_profile {
+    mode = "Manual"
   }
 
   network_profile {

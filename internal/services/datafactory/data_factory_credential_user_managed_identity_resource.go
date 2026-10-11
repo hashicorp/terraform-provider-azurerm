@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -81,7 +81,7 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Attributes() map
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (DataFactoryCredentialUserAssignedManagedIdentityResource) ModelObject() interface{} {
+func (DataFactoryCredentialUserAssignedManagedIdentityResource) ModelObject() any {
 	return &DataFactoryCredentialUserAssignedManagedIdentityResourceSchema{}
 }
 
@@ -169,7 +169,7 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 				},
 			}
 			if len(data.Annotations) > 0 {
-				annotations := make([]interface{}, len(data.Annotations))
+				annotations := make([]any, len(data.Annotations))
 				for i, v := range data.Annotations {
 					annotations[i] = v
 				}
@@ -228,7 +228,7 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 
 			if metadata.ResourceData.HasChange("annotations") {
 				if len(data.Annotations) > 0 {
-					annotations := make([]interface{}, len(data.Annotations))
+					annotations := make([]any, len(data.Annotations))
 					for i, v := range data.Annotations {
 						annotations[i] = v
 					}

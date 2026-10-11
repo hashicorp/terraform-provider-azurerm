@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -38,9 +38,8 @@ var (
 // NewAPIManagementAPIPoller - creates a new poller for API Management API operations to handle the case there is a query string
 // parameter "asyncId" in the Location header of the response. This is used to poll the status of the operation.
 func NewAPIManagementAPIPoller(cli *api.ApiClient, id api.ApiId, response *http.Response) *apiManagementAPIPoller {
-	urlStr := response.Header.Get("location")
 	var asyncId string
-	if u, err := url.Parse(urlStr); err == nil {
+	if u, err := url.Parse(response.Header.Get("location")); err == nil {
 		asyncId = u.Query().Get("asyncId")
 	}
 
@@ -102,7 +101,7 @@ func (p apiManagementAPIPoller) Poll(ctx context.Context) (*pollers.PollResult, 
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	// the response actually doesn't include a provisioningState property, so we only chech the http status code
+	// the response actually doesn't include a provisioningState property, so we only check the http status code
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return &pollingSuccess, nil

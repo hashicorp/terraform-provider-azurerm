@@ -35,6 +35,7 @@ func AzurePublic() *Environment {
 	env.MySql = MySqlAPI("mysql.database.azure.com").WithResourceIdentifier("https://ossrdbms-aad.database.windows.net")
 	env.OperationalInsights = OperationalInsightsAPI().WithResourceIdentifier("https://api.loganalytics.io")
 	env.Postgresql = PostgresqlAPI("postgres.database.azure.com").WithResourceIdentifier("https://ossrdbms-aad.database.windows.net")
+	env.Search = SearchAPI("search.windows.net").WithResourceIdentifier("https://search.azure.com")
 	env.ServiceBus = ServiceBusAPI("https://servicebus.windows.net", "servicebus.windows.net").WithResourceIdentifier("https://servicebus.azure.net")
 	env.Sql = SqlAPI("database.windows.net").WithResourceIdentifier("https://database.windows.net")
 	env.Storage = StorageAPI("core.windows.net")

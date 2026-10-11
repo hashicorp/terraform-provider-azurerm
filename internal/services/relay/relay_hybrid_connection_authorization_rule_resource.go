@@ -1,13 +1,13 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package relay
 
 import (
 	"fmt"
-	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRelayHybridConnectionAuthorizationRule() *pluginsdk.Resource {
@@ -64,29 +63,30 @@ func resourceRelayHybridConnectionAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
-
 	resourceId := hybridconnections.NewHybridConnectionAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("hybrid_connection_name").(string), d.Get("name").(string))
+
 	if d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, resourceId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GetAuthorizationRule(ctx, resourceId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection_authorization_rule", resourceId.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_relay_hybrid_connection_authorization_rule", resourceId.ID())
+			}
 		}
 	}
 
 	parameters := hybridconnections.AuthorizationRule{
-		Name: utils.String(resourceId.AuthorizationRuleName),
+		Name: pointer.To(resourceId.AuthorizationRuleName),
 		Properties: &hybridconnections.AuthorizationRuleProperties{
 			Rights: expandHybridConnectionAuthorizationRuleRights(d),
 		},
@@ -96,12 +96,14 @@ func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.Res
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID())
+	if d.IsNewResource() {
+		d.SetId(resourceId.ID())
+	}
 
 	return resourceRelayHybridConnectionAuthorizationRuleRead(d, meta)
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +147,7 @@ func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

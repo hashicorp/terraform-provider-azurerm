@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsOutputFunctionResource struct{}
@@ -95,15 +95,14 @@ func (r StreamAnalyticsOutputFunctionResource) Exists(ctx context.Context, clien
 	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsOutputFunctionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -111,15 +110,14 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "somefunctionname"
   api_key                   = "test"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -127,17 +125,16 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "somefunctionname"
   api_key                   = "test"
   batch_max_in_bytes        = 128
   batch_max_count           = 200
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -145,16 +142,15 @@ resource "azurerm_stream_analytics_output_function" "test" {
   name                      = "acctestoutput-%d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  function_app              = azurerm_function_app.test.name
+  function_app              = azurerm_linux_function_app.test.name
   function_name             = "adifferentfunctionname"
   api_key                   = "withanewkey!"
   batch_max_in_bytes        = 128
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsOutputFunctionResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -166,7 +162,7 @@ resource "azurerm_stream_analytics_output_function" "import" {
   function_name             = azurerm_stream_analytics_output_function.test.function_name
   api_key                   = azurerm_stream_analytics_output_function.test.api_key
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsOutputFunctionResource) template(data acceptance.TestData) string {
@@ -188,28 +184,29 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestplan-%[3]s"
-  location            = azurerm_resource_group.test.location
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "FunctionApp"
-  reserved            = true
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Y1"
+  os_type             = "Linux"
 
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
   }
 }
 
-resource "azurerm_function_app" "test" {
-  name                       = "acctestfunction-%[3]s"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  os_type                    = "linux"
-  version                    = "~3"
+
+  site_config {}
 }
 
 resource "azurerm_stream_analytics_job" "test" {

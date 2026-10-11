@@ -8,8 +8,6 @@ description: |-
 
 # List resource: azurerm_virtual_network
 
-~> **Note:** The `azurerm_virtual_network` List Resource is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Lists Virtual Network resources.
 
 ## Example Usage
@@ -23,7 +21,7 @@ list "azurerm_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 This list resource supports the following attributes:
 

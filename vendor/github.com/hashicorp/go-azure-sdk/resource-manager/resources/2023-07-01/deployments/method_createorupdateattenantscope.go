@@ -62,9 +62,20 @@ func (c DeploymentsClient) CreateOrUpdateAtTenantScope(ctx context.Context, id D
 
 // CreateOrUpdateAtTenantScopeThenPoll performs CreateOrUpdateAtTenantScope then polls until it's completed
 func (c DeploymentsClient) CreateOrUpdateAtTenantScopeThenPoll(ctx context.Context, id DeploymentId, input ScopedDeployment) error {
+	return c.CreateOrUpdateAtTenantScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateAtTenantScopeCallbackThenPoll performs CreateOrUpdateAtTenantScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) CreateOrUpdateAtTenantScopeCallbackThenPoll(ctx context.Context, id DeploymentId, input ScopedDeployment, callback func() error) error {
 	result, err := c.CreateOrUpdateAtTenantScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateAtTenantScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

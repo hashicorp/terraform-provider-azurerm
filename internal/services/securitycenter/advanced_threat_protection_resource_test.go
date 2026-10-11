@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,48 +8,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AdvancedThreatProtectionResource struct{}
 
-func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
-	r := AdvancedThreatProtectionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.storageAccount(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.storageAccount(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
-	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
-	// TODO: remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
-	// run it multiple times in a row as it only fails 50% of the time
-	t.Skip()
-
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
-
 	r := AdvancedThreatProtectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -72,7 +42,7 @@ func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 		{
 			Config: r.cosmosAccount(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClient(checkAdvancedThreatProtectionIsFalse),
+				data.CheckWithClientForResource(checkAdvancedThreatProtectionIsFalse, "azurerm_cosmosdb_account.test"),
 			),
 		},
 	})
@@ -84,7 +54,7 @@ func TestAccAdvancedThreatProtection_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccount(data, true),
+			Config: r.cosmosAccount(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
@@ -106,34 +76,29 @@ func (AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("reading Advanced Threat Protection (%s): %+v", id.TargetResourceID, err)
 	}
 
-	return utils.Bool(resp.AdvancedThreatProtectionProperties != nil), nil
+	return pointer.To(resp.AdvancedThreatProtectionProperties != nil), nil
 }
 
-// nolint unused
 func checkAdvancedThreatProtectionIsFalse(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := parse.AdvancedThreatProtectionID(state.ID)
+	targetResourceID := state.ID
+	resp, err := clients.SecurityCenter.AdvancedThreatProtectionClient.Get(ctx, targetResourceID)
 	if err != nil {
-		return err
+		return fmt.Errorf("reading Advanced Threat Protection (%s): %+v", targetResourceID, err)
 	}
 
-	resp, err := clients.SecurityCenter.AdvancedThreatProtectionClient.Get(ctx, id.TargetResourceID)
-	if err != nil {
-		return fmt.Errorf("reading Advanced Threat Protection (%s): %+v", id.TargetResourceID, err)
+	if resp.AdvancedThreatProtectionProperties == nil || resp.IsEnabled == nil {
+		return fmt.Errorf("Advanced Threat Protection (%s) properties is nil", targetResourceID)
 	}
 
-	if resp.AdvancedThreatProtectionProperties == nil || resp.AdvancedThreatProtectionProperties.IsEnabled == nil {
-		return fmt.Errorf("Advanced Threat Protection (%s) properties is nil", id.TargetResourceID)
-	}
-
-	if *resp.AdvancedThreatProtectionProperties.IsEnabled {
-		return fmt.Errorf("Advanced Threat Protection (%s) properties is still enabled", id.TargetResourceID)
+	if *resp.IsEnabled {
+		return fmt.Errorf("Advanced Threat Protection (%s) properties is still enabled", targetResourceID)
 	}
 
 	return nil
 }
 
 func (AdvancedThreatProtectionResource) requiresImport(data acceptance.TestData) string {
-	template := AdvancedThreatProtectionResource{}.storageAccount(data, true)
+	template := AdvancedThreatProtectionResource{}.cosmosAccount(data, true, true)
 	return fmt.Sprintf(`
 %s
 
@@ -144,38 +109,6 @@ resource "azurerm_advanced_threat_protection" "import" {
 `, template)
 }
 
-func (AdvancedThreatProtectionResource) storageAccount(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ATP-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "acctest%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
-  }
-}
-
-resource "azurerm_advanced_threat_protection" "test" {
-  target_resource_id = "${azurerm_storage_account.test.id}"
-  enabled            = %t
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, enabled)
-}
-
-// nolint unused - mistakenly marked as unused
 func (AdvancedThreatProtectionResource) cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
 	atp := ""
 	if hasResource {

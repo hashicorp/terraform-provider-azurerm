@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package pluginsdk
@@ -11,9 +11,9 @@ import (
 )
 
 type (
-	CustomizeDiffFunc        = func(context.Context, *ResourceDiff, interface{}) error
-	ValueChangeConditionFunc = func(ctx context.Context, old, new, meta interface{}) bool
-	ResourceConditionFunc    = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool
+	CustomizeDiffFunc        = func(context.Context, *ResourceDiff, any) error
+	ValueChangeConditionFunc = func(ctx context.Context, old, new, meta any) bool
+	ResourceConditionFunc    = func(ctx context.Context, d *schema.ResourceDiff, meta any) bool
 )
 
 // CustomDiffWithAll returns a CustomizeDiffFunc that runs all of the given
@@ -24,7 +24,7 @@ type (
 //
 // If multiple functions returns errors, the result is a multierror.
 func CustomDiffWithAll(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 		var err error
 		for _, f := range funcs {
 			thisErr := f(ctx, d, meta)
@@ -42,10 +42,9 @@ func CustomDiffWithAll(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
 //
 // If all functions succeed, the combined function also succeeds.
 func CustomDiffInSequence(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 		for _, f := range funcs {
-			err := f(ctx, d, meta)
-			if err != nil {
+			if err := f(ctx, d, meta); err != nil {
 				return err
 			}
 		}
@@ -64,7 +63,7 @@ func CustomDiffInSequence(funcs ...CustomizeDiffFunc) schema.CustomizeDiffFunc {
 // and explicit code in the common case where the decision can be made with
 // only the specific field value.
 func ForceNewIfChange(key string, f ValueChangeConditionFunc) CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 		old, new := d.GetChange(key)
 		if f(ctx, old, new, meta) {
 			d.ForceNew(key)
@@ -80,7 +79,7 @@ func ForceNewIfChange(key string, f ValueChangeConditionFunc) CustomizeDiffFunc 
 // values of the field compare equal, since no attribute diff is generated in
 // that case.
 func ForceNewIf(key string, f ResourceConditionFunc) CustomizeDiffFunc {
-	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	return func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 		if f(ctx, d, meta) {
 			d.ForceNew(key)
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,31 +6,35 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queuesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topicsauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
+	ArmDisasterRecoveriesClient   *armdisasterrecoveries.ArmDisasterRecoveriesClient
 	DisasterRecoveryConfigsClient *disasterrecoveryconfigs.DisasterRecoveryConfigsClient
 	NamespacesAuthClient          *namespacesauthorizationrule.NamespacesAuthorizationRuleClient
 	NamespacesClient              *namespaces.NamespacesClient
-	QueuesAuthClient              *queuesauthorizationrule.QueuesAuthorizationRuleClient
 	QueuesClient                  *queues.QueuesClient
 	SubscriptionsClient           *subscriptions.SubscriptionsClient
 	SubscriptionRulesClient       *rules.RulesClient
-	TopicsAuthClient              *topicsauthorizationrule.TopicsAuthorizationRuleClient
 	TopicsClient                  *topics.TopicsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	armDisasterRecoveriesClient, err := armdisasterrecoveries.NewArmDisasterRecoveriesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ArmDisasterRecoveries client: %+v", err)
+	}
+	o.Configure(armDisasterRecoveriesClient.Client, o.Authorizers.ResourceManager)
+
 	disasterRecoveryConfigsClient, err := disasterrecoveryconfigs.NewDisasterRecoveryConfigsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building DisasterRecoveryConfigs client: %+v", err)
@@ -48,12 +52,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Namespaces client: %+v", err)
 	}
 	o.Configure(namespacesClient.Client, o.Authorizers.ResourceManager)
-
-	queuesAuthClient, err := queuesauthorizationrule.NewQueuesAuthorizationRuleClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building QueuesAuthorizationRule client: %+v", err)
-	}
-	o.Configure(queuesAuthClient.Client, o.Authorizers.ResourceManager)
 
 	queuesClient, err := queues.NewQueuesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -73,12 +71,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(subscriptionRulesClient.Client, o.Authorizers.ResourceManager)
 
-	topicsAuthClient, err := topicsauthorizationrule.NewTopicsAuthorizationRuleClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building TopicsAuthorizationRule client: %+v", err)
-	}
-	o.Configure(topicsAuthClient.Client, o.Authorizers.ResourceManager)
-
 	topicsClient, err := topics.NewTopicsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Topics client: %+v", err)
@@ -86,14 +78,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(topicsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
+		ArmDisasterRecoveriesClient:   armDisasterRecoveriesClient,
 		DisasterRecoveryConfigsClient: disasterRecoveryConfigsClient,
 		NamespacesAuthClient:          namespacesAuthClient,
 		NamespacesClient:              namespacesClient,
-		QueuesAuthClient:              queuesAuthClient,
 		QueuesClient:                  queuesClient,
 		SubscriptionsClient:           subscriptionsClient,
 		SubscriptionRulesClient:       subscriptionRulesClient,
-		TopicsAuthClient:              topicsAuthClient,
 		TopicsClient:                  topicsClient,
 	}, nil
 }

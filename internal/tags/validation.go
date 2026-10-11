@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func TagValueToString(v interface{}) (string, error) {
+func TagValueToString(v any) (string, error) {
 	switch value := v.(type) {
 	case string:
 		return value, nil

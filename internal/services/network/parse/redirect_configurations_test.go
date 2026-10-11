@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = RedirectConfigurationsId{}
 
-func TestRedirectConfigurationsIDFormatter(t *testing.T) {
+func TestParseRedirectConfigurationsIDFormatter(t *testing.T) {
 	actual := NewRedirectConfigurationsID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "redirectConfig1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/redirectConfigurations/redirectConfig1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestRedirectConfigurationsIDFormatter(t *testing.T) {
 	}
 }
 
-func TestRedirectConfigurationsID(t *testing.T) {
+func TestParseRedirectConfigurationsID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestRedirectConfigurationsID(t *testing.T) {
 	}
 }
 
-func TestRedirectConfigurationsIDInsensitively(t *testing.T) {
+func TestParseRedirectConfigurationsIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package managedredis_test
 
 import (
@@ -87,5 +90,5 @@ resource "terraform_data" "trigger" {
     }
   }
 }
-`, ManagedRedisResource{}.update(data))
+`, ManagedRedisResource{}.update(data, "Balanced_B3"))
 }

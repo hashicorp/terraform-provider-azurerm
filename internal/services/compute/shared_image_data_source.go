@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -162,7 +162,7 @@ func dataSourceSharedImage() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -248,13 +248,13 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageIdentifier) []interface{} {
+func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageIdentifier) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"offer":     input.Offer,
 			"publisher": input.Publisher,
 			"sku":       input.Sku,
@@ -262,31 +262,16 @@ func flattenGalleryImageDataSourceIdentifier(input *galleryimages.GalleryImageId
 	}
 }
 
-func flattenGalleryImageDataSourcePurchasePlan(input *galleryimages.ImagePurchasePlan) []interface{} {
+func flattenGalleryImageDataSourcePurchasePlan(input *galleryimages.ImagePurchasePlan) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	name := ""
-	if input.Name != nil {
-		name = *input.Name
-	}
-
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-
-	product := ""
-	if input.Product != nil {
-		product = *input.Product
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"name":      name,
-			"publisher": publisher,
-			"product":   product,
+	return []any{
+		map[string]any{
+			"name":      pointer.From(input.Name),
+			"publisher": pointer.From(input.Publisher),
+			"product":   pointer.From(input.Product),
 		},
 	}
 }

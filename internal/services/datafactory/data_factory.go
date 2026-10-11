@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -8,9 +8,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 // @tombuildsstuff: these have been ported over from the Azure SDK for Go since the service team has removed them
@@ -25,19 +26,17 @@ const (
 )
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
-	typeString := "IntegrationRuntimeReference"
-
 	return &datafactory.IntegrationRuntimeReference{
 		ReferenceName: &integrationRuntimeName,
-		Type:          &typeString,
+		Type:          pointer.To("IntegrationRuntimeReference"),
 	}
 }
 
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
 func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *pluginsdk.ResourceData) bool {
-	oldSplit := strings.Split(strings.ToLower(old), ";")
-	newSplit := strings.Split(strings.ToLower(new), ";")
+	oldSplit := strings.Split(strings.TrimSuffix(strings.ToLower(old), ";"), ";")
+	newSplit := strings.Split(strings.TrimSuffix(strings.ToLower(new), ";"), ";")
 
 	sort.Strings(oldSplit)
 	sort.Strings(newSplit)
@@ -63,7 +62,7 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new stri
 	return true
 }
 
-func flattenDataFactoryAnnotations(input *[]interface{}) []string {
+func flattenDataFactoryAnnotations(input *[]any) []string {
 	annotations := make([]string, 0)
 	if input == nil {
 		return annotations
@@ -86,10 +85,10 @@ type DatasetColumn struct {
 	Type        string `json:"type,omitempty"        tfschema:"type"`
 }
 
-func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
+func expandDataFactoryDatasetStructure(input []any) any {
 	columns := make([]DatasetColumn, 0)
 	for _, column := range input {
-		attrs := column.(map[string]interface{})
+		attrs := column.(map[string]any)
 
 		datasetColumn := DatasetColumn{
 			Name: attrs["name"].(string),
@@ -105,20 +104,20 @@ func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
 	return columns
 }
 
-func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDataFactoryStructureColumns(input any) []any {
+	output := make([]any, 0)
 
-	columns, ok := input.([]interface{})
+	columns, ok := input.([]any)
 	if !ok {
 		return columns
 	}
 
 	for _, v := range columns {
-		column, ok := v.(map[string]interface{})
+		column, ok := v.(map[string]any)
 		if !ok {
 			continue
 		}
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		if column["name"] != nil {
 			result["name"] = column["name"]
 		}
@@ -133,16 +132,16 @@ func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
 	return output
 }
 
-func flattenDataFactoryStructureColumnsToDatasetColumn(input interface{}) []DatasetColumn {
+func flattenDataFactoryStructureColumnsToDatasetColumn(input any) []DatasetColumn {
 	output := make([]DatasetColumn, 0)
 
-	columns, ok := input.([]interface{})
+	columns, ok := input.([]any)
 	if !ok {
 		return output
 	}
 
 	for _, v := range columns {
-		column, ok := v.(map[string]interface{})
+		column, ok := v.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -169,10 +168,10 @@ type DatasetSnowflakeSchemaColumn struct {
 	Scale     int    `json:"scale,omitempty"`
 }
 
-func expandDataFactoryDatasetSnowflakeSchema(input []interface{}) interface{} {
+func expandDataFactoryDatasetSnowflakeSchema(input []any) any {
 	columns := make([]DatasetSnowflakeSchemaColumn, 0)
 	for _, column := range input {
-		attrs := column.(map[string]interface{})
+		attrs := column.(map[string]any)
 
 		datasetSnowflakeSchemaColumn := DatasetSnowflakeSchemaColumn{
 			Name: attrs["name"].(string),
@@ -194,20 +193,20 @@ func expandDataFactoryDatasetSnowflakeSchema(input []interface{}) interface{} {
 	return columns
 }
 
-func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDataFactorySnowflakeSchemaColumns(input any) []any {
+	output := make([]any, 0)
 
-	columns, ok := input.([]interface{})
+	columns, ok := input.([]any)
 	if !ok {
 		return columns
 	}
 
 	for _, v := range columns {
-		column, ok := v.(map[string]interface{})
+		column, ok := v.(map[string]any)
 		if !ok {
 			continue
 		}
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		if column["name"] != nil {
 			result["name"] = column["name"]
 		}
@@ -226,33 +225,33 @@ func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
+	return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 }
 
-func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+func expandAzureKeyVaultSecretReference(input []any) *datafactory.AzureKeyVaultSecretReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 
 	return &datafactory.AzureKeyVaultSecretReference{
 		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          utils.String("LinkedServiceReference"),
-			ReferenceName: utils.String(config["linked_service_name"].(string)),
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(config["linked_service_name"].(string)),
 		},
 	}
 }
 
-func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interface{} {
+func flattenAzureKeyVaultConnectionString(input map[string]any) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	parameters := make(map[string]interface{})
+	parameters := make(map[string]any)
 
-	if v, ok := input["store"].(map[string]interface{}); ok {
+	if v, ok := input["store"].(map[string]any); ok {
 		if v != nil {
 			parameters["linked_service_name"] = v["referenceName"].(string)
 		}
@@ -260,15 +259,15 @@ func flattenAzureKeyVaultConnectionString(input map[string]interface{}) []interf
 
 	parameters["secret_name"] = input["secretName"]
 
-	return []interface{}{parameters}
+	return []any{parameters}
 }
 
-func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []any {
 	if secretReference == nil {
-		return nil
+		return []any{}
 	}
 
-	parameters := make(map[string]interface{})
+	parameters := make(map[string]any)
 
 	if store := secretReference.Store; store != nil {
 		if store.ReferenceName != nil {
@@ -278,7 +277,7 @@ func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVa
 
 	parameters["secret_name"] = secretReference.SecretName
 
-	return []interface{}{parameters}
+	return []any{parameters}
 }
 
 func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
@@ -302,76 +301,70 @@ func expandDataFactoryDatasetLocation(d *pluginsdk.ResourceData) datafactory.Bas
 }
 
 func expandDataFactoryDatasetSFTPServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	sftpServerLocations := d.Get("sftp_server_location").([]interface{})
+	sftpServerLocations := d.Get("sftp_server_location").([]any)
 	if len(sftpServerLocations) == 0 || sftpServerLocations[0] == nil {
 		return nil
 	}
 
-	props := sftpServerLocations[0].(map[string]interface{})
+	props := sftpServerLocations[0].(map[string]any)
 
-	sftpServerLocation := datafactory.SftpLocation{
+	return datafactory.SftpLocation{
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-	return sftpServerLocation
 }
 
 func expandDataFactoryDatasetHttpServerLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	httpServerLocations := d.Get("http_server_location").([]interface{})
+	httpServerLocations := d.Get("http_server_location").([]any)
 	if len(httpServerLocations) == 0 || httpServerLocations[0] == nil {
 		return nil
 	}
 
-	props := httpServerLocations[0].(map[string]interface{})
+	props := httpServerLocations[0].(map[string]any)
 
-	httpServerLocation := datafactory.HTTPServerLocation{
+	return datafactory.HTTPServerLocation{
 		RelativeURL: props["relative_url"].(string),
 		FolderPath:  expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:    expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-	return httpServerLocation
 }
 
 func expandDataFactoryDatasetAzureBlobStorageLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	azureBlobStorageLocations := d.Get("azure_blob_storage_location").([]interface{})
+	azureBlobStorageLocations := d.Get("azure_blob_storage_location").([]any)
 	if len(azureBlobStorageLocations) == 0 || azureBlobStorageLocations[0] == nil {
 		return nil
 	}
 
-	props := azureBlobStorageLocations[0].(map[string]interface{})
+	props := azureBlobStorageLocations[0].(map[string]any)
 
-	blobStorageLocation := datafactory.AzureBlobStorageLocation{
+	return datafactory.AzureBlobStorageLocation{
 		Container:  expandDataFactoryExpressionResultType(props["container"].(string), props["dynamic_container_enabled"].(bool)),
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-
-	return blobStorageLocation
 }
 
 func expandDataFactoryDatasetAzureBlobFSLocation(d *pluginsdk.ResourceData) datafactory.BasicDatasetLocation {
-	azureBlobFsLocations := d.Get("azure_blob_fs_location").([]interface{})
+	azureBlobFsLocations := d.Get("azure_blob_fs_location").([]any)
 	if len(azureBlobFsLocations) == 0 || azureBlobFsLocations[0] == nil {
 		return nil
 	}
 
-	props := azureBlobFsLocations[0].(map[string]interface{})
+	props := azureBlobFsLocations[0].(map[string]any)
 
-	blobFSLocation := datafactory.AzureBlobFSLocation{
+	return datafactory.AzureBlobFSLocation{
 		Type:       datafactory.TypeBasicDatasetLocationTypeAzureBlobFSLocation,
 		FileSystem: expandDataFactoryExpressionResultType(props["file_system"].(string), props["dynamic_file_system_enabled"].(bool)),
 		FolderPath: expandDataFactoryExpressionResultType(props["path"].(string), props["dynamic_path_enabled"].(bool)),
 		FileName:   expandDataFactoryExpressionResultType(props["filename"].(string), props["dynamic_filename_enabled"].(bool)),
 	}
-
-	return blobFSLocation
 }
 
-func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
+func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if input.RelativeURL != nil {
 		result["relative_url"] = input.RelativeURL
@@ -387,14 +380,14 @@ func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLo
 		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
+func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if input.Container != nil {
 		container, dynamicContainerEnabled := flattenDataFactoryExpressionResultType(input.Container)
@@ -412,14 +405,14 @@ func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureB
 		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFSLocation) []interface{} {
+func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFSLocation) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if input.FileSystem != nil {
 		fileSystem, dynamicFileSystemEnabled := flattenDataFactoryExpressionResultType(input.FileSystem)
@@ -437,14 +430,14 @@ func flattenDataFactoryDatasetAzureBlobFSLocation(input *datafactory.AzureBlobFS
 		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []interface{} {
+func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	if input.FolderPath != nil {
 		path, dynamicPathEnabled := flattenDataFactoryExpressionResultType(input.FolderPath)
@@ -457,12 +450,12 @@ func flattenDataFactoryDatasetSFTPLocation(input *datafactory.SftpLocation) []in
 		result["dynamic_filename_enabled"] = dynamicFilenameEnabled
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression) []interface{} {
+func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	// the Azure API returns these in a different case to what we're expecting, so we need to convert these
@@ -489,8 +482,8 @@ func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression)
 		level = v
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"type":  compressionType,
 			"level": level,
 		},
@@ -498,12 +491,12 @@ func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression)
 }
 
 func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory.DatasetCompression {
-	compression := d.Get("compression").([]interface{})
+	compression := d.Get("compression").([]any)
 	if len(compression) == 0 || compression[0] == nil {
 		return nil
 	}
 
-	props := compression[0].(map[string]interface{})
+	props := compression[0].(map[string]any)
 	return &datafactory.DatasetCompression{
 		Type:  expandCompressionType(props["type"].(string)),
 		Level: props["level"].(string),
@@ -526,4 +519,14 @@ func expandCompressionType(inputType string) string {
 	}
 
 	return inputType
+}
+
+func expandDataFactoryEncryptionIdentity(input string) *factories.CMKIdentityDefinition {
+	if input == "" {
+		return nil
+	}
+
+	return &factories.CMKIdentityDefinition{
+		UserAssignedIdentity: &input,
+	}
 }

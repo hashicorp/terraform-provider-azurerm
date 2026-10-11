@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -100,7 +100,7 @@ type dataSourceWindowsPerformanceCounterProperty struct {
 	ObjectName      string `json:"objectName"`
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,15 +108,17 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *plug
 
 	id := datasources.NewDataSourceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("workspace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("failed to check for existing Windows Performance Counter %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("failed to check for existing Windows Performance Counter %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_performance_counter", id.ID())
+			if !response.WasNotFound(resp.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_log_analytics_datasource_windows_performance_counter", id.ID())
+			}
 		}
 	}
 
@@ -134,11 +136,14 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *plug
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if d.IsNewResource() {
+		d.SetId(id.ID())
+	}
+
 	return resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +170,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
+			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]any))
 			if err != nil {
 				return fmt.Errorf("failed to flatten properties map to json: %+v", err)
 			}
@@ -185,7 +190,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 	return nil
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

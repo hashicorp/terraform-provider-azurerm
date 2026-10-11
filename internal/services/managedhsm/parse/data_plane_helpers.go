@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -21,7 +21,6 @@ func (e ManagedHSMDataPlaneEndpoint) BaseURI() string {
 }
 
 func ManagedHSMEndpoint(input string, domainSuffix *string) (*ManagedHSMDataPlaneEndpoint, error) {
-	// NOTE: this function can be removed in 4.0
 	uri, err := url.Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -88,8 +87,7 @@ func parseDataPlaneResource(input *url.URL, expectedType string, requireVersion 
 		return nil, fmt.Errorf("expected the Nested Item Type to be %q but got %q", expectedType, nestedItemType)
 	}
 	output := dataPlaneResource{
-		itemName:    path[1],
-		itemVersion: nil,
+		itemName: path[1],
 	}
 	if err := validateSegment(output.itemName); err != nil {
 		return nil, fmt.Errorf("expected the path to be in the format %q but %+v", expectedFormatExample, err)

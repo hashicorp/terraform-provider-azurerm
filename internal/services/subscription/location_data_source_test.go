@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription_test
@@ -20,7 +20,7 @@ func TestAccLocationDataSource_NonExistingRegion(t *testing.T) {
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config:      LocationsDataSource{}.basic("not-existing-region"),
-			ExpectError: regexp.MustCompile("\"not-existing-region\" was not found in the list of supported Azure Locations"),
+			ExpectError: regexp.MustCompile("no location was found for \"not-existing-region\""),
 		},
 	})
 }

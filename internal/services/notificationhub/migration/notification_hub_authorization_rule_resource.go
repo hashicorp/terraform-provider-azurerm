@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -72,7 +72,7 @@ func (NotificationHubAuthorizationRuleResourceV0ToV1) Schema() map[string]*plugi
 }
 
 func (NotificationHubAuthorizationRuleResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := hubs.ParseNotificationHubAuthorizationRuleIDInsensitively(oldIdRaw)
 		if err != nil {

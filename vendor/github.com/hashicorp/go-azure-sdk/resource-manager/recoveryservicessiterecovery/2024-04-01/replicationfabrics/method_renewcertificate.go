@@ -62,9 +62,20 @@ func (c ReplicationFabricsClient) RenewCertificate(ctx context.Context, id Repli
 
 // RenewCertificateThenPoll performs RenewCertificate then polls until it's completed
 func (c ReplicationFabricsClient) RenewCertificateThenPoll(ctx context.Context, id ReplicationFabricId, input RenewCertificateInput) error {
+	return c.RenewCertificateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RenewCertificateCallbackThenPoll performs RenewCertificate, runs the optional callback function, then polls until it's completed
+func (c ReplicationFabricsClient) RenewCertificateCallbackThenPoll(ctx context.Context, id ReplicationFabricId, input RenewCertificateInput, callback func() error) error {
 	result, err := c.RenewCertificate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RenewCertificate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

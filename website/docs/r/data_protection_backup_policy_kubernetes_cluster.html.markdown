@@ -114,7 +114,7 @@ A `criteria` block supports the following:
 
 A `life_cycle` block supports the following:
 
-* `data_store_type` - (Required) The type of data store. The only possible value is `OperationalStore`. Changing this forces a new resource to be created.
+* `data_store_type` - (Required) The type of data store. The possible values are `OperationalStore` and `VaultStore`. Changing this forces a new resource to be created.
 
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
@@ -144,4 +144,4 @@ terraform import azurerm_data_protection_backup_policy_kubernetes_cluster.exampl
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection` - 2024-04-01
+* `Microsoft.DataProtection` - 2025-07-01

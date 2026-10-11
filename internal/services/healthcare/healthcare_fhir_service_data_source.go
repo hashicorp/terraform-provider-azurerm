@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare
@@ -142,7 +142,7 @@ func dataSourceHealthcareApisFhirService() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceFhirServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -168,7 +168,7 @@ func dataSourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta int
 
 	if m := resp.Model; m != nil {
 		d.Set("location", location.NormalizeNilable(m.Location))
-		d.Set("kind", string(pointer.From(m.Kind)))
+		d.Set("kind", pointer.FromEnum(m.Kind))
 
 		if props := m.Properties; props != nil {
 			d.Set("access_policy_object_ids", flattenFhirAccessPolicy(props.AccessPolicies))

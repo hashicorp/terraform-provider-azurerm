@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -153,7 +153,7 @@ func (DataFactoryV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (DataFactoryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Printf("[DEBUG] Updating `id` if resourceName is in upper case")
 
 		oldId := rawState["id"].(string)

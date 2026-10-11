@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appconfiguration
@@ -18,21 +18,21 @@ import (
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
-func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProperties) []interface{} {
+func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProperties) []any {
 	if input == nil || input.KeyVaultProperties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"identity_client_id":       input.KeyVaultProperties.IdentityClientId,
 			"key_vault_key_identifier": input.KeyVaultProperties.KeyIdentifier,
 		},
 	}
 }
 
-func flattenAppConfigurationReplicas(input []replicas.Replica) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenAppConfigurationReplicas(input []replicas.Replica) ([]any, error) {
+	results := make([]any, 0)
 	for _, v := range input {
 		if v.Properties == nil {
 			return results, fmt.Errorf("retrieving Replica %s Properties is nil", *v.Id)
@@ -43,7 +43,7 @@ func flattenAppConfigurationReplicas(input []replicas.Replica) ([]interface{}, e
 			return results, err
 		}
 
-		result := map[string]interface{}{
+		result := map[string]any{
 			"name":     pointer.From(v.Name),
 			"location": location.Normalize(pointer.From(v.Location)),
 			"endpoint": pointer.From(v.Properties.Endpoint),
@@ -54,9 +54,9 @@ func flattenAppConfigurationReplicas(input []replicas.Replica) ([]interface{}, e
 	return results, nil
 }
 
-func resourceConfigurationStoreReplicaHash(input interface{}) int {
+func resourceConfigurationStoreReplicaHash(input any) int {
 	var buf bytes.Buffer
-	if rawData, ok := input.(map[string]interface{}); ok {
+	if rawData, ok := input.(map[string]any); ok {
 		buf.WriteString(rawData["name"].(string))
 		buf.WriteString(location.Normalize(rawData["location"].(string)))
 	}
@@ -64,7 +64,7 @@ func resourceConfigurationStoreReplicaHash(input interface{}) int {
 }
 
 func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfiguration.BaseClient, key, label string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []appconfiguration.KeyValueFields{})
 		if err != nil {
 			if v, ok := err.(autorest.DetailedError); ok {

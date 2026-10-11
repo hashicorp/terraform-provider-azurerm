@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -26,7 +26,7 @@ func (ShareV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ShareV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, _ any) (map[string]any, error) {
 		shareName := rawState["name"].(string)
 		resourceGroup := rawState["resource_group_name"].(string)
 		accountName := rawState["storage_account_name"].(string)
@@ -49,7 +49,7 @@ func (s ShareV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		id := rawState["id"].(string)
 
 		// name/resourceGroup/accountName

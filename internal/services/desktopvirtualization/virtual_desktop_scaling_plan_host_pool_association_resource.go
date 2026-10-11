@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualDesktopScalingPlanHostPoolAssociation() *pluginsdk.Resource {
@@ -62,12 +62,11 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociation() *pluginsdk.Resource 
 	}
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Scaling Plan <-> Host Pool Association creation.")
 	scalingPlanId, err := scalingplan.ParseScalingPlanID(d.Get("scaling_plan_id").(string))
 	if err != nil {
 		return err
@@ -104,11 +103,13 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 
 	hostPoolStr := hostPoolId.ID()
 	if scalingPlanHostPoolAssociationExists(model.Properties, hostPoolStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
+		}
 	}
 	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
 		HostPoolArmPath:    &hostPoolStr,
-		ScalingPlanEnabled: utils.Bool(d.Get("enabled").(bool)),
+		ScalingPlanEnabled: pointer.To(d.Get("enabled").(bool)),
 	})
 
 	payload := scalingplan.ScalingPlanPatch{
@@ -126,7 +127,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	return resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d, meta)
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -172,7 +173,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.Resou
 	return nil
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -212,7 +213,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 		for _, referenceId := range *v {
 			if referenceId.HostPoolArmPath != nil {
 				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
-					referenceId.ScalingPlanEnabled = utils.Bool(d.Get("enabled").(bool))
+					referenceId.ScalingPlanEnabled = pointer.To(d.Get("enabled").(bool))
 				}
 			}
 			hostPoolReferences = append(hostPoolReferences, referenceId)
@@ -233,7 +234,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 	return nil
 }
 
-func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ScalingPlansClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

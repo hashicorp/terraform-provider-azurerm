@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -37,7 +37,7 @@ func dataSourceDiskAccess() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDiskAccessRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDiskAccessRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

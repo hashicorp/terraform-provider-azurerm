@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis
@@ -212,7 +212,7 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisDataSource) ModelObject() interface{} {
+func (r ManagedRedisDataSource) ModelObject() any {
 	return &ManagedRedisDataSourceModel{}
 }
 
@@ -266,7 +266,7 @@ func (r ManagedRedisDataSource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
-					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
+					state.HighAvailabilityEnabled = strings.EqualFold(pointer.FromEnum(props.HighAvailability), string(redisenterprise.HighAvailabilityEnabled))
 					state.Hostname = pointer.From(props.HostName)
 					state.PublicNetworkAccess = string(props.PublicNetworkAccess)
 				}

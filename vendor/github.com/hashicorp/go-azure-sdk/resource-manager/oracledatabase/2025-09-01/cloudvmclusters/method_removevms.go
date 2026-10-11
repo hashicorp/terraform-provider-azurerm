@@ -62,9 +62,20 @@ func (c CloudVMClustersClient) RemoveVMs(ctx context.Context, id CloudVMClusterI
 
 // RemoveVMsThenPoll performs RemoveVMs then polls until it's completed
 func (c CloudVMClustersClient) RemoveVMsThenPoll(ctx context.Context, id CloudVMClusterId, input AddRemoveDbNode) error {
+	return c.RemoveVMsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RemoveVMsCallbackThenPoll performs RemoveVMs, runs the optional callback function, then polls until it's completed
+func (c CloudVMClustersClient) RemoveVMsCallbackThenPoll(ctx context.Context, id CloudVMClusterId, input AddRemoveDbNode, callback func() error) error {
 	result, err := c.RemoveVMs(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RemoveVMs: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

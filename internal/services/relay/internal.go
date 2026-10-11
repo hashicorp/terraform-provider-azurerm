@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package relay
@@ -126,7 +126,7 @@ func flattenHybridConnectionAuthorizationRuleRights(rights []hybridconnections.A
 	return listen, send, manage
 }
 
-func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

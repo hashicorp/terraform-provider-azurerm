@@ -1,17 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
 
 import "testing"
-
-func TestManagementGroupAssignmentIDFormatter(t *testing.T) {
-	actual := NewManagementGroupAssignmentID("managementGroup1", "assignment1").ID()
-	expected := "/providers/Microsoft.Management/managementGroups/managementGroup1/providers/Microsoft.Authorization/policyAssignments/assignment1"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
 
 func TestManagementGroupAssignmentID(t *testing.T) {
 	testData := []struct {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ pollers.PollerType = &hsmDownloadPoller{}
 
-func NewHSMDownloadPoller(client *dataplane.HSMSecurityDomainClient, baseUrl string) pollers.PollerType {
+func NewHSMDownloadPoller(client *keyvault.HSMSecurityDomainClient, baseUrl string) pollers.PollerType {
 	return &hsmDownloadPoller{
 		client:  client,
 		baseUrl: baseUrl,
@@ -22,7 +22,7 @@ func NewHSMDownloadPoller(client *dataplane.HSMSecurityDomainClient, baseUrl str
 }
 
 type hsmDownloadPoller struct {
-	client  *dataplane.HSMSecurityDomainClient
+	client  *keyvault.HSMSecurityDomainClient
 	baseUrl string
 }
 
@@ -32,7 +32,7 @@ func (p *hsmDownloadPoller) Poll(ctx context.Context) (*pollers.PollResult, erro
 		return nil, fmt.Errorf("waiting for Security Domain to download failed within %s: %+v", p.baseUrl, err)
 	}
 
-	if res.Status == dataplane.OperationStatusSuccess {
+	if res.Status == keyvault.OperationStatusSuccess {
 		return &pollers.PollResult{
 			Status:       pollers.PollingStatusSucceeded,
 			PollInterval: 10 * time.Second,

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/forwardingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PrivateDNSResolverForwardingRuleResource struct{}
+type PrivateDnsResolverForwardingRuleResource struct{}
 
 func TestAccPrivateDNSResolverForwardingRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
-	r := PrivateDNSResolverForwardingRuleResource{}
+	r := PrivateDnsResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccPrivateDNSResolverForwardingRule_basic(t *testing.T) {
 
 func TestAccPrivateDNSResolverForwardingRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
-	r := PrivateDNSResolverForwardingRuleResource{}
+	r := PrivateDnsResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccPrivateDNSResolverForwardingRule_requiresImport(t *testing.T) {
 
 func TestAccPrivateDNSResolverForwardingRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
-	r := PrivateDNSResolverForwardingRuleResource{}
+	r := PrivateDnsResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccPrivateDNSResolverForwardingRule_complete(t *testing.T) {
 
 func TestAccPrivateDNSResolverForwardingRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_forwarding_rule", "test")
-	r := PrivateDNSResolverForwardingRuleResource{}
+	r := PrivateDnsResolverForwardingRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccPrivateDNSResolverForwardingRule_update(t *testing.T) {
 	})
 }
 
-func (r PrivateDNSResolverForwardingRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsResolverForwardingRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := forwardingrules.ParseForwardingRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,14 +92,14 @@ func (r PrivateDNSResolverForwardingRuleResource) Exists(ctx context.Context, cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r PrivateDNSResolverForwardingRuleResource) template(data acceptance.TestData) string {
+func (r PrivateDnsResolverForwardingRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -155,7 +155,7 @@ resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "test" {
 `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverForwardingRuleResource) basic(data acceptance.TestData) string {
+func (r PrivateDnsResolverForwardingRuleResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -172,7 +172,7 @@ resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverForwardingRuleResource) requiresImport(data acceptance.TestData) string {
+func (r PrivateDnsResolverForwardingRuleResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -189,7 +189,7 @@ resource "azurerm_private_dns_resolver_forwarding_rule" "import" {
 `, config)
 }
 
-func (r PrivateDNSResolverForwardingRuleResource) complete(data acceptance.TestData) string {
+func (r PrivateDnsResolverForwardingRuleResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -210,7 +210,7 @@ resource "azurerm_private_dns_resolver_forwarding_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r PrivateDNSResolverForwardingRuleResource) update(data acceptance.TestData) string {
+func (r PrivateDnsResolverForwardingRuleResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

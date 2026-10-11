@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Autonomous Database should exist. Changing this forces a new Autonomous Database to be created.
 
-* `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing. Changing this forces a new Autonomous Database to be created.
+* `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing. 
 
 * `backup_retention_period_in_days` - (Required) Retention period, in days, for backups. 
 
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 ---
 
-A `long_term_backup_schedule` blocks supports the following:
+A `long_term_backup_schedule` block supports the following:
 
 * `repeat_cadence` - (Required) Specifies the schedule for automated long-term backups. Possible values are `Weekly`, `Monthly`, `Yearly`, or `OneTime` (does not repeat) . For example, if the Backup date and Time is `Jan 24, 2025 00:09:00 UTC` and this is a Tuesday, and Weekly is selected, the long-term backup will happen every Tuesday.
 
@@ -114,6 +114,8 @@ A `long_term_backup_schedule` blocks supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Autonomous Database.
+
+* `ocid` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Autonomous Database.
 
 ## Timeouts
 

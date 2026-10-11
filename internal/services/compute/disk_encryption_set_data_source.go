@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -14,11 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
@@ -57,7 +57,7 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	env := meta.(*clients.Client).Account.Environment
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -80,14 +80,14 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.DiskEncryptionSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(utils.String(model.Location)))
+	d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
 	if props := model.Properties; props != nil {
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
 
 		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
 			keyVaultURI := props.ActiveKey.KeyURL
-			isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+			isHSMURI, _, _, err := helpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return fmt.Errorf("parsing key vault URI: %+v", err)
 			}

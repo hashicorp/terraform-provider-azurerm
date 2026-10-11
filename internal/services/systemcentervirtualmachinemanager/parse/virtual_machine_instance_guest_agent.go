@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -25,21 +25,6 @@ func NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(scop
 func SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(input string) (*SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId, error) {
 	parser := resourceids.NewParserFromResourceIdType(&SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{})
 	parsed, err := parser.Parse(input, false)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q: %+v", input, err)
-	}
-
-	id := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
-func SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentIDInsensitively(input string) (*SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{})
-	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}

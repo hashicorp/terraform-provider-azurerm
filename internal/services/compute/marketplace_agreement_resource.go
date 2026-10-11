@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMarketplaceAgreement() *pluginsdk.Resource {
@@ -69,7 +69,7 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 	}
 }
 
-func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -77,26 +77,27 @@ func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interfac
 
 	id := agreements.NewPlanID(subscriptionId, d.Get("publisher").(string), d.Get("offer").(string), d.Get("plan").(string))
 
-	log.Printf("[DEBUG] retrieving %s", id)
-
 	agreementId := agreements.NewOfferPlanID(id.SubscriptionId, id.PublisherId, id.OfferId, id.PlanId)
-	term, err := client.MarketplaceAgreementsGet(ctx, agreementId)
-	if err != nil {
-		if !response.WasNotFound(term.HttpResponse) {
-			return fmt.Errorf("retrieving %s: %s", id, err)
-		}
-	}
 
-	accepted := false
-	if model := term.Model; model != nil {
-		if props := model.Properties; props != nil {
-			if acc := props.Accepted; acc != nil {
-				accepted = *acc
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		term, err := client.MarketplaceAgreementsGet(ctx, agreementId)
+		if err != nil {
+			if !response.WasNotFound(term.HttpResponse) {
+				return fmt.Errorf("retrieving %s: %s", id, err)
 			}
 		}
-	}
-	if accepted {
-		return tf.ImportAsExistsError("azurerm_marketplace_agreement", id.ID())
+
+		accepted := false
+		if model := term.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if acc := props.Accepted; acc != nil {
+					accepted = *acc
+				}
+			}
+		}
+		if accepted {
+			return tf.ImportAsExistsError("azurerm_marketplace_agreement", id.ID())
+		}
 	}
 
 	resp, err := client.MarketplaceAgreementsGet(ctx, agreementId)
@@ -113,7 +114,7 @@ func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: AgreementProperties was nil", id)
 	}
 
-	terms.Properties.Accepted = utils.Bool(true)
+	terms.Properties.Accepted = pointer.To(true)
 
 	log.Printf("[DEBUG] Accepting the Marketplace Terms for %s", id)
 	if _, err := client.MarketplaceAgreementsCreate(ctx, agreementId, *terms); err != nil {
@@ -126,7 +127,7 @@ func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceMarketplaceAgreementRead(d, meta)
 }
 
-func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +166,7 @@ func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

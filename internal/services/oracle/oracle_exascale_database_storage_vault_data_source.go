@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -125,7 +125,7 @@ func (d ExascaleDatabaseStorageVaultDataSource) Attributes() map[string]*plugins
 	}
 }
 
-func (d ExascaleDatabaseStorageVaultDataSource) ModelObject() interface{} {
+func (d ExascaleDatabaseStorageVaultDataSource) ModelObject() any {
 	return &ExascaleDatabaseStorageVaultDataModel{}
 }
 

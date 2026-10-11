@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -36,5 +36,5 @@ data "azurerm_cdn_frontdoor_origin_group" "test" {
   profile_name        = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorOriginGroupResource{}.complete(data))
+`, CdnFrontdoorOriginGroupResource{}.complete(data))
 }

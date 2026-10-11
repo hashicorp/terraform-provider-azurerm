@@ -1,19 +1,19 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package util
 
-import log "github.com/sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 func InitLogger(debug bool) {
-	textFmt := &log.TextFormatter{
+	textFmt := &logrus.TextFormatter{
 		DisableLevelTruncation: true,
 		ForceQuote:             true,
 	}
 
-	log.SetFormatter(textFmt)
-	log.SetLevel(log.WarnLevel)
+	logrus.SetFormatter(textFmt)
+	logrus.SetLevel(logrus.WarnLevel)
 	if debug {
-		log.SetLevel(log.DebugLevel)
+		logrus.SetLevel(logrus.DebugLevel)
 	}
 }

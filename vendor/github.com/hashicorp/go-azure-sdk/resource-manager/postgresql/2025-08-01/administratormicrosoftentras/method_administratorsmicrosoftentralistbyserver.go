@@ -1,0 +1,105 @@
+package administratormicrosoftentras
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type AdministratorsMicrosoftEntraListByServerOperationResponse struct {
+	HttpResponse *http.Response
+	OData        *odata.OData
+	Model        *[]AdministratorMicrosoftEntra
+}
+
+type AdministratorsMicrosoftEntraListByServerCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []AdministratorMicrosoftEntra
+}
+
+type AdministratorsMicrosoftEntraListByServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *AdministratorsMicrosoftEntraListByServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
+// AdministratorsMicrosoftEntraListByServer ...
+func (c AdministratorMicrosoftEntrasClient) AdministratorsMicrosoftEntraListByServer(ctx context.Context, id FlexibleServerId) (result AdministratorsMicrosoftEntraListByServerOperationResponse, err error) {
+	opts := client.RequestOptions{
+		ContentType: "application/json; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		Pager:      &AdministratorsMicrosoftEntraListByServerCustomPager{},
+		Path:       fmt.Sprintf("%s/administrators", id.ID()),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		return
+	}
+
+	var resp *client.Response
+	resp, err = req.ExecutePaged(ctx)
+	if resp != nil {
+		result.OData = resp.OData
+		result.HttpResponse = resp.Response
+	}
+	if err != nil {
+		return
+	}
+
+	var values struct {
+		Values *[]AdministratorMicrosoftEntra `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
+		return
+	}
+
+	result.Model = values.Values
+
+	return
+}
+
+// AdministratorsMicrosoftEntraListByServerComplete retrieves all the results into a single object
+func (c AdministratorMicrosoftEntrasClient) AdministratorsMicrosoftEntraListByServerComplete(ctx context.Context, id FlexibleServerId) (AdministratorsMicrosoftEntraListByServerCompleteResult, error) {
+	return c.AdministratorsMicrosoftEntraListByServerCompleteMatchingPredicate(ctx, id, AdministratorMicrosoftEntraOperationPredicate{})
+}
+
+// AdministratorsMicrosoftEntraListByServerCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c AdministratorMicrosoftEntrasClient) AdministratorsMicrosoftEntraListByServerCompleteMatchingPredicate(ctx context.Context, id FlexibleServerId, predicate AdministratorMicrosoftEntraOperationPredicate) (result AdministratorsMicrosoftEntraListByServerCompleteResult, err error) {
+	items := make([]AdministratorMicrosoftEntra, 0)
+
+	resp, err := c.AdministratorsMicrosoftEntraListByServer(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = AdministratorsMicrosoftEntraListByServerCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
+	return
+}

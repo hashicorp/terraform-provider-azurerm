@@ -1,12 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -80,7 +80,7 @@ func SourceSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: prefixlistlocalrulestack.ValidateLocalRulestackPrefixListID,
+						ValidateFunc: prefixlistresources.ValidateLocalRulestackPrefixListID,
 					},
 					AtLeastOneOf: []string{
 						"source.0.cidrs",
@@ -94,7 +94,7 @@ func SourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSource(input []Source) (*localrules.SourceAddr, error) {
+func ExpandSource(input []Source) (*localrulesresources.SourceAddr, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -104,7 +104,7 @@ func ExpandSource(input []Source) (*localrules.SourceAddr, error) {
 	prefixLists := make([]string, 0)
 	if len(d.PrefixLists) > 0 {
 		for _, p := range d.PrefixLists {
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(p)
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(p)
 			if err != nil {
 				return nil, err
 			}
@@ -112,7 +112,7 @@ func ExpandSource(input []Source) (*localrules.SourceAddr, error) {
 		}
 	}
 
-	return &localrules.SourceAddr{
+	return &localrulesresources.SourceAddr{
 		Cidrs:       pointer.To(d.CIDRS),
 		Countries:   pointer.To(d.Countries),
 		Feeds:       pointer.To(d.Feeds),
@@ -120,7 +120,7 @@ func ExpandSource(input []Source) (*localrules.SourceAddr, error) {
 	}, nil
 }
 
-func FlattenSource(input *localrules.SourceAddr, ruleId localrules.LocalRuleId) []Source {
+func FlattenSource(input *localrulesresources.SourceAddr, ruleId localrulesresources.LocalRuleId) []Source {
 	if input == nil {
 		return []Source{}
 	}
@@ -128,7 +128,7 @@ func FlattenSource(input *localrules.SourceAddr, ruleId localrules.LocalRuleId) 
 	prefixLists := make([]string, 0)
 	if p := input.PrefixLists; p != nil {
 		for _, v := range *p {
-			prefixLists = append(prefixLists, prefixlistlocalrulestack.NewLocalRulestackPrefixListID(ruleId.SubscriptionId, ruleId.ResourceGroupName, ruleId.LocalRulestackName, v).ID())
+			prefixLists = append(prefixLists, prefixlistresources.NewLocalRulestackPrefixListID(ruleId.SubscriptionId, ruleId.ResourceGroupName, ruleId.LocalRulestackName, v).ID())
 		}
 	}
 

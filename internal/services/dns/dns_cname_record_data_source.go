@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -62,7 +62,7 @@ func dataSourceDnsCNameRecord() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

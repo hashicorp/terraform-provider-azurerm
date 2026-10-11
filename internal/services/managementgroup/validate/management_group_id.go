@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 )
 
-func ManagementGroupID(i interface{}, k string) (warnings []string, errors []error) {
+func ManagementGroupID(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -24,7 +24,7 @@ func ManagementGroupID(i interface{}, k string) (warnings []string, errors []err
 	return
 }
 
-func TenantScopedManagementGroupID(i interface{}, k string) (warnings []string, errors []error) {
+func TenantScopedManagementGroupID(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

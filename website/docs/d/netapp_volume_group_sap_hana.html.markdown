@@ -14,9 +14,9 @@ Use this data source to access information about an existing Application Volume 
 
 ```hcl
 data "azurerm_netapp_volume_group_sap_hana" "example" {
-  name                = "existing application volume group name"
+  name                = "example-volume-group"
   resource_group_name = "resource group name where the account and volume group belong to"
-  account_name        = "existing account where the application volume group belong to"
+  account_name        = "example-netapp-account"
 }
 
 output "id" {
@@ -82,11 +82,19 @@ A `volume` block exports the following:
 
 * `data_protection_snapshot_policy` - A `data_protection_snapshot_policy` block as defined below.
 
+* `encryption_key_source` - The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys.
+
 * `export_policy_rule` - A `export_policy_rule` block as defined below.
+
+* `key_vault_private_endpoint_id` - The Private Endpoint ID for Key Vault, which is required when using customer-managed keys.
 
 * `mount_ip_addresses` - A `mount_ip_addresses` block as defined below.
 
+* `network_features` - Network features of the volume.
+
 * `protocols` - A `protocols` block as defined below.
+
+* `zone` - Specifies the Availability Zone in which the Volume is located.
 
 ---
 
@@ -138,4 +146,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2026-05-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -39,7 +39,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ResourceType(
 	return "azurerm_system_center_virtual_machine_manager_inventory_items"
 }
 
-func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ModelObject() interface{} {
+func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerInventoryItemsDataSourceModel{}
 }
 

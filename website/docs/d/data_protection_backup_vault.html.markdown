@@ -14,8 +14,8 @@ Use this data source to access information about an existing Backup Vault.
 
 ```hcl
 data "azurerm_data_protection_backup_vault" "example" {
-  name                = "existing-backup-vault"
-  resource_group_name = "existing-resource-group"
+  name                = "example-backup-vault"
+  resource_group_name = "example-resources"
 }
 
 output "azurerm_data_protection_backup_vault_id" {
@@ -69,4 +69,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DataProtection` - 2024-04-01
+* `Microsoft.DataProtection` - 2025-07-01

@@ -62,9 +62,20 @@ func (c SignalRClient) RegenerateKey(ctx context.Context, id SignalRId, input Re
 
 // RegenerateKeyThenPoll performs RegenerateKey then polls until it's completed
 func (c SignalRClient) RegenerateKeyThenPoll(ctx context.Context, id SignalRId, input RegenerateKeyParameters) error {
+	return c.RegenerateKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegenerateKeyCallbackThenPoll performs RegenerateKey, runs the optional callback function, then polls until it's completed
+func (c SignalRClient) RegenerateKeyCallbackThenPoll(ctx context.Context, id SignalRId, input RegenerateKeyParameters, callback func() error) error {
 	result, err := c.RegenerateKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegenerateKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

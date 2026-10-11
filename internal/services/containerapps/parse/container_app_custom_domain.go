@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -34,23 +34,6 @@ func NewContainerAppCustomDomainId(subscriptionId string, resourceGroupName stri
 func ContainerAppCustomDomainID(input string) (*ContainerAppCustomDomainId, error) {
 	parser := resourceids.NewParserFromResourceIdType(&ContainerAppCustomDomainId{})
 	parsed, err := parser.Parse(input, false)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q: %+v", input, err)
-	}
-
-	id := ContainerAppCustomDomainId{}
-	if err := id.FromParseResult(*parsed); err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
-// ContainerAppCustomDomainIDInsensitively parses 'input' case-insensitively into a ContainerAppCustomDomainId
-// note: this method should only be used for API response data and not user input
-func ContainerAppCustomDomainIDInsensitively(input string) (*ContainerAppCustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&ContainerAppCustomDomainId{})
-	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}

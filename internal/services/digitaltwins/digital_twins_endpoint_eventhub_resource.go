@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package digitaltwins
@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDigitalTwinsEndpointEventHub() *pluginsdk.Resource {
@@ -84,7 +84,7 @@ func resourceDigitalTwinsEndpointEventHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -97,35 +97,43 @@ func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData,
 
 	id := endpoints.NewEndpointID(subscriptionId, digitalTwinsId.ResourceGroupName, digitalTwinsId.DigitalTwinsInstanceName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.DigitalTwinsEndpointGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.DigitalTwinsEndpointGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_digital_twins_endpoint_eventhub", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_digital_twins_endpoint_eventhub", id.ID())
+			}
 		}
 	}
 
 	payload := endpoints.DigitalTwinsEndpointResource{
 		Properties: &endpoints.EventHub{
 			AuthenticationType:           pointer.To(endpoints.AuthenticationTypeKeyBased),
-			ConnectionStringPrimaryKey:   utils.String(d.Get("eventhub_primary_connection_string").(string)),
-			ConnectionStringSecondaryKey: utils.String(d.Get("eventhub_secondary_connection_string").(string)),
-			DeadLetterSecret:             utils.String(d.Get("dead_letter_storage_secret").(string)),
+			ConnectionStringPrimaryKey:   pointer.To(d.Get("eventhub_primary_connection_string").(string)),
+			ConnectionStringSecondaryKey: pointer.To(d.Get("eventhub_secondary_connection_string").(string)),
+			DeadLetterSecret:             pointer.To(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 
-	if err := client.DigitalTwinsEndpointCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.DigitalTwinsEndpointCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.DigitalTwinsEndpointCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceDigitalTwinsEndpointEventHubRead(d, meta)
 }
 
-func resourceDigitalTwinsEndpointEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -157,7 +165,7 @@ func resourceDigitalTwinsEndpointEventHubRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDigitalTwinsEndpointEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

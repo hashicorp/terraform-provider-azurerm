@@ -1,17 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
 
 import "testing"
-
-func TestMicrosoftPartnerAccountBillingScopeIDFormatter(t *testing.T) {
-	actual := NewMPABillingScopeID("e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31", "2281f543-7321-4cf9-1e23-edb4Oc31a31c").ID()
-	expected := "/providers/Microsoft.Billing/billingAccounts/e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31/customers/2281f543-7321-4cf9-1e23-edb4Oc31a31c"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
 
 func TestMicrosoftPartnerAccountBillingScopeID(t *testing.T) {
 	testData := []struct {

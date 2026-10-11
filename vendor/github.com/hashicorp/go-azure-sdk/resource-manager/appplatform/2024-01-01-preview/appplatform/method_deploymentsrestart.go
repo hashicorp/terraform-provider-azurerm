@@ -57,9 +57,20 @@ func (c AppPlatformClient) DeploymentsRestart(ctx context.Context, id Deployment
 
 // DeploymentsRestartThenPoll performs DeploymentsRestart then polls until it's completed
 func (c AppPlatformClient) DeploymentsRestartThenPoll(ctx context.Context, id DeploymentId) error {
+	return c.DeploymentsRestartCallbackThenPoll(ctx, id, nil)
+}
+
+// DeploymentsRestartCallbackThenPoll performs DeploymentsRestart, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsRestartCallbackThenPoll(ctx context.Context, id DeploymentId, callback func() error) error {
 	result, err := c.DeploymentsRestart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsRestart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -13,7 +13,7 @@ import (
 
 type AppGatewayDataSource struct{}
 
-func TestAccDataSourceAppGateway_basic(t *testing.T) {
+func TestAccApplicationGatewayDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -27,7 +27,7 @@ func TestAccDataSourceAppGateway_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_userAssignedIdentity(t *testing.T) {
+func TestAccApplicationGatewayDataSource_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -42,7 +42,7 @@ func TestAccDataSourceAppGateway_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_backendAddressPool(t *testing.T) {
+func TestAccApplicationGatewayDataSource_backendAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -57,7 +57,7 @@ func TestAccDataSourceAppGateway_backendAddressPool(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_sslProfile(t *testing.T) {
+func TestAccApplicationGatewayDataSource_sslProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -75,6 +75,7 @@ func TestAccDataSourceAppGateway_sslProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("http_listener.0.protocol").Exists(),
 				check.That(data.ResourceName).Key("request_routing_rule.0.priority").Exists(),
 				check.That(data.ResourceName).Key("request_routing_rule.0.rule_type").Exists(),
+				check.That(data.ResourceName).Key("ssl_profile.0.client_authentication_mode").HasValue("Strict"),
 				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_certificate_revocation").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_name").Exists(),
@@ -84,7 +85,7 @@ func TestAccDataSourceAppGateway_sslProfile(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAppGateway_sslProfileWithClientCertificateVerification(t *testing.T) {
+func TestAccApplicationGatewayDataSource_sslProfileWithClientCertificateVerification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_gateway", "test")
 	r := AppGatewayDataSource{}
 
@@ -92,6 +93,7 @@ func TestAccDataSourceAppGateway_sslProfileWithClientCertificateVerification(t *
 		{
 			Config: r.sslProfileWithClientCertificateVerification(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ssl_profile.0.client_authentication_mode").HasValue("Passthrough"),
 				check.That(data.ResourceName).Key("trusted_client_certificate.0.name").IsNotEmpty(),
 				check.That(data.ResourceName).Key("trusted_client_certificate.0.data").IsNotEmpty(),
 			),

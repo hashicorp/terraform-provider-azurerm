@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -65,7 +66,7 @@ func resourceVmwareExpressRouteAuthorization() *pluginsdk.Resource {
 	}
 }
 
-func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -78,19 +79,22 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 	}
 
 	id := authorizations.NewAuthorizationID(subscriptionId, privateCloudId.ResourceGroupName, privateCloudId.PrivateCloudName, name)
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_vmware_express_route_authorization", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_vmware_express_route_authorization", id.ID())
+		}
 	}
 
 	props := authorizations.ExpressRouteAuthorization{}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -98,7 +102,7 @@ func resourceVmwareExpressRouteAuthorizationCreate(d *pluginsdk.ResourceData, me
 	return resourceVmwareExpressRouteAuthorizationRead(d, meta)
 }
 
-func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -133,7 +137,7 @@ func resourceVmwareExpressRouteAuthorizationRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareExpressRouteAuthorizationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.AuthorizationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

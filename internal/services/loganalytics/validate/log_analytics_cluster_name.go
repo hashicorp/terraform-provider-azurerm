@@ -1,8 +1,8 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
-func LogAnalyticsClusterName(i interface{}, k string) (warnings []string, errors []error) {
+func LogAnalyticsClusterName(i any, k string) (warnings []string, errors []error) {
 	return logAnalyticsGenericName(i, k)
 }

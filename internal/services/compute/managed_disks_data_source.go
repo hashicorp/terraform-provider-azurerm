@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -24,7 +24,7 @@ type ManagedDisksDataSource struct{}
 
 var _ sdk.DataSource = &ManagedDisksDataSource{}
 
-func (m ManagedDisksDataSource) ModelObject() interface{} {
+func (m ManagedDisksDataSource) ModelObject() any {
 	return &ManagedDisksDataSourceModel{}
 }
 
@@ -313,10 +313,7 @@ func flattenManagedDiskEncryptionSettingsTyped(encryptionSettings *disks.Encrypt
 				secretUrl = key.SecretURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			diskEncryptionKeys = append(diskEncryptionKeys, DiskEncryptionKey{
 				SecretURL:     secretUrl,
@@ -330,10 +327,7 @@ func flattenManagedDiskEncryptionSettingsTyped(encryptionSettings *disks.Encrypt
 				keyUrl = key.KeyURL
 			}
 
-			sourceVaultId := ""
-			if key.SourceVault.Id != nil {
-				sourceVaultId = *key.SourceVault.Id
-			}
+			sourceVaultId := pointer.From(key.SourceVault.Id)
 
 			keyEncryptionKeys = append(keyEncryptionKeys, KeyEncryptionKey{
 				KeyURL:        keyUrl,

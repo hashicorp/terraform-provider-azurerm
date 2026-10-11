@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -104,7 +104,7 @@ func TestCosmosThroughput(t *testing.T) {
 
 func TestCosmosMaxThroughput(t *testing.T) {
 	cases := []struct {
-		Value  interface{}
+		Value  any
 		Errors int
 	}{
 		{
@@ -141,7 +141,7 @@ func TestCosmosMaxThroughput(t *testing.T) {
 		},
 		{
 			Value:  "400",
-			Errors: 1,
+			Errors: 2,
 		},
 	}
 

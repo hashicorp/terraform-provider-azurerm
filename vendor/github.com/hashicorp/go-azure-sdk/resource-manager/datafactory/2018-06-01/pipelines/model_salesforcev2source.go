@@ -12,8 +12,8 @@ var _ CopySource = SalesforceV2Source{}
 
 type SalesforceV2Source struct {
 	AdditionalColumns     *interface{} `json:"additionalColumns,omitempty"`
-	IncludeDeletedObjects *bool        `json:"includeDeletedObjects,omitempty"`
-	PageSize              *int64       `json:"pageSize,omitempty"`
+	IncludeDeletedObjects *interface{} `json:"includeDeletedObjects,omitempty"`
+	PageSize              *interface{} `json:"pageSize,omitempty"`
 	PartitionOption       *interface{} `json:"partitionOption,omitempty"`
 	Query                 *interface{} `json:"query,omitempty"`
 	QueryTimeout          *interface{} `json:"queryTimeout,omitempty"`
@@ -21,9 +21,9 @@ type SalesforceV2Source struct {
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

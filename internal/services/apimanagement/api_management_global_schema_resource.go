@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -68,7 +69,7 @@ func resourceApiManagementGlobalSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -76,15 +77,17 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 
 	id := schema.NewSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("schema_id").(string))
 	if d.IsNewResource() {
-		existing, err := client.GlobalSchemaGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.GlobalSchemaGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
+			}
 		}
 	}
 
@@ -98,7 +101,7 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 	// value for type=xml, document for type=json
 	value := d.Get("value")
 	if d.Get("type").(string) == string(schema.SchemaTypeJson) {
-		var document interface{}
+		var document any
 		if err := json.Unmarshal([]byte(value.(string)), &document); err != nil {
 			return fmt.Errorf(" error preparing value data to send %s: %s", id, err)
 		}
@@ -108,15 +111,21 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 		payload.Properties.Value = &value
 	}
 
-	if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+	if d.IsNewResource() {
+		if err := client.GlobalSchemaCreateOrUpdateCallbackThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions(), sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %s", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %s", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceApiManagementGlobalSchemaRead(d, meta)
 }
 
-func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +155,7 @@ func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("description", props.Description)
 			d.Set("type", props.SchemaType)
 
-			var value interface{}
+			var value any
 			// value for type=xml, document for type=json
 			if props.SchemaType == schema.SchemaTypeJson && props.Document != nil {
 				var document []byte
@@ -165,7 +174,7 @@ func resourceApiManagementGlobalSchemaRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementGlobalSchemaDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

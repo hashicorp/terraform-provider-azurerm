@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAssessmentResource struct{}
@@ -101,14 +102,14 @@ func (r SecurityCenterAssessmentResource) Exists(ctx context.Context, client *cl
 
 	resp, err := assessmentClient.Get(ctx, id.TargetResourceID, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.Response.Response) {
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving Azure Security Center Assessment %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.AssessmentProperties != nil), nil
+	return pointer.To(resp.AssessmentProperties != nil), nil
 }
 
 func (r SecurityCenterAssessmentResource) basic(data acceptance.TestData) string {

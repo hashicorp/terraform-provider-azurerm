@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -35,8 +35,8 @@ var UnmanagedSettingsDeprecated = []string{
 	"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 }
 
-func AppSettings(input interface{}, key string) (warnings []string, errors []error) {
-	if appSettings, ok := input.(map[string]interface{}); ok {
+func AppSettings(input any, key string) (warnings []string, errors []error) {
+	if appSettings, ok := input.(map[string]any); ok {
 		for k := range appSettings {
 			for _, f := range UnmanagedSettings {
 				if strings.EqualFold(k, f) {

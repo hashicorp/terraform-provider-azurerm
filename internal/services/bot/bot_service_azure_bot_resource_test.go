@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BotServiceAzureBotResource struct{}
@@ -138,17 +138,17 @@ func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 }
 
 func (t BotServiceAzureBotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotServiceID(state.ID)
+	id, err := commonids.ParseBotServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (BotServiceAzureBotResource) basic(data acceptance.TestData) string {
@@ -170,11 +170,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
-  name                = "acctestdf%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "global"
-  sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
+  name                    = "acctestdf%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = "global"
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 
   tags = {
     environment = "test"
@@ -218,13 +220,15 @@ resource "azurerm_bot_service_azure_bot" "test" {
   name                                  = "acctestdf%[1]d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = "global"
+  microsoft_app_type                    = "SingleTenant"
+  microsoft_app_tenant_id               = data.azurerm_client_config.current.tenant_id
   microsoft_app_id                      = azuread_application_registration.test.client_id
   sku                                   = "F0"
   local_authentication_enabled          = false
   public_network_access_enabled         = false
   icon_url                              = "https://registry.terraform.io/images/providers/azure.png"
   endpoint                              = "https://example.com"
-  developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
+  developer_app_insights_api_key        = "IamAFakeKeyToTestTheAttribute00000000000"
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
   tags = {
@@ -240,11 +244,13 @@ func (BotServiceAzureBotResource) requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_bot_service_azure_bot" "import" {
-  name                = azurerm_bot_service_azure_bot.test.name
-  resource_group_name = azurerm_bot_service_azure_bot.test.resource_group_name
-  location            = azurerm_bot_service_azure_bot.test.location
-  sku                 = azurerm_bot_service_azure_bot.test.sku
-  microsoft_app_id    = azurerm_bot_service_azure_bot.test.microsoft_app_id
+  name                    = azurerm_bot_service_azure_bot.test.name
+  resource_group_name     = azurerm_bot_service_azure_bot.test.resource_group_name
+  location                = azurerm_bot_service_azure_bot.test.location
+  sku                     = azurerm_bot_service_azure_bot.test.sku
+  microsoft_app_id        = azurerm_bot_service_azure_bot.test.microsoft_app_id
+  microsoft_app_type      = azurerm_bot_service_azure_bot.test.microsoft_app_type
+  microsoft_app_tenant_id = azurerm_bot_service_azure_bot.test.microsoft_app_tenant_id
 }
 `, template)
 }
@@ -311,6 +317,8 @@ resource "azurerm_bot_service_azure_bot" "test" {
   location                   = "global"
   sku                        = "F0"
   microsoft_app_id           = azuread_application_registration.test.client_id
+  microsoft_app_type         = "SingleTenant"
+  microsoft_app_tenant_id    = data.azurerm_client_config.current.tenant_id
   streaming_endpoint_enabled = %[3]t
 }
 `, data.RandomInteger, data.Locations.Primary, streamingEndpointEnabled)
@@ -346,7 +354,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
-  enable_rbac_authorization   = true
+  rbac_authorization_enabled  = true
   sku_name                    = "standard"
 }
 
@@ -384,13 +392,15 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
-  name                  = "acctestdf%[1]d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = "global"
-  sku                   = "F0"
-  microsoft_app_id      = azuread_application_registration.test.client_id
-  cmk_key_vault_key_url = azurerm_key_vault_key.test.id
-  endpoint              = "https://example2.com"
+  name                    = "acctestdf%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = "global"
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  cmk_key_vault_key_url   = azurerm_key_vault_key.test.id
+  endpoint                = "https://example2.com"
 
   depends_on = [azurerm_role_assignment.test]
 }

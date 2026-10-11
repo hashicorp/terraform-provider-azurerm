@@ -4,11 +4,54 @@ Whilst it is acceptable in certain cases to map the schema of a new resource or 
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
+## Prefer Azure Portal terminology when it differs significantly from the REST API
+
+Users should be able to intuitively correlate Terraform configuration with the portal experience.
+
+For example, the `taggingCriteria` property from the [Backup Policy REST API](https://learn.microsoft.com/rest/api/dataprotection/backup-policies/create-or-update?view=rest-dataprotection-2026-03-01&tabs=HTTP#taggingcriteria) is called `Retention` / `Backup schedule` in the portal.
+
+In some cases where the portal experience is not yet available, or is not the primary experience, align with Azure CLI instead.
+
+## Group semantically related arguments
+
+Terraform arguments are mostly ordered alphabetically (see the [ordering guide](guide-new-resource.md)). For resources with a large list of arguments, this can scatter related settings. If the portal or CLI groups settings into tabs or section headings, consider introducing a block in Terraform to reduce the cognitive load for users.
+
+## Eliminate ambiguity in collection-typed arguments
+
+Some Azure APIs use arrays or list collections instead of statically typed properties, which can introduce ambiguity in Terraform configuration. For example, two `retention_policy` blocks with `orchestration_state = "Completed"` can be supplied below, even though only one makes semantic sense:
+
+```hcl
+retention_policy {
+  retention_period_in_days = 7
+  orchestration_state      = "InProgress"
+}
+
+retention_policy {
+  retention_period_in_days = 30
+  orchestration_state      = "Completed"
+}
+
+retention_policy {
+  retention_period_in_days = 5
+  orchestration_state      = "Completed" // Which one of the "Completed" wins?
+}
+```
+
+Instead, the schema for such an API should be designed to eliminate the ambiguity:
+
+```hcl
+retention_policy {
+  completed_retention_period_in_days = 30
+  in_progress_retention_period_in_days = 7
+}
+```
+
 ## Features that are toggled by the property `Enabled`
 
 It is commonplace for features to be toggled on and off by an `Enabled` property within an object in the SDK used to interact with the Azure API. See the examples below.
 
 Example A.
+
 ```go
 type ManagedClusterStorageProfileBlobCSIDriver struct {
 	Enabled *bool `json:"enabled,omitempty"`
@@ -16,6 +59,7 @@ type ManagedClusterStorageProfileBlobCSIDriver struct {
 ```
 
 Example B.
+
 ```go
 type ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler struct {
 	ControlledValues ControlledValues `json:"controlledValues"`
@@ -75,6 +119,7 @@ However, when there are multiple fields in addition to the `Enabled` field, and 
 Finally, there are instances where the additional fields/properties for an object/feature are optional or few, as shown below.
 
 Example C.
+
 ```go
 type ManagedClusterStorageProfileDiskCSIDriver struct {
 	Enabled *bool   `json:"enabled,omitempty"`
@@ -106,7 +151,7 @@ A judgement call should be made based off the behaviour of the API and expectati
 
 ## The `None` value or similar
 
-Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification. 
+Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification.
 
 ```
     "shutdownOnIdleMode": {
@@ -118,7 +163,7 @@ Many Azure APIs and services will accept the values like `None`, `Off`, or `Defa
       ],
 ```
 
-Whilst it isn't uncommon to stumble across older resources in the provider that expose and accept these as a valid values, the provider is moving away from this pattern, since Terraform has its own null type i.e. by omitting the field. Existing `None`, `Off` or `Default` values within the provider are planned for removal in version 4.0.
+Whilst it isn't uncommon to stumble across older resources in the provider that expose and accept these as a valid values, the provider is moving away from this pattern, since Terraform has its own null type i.e. by omitting the field. Existing `None`, `Off` or `Default` values within the provider are planned for removal in a future major version.
 
 This ultimately means that the end user doesn't need to bloat their configuration with superfluous information that is implied through the omission of information.
 
@@ -139,49 +184,52 @@ The resulting schema in Terraform would look as follows and also requires a conv
 
 // Normalising in the create or expand function
 func (r resource) Create() sdk.ResourceFunc {
-	
+
 	...
-	
+
 	var config resourceModel
 	if err := metadata.Decode(&config); err != nil {
         return fmt.Errorf("decoding: %+v", err)
     }
-	
+
 	// The resource property shutdown_on_idle maps to the attribute shutdownOnIdle in the defined model for a typed resource in this example
 	shutdownOnIdle := string(labplan.ShutdownOnIdleModeNone)
 	if v := model.ShutdownOnIdle; v != "" {
 		shutdownOnIdle = v
     }
-	
+
 	...
-	
+
 }
 
 // Normalising in the read or flatten function
 func (r resource) Read() sdk.ResourceFunc {
-	
+
 	...
-	
+
 	shutdownOnIdle := ""
 	if v := props.ShutdownOnIdle; v != nil && v != string(labplan.ShutdownOnIdleModeNone) {
 		shutdownOnIdle = string(*v)
     }
-	
+
 	state.ShutdownOnIdle = shutdownOnIdle
-	
+
 	...
-	
+
 }
 ```
+
+> **Note:** The above guidance applies to any user-specifiable properties. For properties that are computed only, the `Read` function should return the value that is retrieved from Azure, including `None`, rather than converting it to an empty value.
 
 ## SKU fields
 
 Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
 
-1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument.
 2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
 
 Example of a `sku` argument:
+
 ```go
 "sku": {
 	Type:     pluginsdk.TypeString,
@@ -197,6 +245,7 @@ Example of a `sku` argument:
 ```
 
 Example of a `sku` block:
+
 ```go
 	"sku": {
 		Type:     pluginsdk.TypeList,
@@ -257,3 +306,162 @@ Would be better exposed as the following resources:
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
+## Preview Fields
+
+Fields that are in preview should not be supported until they reach General Availability (GA) status, as they may change or be removed before becoming stable.
+
+## Flattening nested properties
+
+Flatten a `MaxItems: 1` block that holds a single field into a top-level property. If the service team has said more fields are coming, keep the block and leave a comment saying so.
+
+```go
+"credential_certificate": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    Elem:     &pluginsdk.Schema{
+        Type:         pluginsdk.TypeString,
+        ValidateFunc: validation.StringIsNotEmpty,
+    },
+}
+```
+
+## Array fields with MinItems and MaxItems
+
+If a field is an array, proper `MinItems` and `MaxItems` should be set based on the API constraints to provide clear validation feedback to users.
+
+```go
+"webhook_uris": {
+    Type:     pluginsdk.TypeList,
+    Required: true,
+    MinItems: 1,
+    MaxItems: 20,
+    Elem: &pluginsdk.Schema{
+        Type:         pluginsdk.TypeString,
+        ValidateFunc: validation.IsURLWithHTTPS,
+    },
+},
+```
+
+## Required fields in Azure Portal vs API documentation
+
+Fields marked as required in the Azure Portal (indicated by `*`) should be defined as `Required` in Terraform, unless the API accepts the request without them and still functions.
+
+## Validation for TypeList fields with no Required fields
+
+When a `pluginsdk.TypeList` block has no required nested fields, conditional validation such as `AtLeastOneOf` or `ExactlyOneOf` must be set on the optional fields to ensure the block is not empty and has at least one property configured.
+
+```go
+"setting": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    MaxItems: 1,
+    Elem: &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "linux": {
+                Type:         pluginsdk.TypeList,
+                Optional:     true,
+                Elem:         osSchema(),
+                AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+            },
+            "windows": {
+                Type:         pluginsdk.TypeList,
+                Optional:     true,
+                Elem:         osSchema(),
+                AtLeastOneOf: []string{"setting.0.linux", "setting.0.windows"},
+            },
+        },
+    },
+}
+```
+
+## Validation
+
+Validate every argument against what the API accepts. The constraints are in the swagger spec, the SDK's constants or the service documentation.
+
+- Fixed set of values: the SDK's `PossibleValuesFor...` helper, or an explicit list when the provider supports only some of them.
+- Names and other patterned strings: `validation.StringMatch` with the pattern from the spec and a message saying what is allowed.
+- Resource IDs: the validator from `commonids` or the service's `validate` package.
+- Dates, IPs, ports, emails and URIs: the matching validator in `internal/tf/validation`.
+- Numbers: `IntBetween` / `FloatBetween` when both bounds are known, `IntAtLeast` / `FloatAtLeast` only when the API has no upper bound.
+- Passwords: reuse the validator the service already has, mark the field `Sensitive: true`, and treat tightening the rules later as a breaking change.
+
+`validation.StringIsNotEmpty` checks nothing useful on its own. Use it only for fields the API accepts as free text, where there is no rule to check.
+
+Before writing a new validator, look for an existing one in `commonids`, `internal/tf/validation` or `internal/services/<service>/validate`. The quickest way is to find a similar resource in the same service and search that package for `ValidateFunc:`.
+
+```go
+"network_api_version": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
+},
+
+"allocation_strategy": {
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(virtualmachinescalesets.AllocationStrategyLowestPrice),
+        string(virtualmachinescalesets.AllocationStrategyPrioritized),
+    }, false),
+},
+
+"name": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ForceNew: true,
+    ValidateFunc: validation.StringMatch(
+        regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,79}$`),
+        "`name` must be between 1 and 80 characters, start with an alphanumeric character and contain only alphanumeric characters, dots (.), hyphens (-) and underscores (_)",
+    ),
+},
+
+"subnet_id": {
+    Type:         pluginsdk.TypeString,
+    Required:     true,
+    ValidateFunc: commonids.ValidateSubnetID,
+},
+
+"namespace_id": {
+    Type:         pluginsdk.TypeString,
+    Required:     true,
+    ForceNew:     true,
+    ValidateFunc: namespaces.ValidateNamespaceID,
+},
+
+"output_blob_uri": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    ValidateFunc: validation.IsURLWithHTTPS,
+},
+
+"ip_address": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    ValidateFunc: validation.IsIPv4Address,
+},
+
+"extensions_time_budget": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    Default:      "PT1H30M",
+    ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
+},
+
+"storage_size_in_gb": {
+    Type:         pluginsdk.TypeInt,
+    Optional:     true,
+    ValidateFunc: validation.IntBetween(32, 16384),
+},
+
+"parallelism": {
+    Type:         pluginsdk.TypeInt,
+    Optional:     true,
+    ValidateFunc: validation.IntAtLeast(1),
+},
+
+"description": {
+    Type:         pluginsdk.TypeString,
+    Optional:     true,
+    ValidateFunc: validation.StringIsNotEmpty,
+},
+```

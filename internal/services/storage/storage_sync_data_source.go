@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -48,7 +48,7 @@ func dataSourceStorageSync() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -71,7 +71,7 @@ func dataSourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
+			d.Set("incoming_traffic_policy", pointer.FromEnum(props.IncomingTrafficPolicy))
 		}
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {

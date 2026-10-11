@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package schema_test
@@ -11,9 +11,8 @@ import (
 )
 
 func TestResourceFile(t *testing.T) {
-	p := automation.SoftwareUpdateConfigurationResource{}
-	file := schema.FileForResource(p.Read().Func)
-	t.Log(file)
+	p := automation.WatcherResource{}
+	t.Log(schema.FileForResource(p.Read().Func))
 
 	// inspect schema
 	r := schema.NewResourceByTyped(p)

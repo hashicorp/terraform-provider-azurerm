@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -32,7 +32,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_virtual_network_link"
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) ModelObject() interface{} {
+func (r PrivateDNSResolverVirtualNetworkLinkResource) ModelObject() any {
 	return &PrivateDNSResolverVirtualNetworkLinkModel{}
 }
 
@@ -93,13 +93,16 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Create() sdk.ResourceFunc 
 			}
 
 			id := virtualnetworklinks.NewVirtualNetworkLinkID(dnsForwardingRulesetId.SubscriptionId, dnsForwardingRulesetId.ResourceGroupName, dnsForwardingRulesetId.DnsForwardingRulesetName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &virtualnetworklinks.VirtualNetworkLink{
@@ -111,11 +114,11 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) Create() sdk.ResourceFunc 
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties, virtualnetworklinks.CreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, virtualnetworklinks.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

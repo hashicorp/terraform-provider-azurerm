@@ -1,9 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
 
-func expandDataFactoryExpressionResultType(str string, isDynamic bool) interface{} {
+func expandDataFactoryExpressionResultType(str string, isDynamic bool) any {
 	if !isDynamic {
 		return str
 	}
@@ -13,11 +13,11 @@ func expandDataFactoryExpressionResultType(str string, isDynamic bool) interface
 	}
 }
 
-func flattenDataFactoryExpressionResultType(obj interface{}) (result string, isDynamic bool) {
+func flattenDataFactoryExpressionResultType(obj any) (result string, isDynamic bool) {
 	switch v := obj.(type) {
 	case string:
 		result, isDynamic = v, false
-	case map[string]interface{}:
+	case map[string]any:
 		isDynamic = true
 		if value, ok := v["value"]; ok {
 			result = value.(string)

@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description for this Local Rulestack.
 
-* `dns_subscription` - (Optional) TThe setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
+* `dns_subscription` - (Optional) The setting to use for DNS Subscription. Possible values include `BestPractice`, and `Custom`.
 
 * `file_blocking_profile` - (Optional) The setting to use for the File Blocking Profile. Possible values include `BestPractice`, and `Custom`.
 
@@ -78,4 +78,4 @@ terraform import azurerm_palo_alto_local_rulestack.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw` - 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

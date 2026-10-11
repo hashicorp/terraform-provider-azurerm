@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,7 +50,7 @@ func (EmailDomainAssociationResource) Attributes() map[string]*pluginsdk.Schema 
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailDomainAssociationResource) ModelObject() interface{} {
+func (EmailDomainAssociationResource) ModelObject() any {
 	return &EmailDomainAssociationResourceModel{}
 }
 
@@ -120,6 +120,7 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewCompositeResourceID(communicationServiceId, eMailServiceDomainId)
 
+			exists := false
 			for _, v := range domainList {
 				tmpID, tmpErr := domains.ParseDomainIDInsensitively(v)
 				if tmpErr != nil {
@@ -127,11 +128,16 @@ func (r EmailDomainAssociationResource) Create() sdk.ResourceFunc {
 				}
 
 				if strings.EqualFold(eMailServiceDomainId.ID(), tmpID.ID()) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					exists = true
+					if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
 				}
 			}
 
-			domainList = append(domainList, eMailServiceDomainId.ID())
+			if !exists {
+				domainList = append(domainList, eMailServiceDomainId.ID())
+			}
 
 			input := communicationservices.CommunicationServiceResourceUpdate{
 				Properties: &communicationservices.CommunicationServiceUpdateProperties{
@@ -324,7 +330,7 @@ func (EmailDomainAssociationResource) Delete() sdk.ResourceFunc {
 }
 
 func (EmailDomainAssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
+	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))

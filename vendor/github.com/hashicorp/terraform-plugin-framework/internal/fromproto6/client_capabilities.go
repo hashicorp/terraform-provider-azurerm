@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fromproto6
@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -114,5 +115,19 @@ func ModifyPlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabiliti
 
 	return action.ModifyPlanClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
+func ConfigureStateStoreClientCapabilities(in *tfprotov6.ConfigureStateStoreClientCapabilities) fwserver.ConfigureStateStoreClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities, in practice this shouldn't happen, but if it does
+		// we'll just default to the same chunk size that Terraform core does, 8MB.
+		return fwserver.ConfigureStateStoreClientCapabilities{
+			ChunkSize: 8 << 20,
+		}
+	}
+
+	return fwserver.ConfigureStateStoreClientCapabilities{
+		ChunkSize: in.ChunkSize,
 	}
 }

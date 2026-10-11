@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,8 +9,9 @@ import (
 	"strings"
 )
 
-func MetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
-	v, ok := value.(map[string]interface{})
+// lintignore:V001 // this validates a map of metadata keys, not a single string
+func MetaDataKeys(value any, _ string) (warnings []string, errors []error) {
+	v, ok := value.(map[string]any)
 	if !ok {
 		return
 	}

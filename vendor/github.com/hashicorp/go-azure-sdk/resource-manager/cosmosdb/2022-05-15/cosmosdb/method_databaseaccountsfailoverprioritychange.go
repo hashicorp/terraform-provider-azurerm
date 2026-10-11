@@ -61,9 +61,20 @@ func (c CosmosDBClient) DatabaseAccountsFailoverPriorityChange(ctx context.Conte
 
 // DatabaseAccountsFailoverPriorityChangeThenPoll performs DatabaseAccountsFailoverPriorityChange then polls until it's completed
 func (c CosmosDBClient) DatabaseAccountsFailoverPriorityChangeThenPoll(ctx context.Context, id DatabaseAccountId, input FailoverPolicies) error {
+	return c.DatabaseAccountsFailoverPriorityChangeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DatabaseAccountsFailoverPriorityChangeCallbackThenPoll performs DatabaseAccountsFailoverPriorityChange, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) DatabaseAccountsFailoverPriorityChangeCallbackThenPoll(ctx context.Context, id DatabaseAccountId, input FailoverPolicies, callback func() error) error {
 	result, err := c.DatabaseAccountsFailoverPriorityChange(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DatabaseAccountsFailoverPriorityChange: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

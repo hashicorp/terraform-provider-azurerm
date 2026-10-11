@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -41,6 +41,11 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 
 			"traffic_routing_method": {
 				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"maximum_return": {
+				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
 
@@ -139,7 +144,7 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -169,6 +174,7 @@ func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta inte
 				trafficRoutingMethod = string(*profile.TrafficRoutingMethod)
 			}
 			d.Set("traffic_routing_method", trafficRoutingMethod)
+			d.Set("maximum_return", profile.MaxReturn)
 
 			d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DnsConfig))
 			d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))

@@ -34,7 +34,7 @@ output "databricks_workspace_private_endpoint_connection_status" {
 
 * `private_endpoint_id` - The resource ID of the Private Endpoint.
 
-* `connections` - A `connections` block as documented below.
+* `connections` - A `connections` block as defined below.
 
 ---
 
@@ -60,4 +60,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2024-05-01
+* `Microsoft.Databricks` - 2026-01-01

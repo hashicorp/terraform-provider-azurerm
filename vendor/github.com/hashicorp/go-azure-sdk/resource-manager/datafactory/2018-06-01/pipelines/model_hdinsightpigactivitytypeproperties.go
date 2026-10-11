@@ -4,7 +4,7 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HDInsightPigActivityTypeProperties struct {
-	Arguments             *[]string                         `json:"arguments,omitempty"`
+	Arguments             *interface{}                      `json:"arguments,omitempty"`
 	Defines               *map[string]interface{}           `json:"defines,omitempty"`
 	GetDebugInfo          *HDInsightActivityDebugInfoOption `json:"getDebugInfo,omitempty"`
 	ScriptLinkedService   *LinkedServiceReference           `json:"scriptLinkedService,omitempty"`

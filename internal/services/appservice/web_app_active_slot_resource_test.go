@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WebAppActiveSlotResource struct{}
@@ -105,13 +105,13 @@ func (r WebAppActiveSlotResource) Exists(ctx context.Context, client *clients.Cl
 
 	app, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retreiving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
+		return nil, fmt.Errorf("retrieving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
 	}
 	if app.Model.Properties == nil || app.Model.Properties.SlotSwapStatus == nil || app.Model.Properties.SlotSwapStatus.SourceSlotName == nil {
 		return nil, fmt.Errorf("missing App Slot Properties for %s", id)
 	}
 
-	return utils.Bool(*app.Model.Properties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
+	return pointer.To(*app.Model.Properties.SlotSwapStatus.SourceSlotName == slotId.SlotName), nil
 }
 
 func (r WebAppActiveSlotResource) basicWindows(data acceptance.TestData) string {

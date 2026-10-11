@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -85,7 +85,7 @@ func resourceLogicAppIntegrationAccountPartner() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountPartnerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountPartnerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountPartnerClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -94,14 +94,16 @@ func resourceLogicAppIntegrationAccountPartnerCreateUpdate(d *pluginsdk.Resource
 	id := integrationaccountpartners.NewPartnerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("integration_account_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logic_app_integration_account_partner", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_logic_app_integration_account_partner", id.ID())
+			}
 		}
 	}
 
@@ -128,7 +130,7 @@ func resourceLogicAppIntegrationAccountPartnerCreateUpdate(d *pluginsdk.Resource
 	return resourceLogicAppIntegrationAccountPartnerRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountPartnerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountPartnerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountPartnerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +170,7 @@ func resourceLogicAppIntegrationAccountPartnerRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountPartnerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountPartnerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountPartnerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,11 +187,11 @@ func resourceLogicAppIntegrationAccountPartnerDelete(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func expandIntegrationAccountPartnerBusinessIdentity(input []interface{}) *[]integrationaccountpartners.BusinessIdentity {
+func expandIntegrationAccountPartnerBusinessIdentity(input []any) *[]integrationaccountpartners.BusinessIdentity {
 	results := make([]integrationaccountpartners.BusinessIdentity, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, integrationaccountpartners.BusinessIdentity{
 			Qualifier: v["qualifier"].(string),
@@ -200,14 +202,14 @@ func expandIntegrationAccountPartnerBusinessIdentity(input []interface{}) *[]int
 	return &results
 }
 
-func flattenIntegrationAccountPartnerBusinessIdentity(input *[]integrationaccountpartners.BusinessIdentity) []interface{} {
-	results := make([]interface{}, 0)
+func flattenIntegrationAccountPartnerBusinessIdentity(input *[]integrationaccountpartners.BusinessIdentity) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"qualifier": item.Qualifier,
 			"value":     item.Value,
 		})

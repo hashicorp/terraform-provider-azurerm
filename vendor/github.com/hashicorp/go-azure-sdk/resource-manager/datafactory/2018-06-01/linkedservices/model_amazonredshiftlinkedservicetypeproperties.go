@@ -12,7 +12,7 @@ type AmazonRedshiftLinkedServiceTypeProperties struct {
 	Database            interface{}  `json:"database"`
 	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
 	Password            SecretBase   `json:"password"`
-	Port                *int64       `json:"port,omitempty"`
+	Port                *interface{} `json:"port,omitempty"`
 	Server              interface{}  `json:"server"`
 	Username            *interface{} `json:"username,omitempty"`
 }
@@ -23,7 +23,7 @@ func (s *AmazonRedshiftLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) 
 	var decoded struct {
 		Database            interface{}  `json:"database"`
 		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
-		Port                *int64       `json:"port,omitempty"`
+		Port                *interface{} `json:"port,omitempty"`
 		Server              interface{}  `json:"server"`
 		Username            *interface{} `json:"username,omitempty"`
 	}

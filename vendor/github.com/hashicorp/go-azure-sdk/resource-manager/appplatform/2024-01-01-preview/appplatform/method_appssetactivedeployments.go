@@ -62,9 +62,20 @@ func (c AppPlatformClient) AppsSetActiveDeployments(ctx context.Context, id AppI
 
 // AppsSetActiveDeploymentsThenPoll performs AppsSetActiveDeployments then polls until it's completed
 func (c AppPlatformClient) AppsSetActiveDeploymentsThenPoll(ctx context.Context, id AppId, input ActiveDeploymentCollection) error {
+	return c.AppsSetActiveDeploymentsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AppsSetActiveDeploymentsCallbackThenPoll performs AppsSetActiveDeployments, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) AppsSetActiveDeploymentsCallbackThenPoll(ctx context.Context, id AppId, input ActiveDeploymentCollection, callback func() error) error {
 	result, err := c.AppsSetActiveDeployments(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AppsSetActiveDeployments: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

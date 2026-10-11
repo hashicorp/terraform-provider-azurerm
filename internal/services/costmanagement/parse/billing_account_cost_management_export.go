@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -15,13 +15,6 @@ import (
 type BillingAccountCostManagementExportId struct {
 	BillingAccountName string
 	ExportName         string
-}
-
-func NewBillingAccountCostManagementExportID(billingAccountName, exportName string) BillingAccountCostManagementExportId {
-	return BillingAccountCostManagementExportId{
-		BillingAccountName: billingAccountName,
-		ExportName:         exportName,
-	}
 }
 
 func (id BillingAccountCostManagementExportId) String() string {

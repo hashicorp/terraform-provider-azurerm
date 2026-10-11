@@ -11,7 +11,7 @@ import (
 var _ ImportSettings = TeradataImportCommand{}
 
 type TeradataImportCommand struct {
-	AdditionalFormatOptions *map[string]string `json:"additionalFormatOptions,omitempty"`
+	AdditionalFormatOptions *interface{} `json:"additionalFormatOptions,omitempty"`
 
 	// Fields inherited from ImportSettings
 

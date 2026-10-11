@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -63,21 +63,17 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(group.GroupTypeCustom),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(group.GroupTypeCustom),
-					string(group.GroupTypeExternal),
-					string(group.GroupTypeSystem),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(group.GroupTypeCustom),
+				ValidateFunc: validation.StringInSlice(group.PossibleValuesForGroupType(), false),
 			},
 		},
 	}
 }
 
-func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -91,15 +87,17 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	groupType := d.Get("type").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_group", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_group", id.ID())
+			}
 		}
 	}
 
@@ -108,7 +106,7 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			DisplayName: displayName,
 			Description: pointer.To(description),
 			ExternalId:  pointer.To(externalID),
-			Type:        pointer.To(group.GroupType(groupType)),
+			Type:        pointer.ToEnum[group.GroupType](groupType),
 		},
 	}
 
@@ -121,7 +119,7 @@ func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceApiManagementGroupRead(d, meta)
 }
 
-func resourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,14 +148,14 @@ func resourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("display_name", properties.DisplayName)
 			d.Set("description", properties.Description)
 			d.Set("external_id", properties.ExternalId)
-			d.Set("type", string(pointer.From(properties.Type)))
+			d.Set("type", pointer.FromEnum(properties.Type))
 		}
 	}
 
 	return nil
 }
 
-func resourceApiManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

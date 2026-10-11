@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -60,7 +60,7 @@ func dataSourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}) error {
+func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ any) error {
 	name := d.Get("name").(string)
 
 	keyPermissions := make([]string, 0)

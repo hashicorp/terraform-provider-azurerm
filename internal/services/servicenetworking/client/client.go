@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -10,10 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
-
-type Client struct {
-	ServiceNetworkingClient *servicenetworking_2025_01_01.Client
-}
 
 func NewClient(o *common.ClientOptions) (*servicenetworking_2025_01_01.Client, error) {
 	client, err := servicenetworking_2025_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {

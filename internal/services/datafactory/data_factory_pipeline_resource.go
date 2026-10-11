@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryPipeline() *pluginsdk.Resource {
@@ -80,7 +79,7 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			"activities_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				StateFunc:        utils.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -104,15 +103,16 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"moniter_metrics_after_duration": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+			"monitor_metrics_after_duration": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
 
-func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,23 +126,25 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	id := pipelines.NewPipelineID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, pipelines.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id, pipelines.DefaultGetOperationOptions())
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_data_factory_pipeline", id.ID())
+			}
 		}
 	}
 
 	payload := pipelines.PipelineResource{
 		Properties: pipelines.Pipeline{
 			Description: pointer.To(d.Get("description").(string)),
-			Parameters:  expandDataFactoryPipelineParameters(d.Get("parameters").(map[string]interface{})),
-			Variables:   expandDataFactoryPipelineVariables(d.Get("variables").(map[string]interface{})),
+			Parameters:  expandDataFactoryPipelineParameters(d.Get("parameters").(map[string]any)),
+			Variables:   expandDataFactoryPipelineVariables(d.Get("variables").(map[string]any)),
 		},
 	}
 
@@ -162,7 +164,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("`activities` was not found in the unmarshaled `activities_json`")
 		}
 
-		for _, activity := range acts.([]interface{}) {
+		for _, activity := range acts.([]any) {
 			act, err := json.Marshal(activity)
 			if err != nil {
 				return fmt.Errorf("marshaling activity %+v: %+v", activity, err)
@@ -177,9 +179,9 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		payload.Properties.Activities = pointer.To(activities)
 	}
 
-	annotations := make([]interface{}, 0)
+	annotations := make([]any, 0)
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations = v.([]interface{})
+		annotations = v.([]any)
 	}
 	payload.Properties.Annotations = &annotations
 
@@ -187,7 +189,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 		payload.Properties.Concurrency = pointer.To(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("moniter_metrics_after_duration"); ok {
+	if v, ok := d.GetOk("monitor_metrics_after_duration"); ok {
 		payload.Properties.Policy = &pipelines.PipelinePolicy{
 			ElapsedTimeMetric: &pipelines.PipelineElapsedTimeMetricPolicy{
 				Duration: pointer.To(v),
@@ -210,7 +212,7 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceDataFactoryPipelineRead(d, meta)
 }
 
-func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,13 +242,11 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("description", pointer.From(props.Description))
 
-		parameters := flattenDataFactoryPipelineParameters(props.Parameters)
-		if err := d.Set("parameters", parameters); err != nil {
+		if err := d.Set("parameters", flattenDataFactoryPipelineParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
-		annotations := flattenDataFactoryAnnotations(props.Annotations)
-		if err := d.Set("annotations", annotations); err != nil {
+		if err := d.Set("annotations", flattenDataFactoryAnnotations(props.Annotations)); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
@@ -258,14 +258,14 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 				elapsedTimeMetricDuration = v
 			}
 		}
-		d.Set("moniter_metrics_after_duration", elapsedTimeMetricDuration)
+
+		d.Set("monitor_metrics_after_duration", elapsedTimeMetricDuration)
 
 		if folder := props.Folder; folder != nil {
 			d.Set("folder", pointer.From(folder.Name))
 		}
 
-		variables := flattenDataFactoryPipelineVariables(props.Variables)
-		if err := d.Set("variables", variables); err != nil {
+		if err := d.Set("variables", flattenDataFactoryPipelineVariables(props.Variables)); err != nil {
 			return fmt.Errorf("setting `variables`: %+v", err)
 		}
 
@@ -284,7 +284,7 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceDataFactoryPipelineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryPipelineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.PipelinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func resourceDataFactoryPipelineDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandDataFactoryPipelineParameters(input map[string]interface{}) *map[string]pipelines.ParameterSpecification {
+func expandDataFactoryPipelineParameters(input map[string]any) *map[string]pipelines.ParameterSpecification {
 	output := make(map[string]pipelines.ParameterSpecification)
 
 	for k, v := range input {
@@ -314,8 +314,8 @@ func expandDataFactoryPipelineParameters(input map[string]interface{}) *map[stri
 	return &output
 }
 
-func flattenDataFactoryPipelineParameters(input *map[string]pipelines.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenDataFactoryPipelineParameters(input *map[string]pipelines.ParameterSpecification) map[string]any {
+	output := make(map[string]any)
 
 	if input == nil {
 		return output
@@ -333,7 +333,7 @@ func flattenDataFactoryPipelineParameters(input *map[string]pipelines.ParameterS
 	return output
 }
 
-func expandDataFactoryPipelineVariables(input map[string]interface{}) *map[string]pipelines.VariableSpecification {
+func expandDataFactoryPipelineVariables(input map[string]any) *map[string]pipelines.VariableSpecification {
 	output := make(map[string]pipelines.VariableSpecification)
 
 	for k, v := range input {
@@ -346,8 +346,8 @@ func expandDataFactoryPipelineVariables(input map[string]interface{}) *map[strin
 	return &output
 }
 
-func flattenDataFactoryPipelineVariables(input *map[string]pipelines.VariableSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenDataFactoryPipelineVariables(input *map[string]pipelines.VariableSpecification) map[string]any {
+	output := make(map[string]any)
 
 	if input == nil {
 		return output

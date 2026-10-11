@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -77,7 +77,7 @@ func TestContainsABase64UriEncodedJWTOfAStoredAttestationPolicy(t *testing.T) {
 }
 
 func generateJWT(name string) string {
-	// document about create policy: https://learn.microsoft.com/en-us/azure/attestation/author-sign-policy
+	// document about create policy: https://learn.microsoft.com/azure/attestation/author-sign-policy
 	policyContent := `version=1.0;
 authorizationrules
 {

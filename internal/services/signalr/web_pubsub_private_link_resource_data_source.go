@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -49,7 +49,7 @@ func dataSourceWebPubsubPrivateLinkResource() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	privateLinkResourceClient := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -62,7 +62,7 @@ func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta 
 
 	resourceList, err := privateLinkResourceClient.PrivateLinkResourcesListComplete(ctx, *webPubSubId)
 	if err != nil {
-		return fmt.Errorf("retrieving Private Link Resourcse for %s: %+v", *webPubSubId, err)
+		return fmt.Errorf("retrieving Private Link Resources for %s: %+v", *webPubSubId, err)
 	}
 
 	if resourceList.Items == nil {
@@ -71,7 +71,7 @@ func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta 
 
 	d.SetId(webPubSubId.ID())
 
-	linkTypeList := make([]interface{}, 0)
+	linkTypeList := make([]any, 0)
 	for _, v := range resourceList.Items {
 		if v.Properties != nil {
 			if v.Properties.ShareablePrivateLinkResourceTypes == nil {
@@ -89,7 +89,7 @@ func dataSourceWebPubsubPrivateLinkResourceRead(d *pluginsdk.ResourceData, meta 
 						description = *props.Description
 					}
 				}
-				linkTypeList = append(linkTypeList, map[string]interface{}{
+				linkTypeList = append(linkTypeList, map[string]any{
 					"description":      description,
 					"subresource_name": subResourceName,
 				})

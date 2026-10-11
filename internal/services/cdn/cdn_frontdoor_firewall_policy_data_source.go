@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,7 +75,7 @@ func dataSourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -84,7 +84,7 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := waf.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
+	id := webapplicationfirewallpolicies.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
 
 	result, err := client.PoliciesGet(ctx, id)
 	if err != nil {
@@ -101,7 +101,7 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 		d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 		d.Set("resource_group_name", id.ResourceGroupName)
 		if sku := model.Sku; sku != nil {
-			d.Set("sku_name", string(pointer.From(sku.Name)))
+			d.Set("sku_name", pointer.FromEnum(sku.Name))
 		}
 
 		if props := model.Properties; props != nil {
@@ -110,7 +110,7 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 			}
 
 			if policy := props.PolicySettings; policy != nil {
-				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
+				d.Set("enabled", pointer.From(policy.EnabledState) == webapplicationfirewallpolicies.PolicyEnabledStateEnabled)
 				d.Set("mode", pointer.From(policy.Mode))
 				d.Set("redirect_url", policy.RedirectURL)
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -73,7 +74,7 @@ func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +89,7 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 
 	id := commonids.NewVirtualHubBGPConnectionID(routerServerId.SubscriptionId, routerServerId.ResourceGroupName, routerServerId.VirtualHubName, d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.VirtualHubBgpConnectionGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -100,6 +101,7 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 			return tf.ImportAsExistsError("azurerm_route_server_bgp_connection", id.ID())
 		}
 	}
+
 	parameters := virtualwans.BgpConnection{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.BgpConnectionProperties{
@@ -108,15 +110,19 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	if err := client.VirtualHubBgpConnectionCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.VirtualHubBgpConnectionCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceRouteServerBgpConnectionRead(d, meta)
 }
 
-func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +160,7 @@ func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRouteServerBgpConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteServerBgpConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

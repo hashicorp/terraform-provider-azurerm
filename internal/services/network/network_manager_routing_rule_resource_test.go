@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -6,18 +9,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routingrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routingrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagerRoutingRuleResource struct{}
+type NetworkManagerRoutingRuleResource struct{}
 
 func TestAccNetworkManagerRoutingRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
-	r := ManagerRoutingRuleResource{}
+	r := NetworkManagerRoutingRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +35,7 @@ func TestAccNetworkManagerRoutingRule_basic(t *testing.T) {
 
 func TestAccNetworkManagerRoutingRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
-	r := ManagerRoutingRuleResource{}
+	r := NetworkManagerRoutingRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +71,7 @@ func TestAccNetworkManagerRoutingRule_update(t *testing.T) {
 
 func TestAccNetworkManagerRoutingRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
-	r := ManagerRoutingRuleResource{}
+	r := NetworkManagerRoutingRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +86,7 @@ func TestAccNetworkManagerRoutingRule_requiresImport(t *testing.T) {
 
 func TestAccNetworkManagerRoutingRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
-	r := ManagerRoutingRuleResource{}
+	r := NetworkManagerRoutingRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -96,7 +99,7 @@ func TestAccNetworkManagerRoutingRule_complete(t *testing.T) {
 	})
 }
 
-func (r ManagerRoutingRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerRoutingRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routingrules.ParseRuleID(state.ID)
 	if err != nil {
 		return nil, err
@@ -110,7 +113,7 @@ func (r ManagerRoutingRuleResource) Exists(ctx context.Context, client *clients.
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerRoutingRuleResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,7 +136,7 @@ resource "azurerm_network_manager_routing_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerRoutingRuleResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -152,7 +155,7 @@ resource "azurerm_network_manager_routing_rule" "import" {
 `, r.basic(data))
 }
 
-func (r ManagerRoutingRuleResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -177,7 +180,7 @@ resource "azurerm_network_manager_routing_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerRoutingRuleResource) update(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -202,7 +205,7 @@ resource "azurerm_network_manager_routing_rule" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerRoutingRuleResource) template(data acceptance.TestData) string {
+func (r NetworkManagerRoutingRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-network-manager-rr-%d"

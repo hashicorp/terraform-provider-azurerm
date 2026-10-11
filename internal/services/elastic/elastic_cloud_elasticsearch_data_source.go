@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic
@@ -59,7 +59,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 			"logs": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"filtering_tag": {
@@ -131,7 +131,7 @@ func dataSourceElasticsearch() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceElasticsearchRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

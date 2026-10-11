@@ -12,16 +12,16 @@ var _ CopySink = AzureDataLakeStoreSink{}
 
 type AzureDataLakeStoreSink struct {
 	CopyBehavior                 *interface{} `json:"copyBehavior,omitempty"`
-	EnableAdlsSingleFileParallel *bool        `json:"enableAdlsSingleFileParallel,omitempty"`
+	EnableAdlsSingleFileParallel *interface{} `json:"enableAdlsSingleFileParallel,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *interface{} `json:"sinkRetryCount,omitempty"`
 	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
 	Type                     string       `json:"type"`
-	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchSize           *interface{} `json:"writeBatchSize,omitempty"`
 	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 

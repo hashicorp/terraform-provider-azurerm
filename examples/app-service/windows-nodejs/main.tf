@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -27,7 +27,7 @@ resource "azurerm_windows_web_app" "example" {
   site_config {
     application_stack {
       current_stack = "node"
-      node_version  = "~22"
+      node_version  = "~24"
     }
   }
 }

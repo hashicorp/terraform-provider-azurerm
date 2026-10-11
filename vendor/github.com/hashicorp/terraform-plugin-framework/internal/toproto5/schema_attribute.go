@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto5
@@ -40,6 +40,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 
 	if a.GetDeprecationMessage() != "" {
 		schemaAttribute.Deprecated = true
+		schemaAttribute.DeprecationMessage = a.GetDeprecationMessage()
 	}
 
 	if a.GetDescription() != "" {

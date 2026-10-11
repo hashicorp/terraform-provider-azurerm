@@ -8,8 +8,6 @@ description: |-
 
 # List resource: azurerm_route_table
 
-~> **Note:** The `azurerm_route_table` List Resource is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Lists Route Table resources.
 
 ## Example Usage

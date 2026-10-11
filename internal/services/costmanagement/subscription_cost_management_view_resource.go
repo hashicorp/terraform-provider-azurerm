@@ -1,10 +1,18 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement
 
 import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -13,6 +21,19 @@ import (
 
 type SubscriptionCostManagementViewResource struct {
 	base costManagementViewBaseResource
+}
+
+type SubscriptionCostManagementViewModel struct {
+	Name        string                           `tfschema:"name"`
+	SubId       string                           `tfschema:"subscription_id"`
+	DisplayName string                           `tfschema:"display_name"`
+	ChartType   string                           `tfschema:"chart_type"`
+	Accumulated bool                             `tfschema:"accumulated"`
+	ReportType  string                           `tfschema:"report_type"`
+	Timeframe   string                           `tfschema:"timeframe"`
+	Dataset     []CostManagementViewDatasetModel `tfschema:"dataset"`
+	Kpi         []CostManagementViewKpiModel     `tfschema:"kpi"`
+	Pivot       []CostManagementViewPivotModel   `tfschema:"pivot"`
 }
 
 var _ sdk.Resource = SubscriptionCostManagementViewResource{}
@@ -39,8 +60,8 @@ func (r SubscriptionCostManagementViewResource) Attributes() map[string]*plugins
 	return r.base.attributes()
 }
 
-func (r SubscriptionCostManagementViewResource) ModelObject() interface{} {
-	return nil
+func (r SubscriptionCostManagementViewResource) ModelObject() any {
+	return &SubscriptionCostManagementViewModel{}
 }
 
 func (r SubscriptionCostManagementViewResource) ResourceType() string {
@@ -52,11 +73,108 @@ func (r SubscriptionCostManagementViewResource) IDValidationFunc() pluginsdk.Sch
 }
 
 func (r SubscriptionCostManagementViewResource) Create() sdk.ResourceFunc {
-	return r.base.createFunc(r.ResourceType(), "subscription_id")
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
+
+			var config SubscriptionCostManagementViewModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := viewoperationgroup.NewScopedViewID(config.SubId, config.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.ViewsGetByScope(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+				}
+			}
+
+			accumulated := viewoperationgroup.AccumulatedTypeFalse
+			if config.Accumulated {
+				accumulated = viewoperationgroup.AccumulatedTypeTrue
+			}
+
+			props := viewoperationgroup.View{
+				Properties: &viewoperationgroup.ViewProperties{
+					Accumulated: pointer.To(accumulated),
+					DisplayName: pointer.To(config.DisplayName),
+					Chart:       pointer.ToEnum[viewoperationgroup.ChartType](config.ChartType),
+					Query: &viewoperationgroup.ReportConfigDefinition{
+						DataSet:   expandDatasetFromModel(config.Dataset),
+						Timeframe: viewoperationgroup.ReportTimeframeType(config.Timeframe),
+						Type:      viewoperationgroup.ReportTypeUsage,
+					},
+					Kpis:   expandKpisFromModel(config.Kpi),
+					Pivots: expandPivotsFromModel(config.Pivot),
+				},
+			}
+
+			if _, err := client.ViewsCreateOrUpdateByScope(ctx, id, props); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
 }
 
 func (r SubscriptionCostManagementViewResource) Read() sdk.ResourceFunc {
-	return r.base.readFunc("subscription_id")
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
+
+			id, err := viewoperationgroup.ParseScopedViewID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.ViewsGetByScope(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state := SubscriptionCostManagementViewModel{
+				Name:  id.ViewName,
+				SubId: id.Scope,
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.ChartType = pointer.FromEnum(props.Chart)
+					state.DisplayName = pointer.From(props.DisplayName)
+
+					state.Accumulated = viewoperationgroup.AccumulatedTypeTrue == pointer.From(props.Accumulated)
+
+					state.Kpi = flattenKpisToModel(props.Kpis)
+					state.Pivot = flattenPivotsToModel(props.Pivots)
+
+					if query := props.Query; query != nil {
+						state.Timeframe = string(query.Timeframe)
+						state.ReportType = string(query.Type)
+						if query.DataSet != nil {
+							state.Dataset = flattenDatasetToModel(query.DataSet)
+						}
+					}
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
 }
 
 func (r SubscriptionCostManagementViewResource) Delete() sdk.ResourceFunc {
@@ -64,5 +182,67 @@ func (r SubscriptionCostManagementViewResource) Delete() sdk.ResourceFunc {
 }
 
 func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
-	return r.base.updateFunc()
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
+
+			id, err := viewoperationgroup.ParseScopedViewID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var config SubscriptionCostManagementViewModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// Update operation requires latest eTag to be set in the request.
+			existing, err := client.ViewsGetByScope(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			model := existing.Model
+
+			if model != nil {
+				if model.ETag == nil {
+					return fmt.Errorf("add %s: etag was nil", *id)
+				}
+			}
+
+			if model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
+			if metadata.ResourceData.HasChange("display_name") {
+				model.Properties.DisplayName = pointer.To(config.DisplayName)
+			}
+
+			if metadata.ResourceData.HasChange("chart_type") {
+				model.Properties.Chart = pointer.ToEnum[viewoperationgroup.ChartType](config.ChartType)
+			}
+
+			if metadata.ResourceData.HasChange("dataset") {
+				model.Properties.Query.DataSet = expandDatasetFromModel(config.Dataset)
+			}
+
+			if metadata.ResourceData.HasChange("timeframe") {
+				model.Properties.Query.Timeframe = viewoperationgroup.ReportTimeframeType(config.Timeframe)
+			}
+
+			if metadata.ResourceData.HasChange("kpi") {
+				model.Properties.Kpis = expandKpisFromModel(config.Kpi)
+			}
+
+			if metadata.ResourceData.HasChange("pivot") {
+				model.Properties.Pivots = expandPivotsFromModel(config.Pivot)
+			}
+
+			if _, err = client.ViewsCreateOrUpdateByScope(ctx, *id, *model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
 }

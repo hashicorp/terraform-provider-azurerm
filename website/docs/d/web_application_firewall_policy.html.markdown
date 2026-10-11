@@ -14,8 +14,8 @@ Use this data source to access information about an existing Web Application Fir
 
 ```hcl
 data "azurerm_web_application_firewall_policy" "example" {
-  resource_group_name = "existing"
-  name                = "existing"
+  resource_group_name = "example-resources"
+  name                = "example-waf-policy"
 }
 
 output "id" {
@@ -47,4 +47,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

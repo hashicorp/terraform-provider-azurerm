@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 func TestFromTypedObject(t *testing.T) {
@@ -44,7 +44,7 @@ func TestToTypedObject(t *testing.T) {
 		{
 			Name: "One Item",
 			Input: map[string]*string{
-				"hello": utils.String("there"),
+				"hello": pointer.To("there"),
 			},
 			Expected: map[string]string{
 				"hello": "there",
@@ -53,9 +53,9 @@ func TestToTypedObject(t *testing.T) {
 		{
 			Name: "Multiple Items",
 			Input: map[string]*string{
-				"euros": utils.String("3"),
-				"hello": utils.String("there"),
-				"panda": utils.String("pops"),
+				"euros": pointer.To("3"),
+				"hello": pointer.To("there"),
+				"panda": pointer.To("pops"),
 			},
 			Expected: map[string]string{
 				"euros": "3",

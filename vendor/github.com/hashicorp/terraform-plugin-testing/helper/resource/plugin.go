@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -114,11 +114,29 @@ type providerFactories struct {
 	protov6 protov6ProviderFactories
 }
 
+func runProviderCommandApplyRefreshOnly(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories) error {
+	t.Helper()
+
+	fn := func() error {
+		return wd.Apply(ctx, tfexec.Refresh(true), tfexec.RefreshOnly(true))
+	}
+	return runProviderCommand(ctx, t, wd, factories, fn)
+}
+
 func runProviderCommandCreatePlan(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories) error {
 	t.Helper()
 
 	fn := func() error {
 		return wd.CreatePlan(ctx)
+	}
+	return runProviderCommand(ctx, t, wd, factories, fn)
+}
+
+func runProviderCommandGenerateConfigAndCreatePlan(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories, opts ...tfexec.PlanOption) error {
+	t.Helper()
+
+	fn := func() error {
+		return wd.CreatePlan(ctx, opts...)
 	}
 	return runProviderCommand(ctx, t, wd, factories, fn)
 }

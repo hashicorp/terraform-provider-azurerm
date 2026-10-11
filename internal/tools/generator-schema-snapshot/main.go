@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -19,7 +19,7 @@ const (
 
 func main() {
 	if len(os.Args) != 2 {
-		log.Fatal("Usage: generator-schema-snapshot <reource_type>")
+		log.Fatal("Usage: generator-schema-snapshot <resource_type>")
 	}
 	rt := os.Args[1]
 	res, ok := provider.AzureProvider().ResourcesMap[rt]

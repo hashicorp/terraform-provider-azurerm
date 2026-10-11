@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestCertificateVersionlessID(t *testing.T) {
+func TestValidateCertificateVersionlessID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

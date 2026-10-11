@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -8,7 +8,7 @@ provider "azurerm" {
 locals {
   custom_data = <<CUSTOMDATA
 
-  echo 1 > C:/custom_data_exampe
+  echo 1 > C:/custom_data_example
 
 CUSTOMDATA
 }

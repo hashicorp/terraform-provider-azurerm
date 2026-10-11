@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
@@ -19,8 +19,6 @@ const (
 	CustomSetupTypeComponentSetup           CustomSetupType = "ComponentSetup"
 	CustomSetupTypeEnvironmentVariableSetup CustomSetupType = "EnvironmentVariableSetup"
 )
-
-type DataFlowType string
 
 const (
 	DataFlowTypeFlowlet           = "Flowlet"

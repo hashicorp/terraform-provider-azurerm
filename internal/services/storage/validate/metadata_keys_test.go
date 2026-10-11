@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -50,7 +50,7 @@ func TestMetaDataKeys(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		value := map[string]interface{}{
+		value := map[string]any{
 			v.Input: "hello",
 		}
 		warnings, errors := MetaDataKeys(value, "field")

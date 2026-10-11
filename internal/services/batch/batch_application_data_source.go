@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -57,7 +57,7 @@ func dataSourceBatchApplication() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBatchApplicationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -53,7 +53,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateManagedDiskID,
 			},
 
-			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
+			// unable to provide upper value of 4294967295 as it's not compatible with 32-bit (overflow errors)
 			"duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
@@ -80,12 +80,11 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM Disk Export.")
 	durationInSeconds := int64(d.Get("duration_in_seconds").(int))
 	access := disks.AccessLevel(d.Get("access_level").(string))
 
@@ -121,9 +120,17 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("granting access to %s: %+v", *diskId, err)
 	}
+
+	// Normally we would use `CallbackThenPoll` but we need the last response for the SAS access URL
+	if !meta.(*clients.Client).Features.PersistIDOnCreateBeforePollingForCompletion {
+		d.SetId(diskId.ID())
+	}
+
 	if err := future.Poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for access to be granted to %s: %+v", *diskId, err)
 	}
+
+	d.SetId(diskId.ID())
 
 	lastResponse := future.Poller.LatestResponse()
 	if lastResponse == nil {
@@ -135,14 +142,12 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving SAS Token for Disk Access %s: %+v", *diskId, err)
 	}
 
-	d.SetId(diskId.ID())
-	sasToken := result.Properties.Output.AccessSAS
-	d.Set("sas_url", sasToken)
+	d.Set("sas_url", result.Properties.Output.AccessSAS)
 
 	return resourceManagedDiskSasTokenRead(d, meta)
 }
 
-func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +173,7 @@ func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,8 +183,7 @@ func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.RevokeAccessThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.RevokeAccessThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("revoking access to %s: %+v", *id, err)
 	}
 

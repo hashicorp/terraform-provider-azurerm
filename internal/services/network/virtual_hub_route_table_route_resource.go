@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
@@ -93,7 +92,7 @@ func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,10 +126,14 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 	id := parse.NewHubRouteTableRouteID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName, routeTableId.HubRouteTableName, name)
 
 	routes := make([]virtualwans.HubRoute, 0)
+	exists := false
 	if hubRoutes := props.Routes; hubRoutes != nil {
 		for _, r := range *hubRoutes {
 			if r.Name == name {
-				return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
+				exists = true
+				if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+					return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
+				}
 			}
 		}
 		routes = *props.Routes
@@ -138,16 +141,19 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 		result := virtualwans.HubRoute{
 			Name:            d.Get("name").(string),
 			DestinationType: d.Get("destinations_type").(string),
-			Destinations:    pointer.From(utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())),
+			Destinations:    pointer.From(pluginsdk.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())),
 			NextHopType:     d.Get("next_hop_type").(string),
 			NextHop:         d.Get("next_hop").(string),
 		}
 
-		routes = append(routes, result)
+		if !exists {
+			routes = append(routes, result)
+		}
 	}
 
 	routeTable.Model.Properties.Routes = pointer.To(routes)
 
+	// // TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, *routeTableId, *routeTable.Model); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -157,7 +163,7 @@ func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta int
 	return resourceVirtualHubRouteTableRouteRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +202,7 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 				routes[i].DestinationType = d.Get("destinations_type").(string)
 			}
 			if d.HasChange("destinations") {
-				routes[i].Destinations = pointer.From(utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List()))
+				routes[i].Destinations = pointer.From(pluginsdk.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List()))
 			}
 			if d.HasChange("next_hop_type") {
 				routes[i].NextHopType = d.Get("next_hop_type").(string)
@@ -219,7 +225,7 @@ func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceVirtualHubRouteTableRouteRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,7 +277,7 @@ func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

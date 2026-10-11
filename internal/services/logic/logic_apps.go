@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
@@ -21,43 +22,43 @@ import (
 )
 
 // NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by its nature)
-func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
+func flattenLogicAppActionRunAfter(input map[string]any) []any {
 	if len(input) == 0 {
-		return nil
+		return []any{}
 	}
-	output := []interface{}{}
+	output := []any{}
 	for k, v := range input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"action_name":   k,
-			"action_result": v.([]interface{})[0],
+			"action_result": v.([]any)[0],
 		})
 	}
 
 	return output
 }
 
-func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
+func expandLogicAppActionRunAfter(input []any) map[string]any {
 	if len(input) == 0 {
 		return nil
 	}
-	output := map[string]interface{}{}
+	output := map[string]any{}
 	for _, v := range input {
-		b := v.(map[string]interface{})
+		b := v.(map[string]any)
 		output[b["action_name"].(string)] = []string{b["action_result"].(string)}
 	}
 
 	return output
 }
 
-func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId workflows.WorkflowId, actionId parse.ActionId, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppActionUpdate(d *pluginsdk.ResourceData, meta any, workflowId workflows.WorkflowId, actionId parse.ActionId, vals map[string]any, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", workflowId, actionId.ID(), actionId.Name, vals, resourceName)
 }
 
-func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta interface{}, workflowId workflows.WorkflowId, triggerId workflowtriggers.TriggerId, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppTriggerUpdate(d *pluginsdk.ResourceData, meta any, workflowId workflows.WorkflowId, triggerId workflowtriggers.TriggerId, vals map[string]any, resourceName string) error {
 	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", workflowId, triggerId.ID(), triggerId.TriggerName, vals, resourceName)
 }
 
-func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}, kind string, propertyName string, workflowId workflows.WorkflowId, resourceId string, name string, vals map[string]interface{}, resourceName string) error {
+func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta any, kind string, propertyName string, workflowId workflows.WorkflowId, resourceId string, name string, vals map[string]any, resourceName string) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,12 +87,14 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	rawDefinition := *read.Model.Properties.Definition
-	definitionMap := rawDefinition.(map[string]interface{})
-	vs := definitionMap[propertyName].(map[string]interface{})
+	definitionMap := rawDefinition.(map[string]any)
+	vs := definitionMap[propertyName].(map[string]any)
 
 	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
-			return tf.ImportAsExistsError(resourceName, resourceId)
+			if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				return tf.ImportAsExistsError(resourceName, resourceId)
+			}
 		}
 	}
 
@@ -130,15 +133,15 @@ func resourceLogicAppComponentUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceLogicAppActionRemove(d *pluginsdk.ResourceData, meta interface{}, id workflows.WorkflowId, name string) error {
+func resourceLogicAppActionRemove(d *pluginsdk.ResourceData, meta any, id workflows.WorkflowId, name string) error {
 	return resourceLogicAppComponentRemove(d, meta, "Action", "actions", id, name)
 }
 
-func resourceLogicAppTriggerRemove(d *pluginsdk.ResourceData, meta interface{}, id workflows.WorkflowId, name string) error {
+func resourceLogicAppTriggerRemove(d *pluginsdk.ResourceData, meta any, id workflows.WorkflowId, name string) error {
 	return resourceLogicAppComponentRemove(d, meta, "Trigger", "triggers", id, name)
 }
 
-func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}, kind, propertyName string, id workflows.WorkflowId, name string) error {
+func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta any, kind, propertyName string, id workflows.WorkflowId, name string) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,10 +174,10 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties.Definition` is nil")
 	}
 
-	var definition interface{}
+	var definition any
 	definitionRaw := *read.Model.Properties.Definition
-	definitionMap := definitionRaw.(map[string]interface{})
-	vs := definitionMap[propertyName].(map[string]interface{})
+	definitionMap := definitionRaw.(map[string]any)
+	vs := definitionMap[propertyName].(map[string]any)
 	delete(vs, name)
 	definitionMap[propertyName] = vs
 	definition = definitionMap
@@ -198,11 +201,11 @@ func resourceLogicAppComponentRemove(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, id workflows.WorkflowId, name string) (*map[string]interface{}, *workflows.Workflow, error) {
+func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta any, id workflows.WorkflowId, name string) (*map[string]any, *workflows.Workflow, error) {
 	return retrieveLogicAppComponent(d, meta, "Action", "actions", id, name)
 }
 
-func retrieveLogicAppTrigger(d *pluginsdk.ResourceData, meta interface{}, id workflowtriggers.TriggerId) (*map[string]interface{}, *workflows.Workflow, *string, error) {
+func retrieveLogicAppTrigger(d *pluginsdk.ResourceData, meta any, id workflowtriggers.TriggerId) (*map[string]any, *workflows.Workflow, *string, error) {
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
 	t, app, err := retrieveLogicAppComponent(d, meta, "Trigger", "triggers", workflowId, id.TriggerName)
@@ -244,7 +247,7 @@ func IsCallbackType(tType string) bool {
 	return len(errors) == 0
 }
 
-func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interface{}, id workflowtriggers.TriggerId) (*string, error) {
+func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta any, id workflowtriggers.TriggerId) (*string, error) {
 	client := meta.(*clients.Client).Logic
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +270,7 @@ func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interfac
 	return result.Model.Value, nil
 }
 
-func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta interface{}, kind, propertyName string, id workflows.WorkflowId, name string) (*map[string]interface{}, *workflows.Workflow, error) {
+func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta any, kind, propertyName string, id workflows.WorkflowId, name string) (*map[string]any, *workflows.Workflow, error) {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,13 +303,12 @@ func retrieveLogicAppComponent(d *pluginsdk.ResourceData, meta interface{}, kind
 	}
 
 	definitionRaw := *read.Model.Properties.Definition
-	definitionMap := definitionRaw.(map[string]interface{})
-	vs := definitionMap[propertyName].(map[string]interface{})
+	definitionMap := definitionRaw.(map[string]any)
+	vs := definitionMap[propertyName].(map[string]any)
 	v := vs[name]
 	if v == nil {
 		return nil, nil, nil
 	}
 
-	result := v.(map[string]interface{})
-	return &result, read.Model, nil
+	return pointer.To(v.(map[string]any)), read.Model, nil
 }

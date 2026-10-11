@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SslCertificateId{}
 
-func TestSslCertificateIDFormatter(t *testing.T) {
+func TestParseSslCertificateIDFormatter(t *testing.T) {
 	actual := NewSslCertificateID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "sslcert1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/sslCertificates/sslcert1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSslCertificateIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSslCertificateID(t *testing.T) {
+func TestParseSslCertificateID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestSslCertificateID(t *testing.T) {
 	}
 }
 
-func TestSslCertificateIDInsensitively(t *testing.T) {
+func TestParseSslCertificateIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

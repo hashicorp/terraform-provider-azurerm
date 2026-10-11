@@ -62,9 +62,20 @@ func (c DeploymentsClient) WhatIfAtManagementGroupScope(ctx context.Context, id 
 
 // WhatIfAtManagementGroupScopeThenPoll performs WhatIfAtManagementGroupScope then polls until it's completed
 func (c DeploymentsClient) WhatIfAtManagementGroupScopeThenPoll(ctx context.Context, id Providers2DeploymentId, input ScopedDeploymentWhatIf) error {
+	return c.WhatIfAtManagementGroupScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// WhatIfAtManagementGroupScopeCallbackThenPoll performs WhatIfAtManagementGroupScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) WhatIfAtManagementGroupScopeCallbackThenPoll(ctx context.Context, id Providers2DeploymentId, input ScopedDeploymentWhatIf, callback func() error) error {
 	result, err := c.WhatIfAtManagementGroupScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing WhatIfAtManagementGroupScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

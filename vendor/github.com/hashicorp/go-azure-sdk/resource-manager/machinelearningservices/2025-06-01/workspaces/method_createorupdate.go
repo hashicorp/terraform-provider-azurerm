@@ -62,9 +62,20 @@ func (c WorkspacesClient) CreateOrUpdate(ctx context.Context, id WorkspaceId, in
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
 func (c WorkspacesClient) CreateOrUpdateThenPoll(ctx context.Context, id WorkspaceId, input Workspace) error {
+	return c.CreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateCallbackThenPoll performs CreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c WorkspacesClient) CreateOrUpdateCallbackThenPoll(ctx context.Context, id WorkspaceId, input Workspace, callback func() error) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

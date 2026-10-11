@@ -58,9 +58,20 @@ func (c CosmosDBClient) CassandraResourcesMigrateCassandraKeyspaceToManualThroug
 
 // CassandraResourcesMigrateCassandraKeyspaceToManualThroughputThenPoll performs CassandraResourcesMigrateCassandraKeyspaceToManualThroughput then polls until it's completed
 func (c CosmosDBClient) CassandraResourcesMigrateCassandraKeyspaceToManualThroughputThenPoll(ctx context.Context, id CassandraKeyspaceId) error {
+	return c.CassandraResourcesMigrateCassandraKeyspaceToManualThroughputCallbackThenPoll(ctx, id, nil)
+}
+
+// CassandraResourcesMigrateCassandraKeyspaceToManualThroughputCallbackThenPoll performs CassandraResourcesMigrateCassandraKeyspaceToManualThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) CassandraResourcesMigrateCassandraKeyspaceToManualThroughputCallbackThenPoll(ctx context.Context, id CassandraKeyspaceId, callback func() error) error {
 	result, err := c.CassandraResourcesMigrateCassandraKeyspaceToManualThroughput(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing CassandraResourcesMigrateCassandraKeyspaceToManualThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

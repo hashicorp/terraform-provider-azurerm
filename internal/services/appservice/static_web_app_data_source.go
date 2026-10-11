@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -124,7 +124,7 @@ func (s StaticWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s StaticWebAppDataSource) ModelObject() interface{} {
+func (s StaticWebAppDataSource) ModelObject() any {
 	return &StaticWebAppDataSourceModel{}
 }
 

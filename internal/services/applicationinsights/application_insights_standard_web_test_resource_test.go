@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package applicationinsights_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApplicationInsightsStandardWebTestResource struct{}
@@ -117,7 +117,7 @@ func TestAccApplicationInsightsStandardWebTest_customiseDiff(t *testing.T) {
 }
 
 func (ApplicationInsightsStandardWebTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := webtests.ParseWebTestID(state.ID)
+	id, err := webtestsapis.ParseWebTestID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (ApplicationInsightsStandardWebTestResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
 func (ApplicationInsightsStandardWebTestResource) sslCheckConfig(data acceptance.TestData) string {

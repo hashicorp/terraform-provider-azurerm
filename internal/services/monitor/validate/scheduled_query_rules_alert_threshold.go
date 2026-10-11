@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import "fmt"
 // ScheduledQueryRulesAlertThreshold checks that a threshold value is between 0 and 10000
 // and is a whole number. The azure-sdk-for-go expects this value to be a float64
 // but the user validation rules want an integer.
-func ScheduledQueryRulesAlertThreshold(i interface{}, k string) (warnings []string, errors []error) {
+func ScheduledQueryRulesAlertThreshold(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(float64)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be float64", k))

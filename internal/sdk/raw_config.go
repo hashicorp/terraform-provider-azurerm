@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -6,10 +6,9 @@ package sdk
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 )
 
 // GetRawConfig is a helper to retrieve the RawConfig from a ResourceMetaData object
@@ -35,7 +34,7 @@ func (rmd ResourceMetaData) GetRawConfig() (cty.Value, error) {
 // This method is experimental and not meant for general use.
 // Pull requests using this method, by authors not part of the HashiCorp AzureRM Provider team, will be declined at this time.
 func (rmd ResourceMetaData) GetRawConfigAt(key string) (cty.Value, error) {
-	ctyPath := ConstructCtyPath(key)
+	ctyPath := ctyhelpers.ConstructCtyPath(key)
 
 	msg := "retrieving value at path `%s`: %+v"
 
@@ -137,24 +136,4 @@ func asValueMap(val cty.Value) (map[string]cty.Value, error) {
 	}
 
 	return val.AsValueMap(), nil
-}
-
-// ConstructCtyPath takes a string and converts it to a `cty.Path` for use with `GetRawConfigAt`
-// e.g. `identity.0.type`
-//
-// Note:
-// This function is experimental and not meant for general use.
-// Pull requests using this function, by authors not part of the HashiCorp AzureRM Provider team, will be declined at this time.
-func ConstructCtyPath(key string) cty.Path {
-	p := cty.Path{}
-
-	for _, segment := range strings.Split(key, ".") {
-		if n, err := strconv.Atoi(segment); err == nil {
-			p = p.IndexInt(n)
-			continue
-		}
-		p = p.GetAttr(segment)
-	}
-
-	return p
 }

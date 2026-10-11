@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -184,12 +184,12 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 // This functions is used to Flatten the custom parameters in data source.
 // It is similar to flattenWorkspaceCustomParameters but does not return the backend address pool ID.
 // It also omits the public and private subnet NSG association IDs since they are not available in API.
-func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []interface{} {
+func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	parameters := make(map[string]interface{})
+	parameters := make(map[string]any)
 
 	if v := input.AmlWorkspaceId; v != nil {
 		parameters["machine_learning_workspace_id"] = v.Value
@@ -231,10 +231,10 @@ func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCu
 		parameters["vnet_address_prefix"] = v.Value
 	}
 
-	return []interface{}{parameters}
+	return []any{parameters}
 }
 
-func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package differror
@@ -27,7 +27,7 @@ func New(text, current, expected string) error {
 func (e DiffError) Error() string {
 	b := strings.Builder{}
 
-	b.WriteString(fmt.Sprintf("%s\n", e.t))
+	fmt.Fprintf(&b, "%s\n", e.t)
 	b.WriteString(util.Red(fmt.Sprintf("- %s\n", e.c)))
 	b.WriteString(util.Green(fmt.Sprintf("+ %s", e.e)))
 

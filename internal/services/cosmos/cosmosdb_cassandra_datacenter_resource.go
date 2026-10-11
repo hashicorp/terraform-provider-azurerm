@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -9,24 +9,23 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCassandraDatacenter() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceCassandraDatacenterCreate,
 		Read:   resourceCassandraDatacenterRead,
 		Update: resourceCassandraDatacenterUpdate,
@@ -56,7 +55,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CassandraClusterID,
+				ValidateFunc: managedcassandras.ValidateCassandraClusterID,
 			},
 
 			"location": commonschema.Location(),
@@ -71,7 +70,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"backup_storage_customer_key_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"base64_encoded_yaml_fragment": {
@@ -90,7 +89,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			"managed_disk_customer_key_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"node_count": {
@@ -128,11 +127,9 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,44 +140,46 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	id := managedcassandras.NewDataCenterID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.CassandraClusterName, d.Get("name").(string))
 
-	existing, err := client.CassandraDataCentersGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.CassandraDataCentersGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_datacenter", id.ID())
+		}
 	}
 
 	payload := managedcassandras.DataCenterResource{
 		Properties: &managedcassandras.DataCenterResourceProperties{
-			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
-			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
-			AvailabilityZone:   utils.Bool(d.Get("availability_zones_enabled").(bool)),
-			DiskCapacity:       utils.Int64(int64(d.Get("disk_count").(int))),
-			DiskSku:            utils.String(d.Get("disk_sku").(string)),
-			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+			DelegatedSubnetId:  pointer.To(d.Get("delegated_management_subnet_id").(string)),
+			NodeCount:          pointer.To(int64(d.Get("node_count").(int))),
+			AvailabilityZone:   pointer.To(d.Get("availability_zones_enabled").(bool)),
+			DiskCapacity:       pointer.To(int64(d.Get("disk_count").(int))),
+			DiskSku:            pointer.To(d.Get("disk_sku").(string)),
+			DataCenterLocation: pointer.To(location.Normalize(d.Get("location").(string))),
 		},
 	}
 
 	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
-		payload.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.BackupStorageCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
-		payload.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+		payload.Properties.Base64EncodedCassandraYamlFragment = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
-		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.ManagedDiskCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("sku_name"); ok {
-		payload.Properties.Sku = utils.String(v.(string))
+		payload.Properties.Sku = pointer.To(v.(string))
 	}
 
-	if err = client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err != nil {
+	if err = client.CassandraDataCentersCreateUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -189,7 +188,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
-func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,7 +232,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,24 +244,24 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 
 	payload := managedcassandras.DataCenterResource{
 		Properties: &managedcassandras.DataCenterResourceProperties{
-			DelegatedSubnetId:  utils.String(d.Get("delegated_management_subnet_id").(string)),
-			NodeCount:          utils.Int64(int64(d.Get("node_count").(int))),
-			Sku:                utils.String(d.Get("sku_name").(string)),
-			DataCenterLocation: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-			DiskSku:            utils.String(d.Get("disk_sku").(string)),
+			DelegatedSubnetId:  pointer.To(d.Get("delegated_management_subnet_id").(string)),
+			NodeCount:          pointer.To(int64(d.Get("node_count").(int))),
+			Sku:                pointer.To(d.Get("sku_name").(string)),
+			DataCenterLocation: pointer.To(location.Normalize(d.Get("location").(string))),
+			DiskSku:            pointer.To(d.Get("disk_sku").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("backup_storage_customer_key_uri"); ok {
-		payload.Properties.BackupStorageCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.BackupStorageCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("base64_encoded_yaml_fragment"); ok {
-		payload.Properties.Base64EncodedCassandraYamlFragment = utils.String(v.(string))
+		payload.Properties.Base64EncodedCassandraYamlFragment = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("managed_disk_customer_key_uri"); ok {
-		payload.Properties.ManagedDiskCustomerKeyUri = utils.String(v.(string))
+		payload.Properties.ManagedDiskCustomerKeyUri = pointer.To(v.(string))
 	}
 
 	if err := client.CassandraDataCentersCreateUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -289,7 +288,7 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
-func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -307,7 +306,7 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcassandras.ManagedCassandrasClient, id managedcassandras.DataCenterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.CassandraDataCentersGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -322,8 +321,8 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 	}
 }
 
-func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

@@ -17,7 +17,7 @@ type DscConfigurationProperties struct {
 	LogVerbose             *bool                                 `json:"logVerbose,omitempty"`
 	NodeConfigurationCount *int64                                `json:"nodeConfigurationCount,omitempty"`
 	Parameters             *map[string]DscConfigurationParameter `json:"parameters,omitempty"`
-	ProvisioningState      *DscConfigurationProvisioningState    `json:"provisioningState,omitempty"`
+	ProvisioningState      *ProvisioningState                    `json:"provisioningState,omitempty"`
 	Source                 *ContentSource                        `json:"source,omitempty"`
 	State                  *DscConfigurationState                `json:"state,omitempty"`
 }

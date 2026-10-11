@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = BackendAddressPoolId{}
 
-func TestBackendAddressPoolIDFormatter(t *testing.T) {
+func TestParseBackendAddressPoolIDFormatter(t *testing.T) {
 	actual := NewBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "beap1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/backendAddressPools/beap1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestBackendAddressPoolIDFormatter(t *testing.T) {
 	}
 }
 
-func TestBackendAddressPoolID(t *testing.T) {
+func TestParseBackendAddressPoolID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestBackendAddressPoolID(t *testing.T) {
 	}
 }
 
-func TestBackendAddressPoolIDInsensitively(t *testing.T) {
+func TestParseBackendAddressPoolIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

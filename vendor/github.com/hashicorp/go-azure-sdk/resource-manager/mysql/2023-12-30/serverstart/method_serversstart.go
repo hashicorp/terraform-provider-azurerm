@@ -57,9 +57,20 @@ func (c ServerStartClient) ServersStart(ctx context.Context, id FlexibleServerId
 
 // ServersStartThenPoll performs ServersStart then polls until it's completed
 func (c ServerStartClient) ServersStartThenPoll(ctx context.Context, id FlexibleServerId) error {
+	return c.ServersStartCallbackThenPoll(ctx, id, nil)
+}
+
+// ServersStartCallbackThenPoll performs ServersStart, runs the optional callback function, then polls until it's completed
+func (c ServerStartClient) ServersStartCallbackThenPoll(ctx context.Context, id FlexibleServerId, callback func() error) error {
 	result, err := c.ServersStart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ServersStart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

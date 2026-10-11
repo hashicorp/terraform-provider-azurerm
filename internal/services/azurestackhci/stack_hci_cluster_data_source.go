@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.DataSource = StackHCIClusterDataSource{}
@@ -31,7 +31,7 @@ func (r StackHCIClusterDataSource) ResourceType() string {
 	return "azurerm_stack_hci_cluster"
 }
 
-func (r StackHCIClusterDataSource) ModelObject() interface{} {
+func (r StackHCIClusterDataSource) ModelObject() any {
 	return &StackHCIClusterDataSourceModel{}
 }
 
@@ -46,7 +46,7 @@ type StackHCIClusterDataSourceModel struct {
 	ServiceEndpoint           string                         `tfschema:"service_endpoint"`
 	ResourceProviderObjectId  string                         `tfschema:"resource_provider_object_id"`
 	Identity                  []identity.ModelSystemAssigned `tfschema:"identity"`
-	Tags                      map[string]interface{}         `tfschema:"tags"`
+	Tags                      map[string]any                 `tfschema:"tags"`
 }
 
 func (r StackHCIClusterDataSource) Arguments() map[string]*schema.Schema {
@@ -54,7 +54,7 @@ func (r StackHCIClusterDataSource) Arguments() map[string]*schema.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ClusterName,
+			ValidateFunc: validation.StringLenBetween(1, 260),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),

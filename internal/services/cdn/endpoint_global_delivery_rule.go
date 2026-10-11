@@ -1,13 +1,13 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func endpointGlobalDeliveryRule() *pluginsdk.Schema {
@@ -110,10 +110,10 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 	}
 }
 
-func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.DeliveryRule, error) {
+func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]any) (*cdn.DeliveryRule, error) {
 	deliveryRule := cdn.DeliveryRule{
-		Name:  utils.String("Global"),
-		Order: utils.Int32(0),
+		Name:  pointer.To("Global"),
+		Order: pointer.To(int32(0)),
 	}
 
 	actions, err := expandDeliveryRuleActions(rule)
@@ -125,13 +125,13 @@ func expandArmCdnEndpointGlobalDeliveryRule(rule map[string]interface{}) (*cdn.D
 	return &deliveryRule, nil
 }
 
-func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]interface{}, error) {
+func flattenArmCdnEndpointGlobalDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]any, error) {
 	actions, err := flattenDeliveryRuleActions(deliveryRule.Actions)
 	if err != nil {
 		return nil, err
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	for key, value := range *actions {
 		output[key] = value
 	}

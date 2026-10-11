@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -15,13 +15,6 @@ var _ resourceids.ResourceId = &SharedGalleryImageId{}
 type SharedGalleryImageId struct {
 	GalleryName string
 	ImageName   string
-}
-
-func NewSharedGalleryImageID(galleryName, imageName string) SharedGalleryImageId {
-	return SharedGalleryImageId{
-		GalleryName: galleryName,
-		ImageName:   imageName,
-	}
 }
 
 func (id SharedGalleryImageId) String() string {

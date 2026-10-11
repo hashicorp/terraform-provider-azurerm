@@ -1,17 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
 
 import "testing"
-
-func TestEnrollmentBillingScopeIDFormatter(t *testing.T) {
-	actual := NewEnrollmentBillingScopeID("12345678", "123456").ID()
-	expected := "/providers/Microsoft.Billing/billingAccounts/12345678/enrollmentAccounts/123456"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
 
 func TestEnrollmentBillingScopeID(t *testing.T) {
 	testData := []struct {

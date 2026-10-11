@@ -63,9 +63,20 @@ func (c ServiceResourceClient) ServicesCreateOrUpdate(ctx context.Context, id Se
 
 // ServicesCreateOrUpdateThenPoll performs ServicesCreateOrUpdate then polls until it's completed
 func (c ServiceResourceClient) ServicesCreateOrUpdateThenPoll(ctx context.Context, id ServiceId, input DataMigrationService) error {
+	return c.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServicesCreateOrUpdateCallbackThenPoll performs ServicesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c ServiceResourceClient) ServicesCreateOrUpdateCallbackThenPoll(ctx context.Context, id ServiceId, input DataMigrationService, callback func() error) error {
 	result, err := c.ServicesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServicesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

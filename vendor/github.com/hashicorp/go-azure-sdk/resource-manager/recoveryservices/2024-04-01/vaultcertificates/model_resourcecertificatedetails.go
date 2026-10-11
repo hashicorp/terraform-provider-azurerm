@@ -33,9 +33,9 @@ func (s BaseResourceCertificateDetailsImpl) ResourceCertificateDetails() BaseRes
 
 var _ ResourceCertificateDetails = RawResourceCertificateDetailsImpl{}
 
-// RawResourceCertificateDetailsImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawResourceCertificateDetailsImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawResourceCertificateDetailsImpl struct {
 	resourceCertificateDetails BaseResourceCertificateDetailsImpl
 	Type                       string
@@ -44,6 +44,10 @@ type RawResourceCertificateDetailsImpl struct {
 
 func (s RawResourceCertificateDetailsImpl) ResourceCertificateDetails() BaseResourceCertificateDetailsImpl {
 	return s.resourceCertificateDetails
+}
+
+func (s RawResourceCertificateDetailsImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalResourceCertificateDetailsImplementation(input []byte) (ResourceCertificateDetails, error) {

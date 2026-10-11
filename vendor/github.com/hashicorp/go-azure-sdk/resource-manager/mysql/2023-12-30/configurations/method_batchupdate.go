@@ -80,9 +80,20 @@ func (c ConfigurationsClient) BatchUpdate(ctx context.Context, id FlexibleServer
 
 // BatchUpdateThenPoll performs BatchUpdate then polls until it's completed
 func (c ConfigurationsClient) BatchUpdateThenPoll(ctx context.Context, id FlexibleServerId, input ConfigurationListForBatchUpdate) error {
+	return c.BatchUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BatchUpdateCallbackThenPoll performs BatchUpdate, runs the optional callback function, then polls until it's completed
+func (c ConfigurationsClient) BatchUpdateCallbackThenPoll(ctx context.Context, id FlexibleServerId, input ConfigurationListForBatchUpdate, callback func() error) error {
 	result, err := c.BatchUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BatchUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

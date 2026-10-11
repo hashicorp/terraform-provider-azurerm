@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SubscriptionCostManagementExportId{}
 
-func TestSubscriptionCostManagementExportIDFormatter(t *testing.T) {
+func TestParseSubscriptionCostManagementExportIDFormatter(t *testing.T) {
 	actual := NewSubscriptionCostManagementExportID("12345678-1234-9876-4563-123456789012", "export1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.CostManagement/exports/export1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSubscriptionCostManagementExportIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSubscriptionCostManagementExportID(t *testing.T) {
+func TestParseSubscriptionCostManagementExportID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

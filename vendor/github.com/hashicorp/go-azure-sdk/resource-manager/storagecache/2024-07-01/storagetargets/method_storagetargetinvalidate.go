@@ -58,9 +58,20 @@ func (c StorageTargetsClient) StorageTargetInvalidate(ctx context.Context, id St
 
 // StorageTargetInvalidateThenPoll performs StorageTargetInvalidate then polls until it's completed
 func (c StorageTargetsClient) StorageTargetInvalidateThenPoll(ctx context.Context, id StorageTargetId) error {
+	return c.StorageTargetInvalidateCallbackThenPoll(ctx, id, nil)
+}
+
+// StorageTargetInvalidateCallbackThenPoll performs StorageTargetInvalidate, runs the optional callback function, then polls until it's completed
+func (c StorageTargetsClient) StorageTargetInvalidateCallbackThenPoll(ctx context.Context, id StorageTargetId, callback func() error) error {
 	result, err := c.StorageTargetInvalidate(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StorageTargetInvalidate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

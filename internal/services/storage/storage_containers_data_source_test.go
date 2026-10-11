@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -88,13 +88,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test1" {
   name                  = "test1"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "test2" {
   name                  = "test2"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -103,5 +103,5 @@ data "azurerm_storage_containers" "test" {
   name_prefix        = %s
   depends_on         = [azurerm_storage_container.test1, azurerm_storage_container.test2]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, prefix)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, prefix)
 }

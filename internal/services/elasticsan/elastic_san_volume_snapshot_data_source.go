@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package elasticsan
@@ -33,7 +33,7 @@ func (r ElasticSANVolumeSnapshotDataSource) ResourceType() string {
 	return "azurerm_elastic_san_volume_snapshot"
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) ModelObject() interface{} {
+func (r ElasticSANVolumeSnapshotDataSource) ModelObject() any {
 	return &ElasticSANVolumeSnapshotDataSourceModel{}
 }
 

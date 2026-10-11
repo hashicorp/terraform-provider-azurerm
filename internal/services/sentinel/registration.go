@@ -1,16 +1,22 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistration                   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/sentinel"
@@ -42,8 +48,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_sentinel_alert_rule_fusion":                                            resourceSentinelAlertRuleFusion(),
 		"azurerm_sentinel_alert_rule_machine_learning_behavior_analytics":               resourceSentinelAlertRuleMLBehaviorAnalytics(),
 		"azurerm_sentinel_alert_rule_ms_security_incident":                              resourceSentinelAlertRuleMsSecurityIncident(),
-		"azurerm_sentinel_alert_rule_scheduled":                                         resourceSentinelAlertRuleScheduled(),
 		"azurerm_sentinel_alert_rule_nrt":                                               resourceSentinelAlertRuleNrt(),
+		"azurerm_sentinel_alert_rule_scheduled":                                         resourceSentinelAlertRuleScheduled(),
+		"azurerm_sentinel_automation_rule":                                              resourceSentinelAutomationRule(),
 		"azurerm_sentinel_data_connector_aws_cloud_trail":                               resourceSentinelDataConnectorAwsCloudTrail(),
 		"azurerm_sentinel_data_connector_azure_active_directory":                        resourceSentinelDataConnectorAzureActiveDirectory(),
 		"azurerm_sentinel_data_connector_azure_advanced_threat_protection":              resourceSentinelDataConnectorAzureAdvancedThreatProtection(),
@@ -53,7 +60,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_sentinel_data_connector_office_365":                                    resourceSentinelDataConnectorOffice365(),
 		"azurerm_sentinel_data_connector_office_atp":                                    resourceSentinelDataConnectorOfficeATP(),
 		"azurerm_sentinel_data_connector_threat_intelligence":                           resourceSentinelDataConnectorThreatIntelligence(),
-		"azurerm_sentinel_automation_rule":                                              resourceSentinelAutomationRule(),
 	}
 }
 
@@ -65,22 +71,42 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AlertRuleThreatIntelligenceResource{},
-		WatchlistResource{},
-		WatchlistItemResource{},
-		DataConnectorAwsS3Resource{},
-		DataConnectorMicrosoftThreatProtectionResource{},
-		DataConnectorIOTResource{},
-		DataConnectorDynamics365Resource{},
-		DataConnectorOffice365ProjectResource{},
-		DataConnectorOfficePowerBIResource{},
-		DataConnectorOfficeIRMResource{},
-		LogAnalyticsWorkspaceOnboardResource{},
-		DataConnectorThreatIntelligenceTAXIIResource{},
-		DataConnectorMicrosoftThreatIntelligenceResource{},
 		AlertRuleAnomalyBuiltInResource{},
-		MetadataResource{},
 		AlertRuleAnomalyDuplicateResource{},
+		AlertRuleThreatIntelligenceResource{},
+		DataConnectorAwsS3Resource{},
+		DataConnectorDynamics365Resource{},
+		DataConnectorIOTResource{},
+		DataConnectorMicrosoftThreatIntelligenceResource{},
+		DataConnectorMicrosoftThreatProtectionResource{},
+		DataConnectorOffice365ProjectResource{},
+		DataConnectorOfficeIRMResource{},
+		DataConnectorOfficePowerBIResource{},
+		DataConnectorThreatIntelligenceTAXIIResource{},
+		LogAnalyticsWorkspaceOnboardResource{},
+		MetadataResource{},
 		ThreatIntelligenceIndicator{},
+		WatchlistItemResource{},
+		WatchlistResource{},
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

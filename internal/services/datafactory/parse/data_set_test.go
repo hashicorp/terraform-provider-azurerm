@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = DataSetId{}
 
-func TestDataSetIDFormatter(t *testing.T) {
+func TestParseDataSetIDFormatter(t *testing.T) {
 	actual := NewDataSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "facName1", "dataSet1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/facName1/datasets/dataSet1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestDataSetIDFormatter(t *testing.T) {
 	}
 }
 
-func TestDataSetID(t *testing.T) {
+func TestParseDataSetID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

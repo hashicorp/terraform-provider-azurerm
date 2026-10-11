@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudServiceResource struct{}
@@ -69,7 +69,8 @@ func TestAccSpringCloudService_update(t *testing.T) {
 		data.ImportStep(
 			"config_server_git_setting.0.ssh_auth.0.private_key",
 			"config_server_git_setting.0.ssh_auth.0.host_key",
-			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm"),
+			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+		),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -259,17 +260,17 @@ func TestAccSpringCloudService_marketplace(t *testing.T) {
 }
 
 func (t SpringCloudServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudServiceID(state.ID)
+	id, err := commonids.ParseSpringCloudServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppPlatform.ServicesClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	resp, err := clients.AppPlatform.ServicesClient.Get(ctx, id.ResourceGroupName, id.ServiceName)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.ServiceName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (SpringCloudServiceResource) basic(data acceptance.TestData) string {

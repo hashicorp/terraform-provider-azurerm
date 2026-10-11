@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package domainservices
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/parse"
@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const DomainServiceResourceName = "azurerm_active_directory_domain_service"
@@ -130,7 +129,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"notifications": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -161,7 +160,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"secure_ldap": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -180,7 +179,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: azValidate.Base64EncodedString,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"pfx_certificate_password": {
@@ -210,7 +209,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 			"security": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -299,7 +298,7 @@ func resourceActiveDirectoryDomainService() *pluginsdk.Resource {
 	}
 }
 
-func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -319,32 +318,34 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	idsdk := domainservices.NewDomainServiceID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, idsdk)
-		if err != nil {
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, idsdk)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
+				}
+			}
+
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", resourceErrorName, err)
-			}
-		}
+				// Parse the replica sets and assume the first one returned to be the initial replica set
+				// This is a best effort and the user can choose any replica set if they structure their config accordingly
+				model := existing.Model
+				if model == nil {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+				}
+				props := model.Properties
+				if props == nil {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
+				}
+				replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
+				if len(replicaSets) == 0 {
+					return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
+				}
+				initialReplicaSetId := replicaSets[0].(map[string]any)["id"].(string)
+				id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			// Parse the replica sets and assume the first one returned to be the initial replica set
-			// This is a best effort and the user can choose any replica set if they structure their config accordingly
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing model", resourceErrorName)
+				return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 			}
-			props := model.Properties
-			if props == nil {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing properties", resourceErrorName)
-			}
-			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
-			if len(replicaSets) == 0 {
-				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", resourceErrorName)
-			}
-			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
-			id := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
-
-			return tf.ImportAsExistsError(DomainServiceResourceName, id.ID())
 		}
 	} else {
 		var err error
@@ -365,15 +366,15 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 
 	domainService := domainservices.DomainService{
 		Properties: &domainservices.DomainServiceProperties{
-			DomainName:             utils.String(d.Get("domain_name").(string)),
-			DomainSecuritySettings: expandDomainServiceSecurity(d.Get("security").([]interface{})),
+			DomainName:             pointer.To(d.Get("domain_name").(string)),
+			DomainSecuritySettings: expandDomainServiceSecurity(d.Get("security").([]any)),
 			FilteredSync:           &filteredSync,
-			LdapsSettings:          expandDomainServiceLdaps(d.Get("secure_ldap").([]interface{})),
-			NotificationSettings:   expandDomainServiceNotifications(d.Get("notifications").([]interface{})),
-			Sku:                    utils.String(d.Get("sku").(string)),
+			LdapsSettings:          expandDomainServiceLdaps(d.Get("secure_ldap").([]any)),
+			NotificationSettings:   expandDomainServiceNotifications(d.Get("notifications").([]any)),
+			Sku:                    pointer.To(d.Get("sku").(string)),
 		},
-		Location: utils.String(loc),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location: pointer.To(loc),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("domain_configuration_type").(string); v != "" {
@@ -385,13 +386,14 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		// No provision is made for changing the initial replica set, it should remain intact for the resource to function properly
 		replicaSets := []domainservices.ReplicaSet{
 			{
-				Location: utils.String(loc),
-				SubnetId: utils.String(d.Get("initial_replica_set.0.subnet_id").(string)),
+				Location: pointer.To(loc),
+				SubnetId: pointer.To(d.Get("initial_replica_set.0.subnet_id").(string)),
 			},
 		}
 		domainService.Properties.ReplicaSets = &replicaSets
 	}
 
+	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
 	if err := client.CreateOrUpdateThenPoll(ctx, idsdk, domainService); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", resourceErrorName, err)
 	}
@@ -420,12 +422,12 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 		}
 
 		// Once we know the initial replica set ID, we can build a resource ID
-		initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
+		initialReplicaSetId := replicaSets[0].(map[string]any)["id"].(string)
 		newId := parse.NewDomainServiceID(subscriptionId, resourceGroup, name, initialReplicaSetId)
 		id = &newId
 		d.SetId(id.ID())
 
-		if err := d.Set("initial_replica_set", []interface{}{replicaSets[0]}); err != nil {
+		if err := d.Set("initial_replica_set", []any{replicaSets[0]}); err != nil {
 			return fmt.Errorf("setting `initial_replica_set` after creating resource: %+v", err)
 		}
 	}
@@ -453,7 +455,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceActiveDirectoryDomainServiceRead(d, meta)
 }
 
-func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -503,13 +505,13 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("setting `notifications`: %+v", err)
 			}
 
-			var initialReplicaSet interface{}
+			var initialReplicaSet any
 			replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
 
 			// Determine the initial replica set. This is why we need to include InitialReplicaSetId in the resource ID,
 			// without it we would not be able to reliably support importing.
 			for _, replicaSetRaw := range replicaSets {
-				replicaSet := replicaSetRaw.(map[string]interface{})
+				replicaSet := replicaSetRaw.(map[string]any)
 				if replicaSet["id"].(string) == id.InitialReplicaSetIdName {
 					initialReplicaSet = replicaSetRaw
 					break
@@ -519,7 +521,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 				// It's safest to error out here, since we don't want to wipe the initial replica set from state if it was deleted manually
 				return fmt.Errorf("reading %s: could not determine initial replica set from API response", id)
 			}
-			if err := d.Set("initial_replica_set", []interface{}{initialReplicaSet}); err != nil {
+			if err := d.Set("initial_replica_set", []any{initialReplicaSet}); err != nil {
 				return fmt.Errorf("setting `initial_replica_set`: %+v", err)
 			}
 
@@ -536,7 +538,7 @@ func resourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceActiveDirectoryDomainServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -556,7 +558,7 @@ func resourceActiveDirectoryDomainServiceDelete(d *pluginsdk.ResourceData, meta 
 }
 
 func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservices.DomainServicesClient, id parse.DomainServiceId, deleting bool) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Waiting for domain controllers to deploy...")
 		idsdk := domainservices.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.Name)
 		resp, err := client.Get(ctx, idsdk)
@@ -590,19 +592,18 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *domainservi
 	}
 }
 
-func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsSettings) {
-	state := domainservices.LdapsDisabled
+func expandDomainServiceLdaps(input []any) (ldaps *domainservices.LdapsSettings) {
 	ldaps = &domainservices.LdapsSettings{
-		Ldaps: &state,
+		Ldaps: pointer.To(domainservices.LdapsDisabled),
 	}
 
 	if len(input) > 0 {
-		v := input[0].(map[string]interface{})
+		v := input[0].(map[string]any)
 		if v["enabled"].(bool) {
 			*ldaps.Ldaps = domainservices.LdapsEnabled
 		}
-		ldaps.PfxCertificate = utils.String(v["pfx_certificate"].(string))
-		ldaps.PfxCertificatePassword = utils.String(v["pfx_certificate_password"].(string))
+		ldaps.PfxCertificate = pointer.To(v["pfx_certificate"].(string))
+		ldaps.PfxCertificatePassword = pointer.To(v["pfx_certificate_password"].(string))
 		access := domainservices.ExternalAccessDisabled
 		if v["external_access_enabled"].(bool) {
 			access = domainservices.ExternalAccessEnabled
@@ -613,12 +614,12 @@ func expandDomainServiceLdaps(input []interface{}) (ldaps *domainservices.LdapsS
 	return
 }
 
-func expandDomainServiceNotifications(input []interface{}) *domainservices.NotificationSettings {
+func expandDomainServiceNotifications(input []any) *domainservices.NotificationSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	additionalRecipients := make([]string, 0)
 	if ar, ok := v["additional_recipients"]; ok {
@@ -644,11 +645,11 @@ func expandDomainServiceNotifications(input []interface{}) *domainservices.Notif
 	}
 }
 
-func expandDomainServiceSecurity(input []interface{}) *domainservices.DomainSecuritySettings {
+func expandDomainServiceSecurity(input []any) *domainservices.DomainSecuritySettings {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	kerberosRc4Encryption := domainservices.KerberosRc4EncryptionDisabled
 	kerberosArmoring := domainservices.KerberosArmoringDisabled
@@ -691,8 +692,8 @@ func expandDomainServiceSecurity(input []interface{}) *domainservices.DomainSecu
 	}
 }
 
-func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *domainservices.LdapsSettings, dataSource bool) []interface{} {
-	result := map[string]interface{}{
+func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *domainservices.LdapsSettings, dataSource bool) []any {
+	result := map[string]any{
 		"enabled":                 false,
 		"external_access_enabled": false,
 		"certificate_expiry":      "",
@@ -730,15 +731,15 @@ func flattenDomainServiceLdaps(d *pluginsdk.ResourceData, input *domainservices.
 		}
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenDomainServiceNotifications(input *domainservices.NotificationSettings) []interface{} {
+func flattenDomainServiceNotifications(input *domainservices.NotificationSettings) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := map[string]interface{}{
+	result := map[string]any{
 		"additional_recipients": make([]string, 0),
 		"notify_dc_admins":      false,
 		"notify_global_admins":  false,
@@ -753,16 +754,16 @@ func flattenDomainServiceNotifications(input *domainservices.NotificationSetting
 		result["notify_global_admins"] = true
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []interface{}) {
+func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []any) {
 	if input == nil {
-		return
+		return []any{}
 	}
 
 	for _, in := range *input {
-		repl := map[string]interface{}{
+		repl := map[string]any{
 			"domain_controller_ip_addresses": make([]string, 0),
 			"external_access_ip_address":     "",
 			"location":                       location.NormalizeNilable(in.Location),
@@ -791,9 +792,9 @@ func flattenDomainServiceReplicaSets(input *[]domainservices.ReplicaSet) (ret []
 	return
 }
 
-func flattenDomainServiceSecurity(input *domainservices.DomainSecuritySettings) []interface{} {
+func flattenDomainServiceSecurity(input *domainservices.DomainSecuritySettings) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	result := map[string]bool{
@@ -827,5 +828,5 @@ func flattenDomainServiceSecurity(input *domainservices.DomainSecuritySettings) 
 		result["tls_v1_enabled"] = true
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -11,12 +11,12 @@ import (
 func TestDataFactoryMigrateState(t *testing.T) {
 	cases := map[string]struct {
 		StateVersion    int
-		InputAttributes map[string]interface{}
+		InputAttributes map[string]any
 		ExpectedNewID   string
 	}{
 		"name_upper_case": {
 			StateVersion: 1,
-			InputAttributes: map[string]interface{}{
+			InputAttributes: map[string]any{
 				"id":                  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataFactory/factories/acctest",
 				"name":                "ACCTEST",
 				"location":            "westeurope",

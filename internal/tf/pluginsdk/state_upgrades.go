@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package pluginsdk
@@ -9,7 +9,7 @@ import (
 	"sort"
 )
 
-type StateUpgraderFunc = func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error)
+type StateUpgraderFunc = func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error)
 
 type StateUpgrade interface {
 	// Schema is a point-in-time reference to the Schema at the time of this version
@@ -51,7 +51,7 @@ func StateUpgrades(upgrades map[int]StateUpgrade) []StateUpgrader {
 		}
 		out = append(out, StateUpgrader{
 			Type: resource.CoreConfigSchema().ImpliedType(),
-			Upgrade: func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+			Upgrade: func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 				return upgrade.UpgradeFunc()(ctx, rawState, meta)
 			},
 			Version: version,

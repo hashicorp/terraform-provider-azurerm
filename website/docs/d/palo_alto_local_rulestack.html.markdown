@@ -14,8 +14,8 @@ Use this data source to access information about an existing Palo Alto Networks 
 
 ```hcl
 data "azurerm_palo_alto_local_rulestack" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-rulestack"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -67,4 +67,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw` - 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2025-10-08

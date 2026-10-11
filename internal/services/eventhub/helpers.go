@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -61,7 +61,7 @@ func eventHubAuthorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[str
 	return s
 }
 
-func eventHubAuthorizationRuleCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func eventHubAuthorizationRuleCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

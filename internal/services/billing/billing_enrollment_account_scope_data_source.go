@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package billing
@@ -35,7 +35,7 @@ func dataSourceBillingEnrollmentAccountScope() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBillingEnrollemntAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBillingEnrollemntAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	// (@jackofallops) - This is a helper Data Source until the Billing API is usable in the Azure SDK
 	billingScopeEnrollmentFmt := "/providers/Microsoft.Billing/billingAccounts/%s/enrollmentAccounts/%s"
 

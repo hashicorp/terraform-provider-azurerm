@@ -16,6 +16,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
+	"fmt"
 	"hash"
 	"io"
 
@@ -255,6 +256,9 @@ func pbes2CipherFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, nil, err
+	}
+	if len(iv) != block.BlockSize() {
+		return nil, nil, fmt.Errorf("pkcs12: invalid IV length in PBES2 encryption scheme (IV length %d does not match block size %d)", len(iv), block.BlockSize())
 	}
 	return block, iv, nil
 }

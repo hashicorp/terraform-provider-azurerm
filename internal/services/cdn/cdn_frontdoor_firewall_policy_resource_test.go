@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_test
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -147,6 +147,21 @@ func TestAccCdnFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_customBlockResponseStatusCode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customBlockResponseStatusCode(data, 990),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_block_response_status_code").HasValue("990"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -804,13 +819,12 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingSelectorEqualsAnyError(t *tes
 }
 
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id)
-	if err != nil {
+	if _, err = clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -2232,4 +2246,34 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) customBlockResponseStatusCode(data acceptance.TestData, statusCode int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  custom_block_response_status_code = %d
+
+  custom_rule {
+    name     = "Rule1"
+    enabled  = true
+    priority = 1
+    type     = "MatchRule"
+    action   = "Block"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, statusCode)
 }

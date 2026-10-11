@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -17,14 +17,6 @@ type MicrosoftCustomerAccountBillingScopeId struct {
 	BillingAccountName string
 	BillingProfileName string
 	InvoiceSectionName string
-}
-
-func NewMCABillingScopeID(billingAccountName, billingProfileName, invoiceSectionName string) MicrosoftCustomerAccountBillingScopeId {
-	return MicrosoftCustomerAccountBillingScopeId{
-		BillingAccountName: billingAccountName,
-		BillingProfileName: billingProfileName,
-		InvoiceSectionName: invoiceSectionName,
-	}
 }
 
 func (id MicrosoftCustomerAccountBillingScopeId) String() string {

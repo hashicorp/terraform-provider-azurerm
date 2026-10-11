@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package billing
@@ -41,7 +41,7 @@ func dataSourceBillingMCAAccountScope() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBillingMCAAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBillingMCAAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	// (@jackofallops) - This is a helper Data Source until the Billing API is usable in the Azure SDK
 	billingScopeMCAFmt := "/providers/Microsoft.Billing/billingAccounts/%s/billingProfiles/%s/invoiceSections/%s"
 

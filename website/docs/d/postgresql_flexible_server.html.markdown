@@ -14,8 +14,8 @@ Use this data source to access information about an existing PostgreSQL Flexible
 
 ```hcl
 data "azurerm_postgresql_flexible_server" "example" {
-  name                = "existing-postgresql-fs"
-  resource_group_name = "existing-postgresql-resgroup"
+  name                = "example-postgresql-flexible-server"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -81,4 +81,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL` - 2024-08-01
+* `Microsoft.DBforPostgreSQL` - 2025-08-01

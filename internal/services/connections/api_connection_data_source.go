@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package connections
@@ -36,7 +36,7 @@ func (r ApiConnectionDataSource) ResourceType() string {
 	return "azurerm_api_connection"
 }
 
-func (r ApiConnectionDataSource) ModelObject() interface{} {
+func (r ApiConnectionDataSource) ModelObject() any {
 	return &ApiConnectionDataSourceModel{}
 }
 

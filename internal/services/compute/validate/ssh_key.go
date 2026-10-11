@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -15,7 +15,8 @@ import (
 
 // SSHKey performs some basic validation on supplied SSH Keys - Encoded Signature and Key Size are evaluated
 // Will require rework if/when other Key Types are supported
-func SSHKey(i interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V012 // false positive - this validates a string SSH key, not an int; the int comparison here checks the RSA key size
+func SSHKey(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}

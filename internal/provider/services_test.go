@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -19,8 +19,7 @@ func TestTypedDataSourcesContainValidModelObjects(t *testing.T) {
 		t.Logf("Service %q..", service.Name())
 		for _, resource := range service.DataSources() {
 			t.Logf("- DataSources %q..", resource.ResourceType())
-			obj := resource.ModelObject()
-			if err := sdk.ValidateModelObject(obj); err != nil {
+			if err := sdk.ValidateModelObject(resource.ModelObject()); err != nil {
 				t.Fatalf("validating model: %+v", err)
 			}
 		}
@@ -32,8 +31,7 @@ func TestTypedResourcesContainValidModelObjects(t *testing.T) {
 		t.Logf("Service %q..", service.Name())
 		for _, resource := range service.Resources() {
 			t.Logf("- Resource %q..", resource.ResourceType())
-			obj := resource.ModelObject()
-			if err := sdk.ValidateModelObject(obj); err != nil {
+			if err := sdk.ValidateModelObject(resource.ModelObject()); err != nil {
 				t.Fatalf("validating model: %+v", err)
 			}
 		}
@@ -156,8 +154,7 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 
 			var walkModel func(reflect.Type, map[string]*pluginsdk.Schema)
 			walkModel = func(modelType reflect.Type, schema map[string]*pluginsdk.Schema) {
-				for i := 0; i < modelType.NumField(); i++ {
-					field := modelType.Field(i)
+				for field := range modelType.Fields() {
 					property, ok := field.Tag.Lookup("tfschema")
 					if !ok || property == "" {
 						// This is tested for elsewhere, so we can ignore it here
@@ -168,19 +165,19 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 					if !ok {
 						continue
 					} else {
-						if v.Optional && field.Type.Kind() != reflect.Ptr {
+						if v.Optional && field.Type.Kind() != reflect.Pointer {
 							t.Logf("Optional field `%s` in model `%s` in resource `%s` should be a pointer!", property, modelType.Name(), resource.ResourceType())
 							fails = true
 							continue
 						}
 
-						if v.Required && field.Type.Kind() == reflect.Ptr {
+						if v.Required && field.Type.Kind() == reflect.Pointer {
 							t.Logf("Required field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
 							fails = true
 							continue
 						}
 
-						if v.Computed && !v.Required && !v.Optional && field.Type.Kind() == reflect.Ptr {
+						if v.Computed && !v.Required && !v.Optional && field.Type.Kind() == reflect.Pointer {
 							t.Logf("Computed Only field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
 						}
 

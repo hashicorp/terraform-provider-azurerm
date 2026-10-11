@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubscriptionCostManagementView struct{}
@@ -96,17 +96,17 @@ func TestAccSubscriptionCostManagementView_requiresImport(t *testing.T) {
 }
 
 func (t SubscriptionCostManagementView) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := views.ParseScopedViewID(state.ID)
+	id, err := viewoperationgroup.ParseScopedViewID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ViewsClient.GetByScope(ctx, *id)
+	resp, err := clients.CostManagement.ViewOperationGroupClient.ViewsGetByScope(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SubscriptionCostManagementView) basic(data acceptance.TestData) string {

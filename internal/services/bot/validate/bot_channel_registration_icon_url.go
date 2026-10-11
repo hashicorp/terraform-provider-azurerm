@@ -1,24 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
 
 import (
-	"fmt"
-	"strings"
+	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func BotChannelRegistrationIconUrl(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	if !strings.HasSuffix(v, ".png") {
-		errors = append(errors, fmt.Errorf("only png is supported"))
-		return
-	}
-
-	return
+func BotChannelRegistrationIconUrl(i any, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`\.png$`), "only png is supported")(i, k)
 }

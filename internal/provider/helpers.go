@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -14,7 +14,7 @@ import (
 )
 
 // logEntry avoids log entries showing up in test output
-func logEntry(f string, v ...interface{}) {
+func logEntry(f string, v ...any) {
 	if os.Getenv("TF_LOG") == "" {
 		return
 	}

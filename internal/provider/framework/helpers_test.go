@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -119,7 +119,7 @@ func Test_getClientSecret(t *testing.T) {
 		t.Fatalf("getClientSecret returned nil result without an error")
 	}
 	if *result != expectedString {
-		t.Fatalf("getCLientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
+		t.Fatalf("getClientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
 

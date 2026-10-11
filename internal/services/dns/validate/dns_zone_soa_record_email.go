@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-func DnsZoneSOARecordEmail(v interface{}, k string) (warnings []string, errors []error) {
+// lintignore:V013,V011,V001 // false positive - this validates an email; the string comparisons check for empty segments
+func DnsZoneSOARecordEmail(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) == 0 {

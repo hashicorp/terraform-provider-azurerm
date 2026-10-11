@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -34,7 +34,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_dns_forwarding_ruleset"
 }
 
-func (r PrivateDNSResolverDnsForwardingRulesetResource) ModelObject() interface{} {
+func (r PrivateDNSResolverDnsForwardingRulesetResource) ModelObject() any {
 	return &PrivateDNSResolverDnsForwardingRulesetModel{}
 }
 
@@ -84,13 +84,16 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) Create() sdk.ResourceFun
 			client := metadata.Client.PrivateDnsResolver.DnsForwardingRulesetsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := dnsforwardingrulesets.NewDnsForwardingRulesetID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			properties := &dnsforwardingrulesets.DnsForwardingRuleset{
@@ -105,11 +108,11 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) Create() sdk.ResourceFun
 				properties.Properties.DnsResolverOutboundEndpoints = *dnsResolverOutboundEndpointsValue
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties, dnsforwardingrulesets.CreateOrUpdateOperationOptions{}); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, dnsforwardingrulesets.CreateOrUpdateOperationOptions{}, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
+
 			return nil
 		},
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -134,7 +134,7 @@ func (AssignmentDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (AssignmentDataSource) ModelObject() interface{} {
+func (AssignmentDataSource) ModelObject() any {
 	return &AssignmentDataSourceModel{}
 }
 
@@ -153,7 +153,7 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id := assignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
+			id := policyassignments.NewScopedPolicyAssignmentID(plan.ScopeId, plan.Name)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -184,7 +184,7 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 					model.DisplayName = *v
 				}
 				if mode := props.EnforcementMode; mode != nil {
-					model.Enforce = *mode == assignments.EnforcementModeDefault
+					model.Enforce = *mode == policyassignments.EnforcementModeDefault
 				}
 				model.Metadata = flattenJSON(pointer.From(props.Metadata))
 				if v := props.NotScopes; v != nil {
@@ -210,7 +210,7 @@ func (AssignmentDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (m *AssignmentDataSourceModel) flattenNonComplianceMessages(input *[]assignments.NonComplianceMessage) {
+func (m *AssignmentDataSourceModel) flattenNonComplianceMessages(input *[]policyassignments.NonComplianceMessage) {
 	if input == nil {
 		return
 	}
@@ -224,7 +224,7 @@ func (m *AssignmentDataSourceModel) flattenNonComplianceMessages(input *[]assign
 	}
 }
 
-func (m *AssignmentDataSourceModel) flattenParameter(input *map[string]assignments.ParameterValuesValue) error {
+func (m *AssignmentDataSourceModel) flattenParameter(input *map[string]policyassignments.ParameterValuesValue) error {
 	if input == nil || len(*input) == 0 {
 		return nil
 	}

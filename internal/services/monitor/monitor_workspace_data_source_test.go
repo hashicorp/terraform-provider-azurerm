@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -35,5 +35,5 @@ data "azurerm_monitor_workspace" "test" {
   name                = azurerm_monitor_workspace.test.name
   resource_group_name = azurerm_monitor_workspace.test.resource_group_name
 }
-`, WorkspaceTestResource{}.complete(data))
+`, MonitorWorkspaceResource{}.complete(data))
 }

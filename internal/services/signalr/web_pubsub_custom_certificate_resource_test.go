@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomCertWebPubsubResource struct{}
+type WebPubsubCustomCertificateResource struct{}
 
 func TestAccCustomCertWebPubsub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
-	r := CustomCertWebPubsubResource{}
+	r := WebPubsubCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,19 +36,20 @@ func TestAccCustomCertWebPubsub_basic(t *testing.T) {
 
 func TestAccCustomCertWebPubsub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
-	r := CustomCertWebPubsubResource{}
+	r := WebPubsubCustomCertificateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func (r CustomCertWebPubsubResource) basic(data acceptance.TestData) string {
+func (r WebPubsubCustomCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -80,6 +81,7 @@ resource "azurerm_key_vault" "test" {
   name                       = "acctestkeyvault%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
@@ -163,7 +165,7 @@ resource "azurerm_web_pubsub_custom_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (r CustomCertWebPubsubResource) requiresImport(data acceptance.TestData) string {
+func (r WebPubsubCustomCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -175,7 +177,7 @@ resource "azurerm_web_pubsub_custom_certificate" "import" {
 `, r.basic(data))
 }
 
-func (r CustomCertWebPubsubResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WebPubsubCustomCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseCustomCertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -183,9 +185,9 @@ func (r CustomCertWebPubsubResource) Exists(ctx context.Context, client *clients
 	resp, err := client.SignalR.WebPubSubClient.WebPubSub.CustomCertificatesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

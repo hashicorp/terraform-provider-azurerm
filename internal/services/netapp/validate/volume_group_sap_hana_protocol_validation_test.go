@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -151,7 +151,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 		VolumeSpecName      string
 		OldProtocols        []string
 		NewProtocols        []string
-		ExportPolicyRules   []interface{}
+		ExportPolicyRules   []any
 		ExpectedErrors      int
 		ExpectedErrorString string
 	}{
@@ -160,7 +160,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "data-backup",
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -168,7 +168,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "log-backup",
 			OldProtocols:      []string{"NFSv4.1"},
 			NewProtocols:      []string{"NFSv3"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -176,7 +176,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName:    "data",
 			OldProtocols:      []string{"NFSv4.1"},
 			NewProtocols:      []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -184,7 +184,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName:      "data",
 			OldProtocols:        []string{"NFSv4.1"},
 			NewProtocols:        []string{"NFSv3"},
-			ExportPolicyRules:   []interface{}{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      1,
 			ExpectedErrorString: "NFSv3 protocol is not supported on 'data' volumes for SAP HANA",
 		},
@@ -193,7 +193,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName:      "log",
 			OldProtocols:        []string{"NFSv4.1"},
 			NewProtocols:        []string{"NFSv3"},
-			ExportPolicyRules:   []interface{}{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      1,
 			ExpectedErrorString: "NFSv3 protocol is not supported on 'log' volumes for SAP HANA",
 		},
@@ -202,7 +202,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName:      "shared",
 			OldProtocols:        []string{"NFSv4.1"},
 			NewProtocols:        []string{"NFSv3"},
-			ExportPolicyRules:   []interface{}{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      1,
 			ExpectedErrorString: "NFSv3 protocol is not supported on 'shared' volumes for SAP HANA",
 		},
@@ -211,9 +211,9 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName: "data-backup",
 			OldProtocols:   []string{"NFSv3"},
 			NewProtocols:   []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv4.1"},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv4.1"},
 				},
 			},
 			ExpectedErrors: 0,
@@ -223,9 +223,9 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			VolumeSpecName: "data",
 			OldProtocols:   []string{"NFSv4.1"},
 			NewProtocols:   []string{"NFSv4.1"},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv4.1"},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv4.1"},
 				},
 			},
 			ExpectedErrors: 0,
@@ -249,7 +249,7 @@ func TestValidateNetAppVolumeGroupSAPHanaProtocolConversion(t *testing.T) {
 			if len(tc.OldProtocols) > 0 && !slicesEqual(tc.OldProtocols, tc.NewProtocols) {
 				// For volume groups, kerberos and data replication are not directly supported
 				var kerberosEnabled bool
-				var dataReplication []interface{}
+				var dataReplication []any
 
 				conversionErrors := ValidateNetAppVolumeProtocolConversion(tc.OldProtocols, tc.NewProtocols, kerberosEnabled, dataReplication, tc.ExportPolicyRules)
 				errors = append(errors, conversionErrors...)

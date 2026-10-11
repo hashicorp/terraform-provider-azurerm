@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -300,7 +300,6 @@ QUERY
 }
 
 func (r StreamAnalyticsJobResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -318,7 +317,7 @@ resource "azurerm_stream_analytics_job" "import" {
   transformation_query                     = azurerm_stream_analytics_job.test.transformation_query
   tags                                     = azurerm_stream_analytics_job.test.tags
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsJobResource) updated(data acceptance.TestData) string {

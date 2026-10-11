@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogicAppIntegrationAccountAssemblyResource struct{}
@@ -94,11 +94,11 @@ func (r LogicAppIntegrationAccountAssemblyResource) Exists(ctx context.Context, 
 	resp, err := client.Logic.IntegrationAccountAssemblyClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogicAppIntegrationAccountAssemblyResource) template(data acceptance.TestData) string {
@@ -173,7 +173,7 @@ resource "azurerm_logic_app_integration_account_assembly" "test" {
 func (r LogicAppIntegrationAccountAssemblyResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+	%s
 
 resource "azurerm_storage_account" "test" {
   name                            = "acctestsa%s"
@@ -186,16 +186,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc%s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "log4net.dll"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Block"
-  source                 = "testdata/log4net.dll"
+  name                 = "log4net.dll"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+  source               = "testdata/log4net.dll"
 }
 
 resource "azurerm_logic_app_integration_account_assembly" "test" {

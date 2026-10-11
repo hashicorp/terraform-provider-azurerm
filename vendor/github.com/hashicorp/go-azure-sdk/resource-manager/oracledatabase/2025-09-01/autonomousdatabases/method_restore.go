@@ -62,9 +62,20 @@ func (c AutonomousDatabasesClient) Restore(ctx context.Context, id AutonomousDat
 
 // RestoreThenPoll performs Restore then polls until it's completed
 func (c AutonomousDatabasesClient) RestoreThenPoll(ctx context.Context, id AutonomousDatabaseId, input RestoreAutonomousDatabaseDetails) error {
+	return c.RestoreCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreCallbackThenPoll performs Restore, runs the optional callback function, then polls until it's completed
+func (c AutonomousDatabasesClient) RestoreCallbackThenPoll(ctx context.Context, id AutonomousDatabaseId, input RestoreAutonomousDatabaseDetails, callback func() error) error {
 	result, err := c.Restore(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Restore: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

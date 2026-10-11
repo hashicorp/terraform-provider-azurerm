@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -24,95 +24,6 @@ type RoleAssignmentId struct {
 	TenantId                 string
 	IsSubscriptionLevel      bool
 	IsSubscriptionAliasLevel bool
-}
-
-func NewRoleAssignmentID(subscriptionId, resourceGroup, resourceProvider, resourceScope, managementGroup, name, tenantId, subscriptionAlias string, isSubLevel bool, isSubAliasLevel bool) (*RoleAssignmentId, error) {
-	if subscriptionId == "" && resourceGroup == "" && managementGroup == "" && !isSubLevel && !isSubAliasLevel {
-		return nil, errors.New("one of subscriptionId, resourceGroup, managementGroup, isSubscriptionLevel or isSubscriptionAliasLevel must be provided")
-	}
-
-	if managementGroup != "" {
-		if subscriptionId != "" || resourceGroup != "" || isSubLevel {
-			return nil, errors.New("cannot provide subscriptionId, resourceGroup or isSubscriptionLevel when managementGroup is provided")
-		}
-	}
-
-	if isSubLevel {
-		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
-			return nil, errors.New("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionLevel is provided")
-		}
-	}
-
-	if isSubAliasLevel {
-		if subscriptionId != "" || resourceGroup != "" || managementGroup != "" {
-			return nil, errors.New("cannot provide subscriptionId, resourceGroup or managementGroup when isSubscriptionAliasLevel is provided")
-		}
-	}
-
-	if resourceGroup != "" {
-		if subscriptionId == "" {
-			return nil, errors.New("subscriptionId must not be empty when resourceGroup is provided")
-		}
-	}
-
-	return &RoleAssignmentId{
-		SubscriptionID:           subscriptionId,
-		ResourceGroup:            resourceGroup,
-		ResourceProvider:         resourceProvider,
-		ResourceScope:            resourceScope,
-		ManagementGroup:          managementGroup,
-		SubscriptionAlias:        subscriptionAlias,
-		Name:                     name,
-		TenantId:                 tenantId,
-		IsSubscriptionLevel:      isSubLevel,
-		IsSubscriptionAliasLevel: isSubAliasLevel,
-	}, nil
-}
-
-// in general case, the id format does not change
-// for cross tenant scenario, add the tenantId info
-func (id RoleAssignmentId) AzureResourceID() string {
-	if id.ResourceScope != "" {
-		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/%s/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.ResourceProvider, id.ResourceScope, id.Name)
-	}
-
-	if id.ManagementGroup != "" {
-		fmtString := "/providers/Microsoft.Management/managementGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.ManagementGroup, id.Name)
-	}
-
-	if id.ResourceGroup != "" {
-		fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.ResourceGroup, id.Name)
-	}
-
-	if id.IsSubscriptionAliasLevel {
-		fmtString := "/providers/Microsoft.Subscription/aliases/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionAlias, id.Name)
-	}
-
-	if id.IsSubscriptionLevel {
-		fmtString := "/providers/Microsoft.Subscription/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.Name)
-	}
-
-	if id.SubscriptionID != "" {
-		fmtString := "/subscriptions/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.SubscriptionID, id.Name)
-	}
-
-	if id.ResourceProvider != "" {
-		fmtString := "/providers/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-		return fmt.Sprintf(fmtString, id.ResourceProvider, id.Name)
-	}
-
-	fmtString := "/providers/Microsoft.Authorization/roleAssignments/%s"
-	return fmt.Sprintf(fmtString, id.Name)
-}
-
-func (id RoleAssignmentId) ID() string {
-	return ConstructRoleAssignmentId(id.AzureResourceID(), id.TenantId)
 }
 
 func ConstructRoleAssignmentId(azureResourceId, tenantId string) string {
@@ -171,8 +82,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		if strings.Contains(input, "/aliases/") {
 			roleAssignmentId.IsSubscriptionAliasLevel = true
 			aliasParts := strings.Split(idParts[0], "/")
-			alias := aliasParts[len(aliasParts)-1]
-			roleAssignmentId.SubscriptionAlias = alias
+			roleAssignmentId.SubscriptionAlias = aliasParts[len(aliasParts)-1]
 		} else {
 			roleAssignmentId.IsSubscriptionLevel = true
 		}

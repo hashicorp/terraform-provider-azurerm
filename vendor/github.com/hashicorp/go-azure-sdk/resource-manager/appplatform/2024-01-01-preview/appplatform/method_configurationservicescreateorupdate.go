@@ -62,9 +62,20 @@ func (c AppPlatformClient) ConfigurationServicesCreateOrUpdate(ctx context.Conte
 
 // ConfigurationServicesCreateOrUpdateThenPoll performs ConfigurationServicesCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ConfigurationServicesCreateOrUpdateThenPoll(ctx context.Context, id ConfigurationServiceId, input ConfigurationServiceResource) error {
+	return c.ConfigurationServicesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConfigurationServicesCreateOrUpdateCallbackThenPoll performs ConfigurationServicesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ConfigurationServicesCreateOrUpdateCallbackThenPoll(ctx context.Context, id ConfigurationServiceId, input ConfigurationServiceResource, callback func() error) error {
 	result, err := c.ConfigurationServicesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationServicesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

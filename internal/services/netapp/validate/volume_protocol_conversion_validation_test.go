@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -13,8 +13,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 		OldProtocols        []string
 		NewProtocols        []string
 		KerberosEnabled     bool
-		DataReplication     []interface{}
-		ExportPolicyRules   []interface{}
+		DataReplication     []any
+		ExportPolicyRules   []any
 		ExpectedErrors      int
 		ExpectedErrorString string
 	}{
@@ -23,8 +23,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv4.1"},
 			KerberosEnabled:   false,
-			DataReplication:   []interface{}{},
-			ExportPolicyRules: []interface{}{},
+			DataReplication:   []any{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -32,8 +32,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:      []string{"NFSv4.1"},
 			NewProtocols:      []string{"NFSv3"},
 			KerberosEnabled:   false,
-			DataReplication:   []interface{}{},
-			ExportPolicyRules: []interface{}{},
+			DataReplication:   []any{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -41,8 +41,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"NFSv3"},
 			KerberosEnabled:   false,
-			DataReplication:   []interface{}{},
-			ExportPolicyRules: []interface{}{},
+			DataReplication:   []any{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -50,8 +50,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:      []string{},
 			NewProtocols:      []string{"NFSv3"},
 			KerberosEnabled:   false,
-			DataReplication:   []interface{}{},
-			ExportPolicyRules: []interface{}{},
+			DataReplication:   []any{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -59,8 +59,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:        []string{"NFSv4.1"},
 			NewProtocols:        []string{"NFSv3"},
 			KerberosEnabled:     true,
-			DataReplication:     []interface{}{},
-			ExportPolicyRules:   []interface{}{},
+			DataReplication:     []any{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      1,
 			ExpectedErrorString: "cannot convert an NFSv4.1 volume with Kerberos enabled to NFSv3",
 		},
@@ -69,8 +69,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:        []string{"NFSv3", "CIFS"},
 			NewProtocols:        []string{"NFSv4.1"},
 			KerberosEnabled:     false,
-			DataReplication:     []interface{}{},
-			ExportPolicyRules:   []interface{}{},
+			DataReplication:     []any{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      2, // Both dual-protocol and CIFS conversion errors
 			ExpectedErrorString: "cannot change the NFS version of a dual-protocol volume",
 		},
@@ -79,8 +79,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:        []string{"NFSv3"},
 			NewProtocols:        []string{"NFSv4.1", "CIFS"},
 			KerberosEnabled:     false,
-			DataReplication:     []interface{}{},
-			ExportPolicyRules:   []interface{}{},
+			DataReplication:     []any{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      2, // Both dual-protocol and CIFS conversion errors
 			ExpectedErrorString: "cannot change the NFS version of a dual-protocol volume",
 		},
@@ -89,8 +89,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:      []string{"CIFS"},
 			NewProtocols:      []string{"NFSv3"},
 			KerberosEnabled:   false,
-			DataReplication:   []interface{}{},
-			ExportPolicyRules: []interface{}{},
+			DataReplication:   []any{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0, // No NFS protocol change detected, no validation
 		},
 		{
@@ -98,8 +98,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:      []string{"NFSv3"},
 			NewProtocols:      []string{"CIFS"},
 			KerberosEnabled:   false,
-			DataReplication:   []interface{}{},
-			ExportPolicyRules: []interface{}{},
+			DataReplication:   []any{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0, // No NFS protocol change detected, no validation
 		},
 		{
@@ -107,8 +107,8 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:        []string{"NFSv3"},
 			NewProtocols:        []string{"NFSv4.1", "CIFS"},
 			KerberosEnabled:     false,
-			DataReplication:     []interface{}{},
-			ExportPolicyRules:   []interface{}{},
+			DataReplication:     []any{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      2, // Both dual-protocol and CIFS conversion errors
 			ExpectedErrorString: "cannot change the NFS version of a dual-protocol volume",
 		},
@@ -117,12 +117,12 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:    []string{"NFSv3"},
 			NewProtocols:    []string{"NFSv4.1"},
 			KerberosEnabled: false,
-			DataReplication: []interface{}{
-				map[string]interface{}{
+			DataReplication: []any{
+				map[string]any{
 					"endpoint_type": "dst",
 				},
 			},
-			ExportPolicyRules:   []interface{}{},
+			ExportPolicyRules:   []any{},
 			ExpectedErrors:      1,
 			ExpectedErrorString: "cannot convert a destination volume in a cross-region replication relationship",
 		},
@@ -131,12 +131,12 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:    []string{"NFSv3"},
 			NewProtocols:    []string{"NFSv4.1"},
 			KerberosEnabled: false,
-			DataReplication: []interface{}{
-				map[string]interface{}{
+			DataReplication: []any{
+				map[string]any{
 					"endpoint_type": "src",
 				},
 			},
-			ExportPolicyRules: []interface{}{},
+			ExportPolicyRules: []any{},
 			ExpectedErrors:    0,
 		},
 		{
@@ -144,10 +144,10 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:    []string{"NFSv3"},
 			NewProtocols:    []string{"NFSv4.1"},
 			KerberosEnabled: false,
-			DataReplication: []interface{}{},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocol": []interface{}{"NFSv4.1"}, // Will be updated to match new volume protocol
+			DataReplication: []any{},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocol": []any{"NFSv4.1"}, // Will be updated to match new volume protocol
 				},
 			},
 			ExpectedErrors: 0, // Export policy validation is skipped during protocol conversion
@@ -157,10 +157,10 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:    []string{"NFSv4.1"},
 			NewProtocols:    []string{"NFSv3"},
 			KerberosEnabled: false,
-			DataReplication: []interface{}{},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv3"}, // Will be updated to match new volume protocol
+			DataReplication: []any{},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv3"}, // Will be updated to match new volume protocol
 				},
 			},
 			ExpectedErrors: 0, // Export policy validation is skipped during protocol conversion
@@ -170,10 +170,10 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:    []string{"NFSv3"},
 			NewProtocols:    []string{"NFSv4.1"},
 			KerberosEnabled: false,
-			DataReplication: []interface{}{},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocol": []interface{}{"NFSv4.1"}, // Matches volume protocol NFSv4.1
+			DataReplication: []any{},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocol": []any{"NFSv4.1"}, // Matches volume protocol NFSv4.1
 				},
 			},
 			ExpectedErrors: 0,
@@ -183,10 +183,10 @@ func TestValidateNetAppVolumeProtocolConversion(t *testing.T) {
 			OldProtocols:    []string{"NFSv4.1"},
 			NewProtocols:    []string{"NFSv3"},
 			KerberosEnabled: false,
-			DataReplication: []interface{}{},
-			ExportPolicyRules: []interface{}{
-				map[string]interface{}{
-					"protocols_enabled": []interface{}{"NFSv3"}, // Matches volume protocol NFSv3
+			DataReplication: []any{},
+			ExportPolicyRules: []any{
+				map[string]any{
+					"protocols_enabled": []any{"NFSv3"}, // Matches volume protocol NFSv3
 				},
 			},
 			ExpectedErrors: 0,

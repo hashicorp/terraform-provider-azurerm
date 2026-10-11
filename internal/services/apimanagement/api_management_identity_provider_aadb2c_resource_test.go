@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -103,8 +103,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 	}
 
 	for k := range config {
-		e := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
-		if v := os.Getenv(e); v != "" {
+		if v := os.Getenv(fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))); v != "" {
 			config[k] = v
 			continue
 		}

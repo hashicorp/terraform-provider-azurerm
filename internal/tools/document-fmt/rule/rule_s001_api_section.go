@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package rule
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/template"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type S001 struct{}
@@ -37,7 +37,7 @@ func (r S001) Run(d *data.TerraformNodeData, fix bool) []error {
 	exists := false
 	errs := make([]error, 0)
 
-	logWithFields := log.WithFields(log.Fields{
+	logWithFields := logrus.WithFields(logrus.Fields{
 		"rule": IdAndName(r),
 		"type": d.Type,
 		"name": d.Name,
