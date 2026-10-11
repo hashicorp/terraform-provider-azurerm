@@ -90,7 +90,7 @@ type FunctionAppAlwaysReady struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
 
-func (r FunctionAppFlexConsumptionResource) ModelObject() interface{} {
+func (r FunctionAppFlexConsumptionResource) ModelObject() any {
 	return &FunctionAppFlexConsumptionModel{}
 }
 

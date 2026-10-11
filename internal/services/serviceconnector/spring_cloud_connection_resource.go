@@ -88,7 +88,7 @@ func (r SpringCloudConnectorResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r SpringCloudConnectorResource) ModelObject() interface{} {
+func (r SpringCloudConnectorResource) ModelObject() any {
 	return &SpringCloudConnectorResourceModel{}
 }
 

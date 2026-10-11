@@ -65,7 +65,7 @@ func (SubscriptionTemplateDeploymentV0ToV1) Schema() map[string]*pluginsdk.Schem
 }
 
 func (SubscriptionTemplateDeploymentV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// IDs imported while this resource parsed them with the legacy resourceids.ParseAzureResourceID
 		// can contain a non-canonically cased provider segment (e.g. `microsoft.resources`),
 		// which the case-sensitive SDK parser rejects - normalise it to the canonical casing

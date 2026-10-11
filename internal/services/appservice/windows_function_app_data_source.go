@@ -77,7 +77,7 @@ type WindowsFunctionAppDataSourceModel struct {
 
 var _ sdk.DataSource = WindowsFunctionAppDataSource{}
 
-func (d WindowsFunctionAppDataSource) ModelObject() interface{} {
+func (d WindowsFunctionAppDataSource) ModelObject() any {
 	return &WindowsFunctionAppDataSourceModel{}
 }
 

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceWeb() *pluginsdk.Resource {
@@ -118,7 +118,7 @@ func resourceDataFactoryLinkedServiceWeb() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -179,7 +179,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		webLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		webLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -187,11 +187,11 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		webLinkedService.AdditionalProperties = v.(map[string]interface{})
+		webLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		webLinkedService.Annotations = pointer.To(v.([]interface{}))
+		webLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -207,7 +207,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataFactoryLinkedServiceWebRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +276,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceWebDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

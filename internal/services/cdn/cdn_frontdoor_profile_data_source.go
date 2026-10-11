@@ -71,7 +71,7 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

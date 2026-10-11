@@ -17,7 +17,7 @@ var _ pluginsdk.StateUpgrade = SubscriptionConsumptionBudgetV0ToV1{}
 type SubscriptionConsumptionBudgetV0ToV1 struct{}
 
 func (SubscriptionConsumptionBudgetV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// The previous validation behaviour of subscription_id meant that we were only accepting this format 00000000-0000-0000-0000-000000000000,
 		// but we should be accepting /subscriptions/00000000-0000-0000-0000-000000000000
 
@@ -239,7 +239,7 @@ var _ pluginsdk.StateUpgrade = SubscriptionConsumptionBudgetV1ToV2{}
 type SubscriptionConsumptionBudgetV1ToV2 struct{}
 
 func (SubscriptionConsumptionBudgetV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// since the `subscription_id` field gets incorrectly mutated in the V0 -> V1 upgrade
 		// we have to parse it from the ID instead to correct this
 		idRaw := rawState["id"].(string)

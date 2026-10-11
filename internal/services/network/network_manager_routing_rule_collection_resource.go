@@ -31,7 +31,7 @@ func (ManagerRoutingRuleCollectionResource) ResourceType() string {
 	return "azurerm_network_manager_routing_rule_collection"
 }
 
-func (ManagerRoutingRuleCollectionResource) ModelObject() interface{} {
+func (ManagerRoutingRuleCollectionResource) ModelObject() any {
 	return &ManagerRoutingRuleCollectionResourceModel{}
 }
 

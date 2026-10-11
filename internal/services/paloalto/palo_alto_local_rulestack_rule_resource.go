@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
-	localrules "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -35,26 +35,26 @@ type LocalRuleModel struct {
 	RuleStackID string `tfschema:"rulestack_id"`
 	Priority    int64  `tfschema:"priority"`
 
-	Action                  string                 `tfschema:"action"`
-	Applications            []string               `tfschema:"applications"`
-	AuditComment            string                 `tfschema:"audit_comment"`
-	Category                []schema.Category      `tfschema:"category"`
-	DecryptionRuleType      string                 `tfschema:"decryption_rule_type"`
-	Description             string                 `tfschema:"description"`
-	Destination             []schema.Destination   `tfschema:"destination"`
-	LoggingEnabled          bool                   `tfschema:"logging_enabled"`
-	InspectionCertificateID string                 `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRuleStack as this rule
-	NegateDestination       bool                   `tfschema:"negate_destination"`
-	NegateSource            bool                   `tfschema:"negate_source"`
-	Protocol                string                 `tfschema:"protocol"`
-	ProtocolPorts           []string               `tfschema:"protocol_ports"`
-	RuleEnabled             bool                   `tfschema:"enabled"`
-	Source                  []schema.Source        `tfschema:"source"`
-	Tags                    map[string]interface{} `tfschema:"tags"`
+	Action                  string               `tfschema:"action"`
+	Applications            []string             `tfschema:"applications"`
+	AuditComment            string               `tfschema:"audit_comment"`
+	Category                []schema.Category    `tfschema:"category"`
+	DecryptionRuleType      string               `tfschema:"decryption_rule_type"`
+	Description             string               `tfschema:"description"`
+	Destination             []schema.Destination `tfschema:"destination"`
+	LoggingEnabled          bool                 `tfschema:"logging_enabled"`
+	InspectionCertificateID string               `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRuleStack as this rule
+	NegateDestination       bool                 `tfschema:"negate_destination"`
+	NegateSource            bool                 `tfschema:"negate_source"`
+	Protocol                string               `tfschema:"protocol"`
+	ProtocolPorts           []string             `tfschema:"protocol_ports"`
+	RuleEnabled             bool                 `tfschema:"enabled"`
+	Source                  []schema.Source      `tfschema:"source"`
+	Tags                    map[string]any       `tfschema:"tags"`
 }
 
 func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return localrules.ValidateLocalRuleID
+	return localrulesresources.ValidateLocalRuleID
 }
 
 func (r LocalRuleStackRule) ResourceType() string {
@@ -73,7 +73,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: localrules.ValidateLocalRulestackID,
+			ValidateFunc: localrulesresources.ValidateLocalRulestackID,
 		},
 
 		"priority": {
@@ -86,7 +86,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 		"action": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(localrules.PossibleValuesForActionEnum(), false),
+			ValidateFunc: validation.StringInSlice(localrulesresources.PossibleValuesForActionEnum(), false),
 		},
 
 		// Optional
@@ -111,8 +111,8 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 		"decryption_rule_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      localrules.DecryptionRuleTypeEnumNone,
-			ValidateFunc: validation.StringInSlice(localrules.PossibleValuesForDecryptionRuleTypeEnum(), false),
+			Default:      localrulesresources.DecryptionRuleTypeEnumNone,
+			ValidateFunc: validation.StringInSlice(localrulesresources.PossibleValuesForDecryptionRuleTypeEnum(), false),
 		},
 
 		"description": {
@@ -131,7 +131,7 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 		"inspection_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: certificates.ValidateLocalRulestackCertificateID,
+			ValidateFunc: certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID,
 		},
 
 		"negate_destination": {
@@ -183,7 +183,7 @@ func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStackRule) ModelObject() interface{} {
+func (r LocalRuleStackRule) ModelObject() any {
 	return &LocalRuleModel{}
 }
 
@@ -200,7 +200,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
@@ -208,7 +208,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(rulestackId.ID())
 
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
-			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
+			id := localrulesresources.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.LocalRulesGet(ctx, id)
@@ -233,7 +233,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding source for %s: %+v", id, err)
 			}
 
-			props := localrules.RuleEntry{
+			props := localrulesresources.RuleEntry{
 				Category:          schema.ExpandCategory(model.Category),
 				Destination:       destination,
 				EnableLogging:     boolAsStateEnum(model.LoggingEnabled),
@@ -246,7 +246,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.Action != "" {
-				props.ActionType = pointer.ToEnum[localrules.ActionEnum](model.Action)
+				props.ActionType = pointer.ToEnum[localrulesresources.ActionEnum](model.Action)
 			}
 
 			if len(model.Applications) != 0 {
@@ -258,7 +258,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.DecryptionRuleType != "" {
-				props.DecryptionRuleType = pointer.ToEnum[localrules.DecryptionRuleTypeEnum](model.DecryptionRuleType)
+				props.DecryptionRuleType = pointer.ToEnum[localrulesresources.DecryptionRuleTypeEnum](model.DecryptionRuleType)
 			}
 
 			if model.Description != "" {
@@ -266,7 +266,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.InspectionCertificateID != "" {
-				certID, err := certificates.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
+				certID, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
 				if err != nil {
 					return err
 				}
@@ -285,7 +285,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				props.Protocol = pointer.To(model.Protocol)
 			}
 
-			if _, err := client.LocalRulesCreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
+			if _, err := client.LocalRulesCreateOrUpdate(ctx, id, localrulesresources.LocalRulesResource{Properties: props}); err != nil {
 				return err
 			}
 
@@ -306,7 +306,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulesResources
 
-			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
+			id, err := localrulesresources.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -321,7 +321,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			state.RuleStackID = localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
+			state.RuleStackID = localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 			p, err := strconv.ParseInt(id.LocalRuleName, 10, 0)
 			if err != nil {
 				return fmt.Errorf("parsing Rule Priortiy for %s: %+v", *id, err)
@@ -339,7 +339,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				state.Destination = schema.FlattenDestination(props.Destination, *id)
 				state.LoggingEnabled = stateEnumAsBool(props.EnableLogging)
 				if certName := pointer.From(props.InboundInspectionCertificate); certName != "" {
-					state.InspectionCertificateID = certificates.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, certName).ID()
+					state.InspectionCertificateID = certificateobjectlocalrulestackresources.NewLocalRulestackCertificateID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName, certName).ID()
 				} else {
 					state.InspectionCertificateID = certName
 				}
@@ -363,12 +363,12 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.LocalRulesResources
 
-			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
+			id, err := localrulesresources.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
@@ -394,7 +394,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
+			id, err := localrulesresources.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -402,7 +402,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
@@ -414,7 +414,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			ruleEntry := *existing.Model
 
 			if metadata.ResourceData.HasChange("action") {
-				ruleEntry.Properties.ActionType = pointer.ToEnum[localrules.ActionEnum](model.Action)
+				ruleEntry.Properties.ActionType = pointer.ToEnum[localrulesresources.ActionEnum](model.Action)
 			}
 
 			if metadata.ResourceData.HasChange("applications") {
@@ -430,7 +430,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("decryption_rule_type") {
-				ruleEntry.Properties.DecryptionRuleType = pointer.ToEnum[localrules.DecryptionRuleTypeEnum](model.DecryptionRuleType)
+				ruleEntry.Properties.DecryptionRuleType = pointer.ToEnum[localrulesresources.DecryptionRuleTypeEnum](model.DecryptionRuleType)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -451,7 +451,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("inspection_certificate_id") {
 				if model.InspectionCertificateID != "" {
-					certID, err := certificates.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
+					certID, err := certificateobjectlocalrulestackresources.ParseLocalRulestackCertificateID(model.InspectionCertificateID)
 					if err != nil {
 						return err
 					}
@@ -514,46 +514,46 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 	}
 }
 
-func boolAsStateEnum(input bool) *localrules.StateEnum {
-	var result localrules.StateEnum
+func boolAsStateEnum(input bool) *localrulesresources.StateEnum {
+	var result localrulesresources.StateEnum
 
 	if input {
-		result = localrules.StateEnumENABLED
+		result = localrulesresources.StateEnumENABLED
 	} else {
-		result = localrules.StateEnumDISABLED
+		result = localrulesresources.StateEnumDISABLED
 	}
 
 	return pointer.To(result)
 }
 
-func stateEnumAsBool(input *localrules.StateEnum) bool {
-	return pointer.From(input) == localrules.StateEnumENABLED
+func stateEnumAsBool(input *localrulesresources.StateEnum) bool {
+	return pointer.From(input) == localrulesresources.StateEnumENABLED
 }
 
-func boolAsBooleanEnumRule(input bool) *localrules.BooleanEnum {
-	var result localrules.BooleanEnum
+func boolAsBooleanEnumRule(input bool) *localrulesresources.BooleanEnum {
+	var result localrulesresources.BooleanEnum
 
 	if input {
-		result = localrules.BooleanEnumTRUE
+		result = localrulesresources.BooleanEnumTRUE
 	} else {
-		result = localrules.BooleanEnumFALSE
+		result = localrulesresources.BooleanEnumFALSE
 	}
 
 	return pointer.To(result)
 }
 
-func boolEnumAsBoolRule(input *localrules.BooleanEnum) bool {
-	return pointer.From(input) == localrules.BooleanEnumTRUE
+func boolEnumAsBoolRule(input *localrulesresources.BooleanEnum) bool {
+	return pointer.From(input) == localrulesresources.BooleanEnumTRUE
 }
 
-func expandTagsForRule(input map[string]interface{}) *[]localrules.TagInfo {
-	result := make([]localrules.TagInfo, 0)
+func expandTagsForRule(input map[string]any) *[]localrulesresources.TagInfo {
+	result := make([]localrulesresources.TagInfo, 0)
 	if len(input) == 0 {
 		return pointer.To(result)
 	}
 
 	for k, v := range input {
-		result = append(result, localrules.TagInfo{
+		result = append(result, localrulesresources.TagInfo{
 			Key:   k,
 			Value: v.(string),
 		})
@@ -562,12 +562,12 @@ func expandTagsForRule(input map[string]interface{}) *[]localrules.TagInfo {
 	return pointer.To(result)
 }
 
-func flattenTagsFromRule(input *[]localrules.TagInfo) map[string]interface{} {
+func flattenTagsFromRule(input *[]localrulesresources.TagInfo) map[string]any {
 	if input == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	for _, v := range *input {
 		result[v.Key] = v.Value
 	}

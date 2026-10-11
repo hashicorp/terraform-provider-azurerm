@@ -66,7 +66,7 @@ func (r ManagedRedisGeoReplicationResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagedRedisGeoReplicationResource) ModelObject() interface{} {
+func (r ManagedRedisGeoReplicationResource) ModelObject() any {
 	return &ManagedRedisGeoReplicationResourceModel{}
 }
 

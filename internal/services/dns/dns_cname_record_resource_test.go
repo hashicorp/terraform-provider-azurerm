@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DnsCNameRecordResource struct{}
+type DnsCnameRecordResource struct{}
 
 func TestAccDnsCNameRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccDnsCNameRecord_basic(t *testing.T) {
 
 func TestAccDnsCNameRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccDnsCNameRecord_requiresImport(t *testing.T) {
 
 func TestAccDnsCNameRecord_subdomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccDnsCNameRecord_subdomain(t *testing.T) {
 
 func TestAccDnsCNameRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDnsCNameRecord_updateRecords(t *testing.T) {
 
 func TestAccDnsCNameRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccDnsCNameRecord_withTags(t *testing.T) {
 
 func TestAccDnsCNameRecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target"
 	targetResourceName2 := "azurerm_dns_cname_record.target2"
 
@@ -138,7 +138,7 @@ func TestAccDnsCNameRecord_withAlias(t *testing.T) {
 
 func TestAccDnsCNameRecord_RecordToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -162,7 +162,7 @@ func TestAccDnsCNameRecord_RecordToAlias(t *testing.T) {
 
 func TestAccDnsCNameRecord_AliasToRecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
-	r := DnsCNameRecordResource{}
+	r := DnsCnameRecordResource{}
 	targetResourceName := "azurerm_dns_cname_record.target2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -184,7 +184,7 @@ func TestAccDnsCNameRecord_AliasToRecord(t *testing.T) {
 	})
 }
 
-func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DnsCnameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := recordsets.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (DnsCNameRecordResource) basic(data acceptance.TestData) string {
+func (DnsCnameRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +224,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r DnsCNameRecordResource) requiresImport(data acceptance.TestData) string {
+func (r DnsCnameRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -238,7 +238,7 @@ resource "azurerm_dns_cname_record" "import" {
 `, r.basic(data))
 }
 
-func (DnsCNameRecordResource) subdomain(data acceptance.TestData) string {
+func (DnsCnameRecordResource) subdomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -264,7 +264,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) updateRecords(data acceptance.TestData) string {
+func (DnsCnameRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -290,7 +290,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) withTags(data acceptance.TestData) string {
+func (DnsCnameRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -321,7 +321,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) withTagsUpdate(data acceptance.TestData) string {
+func (DnsCnameRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -351,7 +351,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) withAlias(data acceptance.TestData) string {
+func (DnsCnameRecordResource) withAlias(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -385,7 +385,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) withAliasUpdate(data acceptance.TestData) string {
+func (DnsCnameRecordResource) withAliasUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -419,7 +419,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) AliasToRecord(data acceptance.TestData) string {
+func (DnsCnameRecordResource) AliasToRecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -453,7 +453,7 @@ resource "azurerm_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsCNameRecordResource) AliasToRecordUpdate(data acceptance.TestData) string {
+func (DnsCnameRecordResource) AliasToRecordUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

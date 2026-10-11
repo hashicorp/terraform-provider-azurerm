@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
@@ -118,7 +118,7 @@ func resourceIotHubSharedAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
 	registryRead, hasRegistryRead := d.GetOk("registry_read")
 	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
 	serviceConnect, hasServiceConnect := d.GetOk("service_connect")
@@ -139,7 +139,7 @@ func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *pluginsdk.Res
 	return
 }
 
-func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -217,7 +217,7 @@ func resourceIotHubSharedAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }
 
-func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,7 +265,7 @@ func resourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

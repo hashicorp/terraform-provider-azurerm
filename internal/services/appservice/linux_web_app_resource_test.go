@@ -3938,7 +3938,6 @@ resource "azurerm_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-// nolint: unused
 func (r LinuxWebAppResource) templateWithStorageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 

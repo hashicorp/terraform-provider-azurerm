@@ -71,7 +71,7 @@ func dataSourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource
 	}
 }
 
-func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

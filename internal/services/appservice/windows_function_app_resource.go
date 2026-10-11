@@ -92,7 +92,7 @@ var _ sdk.ResourceWithCustomizeDiff = WindowsFunctionAppResource{}
 
 var _ sdk.ResourceWithStateMigration = WindowsFunctionAppResource{}
 
-func (r WindowsFunctionAppResource) ModelObject() interface{} {
+func (r WindowsFunctionAppResource) ModelObject() any {
 	return &WindowsFunctionAppModel{}
 }
 
@@ -533,7 +533,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -992,7 +992,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

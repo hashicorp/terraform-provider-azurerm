@@ -41,7 +41,7 @@ func dataSourceManagedApi() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceManagedApiRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagedApiRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ManagedApisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -2734,7 +2734,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r WindowsFunctionAppSlotResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2758,7 +2758,6 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
 }
 
-// nolint: unparam
 func (r WindowsFunctionAppSlotResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

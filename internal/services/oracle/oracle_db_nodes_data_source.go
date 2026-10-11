@@ -180,7 +180,7 @@ func (d DBNodesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DBNodesDataSource) ModelObject() interface{} {
+func (d DBNodesDataSource) ModelObject() any {
 	return &DBNodesDataModel{}
 }
 

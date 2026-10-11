@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
-	resources20151101 "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
 )
 
 func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.SubscriptionId) error {
@@ -67,7 +67,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 	//
 	// Clearly this isn't ideal, but this matches the behaviour and API version (2015-11-01) used by the Azure CLI, which should at least allow users to have
 	// a consistent set of data - until the caching issues are resolved.
-	resourcesOpts := resources20151101.DefaultListOperationOptions()
+	resourcesOpts := resources.DefaultListOperationOptions()
 	resourcesOpts.Filter = pointer.To("resourceType eq 'Microsoft.KeyVault/vaults'")
 	resp, err := c.resources20151101Client.ListComplete(ctx, subscriptionId, resourcesOpts)
 	if err != nil {

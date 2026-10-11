@@ -74,7 +74,7 @@ func resourceDataShareDataSetKustoCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +114,7 @@ func resourceDataShareDataSetKustoClusterCreate(d *pluginsdk.ResourceData, meta 
 	return resourceDataShareDataSetKustoClusterRead(d, meta)
 }
 
-func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta in
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataShareDataSetKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

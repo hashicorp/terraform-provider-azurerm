@@ -43,7 +43,7 @@ func (r ManagerDeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 	return validate.NetworkManagerDeploymentID
 }
 
-func (r ManagerDeploymentResource) ModelObject() interface{} {
+func (r ManagerDeploymentResource) ModelObject() any {
 	return &ManagerDeploymentModel{}
 }
 
@@ -353,7 +353,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 		Target:         []string{"Deployed"},
 		NotFoundChecks: 20,
 		Timeout:        d,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			result, state, err := resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId)()
 			if state == "NotFound" {
 				// the deployment might not found after initial commit, https://github.com/Azure/azure-rest-api-specs/issues/27327
@@ -372,7 +372,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 }
 
 func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *networkmanagers.NetworkManagersClient, id *parse.ManagerDeploymentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 			Regions:         &[]string{location.Normalize(id.Location)},
 			DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},

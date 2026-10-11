@@ -132,7 +132,7 @@ func resourceDedicatedHardwareSecurityModule() *pluginsdk.Resource {
 	}
 }
 
-func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -162,13 +162,13 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	parameters := dedicatedhsms.DedicatedHsm{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: dedicatedhsms.DedicatedHsmProperties{
-			NetworkProfile:           expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
-			ManagementNetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("management_network_profile").([]interface{})),
+			NetworkProfile:           expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]any)),
+			ManagementNetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("management_network_profile").([]any)),
 		},
 		Sku: &dedicatedhsms.Sku{
 			Name: &skuName,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("stamp_id"); ok {
@@ -190,7 +190,7 @@ func resourceDedicatedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, me
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,7 +243,7 @@ func resourceDedicatedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +255,7 @@ func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, me
 
 	parameters := dedicatedhsms.DedicatedHsmPatchParameters{}
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.DedicatedHsmUpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -265,7 +265,7 @@ func resourceDedicatedHardwareSecurityModuleUpdate(d *pluginsdk.ResourceData, me
 	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,12 +282,12 @@ func resourceDedicatedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.NetworkProfile {
+func expandDedicatedHsmNetworkProfile(input []any) *dedicatedhsms.NetworkProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := dedicatedhsms.NetworkProfile{
 		Subnet: &dedicatedhsms.ApiEntityReference{
@@ -299,7 +299,7 @@ func expandDedicatedHsmNetworkProfile(input []interface{}) *dedicatedhsms.Networ
 	return &result
 }
 
-func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *[]dedicatedhsms.NetworkInterface {
+func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []any) *[]dedicatedhsms.NetworkInterface {
 	results := make([]dedicatedhsms.NetworkInterface, 0)
 
 	for _, item := range input {
@@ -313,9 +313,9 @@ func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *
 	return &results
 }
 
-func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []interface{} {
+func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var subnetId string
@@ -323,16 +323,16 @@ func flattenDedicatedHsmNetworkProfile(input *dedicatedhsms.NetworkProfile) []in
 		subnetId = *input.Subnet.Id
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"network_interface_private_ip_addresses": flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input.NetworkInterfaces),
 			"subnet_id":                              subnetId,
 		},
 	}
 }
 
-func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]dedicatedhsms.NetworkInterface) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]dedicatedhsms.NetworkInterface) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

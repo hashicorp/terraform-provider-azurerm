@@ -274,7 +274,7 @@ func (r ManagedRedisResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisResource) ModelObject() interface{} {
+func (r ManagedRedisResource) ModelObject() any {
 	return &ManagedRedisResourceModel{}
 }
 
@@ -864,8 +864,8 @@ func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.Cluster
 	}
 }
 
-func dbLen(v interface{}) int {
-	if s, ok := v.([]interface{}); ok {
+func dbLen(v any) int {
+	if s, ok := v.([]any); ok {
 		return len(s)
 	}
 	return 0

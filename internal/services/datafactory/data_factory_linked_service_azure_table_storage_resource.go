@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceAzureTableStorage() *pluginsdk.Resource {
@@ -100,7 +100,7 @@ func resourceDataFactoryLinkedServiceAzureTableStorage() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,7 +140,7 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		tableStorageLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		tableStorageLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -148,11 +148,11 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		tableStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
+		tableStorageLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		tableStorageLinkedService.Annotations = pointer.To(v.([]interface{}))
+		tableStorageLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -168,7 +168,7 @@ func resourceDataFactoryLinkedServiceTableStorageCreateUpdate(d *pluginsdk.Resou
 	return resourceDataFactoryLinkedServiceTableStorageRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceTableStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceTableStorageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +218,7 @@ func resourceDataFactoryLinkedServiceTableStorageRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceTableStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceTableStorageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

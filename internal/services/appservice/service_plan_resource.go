@@ -156,7 +156,7 @@ func (r ServicePlanResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ServicePlanResource) ModelObject() interface{} {
+func (r ServicePlanResource) ModelObject() any {
 	return &ServicePlanModel{}
 }
 

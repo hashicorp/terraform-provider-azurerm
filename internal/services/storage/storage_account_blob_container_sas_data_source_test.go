@@ -274,18 +274,18 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 
 func TestAccDataSourceStorageAccountBlobContainerSas_permissionsString(t *testing.T) {
 	testCases := []struct {
-		input    map[string]interface{}
+		input    map[string]any
 		expected string
 	}{
-		{map[string]interface{}{"read": true}, "r"},
-		{map[string]interface{}{"add": true}, "a"},
-		{map[string]interface{}{"create": true}, "c"},
-		{map[string]interface{}{"write": true}, "w"},
-		{map[string]interface{}{"delete": true}, "d"},
-		{map[string]interface{}{"list": true}, "l"},
-		{map[string]interface{}{"add": true, "write": true, "read": true, "delete": true}, "rawd"},
-		{map[string]interface{}{"add": true, "write": false, "read": true, "delete": false}, "ra"},
-		{map[string]interface{}{"add": true, "write": true, "read": true, "delete": true, "delete_version": true, "list": true, "tags": true, "find": true, "move": true, "execute": true, "ownership": true, "permissions": true, "set_immutability_policy": true}, "rawdxltfmeopi"},
+		{map[string]any{"read": true}, "r"},
+		{map[string]any{"add": true}, "a"},
+		{map[string]any{"create": true}, "c"},
+		{map[string]any{"write": true}, "w"},
+		{map[string]any{"delete": true}, "d"},
+		{map[string]any{"list": true}, "l"},
+		{map[string]any{"add": true, "write": true, "read": true, "delete": true}, "rawd"},
+		{map[string]any{"add": true, "write": false, "read": true, "delete": false}, "ra"},
+		{map[string]any{"add": true, "write": true, "read": true, "delete": true, "delete_version": true, "list": true, "tags": true, "find": true, "move": true, "execute": true, "ownership": true, "permissions": true, "set_immutability_policy": true}, "rawdxltfmeopi"},
 	}
 
 	for _, test := range testCases {

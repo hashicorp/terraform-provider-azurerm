@@ -283,7 +283,7 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r WindowsWebAppResource) ModelObject() interface{} {
+func (r WindowsWebAppResource) ModelObject() any {
 	return &WindowsWebAppModel{}
 }
 

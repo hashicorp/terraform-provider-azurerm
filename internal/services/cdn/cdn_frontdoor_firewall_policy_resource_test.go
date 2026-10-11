@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -819,7 +819,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingSelectorEqualsAnyError(t *tes
 }
 
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

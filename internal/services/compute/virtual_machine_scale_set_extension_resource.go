@@ -131,7 +131,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,16 +155,16 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	var settings *interface{}
+	var settings *any
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		var result interface{}
+		var result any
 		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
 		settings = pointer.To(result)
 	}
 
-	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
+	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]any)
 	provisionAfterExtensions := pluginsdk.ExpandStringSlice(provisionAfterExtensionsRaw)
 
 	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
@@ -176,7 +176,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			AutoUpgradeMinorVersion:       pointer.To(d.Get("auto_upgrade_minor_version").(bool)),
 			EnableAutomaticUpgrade:        pointer.To(d.Get("automatic_upgrade_enabled").(bool)),
 			SuppressFailures:              pointer.To(d.Get("failure_suppression_enabled").(bool)),
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]any)),
 			ProvisionAfterExtensions:      provisionAfterExtensions,
 			Settings:                      settings,
 		},
@@ -186,7 +186,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		var result interface{}
+		var result any
 		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
@@ -202,7 +202,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,9 +227,9 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("protected_settings") {
-		var protectedSettings interface{}
+		var protectedSettings any
 		if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-			var result interface{}
+			var result any
 			if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
 				return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
@@ -240,11 +240,11 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("protected_settings_from_key_vault") {
-		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]interface{}))
+		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]any))
 	}
 
 	if d.HasChange("provision_after_extensions") {
-		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
+		provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]any)
 		props.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsRaw)
 	}
 
@@ -253,9 +253,9 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("settings") {
-		var settings interface{}
+		var settings any
 		if settingsString := d.Get("settings").(string); settingsString != "" {
-			var result interface{}
+			var result any
 			if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
 				return fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
@@ -284,7 +284,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
-func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	vmssClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -350,7 +350,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -42,16 +42,16 @@ const (
 )
 
 type KeyResourceModel struct {
-	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
-	Key                  string                 `tfschema:"key"`
-	ContentType          string                 `tfschema:"content_type"`
-	Etag                 string                 `tfschema:"etag"`
-	Label                string                 `tfschema:"label"`
-	Value                string                 `tfschema:"value"`
-	Locked               bool                   `tfschema:"locked"`
-	Tags                 map[string]interface{} `tfschema:"tags"`
-	Type                 string                 `tfschema:"type"`
-	VaultKeyReference    string                 `tfschema:"vault_key_reference"`
+	ConfigurationStoreId string         `tfschema:"configuration_store_id"`
+	Key                  string         `tfschema:"key"`
+	ContentType          string         `tfschema:"content_type"`
+	Etag                 string         `tfschema:"etag"`
+	Label                string         `tfschema:"label"`
+	Value                string         `tfschema:"value"`
+	Locked               bool           `tfschema:"locked"`
+	Tags                 map[string]any `tfschema:"tags"`
+	Type                 string         `tfschema:"type"`
+	VaultKeyReference    string         `tfschema:"vault_key_reference"`
 }
 
 type VaultKeyReference struct {
@@ -130,7 +130,7 @@ func (k KeyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k KeyResource) ModelObject() interface{} {
+func (k KeyResource) ModelObject() any {
 	return &KeyResourceModel{}
 }
 

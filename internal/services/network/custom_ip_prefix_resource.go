@@ -26,17 +26,17 @@ import (
 )
 
 type CustomIpPrefixModel struct {
-	CIDR                        string                 `tfschema:"cidr"`
-	CommissioningEnabled        bool                   `tfschema:"commissioning_enabled"`
-	InternetAdvertisingDisabled bool                   `tfschema:"internet_advertising_disabled"`
-	Location                    string                 `tfschema:"location"`
-	Name                        string                 `tfschema:"name"`
-	ParentCustomIPPrefixID      string                 `tfschema:"parent_custom_ip_prefix_id"`
-	ROAValidityEndDate          string                 `tfschema:"roa_validity_end_date"`
-	ResourceGroupName           string                 `tfschema:"resource_group_name"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
-	WANValidationSignedMessage  string                 `tfschema:"wan_validation_signed_message"`
-	Zones                       []string               `tfschema:"zones"`
+	CIDR                        string         `tfschema:"cidr"`
+	CommissioningEnabled        bool           `tfschema:"commissioning_enabled"`
+	InternetAdvertisingDisabled bool           `tfschema:"internet_advertising_disabled"`
+	Location                    string         `tfschema:"location"`
+	Name                        string         `tfschema:"name"`
+	ParentCustomIPPrefixID      string         `tfschema:"parent_custom_ip_prefix_id"`
+	ROAValidityEndDate          string         `tfschema:"roa_validity_end_date"`
+	ResourceGroupName           string         `tfschema:"resource_group_name"`
+	Tags                        map[string]any `tfschema:"tags"`
+	WANValidationSignedMessage  string         `tfschema:"wan_validation_signed_message"`
+	Zones                       []string       `tfschema:"zones"`
 }
 
 var _ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
@@ -49,7 +49,7 @@ func (CustomIpPrefixResource) ResourceType() string {
 	return "azurerm_custom_ip_prefix"
 }
 
-func (CustomIpPrefixResource) ModelObject() interface{} {
+func (CustomIpPrefixResource) ModelObject() any {
 	return &CustomIpPrefixModel{}
 }
 
@@ -71,22 +71,10 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"cidr": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				v, ok := i.(string)
-				if !ok {
-					errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-					return
-				}
-
-				if _, _, err := net.ParseCIDR(v); err != nil {
-					errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 network, got %v: %v", k, i, err))
-				}
-
-				return
-			},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsCIDR,
 		},
 
 		"parent_custom_ip_prefix_id": {
@@ -100,7 +88,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
+			ValidateFunc: func(i any, k string) (warnings []string, errors []error) {
 				v, ok := i.(string)
 				if !ok {
 					errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -633,7 +621,7 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 }
 
 func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -651,7 +639,7 @@ func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context
 }
 
 func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

@@ -1140,6 +1140,32 @@ func TestAccApplicationGateway_sslProfile(t *testing.T) {
 	})
 }
 
+func TestAccApplicationGateway_sslProfilePassthroughWithOCSP(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.sslProfileWithClientAuth(data, "Passthrough", "OCSP", false),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`verify_client_certificate_revocation` cannot be set to `OCSP` when `client_authentication_mode` is `Passthrough`"),
+		},
+	})
+}
+
+func TestAccApplicationGateway_sslProfilePassthroughWithIssuerDN(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	r := ApplicationGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.sslProfileWithClientAuth(data, "Passthrough", "", true),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`verify_client_certificate_issuer_dn` cannot be set to `true` when `client_authentication_mode` is `Passthrough`"),
+		},
+	})
+}
+
 func TestAccApplicationGateway_sslProfileWithClientCertificateVerification(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
@@ -2473,7 +2499,6 @@ resource "azurerm_application_gateway" "import" {
 `, r.basic(data))
 }
 
-// nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -8161,6 +8186,15 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (r ApplicationGatewayResource) sslProfile(data acceptance.TestData) string {
+	return r.sslProfileWithClientAuth(data, "Passthrough", "", false)
+}
+
+func (r ApplicationGatewayResource) sslProfileWithClientAuth(data acceptance.TestData, mode, revocation string, verifyIssuerDN bool) string {
+	revocationConfig := ""
+	if revocation != "" {
+		revocationConfig = fmt.Sprintf("verify_client_certificate_revocation = %q", revocation)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -8241,7 +8275,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_profile {
-    name = local.ssl_profile_name
+    name                                = local.ssl_profile_name
+    client_authentication_mode          = "%s"
+    verify_client_certificate_issuer_dn = %t
+    %s
     ssl_policy {
       policy_type = "Predefined"
       policy_name = "AppGwSslPolicy20220101"
@@ -8254,7 +8291,7 @@ resource "azurerm_application_gateway" "test" {
     password = "terraform"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, mode, verifyIssuerDN, revocationConfig)
 }
 
 func (r ApplicationGatewayResource) sslProfileUpdateOne(data acceptance.TestData) string {
@@ -8339,6 +8376,7 @@ resource "azurerm_application_gateway" "test" {
 
   ssl_profile {
     name                                 = local.ssl_profile_name
+    client_authentication_mode           = "Strict"
     verify_client_certificate_issuer_dn  = true
     verify_client_certificate_revocation = "OCSP"
     ssl_policy {
@@ -8446,6 +8484,7 @@ resource "azurerm_application_gateway" "test" {
   ssl_profile {
     name                             = local.ssl_profile_name
     trusted_client_certificate_names = [local.trusted_client_cert_name]
+    client_authentication_mode       = "Passthrough"
     ssl_policy {
       policy_type          = "Custom"
       min_protocol_version = "TLSv1_2"

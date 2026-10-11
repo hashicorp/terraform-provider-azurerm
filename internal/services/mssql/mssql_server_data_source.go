@@ -79,7 +79,7 @@ func dataSourceMsSqlServer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMsSqlServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient

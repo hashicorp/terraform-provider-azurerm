@@ -97,7 +97,7 @@ var (
 	_ sdk.ResourceWithIdentity       = LinuxFunctionAppResource{}
 )
 
-func (r LinuxFunctionAppResource) ModelObject() interface{} {
+func (r LinuxFunctionAppResource) ModelObject() any {
 	return &LinuxFunctionAppModel{}
 }
 

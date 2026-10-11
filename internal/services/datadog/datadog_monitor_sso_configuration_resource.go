@@ -73,7 +73,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.SingleSignOn
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,7 +115,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	return resourceDatadogSingleSignOnConfigurationsRead(d, meta)
 }
 
-func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.SingleSignOn
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.SingleSignOn
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 	return resourceDatadogSingleSignOnConfigurationsRead(d, meta)
 }
 
-func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Datadog.SingleSignOn
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

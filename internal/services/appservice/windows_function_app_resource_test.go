@@ -1489,6 +1489,22 @@ func TestAccWindowsFunctionApp_appStackPowerShellCore74(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_appStackPowerShellCore76(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7.6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Others
 
 func TestAccWindowsFunctionApp_updateServicePlan(t *testing.T) {
@@ -3297,7 +3313,6 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, SkuBasicPlan), data.RandomInteger, version)
 }
 
-// nolint: unparam
 func (r WindowsFunctionAppResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3354,7 +3369,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r WindowsFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3381,6 +3396,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, javaVersion)
 }
 
+//nolint:unparam
 func (r WindowsFunctionAppResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3807,7 +3823,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomString, data.RandomInteger)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r WindowsFunctionAppResource) withIPRestrictions(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

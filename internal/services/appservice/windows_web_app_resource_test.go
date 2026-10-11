@@ -3296,7 +3296,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, true)
 }
 
-//nolint:unparam
 func (r WindowsWebAppResource) java(data acceptance.TestData, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3322,7 +3321,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, javaVersion)
 }
 
-//nolint:unparam
 func (r WindowsWebAppResource) healthCheckUpdate(data acceptance.TestData, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

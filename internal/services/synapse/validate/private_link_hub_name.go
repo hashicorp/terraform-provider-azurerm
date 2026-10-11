@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func PrivateLinkHubName(i interface{}, k string) ([]string, []error) {
+func PrivateLinkHubName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-z0-9]{1,45}$`), "must be between 1 and 45 characters long and can contain only lowercase letters or numbers")(i, k)
 }

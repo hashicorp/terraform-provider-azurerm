@@ -75,7 +75,7 @@ var (
 	_ sdk.ResourceWithStateMigration = WindowsWebAppSlotResource{}
 )
 
-func (r WindowsWebAppSlotResource) ModelObject() interface{} {
+func (r WindowsWebAppSlotResource) ModelObject() any {
 	return &WindowsWebAppSlotModel{}
 }
 

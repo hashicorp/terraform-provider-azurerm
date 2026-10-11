@@ -13,26 +13,26 @@ import (
 func TestCdnEndpointV0ToV1(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "missing id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "",
 			},
 			expected: nil,
 		},
 		{
 			name: "old id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
 		},
 		{
 			name: "new id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
@@ -61,19 +61,19 @@ func TestCdnEndpointV0ToV1(t *testing.T) {
 func TestCdnEndpointV1ToV2(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "legacy-cased id from an import",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.cdn/profiles/profile1/endpoints/endpoint1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),
 		},
 		{
 			name: "canonical id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"),

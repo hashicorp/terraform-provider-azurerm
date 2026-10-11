@@ -54,7 +54,7 @@ func (NetworkSecurityPerimeterResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (NetworkSecurityPerimeterResource) ModelObject() interface{} {
+func (NetworkSecurityPerimeterResource) ModelObject() any {
 	return &NetworkSecurityPerimeterResourceModel{}
 }
 

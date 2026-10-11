@@ -32,7 +32,7 @@ func ScopedRoleAssignmentID(input string) (*ScopedRoleAssignmentId, error) {
 	return &ScopedRoleAssignmentId{ScopedId: *scopedId, TenantId: tenantId}, nil
 }
 
-func ValidateScopedRoleAssignmentID(input interface{}, key string) (warnings []string, errors []error) {
+func ValidateScopedRoleAssignmentID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -630,13 +630,13 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"time_taken": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"count": {
@@ -656,13 +656,13 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 							"time_taken": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"interval": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: appServiceValidate.TimeInterval,
+								ValidateFunc: validate.TimeInterval,
 							},
 
 							"count": {

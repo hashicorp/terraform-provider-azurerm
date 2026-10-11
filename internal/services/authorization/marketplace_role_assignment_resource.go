@@ -47,7 +47,7 @@ type RoleAssignmentModel struct {
 
 type RoleAssignmentMarketplaceResource struct{}
 
-func (r RoleAssignmentMarketplaceResource) ModelObject() interface{} {
+func (r RoleAssignmentMarketplaceResource) ModelObject() any {
 	return &RoleAssignmentModel{}
 }
 

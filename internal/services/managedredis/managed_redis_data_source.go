@@ -212,7 +212,7 @@ func (r ManagedRedisDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisDataSource) ModelObject() interface{} {
+func (r ManagedRedisDataSource) ModelObject() any {
 	return &ManagedRedisDataSourceModel{}
 }
 
