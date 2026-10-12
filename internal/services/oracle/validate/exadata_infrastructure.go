@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
