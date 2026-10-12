@@ -53,14 +53,14 @@ func TestAccImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config: r.setupManagedDisksForHyperVGeneration(data, "V2"),
+			Config: r.setupManagedDisksGen2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_linux_virtual_machine.testsource"),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.standaloneImageProvision(data, "V2"),
+			Config: r.standaloneImageProvisionGen2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -273,23 +273,12 @@ func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *c
 }
 
 func (r ImageResource) setupManagedDisks(data acceptance.TestData) string {
-	return r.setupManagedDisksForHyperVGeneration(data, "")
-}
-
-func (r ImageResource) setupManagedDisksForHyperVGeneration(data acceptance.TestData, hyperVGen string) string {
-	sku := "22_04-lts"
-	size := "Standard_D1_v2"
-	if hyperVGen == "V2" {
-		sku = "22_04-lts-gen2"
-		size = "Standard_B1ls"
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%[1]s
+%s
 
 resource "azurerm_network_interface" "testsource" {
   name                = "acctnicsource-${local.number}"
@@ -309,12 +298,12 @@ resource "azurerm_linux_virtual_machine" "testsource" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.testsource.id]
-  size                  = "%[3]s"
+  size                  = "Standard_D1_v2"
 
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "%[2]s"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -339,7 +328,67 @@ data "azurerm_managed_disk" "testsource" {
   name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, r.template(data), sku, size)
+`, r.template(data))
+}
+
+// setupManagedDisksGen2 creates a Generation 2 source VM, as required for `hyper_v_generation = "V2"` images
+func (r ImageResource) setupManagedDisksGen2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_network_interface" "testsource" {
+  name                = "acctnicsource-${local.number}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfigurationsource"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "testsource" {
+  name                  = "testsource"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.testsource.id]
+  size                  = "Standard_B1ls"
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+
+  os_disk {
+    name                 = "myosdisk1${local.number}"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  computer_name                   = "mdimagetestsource"
+  admin_username                  = local.admin_username
+  admin_password                  = local.admin_password
+  disable_password_authentication = false
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+
+data "azurerm_managed_disk" "testsource" {
+  name                = azurerm_linux_virtual_machine.testsource.os_disk.0.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data))
 }
 
 func (r ImageResource) setupManagedDisksWithKV(data acceptance.TestData) string {
@@ -434,7 +483,7 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
     storage_type    = "Standard_LRS"
   }`
 
-	template := r.setupManagedDisksForHyperVGeneration(data, hyperVGen)
+	template := r.setupManagedDisks(data)
 
 	return fmt.Sprintf(`
 %[1]s
@@ -454,6 +503,33 @@ resource "azurerm_image" "test" {
   }
 }
 `, template, hyperVGenAtt, osDisk)
+}
+
+func (r ImageResource) standaloneImageProvisionGen2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_image" "test" {
+  name                = "accteste"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  hyper_v_generation  = "V2"
+
+  os_disk {
+    os_type         = "Linux"
+    os_state        = "Generalized"
+    managed_disk_id = data.azurerm_managed_disk.testsource.id
+    size_gb         = 30
+    caching         = "None"
+    storage_type    = "Standard_LRS"
+  }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+`, r.setupManagedDisksGen2(data))
 }
 
 func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) string {
