@@ -82,6 +82,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		storageContainersDataSource{},
 		storageTableDataSource{},
 		storageTableEntitiesDataSource{},
+		AccountStaticWebsiteDataSource{},
 	}
 }
 
