@@ -215,11 +215,13 @@ func resourceEventHub() *pluginsdk.Resource {
 				return fmt.Errorf("`status` cannot be set to `%s` when creating an Event Hub, it can only be set on an existing Event Hub", string(eventhubs.EntityStatusSendDisabled))
 			}
 
-			capture := d.GetRawConfig().AsValueMap()["capture_description"]
-			if !capture.IsNull() && len(capture.AsValueSlice()) > 0 {
-				destination := capture.AsValueSlice()[0].AsValueMap()["destination"].AsValueSlice()[0].AsValueMap()
-				if !destination["storage_authentication_type"].IsNull() && destination["storage_authentication_type"].AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destination["storage_authentication_id"].IsNull() {
-					return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+			if capture := d.GetRawConfig().AsValueMap()["capture_description"]; capture.IsKnown() && !capture.IsNull() && capture.LengthInt() > 0 {
+				if destination := capture.AsValueSlice()[0].AsValueMap()["destination"]; destination.IsKnown() && !destination.IsNull() && destination.LengthInt() > 0 {
+					destinationMap := destination.AsValueSlice()[0].AsValueMap()
+					authType := destinationMap["storage_authentication_type"]
+					if authType.IsKnown() && !authType.IsNull() && authType.AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destinationMap["storage_authentication_id"].IsNull() {
+						return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+					}
 				}
 			}
 			return nil

@@ -14,9 +14,9 @@ Use this data source to access information about an existing Kubernetes Cluster 
 
 ```hcl
 data "azurerm_kubernetes_cluster_node_pool" "example" {
-  name                    = "existing"
-  kubernetes_cluster_name = "existing-cluster"
-  resource_group_name     = "existing-resource-group"
+  name                    = "example"
+  kubernetes_cluster_name = "example-cluster"
+  resource_group_name     = "example-resources"
 }
 
 output "id" {
