@@ -173,7 +173,7 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. Mutually exclusive with `import`. Changing this forces a new resource to be created. Defaults to `Default`.
 
-* `import` - (Optional) A `import` block as documented below. Mutually exclusive with `create_mode`.
+* `import` - (Optional) A `import` block as defined below. Mutually exclusive with `create_mode`.
 
 * `creation_source_database_id` - (Optional) The ID of the source database from which to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
 
@@ -255,7 +255,7 @@ The following arguments are supported:
 
 ~> **Note:** When `free_limit_enabled` is `true` and `free_limit_exhaustion_behavior` is `AutoPause`, long-term backup retention is not available and point-in-time restore (PITR) retention is limited to 7 days. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
 
-* `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
+* `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
