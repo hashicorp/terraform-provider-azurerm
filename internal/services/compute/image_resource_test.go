@@ -37,7 +37,7 @@ func TestAccImage_standaloneImage(t *testing.T) {
 			),
 		},
 		{
-			Config: r.standaloneImageProvision(data, ""),
+			Config: r.standaloneImageProvision(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -83,7 +83,7 @@ func TestAccImage_requiresImport(t *testing.T) {
 			),
 		},
 		{
-			Config: r.standaloneImageProvision(data, ""),
+			Config: r.standaloneImageProvision(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -467,13 +467,15 @@ resource "azurerm_managed_disk" "test" {
 `, template)
 }
 
-func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperVGen string) string {
-	hyperVGenAtt := ""
-	if hyperVGen != "" {
-		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
-	}
+func (r ImageResource) standaloneImageProvision(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
-	osDisk := `
+resource "azurerm_image" "test" {
+  name                = "accteste"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
   os_disk {
     os_type         = "Linux"
     os_state        = "Generalized"
@@ -481,28 +483,14 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
     size_gb         = 30
     caching         = "None"
     storage_type    = "Standard_LRS"
-  }`
-
-	template := r.setupManagedDisks(data)
-
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_image" "test" {
-  name                = "accteste"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-%[2]s
-
-%[3]s
+  }
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template, hyperVGenAtt, osDisk)
+`, r.setupManagedDisks(data))
 }
 
 func (r ImageResource) standaloneImageProvisionGen2(data acceptance.TestData) string {
@@ -533,7 +521,7 @@ resource "azurerm_image" "test" {
 }
 
 func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) string {
-	template := r.standaloneImageProvision(data, "")
+	template := r.standaloneImageProvision(data)
 
 	osDisk := `
   os_disk {

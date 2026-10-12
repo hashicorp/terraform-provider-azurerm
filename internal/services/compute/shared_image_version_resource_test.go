@@ -337,7 +337,7 @@ func (SharedImageVersionResource) setupGen2(data acceptance.TestData) string {
 }
 
 func (SharedImageVersionResource) provision(data acceptance.TestData) string {
-	template := ImageResource{}.standaloneImageProvision(data, "")
+	template := ImageResource{}.standaloneImageProvision(data)
 	return fmt.Sprintf(`
 %s
 
