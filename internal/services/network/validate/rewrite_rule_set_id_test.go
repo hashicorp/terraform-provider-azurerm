@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestRewriteRuleSetID(t *testing.T) {
+func TestValidateRewriteRuleSetID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

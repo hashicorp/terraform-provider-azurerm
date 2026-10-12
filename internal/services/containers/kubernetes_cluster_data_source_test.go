@@ -346,21 +346,6 @@ func TestAccDataSourceKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_addOnProfileRouting(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.addOnProfileRoutingConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("http_application_routing_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("http_application_routing_zone_name").Exists(),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceKubernetesCluster_addOnProfileIngressApplicationGatewayAppGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -851,17 +836,6 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileAzurePolicyConfig(data, true))
-}
-
-func (KubernetesClusterDataSource) addOnProfileRoutingConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_cluster" "test" {
-  name                = azurerm_kubernetes_cluster.test.name
-  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
-}
-`, KubernetesClusterResource{}.addonProfileRoutingConfig(data, true))
 }
 
 func (KubernetesClusterDataSource) addOnProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {

@@ -102,7 +102,7 @@ func TestISO8601Duration(t *testing.T) {
 		_, errors := ISO8601Duration(tc.Value, "example")
 
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected ISO8601Duration to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+			t.Fatalf("Expected ISO8601Duration to trigger '%d' errors for '%s' - got '%d'\nErrors: %+v", tc.Errors, tc.Value, len(errors), errors)
 		}
 	}
 }
