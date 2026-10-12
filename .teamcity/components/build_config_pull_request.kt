@@ -24,6 +24,8 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTestsForPullRequest(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
@@ -34,7 +36,6 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
 
             features {
                 Golang()
-                BuildCacheFeature()
             }
 
             params {
@@ -42,6 +43,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()
+                TerraformProviderMirror()
                 ReadOnlySettings()
                 GoCache()
                 BuildStartTime()

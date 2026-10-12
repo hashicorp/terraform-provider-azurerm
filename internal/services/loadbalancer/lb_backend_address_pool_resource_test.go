@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadBalancerBackendAddressPool struct{}
+type LbBackendAddressPoolResource struct{}
 
 func TestAccBackendAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccBackendAddressPool_basic(t *testing.T) {
 
 func TestAccBackendAddressPool_synchronousModeManual(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccBackendAddressPool_synchronousModeManual(t *testing.T) {
 
 func TestAccBackendAddressPool_synchronousModeAutomatic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +66,7 @@ func TestAccBackendAddressPool_synchronousModeAutomatic(t *testing.T) {
 
 func TestAccBackendAddressPool_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -78,7 +78,7 @@ func TestAccBackendAddressPool_disappears(t *testing.T) {
 
 func TestAccBackendAddressPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,7 +93,7 @@ func TestAccBackendAddressPool_requiresImport(t *testing.T) {
 
 func TestAccBackendAddressPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ func TestAccBackendAddressPool_update(t *testing.T) {
 
 func TestAccBackendAddressPool_GatewaySkuBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -137,7 +137,7 @@ func TestAccBackendAddressPool_GatewaySkuBasic(t *testing.T) {
 
 func TestAccBackendAddressPool_GatewaySkuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -164,7 +164,7 @@ func TestAccBackendAddressPool_GatewaySkuUpdate(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerBackendAddressPool) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbBackendAddressPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (r LoadBalancerBackendAddressPool) Exists(ctx context.Context, client *clie
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r LbBackendAddressPoolResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -236,7 +236,7 @@ func (r LoadBalancerBackendAddressPool) Destroy(ctx context.Context, client *cli
 	return pointer.To(true), nil
 }
 
-func (r LoadBalancerBackendAddressPool) basic(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -252,7 +252,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, template)
 }
 
-func (r LoadBalancerBackendAddressPool) requiresImport(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -264,7 +264,7 @@ resource "azurerm_lb_backend_address_pool" "import" {
 `, template)
 }
 
-func (r LoadBalancerBackendAddressPool) update(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -281,7 +281,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, template)
 }
 
-func (LoadBalancerBackendAddressPool) template(data acceptance.TestData) string {
+func (LbBackendAddressPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   number   = %d
@@ -322,7 +322,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerBackendAddressPool) gatewaySkuBasic(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) gatewaySkuBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -339,7 +339,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, r.templateGateway(data))
 }
 
-func (r LoadBalancerBackendAddressPool) gatewaySkuComplete(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) gatewaySkuComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -363,7 +363,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 `, r.templateGateway(data))
 }
 
-func (LoadBalancerBackendAddressPool) templateGateway(data acceptance.TestData) string {
+func (LbBackendAddressPoolResource) templateGateway(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
   number   = %d
@@ -407,7 +407,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (LoadBalancerBackendAddressPool) templateSyncMode(data acceptance.TestData) string {
+func (LbBackendAddressPoolResource) templateSyncMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -446,7 +446,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r LoadBalancerBackendAddressPool) syncModeManual(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) syncModeManual(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
@@ -522,7 +522,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, r.templateSyncMode(data), data.RandomInteger)
 }
 
-func (r LoadBalancerBackendAddressPool) syncModeAutomatic(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) syncModeAutomatic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %[1]s
