@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,11 +34,11 @@ var (
 )
 
 func (r NextGenerationFirewallMetricsResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewallresources.ValidateFirewallID
+	return metricsobjectfirewallresources.ValidateFirewallID
 }
 
 func (r NextGenerationFirewallMetricsResource) Identity() resourceids.ResourceId {
-	return &firewallresources.FirewallId{}
+	return &metricsobjectfirewallresources.FirewallId{}
 }
 
 func (r NextGenerationFirewallMetricsResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
@@ -56,7 +55,7 @@ func (r NextGenerationFirewallMetricsResource) ModelObject() any {
 
 func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"firewall_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallresources.FirewallId{}),
+		"firewall_id": commonschema.ResourceIDReferenceRequiredForceNew(&metricsobjectfirewallresources.FirewallId{}),
 
 		"application_insights_connection_string": {
 			Type:         pluginsdk.TypeString,
@@ -88,20 +87,18 @@ func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			firewallId, err := firewallresources.ParseFirewallID(model.FirewallID)
+			id, err := metricsobjectfirewallresources.ParseFirewallID(model.FirewallID)
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
-
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
+				existing, err := client.MetricsObjectFirewallGet(ctx, *id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", metricsFirewallId, err)
+					return fmt.Errorf("checking for presence of existing Metrics Object for %s: %+v", id, err)
 				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), firewallId)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
@@ -112,12 +109,12 @@ func (r NextGenerationFirewallMetricsResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.MetricsObjectFirewallCreateOrUpdateCallbackThenPoll(ctx, metricsFirewallId, input, metadata.SetIDAndIdentityWithTypeCallback(firewallId, pluginsdk.ResourceTypeForIdentityVirtual)); err != nil {
-				return fmt.Errorf("creating %s: %+v", metricsFirewallId, err)
+			if err := client.MetricsObjectFirewallCreateOrUpdateCallbackThenPoll(ctx, *id, input, metadata.SetIDAndIdentityWithTypeCallback(id, pluginsdk.ResourceTypeForIdentityVirtual)); err != nil {
+				return fmt.Errorf("creating Metrics Object for %s: %+v", id, err)
 			}
 
-			metadata.SetID(firewallId)
-			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, firewallId, pluginsdk.ResourceTypeForIdentityVirtual)
+			metadata.SetID(id)
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual)
 		},
 	}
 }
@@ -128,22 +125,20 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.MetricsObjectFirewallResources
 
-			firewallId, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := metricsobjectfirewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
-
-			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
+			existing, err := client.MetricsObjectFirewallGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return metadata.MarkAsGone(firewallId)
+					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("retrieving Metrics Object for %s: %+v", id, err)
 			}
 
-			return r.flatten(metadata, firewallId, existing.Model)
+			return r.flatten(metadata, id, existing.Model)
 		},
 	}
 }
@@ -159,20 +154,18 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			firewallId, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := metricsobjectfirewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
-
-			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
+			existing, err := client.MetricsObjectFirewallGet(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
+				return fmt.Errorf("retrieving Metrics Object for %s: %+v", id, err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", metricsFirewallId)
+				return fmt.Errorf("retrieving Metrics Object for %s: `model` was nil", id)
 			}
 
 			payload := *existing.Model
@@ -184,8 +177,8 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 				payload.Properties.ApplicationInsightsResourceId = model.ApplicationInsightsID
 			}
 
-			if err := client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, metricsFirewallId, payload); err != nil {
-				return fmt.Errorf("updating %s: %+v", metricsFirewallId, err)
+			if err := client.MetricsObjectFirewallCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating Metrics Object for %s: %+v", id, err)
 			}
 
 			return nil
@@ -199,15 +192,13 @@ func (r NextGenerationFirewallMetricsResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.MetricsObjectFirewallResources
 
-			firewallId, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := metricsobjectfirewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
-
-			if err := client.MetricsObjectFirewallDeleteThenPoll(ctx, metricsFirewallId); err != nil {
-				return fmt.Errorf("deleting %s: %+v", metricsFirewallId, err)
+			if err := client.MetricsObjectFirewallDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting Metrics Object for %s: %+v", id, err)
 			}
 
 			return nil
@@ -215,7 +206,7 @@ func (r NextGenerationFirewallMetricsResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r NextGenerationFirewallMetricsResource) flatten(metadata sdk.ResourceMetaData, id *firewallresources.FirewallId, model *metricsobjectfirewallresources.MetricsObjectFirewallResource) error {
+func (r NextGenerationFirewallMetricsResource) flatten(metadata sdk.ResourceMetaData, id *metricsobjectfirewallresources.FirewallId, model *metricsobjectfirewallresources.MetricsObjectFirewallResource) error {
 	state := NextGenerationFirewallMetricsModel{
 		FirewallID: id.ID(),
 	}

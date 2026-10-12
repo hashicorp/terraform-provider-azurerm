@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
@@ -42,7 +41,7 @@ func (NextGenerationFirewallMetricsListResource) ListResourceConfigSchema(_ cont
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
-						Func: firewallresources.ValidateFirewallID,
+						Func: metricsobjectfirewallresources.ValidateFirewallID,
 					},
 				},
 			},
@@ -62,15 +61,13 @@ func (NextGenerationFirewallMetricsListResource) List(ctx context.Context, reque
 
 	r := NextGenerationFirewallMetricsResource{}
 
-	firewallId, err := firewallresources.ParseFirewallID(data.FirewallId.ValueString())
+	firewallId, err := metricsobjectfirewallresources.ParseFirewallID(data.FirewallId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, "parsing Palo Alto Next Generation Firewall ID", err)
 		return
 	}
 
-	metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(firewallId.SubscriptionId, firewallId.ResourceGroupName, firewallId.FirewallName)
-
-	resp, err := client.MetricsObjectFirewallListByFirewallsComplete(ctx, metricsFirewallId)
+	resp, err := client.MetricsObjectFirewallListByFirewallsComplete(ctx, *firewallId)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
 		return
