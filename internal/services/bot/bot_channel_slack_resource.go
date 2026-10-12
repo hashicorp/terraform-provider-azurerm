@@ -96,7 +96,7 @@ func resourceBotChannelSlack() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,7 +145,7 @@ func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelSlackRead(d, meta)
 }
 
-func resourceBotChannelSlackRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +182,7 @@ func resourceBotChannelSlackRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceBotChannelSlackRead(d, meta)
 }
 
-func resourceBotChannelSlackDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

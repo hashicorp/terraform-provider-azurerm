@@ -94,7 +94,7 @@ func dataSourceCosmosDbRestorableDatabaseAccounts() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RestorablesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -127,8 +127,8 @@ func dataSourceCosmosDbRestorableDatabaseAccountsRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDatabaseAccountGetResult, accountName string) []interface{} {
-	result := make([]interface{}, 0)
+func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDatabaseAccountGetResult, accountName string) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
@@ -136,7 +136,7 @@ func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDa
 
 	for _, item := range *input {
 		if props := item.Properties; props != nil && pointer.From(props.AccountName) == accountName {
-			result = append(result, map[string]interface{}{
+			result = append(result, map[string]any{
 				"id":                   pointer.From(item.Id),
 				"api_type":             pointer.From(props.ApiType),
 				"creation_time":        pointer.From(props.CreationTime),
@@ -149,15 +149,15 @@ func flattenCosmosDbRestorableDatabaseAccounts(input *[]restorables.RestorableDa
 	return result
 }
 
-func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]restorables.RestorableLocationResource) []interface{} {
-	result := make([]interface{}, 0)
+func flattenCosmosDbRestorableDatabaseAccountsRestorableLocations(input *[]restorables.RestorableLocationResource) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
 	for _, item := range *input {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"creation_time":                         pointer.From(item.CreationTime),
 			"deletion_time":                         pointer.From(item.DeletionTime),
 			"location":                              pointer.From(item.LocationName),

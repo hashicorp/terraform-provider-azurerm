@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,6 +84,8 @@ func TestAccNetworkWatcher_sequential(t *testing.T) {
 			"tags":                    testAccNetworkWatcherFlowLog_tags,
 			"cannotCreateNewWithNSG":  testAccNetworkWatcherFlowLog_cannotCreateNewWithNSG,
 			"update":                  testAccNetworkWatcherFlowLog_update,
+			"list":                    testAccNetworkWatcherFlowLog_listByNetworkWatcherID,
+			"identity":                testAccNetworkWatcherFlowLog_resourceIdentity,
 		},
 	}
 

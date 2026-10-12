@@ -647,7 +647,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 		}
 
 		resultActions := AutoHealActionWindows{
-			ActionType:         string(pointer.From(actions.ActionType)),
+			ActionType:         pointer.FromEnum(actions.ActionType),
 			CustomAction:       customActions,
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}

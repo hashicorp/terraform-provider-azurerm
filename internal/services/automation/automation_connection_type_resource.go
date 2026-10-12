@@ -93,7 +93,7 @@ func (m AutomationConnectionTypeResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m AutomationConnectionTypeResource) ModelObject() interface{} {
+func (m AutomationConnectionTypeResource) ModelObject() any {
 	return &AutomationConnectionTypeModel{}
 }
 

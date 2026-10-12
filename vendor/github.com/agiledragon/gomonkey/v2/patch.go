@@ -10,10 +10,12 @@ import (
 )
 
 type Patches struct {
-	originals    map[uintptr][]byte
-	targets      map[uintptr]uintptr
-	values       map[reflect.Value]reflect.Value
-	valueHolders map[reflect.Value]reflect.Value
+	originals                map[uintptr][]byte
+	targets                  map[uintptr]uintptr
+	privateTargets           map[uintptr][]byte
+	privateTargetTrampolines map[uintptr]uintptr
+	values                   map[reflect.Value]reflect.Value
+	valueHolders             map[reflect.Value]reflect.Value
 }
 
 type Params []interface{}
@@ -71,8 +73,14 @@ func ApplyFuncVarReturn(target interface{}, output ...interface{}) *Patches {
 }
 
 func create() *Patches {
-	return &Patches{originals: make(map[uintptr][]byte), targets: map[uintptr]uintptr{},
-		values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
+	return &Patches{
+		originals:                make(map[uintptr][]byte),
+		targets:                  make(map[uintptr]uintptr),
+		privateTargets:           make(map[uintptr][]byte),
+		privateTargetTrampolines: make(map[uintptr]uintptr),
+		values:                   make(map[reflect.Value]reflect.Value),
+		valueHolders:             make(map[reflect.Value]reflect.Value),
+	}
 }
 
 func NewPatches() *Patches {
@@ -86,6 +94,9 @@ func (this *Patches) Origin(fn func()) {
 	fn()
 	for target, targetPtr := range this.targets {
 		code := buildJmpDirective(targetPtr)
+		modifyBinary(target, code)
+	}
+	for target, code := range this.privateTargets {
 		modifyBinary(target, code)
 	}
 }
@@ -218,6 +229,12 @@ func (this *Patches) Reset() {
 	for target, variable := range this.values {
 		target.Elem().Set(variable)
 	}
+
+	for target, trampoline := range this.privateTargetTrampolines {
+		releasePrivateMethodTrampoline(trampoline)
+		delete(this.privateTargetTrampolines, target)
+		delete(this.privateTargets, target)
+	}
 }
 
 func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
@@ -237,11 +254,16 @@ func (this *Patches) ApplyCoreOnlyForPrivateMethod(target unsafe.Pointer, double
 		panic("double is not a func")
 	}
 	assTarget := *(*uintptr)(target)
-	original := replace(assTarget, uintptr(getPointer(double)))
+	code, trampoline := buildPrivateMethodDirective(assTarget, uintptr(getPointer(double)),
+		this.privateTargetTrampolines[assTarget])
+	original := replaceByCode(assTarget, code)
 	if _, ok := this.originals[assTarget]; !ok {
 		this.originals[assTarget] = original
 	}
-	this.targets[assTarget] = uintptr(getPointer(double))
+	this.privateTargets[assTarget] = code
+	if trampoline != 0 {
+		this.privateTargetTrampolines[assTarget] = trampoline
+	}
 	this.valueHolders[double] = double
 	return this
 }
@@ -288,7 +310,10 @@ func (this *Patches) check(target, double reflect.Value) {
 }
 
 func replace(target, double uintptr) []byte {
-	code := buildJmpDirective(double)
+	return replaceByCode(target, buildJmpDirective(double))
+}
+
+func replaceByCode(target uintptr, code []byte) []byte {
 	bytes := entryAddress(target, len(code))
 	original := make([]byte, len(bytes))
 	copy(original, bytes)

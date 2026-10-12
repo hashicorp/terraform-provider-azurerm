@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func IotSecuritySolutionName(input interface{}, key string) ([]string, []error) {
+func IotSecuritySolutionName(input any, key string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^([-a-zA-Z0-9_.])+$`), "can only contain letter, digit, '-', '.' or '_'")(input, key)
 }

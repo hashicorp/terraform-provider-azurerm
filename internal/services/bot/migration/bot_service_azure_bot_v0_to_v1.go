@@ -136,7 +136,7 @@ func (BotServiceAzureBotV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (BotServiceAzureBotV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// IDs imported while this resource parsed them with the legacy resourceids.ParseAzureResourceID
 		// can contain non-canonically cased static segments (e.g. `resourcegroups`, `microsoft.botservice`),
 		// which the case-sensitive SDK parser rejects - normalise them to the canonical casing

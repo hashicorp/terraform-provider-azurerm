@@ -107,7 +107,7 @@ func (r ContainerRegistryTokenPasswordResource) ResourceType() string {
 	return "azurerm_container_registry_token_password"
 }
 
-func (r ContainerRegistryTokenPasswordResource) ModelObject() interface{} {
+func (r ContainerRegistryTokenPasswordResource) ModelObject() any {
 	return &ContainerRegistryTokenPasswordModel{}
 }
 

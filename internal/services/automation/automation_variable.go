@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func ParseAzureAutomationVariableValue(resource string, input *string) (interface{}, error) {
+func ParseAzureAutomationVariableValue(resource string, input *string) (any, error) {
 	if input == nil {
 		if resource != "azurerm_automation_variable_null" {
 			return nil, fmt.Errorf("expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
@@ -32,7 +32,7 @@ func ParseAzureAutomationVariableValue(resource string, input *string) (interfac
 		return nil, nil
 	}
 
-	var value interface{}
+	var value any
 	var err error
 	actualResource := "Unknown"
 	datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
@@ -153,7 +153,7 @@ func formatAutomationVariableValue(d *pluginsdk.ResourceData, varType string) (s
 	}
 }
 
-func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta any, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -201,7 +201,7 @@ func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceAutomationVariableRead(d, meta, varType)
 }
 
-func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta any, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +259,7 @@ func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceAutomationVariableRead(d, meta, varType)
 }
 
-func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -307,7 +307,7 @@ func resourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{},
 	return nil
 }
 
-func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta any, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -354,7 +354,7 @@ func dataSourceAutomationVariableRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+func resourceAutomationVariableDelete(d *pluginsdk.ResourceData, meta any, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

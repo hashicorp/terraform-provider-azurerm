@@ -24,7 +24,7 @@ func (RegistryV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RegistryV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		rawState["sku"] = "Basic"
 		return rawState, nil
 	}
@@ -37,7 +37,7 @@ func (RegistryV1ToV2) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// Basic's been renamed Classic to allow for "ManagedBasic" ¯\_(ツ)_/¯
 		rawState["sku"] = "Classic"
 
@@ -48,7 +48,7 @@ func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			defer cancel()
 
 			raw := v.(*pluginsdk.Set).List()
-			rawVals := raw[0].(map[string]interface{})
+			rawVals := raw[0].(map[string]any)
 			storageAccountName := rawVals["name"].(string)
 
 			account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, storageAccountName)

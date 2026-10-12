@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSharedAccessPolicyID(t *testing.T) {
+func TestValidateSharedAccessPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

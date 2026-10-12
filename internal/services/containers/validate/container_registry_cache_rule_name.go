@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ContainerRegistryCacheRuleName(v interface{}, k string) ([]string, []error) {
+func ContainerRegistryCacheRuleName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$`), "alpha numeric characters optionally separated by '-' only are allowed"),
 		validation.StringLenBetween(5, 49),

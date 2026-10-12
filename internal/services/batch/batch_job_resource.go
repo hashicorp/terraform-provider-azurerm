@@ -83,7 +83,7 @@ func (r BatchJobResource) ResourceType() string {
 	return "azurerm_batch_job"
 }
 
-func (r BatchJobResource) ModelObject() interface{} {
+func (r BatchJobResource) ModelObject() any {
 	return &BatchJobModel{}
 }
 

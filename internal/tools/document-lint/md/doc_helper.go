@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/util"
 )
 
@@ -70,8 +70,16 @@ func fileResource(path string) string {
 }
 
 func docDir() string {
-	file, _ := util.FuncFileLine(helpers.ExpandStringSlice)
-	return path.Join(path.Dir(path.Dir(file)), "website", "docs")
+	// FuncFileLine gives the source file that defines the function, and the docs live at the
+	// repository root. Walk up to the directory holding go.mod rather than counting parents,
+	// so this keeps working if the function is ever moved to a different package.
+	file, _ := util.FuncFileLine(pluginsdk.ExpandStringSlice)
+	for dir := path.Dir(file); dir != "/" && dir != "."; dir = path.Dir(dir) {
+		if _, err := os.Stat(path.Join(dir, "go.mod")); err == nil {
+			return path.Join(dir, "website", "docs")
+		}
+	}
+	return ""
 }
 
 func ResourceDir() string {

@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SslProfileId{}
 
-func TestSslProfileIDFormatter(t *testing.T) {
+func TestParseSslProfileIDFormatter(t *testing.T) {
 	actual := NewSslProfileID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "sslprofile1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/sslProfiles/sslprofile1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSslProfileIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSslProfileID(t *testing.T) {
+func TestParseSslProfileID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestSslProfileID(t *testing.T) {
 	}
 }
 
-func TestSslProfileIDInsensitively(t *testing.T) {
+func TestParseSslProfileIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
