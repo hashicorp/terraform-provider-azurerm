@@ -125,7 +125,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-elastic-serverless-%[1]d"
-  location = "eastus2euap"
+  location = "eastus"
 }
 
 resource "azurerm_elastic_cloud_serverless" "test" {
