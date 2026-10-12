@@ -664,11 +664,11 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineSizeProperties(input []interface{}) *virtualmachines.VMSizeProperties {
+func expandVirtualMachineSizeProperties(input []any) *virtualmachines.VMSizeProperties {
 	if len(input) == 0 {
 		return nil
 	}
-	sizeProps := input[0].(map[string]interface{})
+	sizeProps := input[0].(map[string]any)
 
 	out := &virtualmachines.VMSizeProperties{}
 	if v := sizeProps["vcpu_available"].(int); v > 0 {
@@ -680,13 +680,13 @@ func expandVirtualMachineSizeProperties(input []interface{}) *virtualmachines.VM
 	return out
 }
 
-func flattenVirtualMachineSizeProperties(input *virtualmachines.VMSizeProperties) []interface{} {
+func flattenVirtualMachineSizeProperties(input *virtualmachines.VMSizeProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"vcpu_available": pointer.From(input.VCPUsAvailable),
 			"vcpu_per_core":  pointer.From(input.VCPUsPerCore),
 		},

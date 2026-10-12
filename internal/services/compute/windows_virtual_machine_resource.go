@@ -841,7 +841,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 	}
 
 	if v, ok := d.GetOk("size_properties"); ok {
-		params.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(v.([]interface{}))
+		params.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(v.([]any))
 	}
 
 	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
@@ -1591,7 +1591,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 		if update.Properties.HardwareProfile == nil {
 			update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{}
 		}
-		update.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(d.Get("size_properties").([]interface{}))
+		update.Properties.HardwareProfile.VMSizeProperties = expandVirtualMachineSizeProperties(d.Get("size_properties").([]any))
 	}
 
 	if d.HasChange("tags") {
