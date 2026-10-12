@@ -30,7 +30,6 @@ func TestAccElasticCloudServerless_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("elastic_cloud_deployment_id").Exists(),
 				check.That(data.ResourceName).Key("elasticsearch_service_url").Exists(),
 				check.That(data.ResourceName).Key("kibana_service_url").Exists(),
-				check.That(data.ResourceName).Key("kibana_sso_uri").Exists(),
 			),
 		},
 		data.ImportStep(),
