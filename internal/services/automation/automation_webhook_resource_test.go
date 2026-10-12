@@ -19,6 +19,16 @@ import (
 
 type AutomationWebhookResource struct{}
 
+func TestAccAutomationWebhook_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
+	r := AutomationWebhookResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationWebhook_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
 	r := AutomationWebhookResource{}

@@ -780,7 +780,7 @@ func expandVpnServerConfigurationRadius(input []any) *vpnServerConfigurationRadi
 }
 
 func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, d *pluginsdk.ResourceData) []any {
-	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
+	if input == nil || (pointer.From(input.RadiusServerAddress) == "" && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []any{}
 	}
 
