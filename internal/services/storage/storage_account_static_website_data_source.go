@@ -54,6 +54,7 @@ func (d AccountStaticWebsiteDataSource) ModelObject() any {
 func (d AccountStaticWebsiteDataSource) ResourceType() string {
 	return "azurerm_storage_account_static_website"
 }
+
 func (d AccountStaticWebsiteDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,

@@ -19,7 +19,7 @@ data "azurerm_storage_account_static_website" "example" {
 }
 
 output "id" {
-  value =  data.azurerm_storage_account_static_website.example.id
+  value = data.azurerm_storage_account_static_website.example.id
 
 }
 ```
