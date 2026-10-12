@@ -410,6 +410,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/doma
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/senderusernames
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservation
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images
@@ -484,9 +485,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/s
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/trustedaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/sqldedicatedgateway
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/scheduledactionoperationgroup
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup
 github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels
@@ -1641,7 +1642,7 @@ golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.59.0
+# golang.org/x/net v0.60.0
 ## explicit; go 1.26.0
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2

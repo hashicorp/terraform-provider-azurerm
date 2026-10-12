@@ -1,6 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.*
 import java.io.File
-import jetbrains.buildServer.configs.kotlin.buildFeatures.BuildCacheFeature
 import jetbrains.buildServer.configs.kotlin.buildFeatures.GolangFeature
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
@@ -18,14 +17,6 @@ fun BuildFeatures.Golang() {
             testFormat = "json"
         })
     }
-}
-
-// Requires the creation of build_config_cache for the project:
-fun BuildFeatures.BuildCacheFeature() {
-        feature(BuildCacheFeature {
-            name = "terraform-provider-azurerm-build-cache"
-            publish = false
-        })
 }
 
 // Ensure that daysOfWeek constraints in the overrides are honoured.
@@ -75,12 +66,24 @@ fun BuildSteps.ConfigureGoEnv() {
     })
 }
 
+// Downloads Terraform Core to the agent only when that version isn't already there.
 fun BuildSteps.DownloadTerraformBinary() {
-    // https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
-    var terraformUrl = "https://releases.hashicorp.com/terraform/%env.TERRAFORM_CORE_VERSION%/terraform_%env.TERRAFORM_CORE_VERSION%_linux_amd64.zip"
     step(ScriptBuildStep {
         name = "Download Terraform Core v%env.TERRAFORM_CORE_VERSION%.."
-        scriptContent = "mkdir -p tools && wget -O tf.zip %s && unzip tf.zip && mv terraform tools/".format(terraformUrl)
+        scriptContent = File("scripts/download_terraform.sh").readText()
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
+    })
+}
+
+// Fetches the providers the tests will ask for into the agent's shared provider directory.
+// Requires TerraformProviderMirror() in the build's params.
+fun BuildSteps.DownloadTerraformProviders(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Download Terraform Providers"
+        // not every build defines SERVICE_PATH as a parameter, so the package under test is filled in here
+        scriptContent = File("scripts/download_terraform_providers.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -91,11 +94,21 @@ fun servicePath(packageName: String) : String {
     return "./internal/services/%s".format(packageName)
 }
 
+// Says what state the agent's Go cache is in and drops what nothing has used lately - see GoCache().
+fun BuildSteps.PrepareGoCache(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Prepare Go Cache"
+        scriptContent = File("scripts/go_cache.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
+        conditions {
+            equals("env.SCHEDULE_MATCHES", "true")
+        }
+    })
+}
+
 fun BuildSteps.RunAcceptanceTests(packageName: String) {
-    var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
         name = "Run Tests"
-        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json | go run ./internal/tools/teamcity-test-reporter"
+        scriptContent = File("scripts/run_tests.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -103,10 +116,9 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
 }
 
 fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
-    var servicePath = "./internal/services/%s/...".format(packageName)
     step(ScriptBuildStep {
         name = "Run Tests"
-        scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json | go run ./internal/tools/teamcity-test-reporter"
+        scriptContent = File("scripts/run_tests.sh").readText().replace("%SERVICE_PATH%", servicePath(packageName))
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
@@ -141,9 +153,21 @@ fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
     hiddenVariable("env.TF_ACC", "1", "Set to a value to run the Acceptance Tests")
 }
 
+// Where Terraform Core and the providers are kept between builds. This can't live in the agent's work
+// directory: once a build finishes TeamCity deletes everything in there which isn't a checkout directory.
+// The agent's persistent cache directory is left alone until the agent runs short of disk space.
+const val terraformCacheDir = "%system.agent.persistent.cache%/terraform-cache"
+
 fun ParametrizedWithType.TerraformCoreBinaryTesting() {
     text("env.TERRAFORM_CORE_VERSION", defaultTerraformCoreVersion, "The version of Terraform Core which should be used for testing")
-    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%system.teamcity.build.checkoutDir%/tools/terraform", "The path where the Terraform Binary is located")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "$terraformCacheDir/core/%env.TERRAFORM_CORE_VERSION%/terraform", "The path where the Terraform Binary is located - shared by every build on the agent")
+}
+
+fun ParametrizedWithType.TerraformProviderMirror() {
+    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_MIRROR_PATH", "$terraformCacheDir/providers", "The directory of provider binaries shared by every build on the agent, which tests link to rather than downloading their own")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE", "$terraformCacheDir/providers.tfrc", "The Terraform CLI config which has tests install providers from that directory when they are present")
+    // TF_CLI_CONFIG_FILE is the name Terraform itself reads, so it has to be set for the tests to pick the config up
+    hiddenVariable("env.TF_CLI_CONFIG_FILE", "%env.TF_ACC_TERRAFORM_PROVIDER_CACHE_CONFIG_FILE%", "Points Terraform at the provider cache CLI config")
 }
 
 fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
@@ -158,9 +182,12 @@ fun ParametrizedWithType.BuildStartTime() {
     text("env.BUILD_START_TIME", "1777662664", "The time at which the build started")
 }
 
+// Each agent keeps its own Go caches between builds, so only the first build on an agent compiles everything.
+// They can't live in the agent's work directory: once a build finishes TeamCity deletes everything in there
+// which isn't a checkout directory. Nothing but Go and run_tests.sh touches the persistent cache directory.
 fun ParametrizedWithType.GoCache() {
-    text("env.GOMODCACHE", "%teamcity.agent.work.dir%/go-cache/mod", "The location of the Go Module Cache")
-    text("env.GOCACHE", "%teamcity.agent.work.dir%/go-cache/build", "The location of the Go Cache")
+    text("env.GOMODCACHE", "%system.agent.persistent.cache%/go-cache/mod", "The location of the Go Module Cache")
+    text("env.GOCACHE", "%system.agent.persistent.cache%/go-cache/build", "The location of the Go Cache")
 }
 
 fun ParametrizedWithType.hiddenVariable(name: String, value: String, description: String) {
