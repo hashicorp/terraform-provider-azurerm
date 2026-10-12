@@ -15,67 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenAllowedAuthenticationModes(input *[]batchaccount.AuthenticationMode) []string {
-	if input == nil || len(*input) == 0 {
-		return []string{}
-	}
-
-	allowedAuthModes := make([]string, 0)
-	for _, mode := range *input {
-		allowedAuthModes = append(allowedAuthModes, string(mode))
-	}
-	return allowedAuthModes
-}
-
-func flattenEncryption(encryptionProperties *batchaccount.EncryptionProperties) []any {
-	if encryptionProperties == nil || *encryptionProperties.KeySource == batchaccount.KeySourceMicrosoftPointBatch {
-		return []any{}
-	}
-
-	return []any{
-		map[string]any{
-			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
-		},
-	}
-}
-
-func flattenBatchAccountNetworkProfile(input *batchaccount.NetworkProfile) []any {
-	if input == nil || input.AccountAccess == nil && input.NodeManagementAccess == nil {
-		return []any{}
-	}
-
-	return []any{
-		map[string]any{
-			"account_access":         flattenBatchAccountEndpointAccessProfile(input.AccountAccess),
-			"node_management_access": flattenBatchAccountEndpointAccessProfile(input.NodeManagementAccess),
-		},
-	}
-}
-
-func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccessProfile) []any {
-	if input == nil {
-		return []any{}
-	}
-
-	ipRules := make([]any, 0)
-	if input.IPRules != nil {
-		for _, ipRule := range *input.IPRules {
-			flattenedIpRule := map[string]any{
-				"action":   string(ipRule.Action),
-				"ip_range": ipRule.Value,
-			}
-			ipRules = append(ipRules, flattenedIpRule)
-		}
-	}
-
-	return []any{
-		map[string]any{
-			"default_action": string(input.DefaultAction),
-			"ip_rule":        ipRules,
-		},
-	}
-}
-
 func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.BatchAccountClient, d *pluginsdk.ResourceData, id *batchaccount.BatchAccountId, model *batchaccount.BatchAccount, includeResource bool) error {
 	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -143,4 +82,65 @@ func resourceBatchAccountFlatten(ctx context.Context, client *batchaccount.Batch
 		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func flattenAllowedAuthenticationModes(input *[]batchaccount.AuthenticationMode) []string {
+	if input == nil || len(*input) == 0 {
+		return []string{}
+	}
+
+	allowedAuthModes := make([]string, 0)
+	for _, mode := range *input {
+		allowedAuthModes = append(allowedAuthModes, string(mode))
+	}
+	return allowedAuthModes
+}
+
+func flattenEncryption(encryptionProperties *batchaccount.EncryptionProperties) []any {
+	if encryptionProperties == nil || *encryptionProperties.KeySource == batchaccount.KeySourceMicrosoftPointBatch {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"key_vault_key_id": *encryptionProperties.KeyVaultProperties.KeyIdentifier,
+		},
+	}
+}
+
+func flattenBatchAccountNetworkProfile(input *batchaccount.NetworkProfile) []any {
+	if input == nil || input.AccountAccess == nil && input.NodeManagementAccess == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"account_access":         flattenBatchAccountEndpointAccessProfile(input.AccountAccess),
+			"node_management_access": flattenBatchAccountEndpointAccessProfile(input.NodeManagementAccess),
+		},
+	}
+}
+
+func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccessProfile) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	ipRules := make([]any, 0)
+	if input.IPRules != nil {
+		for _, ipRule := range *input.IPRules {
+			flattenedIpRule := map[string]any{
+				"action":   string(ipRule.Action),
+				"ip_range": ipRule.Value,
+			}
+			ipRules = append(ipRules, flattenedIpRule)
+		}
+	}
+
+	return []any{
+		map[string]any{
+			"default_action": string(input.DefaultAction),
+			"ip_rule":        ipRules,
+		},
+	}
 }
