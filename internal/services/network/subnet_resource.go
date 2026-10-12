@@ -196,6 +196,7 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
+				// Temporary solution, see function notes for detail.
 				DiffSuppressFunc: subnetServiceEndpointDiffSuppress,
 			},
 
@@ -1033,12 +1034,15 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 	}
 }
 
+// subnetServiceEndpointDiffSuppress is a TEMPORARY solution to suppress diffs for a service endpoint list where the
+// individual entries have no change, and only the order of endpoints is different.
+// The Azure API will not persist an order change, which results in an infinite diff loop if order was the only change.
+// This function should be removed when the SDK v2 supports this feature for TypeList natively.
 func subnetServiceEndpointDiffSuppress(_, _, _ string, d *schema.ResourceData) bool {
 	if d == nil {
 		return false
 	}
 
-	// Resolve the base list attribute name from the key path (e.g. "service_endpoint.0.service" -> "service_endpoint")
 	listKey := "service_endpoint"
 
 	oldRaw, newRaw := d.GetChange(listKey)
