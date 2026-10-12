@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
-
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 type dataFactoryEventSubscriptionStatusPoller struct {
