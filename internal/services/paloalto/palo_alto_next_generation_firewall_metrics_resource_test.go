@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -20,16 +19,14 @@ import (
 type PaloAltoNextGenerationFirewallMetricsResource struct{}
 
 func (r PaloAltoNextGenerationFirewallMetricsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := firewallresources.ParseFirewallID(state.ID)
+	id, err := metricsobjectfirewallresources.ParseFirewallID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	metricsFirewallId := metricsobjectfirewallresources.NewFirewallID(id.SubscriptionId, id.ResourceGroupName, id.FirewallName)
-
-	resp, err := client.PaloAlto.MetricsObjectFirewallResources.MetricsObjectFirewallGet(ctx, metricsFirewallId)
+	resp, err := client.PaloAlto.MetricsObjectFirewallResources.MetricsObjectFirewallGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", metricsFirewallId, err)
+		return nil, fmt.Errorf("retrieving Metrics Object for %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
