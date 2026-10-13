@@ -14,13 +14,11 @@ Use this data source to access information about an existing Static Website of a
 
 ```hcl
 data "azurerm_storage_account_static_website" "example" {
-  storage_account_id = "Existing"
-
+  storage_account_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resource-group/providers/Microsoft.Storage/storageAccounts/examplestorageacct"
 }
 
-output "id" {
-  value = data.azurerm_storage_account_static_website.example.id
-
+output "index_document" {
+  value = data.azurerm_storage_account_static_website.example.index_document
 }
 ```
 
