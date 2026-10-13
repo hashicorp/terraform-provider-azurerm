@@ -467,7 +467,7 @@ resource "azurerm_firewall" "test" {
 }
 
 func (FirewallResource) edgeZone(data acceptance.TestData) string {
-	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	// WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
 
 	// Unlike a regional deployment, `AzureFirewallSubnet` must not be created explicitly in an Edge Zone -
