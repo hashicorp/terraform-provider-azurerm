@@ -129,7 +129,6 @@ fun BuildSteps.PostTestResultsToGitHubPullRequest() {
     step(ScriptBuildStep {
         name = "Post Test Results to GitHub Pull Request"
         scriptContent = File("scripts/post_github_comment.sh").readText()
-        workingDir = "%SERVICE_PATH%"
         conditions {
             equals("env.SCHEDULE_MATCHES", "true")
         }
