@@ -10,8 +10,8 @@ import (
 )
 
 // lintignore:V001 // this validates a map of metadata keys, not a single string
-func MetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
-	v, ok := value.(map[string]interface{})
+func MetaDataKeys(value any, _ string) (warnings []string, errors []error) {
+	v, ok := value.(map[string]any)
 	if !ok {
 		return
 	}

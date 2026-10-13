@@ -125,7 +125,7 @@ func (r RedHatOpenShiftCluster) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			outboundType := metadata.ResourceDiff.Get("network_profile.0.outbound_type").(string)
 			loadBalancerProfile := metadata.ResourceDiff.Get("network_profile.0.load_balancer_profile")
-			if outboundType != string(openshiftclusters.OutboundTypeLoadbalancer) && len(loadBalancerProfile.([]interface{})) > 0 {
+			if outboundType != string(openshiftclusters.OutboundTypeLoadbalancer) && len(loadBalancerProfile.([]any)) > 0 {
 				return errors.New("`network_profile.0.load_balancer_profile` requires `network_profile.0.outbound_type` to be `Loadbalancer`")
 			}
 
@@ -140,13 +140,13 @@ func (r RedHatOpenShiftCluster) CustomizeDiff() sdk.ResourceFunc {
 
 			// The service principal can be swapped, but it cannot be added or removed in place.
 			oldServicePrincipal, newServicePrincipal := metadata.ResourceDiff.GetChange("service_principal")
-			if len(oldServicePrincipal.([]interface{})) != len(newServicePrincipal.([]interface{})) {
+			if len(oldServicePrincipal.([]any)) != len(newServicePrincipal.([]any)) {
 				return metadata.ResourceDiff.ForceNew("service_principal")
 			}
 
 			// The identity can be swapped, but it cannot be added or removed in place.
 			oldIdentity, newIdentity := metadata.ResourceDiff.GetChange("identity")
-			if len(oldIdentity.([]interface{})) != len(newIdentity.([]interface{})) {
+			if len(oldIdentity.([]any)) != len(newIdentity.([]any)) {
 				return metadata.ResourceDiff.ForceNew("identity")
 			}
 
@@ -524,7 +524,7 @@ func (r RedHatOpenShiftCluster) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r RedHatOpenShiftCluster) ModelObject() interface{} {
+func (r RedHatOpenShiftCluster) ModelObject() any {
 	return &RedHatOpenShiftClusterModel{}
 }
 

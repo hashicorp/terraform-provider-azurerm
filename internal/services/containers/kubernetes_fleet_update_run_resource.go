@@ -25,7 +25,7 @@ var (
 
 type KubernetesFleetUpdateRunResource struct{}
 
-func (r KubernetesFleetUpdateRunResource) ModelObject() interface{} {
+func (r KubernetesFleetUpdateRunResource) ModelObject() any {
 	return &KubernetesFleetUpdateRunResourceSchema{}
 }
 

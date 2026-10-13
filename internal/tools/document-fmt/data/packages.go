@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
@@ -60,7 +60,7 @@ func loadPackages(dir string) *packageData {
 
 	pkgs, err := packages.Load(cfg, "./...")
 	if err != nil {
-		log.WithError(err).Fatal("encountered an error loading provider packages")
+		logrus.WithError(err).Fatal("encountered an error loading provider packages")
 	}
 
 	fset := pkgs[0].Fset
@@ -68,7 +68,7 @@ func loadPackages(dir string) *packageData {
 	prog.Build()
 
 	if ssaPkgCount, pkgCount := len(ssaPkgs), len(pkgs); ssaPkgCount != pkgCount {
-		log.Fatalf("number of SSA packages (%d) did not equal number of Go packages (%d)", ssaPkgCount, pkgCount)
+		logrus.Fatalf("number of SSA packages (%d) did not equal number of Go packages (%d)", ssaPkgCount, pkgCount)
 	}
 
 	pkgsMap := make(map[string][]pkg)
@@ -354,7 +354,7 @@ func findResourceFunc(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Pack
 	case 1:
 		return fn.AnonFuncs[0]
 	default:
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"count":    len(fn.AnonFuncs),
 			"function": fn.Name(),
 			"package":  fn.Pkg.String(),
@@ -366,7 +366,7 @@ func findResourceFunc(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Pack
 
 func findResourceFuncDigDeeper(prog *ssa.Program, pkg *packages.Package, ssaPkg *ssa.Package, fn *types.Func) *ssa.Function {
 	debugLog := func(t any, msg string) {
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"type":     reflect.TypeOf(t),
 			"function": fn.Name(),
 			"package":  fn.Pkg().Path(),
@@ -567,7 +567,7 @@ func funcToFuncDeclWithPkgs(pkgs []*packages.Package, fn *types.Func) *ast.FuncD
 	_, file := findFileByPosition(pkgs, fn.Pos())
 
 	if file == nil {
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": fn.Name(),
 			"scope":    fn.Scope().String(),
 		}).Debug("unable to find AST File object for function in provided packages")
@@ -578,7 +578,7 @@ func funcToFuncDeclWithPkgs(pkgs []*packages.Package, fn *types.Func) *ast.FuncD
 
 func funcToFuncDeclWithFile(file *ast.File, fn *types.Func) *ast.FuncDecl {
 	if fn == nil {
-		log.Debug("unable to find *ast.FuncDecl, *types.Func was nil")
+		logrus.Debug("unable to find *ast.FuncDecl, *types.Func was nil")
 		return nil
 	}
 
@@ -616,6 +616,6 @@ func findFileByPosition(pkgs []*packages.Package, pos token.Pos) (*packages.Pack
 		}
 	}
 
-	log.Debug("unable to find *ast.File at provided position in provided packages")
+	logrus.Debug("unable to find *ast.File at provided position in provided packages")
 	return nil, nil
 }

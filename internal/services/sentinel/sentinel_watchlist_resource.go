@@ -89,7 +89,7 @@ func (r WatchlistResource) ResourceType() string {
 	return "azurerm_sentinel_watchlist"
 }
 
-func (r WatchlistResource) ModelObject() interface{} {
+func (r WatchlistResource) ModelObject() any {
 	return &WatchlistModel{}
 }
 

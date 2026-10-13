@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func Duration(v interface{}, k string) ([]string, []error) {
+func Duration(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^(?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}:[0-9]{2}$`), "must be in format DD:HH:MM:SS. If DD is 00, it must be omitted")(v, k)
 }

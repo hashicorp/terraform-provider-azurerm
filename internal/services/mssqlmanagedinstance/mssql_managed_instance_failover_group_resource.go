@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -55,7 +55,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_failover_group"
 }
 
-func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() any {
 	return &MsSqlManagedInstanceFailoverGroupModel{}
 }
 

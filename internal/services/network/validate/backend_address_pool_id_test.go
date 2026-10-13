@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestBackendAddressPoolID(t *testing.T) {
+func TestValidateBackendAddressPoolID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

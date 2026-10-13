@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ApplicationTemplateName(v interface{}, k string) ([]string, []error) {
+func ApplicationTemplateName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^.{1,50}$`), "length should between 1~50")(v, k)
 }

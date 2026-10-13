@@ -157,7 +157,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -230,7 +230,7 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceKustoEventGridDataConnectionRead(d, meta)
 }
 
-func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +293,7 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoEventGridDataConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

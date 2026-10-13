@@ -57,7 +57,7 @@ type PimActiveRoleAssignmentScheduleInfoExpiration struct {
 	EndDateTime   string `tfschema:"end_date_time"`
 }
 
-func (PimActiveRoleAssignmentResource) ModelObject() interface{} {
+func (PimActiveRoleAssignmentResource) ModelObject() any {
 	return &PimActiveRoleAssignmentModel{}
 }
 
@@ -314,7 +314,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{"Retry"},
 				Target:  []string{"Created"},
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					// Retry new requests to smooth over AAD replication issues with the subject principal
 					result, err := requestsClient.Create(ctx, requestId, payload)
 					if err != nil {
@@ -582,7 +582,7 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending: []string{"Pending"},
 					Target:  []string{"Submitted", "GoneAway"},
-					Refresh: func() (interface{}, string, error) {
+					Refresh: func() (any, string, error) {
 						// Removal request is not accepted within a minimum duration window, so retry it
 						result, err := requestsClient.Create(ctx, deleteId, payload)
 						if err != nil {
@@ -660,7 +660,7 @@ func findRoleAssignmentSchedule(ctx context.Context, client *roleassignmentsched
 }
 
 func pollForRoleAssignmentSchedule(ctx context.Context, client *roleassignmentschedules.RoleAssignmentSchedulesClient, id parse.PimRoleAssignmentId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Polling for %s", id)
 
 		schedule, err := findRoleAssignmentSchedule(ctx, client, id)

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DatabricksVirtualNetworkPeeringName(i interface{}, k string) ([]string, []error) {
+func DatabricksVirtualNetworkPeeringName(i any, k string) ([]string, []error) {
 	//  and must be between 1 and 80 characters in length
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z\d][a-zA-Z\d._-]{0,78}[a-zA-Z\d_]$`), "must be between 2 and 80 characters in length, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens")(i, k)
 }

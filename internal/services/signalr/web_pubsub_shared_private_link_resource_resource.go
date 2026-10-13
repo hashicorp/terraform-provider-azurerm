@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,7 +54,7 @@ func resourceWebPubSubSharedPrivateLinkService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.PrivateLinkSubResourceName,
+				ValidateFunc: validate.PrivateLinkSubResourceName,
 			},
 
 			"target_resource_id": {
@@ -78,7 +78,7 @@ func resourceWebPubSubSharedPrivateLinkService() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -131,7 +131,7 @@ func resourceWebPubsubSharedPrivateLinkServiceCreateUpdate(d *pluginsdk.Resource
 	return resourceWebPubsubSharedPrivateLinkServiceRead(d, meta)
 }
 
-func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +165,7 @@ func resourceWebPubsubSharedPrivateLinkServiceRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceWebPubsubSharedPrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubsubSharedPrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

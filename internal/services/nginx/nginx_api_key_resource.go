@@ -72,7 +72,7 @@ func (m APIKeyResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m APIKeyResource) ModelObject() interface{} {
+func (m APIKeyResource) ModelObject() any {
 	return &APIKeyModel{}
 }
 

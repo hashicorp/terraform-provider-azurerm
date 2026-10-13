@@ -6,7 +6,7 @@ package validate
 import "errors"
 
 // lintignore:V012 // error message intentionally documents the standard vs dedicated cluster limits
-func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errs []error) {
+func ValidateEventHubMessageRetentionCount(v any, _ string) (warnings []string, errs []error) {
 	value := v.(int)
 
 	if 90 < value || value < 1 {

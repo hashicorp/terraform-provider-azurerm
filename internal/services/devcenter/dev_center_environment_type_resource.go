@@ -25,7 +25,7 @@ var (
 
 type DevCenterEnvironmentTypeResource struct{}
 
-func (r DevCenterEnvironmentTypeResource) ModelObject() interface{} {
+func (r DevCenterEnvironmentTypeResource) ModelObject() any {
 	return &DevCenterEnvironmentTypeResourceModel{}
 }
 

@@ -74,7 +74,7 @@ func resourceEventHubAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	eventhubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -134,7 +134,7 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	})
 }
 
-func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	eventHubsClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	authorizationRulesClient := meta.(*clients.Client).Eventhub.EventHubAuthorizationRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -186,7 +186,7 @@ func resourceEventHubAuthorizationRuleRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

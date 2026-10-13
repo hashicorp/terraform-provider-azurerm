@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
@@ -59,7 +59,7 @@ func (r SubscriptionCostManagementExportResource) Attributes() map[string]*plugi
 	return r.base.attributes()
 }
 
-func (r SubscriptionCostManagementExportResource) ModelObject() interface{} {
+func (r SubscriptionCostManagementExportResource) ModelObject() any {
 	return &SubscriptionCostManagementExportModel{}
 }
 

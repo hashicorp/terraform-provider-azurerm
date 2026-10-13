@@ -128,12 +128,12 @@ func (r KubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_kubernetes_flux_configuration"
 }
 
-func (r KubernetesFluxConfigurationResource) ModelObject() interface{} {
+func (r KubernetesFluxConfigurationResource) ModelObject() any {
 	return &KubernetesFluxConfigurationModel{}
 }
 
 func (r KubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))

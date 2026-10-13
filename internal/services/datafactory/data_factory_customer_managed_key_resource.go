@@ -29,7 +29,7 @@ type DataFactoryCustomerManagedKeyModel struct {
 
 var _ sdk.ResourceWithUpdate = DataFactoryCustomerManagedKeyResource{}
 
-func (r DataFactoryCustomerManagedKeyResource) ModelObject() interface{} {
+func (r DataFactoryCustomerManagedKeyResource) ModelObject() any {
 	return &DataFactoryCustomerManagedKeyModel{}
 }
 

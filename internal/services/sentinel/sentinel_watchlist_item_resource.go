@@ -22,9 +22,9 @@ type WatchlistItemResource struct{}
 var _ sdk.ResourceWithUpdate = WatchlistItemResource{}
 
 type WatchlistItemModel struct {
-	Name        string                 `tfschema:"name"`
-	WatchlistID string                 `tfschema:"watchlist_id"`
-	Properties  map[string]interface{} `tfschema:"properties"`
+	Name        string         `tfschema:"name"`
+	WatchlistID string         `tfschema:"watchlist_id"`
+	Properties  map[string]any `tfschema:"properties"`
 }
 
 func (r WatchlistItemResource) Arguments() map[string]*pluginsdk.Schema {
@@ -60,7 +60,7 @@ func (r WatchlistItemResource) ResourceType() string {
 	return "azurerm_sentinel_watchlist_item"
 }
 
-func (r WatchlistItemResource) ModelObject() interface{} {
+func (r WatchlistItemResource) ModelObject() any {
 	return &WatchlistItemModel{}
 }
 
@@ -140,11 +140,11 @@ func (r WatchlistItemResource) Read() sdk.ResourceFunc {
 
 			watchlistId := watchlists.NewWatchlistID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName, id.WatchlistAlias)
 
-			var properties map[string]interface{}
+			var properties map[string]any
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if itemsKV := props.ItemsKeyValue; itemsKV != nil {
-						properties = itemsKV.(map[string]interface{})
+						properties = itemsKV.(map[string]any)
 					}
 				}
 			}

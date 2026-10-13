@@ -82,7 +82,7 @@ func resourceVirtualWan() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -105,7 +105,7 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	wan := virtualwans.VirtualWAN{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &virtualwans.VirtualWanProperties{
 			DisableVpnEncryption:           pointer.To(d.Get("disable_vpn_encryption").(bool)),
 			AllowBranchToBranchTraffic:     pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
@@ -123,7 +123,7 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -176,7 +176,7 @@ func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

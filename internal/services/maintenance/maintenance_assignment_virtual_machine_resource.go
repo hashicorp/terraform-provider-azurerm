@@ -73,7 +73,7 @@ func resourceArmMaintenanceAssignmentVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +131,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *pluginsdk.ResourceD
 	return resourceArmMaintenanceAssignmentVirtualMachineRead(d, meta)
 }
 
-func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmMaintenanceAssignmentVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

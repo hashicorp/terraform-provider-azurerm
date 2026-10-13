@@ -33,7 +33,7 @@ type VMWareReplicationPolicyAssociationResource struct{}
 
 var _ sdk.Resource = VMWareReplicationPolicyAssociationResource{}
 
-func (s VMWareReplicationPolicyAssociationResource) ModelObject() interface{} {
+func (s VMWareReplicationPolicyAssociationResource) ModelObject() any {
 	return &SiteRecoveryReplicationPolicyVmwareAssociationModel{}
 }
 

@@ -158,7 +158,7 @@ func firewallDataSource() *pluginsdk.Resource {
 	}
 }
 
-func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func firewallDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -186,7 +186,7 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
-			managementIPConfigs := make([]interface{}, 0)
+			managementIPConfigs := make([]any, 0)
 			if props.ManagementIPConfiguration != nil {
 				managementIPConfigs = flattenFirewallIPConfigurations(&[]azurefirewalls.AzureFirewallIPConfiguration{
 					*props.ManagementIPConfiguration,

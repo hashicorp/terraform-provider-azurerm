@@ -74,7 +74,7 @@ func dataSourceRouteFilter() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteFilters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -110,12 +110,12 @@ func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func flattenRouteFilterDataSourceRules(input *[]routefilters.RouteFilterRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteFilterDataSourceRules(input *[]routefilters.RouteFilterRule) []any {
+	results := make([]any, 0)
 
 	if rules := input; rules != nil {
 		for _, rule := range *rules {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 
 			r["name"] = pointer.From(rule.Name)
 			if props := rule.Properties; props != nil {

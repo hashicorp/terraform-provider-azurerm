@@ -715,7 +715,7 @@ func batchPoolDataContainerRegistry() map[string]*schema.Schema {
 	}
 }
 
-func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -754,7 +754,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 
 			if props.UserAccounts != nil {
-				userAccounts := make([]interface{}, 0)
+				userAccounts := make([]any, 0)
 				for _, userAccount := range *props.UserAccounts {
 					userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
 				}
@@ -762,7 +762,7 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 
 			if props.MountConfiguration != nil {
-				mountConfigs := make([]interface{}, 0)
+				mountConfigs := make([]any, 0)
 				for _, mountConfig := range *props.MountConfiguration {
 					mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 				}
@@ -776,9 +776,9 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 						d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 					}
 					if config.DataDisks != nil {
-						dataDisks := make([]interface{}, 0)
+						dataDisks := make([]any, 0)
 						for _, item := range *config.DataDisks {
-							dataDisk := make(map[string]interface{})
+							dataDisk := make(map[string]any)
 							dataDisk["lun"] = item.Lun
 							dataDisk["disk_size_gb"] = item.DiskSizeGB
 
@@ -799,10 +799,10 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 						d.Set("data_disks", dataDisks)
 					}
 					if config.DiskEncryptionConfiguration != nil {
-						diskEncryptionConfiguration := make([]interface{}, 0)
+						diskEncryptionConfiguration := make([]any, 0)
 						if config.DiskEncryptionConfiguration.Targets != nil {
 							for _, item := range *config.DiskEncryptionConfiguration.Targets {
-								target := make(map[string]interface{})
+								target := make(map[string]any)
 								target["disk_encryption_target"] = string(item)
 								diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 							}
@@ -810,10 +810,10 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 						d.Set("disk_encryption", diskEncryptionConfiguration)
 					}
 					if config.Extensions != nil {
-						extensions := make([]interface{}, 0)
+						extensions := make([]any, 0)
 						n := len(*config.Extensions)
 						for _, item := range *config.Extensions {
-							extension := make(map[string]interface{})
+							extension := make(map[string]any)
 							extension["name"] = item.Name
 							extension["publisher"] = item.Publisher
 							extension["type"] = item.Type
@@ -851,8 +851,8 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {
-						nodePlacementConfiguration := make([]interface{}, 0)
-						nodePlacementConfig := make(map[string]interface{})
+						nodePlacementConfiguration := make([]any, 0)
+						nodePlacementConfig := make(map[string]any)
 						nodePlacementConfig["policy"] = string(*config.NodePlacementConfiguration.Policy)
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
@@ -863,8 +863,8 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
 					if config.WindowsConfiguration != nil {
-						windowsConfig := []interface{}{
-							map[string]interface{}{
+						windowsConfig := []any{
+							map[string]any{
 								"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
 							},
 						}

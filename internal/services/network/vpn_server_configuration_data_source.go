@@ -89,7 +89,7 @@ func (d VPNServerConfigurationDataSource) Arguments() map[string]*pluginsdk.Sche
 	}
 }
 
-func (d VPNServerConfigurationDataSource) ModelObject() interface{} {
+func (d VPNServerConfigurationDataSource) ModelObject() any {
 	return &VPNServerConfigurationDataSource{}
 }
 

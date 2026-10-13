@@ -118,7 +118,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ScriptsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +192,7 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceKustoDatabaseScriptRead(d, meta)
 }
 
-func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ScriptsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,7 +230,7 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceKustoDatabaseScriptDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseScriptDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ScriptsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -68,7 +68,7 @@ func (d TrustedSigningAccountDataSource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (d TrustedSigningAccountDataSource) ModelObject() interface{} {
+func (d TrustedSigningAccountDataSource) ModelObject() any {
 	return &TrustedSigningAccountDataSourceModel{}
 }
 

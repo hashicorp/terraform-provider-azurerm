@@ -81,7 +81,7 @@ func dataSourceLocalNetworkGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -123,16 +123,16 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenLocalNetworkGatewayDataSourceBGPSettings(input *localnetworkgateways.BgpSettings) []interface{} {
-	output := make(map[string]interface{})
+func flattenLocalNetworkGatewayDataSourceBGPSettings(input *localnetworkgateways.BgpSettings) []any {
+	output := make(map[string]any)
 
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	output["asn"] = int(*input.Asn)
 	output["bgp_peering_address"] = *input.BgpPeeringAddress
 	output["peer_weight"] = int(*input.PeerWeight)
 
-	return []interface{}{output}
+	return []any{output}
 }

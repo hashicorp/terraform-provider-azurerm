@@ -46,7 +46,7 @@ func (r CognitiveAccountProjectResource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
 }
 
-func (r CognitiveAccountProjectResource) ModelObject() interface{} {
+func (r CognitiveAccountProjectResource) ModelObject() any {
 	return &CognitiveAccountProjectModel{}
 }
 

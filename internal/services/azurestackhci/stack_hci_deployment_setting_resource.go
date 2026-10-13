@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -150,7 +150,7 @@ type StorageModel struct {
 	ConfigurationMode string `tfschema:"configuration_mode"`
 }
 
-func (StackHCIDeploymentSettingResource) ModelObject() interface{} {
+func (StackHCIDeploymentSettingResource) ModelObject() any {
 	return &StackHCIDeploymentSettingModel{}
 }
 
@@ -223,7 +223,7 @@ func (StackHCIDeploymentSettingResource) Arguments() map[string]*pluginsdk.Schem
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: storageValidate.StorageAccountName,
+									ValidateFunc: validate.StorageAccountName,
 								},
 
 								"witness_type": {

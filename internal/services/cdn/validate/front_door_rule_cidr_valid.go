@@ -8,6 +8,6 @@ import (
 )
 
 // Evaluates if the passed CIDR is a valid IPv4 or IPv6 CIDR or not.
-func FrontDoorRuleCidrIsValid(v interface{}, k string) ([]string, []error) {
+func FrontDoorRuleCidrIsValid(v any, k string) ([]string, []error) {
 	return validation.IsCIDR(v, k)
 }

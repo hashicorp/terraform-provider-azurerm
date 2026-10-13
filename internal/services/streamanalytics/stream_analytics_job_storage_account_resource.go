@@ -27,7 +27,7 @@ type JobStorageAccountModel struct {
 
 var _ sdk.ResourceWithUpdate = JobStorageAccountResource{}
 
-func (r JobStorageAccountResource) ModelObject() interface{} {
+func (r JobStorageAccountResource) ModelObject() any {
 	return &JobStorageAccountModel{}
 }
 

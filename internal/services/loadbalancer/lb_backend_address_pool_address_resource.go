@@ -110,7 +110,7 @@ func (r BackendAddressPoolAddressResource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r BackendAddressPoolAddressResource) ModelObject() interface{} {
+func (r BackendAddressPoolAddressResource) ModelObject() any {
 	return &BackendAddressPoolAddressModel{}
 }
 
@@ -503,7 +503,7 @@ func (r BackendAddressPoolAddressResource) Update() sdk.ResourceFunc {
 }
 
 func loadbalacnerProvisioningStatusRefreshFunc(ctx context.Context, client *loadbalancers.LoadBalancersClient, id parse.BackendAddressPoolAddressId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroup, LoadBalancerName: id.LoadBalancerName}
 		lbClient, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 		if err != nil {

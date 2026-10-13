@@ -26,7 +26,7 @@ func (r ManagerIpamPoolDataSource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool"
 }
 
-func (r ManagerIpamPoolDataSource) ModelObject() interface{} {
+func (r ManagerIpamPoolDataSource) ModelObject() any {
 	return &ManagerIpamPoolDataSourceModel{}
 }
 

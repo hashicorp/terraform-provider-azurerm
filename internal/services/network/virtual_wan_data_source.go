@@ -72,7 +72,7 @@ func dataSourceVirtualWan() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -118,11 +118,11 @@ func dataSourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenVirtualWanProperties(input *[]virtualwans.SubResource) []interface{} {
+func flattenVirtualWanProperties(input *[]virtualwans.SubResource) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input {
 		if v.Id != nil {
 			output = append(output, *v.Id)
