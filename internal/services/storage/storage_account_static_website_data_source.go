@@ -86,10 +86,13 @@ func (d AccountStaticWebsiteDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
 			}
 
-			if website := props.StaticWebsite; website != nil {
-				state.IndexDocument = website.IndexDocument
-				state.Error404Document = website.ErrorDocument404Path
+			website := props.StaticWebsite
+			if website == nil || !website.Enabled {
+				return fmt.Errorf("static website is not enabled for %s", *id)
 			}
+
+			state.IndexDocument = website.IndexDocument
+			state.Error404Document = website.ErrorDocument404Path
 
 			metadata.SetID(id)
 
