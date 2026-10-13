@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_storage_account_static_website
 
-Use this data source to access information about an existing Automation Runbook.
+Use this data source to access information about an existing Static Website of an Azure Storage Account.
 
 ## Example Usage
 
