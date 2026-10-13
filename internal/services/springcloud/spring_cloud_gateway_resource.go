@@ -94,7 +94,7 @@ func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
 }
 
-func (s SpringCloudGatewayResource) ModelObject() interface{} {
+func (s SpringCloudGatewayResource) ModelObject() any {
 	return &SpringCloudGatewayModel{}
 }
 

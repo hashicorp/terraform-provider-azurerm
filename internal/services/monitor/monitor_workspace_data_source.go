@@ -33,7 +33,7 @@ type WorkspaceDataSourceModel struct {
 	Tags                            map[string]string `tfschema:"tags"`
 }
 
-func (d WorkspaceDataSource) ModelObject() interface{} {
+func (d WorkspaceDataSource) ModelObject() any {
 	return &WorkspaceDataSource{}
 }
 
@@ -91,7 +91,6 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := azuremonitorworkspaces.NewAccountID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("retrieving %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {

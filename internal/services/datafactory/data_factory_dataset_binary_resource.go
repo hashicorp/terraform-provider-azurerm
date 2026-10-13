@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
@@ -239,7 +239,7 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -290,29 +290,26 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		binaryTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		binaryTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		binaryTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		binaryTableset.Annotations = &annotations
+		binaryTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		binaryTableset.AdditionalProperties = v.(map[string]interface{})
+		binaryTableset.AdditionalProperties = v.(map[string]any)
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeBinary)
 	dataset := datafactory.DatasetResource{
 		Properties: &binaryTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeBinary)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -326,7 +323,7 @@ func resourceDataFactoryDatasetBinaryCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceDataFactoryDatasetBinaryRead(d, meta)
 }
 
-func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -405,7 +402,7 @@ func resourceDataFactoryDatasetBinaryRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceDataFactoryDatasetBinaryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetBinaryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -30,7 +30,7 @@ var (
 
 type DnsZoneResource struct{}
 
-func (DnsZoneResource) ModelObject() interface{} {
+func (DnsZoneResource) ModelObject() any {
 	return &DnsZoneResourceModel{}
 }
 
@@ -126,7 +126,7 @@ func (DnsZoneResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"host_name": {
 						Type:     pluginsdk.TypeString,
-						Computed: true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/en-us/azure/dns/dns-zones-records#soa-records
+						Computed: true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/azure/dns/dns-zones-records#soa-records
 					},
 				},
 			},

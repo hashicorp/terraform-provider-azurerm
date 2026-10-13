@@ -62,7 +62,7 @@ func (r NewRelicMonitorResource) ResourceType() string {
 	return "azurerm_new_relic_monitor"
 }
 
-func (r NewRelicMonitorResource) ModelObject() interface{} {
+func (r NewRelicMonitorResource) ModelObject() any {
 	return &NewRelicMonitorModel{}
 }
 
@@ -263,7 +263,7 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}

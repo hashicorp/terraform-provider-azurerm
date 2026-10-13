@@ -27,11 +27,11 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	Name          string `tfschema:"name"`
 	ResourceGroup string `tfschema:"resource_group_name"`
 
-	Location                    string                 `tfschema:"location"`
-	LogAnalyticsWorkspaceName   string                 `tfschema:"log_analytics_workspace_name"`
-	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
+	Location                    string         `tfschema:"location"`
+	LogAnalyticsWorkspaceName   string         `tfschema:"log_analytics_workspace_name"`
+	InfrastructureSubnetId      string         `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled bool           `tfschema:"internal_load_balancer_enabled"`
+	Tags                        map[string]any `tfschema:"tags"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -45,7 +45,7 @@ type ContainerAppEnvironmentDataSourceModel struct {
 
 var _ sdk.DataSource = ContainerAppEnvironmentDataSource{}
 
-func (r ContainerAppEnvironmentDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentDataSourceModel{}
 }
 

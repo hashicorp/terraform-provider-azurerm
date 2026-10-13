@@ -335,7 +335,7 @@ func TestAccPostgresqlFlexibleServer_disablePwdAuth(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// starts from pwdEnabled set to `false` to test add `admininistrator_login`
+			// starts from pwdEnabled set to `false` to test add `administrator_login`
 			Config: r.authConfig(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -413,6 +413,28 @@ func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_replicaWithCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cluster(data, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			PreConfig: func() { time.Sleep(15 * time.Minute) },
+			Config:    r.replicaWithCluster(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_postgresql_flexible_server.replica").ExistsInAzure(r),
+			),
+		},
+		data.ImportStepFor("azurerm_postgresql_flexible_server.replica", "administrator_password", "create_mode"),
 	})
 }
 
@@ -781,8 +803,6 @@ func TestAccPostgresqlFlexibleServer_cluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 
-	t.Skip(r.cluster(data, 3))
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cluster(data, 3),
@@ -1004,6 +1024,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "17"
   sku_name               = "GP_Standard_D2s_v3"
   storage_type           = "PremiumV2_LRS"
+  storage_mb             = 1049600
   storage_iops           = 3001
   storage_throughput     = 126
   zone                   = "2"
@@ -1600,6 +1621,22 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   source_server_id    = azurerm_postgresql_flexible_server.test.id
 }
 `, r.basic(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) replicaWithCluster(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = "2"
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+  sku_name            = "GP_Standard_D2s_v3"
+}
+`, r.cluster(data, 2), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) updateReplicationRole(data acceptance.TestData) string {

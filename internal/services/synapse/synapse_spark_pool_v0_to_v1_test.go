@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package synapse_test
 
 import (
@@ -8,10 +11,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-// TestAccSynapseSparkPool_V0ToV1_530 tests the state migration path from an `id` with lowercased
-// static segments to their canonicalized format. It uses v5.3.0 as the setup version because it is
-// the last release where the `id` could have been stored in state with lowercased static segments via an import using a non-canonical ID.
-func TestAccSynapseSparkPool_V0ToV1_530(t *testing.T) {
+// TestAccSynapseSparkPool_V0ToV1_501 tests the state migration path from an `id` with lowercased
+// static segments to their canonicalized format. It uses v5.0.1 as the setup version because it is
+// a release where the `id` could have been stored in state with lowercased static segments via an import using a non-canonical ID.
+func TestAccSynapseSparkPool_V0ToV1_501(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	r := SynapseSparkPoolResource{}
 
@@ -37,7 +40,7 @@ func TestAccSynapseSparkPool_V0ToV1_530(t *testing.T) {
 				check.That(importedResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourceGroups/acctestRG-synapse-%[2]d/providers/Microsoft.Synapse/workspaces/acctestsw%[2]d/bigDataPools/acctestSSP%[3]s", data.Subscriptions.Primary, data.RandomInteger, data.RandomString)),
 			),
 		},
-	}, "5.3.0")
+	}, "5.0.1")
 }
 
 func (r SynapseSparkPoolResource) basicV0(data acceptance.TestData) string {

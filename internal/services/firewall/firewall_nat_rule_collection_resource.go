@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -128,7 +127,7 @@ func resourceFirewallNatRuleCollection() *pluginsdk.Resource {
 	}
 }
 
-func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -162,7 +161,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	ruleCollections := *props.NatRuleCollections
-	natRules, err := expandFirewallNatRules(d.Get("rule").([]interface{}))
+	natRules, err := expandFirewallNatRules(d.Get("rule").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall NAT Rules: %+v", err)
 	}
@@ -216,7 +215,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 
 	firewall.Model.Properties.NatRuleCollections = &ruleCollections
 	// TODO: implement `CallbackThenPoll`, requires migrating to an ID that implements `resourceids.ResourceId`
-	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating NAT Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
@@ -253,7 +252,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceFirewallNatRuleCollectionRead(d, meta)
 }
 
-func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +312,7 @@ func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta inter
 
 	if props := rule.Properties; props != nil {
 		if action := props.Action; action != nil {
-			d.Set("action", string(pointer.From(action.Type)))
+			d.Set("action", pointer.FromEnum(action.Type))
 		}
 
 		if priority := props.Priority; priority != nil {
@@ -328,7 +327,7 @@ func resourceFirewallNatRuleCollectionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceFirewallNatRuleCollectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallNatRuleCollectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -377,29 +376,29 @@ func resourceFirewallNatRuleCollectionDelete(d *pluginsdk.ResourceData, meta int
 	}
 	props.NatRuleCollections = &natRules
 
-	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, firewallId, *firewall.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("deleting NAT Rule Collection %q from Firewall %q (Resource Group %q): %+v", id.NatRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewallNatRule, error) {
+func expandFirewallNatRules(input []any) (*[]azurefirewalls.AzureFirewallNatRule, error) {
 	rules := make([]azurefirewalls.AzureFirewallNatRule, 0)
 
 	for _, nwRule := range input {
-		rule := nwRule.(map[string]interface{})
+		rule := nwRule.(map[string]any)
 
 		name := rule["name"].(string)
 		description := rule["description"].(string)
 
 		sourceAddresses := make([]string, 0)
-		for _, v := range rule["source_addresses"].([]interface{}) {
+		for _, v := range rule["source_addresses"].([]any) {
 			sourceAddresses = append(sourceAddresses, v.(string))
 		}
 
 		sourceIpGroups := make([]string, 0)
-		for _, v := range rule["source_ip_groups"].([]interface{}) {
+		for _, v := range rule["source_ip_groups"].([]any) {
 			sourceIpGroups = append(sourceIpGroups, v.(string))
 		}
 
@@ -408,17 +407,14 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 		}
 
 		destinationAddresses := make([]string, 0)
-		for _, v := range rule["destination_addresses"].([]interface{}) {
+		for _, v := range rule["destination_addresses"].([]any) {
 			destinationAddresses = append(destinationAddresses, v.(string))
 		}
 
 		destinationPorts := make([]string, 0)
-		for _, v := range rule["destination_ports"].([]interface{}) {
+		for _, v := range rule["destination_ports"].([]any) {
 			destinationPorts = append(destinationPorts, v.(string))
 		}
-
-		translatedAddress := rule["translated_address"].(string)
-		translatedPort := rule["translated_port"].(string)
 
 		ruleToAdd := azurefirewalls.AzureFirewallNatRule{
 			Name:                 pointer.To(name),
@@ -427,12 +423,12 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     &destinationPorts,
-			TranslatedAddress:    &translatedAddress,
-			TranslatedPort:       &translatedPort,
+			TranslatedAddress:    pointer.To(rule["translated_address"].(string)),
+			TranslatedPort:       pointer.To(rule["translated_port"].(string)),
 		}
 
 		nrProtocols := make([]azurefirewalls.AzureFirewallNetworkRuleProtocol, 0)
-		for _, v := range rule["protocols"].([]interface{}) {
+		for _, v := range rule["protocols"].([]any) {
 			s := azurefirewalls.AzureFirewallNetworkRuleProtocol(v.(string))
 			nrProtocols = append(nrProtocols, s)
 		}
@@ -443,14 +439,14 @@ func expandFirewallNatRules(input []interface{}) (*[]azurefirewalls.AzureFirewal
 	return &rules, nil
 }
 
-func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewallNatRule) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewallNatRule) []any {
+	outputs := make([]any, 0)
 	if rules == nil {
 		return outputs
 	}
 
 	for _, rule := range *rules {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 		if rule.Name != nil {
 			output["name"] = *rule.Name
 		}
@@ -464,16 +460,16 @@ func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewall
 			output["translated_port"] = *rule.TranslatedPort
 		}
 		if rule.SourceAddresses != nil {
-			output["source_addresses"] = helpers.FlattenStringSlice(rule.SourceAddresses)
+			output["source_addresses"] = pluginsdk.FlattenSlice(rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			output["source_ip_groups"] = helpers.FlattenStringSlice(rule.SourceIPGroups)
+			output["source_ip_groups"] = pluginsdk.FlattenSlice(rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			output["destination_addresses"] = helpers.FlattenStringSlice(rule.DestinationAddresses)
+			output["destination_addresses"] = pluginsdk.FlattenSlice(rule.DestinationAddresses)
 		}
 		if rule.DestinationPorts != nil {
-			output["destination_ports"] = helpers.FlattenStringSlice(rule.DestinationPorts)
+			output["destination_ports"] = pluginsdk.FlattenSlice(rule.DestinationPorts)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -481,7 +477,7 @@ func flattenFirewallNatRuleCollectionRules(rules *[]azurefirewalls.AzureFirewall
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		output["protocols"] = helpers.FlattenStringSlice(&protocols)
+		output["protocols"] = pluginsdk.FlattenSlice(&protocols)
 		outputs = append(outputs, output)
 	}
 	return outputs

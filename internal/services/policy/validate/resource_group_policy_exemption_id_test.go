@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestResourceGroupPolicyExemptionID(t *testing.T) {
+func TestValidateResourceGroupPolicyExemptionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

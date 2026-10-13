@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = VirtualNetworkGatewayIpConfigurationId{}
 
-func TestVirtualNetworkGatewayIpConfigurationIDFormatter(t *testing.T) {
+func TestParseVirtualNetworkGatewayIpConfigurationIDFormatter(t *testing.T) {
 	actual := NewVirtualNetworkGatewayIpConfigurationID("12345678-1234-9876-4563-123456789012", "resGroup1", "gw1", "cfg1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworkGateways/gw1/ipConfigurations/cfg1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestVirtualNetworkGatewayIpConfigurationIDFormatter(t *testing.T) {
 	}
 }
 
-func TestVirtualNetworkGatewayIpConfigurationID(t *testing.T) {
+func TestParseVirtualNetworkGatewayIpConfigurationID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestVirtualNetworkGatewayIpConfigurationID(t *testing.T) {
 	}
 }
 
-func TestVirtualNetworkGatewayIpConfigurationIDInsensitively(t *testing.T) {
+func TestParseVirtualNetworkGatewayIpConfigurationIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

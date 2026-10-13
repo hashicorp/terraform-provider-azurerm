@@ -60,7 +60,7 @@ func dataSourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ interface{}) error {
+func dataSourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, _ any) error {
 	name := d.Get("name").(string)
 
 	keyPermissions := make([]string, 0)

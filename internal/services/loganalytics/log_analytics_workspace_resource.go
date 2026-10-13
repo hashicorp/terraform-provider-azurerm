@@ -132,6 +132,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ValidateFunc: validation.IntInSlice([]int{
+					50,
 					100,
 					200,
 					300,
@@ -194,7 +195,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	// Since sku needs to be a force new if the sku changes we need to have this
 	// custom diff here because when you link the workspace to a cluster the
 	// cluster changes the sku to LACluster, so we need to ignore the change
@@ -215,17 +216,17 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		}
 
 		// Creation or update workspace to `standard` or `premium` SKU is not allowed. Reference:
-		// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
+		// https://learn.microsoft.com/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
 		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
 			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPremium)) {
-			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
+			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
 		}
 	}
 
 	return nil
 }
 
-func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	deletedWorkspaceClient := meta.(*clients.Client).LogAnalytics.DeletedWorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -286,7 +287,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	parameters := workspaces.Workspace{
 		Name:     &name,
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     expandTags(d.Get("tags").(map[string]any)),
 		Properties: &workspaces.WorkspaceProperties{
 			Sku:                             sku,
 			PublicNetworkAccessForIngestion: pointer.ToEnum[workspaces.PublicNetworkAccessType](d.Get("internet_ingestion_access_type").(string)),
@@ -299,7 +300,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		},
 	}
 
-	// nolint : staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("cmk_for_query_forced"); ok {
 		parameters.Properties.ForceCmkForQuery = pointer.To(v.(bool))
 	}
@@ -311,7 +312,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// The `ImmediatePurgeDataOn30Days` are not returned before it has been set
-	// nolint : staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("immediate_data_purge_on_30_days_enabled"); ok {
 		parameters.Properties.Features.ImmediatePurgeDataOn30Days = pointer.To(v.(bool))
 	}
@@ -320,8 +321,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	capacityReservationLevel, ok := d.GetOk(propName)
 	if ok {
 		if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-			capacityReservationLevelValue := int64(capacityReservationLevel.(int))
-			parameters.Properties.Sku.CapacityReservationLevel = &capacityReservationLevelValue
+			parameters.Properties.Sku.CapacityReservationLevel = pointer.To(int64(capacityReservationLevel.(int)))
 		} else {
 			return fmt.Errorf("`%s` can only be used with the `CapacityReservation` SKU", propName)
 		}
@@ -332,7 +332,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		expanded, err := identity.ExpandSystemOrUserAssignedMap(v.([]interface{}))
+		expanded, err := identity.ExpandSystemOrUserAssignedMap(v.([]any))
 		if err != nil {
 			return fmt.Errorf("expanding identity: %+v", err)
 		}
@@ -363,7 +363,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		Target:     []string{strconv.FormatBool(allowResourceOnlyPermission)},
 		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
 		MinTimeout: 30 * time.Second,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return resp, "error", fmt.Errorf("retrieving %s: %+v", id, err)
@@ -384,7 +384,7 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceLogAnalyticsWorkspaceRead(d, meta)
 }
 
-func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -426,7 +426,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`")
 		}
@@ -504,7 +504,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = expandTags(d.Get("tags").(map[string]interface{}))
+		payload.Tags = expandTags(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -514,7 +514,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceLogAnalyticsWorkspaceRead(d, meta)
 }
 
-func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	sharedKeyClient := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -551,8 +551,8 @@ func resourceLogAnalyticsWorkspaceFlatten(ctx context.Context, sharedKeyClient *
 		}
 
 		if props := model.Properties; props != nil {
-			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
-			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
+			d.Set("internet_ingestion_access_type", pointer.FromEnum(props.PublicNetworkAccessForIngestion))
+			d.Set("internet_query_access_type", pointer.FromEnum(props.PublicNetworkAccessForQuery))
 
 			d.Set("workspace_id", pointer.From(props.CustomerId))
 
@@ -623,7 +623,7 @@ func resourceLogAnalyticsWorkspaceFlatten(ctx context.Context, sharedKeyClient *
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

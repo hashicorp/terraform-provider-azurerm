@@ -83,7 +83,7 @@ func resourceHealthbotService() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{})
 		Sku: healthbots.Sku{
 			Name: healthbots.SkuName(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.BotsCreateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -120,7 +120,7 @@ func resourceHealthbotServiceCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceHealthbotServiceRead(d, meta)
 }
 
-func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceHealthbotServiceRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.BotsUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -185,7 +185,7 @@ func resourceHealthbotServiceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceHealthbotServiceRead(d, meta)
 }
 
-func resourceHealthbotServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthbotServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.HealthBotClient.HealthBots
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

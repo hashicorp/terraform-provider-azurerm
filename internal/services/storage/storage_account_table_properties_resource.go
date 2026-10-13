@@ -73,29 +73,18 @@ var defaultTableCorsProperties = tables.Cors{
 }
 
 var defaultTableHourMetricsProperties = tables.MetricsConfig{
-	Version: "1.0",
-	Enabled: false,
-	RetentionPolicy: tables.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: tables.RetentionPolicy{},
 }
 
 var defaultTableMinuteMetricsProperties = tables.MetricsConfig{
-	Version: "1.0",
-	Enabled: false,
-	RetentionPolicy: tables.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: tables.RetentionPolicy{},
 }
 
 var defaultTableLoggingProperties = tables.LoggingConfig{
-	Version: "1.0",
-	Delete:  false,
-	Read:    false,
-	Write:   false,
-	RetentionPolicy: tables.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: tables.RetentionPolicy{},
 }
 
 func (s AccountTablePropertiesResource) Arguments() map[string]*pluginsdk.Schema {
@@ -259,7 +248,7 @@ func (s AccountTablePropertiesResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (s AccountTablePropertiesResource) ModelObject() interface{} {
+func (s AccountTablePropertiesResource) ModelObject() any {
 	return &AccountTablePropertiesModel{}
 }
 
@@ -696,27 +685,16 @@ func pollForTableProperties(ctx context.Context, client shim.StorageTableWrapper
 func DefaultValueForAccountTableProperties() tables.StorageServiceProperties {
 	return tables.StorageServiceProperties{
 		Logging: &tables.LoggingConfig{
-			Version: "1.0",
-			Delete:  false,
-			Read:    false,
-			Write:   false,
-			RetentionPolicy: tables.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: tables.RetentionPolicy{},
 		},
 		HourMetrics: &tables.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: tables.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: tables.RetentionPolicy{},
 		},
 		MinuteMetrics: &tables.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: tables.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: tables.RetentionPolicy{},
 		},
 		Cors: &tables.Cors{
 			CorsRule: []tables.CorsRule{},

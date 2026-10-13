@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -18,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
@@ -106,7 +107,7 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			// No state yet, a new resource being created.
 			if d.GetRawState().IsNull() {
 				if d.Get("driver_version") == "V1" {
@@ -118,7 +119,7 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -166,7 +167,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		mysqlLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		mysqlLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -174,12 +175,11 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		mysqlLinkedService.AdditionalProperties = v.(map[string]interface{})
+		mysqlLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		mysqlLinkedService.Annotations = &annotations
+		mysqlLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -195,7 +195,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 	return resourceDataFactoryLinkedServiceMySQLRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +248,7 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceMySQLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceMySQLDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

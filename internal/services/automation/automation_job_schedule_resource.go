@@ -105,7 +105,7 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.JobSchedule
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -158,15 +158,14 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	// parameters to be passed into the runbook
 	if v, ok := d.GetOk("parameters"); ok {
 		jsParameters := make(map[string]string)
-		for k, v := range v.(map[string]interface{}) {
+		for k, v := range v.(map[string]any) {
 			jsParameters[k] = v.(string)
 		}
 		parameters.Properties.Parameters = &jsParameters
 	}
 
 	if v, ok := d.GetOk("run_on"); ok {
-		value := v.(string)
-		parameters.Properties.RunOn = &value
+		parameters.Properties.RunOn = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, id, parameters); err != nil {
@@ -179,7 +178,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAutomationJobScheduleRead(d, meta)
 }
 
-func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.JobSchedule
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,7 +225,7 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 
 		if props.Parameters != nil {
 			if v := *props.Parameters; v != nil {
-				jsParameters := make(map[string]interface{})
+				jsParameters := make(map[string]any)
 				for key, value := range v {
 					jsParameters[strings.ToLower(key)] = value
 				}
@@ -238,7 +237,7 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.JobSchedule
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

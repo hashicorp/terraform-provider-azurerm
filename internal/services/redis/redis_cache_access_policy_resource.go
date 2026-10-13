@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/rediscacheaccesspolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -49,7 +50,7 @@ func (r RedisCacheAccessPolicyResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r RedisCacheAccessPolicyResource) ModelObject() interface{} {
+func (r RedisCacheAccessPolicyResource) ModelObject() any {
 	return &RedisCacheAccessPolicyResourceModel{}
 }
 
@@ -89,13 +90,11 @@ func (r RedisCacheAccessPolicyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			policyTypeCustom := rediscacheaccesspolicies.AccessPolicyTypeCustom
-
 			createInput := rediscacheaccesspolicies.RedisCacheAccessPolicy{
 				Name: &model.Name,
 				Properties: &rediscacheaccesspolicies.RedisCacheAccessPolicyProperties{
 					Permissions: model.Permissions,
-					Type:        &policyTypeCustom,
+					Type:        pointer.To(rediscacheaccesspolicies.AccessPolicyTypeCustom),
 				},
 			}
 

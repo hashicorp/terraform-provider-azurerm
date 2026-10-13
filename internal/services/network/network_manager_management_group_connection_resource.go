@@ -11,12 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	managementParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
-	managementValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -37,7 +37,7 @@ func (r ManagerManagementGroupConnectionResource) ResourceType() string {
 	return "azurerm_network_manager_management_group_connection"
 }
 
-func (r ManagerManagementGroupConnectionResource) ModelObject() interface{} {
+func (r ManagerManagementGroupConnectionResource) ModelObject() any {
 	return &ManagerManagementGroupConnectionModel{}
 }
 
@@ -58,7 +58,7 @@ func (r ManagerManagementGroupConnectionResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managementValidate.ManagementGroupID,
+			ValidateFunc: validate.ManagementGroupID,
 		},
 
 		"network_manager_id": {
@@ -95,7 +95,7 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Network.NetworkManagerConnections
-			managementGroupId, err := managementParse.ManagementGroupID(model.ManagementGroupId)
+			managementGroupId, err := parse.ManagementGroupID(model.ManagementGroupId)
 			if err != nil {
 				return err
 			}
@@ -213,7 +213,7 @@ func (r ManagerManagementGroupConnectionResource) Read() sdk.ResourceFunc {
 			properties := existing.Model.Properties
 			state := ManagerManagementGroupConnectionModel{
 				Name:              id.NetworkManagerConnectionName,
-				ManagementGroupId: managementParse.NewManagementGroupId(id.ManagementGroupId).ID(),
+				ManagementGroupId: parse.NewManagementGroupId(id.ManagementGroupId).ID(),
 			}
 
 			if properties.ConnectionState != nil {

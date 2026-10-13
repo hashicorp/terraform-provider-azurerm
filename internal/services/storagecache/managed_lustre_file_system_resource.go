@@ -119,7 +119,7 @@ func (r ManagedLustreFileSystemResource) ResourceType() string {
 	return "azurerm_managed_lustre_file_system"
 }
 
-func (r ManagedLustreFileSystemResource) ModelObject() interface{} {
+func (r ManagedLustreFileSystemResource) ModelObject() any {
 	return &ManagedLustreFileSystemModel{}
 }
 
@@ -289,7 +289,7 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("encryption_key"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("encryption_key"); len(oldVal.([]any)) > 0 && len(newVal.([]any)) == 0 {
 				if err := metadata.ResourceDiff.ForceNew("encryption_key"); err != nil {
 					return err
 				}

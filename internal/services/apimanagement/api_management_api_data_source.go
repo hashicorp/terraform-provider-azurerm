@@ -122,7 +122,7 @@ func dataSourceApiManagementApi() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementApiRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -184,15 +184,15 @@ func flattenApiManagementApiDataSourceProtocols(input *[]api.Protocol) []string 
 	return results
 }
 
-func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []interface{} {
+func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *api.SubscriptionKeyParameterNamesContract) []any {
 	if paramNames == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["header"] = pointer.From(paramNames.Header)
 	result["query"] = pointer.From(paramNames.Query)
 
-	return []interface{}{result}
+	return []any{result}
 }

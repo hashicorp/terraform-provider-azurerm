@@ -6,6 +6,10 @@ package data
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
+	"github.com/spf13/afero"
 )
 
 type ResourceType string
@@ -37,6 +41,61 @@ func (r ResourceType) String() string {
 	return string(r)
 }
 
-func expectedResourceCodePath(pattern string, name string, service Service, resourceType ResourceType) string {
-	return filepath.FromSlash(fmt.Sprintf(pattern, service.Path, name, ResourceTypeToFileSuffix[resourceType]))
+func expectedResourceCodePath(fs afero.Fs, pattern string, name string, service Service, resourceType ResourceType) string {
+	defaultPath := filepath.FromSlash(fmt.Sprintf(pattern, service.Path, name, ResourceTypeToFileSuffix[resourceType]))
+	if fs == nil || util.FileExists(fs, defaultPath) {
+		return defaultPath
+	}
+
+	suffix := ResourceTypeToFileSuffix[resourceType]
+	if strings.Contains(pattern, "_gen.go") {
+		suffix += "_gen"
+	}
+
+	cleanServiceName := strings.ToLower(strings.ReplaceAll(service.Name, " ", ""))
+	cleanServiceNameUnderscore := strings.ToLower(strings.ReplaceAll(service.Name, " ", "_"))
+	serviceBaseDir := filepath.Base(service.Path)
+	shortNameWithoutService := strings.TrimPrefix(name, cleanServiceName+"_")
+	shortNameWithoutService = strings.TrimPrefix(shortNameWithoutService, cleanServiceNameUnderscore+"_")
+	shortNameWithoutService = strings.TrimPrefix(shortNameWithoutService, serviceBaseDir+"_")
+
+	parts := strings.Split(name, "_")
+	var accum strings.Builder
+	for i, part := range parts {
+		accum.WriteString(strings.ToLower(part))
+		if accum.String() == cleanServiceName {
+			matchedPrefix := strings.Join(parts[:i+1], "_") + "_"
+			shortNameWithoutService = strings.TrimPrefix(name, matchedPrefix)
+			break
+		}
+	}
+
+	candidates := []string{
+		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, shortNameWithoutService, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
+		filepath.Join(service.Path, "resources", shortNameWithoutService, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, "resources", shortNameWithoutService, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
+		filepath.Join(service.Path, name, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, name, fmt.Sprintf("%s_%s.go", name, suffix)),
+		filepath.Join(service.Path, "resources", name, fmt.Sprintf("%s.go", suffix)),
+		filepath.Join(service.Path, "resources", name, fmt.Sprintf("%s_%s.go", shortNameWithoutService, suffix)),
+	}
+
+	if idx := strings.LastIndex(name, "_"); idx != -1 {
+		lastPart := name[idx+1:]
+		candidates = append(candidates,
+			filepath.Join(service.Path, lastPart, fmt.Sprintf("%s.go", suffix)),
+			filepath.Join(service.Path, lastPart, fmt.Sprintf("%s_%s.go", lastPart, suffix)),
+			filepath.Join(service.Path, "resources", lastPart, fmt.Sprintf("%s.go", suffix)),
+			filepath.Join(service.Path, "resources", lastPart, fmt.Sprintf("%s_%s.go", lastPart, suffix)),
+		)
+	}
+
+	for _, candidate := range candidates {
+		if util.FileExists(fs, candidate) {
+			return candidate
+		}
+	}
+
+	return defaultPath
 }

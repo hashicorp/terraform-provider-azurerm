@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -430,7 +429,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
@@ -463,14 +462,14 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	resource := appplatform.ServiceResource{
 		Location: pointer.To(location),
 		Properties: &appplatform.ClusterResourceProperties{
-			NetworkProfile:      expandSpringCloudNetwork(d.Get("network").([]interface{})),
+			NetworkProfile:      expandSpringCloudNetwork(d.Get("network").([]any)),
 			ZoneRedundant:       pointer.To(d.Get("zone_redundant").(bool)),
-			MarketplaceResource: expandSpringCloudMarketplaceResource(d.Get("marketplace").([]interface{})),
+			MarketplaceResource: expandSpringCloudMarketplaceResource(d.Get("marketplace").([]any)),
 		},
 		Sku: &appplatform.Sku{
 			Name: pointer.To(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if enabled := d.Get("log_stream_public_endpoint_enabled").(bool); enabled {
@@ -486,7 +485,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		resource.Sku.Tier = pointer.To(d.Get("sku_tier").(string))
 	}
 
-	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
+	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]any))
 	if err != nil {
 		return err
 	}
@@ -516,7 +515,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	monitorSettings := appplatform.MonitoringSettingResource{
-		Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
+		Properties: expandSpringCloudTrace(d.Get("trace").([]any)),
 	}
 	updateFuture, err := monitoringSettingsClient.UpdatePut(ctx, id.ResourceGroupName, id.ServiceName, monitorSettings)
 	if err != nil {
@@ -538,12 +537,12 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if skuName == "E0" {
-		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]any))
 		if err = applyContainerRegistries(ctx, containerRegistryClient, id, nil, new); err != nil {
 			return fmt.Errorf("applying container registries for %s: %+v", id, err)
 		}
 		buildResource := appplatform.BuildService{
-			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
+			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]any), id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.ServiceName, "default", buildResource)
 		if err != nil {
@@ -575,7 +574,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
-func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
@@ -598,7 +597,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 			Sku: &appplatform.Sku{
 				Name: pointer.To(d.Get("sku_name").(string)),
 			},
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 
 		future, err := client.Update(ctx, id.ResourceGroupName, id.ServiceName, model)
@@ -611,7 +610,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("config_server_git_setting") {
-		gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
+		gitPropertyRaw := d.Get("config_server_git_setting").([]any)
 		gitProperty, err := expandSpringCloudConfigServerGitProperty(gitPropertyRaw)
 		if err != nil {
 			return err
@@ -629,7 +628,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("trace") {
 		monitorSettings := appplatform.MonitoringSettingResource{
-			Properties: expandSpringCloudTrace(d.Get("trace").([]interface{})),
+			Properties: expandSpringCloudTrace(d.Get("trace").([]any)),
 		}
 		updateFuture, err := monitoringSettingsClient.UpdatePut(ctx, id.ResourceGroupName, id.ServiceName, monitorSettings)
 		if err != nil {
@@ -664,12 +663,12 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	skuName := d.Get("sku_name").(string)
 	if skuName == "E0" {
-		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		new := expandSpringCloudContainerRegistries(d.Get("container_registry").([]any))
 		if err = applyContainerRegistries(ctx, containerRegistryClient, *id, nil, new); err != nil {
 			return fmt.Errorf("applying container registries for %s: %+v", id, err)
 		}
 		buildResource := appplatform.BuildService{
-			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
+			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]any), *id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.ServiceName, "default", buildResource)
 		if err != nil {
@@ -701,7 +700,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSpringCloudServiceRead(d, meta)
 }
 
-func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	monitoringSettingsClient := meta.(*clients.Client).AppPlatform.MonitoringSettingsClient
@@ -755,7 +754,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("going to next container registry value of %s: %+v", id, err)
 			}
 		}
-		containerRegistriesState := expandSpringCloudContainerRegistries(d.Get("container_registry").([]interface{}))
+		containerRegistriesState := expandSpringCloudContainerRegistries(d.Get("container_registry").([]any))
 		d.Set("container_registry", flattenSpringCloudContainerRegistries(containerRegistriesState, containerRegistries))
 	} else {
 		log.Printf("[WARN] unable to list container registries for %s: %+v", id, err)
@@ -842,7 +841,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -929,12 +928,12 @@ func applyContainerRegistries(ctx context.Context, client *appplatform.Container
 	return nil
 }
 
-func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
+func expandSpringCloudNetwork(input []any) *appplatform.NetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
-	cidrRanges := helpers.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
+	v := input[0].(map[string]any)
+	cidrRanges := pluginsdk.ExpandStringSlice(v["cidr_ranges"].([]any))
 	network := &appplatform.NetworkProfile{
 		ServiceRuntimeSubnetID: pointer.To(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            pointer.To(v["app_subnet_id"].(string)),
@@ -955,12 +954,12 @@ func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 	return network
 }
 
-func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform.ConfigServerGitProperty, error) {
+func expandSpringCloudConfigServerGitProperty(input []any) (*appplatform.ConfigServerGitProperty, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	if v == nil {
 		return nil, nil
 	}
@@ -972,22 +971,22 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 	if label := v["label"].(string); label != "" {
 		result.Label = pointer.To(label)
 	}
-	if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-		result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
+	if searchPaths := v["search_paths"].([]any); len(searchPaths) > 0 {
+		result.SearchPaths = pluginsdk.ExpandStringSlice(searchPaths)
 	}
 
-	httpBasicAuth := v["http_basic_auth"].([]interface{})
-	sshAuth := v["ssh_auth"].([]interface{})
+	httpBasicAuth := v["http_basic_auth"].([]any)
+	sshAuth := v["ssh_auth"].([]any)
 	if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
 		return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth`")
 	}
 	if len(httpBasicAuth) > 0 {
-		v := httpBasicAuth[0].(map[string]interface{})
+		v := httpBasicAuth[0].(map[string]any)
 		result.Username = pointer.To(v["username"].(string))
 		result.Password = pointer.To(v["password"].(string))
 	}
 	if len(sshAuth) > 0 {
-		v := sshAuth[0].(map[string]interface{})
+		v := sshAuth[0].(map[string]any)
 		result.PrivateKey = pointer.To(v["private_key"].(string))
 		result.StrictHostKeyChecking = pointer.To(v["strict_host_key_checking_enabled"].(bool))
 
@@ -1000,7 +999,7 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 	}
 
 	if v, ok := v["repository"]; ok {
-		repositories, err := expandSpringCloudGitPatternRepository(v.([]interface{}))
+		repositories, err := expandSpringCloudGitPatternRepository(v.([]any))
 		if err != nil {
 			return nil, err
 		}
@@ -1010,10 +1009,10 @@ func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform
 	return &result, nil
 }
 
-func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.GitPatternRepository, error) {
+func expandSpringCloudGitPatternRepository(input []any) (*[]appplatform.GitPatternRepository, error) {
 	results := make([]appplatform.GitPatternRepository, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := appplatform.GitPatternRepository{
 			Name: pointer.To(v["name"].(string)),
@@ -1023,25 +1022,25 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 		if label := v["label"].(string); len(label) > 0 {
 			result.Label = pointer.To(label)
 		}
-		if pattern := v["pattern"].([]interface{}); len(pattern) > 0 {
-			result.Pattern = helpers.ExpandStringSlice(pattern)
+		if pattern := v["pattern"].([]any); len(pattern) > 0 {
+			result.Pattern = pluginsdk.ExpandStringSlice(pattern)
 		}
-		if searchPaths := v["search_paths"].([]interface{}); len(searchPaths) > 0 {
-			result.SearchPaths = helpers.ExpandStringSlice(searchPaths)
+		if searchPaths := v["search_paths"].([]any); len(searchPaths) > 0 {
+			result.SearchPaths = pluginsdk.ExpandStringSlice(searchPaths)
 		}
 
-		httpBasicAuth := v["http_basic_auth"].([]interface{})
-		sshAuth := v["ssh_auth"].([]interface{})
+		httpBasicAuth := v["http_basic_auth"].([]any)
+		sshAuth := v["ssh_auth"].([]any)
 		if len(httpBasicAuth) > 0 && len(sshAuth) > 0 {
 			return nil, fmt.Errorf("can not set both `http_basic_auth` and `ssh_auth` for the same repository")
 		}
 		if len(httpBasicAuth) > 0 {
-			v := httpBasicAuth[0].(map[string]interface{})
+			v := httpBasicAuth[0].(map[string]any)
 			result.Username = pointer.To(v["username"].(string))
 			result.Password = pointer.To(v["password"].(string))
 		}
 		if len(sshAuth) > 0 {
-			v := sshAuth[0].(map[string]interface{})
+			v := sshAuth[0].(map[string]any)
 			result.PrivateKey = pointer.To(v["private_key"].(string))
 			result.StrictHostKeyChecking = pointer.To(v["strict_host_key_checking_enabled"].(bool))
 
@@ -1058,14 +1057,14 @@ func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.
 	return &results, nil
 }
 
-func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingProperties {
+func expandSpringCloudTrace(input []any) *appplatform.MonitoringSettingProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &appplatform.MonitoringSettingProperties{
 			TraceEnabled: pointer.To(false),
 		}
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &appplatform.MonitoringSettingProperties{
 		TraceEnabled:                  pointer.To(true),
 		AppInsightsInstrumentationKey: pointer.To(v["connection_string"].(string)),
@@ -1073,13 +1072,13 @@ func expandSpringCloudTrace(input []interface{}) *appplatform.MonitoringSettingP
 	}
 }
 
-func expandSpringCloudContainerRegistries(input []interface{}) []appplatform.ContainerRegistryResource {
+func expandSpringCloudContainerRegistries(input []any) []appplatform.ContainerRegistryResource {
 	if len(input) == 0 {
 		return nil
 	}
 	out := make([]appplatform.ContainerRegistryResource, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		out = append(out, appplatform.ContainerRegistryResource{
 			Name: pointer.To(v["name"].(string)),
 			Properties: &appplatform.ContainerRegistryProperties{
@@ -1094,11 +1093,11 @@ func expandSpringCloudContainerRegistries(input []interface{}) []appplatform.Con
 	return out
 }
 
-func expandSpringCloudBuildService(input []interface{}, springId commonids.SpringCloudServiceId) appplatform.BuildServiceProperties {
+func expandSpringCloudBuildService(input []any, springId commonids.SpringCloudServiceId) appplatform.BuildServiceProperties {
 	if len(input) == 0 || input[0] == nil {
 		return appplatform.BuildServiceProperties{}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	out := appplatform.BuildServiceProperties{}
 	if value := v["container_registry_name"].(string); value != "" {
 		out.ContainerRegistry = pointer.To(appplatform_rm.NewContainerRegistryID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, value).ID())
@@ -1106,11 +1105,11 @@ func expandSpringCloudBuildService(input []interface{}, springId commonids.Sprin
 	return out
 }
 
-func expandSpringCloudMarketplaceResource(input []interface{}) *appplatform.MarketplaceResource {
+func expandSpringCloudMarketplaceResource(input []any) *appplatform.MarketplaceResource {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &appplatform.MarketplaceResource{
 		Plan:      pointer.To(v["plan"].(string)),
 		Publisher: pointer.To(v["publisher"].(string)),
@@ -1118,49 +1117,49 @@ func expandSpringCloudMarketplaceResource(input []interface{}) *appplatform.Mark
 	}
 }
 
-func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *pluginsdk.ResourceData) []interface{} {
+func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *pluginsdk.ResourceData) []any {
 	if input == nil || input.ConfigServer == nil || input.ConfigServer.GitProperty == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	gitProperty := input.ConfigServer.GitProperty
 
 	// prepare old state to find sensitive props not returned by API.
-	oldGitSetting := make(map[string]interface{})
-	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
-		oldGitSetting = oldGitSettings[0].(map[string]interface{})
+	oldGitSetting := make(map[string]any)
+	if oldGitSettings := d.Get("config_server_git_setting").([]any); len(oldGitSettings) > 0 {
+		oldGitSetting = oldGitSettings[0].(map[string]any)
 	}
 
 	uri := pointer.From(gitProperty.URI)
 
 	label := pointer.From(gitProperty.Label)
 
-	searchPaths := helpers.FlattenStringSlice(gitProperty.SearchPaths)
+	searchPaths := pluginsdk.FlattenSlice(gitProperty.SearchPaths)
 
-	httpBasicAuth := make([]interface{}, 0)
+	httpBasicAuth := make([]any, 0)
 	if gitProperty.Username != nil && gitProperty.Password != nil {
 		// username and password returned by API are *
 		// to avoid state diff, we get the props from old state
 		username := ""
 		password := ""
 		if v, ok := oldGitSetting["http_basic_auth"]; ok {
-			oldHTTPBasicAuth := v.([]interface{})
+			oldHTTPBasicAuth := v.([]any)
 			if len(oldHTTPBasicAuth) > 0 {
-				oldItem := oldHTTPBasicAuth[0].(map[string]interface{})
+				oldItem := oldHTTPBasicAuth[0].(map[string]any)
 				username = oldItem["username"].(string)
 				password = oldItem["password"].(string)
 			}
 		}
 
-		httpBasicAuth = []interface{}{
-			map[string]interface{}{
+		httpBasicAuth = []any{
+			map[string]any{
 				"username": username,
 				"password": password,
 			},
 		}
 	}
 
-	sshAuth := []interface{}{}
+	sshAuth := []any{}
 	if gitProperty.PrivateKey != nil {
 		// private_key, host_key and host_key_algorithm returned by API are *
 		// to avoid state diff, we get the props from old state
@@ -1168,9 +1167,9 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 		hostKey := ""
 		hostKeyAlgorithm := ""
 		if v, ok := oldGitSetting["ssh_auth"]; ok {
-			sshAuth := v.([]interface{})
+			sshAuth := v.([]any)
 			if len(sshAuth) > 0 {
-				oldItem := sshAuth[0].(map[string]interface{})
+				oldItem := sshAuth[0].(map[string]any)
 				privateKey = oldItem["private_key"].(string)
 				hostKey = oldItem["host_key"].(string)
 				hostKeyAlgorithm = oldItem["host_key_algorithm"].(string)
@@ -1179,8 +1178,8 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 
 		strictHostKeyChecking := pointer.From(gitProperty.StrictHostKeyChecking)
 
-		sshAuth = []interface{}{
-			map[string]interface{}{
+		sshAuth = []any{
+			map[string]any{
 				"private_key":                      privateKey,
 				"host_key":                         hostKey,
 				"host_key_algorithm":               hostKeyAlgorithm,
@@ -1189,8 +1188,8 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"uri":             uri,
 			"label":           label,
 			"search_paths":    searchPaths,
@@ -1201,18 +1200,18 @@ func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerPr
 	}
 }
 
-func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *pluginsdk.ResourceData) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *pluginsdk.ResourceData) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	// prepare old state to find sensitive props not returned by API.
-	oldGitPatternRepositories := map[string]interface{}{}
-	if oldGitSettings := d.Get("config_server_git_setting").([]interface{}); len(oldGitSettings) > 0 {
-		oldGitSetting := oldGitSettings[0].(map[string]interface{})
-		for _, r := range oldGitSetting["repository"].([]interface{}) {
-			repo := r.(map[string]interface{})
+	oldGitPatternRepositories := map[string]any{}
+	if oldGitSettings := d.Get("config_server_git_setting").([]any); len(oldGitSettings) > 0 {
+		oldGitSetting := oldGitSettings[0].(map[string]any)
+		for _, r := range oldGitSetting["repository"].([]any) {
+			repo := r.(map[string]any)
 			if name, ok := repo["name"]; ok {
 				oldGitPatternRepositories[name.(string)] = r
 			}
@@ -1227,38 +1226,38 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 		label := pointer.From(item.Label)
 
 		// prepare old state to find sensitive props not returned by API.
-		oldGitPatternRepository := make(map[string]interface{})
+		oldGitPatternRepository := make(map[string]any)
 		if gpr, ok := oldGitPatternRepositories[name]; ok {
-			oldGitPatternRepository = gpr.(map[string]interface{})
+			oldGitPatternRepository = gpr.(map[string]any)
 		}
 
-		pattern := helpers.FlattenStringSlice(item.Pattern)
-		searchPaths := helpers.FlattenStringSlice(item.SearchPaths)
+		pattern := pluginsdk.FlattenSlice(item.Pattern)
+		searchPaths := pluginsdk.FlattenSlice(item.SearchPaths)
 
-		httpBasicAuth := []interface{}{}
+		httpBasicAuth := []any{}
 		if item.Username != nil && item.Password != nil {
 			// username and password returned by API are *
 			// to avoid state diff, we get the props from old state
 			username := ""
 			password := ""
 			if v, ok := oldGitPatternRepository["http_basic_auth"]; ok {
-				oldHTTPBasicAuth := v.([]interface{})
+				oldHTTPBasicAuth := v.([]any)
 				if len(oldHTTPBasicAuth) > 0 {
-					oldItem := oldHTTPBasicAuth[0].(map[string]interface{})
+					oldItem := oldHTTPBasicAuth[0].(map[string]any)
 					username = oldItem["username"].(string)
 					password = oldItem["password"].(string)
 				}
 			}
 
-			httpBasicAuth = []interface{}{
-				map[string]interface{}{
+			httpBasicAuth = []any{
+				map[string]any{
 					"username": username,
 					"password": password,
 				},
 			}
 		}
 
-		sshAuth := []interface{}{}
+		sshAuth := []any{}
 		if item.PrivateKey != nil {
 			// private_key, host_key and host_key_algorithm returned by API are *
 			// to avoid state diff, we get the props from old state
@@ -1266,9 +1265,9 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 			hostKey := ""
 			hostKeyAlgorithm := ""
 			if v, ok := oldGitPatternRepository["ssh_auth"]; ok {
-				sshAuth := v.([]interface{})
+				sshAuth := v.([]any)
 				if len(sshAuth) > 0 {
-					oldItem := sshAuth[0].(map[string]interface{})
+					oldItem := sshAuth[0].(map[string]any)
 					privateKey = oldItem["private_key"].(string)
 					hostKey = oldItem["host_key"].(string)
 					hostKeyAlgorithm = oldItem["host_key_algorithm"].(string)
@@ -1277,8 +1276,8 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 
 			strictHostKeyChecking := pointer.From(item.StrictHostKeyChecking)
 
-			sshAuth = []interface{}{
-				map[string]interface{}{
+			sshAuth = []any{
+				map[string]any{
 					"private_key":                      privateKey,
 					"host_key":                         hostKey,
 					"host_key_algorithm":               hostKeyAlgorithm,
@@ -1287,7 +1286,7 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 			}
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"name":            name,
 			"uri":             uri,
 			"label":           label,
@@ -1301,9 +1300,9 @@ func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepos
 	return results
 }
 
-func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []interface{} {
+func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	enabled := false
@@ -1320,25 +1319,25 @@ func flattenSpringCloudTrace(input *appplatform.MonitoringSettingProperties) []i
 	}
 
 	if !enabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"connection_string": connectionString,
 			"sample_rate":       samplingRate,
 		},
 	}
 }
 
-func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} {
+func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var serviceRuntimeSubnetID, appSubnetID, serviceRuntimeNetworkResourceGroup, appNetworkResourceGroup string
 	var readTimeoutInSeconds int32
-	var cidrRanges []interface{}
+	var cidrRanges []any
 	if input.ServiceRuntimeSubnetID != nil {
 		serviceRuntimeSubnetID = *input.ServiceRuntimeSubnetID
 	}
@@ -1347,7 +1346,7 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 	if input.ServiceCidr != nil {
 		cidrs := strings.Split(*input.ServiceCidr, ",")
-		cidrRanges = helpers.FlattenStringSlice(&cidrs)
+		cidrRanges = pluginsdk.FlattenSlice(&cidrs)
 	}
 	if input.ServiceRuntimeNetworkResourceGroup != nil {
 		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
@@ -1368,11 +1367,11 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 
 	if serviceRuntimeSubnetID == "" && appSubnetID == "" && serviceRuntimeNetworkResourceGroup == "" && appNetworkResourceGroup == "" && len(cidrRanges) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"app_subnet_id":                          appSubnetID,
 			"service_runtime_subnet_id":              serviceRuntimeSubnetID,
 			"cidr_ranges":                            cidrRanges,
@@ -1384,20 +1383,20 @@ func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} 
 	}
 }
 
-func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []interface{} {
+func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []any {
 	if input == nil || input.OutboundIPs == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return helpers.FlattenStringSlice(input.OutboundIPs.PublicIPs)
+	return pluginsdk.FlattenSlice(input.OutboundIPs.PublicIPs)
 }
 
-func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
+func flattenRequiredTraffic(input *appplatform.NetworkProfile) []any {
 	if input == nil || input.RequiredTraffics == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, v := range *input.RequiredTraffics {
 		protocol := pointer.From(v.Protocol)
 
@@ -1406,20 +1405,20 @@ func flattenRequiredTraffic(input *appplatform.NetworkProfile) []interface{} {
 			port = int(*v.Port)
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"protocol":     protocol,
 			"port":         port,
-			"ip_addresses": helpers.FlattenStringSlice(v.Ips),
-			"fqdns":        helpers.FlattenStringSlice(v.Fqdns),
+			"ip_addresses": pluginsdk.FlattenSlice(v.Ips),
+			"fqdns":        pluginsdk.FlattenSlice(v.Fqdns),
 			"direction":    string(v.Direction),
 		})
 	}
 	return result
 }
 
-func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistryResource, input []appplatform.ContainerRegistryResource) []interface{} {
+func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistryResource, input []appplatform.ContainerRegistryResource) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	statePasswordMap := make(map[string]string)
@@ -1431,7 +1430,7 @@ func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistry
 			statePasswordMap[*v.Name] = *basicCredential.Password
 		}
 	}
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, v := range input {
 		name := ""
 		username := ""
@@ -1452,7 +1451,7 @@ func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistry
 			}
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":     name,
 			"username": username,
 			"password": password,
@@ -1462,24 +1461,24 @@ func flattenSpringCloudContainerRegistries(state []appplatform.ContainerRegistry
 	return result
 }
 
-func flattenSpringCloudBuildService(input *appplatform.BuildServiceProperties) []interface{} {
+func flattenSpringCloudBuildService(input *appplatform.BuildServiceProperties) []any {
 	if input == nil || input.ContainerRegistry == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	id, err := appplatform_rm.ParseContainerRegistryIDInsensitively(*input.ContainerRegistry)
 	if err == nil {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"container_registry_name": id.ContainerRegistryName,
 			},
 		}
 	}
-	return []interface{}{}
+	return []any{}
 }
 
-func flattenSpringCloudMarketplaceResource(input *appplatform.MarketplaceResource) []interface{} {
+func flattenSpringCloudMarketplaceResource(input *appplatform.MarketplaceResource) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	plan := ""
 	publisher := ""
@@ -1493,8 +1492,8 @@ func flattenSpringCloudMarketplaceResource(input *appplatform.MarketplaceResourc
 	if input.Product != nil {
 		product = *input.Product
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"plan":      plan,
 			"publisher": publisher,
 			"product":   product,

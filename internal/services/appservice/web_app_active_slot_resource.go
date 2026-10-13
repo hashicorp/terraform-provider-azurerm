@@ -29,7 +29,7 @@ type WebAppActiveSlotModel struct {
 
 var _ sdk.ResourceWithUpdate = WebAppActiveSlotResource{}
 
-func (r WebAppActiveSlotResource) ModelObject() interface{} {
+func (r WebAppActiveSlotResource) ModelObject() any {
 	return &WebAppActiveSlotModel{}
 }
 

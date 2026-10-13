@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func LinkedServiceDatasetName(v interface{}, k string) ([]string, []error) {
+func LinkedServiceDatasetName(v any, k string) ([]string, []error) {
 	return validation.StringDoesNotMatch(regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`), "any of '-' '.', '+', '?', '/', '<', '>', '*', '%', '&', ':', '\\', are not allowed")(v, k)
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -88,7 +89,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -233,7 +234,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceManagementGroupRead(d, meta)
 }
 
-func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -292,7 +293,7 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,12 +303,11 @@ func resourceManagementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	recurse := true
 	group, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      &recurse,
+		Recurse:      pointer.To(true),
 	})
 	if err != nil {
 		if response.WasNotFound(group.HttpResponse) || response.WasForbidden(group.HttpResponse) {
@@ -414,13 +414,7 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 			continue
 		}
 
-		found := false
-		for _, subId := range updated {
-			if id.SubscriptionId == subId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(updated, id.SubscriptionId)
 
 		if !found {
 			subscriptionIdsToRemove = append(subscriptionIdsToRemove, id.SubscriptionId)

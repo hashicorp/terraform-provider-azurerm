@@ -102,7 +102,7 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: pluginsdk.ForceNewIf("cognitive_account_id", func(ctx context.Context, d *schema.ResourceDiff, _ interface{}) bool {
+		CustomizeDiff: pluginsdk.ForceNewIf("cognitive_account_id", func(ctx context.Context, d *schema.ResourceDiff, _ any) bool {
 			if d == nil {
 				return false
 			}
@@ -118,7 +118,7 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 	return resourceBotChannelDirectLineSpeechRead(d, meta)
 }
 
-func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,7 +235,7 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,7 +282,7 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceBotChannelDirectLineSpeechRead(d, meta)
 }
 
-func resourceBotChannelDirectLineSpeechDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectLineSpeechDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

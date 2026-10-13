@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redisresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -262,7 +262,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT5H",
-							ValidateFunc: azValidate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 						},
 
 						"start_hour_utc": {
@@ -373,16 +373,16 @@ func resourceRedisCache() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta any) bool {
 				// downgrade the SKU is not supported, recreate the resource
 				if old.(string) != "" && new.(string) != "" {
 					return skuWeight[old.(string)] > skuWeight[new.(string)]
 				}
 				return false
 			}),
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				// Entra (AD) auth has to be set to disable access keys auth
-				// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+				// https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
 
 				accessKeysAuthenticationEnabled := diff.Get("access_keys_authentication_enabled").(bool)
 				activeDirectoryAuthenticationEnabled := diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool)
@@ -395,7 +395,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 
 				return nil
 			}),
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				// Replicates validation rules from Azure CLI
 				// https://github.com/Azure/azure-cli/blob/131634d374fe704920862a2e5b0745e61af9bc89/src/azure-cli/azure/cli/command_modules/redis/custom.py#L13
 				skuName := diff.Get("sku_name").(string)
@@ -418,7 +418,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 	}
 }
 
-func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -450,7 +450,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		publicNetworkAccess = redisresources.PublicNetworkAccessDisabled
 	}
 
-	redisIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	redisIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -472,7 +472,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 		},
 		Identity: redisIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
@@ -492,7 +492,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("tenant_settings"); ok {
-		parameters.Properties.TenantSettings = expandTenantSettings(v.(map[string]interface{}))
+		parameters.Properties.TenantSettings = expandTenantSettings(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("private_static_ip_address"); ok {
@@ -556,7 +556,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -569,7 +569,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	enableNonSslPort := d.Get("non_ssl_port_enabled")
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	expandedTags := tags.Expand(t)
 
 	parameters := redisresources.RedisUpdateParameters{
@@ -603,7 +603,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tenant_settings") {
-		parameters.Properties.TenantSettings = expandTenantSettings(d.Get("tenant_settings").(map[string]interface{}))
+		parameters.Properties.TenantSettings = expandTenantSettings(d.Get("tenant_settings").(map[string]any))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -640,7 +640,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	// identity cannot be updated with sku,publicNetworkAccess,redisVersion etc.
 	if d.HasChange("identity") {
-		redisIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		redisIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf(`expanding "identity": %v`, err)
 		}
@@ -676,7 +676,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -781,7 +781,7 @@ func resourceRedisCacheFlatten(ctx context.Context, metaClient *clients.Client, 
 
 			patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
 			schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
-			var patchSchedule []interface{}
+			var patchSchedule []any
 			if err == nil {
 				patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
 			}
@@ -798,7 +798,7 @@ func resourceRedisCacheFlatten(ctx context.Context, metaClient *clients.Client, 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -836,7 +836,7 @@ func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func redisStateRefreshFunc(ctx context.Context, client *redisresources.RedisResourcesClient, id redisresources.RediId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.RedisGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for status of %s: %+v", id, err)
@@ -857,11 +857,11 @@ func redisStateRefreshFunc(ctx context.Context, client *redisresources.RedisReso
 func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisCommonPropertiesRedisConfiguration, error) {
 	output := &redisresources.RedisCommonPropertiesRedisConfiguration{}
 
-	input := d.Get("redis_configuration").([]interface{})
+	input := d.Get("redis_configuration").([]any)
 	if len(input) == 0 || input[0] == nil {
 		return output, nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
@@ -889,7 +889,6 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
-	// nolint : staticcheck
 	v, valExists := d.GetOk("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
@@ -899,7 +898,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	}
 
 	// RDB Backup
-	// nolint : staticcheck
+	//nolint:staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
@@ -934,7 +933,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	}
 
 	// AOF Backup
-	// nolint : staticcheck
+	//nolint:staticcheck
 	v, valExists = d.GetOkExists("redis_configuration.0.aof_backup_enabled")
 	if valExists {
 		// aof_backup_enabled is available when SKU is Premium
@@ -975,10 +974,10 @@ func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *redispatchschedules.Re
 		return nil
 	}
 
-	scheduleValues := v.([]interface{})
+	scheduleValues := v.([]any)
 	entries := make([]redispatchschedules.ScheduleEntry, 0)
 	for _, scheduleValue := range scheduleValues {
-		vals := scheduleValue.(map[string]interface{})
+		vals := scheduleValue.(map[string]any)
 		dayOfWeek := vals["day_of_week"].(string)
 		maintenanceWindow := vals["maintenance_window"].(string)
 		startHourUtc := vals["start_hour_utc"].(int)
@@ -998,7 +997,7 @@ func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *redispatchschedules.Re
 	return &schedule
 }
 
-func expandTenantSettings(input map[string]interface{}) *map[string]string {
+func expandTenantSettings(input map[string]any) *map[string]string {
 	output := make(map[string]string, len(input))
 
 	for k, v := range input {
@@ -1011,16 +1010,14 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	output := make(map[string]string)
 
 	if input != nil {
-		for k, v := range *input {
-			output[k] = v
-		}
+		maps.Copy(output, *input)
 	}
 
 	return output
 }
 
-func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redisresources.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
-	outputs := make(map[string]interface{})
+func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redisresources.RedisCommonPropertiesRedisConfiguration) ([]any, error) {
+	outputs := make(map[string]any)
 
 	if input.AadEnabled != nil {
 		a, err := strconv.ParseBool(*input.AadEnabled)
@@ -1131,7 +1128,7 @@ func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redisresources.
 
 	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
 
-	return []interface{}{outputs}, nil
+	return []any{outputs}, nil
 }
 
 func isAuthRequiredAsBool(notRequired string) bool {
@@ -1151,13 +1148,13 @@ func isAuthNotRequiredAsString(authRequired bool) string {
 	return output[authRequired]
 }
 
-func flattenRedisPatchSchedules(schedule redispatchschedules.RedisPatchSchedule) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenRedisPatchSchedules(schedule redispatchschedules.RedisPatchSchedule) []any {
+	outputs := make([]any, 0)
 
 	for _, entry := range schedule.Properties.ScheduleEntries {
 		maintenanceWindow := pointer.From(entry.MaintenanceWindow)
 
-		outputs = append(outputs, map[string]interface{}{
+		outputs = append(outputs, map[string]any{
 			"day_of_week":        string(entry.DayOfWeek),
 			"maintenance_window": maintenanceWindow,
 			"start_hour_utc":     int(entry.StartHourUtc),

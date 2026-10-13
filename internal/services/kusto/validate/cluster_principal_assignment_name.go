@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ClusterPrincipalAssignmentName(v interface{}, k string) ([]string, []error) {
+func ClusterPrincipalAssignmentName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespaces only"),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`), "may only contain alphanumeric characters, whitespaces, dashes and dots"),

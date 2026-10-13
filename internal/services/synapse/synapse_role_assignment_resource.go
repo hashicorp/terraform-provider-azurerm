@@ -108,7 +108,7 @@ func resourceSynapseRoleAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,8 +182,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {
-		principalType := v.(string)
-		roleAssignment.PrincipalType = &principalType
+		roleAssignment.PrincipalType = pointer.To(v.(string))
 	}
 
 	resp, err := client.CreateRoleAssignment(ctx, roleAssignment, uuid)
@@ -199,7 +198,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 
-func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +267,7 @@ func resourceSynapseRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

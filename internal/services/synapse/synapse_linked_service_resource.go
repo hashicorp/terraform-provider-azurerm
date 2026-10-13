@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/migration"
@@ -73,7 +73,7 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -133,7 +133,7 @@ func resourceSynapseLinkedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,9 +170,9 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	props := map[string]interface{}{
+	props := map[string]any{
 		"type":       d.Get("type").(string),
-		"connectVia": expandSynapseLinkedServiceIntegrationRuntimeV2(d.Get("integration_runtime").([]interface{})),
+		"connectVia": expandSynapseLinkedServiceIntegrationRuntimeV2(d.Get("integration_runtime").([]any)),
 	}
 
 	jsonDataStr := fmt.Sprintf(`{ "typeProperties": %s }`, d.Get("type_properties_json").(string))
@@ -185,19 +185,17 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		props["parameters"] = expandSynapseParameters(v.(map[string]interface{}))
+		props["parameters"] = expandSynapseParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		props["annotations"] = v.([]interface{})
+		props["annotations"] = v.([]any)
 	}
 
-	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	additionalProperties := d.Get("additional_properties").(map[string]any)
+	maps.Copy(props, additionalProperties)
 
-	jsonData, err := json.Marshal(map[string]interface{}{
+	jsonData, err := json.Marshal(map[string]any{
 		"properties": props,
 	})
 	if err != nil {
@@ -231,7 +229,7 @@ func resourceSynapseLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceSynapseLinkedServiceRead(d, meta)
 }
 
-func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,7 +290,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	d.Set("type", t)
 
-	annotations := make([]interface{}, 0)
+	annotations := make([]any, 0)
 	if v, ok := m["annotations"]; ok && v != nil {
 		if err := json.Unmarshal(*v, &annotations); err != nil {
 			return err
@@ -327,7 +325,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	delete(m, "typeProperties")
 
 	// set "additional_properties"
-	additionalProperties := make(map[string]interface{})
+	additionalProperties := make(map[string]any)
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		return err
@@ -340,7 +338,7 @@ func resourceSynapseLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -372,7 +370,7 @@ func resourceSynapseLinkedServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandSynapseParameters(input map[string]interface{}) map[string]*artifacts.ParameterSpecification {
+func expandSynapseParameters(input map[string]any) map[string]*artifacts.ParameterSpecification {
 	output := make(map[string]*artifacts.ParameterSpecification)
 
 	for k, v := range input {
@@ -385,21 +383,21 @@ func expandSynapseParameters(input map[string]interface{}) map[string]*artifacts
 	return output
 }
 
-func expandSynapseLinkedServiceIntegrationRuntimeV2(input []interface{}) *artifacts.IntegrationRuntimeReference {
+func expandSynapseLinkedServiceIntegrationRuntimeV2(input []any) *artifacts.IntegrationRuntimeReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &artifacts.IntegrationRuntimeReference{
 		ReferenceName: pointer.To(v["name"].(string)),
 		Type:          pointer.To("IntegrationRuntimeReference"),
-		Parameters:    v["parameters"].(map[string]interface{}),
+		Parameters:    v["parameters"].(map[string]any),
 	}
 }
 
-func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification) map[string]any {
+	output := make(map[string]any)
 
 	for k, v := range input {
 		if v != nil {
@@ -416,15 +414,15 @@ func flattenSynapseParameters(input map[string]*artifacts.ParameterSpecification
 	return output
 }
 
-func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.IntegrationRuntimeReference) []interface{} {
+func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.IntegrationRuntimeReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	name := pointer.From(input.ReferenceName)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":       name,
 			"parameters": input.Parameters,
 		},
@@ -432,7 +430,7 @@ func flattenSynapseLinkedServiceIntegrationRuntimeV2(input *artifacts.Integratio
 }
 
 func suppressJsonOrderingDifference(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	return helpers.NormalizeJson(old) == helpers.NormalizeJson(new)
+	return pluginsdk.NormalizeJson(old) == pluginsdk.NormalizeJson(new)
 }
 
 func checkLinkedServiceResponse(response *http.Response) error {
@@ -442,7 +440,7 @@ func checkLinkedServiceResponse(response *http.Response) error {
 	}
 	defer response.Body.Close()
 
-	body := make(map[string]interface{})
+	body := make(map[string]any)
 	if err = json.Unmarshal(respBody, &body); err != nil {
 		return fmt.Errorf("could not parse status response: %+v", err)
 	}
@@ -451,7 +449,7 @@ func checkLinkedServiceResponse(response *http.Response) error {
 		if status, ok := statusRaw.(string); ok {
 			if status == "Failed" {
 				if errorRaw, ok := body["error"]; ok && errorRaw != nil {
-					if responseError, ok := errorRaw.(map[string]interface{}); ok {
+					if responseError, ok := errorRaw.(map[string]any); ok {
 						if messageRaw, ok := responseError["message"]; ok && messageRaw != nil {
 							if message, ok := messageRaw.(string); ok {
 								return fmt.Errorf("creating/updating Linked Service: %s", message)
