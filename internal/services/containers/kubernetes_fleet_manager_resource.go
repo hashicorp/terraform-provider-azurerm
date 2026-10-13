@@ -25,8 +25,9 @@ import (
 )
 
 var (
-	_ sdk.Resource           = KubernetesFleetManagerResource{}
-	_ sdk.ResourceWithUpdate = KubernetesFleetManagerResource{}
+	_ sdk.Resource                  = KubernetesFleetManagerResource{}
+	_ sdk.ResourceWithUpdate        = KubernetesFleetManagerResource{}
+	_ sdk.ResourceWithCustomizeDiff = KubernetesFleetManagerResource{}
 )
 
 type KubernetesFleetManagerResource struct{}
@@ -165,6 +166,61 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 
 func (r KubernetesFleetManagerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r KubernetesFleetManagerResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rawConfig := metadata.ResourceDiff.GetRawConfig()
+			if !rawConfig.IsKnown() || rawConfig.IsNull() {
+				return nil
+			}
+			hub := rawConfig.AsValueMap()["hub_profile"]
+			if !hub.IsKnown() || hub.IsNull() || len(hub.AsValueSlice()) == 0 {
+				return nil
+			}
+			hubProfile := hub.AsValueSlice()[0]
+			if !hubProfile.IsKnown() || hubProfile.IsNull() {
+				return nil
+			}
+			fields := hubProfile.AsValueMap()
+			access := fields["api_server_access_profile"]
+			if !access.IsKnown() || access.IsNull() || len(access.AsValueSlice()) == 0 {
+				return nil
+			}
+			accessProfile := access.AsValueSlice()[0]
+			if !accessProfile.IsKnown() || accessProfile.IsNull() {
+				return nil
+			}
+			private := accessProfile.AsValueMap()["private_cluster_enabled"]
+			if !private.IsKnown() || private.IsNull() || !private.True() {
+				return nil
+			}
+			if dns := fields["dns_prefix"]; dns.IsKnown() && !dns.IsNull() && dns.AsString() != "" {
+				return fmt.Errorf("`hub_profile.dns_prefix` cannot be set when `api_server_access_profile.private_cluster_enabled` is true")
+			}
+			if metadata.ResourceDiff.Id() != "" && !metadata.ResourceDiff.HasChange("hub_profile") {
+				return nil
+			}
+			agent := fields["agent_profile"]
+			if !agent.IsKnown() {
+				return nil
+			}
+			if agent.IsNull() || len(agent.AsValueSlice()) == 0 {
+				return fmt.Errorf("`hub_profile.agent_profile.subnet_id` is required when creating a private Fleet hub")
+			}
+			agentProfile := agent.AsValueSlice()[0]
+			if !agentProfile.IsKnown() || agentProfile.IsNull() {
+				return nil
+			}
+			subnet := agentProfile.AsValueMap()["subnet_id"]
+			if subnet.IsKnown() && (subnet.IsNull() || subnet.AsString() == "") {
+				return fmt.Errorf("`hub_profile.agent_profile.subnet_id` is required when creating a private Fleet hub")
+			}
+			return nil
+		},
+	}
 }
 
 func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {

@@ -54,7 +54,7 @@ An `agent_profile` block supports the following:
 
 An `api_server_access_profile` block supports the following:
 
-* `private_cluster_enabled` - (Required) Whether to create the Fleet hub as a private cluster. When set to `true`, `agent_profile.subnet_id` must be specified. Changing this forces a new resource to be created.
+* `private_cluster_enabled` - (Required) Whether to create the Fleet hub as a private cluster. When creating a private hub, `agent_profile.subnet_id` must be specified. Changing this forces a new resource to be created.
 
 ---
 

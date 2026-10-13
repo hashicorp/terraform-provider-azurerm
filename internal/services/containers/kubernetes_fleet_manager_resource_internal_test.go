@@ -131,6 +131,95 @@ func TestKubernetesFleetManagerHubProfileValidation(t *testing.T) {
 	}
 }
 
+func TestKubernetesFleetManagerPrivateHubConfig(t *testing.T) {
+	wrapper := sdk.NewResourceWrapper(KubernetesFleetManagerResource{})
+	resource, err := wrapper.Resource()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resource.CustomizeDiff == nil {
+		t.Fatal("expected custom diff validation")
+	}
+
+	const subnetID = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
+	for _, tc := range []struct {
+		name            string
+		subnetID        string
+		vmSize          string
+		unknownSubnet   bool
+		existingPublic  bool
+		existingPrivate bool
+		dnsPrefix       string
+		errorContains   string
+	}{
+		{name: "private hub with subnet", subnetID: subnetID},
+		{name: "private hub with unknown subnet", unknownSubnet: true, vmSize: "Standard_DS2_v2"},
+		{name: "private hub without subnet", errorContains: "agent_profile.subnet_id"},
+		{name: "private hub with VM size only", vmSize: "Standard_DS2_v2", errorContains: "agent_profile.subnet_id"},
+		{name: "replace public hub with private hub without subnet", existingPublic: true, errorContains: "agent_profile.subnet_id"},
+		{name: "unchanged imported private hub without configured subnet", existingPrivate: true},
+		{name: "private hub with DNS prefix", subnetID: subnetID, dnsPrefix: "fleet-test", errorContains: "dns_prefix"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			rawHub := map[string]cty.Value{
+				"api_server_access_profile": cty.ListVal([]cty.Value{cty.ObjectVal(map[string]cty.Value{
+					"private_cluster_enabled": cty.True,
+				})}),
+			}
+			if tc.subnetID != "" || tc.vmSize != "" || tc.unknownSubnet {
+				agent := map[string]cty.Value{}
+				if tc.subnetID != "" {
+					agent["subnet_id"] = cty.StringVal(tc.subnetID)
+				}
+				if tc.unknownSubnet {
+					agent["subnet_id"] = cty.UnknownVal(cty.String)
+				}
+				if tc.vmSize != "" {
+					agent["virtual_machine_size"] = cty.StringVal(tc.vmSize)
+				}
+				rawHub["agent_profile"] = cty.ListVal([]cty.Value{cty.ObjectVal(agent)})
+			}
+			if tc.dnsPrefix != "" {
+				rawHub["dns_prefix"] = cty.StringVal(tc.dnsPrefix)
+			}
+			rawConfig, err := resource.CoreConfigSchema().CoerceValue(cty.ObjectVal(map[string]cty.Value{
+				"name":                cty.StringVal("test"),
+				"resource_group_name": cty.StringVal("rg"),
+				"location":            cty.StringVal("eastus"),
+				"hub_profile":         cty.ListVal([]cty.Value{cty.ObjectVal(rawHub)}),
+			}))
+			if err != nil {
+				t.Fatal(err)
+			}
+			config := terraform.NewResourceConfigShimmed(rawConfig, resource.CoreConfigSchema())
+			if diagnostics := resource.Validate(config); diagnostics.HasError() {
+				t.Fatalf("unexpected schema error: %v", diagnostics)
+			}
+			state := &terraform.InstanceState{RawConfig: rawConfig}
+			if tc.existingPublic || tc.existingPrivate {
+				state.ID = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.ContainerService/fleets/test"
+				private := "false"
+				if tc.existingPrivate {
+					private = "true"
+				}
+				state.Attributes = map[string]string{
+					"name": "test", "resource_group_name": "rg", "location": "eastus",
+					"hub_profile.#": "1", "hub_profile.0.api_server_access_profile.#": "1",
+					"hub_profile.0.api_server_access_profile.0.private_cluster_enabled": private,
+				}
+			}
+			_, err = resource.Diff(context.Background(), state, config, &clients.Client{})
+			if tc.errorContains == "" {
+				if err != nil {
+					t.Fatal(err)
+				}
+			} else if err == nil || !strings.Contains(err.Error(), tc.errorContains) {
+				t.Fatalf("expected %q error, got %v", tc.errorContains, err)
+			}
+		})
+	}
+}
+
 func TestKubernetesFleetManagerHubProfileDiff(t *testing.T) {
 	const subnetID = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
 	testCases := []struct {
@@ -306,7 +395,6 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 				ApiServerAccessProfile: []FleetManagerHubAPIServerAccessProfile{{
 					PrivateClusterEnabled: true,
 				}},
-				DnsPrefix:         "fleet-test",
 				Fqdn:              "read-only.example",
 				KubernetesVersion: "1.32.0",
 				PortalFqdn:        "read-only-portal.example",
@@ -322,7 +410,6 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 			ApiServerAccessProfile: &fleets.APIServerAccessProfile{
 				EnablePrivateCluster: pointer.To(true),
 			},
-			DnsPrefix: pointer.To("fleet-test"),
 		}
 		if !reflect.DeepEqual(payload.Properties.HubProfile, expected) {
 			t.Fatalf("expected configured hub profile in the request, got %#v", payload.Properties.HubProfile)
