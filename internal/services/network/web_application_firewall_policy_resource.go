@@ -542,7 +542,12 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 				}
 			}
 
-			for i, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
+			ruleSets := diff.Get("managed_rules.0.managed_rule_set").([]any)
+			if len(ruleSets) == 0 {
+				return nil
+			}
+
+			for i, raw := range ruleSets {
 				ruleSet := raw.(map[string]any)
 				if ruleSet["type"].(string) == "" || ruleSet["version"].(string) == "" {
 					return nil
