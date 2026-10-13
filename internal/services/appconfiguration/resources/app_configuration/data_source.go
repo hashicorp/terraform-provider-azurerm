@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package appconfiguration
+package app_configuration
 
 import (
 	"fmt"
@@ -16,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceAppConfiguration() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceAppConfigurationRead,
 
@@ -264,7 +265,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 
 			d.Set("endpoint", props.Endpoint)
-			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
+			d.Set("encryption", helpers.FlattenAppConfigurationEncryption(props.Encryption))
 			d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 
@@ -297,7 +298,7 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("retrieving replicas for %s: %+v", id, err)
 		}
 
-		replica, err := flattenAppConfigurationReplicas(resp.Items)
+		replica, err := helpers.FlattenAppConfigurationReplicas(resp.Items)
 		if err != nil {
 			return fmt.Errorf("flattening replicas for %s: %+v", id, err)
 		}

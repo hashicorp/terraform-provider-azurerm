@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package appconfiguration
+package app_configuration_key
 
 import (
 	"context"
@@ -22,11 +22,11 @@ import (
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
-type KeyDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = KeyDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (k KeyDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (k DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
 			Type:         pluginsdk.TypeString,
@@ -46,7 +46,7 @@ func (k KeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeyDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"content_type": {
 			Type:     pluginsdk.TypeString,
@@ -76,15 +76,15 @@ func (k KeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeyDataSource) ModelObject() any {
+func (k DataSource) ModelObject() any {
 	return &KeyResourceModel{}
 }
 
-func (k KeyDataSource) ResourceType() string {
+func (k DataSource) ResourceType() string {
 	return "azurerm_app_configuration_key"
 }
 
-func (k KeyDataSource) Read() sdk.ResourceFunc {
+func (k DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package appconfiguration_test
+package app_configuration_test
 
 import (
 	"fmt"

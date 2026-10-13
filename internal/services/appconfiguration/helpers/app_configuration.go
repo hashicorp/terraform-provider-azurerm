@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package appconfiguration
+package helpers
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ import (
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
-func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProperties) []any {
+func FlattenAppConfigurationEncryption(input *configurationstores.EncryptionProperties) []any {
 	if input == nil || input.KeyVaultProperties == nil {
 		return []any{}
 	}
@@ -31,7 +31,7 @@ func flattenAppConfigurationEncryption(input *configurationstores.EncryptionProp
 	}
 }
 
-func flattenAppConfigurationReplicas(input []replicas.Replica) ([]any, error) {
+func FlattenAppConfigurationReplicas(input []replicas.Replica) ([]any, error) {
 	results := make([]any, 0)
 	for _, v := range input {
 		if v.Properties == nil {
@@ -54,7 +54,7 @@ func flattenAppConfigurationReplicas(input []replicas.Replica) ([]any, error) {
 	return results, nil
 }
 
-func resourceConfigurationStoreReplicaHash(input any) int {
+func ResourceConfigurationStoreReplicaHash(input any) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]any); ok {
 		buf.WriteString(rawData["name"].(string))
@@ -63,7 +63,7 @@ func resourceConfigurationStoreReplicaHash(input any) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfiguration.BaseClient, key, label string) pluginsdk.StateRefreshFunc {
+func AppConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfiguration.BaseClient, key, label string) pluginsdk.StateRefreshFunc {
 	return func() (any, string, error) {
 		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []appconfiguration.KeyValueFields{})
 		if err != nil {

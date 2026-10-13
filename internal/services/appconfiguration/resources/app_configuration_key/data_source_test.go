@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package appconfiguration_test
+package app_configuration_key_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/resources/app_configuration_key"
 )
 
 type AppConfigurationKeyDataSource struct{}
@@ -25,7 +25,7 @@ func TestAccAppConfigurationKeyDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("content_type").HasValue("test"),
 				check.That(data.ResourceName).Key("value").HasValue("a test"),
 				check.That(data.ResourceName).Key("locked").HasValue("false"),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeKV),
+				check.That(data.ResourceName).Key("type").HasValue(app_configuration_key.KeyTypeKV),
 				check.That(data.ResourceName).Key("vault_key_reference").HasValue(""),
 				check.That(data.ResourceName).Key("etag").IsSet(),
 				check.That(data.ResourceName).Key("label").IsSet(),
@@ -45,7 +45,7 @@ func TestAccAppConfigurationKeyDataSource_basicNoLabel(t *testing.T) {
 				check.That(data.ResourceName).Key("content_type").HasValue("test"),
 				check.That(data.ResourceName).Key("value").HasValue("a test"),
 				check.That(data.ResourceName).Key("locked").HasValue("false"),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeKV),
+				check.That(data.ResourceName).Key("type").HasValue(app_configuration_key.KeyTypeKV),
 				check.That(data.ResourceName).Key("vault_key_reference").HasValue(""),
 				check.That(data.ResourceName).Key("etag").IsSet(),
 				check.That(data.ResourceName).Key("label").HasValue(""),
@@ -62,10 +62,10 @@ func TestAccAppConfigurationKeyDataSource_basicVault(t *testing.T) {
 		{
 			Config: d.vaultKeyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("content_type").HasValue(appconfiguration.VaultKeyContentType),
+				check.That(data.ResourceName).Key("content_type").HasValue(app_configuration_key.VaultKeyContentType),
 				check.That(data.ResourceName).Key("value").MatchesOtherKey(check.That(data.ResourceName).Key("vault_key_reference")),
 				check.That(data.ResourceName).Key("locked").HasValue("false"),
-				check.That(data.ResourceName).Key("type").HasValue(appconfiguration.KeyTypeVault),
+				check.That(data.ResourceName).Key("type").HasValue(app_configuration_key.KeyTypeVault),
 				check.That(data.ResourceName).Key("vault_key_reference").MatchesOtherKey(check.That(data.ResourceName).Key("value")),
 				check.That(data.ResourceName).Key("etag").IsSet(),
 				check.That(data.ResourceName).Key("label").IsSet(),

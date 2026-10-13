@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package appconfiguration
+package app_configuration_keys
 
 import (
 	"context"
@@ -20,9 +20,19 @@ import (
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
-type KeysDataSource struct{}
+type VaultKeyReference struct {
+	URI string `json:"uri"`
+}
 
-var _ sdk.DataSource = KeysDataSource{}
+const (
+	KeyTypeVault        = "vault"
+	KeyTypeKV           = "kv"
+	VaultKeyContentType = "application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8"
+)
+
+type DataSource struct{}
+
+var _ sdk.DataSource = DataSource{}
 
 type KeyDataSourceModel struct {
 	Key               string         `tfschema:"key"`
@@ -43,7 +53,7 @@ type KeysDataSourceModel struct {
 	Items                []KeyDataSourceModel `tfschema:"items"`
 }
 
-func (k KeysDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (k DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
 			Type:         pluginsdk.TypeString,
@@ -63,7 +73,7 @@ func (k KeysDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeysDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"items": {
 			Type:     pluginsdk.TypeList,
@@ -109,15 +119,15 @@ func (k KeysDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeysDataSource) ModelObject() any {
+func (k DataSource) ModelObject() any {
 	return &KeysDataSourceModel{}
 }
 
-func (k KeysDataSource) ResourceType() string {
+func (k DataSource) ResourceType() string {
 	return "azurerm_app_configuration_keys"
 }
 
-func (k KeysDataSource) Read() sdk.ResourceFunc {
+func (k DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
