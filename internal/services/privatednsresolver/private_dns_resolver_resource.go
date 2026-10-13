@@ -34,7 +34,7 @@ func (r PrivateDNSResolverDnsResolverResource) ResourceType() string {
 	return "azurerm_private_dns_resolver"
 }
 
-func (r PrivateDNSResolverDnsResolverResource) ModelObject() interface{} {
+func (r PrivateDNSResolverDnsResolverResource) ModelObject() any {
 	return &PrivateDNSResolverDnsResolverModel{}
 }
 

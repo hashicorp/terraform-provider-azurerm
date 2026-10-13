@@ -67,7 +67,7 @@ func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"
 }
 
-func (r RouteMapResource) ModelObject() interface{} {
+func (r RouteMapResource) ModelObject() any {
 	return &RouteMapModel{}
 }
 

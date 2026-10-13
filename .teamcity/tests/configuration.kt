@@ -16,6 +16,9 @@ class ConfigurationTests {
     fun buildShouldFailOnError() {
         val project = AzureRM("public", TestConfiguration())
         project.buildTypes.forEach { bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE) {
+                return@forEach
+            }
             assertTrue("Build '${bt.id}' should fail on errors!", bt.failureConditions.errorMessage)
         }
     }
@@ -58,6 +61,9 @@ class ConfigurationTests {
     fun buildShouldFailOnErrorBetaVersion() {
         val project = AzureRMBetaVersion("public", TestConfiguration())
         project.buildTypes.forEach { bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE) {
+                return@forEach
+            }
             assertTrue("Build '${bt.id}' should fail on errors!", bt.failureConditions.errorMessage)
         }
     }
@@ -96,10 +102,13 @@ class ConfigurationTests {
     }
 
     @Test
-    fun betaVersionBuildsShouldSetFivePointZeroFlag() {
+    fun betaVersionBuildsShouldSetSixPointZeroFlag() {
         val config = TestConfiguration()
         val project = AzureRMBetaVersion("public", config)
         project.buildTypes.forEach { bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE) {
+                return@forEach
+            }
             val betaFlag = bt.params.findRawParam(config.betaVersionEnvVar)?.value
             assertTrue(
                 "Build '${bt.id}' should have ${config.betaVersionEnvVar} parameter set, but it was not found",
@@ -113,10 +122,13 @@ class ConfigurationTests {
     }
 
     @Test
-    fun standardBuildsShouldNotSetFivePointZeroFlag() {
+    fun standardBuildsShouldNotSetSixPointZeroFlag() {
         val config = TestConfiguration()
         val project = AzureRM("public", config)
         project.buildTypes.forEach { bt ->
+            if (bt.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE) {
+                return@forEach
+            }
             // Skip cache and PR builds as they don't need the beta version flag
             if (bt.id.toString().contains("AZURERM_CACHE_PUBLIC") || bt.id.toString().contains("AZURERM_PR_PUBLIC")) {
                 return@forEach
@@ -137,12 +149,12 @@ class ConfigurationTests {
     fun buildChainShouldBeCompositeAndHaveDependencies() {
         val config = TestConfiguration()
         val project = AzureRM("public", config)
-        
+
         val buildChain = project.buildTypes.find { it.name.contains("All Services Build Chain") }
         assertTrue("Build chain must exist", buildChain != null)
         assertTrue("Build chain must be a COMPOSITE build", buildChain!!.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE)
         assertTrue("Build chain must have snapshot dependencies", buildChain.dependencies.items.isNotEmpty())
-        
+
         val isNightlyParam = buildChain.params.findRawParam("reverse.dep.*.env.IS_NIGHTLY_RUN")?.value
         assertTrue("Build chain must pass down reverse.dep.*.env.IS_NIGHTLY_RUN parameter", isNightlyParam == "true")
     }
@@ -151,12 +163,12 @@ class ConfigurationTests {
     fun betaBuildChainShouldBeCompositeAndHaveDependencies() {
         val config = TestConfiguration()
         val project = AzureRMBetaVersion("public", config)
-        
+
         val buildChain = project.buildTypes.find { it.name.contains("All Services Build Chain") }
         assertTrue("Beta Build chain must exist", buildChain != null)
         assertTrue("Beta Build chain must be a COMPOSITE build", buildChain!!.type == jetbrains.buildServer.configs.kotlin.BuildTypeSettings.Type.COMPOSITE)
         assertTrue("Beta Build chain must have snapshot dependencies", buildChain.dependencies.items.isNotEmpty())
-        
+
         val isNightlyParam = buildChain.params.findRawParam("reverse.dep.*.env.IS_NIGHTLY_RUN")?.value
         assertTrue("Beta Build chain must pass down reverse.dep.*.env.IS_NIGHTLY_RUN parameter", isNightlyParam == "true")
     }

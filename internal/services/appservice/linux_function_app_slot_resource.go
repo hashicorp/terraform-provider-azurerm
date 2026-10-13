@@ -81,7 +81,7 @@ var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
 
 var _ sdk.ResourceWithStateMigration = LinuxFunctionAppSlotResource{}
 
-func (r LinuxFunctionAppSlotResource) ModelObject() interface{} {
+func (r LinuxFunctionAppSlotResource) ModelObject() any {
 	return &LinuxFunctionAppSlotModel{}
 }
 

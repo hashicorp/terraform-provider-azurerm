@@ -42,7 +42,7 @@ type ContainerAppModel struct {
 	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	WorkloadProfileName  string                                     `tfschema:"workload_profile_name"`
 	MaxInactiveRevisions int64                                      `tfschema:"max_inactive_revisions"`
-	Tags                 map[string]interface{}                     `tfschema:"tags"`
+	Tags                 map[string]any                             `tfschema:"tags"`
 
 	OutboundIpAddresses        []string `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
@@ -54,7 +54,7 @@ var _ sdk.ResourceWithUpdate = ContainerAppResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = ContainerAppResource{}
 
-func (r ContainerAppResource) ModelObject() interface{} {
+func (r ContainerAppResource) ModelObject() any {
 	return &ContainerAppModel{}
 }
 

@@ -13,6 +13,16 @@ import (
 
 type BatchApplicationDataSource struct{}
 
+func TestAccBatchApplicationDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_application", "test")
+	r := BatchApplicationDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBatchApplicationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_application", "test")
 	r := BatchApplicationDataSource{}

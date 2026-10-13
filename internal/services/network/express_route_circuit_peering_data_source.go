@@ -193,7 +193,7 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

@@ -30,7 +30,7 @@ func (ManagerRoutingConfigurationResource) ResourceType() string {
 	return "azurerm_network_manager_routing_configuration"
 }
 
-func (ManagerRoutingConfigurationResource) ModelObject() interface{} {
+func (ManagerRoutingConfigurationResource) ModelObject() any {
 	return &ManagerRoutingConfigurationResourceModel{}
 }
 

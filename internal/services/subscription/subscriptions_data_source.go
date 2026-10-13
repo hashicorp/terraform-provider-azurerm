@@ -86,7 +86,7 @@ func dataSourceSubscriptions() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta any) error {
 	armClient := meta.(*clients.Client)
 	subClient := armClient.Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -101,7 +101,7 @@ func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("listing subscriptions: %+v", err)
 	}
 
-	subscriptions := make([]interface{}, 0)
+	subscriptions := make([]any, 0)
 	for _, item := range results.Items {
 		// check if the display name prefix matches the given input
 		if displayNamePrefix != "" {
@@ -129,7 +129,7 @@ func dataSourceSubscriptionsRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		subscriptions = append(subscriptions, map[string]interface{}{
+		subscriptions = append(subscriptions, map[string]any{
 			"display_name":          pointer.From(item.DisplayName),
 			"id":                    pointer.From(item.Id),
 			"location_placement_id": locationPlacementId,

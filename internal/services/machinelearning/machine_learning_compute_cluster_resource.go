@@ -164,7 +164,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -195,7 +195,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: `location` was nil", workspaceID)
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -217,8 +217,8 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	computeClusterAmlComputeProperties := machinelearningcomputes.AmlComputeProperties{
 		VMSize:                 pointer.To(d.Get("vm_size").(string)),
 		VMPriority:             &vmPriority,
-		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]interface{})),
-		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]interface{})),
+		ScaleSettings:          expandScaleSettings(d.Get("scale_settings").([]any)),
+		UserAccountCredentials: expandUserAccountCredentials(d.Get("ssh").([]any)),
 		EnableNodePublicIP:     pointer.To(d.Get("node_public_ip_enabled").(bool)),
 	}
 
@@ -246,7 +246,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Properties: computeClusterProperties,
 		Identity:   identity,
 		Location:   workspaceModel.Location,
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspaceModel.Sku.Name,
 			Tier: pointer.ToEnum[machinelearningcomputes.SkuTier](string(*workspaceModel.Sku.Tier)),
@@ -261,7 +261,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceComputeClusterRead(d, meta)
 }
 
-func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -331,7 +331,7 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, computeResource.Model.Tags)
 }
 
-func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -350,7 +350,7 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
 	if d.HasChange("identity") {
-		identity, err := expandIdentity(d.Get("identity").([]interface{}))
+		identity, err := expandIdentity(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -362,11 +362,11 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !ok {
 			return fmt.Errorf("retrieving %s: `properties` was not of type AmlCompute", *id)
 		}
-		computeClusterProperties.Properties.ScaleSettings = expandScaleSettings(d.Get("scale_settings").([]interface{}))
+		computeClusterProperties.Properties.ScaleSettings = expandScaleSettings(d.Get("scale_settings").([]any))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -376,7 +376,7 @@ func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceComputeClusterRead(d, meta)
 }
 
-func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -398,12 +398,12 @@ func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSettings {
+func expandScaleSettings(input []any) *machinelearningcomputes.ScaleSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	maxNodeCount := int64(v["max_node_count"].(int))
 
@@ -414,11 +414,11 @@ func expandScaleSettings(input []interface{}) *machinelearningcomputes.ScaleSett
 	}
 }
 
-func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.UserAccountCredentials {
+func expandUserAccountCredentials(input []any) *machinelearningcomputes.UserAccountCredentials {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &machinelearningcomputes.UserAccountCredentials{
 		AdminUserName:         v["admin_username"].(string),
@@ -427,13 +427,13 @@ func expandUserAccountCredentials(input []interface{}) *machinelearningcomputes.
 	}
 }
 
-func flattenScaleSettings(scaleSettings *machinelearningcomputes.ScaleSettings) []interface{} {
+func flattenScaleSettings(scaleSettings *machinelearningcomputes.ScaleSettings) []any {
 	if scaleSettings == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"max_node_count":                       scaleSettings.MaxNodeCount,
 			"min_node_count":                       scaleSettings.MinNodeCount,
 			"scale_down_nodes_after_idle_duration": scaleSettings.NodeIdleTimeBeforeScaleDown,
@@ -441,17 +441,17 @@ func flattenScaleSettings(scaleSettings *machinelearningcomputes.ScaleSettings) 
 	}
 }
 
-func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAccountCredentials) interface{} {
+func flattenUserAccountCredentials(credentials *machinelearningcomputes.UserAccountCredentials) any {
 	if credentials == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	var username string
 	if credentials.AdminUserName != "" {
 		username = credentials.AdminUserName
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"admin_username": username,
 			"admin_password": pointer.From(credentials.AdminUserPassword),
 			"key_value":      pointer.From(credentials.AdminUserSshPublicKey),

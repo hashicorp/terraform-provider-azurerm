@@ -46,7 +46,7 @@ func (r VirtualHubRoutingIntentResource) ResourceType() string {
 	return "azurerm_virtual_hub_routing_intent"
 }
 
-func (r VirtualHubRoutingIntentResource) ModelObject() interface{} {
+func (r VirtualHubRoutingIntentResource) ModelObject() any {
 	return &VirtualHubRoutingIntentModel{}
 }
 

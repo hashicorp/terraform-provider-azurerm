@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FrontDoorSecurityPolicyName(v interface{}, k string) ([]string, []error) {
+func FrontDoorSecurityPolicyName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[\da-zA-Z](?:[-\da-zA-Z]*[\da-zA-Z])?$`), "must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens")(v, k)
 }

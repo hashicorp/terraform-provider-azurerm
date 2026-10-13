@@ -59,7 +59,7 @@ func (f SecurityPoliciesResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (f SecurityPoliciesResource) ModelObject() interface{} {
+func (f SecurityPoliciesResource) ModelObject() any {
 	return &SecurityPoliciesModel{}
 }
 

@@ -97,7 +97,7 @@ func resourceDnsCNameRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -124,7 +124,7 @@ func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	targetResourceId := d.Get("target_resource_id").(string)
 
 	parameters := recordsets.RecordSet{
@@ -157,7 +157,7 @@ func resourceDnsCNameRecordCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceDnsCNameRecordRead(d, meta)
 }
 
-func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceDnsCNameRecordFlatten(d *pluginsdk.ResourceData, id *recordsets.Rec
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +264,7 @@ func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		payload.Properties.Metadata = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Properties.Metadata = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -276,7 +276,7 @@ func resourceDnsCNameRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceDnsCNameRecordRead(d, meta)
 }
 
-func resourceDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

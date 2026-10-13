@@ -33,7 +33,7 @@ func (ManagerIpamPoolResource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool"
 }
 
-func (ManagerIpamPoolResource) ModelObject() interface{} {
+func (ManagerIpamPoolResource) ModelObject() any {
 	return &ManagerIpamPoolResourceModel{}
 }
 

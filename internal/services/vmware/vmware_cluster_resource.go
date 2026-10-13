@@ -95,7 +95,7 @@ func resourceVmwareCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -138,7 +138,7 @@ func resourceVmwareClusterCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceVmwareClusterRead(d, meta)
 }
 
-func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourceVmwareClusterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +194,7 @@ func resourceVmwareClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceVmwareClusterRead(d, meta)
 }
 
-func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVmwareClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Vmware.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

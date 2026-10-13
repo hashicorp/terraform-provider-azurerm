@@ -87,7 +87,7 @@ func (r LogAnalyticsWorkspaceTableResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) ModelObject() interface{} {
+func (r LogAnalyticsWorkspaceTableResource) ModelObject() any {
 	return &LogAnalyticsWorkspaceTableResourceModel{}
 }
 

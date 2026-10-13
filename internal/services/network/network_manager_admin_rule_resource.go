@@ -43,7 +43,7 @@ func (r ManagerAdminRuleResource) ResourceType() string {
 	return "azurerm_network_manager_admin_rule"
 }
 
-func (r ManagerAdminRuleResource) ModelObject() interface{} {
+func (r ManagerAdminRuleResource) ModelObject() any {
 	return &ManagerAdminRuleModel{}
 }
 

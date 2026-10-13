@@ -90,7 +90,7 @@ func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +159,7 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	return resourceDataShareDataSetDataLakeGen2Read(d, meta)
 }
 
-func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

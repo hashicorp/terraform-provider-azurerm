@@ -126,7 +126,7 @@ func dataSourceExpressRouteCircuit() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -168,13 +168,13 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRouteCircuitPeering) []interface{} {
-	peerings := make([]interface{}, 0)
+func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRouteCircuitPeering) []any {
+	peerings := make([]any, 0)
 
 	if input != nil {
 		for _, peering := range *input {
 			props := peering.Properties
-			p := make(map[string]interface{})
+			p := make(map[string]any)
 
 			p["peering_type"] = pointer.FromEnum(props.PeeringType)
 
@@ -209,11 +209,11 @@ func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRou
 	return peerings
 }
 
-func flattenExpressRouteCircuitServiceProviderProperties(input *expressroutecircuits.ExpressRouteCircuitServiceProviderProperties) []interface{} {
-	serviceProviderProperties := make([]interface{}, 0)
+func flattenExpressRouteCircuitServiceProviderProperties(input *expressroutecircuits.ExpressRouteCircuitServiceProviderProperties) []any {
+	serviceProviderProperties := make([]any, 0)
 
 	if input != nil {
-		p := make(map[string]interface{})
+		p := make(map[string]any)
 
 		if serviceProviderName := input.ServiceProviderName; serviceProviderName != nil {
 			p["service_provider_name"] = *serviceProviderName

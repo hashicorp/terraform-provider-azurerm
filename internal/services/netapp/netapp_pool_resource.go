@@ -112,11 +112,11 @@ func resourceNetAppPool() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// `cool_access_enabled` cannot be disabled
-			pluginsdk.ForceNewIfChange("cool_access_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("cool_access_enabled", func(ctx context.Context, old, new, meta any) bool {
 				return old.(bool) && !new.(bool)
 			}),
 			// custom_throughput_mibps validation
-			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 				customThroughput := d.Get("custom_throughput_mibps").(int)
 				qosType := d.Get("qos_type").(string)
 				serviceLevel := d.Get("service_level").(string)
@@ -139,7 +139,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -172,7 +172,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			EncryptionType: &encryptionType,
 			CoolAccess:     pointer.To(d.Get("cool_access_enabled").(bool)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if qosType, ok := d.GetOk("qos_type"); ok {
@@ -191,7 +191,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +229,7 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tags") {
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
@@ -240,7 +240,7 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,7 +291,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -333,7 +333,7 @@ func resourceNetAppPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *capacitypools.CapacityPoolsClient, id capacitypools.CapacityPoolId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.PoolsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {

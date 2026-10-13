@@ -215,7 +215,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			frequency := strings.ToLower(diff.Get("release_criteria.0.recurrence.0.frequency").(string))
 
 			_, hasWeekDays := diff.GetOk("release_criteria.0.recurrence.0.schedule.0.week_days")
@@ -238,7 +238,7 @@ func resourceLogicAppIntegrationAccountBatchConfiguration() *pluginsdk.Resource 
 	}
 }
 
-func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountBatchConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -263,7 +263,7 @@ func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *plugins
 	parameters := integrationaccountbatchconfigurations.BatchConfiguration{
 		Properties: integrationaccountbatchconfigurations.BatchConfigurationProperties{
 			BatchGroupName:  d.Get("batch_group_name").(string),
-			ReleaseCriteria: expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(d.Get("release_criteria").([]interface{})),
+			ReleaseCriteria: expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(d.Get("release_criteria").([]any)),
 		},
 	}
 
@@ -279,7 +279,7 @@ func resourceLogicAppIntegrationAccountBatchConfigurationCreateUpdate(d *plugins
 	return resourceLogicAppIntegrationAccountBatchConfigurationRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountBatchConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountBatchConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountBatchConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,7 +319,7 @@ func resourceLogicAppIntegrationAccountBatchConfigurationRead(d *pluginsdk.Resou
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountBatchConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountBatchConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountBatchConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -336,12 +336,12 @@ func resourceLogicAppIntegrationAccountBatchConfigurationDelete(d *pluginsdk.Res
 	return nil
 }
 
-func expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(input []interface{}) integrationaccountbatchconfigurations.BatchReleaseCriteria {
+func expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(input []any) integrationaccountbatchconfigurations.BatchReleaseCriteria {
 	result := integrationaccountbatchconfigurations.BatchReleaseCriteria{}
 	if len(input) == 0 {
 		return result
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	if batchSize := v["batch_size"].(int); batchSize != 0 {
 		result.BatchSize = pointer.To(int64(batchSize))
@@ -351,18 +351,18 @@ func expandIntegrationAccountBatchConfigurationBatchReleaseCriteria(input []inte
 		result.MessageCount = pointer.To(int64(messageCount))
 	}
 
-	if recurrence := v["recurrence"].([]interface{}); len(recurrence) != 0 {
+	if recurrence := v["recurrence"].([]any); len(recurrence) != 0 {
 		result.Recurrence = expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(recurrence)
 	}
 
 	return result
 }
 
-func expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input []interface{}) *integrationaccountbatchconfigurations.WorkflowTriggerRecurrence {
+func expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input []any) *integrationaccountbatchconfigurations.WorkflowTriggerRecurrence {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := integrationaccountbatchconfigurations.WorkflowTriggerRecurrence{
 		Frequency: pointer.ToEnum[integrationaccountbatchconfigurations.RecurrenceFrequency](v["frequency"].(string)),
@@ -381,18 +381,18 @@ func expandIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input [
 		result.TimeZone = pointer.To(timeZone)
 	}
 
-	if schedule := v["schedule"].([]interface{}); len(schedule) != 0 {
+	if schedule := v["schedule"].([]any); len(schedule) != 0 {
 		result.Schedule = expandIntegrationAccountBatchConfigurationRecurrenceSchedule(schedule)
 	}
 
 	return &result
 }
 
-func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interface{}) *integrationaccountbatchconfigurations.RecurrenceSchedule {
+func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []any) *integrationaccountbatchconfigurations.RecurrenceSchedule {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := integrationaccountbatchconfigurations.RecurrenceSchedule{}
 
@@ -423,11 +423,11 @@ func expandIntegrationAccountBatchConfigurationRecurrenceSchedule(input []interf
 	return &result
 }
 
-func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(input []interface{}) *[]integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence {
+func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(input []any) *[]integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence {
 	results := make([]integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence{
 			Day:        pointer.ToEnum[integrationaccountbatchconfigurations.DayOfWeek](v["weekday"].(string)),
@@ -438,9 +438,9 @@ func expandIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrences(inp
 	return &results
 }
 
-func flattenIntegrationAccountBatchConfigurationBatchReleaseCriteria(input integrationaccountbatchconfigurations.BatchReleaseCriteria) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenIntegrationAccountBatchConfigurationBatchReleaseCriteria(input integrationaccountbatchconfigurations.BatchReleaseCriteria) []any {
+	return []any{
+		map[string]any{
 			"batch_size":    pointer.From(input.BatchSize),
 			"message_count": pointer.From(input.MessageCount),
 			"recurrence":    flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input.Recurrence),
@@ -448,9 +448,9 @@ func flattenIntegrationAccountBatchConfigurationBatchReleaseCriteria(input integ
 	}
 }
 
-func flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input *integrationaccountbatchconfigurations.WorkflowTriggerRecurrence) []interface{} {
+func flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input *integrationaccountbatchconfigurations.WorkflowTriggerRecurrence) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	endTime := pointer.From(input.EndTime)
@@ -466,8 +466,8 @@ func flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input 
 
 	timeZone := pointer.From(input.TimeZone)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"end_time":   endTime,
 			"frequency":  frequency,
 			"interval":   interval,
@@ -478,12 +478,12 @@ func flattenIntegrationAccountBatchConfigurationWorkflowTriggerRecurrence(input 
 	}
 }
 
-func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integrationaccountbatchconfigurations.RecurrenceSchedule) []interface{} {
+func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integrationaccountbatchconfigurations.RecurrenceSchedule) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	var weekDays []interface{}
+	var weekDays []any
 	if input.WeekDays != nil {
 		weekDaysCast := make([]string, 0)
 		for _, item := range *input.WeekDays {
@@ -492,8 +492,8 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 		weekDays = pluginsdk.FlattenSlice(&weekDaysCast)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"hours":      pluginsdk.FlattenSlice(input.Hours),
 			"minutes":    pluginsdk.FlattenSlice(input.Minutes),
 			"month_days": pluginsdk.FlattenSlice(input.MonthDays),
@@ -503,8 +503,8 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceSchedule(input *integr
 	}
 }
 
-func flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input *[]integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence) []interface{} {
-	results := make([]interface{}, 0)
+func flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(input *[]integrationaccountbatchconfigurations.RecurrenceScheduleOccurrence) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -517,7 +517,7 @@ func flattenIntegrationAccountBatchConfigurationRecurrenceScheduleOccurrence(inp
 
 		occurrence := pointer.From(item.Occurrence)
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"weekday": day,
 			"week":    occurrence,
 		})

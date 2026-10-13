@@ -24,7 +24,7 @@ import (
 )
 
 func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
-	return func(d *pluginsdk.ResourceData, meta interface{}) error {
+	return func(d *pluginsdk.ResourceData, meta any) error {
 		client := meta.(*clients.Client).HDInsight.Clusters
 		extensionsClient := meta.(*clients.Client).HDInsight.Extensions
 		applicationsClient := meta.(*clients.Client).HDInsight.Applications
@@ -38,7 +38,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 
 		if d.HasChange("tags") {
 			payload := clusters.ClusterPatchParameters{
-				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+				Tags: tags.Expand(d.Get("tags").(map[string]any)),
 			}
 			if _, err := client.Update(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating Tags for %s %s: %+v", clusterKind, id, err)
@@ -47,10 +47,10 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 
 		if d.HasChange("roles.0.worker_node") {
 			log.Printf("[DEBUG] Resizing the HDInsight %q Cluster", clusterKind)
-			rolesRaw := d.Get("roles").([]interface{})
-			roles := rolesRaw[0].(map[string]interface{})
-			workerNodes := roles["worker_node"].([]interface{})
-			workerNode := workerNodes[0].(map[string]interface{})
+			rolesRaw := d.Get("roles").([]any)
+			roles := rolesRaw[0].(map[string]any)
+			workerNodes := roles["worker_node"].([]any)
+			workerNode := workerNodes[0].(map[string]any)
 			if d.HasChange("roles.0.worker_node.0.target_instance_count") {
 				targetInstanceCount := workerNode["target_instance_count"].(int)
 				payload := clusters.ClusterResizeParameters{
@@ -63,7 +63,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			}
 
 			if d.HasChange("roles.0.worker_node.0.autoscale") {
-				autoscale := ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
+				autoscale := ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]any))
 				payload := clusters.AutoscaleConfigurationUpdateParameter{
 					Autoscale: autoscale,
 				}
@@ -79,8 +79,8 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 		if clusterKind == "Hadoop" {
 			if d.HasChange("roles.0.edge_node") {
 				log.Printf("[DEBUG] Detected change in edge nodes")
-				edgeNodeRaw := d.Get("roles.0.edge_node").([]interface{})
-				edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
+				edgeNodeRaw := d.Get("roles.0.edge_node").([]any)
+				edgeNodeConfig := edgeNodeRaw[0].(map[string]any)
 
 				oldEdgeNodeCount, newEdgeNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
 				oldEdgeNodeInt := oldEdgeNodeCount.(int)
@@ -114,7 +114,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 		if d.HasChange("monitor") {
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("monitor"); ok {
-				monitorRaw := v.([]interface{})
+				monitorRaw := v.([]any)
 				if err := enableHDInsightMonitoring(ctx, extensionsClient, *id, monitorRaw); err != nil {
 					return err
 				}
@@ -125,7 +125,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 		if d.HasChange("extension") {
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("extension"); ok {
-				extensionRaw := v.([]interface{})
+				extensionRaw := v.([]any)
 				if err := enableHDInsightAzureMonitor(ctx, extensionsClient, *id, extensionRaw); err != nil {
 					return err
 				}
@@ -135,7 +135,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 		}
 		if d.HasChange("gateway") {
 			log.Printf("[DEBUG] Updating the HDInsight %q Cluster gateway", clusterKind)
-			vs := d.Get("gateway").([]interface{})[0].(map[string]interface{})
+			vs := d.Get("gateway").([]any)[0].(map[string]any)
 
 			payload := clusters.UpdateGatewaySettingsParameters{
 				RestAuthCredentialIsEnabled: pointer.To(true),
@@ -152,7 +152,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 }
 
 func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
-	return func(d *pluginsdk.ResourceData, meta interface{}) error {
+	return func(d *pluginsdk.ResourceData, meta any) error {
 		client := meta.(*clients.Client).HDInsight.Clusters
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
@@ -178,22 +178,22 @@ type hdInsightRoleDefinition struct {
 	EdgeNodeDef            *HDInsightNodeDefinition
 }
 
-func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinition) (*[]clusters.Role, error) {
-	v := input[0].(map[string]interface{})
+func expandHDInsightRoles(input []any, definition hdInsightRoleDefinition) (*[]clusters.Role, error) {
+	v := input[0].(map[string]any)
 
-	headNodeRaw := v["head_node"].([]interface{})
+	headNodeRaw := v["head_node"].([]any)
 	headNode, err := ExpandHDInsightNodeDefinition("headnode", headNodeRaw, definition.HeadNodeDef)
 	if err != nil {
 		return nil, fmt.Errorf("expanding `head_node`: %+v", err)
 	}
 
-	workerNodeRaw := v["worker_node"].([]interface{})
+	workerNodeRaw := v["worker_node"].([]any)
 	workerNode, err := ExpandHDInsightNodeDefinition("workernode", workerNodeRaw, definition.WorkerNodeDef)
 	if err != nil {
 		return nil, fmt.Errorf("expanding `worker_node`: %+v", err)
 	}
 
-	zookeeperNodeRaw := v["zookeeper_node"].([]interface{})
+	zookeeperNodeRaw := v["zookeeper_node"].([]any)
 	zookeeperNode, err := ExpandHDInsightNodeDefinition("zookeepernode", zookeeperNodeRaw, definition.ZookeeperNodeDef)
 	if err != nil {
 		return nil, fmt.Errorf("expanding `zookeeper_node`: %+v", err)
@@ -206,7 +206,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 	}
 
 	if definition.EdgeNodeDef != nil {
-		edgeNodeRaw := v["edge_node"].([]interface{})
+		edgeNodeRaw := v["edge_node"].([]any)
 		edgeNode, err := ExpandHDInsightNodeDefinition("edgenode", edgeNodeRaw, *definition.EdgeNodeDef)
 		if err != nil {
 			return nil, fmt.Errorf("expanding `edge_node`: %+v", err)
@@ -215,7 +215,7 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 	}
 
 	if definition.KafkaManagementNodeDef != nil {
-		kafkaManagementNodeRaw := v["kafka_management_node"].([]interface{})
+		kafkaManagementNodeRaw := v["kafka_management_node"].([]any)
 		// "kafka_management_node" is optional, we expand it only when user has specified it.
 		if len(kafkaManagementNodeRaw) != 0 {
 			kafkaManagementNode, err := ExpandHDInsightNodeDefinition("kafkamanagementnode", kafkaManagementNodeRaw, *definition.KafkaManagementNodeDef)
@@ -229,28 +229,28 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 	return &roles, nil
 }
 
-func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputeProfile, definition hdInsightRoleDefinition) []interface{} {
+func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputeProfile, definition hdInsightRoleDefinition) []any {
 	if input == nil || input.Roles == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	var existingKafkaManagementNodes, existingEdgeNodes, existingHeadNodes, existingWorkerNodes, existingZookeeperNodes []interface{}
+	var existingKafkaManagementNodes, existingEdgeNodes, existingHeadNodes, existingWorkerNodes, existingZookeeperNodes []any
 
-	existingVs := d.Get("roles").([]interface{})
+	existingVs := d.Get("roles").([]any)
 	if len(existingVs) > 0 {
-		existingV := existingVs[0].(map[string]interface{})
+		existingV := existingVs[0].(map[string]any)
 
 		if definition.EdgeNodeDef != nil {
-			existingEdgeNodes = existingV["edge_node"].([]interface{})
+			existingEdgeNodes = existingV["edge_node"].([]any)
 		}
 
 		if definition.KafkaManagementNodeDef != nil {
-			existingKafkaManagementNodes = existingV["kafka_management_node"].([]interface{})
+			existingKafkaManagementNodes = existingV["kafka_management_node"].([]any)
 		}
 
-		existingHeadNodes = existingV["head_node"].([]interface{})
-		existingWorkerNodes = existingV["worker_node"].([]interface{})
-		existingZookeeperNodes = existingV["zookeeper_node"].([]interface{})
+		existingHeadNodes = existingV["head_node"].([]any)
+		existingWorkerNodes = existingV["worker_node"].([]any)
+		existingZookeeperNodes = existingV["zookeeper_node"].([]any)
 	}
 
 	headNode := FindHDInsightRole(input.Roles, "headnode")
@@ -262,7 +262,7 @@ func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputePro
 	zookeeperNode := FindHDInsightRole(input.Roles, "zookeepernode")
 	zookeeperNodes := FlattenHDInsightNodeDefinition(zookeeperNode, existingZookeeperNodes, definition.ZookeeperNodeDef)
 
-	result := map[string]interface{}{
+	result := map[string]any{
 		"head_node":      headNodes,
 		"worker_node":    workerNodes,
 		"zookeeper_node": zookeeperNodes,
@@ -278,13 +278,13 @@ func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputePro
 		result["kafka_management_node"] = FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
 	}
 
-	return []interface{}{
+	return []any{
 		result,
 	}
 }
 
-func createHDInsightEdgeNodes(ctx context.Context, client *applications.ApplicationsClient, applicationId applications.ApplicationId, input map[string]interface{}) error {
-	installScriptActions := expandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]interface{}))
+func createHDInsightEdgeNodes(ctx context.Context, client *applications.ApplicationsClient, applicationId applications.ApplicationId, input map[string]any) error {
+	installScriptActions := expandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]any))
 
 	payload := applications.Application{
 		Properties: &applications.ApplicationProperties{
@@ -303,11 +303,11 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 	}
 
 	if v, ok := input["https_endpoints"]; ok {
-		payload.Properties.HTTPSEndpoints = expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]interface{}))
+		payload.Properties.HTTPSEndpoints = expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]any))
 	}
 
 	if v, ok := input["uninstall_script_actions"]; ok {
-		payload.Properties.UninstallScriptActions = expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]interface{}))
+		payload.Properties.UninstallScriptActions = expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]any))
 	}
 
 	if err := client.CreateThenPoll(ctx, applicationId, payload); err != nil {
@@ -317,31 +317,31 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 	return nil
 }
 
-func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
+func expandHDInsightsMetastore(input []any) map[string]any {
 	if len(input) == 0 || input[0] == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
 
-	v := input[0].(map[string]interface{})
-	config := map[string]interface{}{}
+	v := input[0].(map[string]any)
+	config := map[string]any{}
 
 	if hiveRaw, ok := v["hive"]; ok {
-		maps.Copy(config, ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})))
+		maps.Copy(config, ExpandHDInsightsHiveMetastore(hiveRaw.([]any)))
 	}
 
 	if oozieRaw, ok := v["oozie"]; ok {
-		maps.Copy(config, ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})))
+		maps.Copy(config, ExpandHDInsightsOozieMetastore(oozieRaw.([]any)))
 	}
 
 	if ambariRaw, ok := v["ambari"]; ok {
-		maps.Copy(config, ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})))
+		maps.Copy(config, ExpandHDInsightsAmbariMetastore(ambariRaw.([]any)))
 	}
 
 	return config
 }
 
 func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]string) {
-	result := map[string]interface{}{}
+	result := map[string]any{}
 
 	hiveEnv, envExists := configurations["hive-env"]
 	hiveSite, siteExists := configurations["hive-site"]
@@ -361,14 +361,14 @@ func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[s
 	}
 
 	if len(result) > 0 {
-		d.Set("metastores", []interface{}{
+		d.Set("metastores", []any{
 			result,
 		})
 	}
 }
 
-func flattenHDInsightMonitoring(input *extensions.ClusterMonitoringResponse) []interface{} {
-	output := make([]interface{}, 0)
+func flattenHDInsightMonitoring(input *extensions.ClusterMonitoringResponse) []any {
+	output := make([]any, 0)
 
 	if input != nil && input.ClusterMonitoringEnabled != nil && *input.ClusterMonitoringEnabled {
 		output = append(output, map[string]string{
@@ -380,8 +380,8 @@ func flattenHDInsightMonitoring(input *extensions.ClusterMonitoringResponse) []i
 	return output
 }
 
-func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []interface{} {
-	output := make([]interface{}, 0)
+func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []any {
+	output := make([]any, 0)
 
 	if input != nil && input.ClusterMonitoringEnabled != nil && *input.ClusterMonitoringEnabled {
 		output = append(output, map[string]string{
@@ -393,7 +393,7 @@ func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []inte
 	return output
 }
 
-func enableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []interface{}) error {
+func enableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []any) error {
 	payload := ExpandHDInsightsMonitor(input)
 
 	// This API is an LRO without a header or `provisioningState` - so we need to do custom polling on the field
@@ -427,8 +427,8 @@ func disableHDInsightMonitoring(ctx context.Context, client *extensions.Extensio
 	return nil
 }
 
-func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []interface{}) error {
-	v := input[0].(map[string]interface{})
+func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []any) error {
+	v := input[0].(map[string]any)
 
 	payload := extensions.AzureMonitorRequest{
 		WorkspaceId: pointer.To(v["log_analytics_workspace_id"].(string)),

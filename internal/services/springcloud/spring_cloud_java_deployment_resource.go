@@ -54,7 +54,7 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -104,8 +104,8 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 				Type:           appplatform.TypeBasicUserSourceInfoTypeJar,
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
-				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]interface{})),
+				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any)),
+				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]any)),
 			},
 		},
 	}
@@ -124,7 +124,7 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("environment_variables") {
-		existing.Properties.DeploymentSettings.EnvironmentVariables = expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}))
+		existing.Properties.DeploymentSettings.EnvironmentVariables = expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any))
 	}
 
 	if d.HasChange("jvm_options") {
@@ -176,7 +176,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("nil `properties.deploymentSettings.resourceRequests` for %s: %+v", id, err)
 		}
 
-		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]interface{}))
+		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]any))
 	}
 
 	if d.HasChange("runtime_version") {
@@ -198,7 +198,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +264,7 @@ func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]interface{}) map[string]*string {
+func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]any) map[string]*string {
 	output := make(map[string]*string, len(envMap))
 
 	for k, v := range envMap {
@@ -274,8 +274,8 @@ func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]interface
 	return output
 }
 
-func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string) map[string]interface{} {
-	output := make(map[string]interface{}, len(envMap))
+func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string) map[string]any {
+	output := make(map[string]any, len(envMap))
 	for i, v := range envMap {
 		if v == nil {
 			continue
@@ -285,12 +285,12 @@ func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string)
 	return output
 }
 
-func expandSpringCloudDeploymentResourceRequests(input []interface{}) *appplatform.ResourceRequests {
+func expandSpringCloudDeploymentResourceRequests(input []any) *appplatform.ResourceRequests {
 	cpuResult := "1"   // default value that's aligned with previous behavior used to be defined in schema.
 	memResult := "1Gi" // default value that's aligned with previous behavior used to be defined in schema.
 
 	if len(input) > 0 && input[0] != nil {
-		v := input[0].(map[string]interface{})
+		v := input[0].(map[string]any)
 		if v != nil {
 			if cpuNew := v["cpu"].(string); cpuNew != "" {
 				cpuResult = cpuNew
@@ -310,13 +310,13 @@ func expandSpringCloudDeploymentResourceRequests(input []interface{}) *appplatfo
 	return &result
 }
 
-func flattenSpringCloudDeploymentResourceRequests(input *appplatform.ResourceRequests) []interface{} {
+func flattenSpringCloudDeploymentResourceRequests(input *appplatform.ResourceRequests) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"cpu":    pointer.From(input.CPU),
 			"memory": pointer.From(input.Memory),
 		},

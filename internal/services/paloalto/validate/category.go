@@ -83,6 +83,6 @@ var categoryList = []string{
 	"web-hosting",
 }
 
-func CategoryNames(input interface{}, k string) ([]string, []error) {
+func CategoryNames(input any, k string) ([]string, []error) {
 	return validation.StringInSlice(categoryList, true)(input, k)
 }

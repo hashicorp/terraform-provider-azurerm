@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -27,8 +27,8 @@ func (r NetAppVolumeQuotaRuleDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_quota_rule"
 }
 
-func (r NetAppVolumeQuotaRuleDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeQuotaRuleDataSourceModel{}
+func (r NetAppVolumeQuotaRuleDataSource) ModelObject() any {
+	return &models.NetAppVolumeQuotaRuleDataSourceModel{}
 }
 
 func (r NetAppVolumeQuotaRuleDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -78,7 +78,7 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
-			var state netAppModels.NetAppVolumeQuotaRuleDataSourceModel
+			var state models.NetAppVolumeQuotaRuleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

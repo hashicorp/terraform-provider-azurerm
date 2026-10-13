@@ -55,7 +55,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_discovery_virtual_instance"
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ModelObject() interface{} {
+func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ModelObject() any {
 	return &WorkloadsSAPDiscoveryVirtualInstanceModel{}
 }
 
@@ -218,7 +218,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

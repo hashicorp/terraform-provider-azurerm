@@ -112,7 +112,7 @@ func SchemaApiManagementOperationRepresentation() *pluginsdk.Schema {
 	}
 }
 
-func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) (*[]apioperation.RepresentationContract, error) {
+func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schemaPath string, input []any) (*[]apioperation.RepresentationContract, error) {
 	if len(input) == 0 {
 		return &[]apioperation.RepresentationContract{}, nil
 	}
@@ -120,17 +120,17 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 	outputs := make([]apioperation.RepresentationContract, 0)
 
 	for i, v := range input {
-		vs := v.(map[string]interface{})
+		vs := v.(map[string]any)
 
 		contentType := vs["content_type"].(string)
-		formParametersRaw := vs["form_parameter"].([]interface{})
+		formParametersRaw := vs["form_parameter"].([]any)
 		formParameters := ExpandApiManagementOperationParameterContract(d, fmt.Sprintf("%s.%d.form_parameter", schemaPath, i), formParametersRaw)
 		schemaId := vs["schema_id"].(string)
 		typeName := vs["type_name"].(string)
 
 		examples := make(map[string]apioperation.ParameterExampleContract)
 		if vs["example"] != nil {
-			examplesRaw := vs["example"].([]interface{})
+			examplesRaw := vs["example"].([]any)
 			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
 		}
 
@@ -150,7 +150,7 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
 		// Representation typeName can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
-		// nolint gocritic
+		//nolint:gocritic
 		if !contentTypeIsFormData {
 			output.SchemaId = pointer.To(schemaId)
 			output.TypeName = pointer.To(typeName)
@@ -166,15 +166,15 @@ func ExpandApiManagementOperationRepresentation(d *pluginsdk.ResourceData, schem
 	return &outputs, nil
 }
 
-func FlattenApiManagementOperationRepresentation(input *[]apioperation.RepresentationContract) ([]interface{}, error) {
+func FlattenApiManagementOperationRepresentation(input *[]apioperation.RepresentationContract) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["content_type"] = v.ContentType
 
@@ -258,7 +258,7 @@ func SchemaApiManagementOperationParameterContract() *pluginsdk.Schema {
 	}
 }
 
-func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, schemaPath string, input []interface{}) *[]apioperation.ParameterContract {
+func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, schemaPath string, input []any) *[]apioperation.ParameterContract {
 	if len(input) == 0 {
 		return &[]apioperation.ParameterContract{}
 	}
@@ -266,7 +266,7 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 	outputs := make([]apioperation.ParameterContract, 0)
 
 	for i, v := range input {
-		vs := v.(map[string]interface{})
+		vs := v.(map[string]any)
 
 		name := vs["name"].(string)
 		description := vs["description"].(string)
@@ -278,7 +278,7 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 		typeName := vs["type_name"].(string)
 		examples := make(map[string]apioperation.ParameterExampleContract)
 		if vs["example"] != nil {
-			examplesRaw := vs["example"].([]interface{})
+			examplesRaw := vs["example"].([]any)
 			examples = ExpandApiManagementOperationParameterExampleContract(examplesRaw)
 		}
 
@@ -305,14 +305,14 @@ func ExpandApiManagementOperationParameterContract(d *pluginsdk.ResourceData, sc
 	return &outputs
 }
 
-func FlattenApiManagementOperationParameterContract(input *[]apioperation.ParameterContract) ([]interface{}, error) {
+func FlattenApiManagementOperationParameterContract(input *[]apioperation.ParameterContract) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 	for _, v := range *input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		output["name"] = v.Name
 		output["description"] = pointer.From(v.Description)
@@ -375,7 +375,7 @@ func SchemaApiManagementOperationParameterExampleContract() *pluginsdk.Schema {
 	}
 }
 
-func ExpandApiManagementOperationParameterExampleContract(input []interface{}) map[string]apioperation.ParameterExampleContract {
+func ExpandApiManagementOperationParameterExampleContract(input []any) map[string]apioperation.ParameterExampleContract {
 	if len(input) == 0 {
 		return map[string]apioperation.ParameterExampleContract{}
 	}
@@ -383,7 +383,7 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 	outputs := make(map[string]apioperation.ParameterExampleContract)
 
 	for _, v := range input {
-		vs := v.(map[string]interface{})
+		vs := v.(map[string]any)
 
 		example := apioperation.ParameterExampleContract{}
 
@@ -396,7 +396,7 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 		}
 
 		if vs["value"] != nil {
-			var js interface{}
+			var js any
 			if json.Unmarshal([]byte(vs["value"].(string)), &js) == nil {
 				example.Value = pointer.To(js)
 			} else {
@@ -414,14 +414,14 @@ func ExpandApiManagementOperationParameterExampleContract(input []interface{}) m
 	return outputs
 }
 
-func FlattenApiManagementOperationParameterExampleContract(input map[string]apioperation.ParameterExampleContract) ([]interface{}, error) {
+func FlattenApiManagementOperationParameterExampleContract(input map[string]apioperation.ParameterExampleContract) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 	for k, v := range input {
-		output := map[string]interface{}{}
+		output := map[string]any{}
 
 		output["name"] = k
 		output["summary"] = pointer.From(v.Summary)
@@ -450,9 +450,9 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]apio
 // Iterate through old state to find sensitive props not returned by API.
 // This must be done in order to avoid state diffs.
 // NOTE: this information won't be available during times like Import, so this is a best-effort.
-func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[string]interface{}) {
+func CopyCertificateAndPassword(vals []any, hostName string, output map[string]any) {
 	for _, val := range vals {
-		oldConfig := val.(map[string]interface{})
+		oldConfig := val.(map[string]any)
 
 		if oldConfig["host_name"] == hostName {
 			output["certificate_password"] = oldConfig["certificate_password"]
@@ -462,7 +462,7 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 	}
 }
 
-func convert2Json(rawVal interface{}) (string, error) {
+func convert2Json(rawVal any) (string, error) {
 	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val

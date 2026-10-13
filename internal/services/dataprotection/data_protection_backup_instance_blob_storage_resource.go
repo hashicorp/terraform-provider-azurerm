@@ -91,14 +91,14 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// The `storage_account_container_names` can not be removed once specified.
-			pluginsdk.ForceNewIfChange("storage_account_container_names", func(ctx context.Context, old, new, _ interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("storage_account_container_names", func(ctx context.Context, old, new, _ any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 		),
 	}
 }
 
-func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -154,7 +154,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
 			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
 				backupinstanceresources.BlobBackupDatasourceParameters{
-					ContainersList: pointer.From(pluginsdk.ExpandStringSlice(v.([]interface{}))),
+					ContainersList: pointer.From(pluginsdk.ExpandStringSlice(v.([]any))),
 				},
 			},
 		}
@@ -193,7 +193,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	return resourceDataProtectionBackupInstanceBlobStorageRead(d, meta)
 }
 
-func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -237,7 +237,7 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +255,7 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 }
 
 func policyProtectionStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)

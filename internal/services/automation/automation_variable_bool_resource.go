@@ -33,18 +33,18 @@ func resourceAutomationVariableBool() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationVariableBoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableBoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableCreate(d, meta, "Bool")
 }
 
-func resourceAutomationVariableBoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableBoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableUpdate(d, meta, "Bool")
 }
 
-func resourceAutomationVariableBoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableBoolRead(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableRead(d, meta, "Bool")
 }
 
-func resourceAutomationVariableBoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationVariableBoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	return resourceAutomationVariableDelete(d, meta, "Bool")
 }

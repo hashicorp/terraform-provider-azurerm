@@ -99,7 +99,7 @@ func (MsSqlJobScheduleResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (MsSqlJobScheduleResource) ModelObject() interface{} {
+func (MsSqlJobScheduleResource) ModelObject() any {
 	return &MsSqlJobScheduleResourceModel{}
 }
 

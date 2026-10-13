@@ -81,7 +81,7 @@ func (r DataCollectionRuleAssociationResource) IDValidationFunc() pluginsdk.Sche
 	return datacollectionruleassociations.ValidateScopedDataCollectionRuleAssociationID
 }
 
-func (r DataCollectionRuleAssociationResource) ModelObject() interface{} {
+func (r DataCollectionRuleAssociationResource) ModelObject() any {
 	return &DataCollectionRuleAssociationModel{}
 }
 
@@ -154,9 +154,9 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-					dataCollectionEndpointId = flattenStringPtr(prop.DataCollectionEndpointId)
-					dataCollectionRuleId = flattenStringPtr(prop.DataCollectionRuleId)
-					description = flattenStringPtr(prop.Description)
+					dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
+					dataCollectionRuleId = pointer.From(prop.DataCollectionRuleId)
+					description = pointer.From(prop.Description)
 				}
 			}
 

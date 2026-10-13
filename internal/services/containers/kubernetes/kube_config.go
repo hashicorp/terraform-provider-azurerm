@@ -63,12 +63,12 @@ type context struct {
 }
 
 type KubeConfigBase struct {
-	APIVersion     string                 `yaml:"apiVersion"`
-	Clusters       []clusterItem          `yaml:"clusters"`
-	Contexts       []contextItem          `yaml:"contexts,omitempty"`
-	CurrentContext string                 `yaml:"current-context,omitempty"`
-	Kind           string                 `yaml:"kind,omitempty"`
-	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
+	APIVersion     string         `yaml:"apiVersion"`
+	Clusters       []clusterItem  `yaml:"clusters"`
+	Contexts       []contextItem  `yaml:"contexts,omitempty"`
+	CurrentContext string         `yaml:"current-context,omitempty"`
+	Kind           string         `yaml:"kind,omitempty"`
+	Preferences    map[string]any `yaml:"preferences,omitempty"`
 }
 
 type KubeConfig struct {

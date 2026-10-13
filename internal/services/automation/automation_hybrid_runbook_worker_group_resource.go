@@ -56,7 +56,7 @@ func (m HybridRunbookWorkerGroupResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m HybridRunbookWorkerGroupResource) ModelObject() interface{} {
+func (m HybridRunbookWorkerGroupResource) ModelObject() any {
 	return &HybridRunbookWorkerGroupModel{}
 }
 

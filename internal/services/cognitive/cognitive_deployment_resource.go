@@ -60,7 +60,7 @@ func (r CognitiveDeploymentResource) ResourceType() string {
 	return "azurerm_cognitive_deployment"
 }
 
-func (r CognitiveDeploymentResource) ModelObject() interface{} {
+func (r CognitiveDeploymentResource) ModelObject() any {
 	return &cognitiveDeploymentModel{}
 }
 

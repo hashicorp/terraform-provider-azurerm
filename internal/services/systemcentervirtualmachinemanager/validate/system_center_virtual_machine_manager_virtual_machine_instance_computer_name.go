@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SystemCenterVirtualMachineManagerVirtualMachineInstanceComputerName(i interface{}, k string) ([]string, []error) {
+func SystemCenterVirtualMachineManagerVirtualMachineInstanceComputerName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[a-zA-Z0-9]{1,}$"), "must only contain alphanumeric characters")(i, k)
 }

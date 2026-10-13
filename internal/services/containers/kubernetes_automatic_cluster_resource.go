@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,7 +38,7 @@ type KubernetesAutomaticClusterModel struct {
 	PrivateCluster         []PrivateClusterModel                      `tfschema:"private_cluster"`
 	ServiceMeshProfile     []ServiceMeshProfileModel                  `tfschema:"service_mesh"`
 	WebAppRoutingIngress   []WebAppRoutingIngressModel                `tfschema:"web_app_routing_ingress"`
-	Tags                   map[string]interface{}                     `tfschema:"tags"`
+	Tags                   map[string]any                             `tfschema:"tags"`
 	// Computed fields
 	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
 	FQDN                     string            `tfschema:"fully_qualified_domain_name"`
@@ -113,7 +113,7 @@ func (r KubernetesAutomaticClusterResource) ResourceType() string {
 	return "azurerm_kubernetes_automatic_cluster"
 }
 
-func (r KubernetesAutomaticClusterResource) ModelObject() interface{} {
+func (r KubernetesAutomaticClusterResource) ModelObject() any {
 	return &KubernetesAutomaticClusterModel{}
 }
 
@@ -185,8 +185,8 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if rd.Id() == "" {
-				hostedSystem := make([]interface{}, 0)
-				if v, ok := rd.Get("hosted_system").([]interface{}); ok {
+				hostedSystem := make([]any, 0)
+				if v, ok := rd.Get("hosted_system").([]any); ok {
 					hostedSystem = v
 				}
 				if len(hostedSystem) == 0 {
@@ -209,9 +209,9 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			privateCluster := rd.Get("private_cluster").([]interface{})
+			privateCluster := rd.Get("private_cluster").([]any)
 			if len(privateCluster) > 0 && privateCluster[0] != nil {
-				privateClusterConfig := privateCluster[0].(map[string]interface{})
+				privateClusterConfig := privateCluster[0].(map[string]any)
 				privateDNSZoneID := privateClusterConfig["private_dns_zone_id"].(string)
 
 				if privateDNSZoneID != "" {
@@ -232,7 +232,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: containerValidate.KubernetesClusterName,
+			ValidateFunc: validate.KubernetesClusterName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -415,7 +415,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
-								dnsValidate.ValidateDnsZoneID,
+								zones.ValidateDnsZoneID,
 								privatezones.ValidatePrivateDnsZoneID,
 							),
 						},

@@ -227,7 +227,7 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
