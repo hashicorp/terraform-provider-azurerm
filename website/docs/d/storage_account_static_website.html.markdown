@@ -1,7 +1,7 @@
 ---
 subcategory: "Storage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_storage_account_static_website"
+page_title: "Azure Resource Manager: Data Source: azurerm_storage_account_static_website"
 description: |-
   Gets information about an existing Static Website of an Azure Storage Account.
 ---
