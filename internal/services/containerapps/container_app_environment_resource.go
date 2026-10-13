@@ -48,7 +48,7 @@ type ContainerAppEnvironmentModel struct {
 	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PublicNetworkAccess                     string                                     `tfschema:"public_network_access"`
 	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
-	Tags                                    map[string]interface{}                     `tfschema:"tags"`
+	Tags                                    map[string]any                             `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
 	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
 	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
@@ -66,7 +66,7 @@ var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = ContainerAppEnvironmentResource{}
 
-func (r ContainerAppEnvironmentResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentResource) ModelObject() any {
 	return &ContainerAppEnvironmentModel{}
 }
 
@@ -505,8 +505,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
 					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
-						Destination:               pointer.To(LogsDestinationAzureMonitor),
-						LogAnalyticsConfiguration: nil,
+						Destination: pointer.To(LogsDestinationAzureMonitor),
 					}
 				case LogsDestinationLogAnalytics:
 					if state.LogAnalyticsWorkspaceId != "" {
@@ -529,8 +528,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 					}
 				default:
 					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
-						Destination:               pointer.To(LogsDestinationNone),
-						LogAnalyticsConfiguration: nil,
+						Destination: pointer.To(LogsDestinationNone),
 					}
 				}
 			}

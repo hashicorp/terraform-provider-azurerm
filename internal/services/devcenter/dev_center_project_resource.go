@@ -27,7 +27,7 @@ var (
 
 type DevCenterProjectResource struct{}
 
-func (r DevCenterProjectResource) ModelObject() interface{} {
+func (r DevCenterProjectResource) ModelObject() any {
 	return &DevCenterProjectResourceSchema{}
 }
 
@@ -40,7 +40,7 @@ type DevCenterProjectResourceSchema struct {
 	MaximumDevBoxesPerUser int64                                      `tfschema:"maximum_dev_boxes_per_user"`
 	Name                   string                                     `tfschema:"name"`
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
-	Tags                   map[string]interface{}                     `tfschema:"tags"`
+	Tags                   map[string]any                             `tfschema:"tags"`
 }
 
 func (r DevCenterProjectResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

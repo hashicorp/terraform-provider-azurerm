@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file first-line-heading -->
 <a href="https://terraform.io">
     <img src=".github/tf.png" alt="Terraform logo" title="Terraform" align="left" height="50" />
 </a>
@@ -6,7 +7,7 @@
 
 The AzureRM Terraform Provider allows managing resources within Azure Resource Manager.
 
-When using version 5.0 of the AzureRM Provider we recommend using the latest version of Terraform Core ([the latest version can be found here](https://developer.hashicorp.com/terraform/install)). 
+When using version 5.0 of the AzureRM Provider we recommend using the latest version of Terraform Core ([the latest version can be found here](https://developer.hashicorp.com/terraform/install)).
 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
@@ -60,4 +61,4 @@ resource "azurerm_virtual_network" "example" {
 
 ## Developing & Contributing to the Provider
 
-The [DEVELOPER.md](DEVELOPER.md) file is a basic outline on how to build and develop the provider while more detailed guides geared towards contributors can be found in the [`/contributing`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory of this repository.
+See [Building the Provider](contributing/topics/building-the-provider.md) for how to build and develop the provider, and the [`/contributing`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/contributing) directory for the full set of contributor guides.

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 type TriggerScheduleDataSource struct{}
@@ -49,7 +49,7 @@ type TriggerScheduleScheduleMonthly struct {
 
 var _ sdk.DataSource = TriggerScheduleDataSource{}
 
-func (d TriggerScheduleDataSource) ModelObject() interface{} {
+func (d TriggerScheduleDataSource) ModelObject() any {
 	return &TriggerScheduleDataSourceModel{}
 }
 
@@ -207,7 +207,7 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("retreiving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)

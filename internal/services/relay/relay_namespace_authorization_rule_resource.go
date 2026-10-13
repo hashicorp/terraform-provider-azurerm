@@ -57,7 +57,7 @@ func resourceRelayNamespaceAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -97,7 +97,7 @@ func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceRelayNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +140,7 @@ func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

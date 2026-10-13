@@ -144,6 +144,6 @@ func (EventGridPartnerNamespaceDataSource) ResourceType() string {
 	return "azurerm_eventgrid_partner_namespace"
 }
 
-func (EventGridPartnerNamespaceDataSource) ModelObject() interface{} {
+func (EventGridPartnerNamespaceDataSource) ModelObject() any {
 	return &EventGridPartnerNamespaceDataSourceModel{}
 }

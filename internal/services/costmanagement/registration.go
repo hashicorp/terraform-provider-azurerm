@@ -26,13 +26,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AnomalyAlertResource{},
 		BillingAccountCostManagementExportResource{},
+		CostManagementScheduledActionResource{},
 		ResourceGroupCostManagementExportResource{},
+		ResourceGroupCostManagementViewResource{},
 		SubscriptionCostManagementExportResource{},
 		SubscriptionCostManagementViewResource{},
-		ResourceGroupCostManagementViewResource{},
-		CostManagementScheduledActionResource{},
-		AnomalyAlertResource{},
 	}
 }
 

@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DevCenterNetworkConnectionDomainUsername(i interface{}, k string) ([]string, []error) {
+func DevCenterNetworkConnectionDomainUsername(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`), "is not a valid email")(i, k)
 }

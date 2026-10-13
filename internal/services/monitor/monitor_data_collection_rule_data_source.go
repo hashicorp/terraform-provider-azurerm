@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -24,7 +25,7 @@ type DataCollectionRuleDataSource struct{}
 
 var _ sdk.DataSource = DataCollectionRuleDataSource{}
 
-func (d DataCollectionRuleDataSource) ModelObject() interface{} {
+func (d DataCollectionRuleDataSource) ModelObject() any {
 	return &DataCollectionRule{}
 }
 
@@ -95,8 +96,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 				Schema: map[string]*schema.Schema{
 					"event_hub": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -112,8 +112,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"event_hub_direct": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"event_hub_id": {
@@ -330,7 +329,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"log_file": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -410,7 +409,7 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 					},
 					"platform_telemetry": {
 						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
@@ -561,6 +560,16 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"metrics_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"stream_declaration": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -606,7 +615,6 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := datacollectionrules.NewDataCollectionRuleID(subscriptionId, state.ResourceGroupName, state.Name)
-			metadata.Logger.Infof("retrieving %s", id)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -616,14 +624,15 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var dataCollectionEndpointId, description, immutableId, kind, loc string
-			var tag map[string]interface{}
+			var tag map[string]any
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
+			var logsIngestionEndpoint, metricsIngestionEndpoint string
 			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
-				kind = flattenDataCollectionRuleKind(model.Kind)
+				kind = pointer.FromEnum(model.Kind)
 				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 
@@ -637,12 +646,13 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if prop := model.Properties; prop != nil {
-					dataCollectionEndpointId = flattenStringPtr(prop.DataCollectionEndpointId)
-					description = flattenStringPtr(prop.Description)
+					dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
+					description = pointer.From(prop.Description)
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
-					immutableId = flattenStringPtr(prop.ImmutableId)
+					logsIngestionEndpoint, metricsIngestionEndpoint = flattenDataCollectionRuleEndpoints(prop.Endpoints)
+					immutableId = pointer.From(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
 			}
@@ -660,6 +670,8 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 loc,
+				LogsIngestionEndpoint:    logsIngestionEndpoint,
+				MetricsIngestionEndpoint: metricsIngestionEndpoint,
 				StreamDeclaration:        streamDeclaration,
 				Tags:                     tag,
 			})

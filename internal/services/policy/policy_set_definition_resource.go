@@ -76,7 +76,7 @@ func (r PolicySetDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"metadata": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
 		},
@@ -98,7 +98,7 @@ func (r PolicySetDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r PolicySetDefinitionResource) ModelObject() interface{} {
+func (r PolicySetDefinitionResource) ModelObject() any {
 	return &PolicySetDefinitionResourceModel{}
 }
 
@@ -147,7 +147,7 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
 
-				var iMetadata interface{} = expandedMetadata
+				var iMetadata any = expandedMetadata
 
 				props.Metadata = &iMetadata
 			}
@@ -210,9 +210,9 @@ func (r PolicySetDefinitionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 					state.DisplayName = pointer.From(props.DisplayName)
-					state.PolicyType = string(pointer.From(props.PolicyType))
+					state.PolicyType = pointer.FromEnum(props.PolicyType)
 
-					if v, ok := pointer.From(props.Metadata).(map[string]interface{}); ok {
+					if v, ok := pointer.From(props.Metadata).(map[string]any); ok {
 						flattenedMetadata, err := pluginsdk.FlattenJsonToString(v)
 						if err != nil {
 							return fmt.Errorf("flattening `metadata`: %+v", err)
@@ -289,7 +289,7 @@ func (r PolicySetDefinitionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
 
-				var iMetadata interface{} = expandedMetadata
+				var iMetadata any = expandedMetadata
 
 				props.Metadata = &iMetadata
 			}

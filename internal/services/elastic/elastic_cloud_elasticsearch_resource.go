@@ -156,7 +156,7 @@ func resourceElasticsearch() *pluginsdk.Resource {
 	}
 }
 
-func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -192,7 +192,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Sku: &monitorsresource.ResourceSku{
 			Name: d.Get("sku_name").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.MonitorsCreateCallbackThenPoll(ctx, id, body, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -206,7 +206,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		tagRuleId := rules.NewTagRuleID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
 		tagRule := rules.MonitoringTagRules{
 			Properties: &rules.MonitoringTagRulesProperties{
-				LogRules: expandTagRule(v.([]interface{})),
+				LogRules: expandTagRule(v.([]any)),
 			},
 		}
 		if _, err := tagRulesClient.TagRulesCreateOrUpdate(ctx, tagRuleId, tagRule); err != nil {
@@ -217,7 +217,7 @@ func resourceElasticsearchCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceElasticsearchRead(d, meta)
 }
 
-func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	logsClient := meta.(*clients.Client).Elastic.TagRuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -295,7 +295,7 @@ func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -307,7 +307,7 @@ func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("logs") {
 		client := meta.(*clients.Client).Elastic.TagRuleClient
 		tagRuleId := rules.NewTagRuleID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
-		tagRule := expandTagRule(d.Get("logs").([]interface{}))
+		tagRule := expandTagRule(d.Get("logs").([]any))
 		body := rules.MonitoringTagRules{
 			Properties: &rules.MonitoringTagRulesProperties{
 				LogRules: tagRule,
@@ -321,7 +321,7 @@ func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("tags") {
 		client := meta.(*clients.Client).Elastic.MonitorClient
 		body := monitorsresource.ElasticMonitorResourceUpdateParameters{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 		if _, err := client.MonitorsUpdate(ctx, *id, body); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
@@ -331,7 +331,7 @@ func resourceElasticsearchUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceElasticsearchRead(d, meta)
 }
 
-func resourceElasticsearchDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceElasticsearchDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Elastic.MonitorClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -348,19 +348,18 @@ func resourceElasticsearchDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandTagRule(input []interface{}) *rules.LogRules {
+func expandTagRule(input []any) *rules.LogRules {
 	if len(input) == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	filteringTags := make([]rules.FilteringTag, 0)
-	for _, v := range raw["filtering_tag"].([]interface{}) {
-		item := v.(map[string]interface{})
+	for _, v := range raw["filtering_tag"].([]any) {
+		item := v.(map[string]any)
 
-		action := rules.TagAction(item["action"].(string))
 		filteringTags = append(filteringTags, rules.FilteringTag{
-			Action: &action,
+			Action: pointer.ToEnum[rules.TagAction](item["action"].(string)),
 			Name:   pointer.To(item["name"].(string)),
 			Value:  pointer.To(item["value"].(string)),
 		})
@@ -378,21 +377,21 @@ func expandTagRule(input []interface{}) *rules.LogRules {
 	}
 }
 
-func flattenTagRule(input *rules.MonitoringTagRules) []interface{} {
+func flattenTagRule(input *rules.MonitoringTagRules) []any {
 	if input == nil || input.Properties == nil || input.Properties.LogRules == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	rules := input.Properties.LogRules
 
-	filteringTags := make([]interface{}, 0)
+	filteringTags := make([]any, 0)
 	if rules.FilteringTags != nil {
 		for _, v := range *rules.FilteringTags {
 			action := ""
 			if v.Action != nil {
 				action = string(*v.Action)
 			}
-			filteringTags = append(filteringTags, map[string]interface{}{
+			filteringTags = append(filteringTags, map[string]any{
 				"action": action,
 				"name":   pointer.From(v.Name),
 				"value":  pointer.From(v.Value),
@@ -400,8 +399,8 @@ func flattenTagRule(input *rules.MonitoringTagRules) []interface{} {
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"filtering_tag":          filteringTags,
 			"send_activity_logs":     pointer.From(rules.SendActivityLogs),
 			"send_azuread_logs":      pointer.From(rules.SendAadLogs),

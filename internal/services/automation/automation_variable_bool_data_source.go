@@ -21,6 +21,6 @@ func dataSourceAutomationVariableBool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAutomationVariableBoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableBoolRead(d *pluginsdk.ResourceData, meta any) error {
 	return dataSourceAutomationVariableRead(d, meta, "Bool")
 }

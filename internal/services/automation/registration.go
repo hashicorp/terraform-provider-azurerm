@@ -20,16 +20,16 @@ var (
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		AutomationVariablesDataSource{},
 		AutomationRunbookDataSource{},
+		AutomationVariablesDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AutomationConnectionTypeResource{},
-		AutomationRuntimeEnvironmentResource{},
 		AutomationRuntimeEnvironmentPackageResource{},
+		AutomationRuntimeEnvironmentResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
 		PowerShell72ModuleResource{},

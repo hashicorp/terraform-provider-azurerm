@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -101,7 +101,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"private_ip_address": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// Not using O+C here causes drift
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
 							Computed: true,
 							ValidateFunc: validation.Any(
 								validation.IsIPAddress,
@@ -113,7 +113,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							// Not using O+C here causes drift
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForIPVersion(), false),
 						},
 
@@ -126,14 +126,14 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"public_ip_prefix_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 						},
 
 						"private_ip_address_allocation": {
 							Type:             pluginsdk.TypeString,
 							Optional:         true,
-							Computed:         true,
+							Computed:         true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc:     validation.StringInSlice(loadbalancers.PossibleValuesForIPAllocationMethod(), true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -141,7 +141,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 						"gateway_load_balancer_frontend_ip_configuration_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: loadbalancers.ValidateFrontendIPConfigurationID,
 						},
 
@@ -149,8 +149,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -159,8 +158,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -169,8 +167,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								Type: pluginsdk.TypeString,
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -201,21 +198,21 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
 				old, new := d.GetChange("frontend_ip_configuration")
 				switch {
-				case len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0:
+				case len(old.([]any)) == 0 && len(new.([]any)) > 0:
 					return false
-				case len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0:
+				case len(old.([]any)) > 0 && len(new.([]any)) == 0:
 					// Azure does not allow an LB to have all frontend removed, it results in the following error:
 					// Error: "Deleting all frontendIPConfigs from load balancer is not supported."
 					// If the old config had frontends, and new config has none, need to force new LB
 					return true
 				default:
-					for i, nc := range new.([]interface{}) {
-						dataNew := nc.(map[string]interface{})
-						for _, oc := range old.([]interface{}) {
-							dataOld := oc.(map[string]interface{})
+					for i, nc := range new.([]any) {
+						dataNew := nc.(map[string]any)
+						for _, oc := range old.([]any) {
+							dataOld := oc.(map[string]any)
 							if dataOld["name"].(string) == dataNew["name"].(string) {
 								if !reflect.DeepEqual(dataOld["zones"].(*pluginsdk.Set).List(), dataNew["zones"].(*pluginsdk.Set).List()) {
 									// set ForceNew to true when the `frontend_ip_configuration.#.zones` is changed.
@@ -232,7 +229,7 @@ func resourceArmLoadBalancer() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -275,7 +272,7 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Name:             pointer.To(id.LoadBalancerName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:             tags.Expand(d.Get("tags").(map[string]any)),
 		Sku:              pointer.To(sku),
 		Properties:       pointer.To(properties),
 	}
@@ -289,7 +286,7 @@ func resourceArmLoadBalancerCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceArmLoadBalancerRead(d, meta)
 }
 
-func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,8 +314,8 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		if sku := model.Sku; sku != nil {
-			d.Set("sku", string(pointer.From(sku.Name)))
-			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			d.Set("sku", pointer.FromEnum(sku.Name))
+			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
 		}
 
 		if props := model.Properties; props != nil {
@@ -353,7 +350,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -380,7 +377,7 @@ func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, loadbalancers.ProviderLoadBalancerId(*id), model); err != nil {
@@ -390,7 +387,7 @@ func resourceArmLoadBalancerUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceArmLoadBalancerRead(d, meta)
 }
 
-func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -400,9 +397,7 @@ func resourceArmLoadBalancerDelete(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
-
-	if err = client.DeleteThenPoll(ctx, plbId); err != nil {
+	if err = client.DeleteThenPoll(ctx, loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -415,11 +410,11 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 		return nil
 	}
 
-	configs := configsRaw.([]interface{})
+	configs := configsRaw.([]any)
 	frontEndConfigs := make([]loadbalancers.FrontendIPConfiguration, 0, len(configs))
 
 	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 
 		properties := loadbalancers.FrontendIPConfigurationPropertiesFormat{}
 
@@ -475,8 +470,8 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *pluginsdk.ResourceData
 	return &frontEndConfigs
 }
 
-func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.FrontendIPConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.FrontendIPConfiguration) []any {
+	result := make([]any, 0)
 	if ipConfigs == nil {
 		return result
 	}
@@ -486,9 +481,9 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 
 		id := pointer.From(config.Id)
 
-		var inboundNatRules []interface{}
-		var loadBalancingRules []interface{}
-		var outboundRules []interface{}
+		var inboundNatRules []any
+		var loadBalancingRules []any
+		var outboundRules []any
 		gatewayLoadBalancerId := ""
 		publicIpPrefixId := ""
 		privateIPAllocationMethod := ""
@@ -498,7 +493,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 		privateIpAddress := ""
 
 		if props := config.Properties; props != nil {
-			privateIPAllocationMethod = string(pointer.From(props.PrivateIPAllocationMethod))
+			privateIPAllocationMethod = pointer.FromEnum(props.PrivateIPAllocationMethod)
 
 			if props.GatewayLoadBalancer != nil {
 				gatewayLoadBalancerId = pointer.From(props.GatewayLoadBalancer.Id)
@@ -508,7 +503,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 				subnetId = pointer.From(subnet.Id)
 			}
 			privateIpAddress = pointer.From(props.PrivateIPAddress)
-			privateIpAddressVersion = string(pointer.From(props.PrivateIPAddressVersion))
+			privateIpAddressVersion = pointer.FromEnum(props.PrivateIPAddressVersion)
 
 			if pip := props.PublicIPAddress; pip != nil {
 				publicIpAddressId = pointer.From(pip.Id)
@@ -541,7 +536,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 			}
 		}
 
-		out := map[string]interface{}{
+		out := map[string]any{
 			"gateway_load_balancer_frontend_ip_configuration_id": gatewayLoadBalancerId,
 			"id":                            id,
 			"inbound_nat_rules":             pluginsdk.NewSet(pluginsdk.HashString, inboundNatRules),

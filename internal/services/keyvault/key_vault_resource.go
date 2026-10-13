@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -21,9 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -100,7 +99,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 				Type:       pluginsdk.TypeList,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
-				Computed:   true,
+				Computed:   true, // azignore:AZS007 - pre-existing violation
 				MaxItems:   1024,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -145,7 +144,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			"network_acls": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -165,8 +164,8 @@ func resourceKeyVault() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.Any(
-									commonValidate.IPv4Address,
-									commonValidate.CIDR,
+									validation.IsIPv4Address,
+									validation.IsCIDRIPv4,
 								),
 							},
 							Set: set.HashIPv4AddressOrCIDR,
@@ -210,7 +209,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
@@ -267,12 +266,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
 	rbacAuthorizationEnabled := d.Get("rbac_authorization_enabled").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
-	policies := d.Get("access_policy").([]interface{})
+	policies := d.Get("access_policy").([]any)
 	accessPolicies := expandAccessPolicies(policies)
 
-	networkAclsRaw := d.Get("network_acls").([]interface{})
+	networkAclsRaw := d.Get("network_acls").([]any)
 	networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
 
 	sku := vaults.Sku{
@@ -326,7 +325,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
-		if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -384,7 +383,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:                   []string{"pending"},
 			Target:                    []string{"available"},
-			Refresh:                   keyVaultRefreshFunc(vaultUri),
+			Refresh:                   keyVaultRefreshFunc(ctx, vaultUri),
 			Delay:                     30 * time.Second,
 			PollInterval:              10 * time.Second,
 			ContinuousTargetOccurence: 10,
@@ -399,7 +398,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -431,7 +430,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("access_policy") {
-		policiesRaw := d.Get("access_policy").([]interface{})
+		policiesRaw := d.Get("access_policy").([]any)
 		update.Properties.AccessPolicies = expandAccessPolicies(policiesRaw)
 	}
 
@@ -452,7 +451,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("network_acls") {
-		networkAclsRaw := d.Get("network_acls").([]interface{})
+		networkAclsRaw := d.Get("network_acls").([]any)
 		networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
 
 		// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
@@ -463,7 +462,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			if !helpers.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+			if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 			}
 		}
@@ -546,7 +545,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(t)
 	}
 
@@ -559,7 +558,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -616,7 +615,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 		// @tombuildsstuff: the API doesn't return this field if it's not configured
-		// however https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-overview
+		// however https://docs.microsoft.com/azure/key-vault/general/soft-delete-overview
 		// defaults this to 90 days, as such we're going to have to assume that for the moment
 		// in lieu of anything being returned
 		softDeleteRetentionDays := 90
@@ -639,8 +638,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 			return fmt.Errorf("setting `network_acls`: %+v", err)
 		}
 
-		flattenedPolicies := flattenAccessPolicies(model.Properties.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(model.Properties.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 
@@ -674,7 +672,7 @@ func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.Ba
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	deletedVaultsClient := meta.(*clients.Client).KeyVault.DeletedVaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -723,7 +721,7 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 						return err
 					}
 
-					if !helpers.SliceContainsValue(virtualNetworkNames, subnetId.VirtualNetworkName) {
+					if !slices.Contains(virtualNetworkNames, subnetId.VirtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, subnetId.VirtualNetworkName)
 					}
 				}
@@ -770,8 +768,8 @@ func resourceKeyVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+func keyVaultRefreshFunc(ctx context.Context, vaultUri string) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
 		client := &http.Client{
@@ -780,7 +778,12 @@ func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 			},
 		}
 
-		conn, err := client.Get(vaultUri)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, vaultUri, nil)
+		if err != nil {
+			return nil, "pending", fmt.Errorf("building request to check %q: %s", vaultUri, err)
+		}
+
+		conn, err := client.Do(req)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
 			return nil, "pending", fmt.Errorf("connecting to %q: %s", vaultUri, err)
@@ -793,13 +796,13 @@ func keyVaultRefreshFunc(vaultUri string) pluginsdk.StateRefreshFunc {
 	}
 }
 
-func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []string) {
+func expandKeyVaultNetworkAcls(input []any) (*vaults.NetworkRuleSet, []string) {
 	subnetIds := make([]string, 0)
 	if len(input) == 0 {
 		return nil, subnetIds
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	bypass := v["bypass"].(string)
 	defaultAction := v["default_action"].(string)
@@ -834,11 +837,11 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []s
 	return &ruleSet, subnetIds
 }
 
-func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
+func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []any {
 	bypass := string(vaults.NetworkRuleBypassOptionsAzureServices)
 	defaultAction := string(vaults.NetworkRuleActionAllow)
-	ipRules := make([]interface{}, 0)
-	virtualNetworkSubnetIds := make([]interface{}, 0)
+	ipRules := make([]any, 0)
+	virtualNetworkSubnetIds := make([]any, 0)
 
 	if input != nil {
 		if input.Bypass != nil {
@@ -864,8 +867,8 @@ func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"bypass":                     bypass,
 			"default_action":             defaultAction,
 			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
