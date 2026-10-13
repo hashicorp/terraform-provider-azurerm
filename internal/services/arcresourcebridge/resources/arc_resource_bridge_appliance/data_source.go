@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package arcresourcebridge
+package arc_resource_bridge_appliance
 
 import (
 	"context"
@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ArcResourceBridgeApplianceDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ArcResourceBridgeApplianceDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type ApplianceDataSourceModel struct {
 	Name              string                         `tfschema:"name"`
@@ -36,15 +36,15 @@ type ApplianceDataSourceModel struct {
 	Tags              map[string]any                 `tfschema:"tags"`
 }
 
-func (r ArcResourceBridgeApplianceDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_arc_resource_bridge_appliance"
 }
 
-func (r ArcResourceBridgeApplianceDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ApplianceDataSourceModel{}
 }
 
-func (r ArcResourceBridgeApplianceDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -59,7 +59,7 @@ func (r ArcResourceBridgeApplianceDataSource) Arguments() map[string]*pluginsdk.
 	}
 }
 
-func (r ArcResourceBridgeApplianceDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -84,7 +84,7 @@ func (r ArcResourceBridgeApplianceDataSource) Attributes() map[string]*pluginsdk
 	}
 }
 
-func (r ArcResourceBridgeApplianceDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
