@@ -130,7 +130,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `policy_rule`: %+v", err)
 		}
-		var iPolicyRule interface{} = policyRule
+		var iPolicyRule any = policyRule
 		props.PolicyRule = &iPolicyRule
 	}
 
@@ -139,7 +139,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
-		var iMetadata interface{} = metaData
+		var iMetadata any = metaData
 		props.Metadata = &iMetadata
 	}
 
@@ -212,7 +212,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	var id any
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
-	switch scopeId := oldId.PolicyScopeId.(type) { //nolint:gocritic
+	switch scopeId := oldId.PolicyScopeId.(type) {
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
@@ -240,7 +240,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 
 	if model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("policy_type", string(pointer.From(props.PolicyType)))
+			d.Set("policy_type", pointer.FromEnum(props.PolicyType))
 			d.Set("mode", props.Mode)
 			d.Set("display_name", props.DisplayName)
 			d.Set("description", props.Description)
@@ -276,7 +276,7 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	switch scopeId := oldId.PolicyScopeId.(type) { //nolint:gocritic
+	switch scopeId := oldId.PolicyScopeId.(type) {
 	case parse.ScopeAtManagementGroup:
 		id := policydefinitions.NewProviders2PolicyDefinitionID(scopeId.ManagementGroupName, oldId.Name)
 		if resp, err := client.DeleteAtManagementGroup(ctx, id); err != nil {
