@@ -13,6 +13,16 @@ import (
 
 type BatchPoolDataSource struct{}
 
+func TestAccBatchPoolDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
+	r := BatchPoolDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBatchPoolDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
 	r := BatchPoolDataSource{}
