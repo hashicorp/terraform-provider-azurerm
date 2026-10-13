@@ -14,8 +14,8 @@ Use this data source to access information about an existing Arc Resource Bridge
 
 ```hcl
 data "azurerm_arc_resource_bridge_appliance" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-appliance"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
