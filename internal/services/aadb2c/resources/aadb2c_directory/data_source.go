@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package aadb2c
+package aadb2c_directory
 
 import (
 	"context"
@@ -27,23 +27,23 @@ type AadB2cDirectoryDataSourceModel struct {
 	TenantId              string            `tfschema:"tenant_id"`
 }
 
-type AadB2cDirectoryDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = AadB2cDirectoryDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (r AadB2cDirectoryDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
 }
 
-func (r AadB2cDirectoryDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &AadB2cDirectoryDataSourceModel{}
 }
 
-func (r AadB2cDirectoryDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tenants.ValidateB2CDirectoryID
 }
 
-func (r AadB2cDirectoryDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"domain_name": {
 			Description:  "Domain name of the B2C tenant, including onmicrosoft.com suffix.",
@@ -56,7 +56,7 @@ func (r AadB2cDirectoryDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AadB2cDirectoryDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"billing_type": {
 			Description: "The type of billing for the B2C tenant. Possible values include: `MAU` or `Auths`.",
@@ -92,7 +92,7 @@ func (r AadB2cDirectoryDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AadB2cDirectoryDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
