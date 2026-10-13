@@ -3,16 +3,16 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
 description: |-
-    Lists Servicebus Queue resources.
+    Lists ServiceBus Queue resources.
 ---
 
 # List resource: azurerm_servicebus_queue
 
-Lists Servicebus Queue resources.
+Lists ServiceBus Queue resources.
 
 ## Example Usage
 
-### List all Servicebus Queues in a Namespace
+### List all ServiceBus Queues in a ServiceBus Namespace
 
 ```hcl
 list "azurerm_servicebus_queue" "example" {
@@ -27,4 +27,4 @@ list "azurerm_servicebus_queue" "example" {
 
 This list resource supports the following arguments:
 
-* `servicebus_namespace_id` - (Required) The ID of the Namespace to query.
+* `servicebus_namespace_id` - (Required) The ID of the ServiceBus Namespace to query.
