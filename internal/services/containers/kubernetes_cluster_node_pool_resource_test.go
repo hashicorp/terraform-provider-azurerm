@@ -6,7 +6,6 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -933,7 +932,7 @@ func TestAccKubernetesClusterNodePool_security(t *testing.T) {
 }
 
 func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
-	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+	t.Setenv(resource.EnvTfAccRefreshAfterApply, "true")
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -947,7 +946,7 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 	newImport := data.ImportStep("temporary_name_for_rotation")
 	newImport.ProtoV5ProviderFactories = current
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { acceptance.PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())

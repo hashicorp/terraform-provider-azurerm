@@ -6,7 +6,6 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -95,7 +94,7 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
-	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+	t.Setenv(resource.EnvTfAccRefreshAfterApply, "true")
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -109,7 +108,7 @@ func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
 	newImport := data.ImportStep("default_node_pool.0.temporary_name_for_rotation")
 	newImport.ProtoV5ProviderFactories = current
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() { acceptance.PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
