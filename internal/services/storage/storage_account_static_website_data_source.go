@@ -17,7 +17,7 @@ type AccountStaticWebsiteDataSource struct{}
 
 var _ sdk.DataSource = AccountStaticWebsiteDataSource{}
 
-type AccountStaticWebsiteDataModel struct {
+type AccountStaticWebsiteDataSourceModel struct {
 	StorageAccountId string `tfschema:"storage_account_id"`
 	Error404Document string `tfschema:"error_404_document"`
 	IndexDocument    string `tfschema:"index_document"`
@@ -48,7 +48,7 @@ func (d AccountStaticWebsiteDataSource) Attributes() map[string]*pluginsdk.Schem
 }
 
 func (d AccountStaticWebsiteDataSource) ModelObject() any {
-	return &AccountStaticWebsiteDataModel{}
+	return &AccountStaticWebsiteDataSourceModel{}
 }
 
 func (d AccountStaticWebsiteDataSource) ResourceType() string {
@@ -61,7 +61,7 @@ func (d AccountStaticWebsiteDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Storage
 
-			var state AccountStaticWebsiteDataModel
+			var state AccountStaticWebsiteDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
