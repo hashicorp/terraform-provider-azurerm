@@ -14,7 +14,7 @@ Use this data source to access information about an existing NGINX Certificate.
 
 ```hcl
 data "azurerm_nginx_certificate" "example" {
-  name                = "existing"
+  name                = "example-certificate"
   nginx_deployment_id = azurerm_nginx_deployment.example.id
 }
 
