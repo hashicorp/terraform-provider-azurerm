@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/resources/aadb2c_directory"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -47,14 +48,14 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		AadB2cDirectoryDataSource{},
+		aadb2c_directory.DataSource{},
 	}
 }
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AadB2cDirectoryResource{},
+		aadb2c_directory.Resource{},
 	}
 }
 

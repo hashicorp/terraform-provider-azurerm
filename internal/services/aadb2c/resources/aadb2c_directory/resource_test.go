@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package aadb2c_test
+package aadb2c_directory_test
 
 import (
 	"context"
