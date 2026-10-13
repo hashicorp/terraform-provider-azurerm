@@ -6,11 +6,14 @@ package network
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -341,10 +344,84 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.VirtualWANs
+			expressRouteGatewayClient := metadata.Client.Network.ExpressRouteGateways
+			expressRouteConnectionClient := metadata.Client.Network.ExpressRouteConnections
 
 			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
+			}
+
+			// Remove corresponding `InboundRouteMap` or `OutboundRouteMap` property from Express Route Connection or the deletion will fail
+			resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
+			expressRouteGatewayListResponse, err := expressRouteGatewayClient.ListByResourceGroup(ctx, resourceGroupId)
+			if err != nil {
+				return fmt.Errorf("listing Express Route Gateways in %s: %+v", resourceGroupId, err)
+			}
+
+			if expressRouteGatewayListResponse.Model != nil && expressRouteGatewayListResponse.Model.Value != nil {
+				for _, expressRouteGateway := range *expressRouteGatewayListResponse.Model.Value {
+					expressRouteGatewayId, err := expressrouteconnections.ParseExpressRouteGatewayID(pointer.From(expressRouteGateway.Id))
+					if err != nil {
+						return err
+					}
+
+					expressRouteConnectionListResponse, err := expressRouteConnectionClient.List(ctx, *expressRouteGatewayId)
+					if err != nil {
+						return fmt.Errorf("listing Express Route Connections in %s: %+v", expressRouteGatewayId, err)
+					}
+
+					if expressRouteConnectionListResponse.Model != nil && expressRouteConnectionListResponse.Model.Value != nil {
+						for _, expressRouteConnection := range *expressRouteConnectionListResponse.Model.Value {
+							removeInboundRouteMap := false
+							removeOutboundRouteMap := false
+							if expressRouteConnection.Properties != nil && expressRouteConnection.Properties.RoutingConfiguration != nil {
+								routingConfiguration := expressRouteConnection.Properties.RoutingConfiguration
+								if routingConfiguration.InboundRouteMap != nil && strings.EqualFold(pointer.From(routingConfiguration.InboundRouteMap.Id), metadata.ResourceData.Id()) {
+									removeInboundRouteMap = true
+								}
+
+								if routingConfiguration.OutboundRouteMap != nil && strings.EqualFold(pointer.From(routingConfiguration.OutboundRouteMap.Id), metadata.ResourceData.Id()) {
+									expressRouteConnection.Properties.RoutingConfiguration.OutboundRouteMap = nil
+									removeOutboundRouteMap = true
+								}
+
+								if removeInboundRouteMap || removeOutboundRouteMap {
+									expressRouteConnectionIdString := pointer.From(expressRouteConnection.Id)
+
+									// Lock to avoid race condition and retrieve latest Express Route Connection model in case if other deletion happens first
+									locks.ByID(expressRouteConnectionIdString)
+									expressRouteConnectionId, err := expressrouteconnections.ParseExpressRouteConnectionID(expressRouteConnectionIdString)
+									if err != nil {
+										return err
+									}
+
+									expressRouteConnectionGetResponse, err := expressRouteConnectionClient.Get(ctx, *expressRouteConnectionId)
+									if err != nil {
+										return fmt.Errorf("retrieving %s: %+v", *expressRouteConnectionId, err)
+									}
+
+									param := expressRouteConnectionGetResponse.Model
+									if param != nil && param.Properties != nil && param.Properties.RoutingConfiguration != nil {
+										if removeInboundRouteMap {
+											param.Properties.RoutingConfiguration.InboundRouteMap = nil
+										}
+
+										if removeOutboundRouteMap {
+											param.Properties.RoutingConfiguration.OutboundRouteMap = nil
+										}
+
+										if err := expressRouteConnectionClient.CreateOrUpdateThenPoll(ctx, *expressRouteConnectionId, *param); err != nil {
+											return fmt.Errorf("updating %s: %+v", *expressRouteConnectionId, err)
+										}
+									}
+
+									locks.UnlockByID(expressRouteConnectionIdString)
+								}
+							}
+						}
+					}
+				}
 			}
 
 			if err := client.RouteMapsDeleteThenPoll(ctx, *id); err != nil {
