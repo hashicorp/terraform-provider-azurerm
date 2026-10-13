@@ -163,7 +163,7 @@ func expandParameterDefinitionsValueForPolicyDefinition(input string) (*map[stri
 }
 
 func flattenParameterDefinitionsValueToStringForPolicyDefinition(input *map[string]policydefinitions.ParameterDefinitionsValue) (string, error) {
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return "", nil
 	}
 

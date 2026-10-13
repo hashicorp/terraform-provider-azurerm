@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -53,6 +52,50 @@ func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 	})
 }
 
+func TestAccPolicyDefinition_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPolicyDefinition_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPolicyDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
@@ -84,10 +127,6 @@ func TestAccPolicyDefinition_computedMetadata(t *testing.T) {
 }
 
 func TestAccPolicyDefinition_atMgmtGroup(t *testing.T) {
-	if features.SixPointOh() {
-		t.Skip("skipping test as `management_group_id` has been removed from the `azurerm_policy_definition` resource")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
 
@@ -220,7 +259,7 @@ resource "azurerm_policy_definition" "test" {
   display_name = "acctestpol-%d"
 
   policy_rule = <<POLICY_RULE
-	{
+  {
     "if": {
       "not": {
         "field": "location",
@@ -234,7 +273,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -295,7 +334,6 @@ POLICY_RULE
 }
 
 func (r PolicyDefinitionResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -307,7 +345,7 @@ resource "azurerm_policy_definition" "import" {
   policy_rule  = azurerm_policy_definition.test.policy_rule
   parameters   = azurerm_policy_definition.test.parameters
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r PolicyDefinitionResource) computedMetadata(data acceptance.TestData) string {
@@ -323,7 +361,7 @@ resource "azurerm_policy_definition" "test" {
   display_name = "DefaultTags"
 
   policy_rule = <<POLICY_RULE
-    {
+  {
   "if": {
     "field": "tags",
     "exists": "false"
@@ -331,7 +369,7 @@ resource "azurerm_policy_definition" "test" {
   "then": {
     "effect": "append",
     "details": [
-      {
+  {
         "field": "tags",
         "value": {
           "environment": "D-137",
@@ -366,7 +404,7 @@ resource "azurerm_policy_definition" "test" {
   management_group_id = azurerm_management_group.test.id
 
   policy_rule = <<POLICY_RULE
-	{
+  {
     "if": {
       "not": {
         "field": "location",
@@ -380,7 +418,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -408,7 +446,7 @@ resource "azurerm_policy_definition" "test" {
   display_name = "acctestpol-%d"
 
   policy_rule = <<POLICY_RULE
-	{
+  {
     "if": {
       "not": {
         "field": "location",
@@ -422,7 +460,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -436,7 +474,7 @@ PARAMETERS
 
   metadata = <<METADATA
   {
-  		"foo": "bar"
+    "foo": "bar"
   }
 METADATA
 }
@@ -456,7 +494,7 @@ resource "azurerm_policy_definition" "test" {
   display_name = "acctestpol-%d"
 
   policy_rule = <<POLICY_RULE
-	{
+  {
     "if": {
       "not": {
         "field": "location",
@@ -470,7 +508,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -584,4 +622,47 @@ POLICY_RULE
 PARAMETERS
 }
 `, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%[1]d"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "Updated Policy Definition %[1]d"
+  description  = "Test Policy Definition %[1]d"
+
+  metadata = jsonencode({
+    category = "General"
+  })
+
+  parameters = jsonencode({
+    allowedLocations = {
+      type     = "Array"
+      metadata = {
+        description = "The list of allowed locations for resources."
+        displayName = "Allowed locations"
+        strongType  = "location"
+      }
+    }
+  })
+
+  policy_rule = jsonencode({
+    if = {
+      not = {
+        field = "location"
+        in    = "[parameters('allowedLocations')]"
+      }
+    }
+    then = {
+      effect = "Deny"
+    }
+  })
+}
+`, data.RandomInteger)
 }

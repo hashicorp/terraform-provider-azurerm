@@ -3,34 +3,34 @@ subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
 description: |-
-  Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
+  Manages a Policy Definition in a Subscription or Management Group.
 ---
 
 # azurerm_policy_definition
 
-Manages a policy rule definition on your provider subscription.
+Manages a Policy Definition in a Subscription or Management Group.
+
+When `management_group_id` is omitted, the Policy Definition is created in the Subscription configured in the provider.
 
 Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_definition" "policy" {
-  name         = "accTestPolicy"
+resource "azurerm_policy_definition" "example" {
+  name         = "example-policy-definition"
   policy_type  = "Custom"
   mode         = "Indexed"
-  display_name = "acceptance test policy definition"
+  display_name = "Example Policy Definition"
 
   metadata = <<METADATA
-    {
+  {
     "category": "General"
-    }
-
+  }
 METADATA
 
-
   policy_rule = <<POLICY_RULE
- {
+  {
     "if": {
       "not": {
         "field": "location",
@@ -43,9 +43,8 @@ METADATA
   }
 POLICY_RULE
 
-
   parameters = <<PARAMETERS
- {
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -56,7 +55,6 @@ POLICY_RULE
     }
   }
 PARAMETERS
-
 }
 ```
 
@@ -64,23 +62,29 @@ PARAMETERS
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the policy definition. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Policy Definition. Changing this forces a new resource to be created.
 
-* `policy_type` - (Required) The policy type. Possible values are `BuiltIn`, `Custom`, `NotSpecified` and `Static`. Changing this forces a new resource to be created.
+* `management_group_id` - (Optional) The ID of the Management Group where the Policy Definition should exist. Changing this forces a new resource to be created.
 
-* `mode` - (Required) The policy resource manager mode that allows you to specify which resource types will be evaluated. Possible values are `All`, `Indexed`, `Microsoft.ContainerService.Data`, `Microsoft.CustomerLockbox.Data`, `Microsoft.DataCatalog.Data`, `Microsoft.KeyVault.Data`, `Microsoft.Kubernetes.Data`, `Microsoft.MachineLearningServices.Data`, `Microsoft.Network.Data` and `Microsoft.Synapse.Data`.
+* `display_name` - (Required) The display name of the Policy Definition.
 
-~> **Note:** Other resource provider modes only support built-in policy definitions but may later become available in custom definitions, these include; `Microsoft.ContainerService.Data`, `Microsoft.CustomerLockbox.Data`, `Microsoft.DataCatalog.Data`, `Microsoft.KeyVault.Data`, `Microsoft.Kubernetes.Data`, `Microsoft.MachineLearningServices.Data`, `Microsoft.Network.Data` and `Microsoft.Synapse.Data`. [See here](https://docs.microsoft.com/azure/governance/policy/concepts/definition-structure#resource-provider-modes) for more details.
+* `mode` - (Required) The Resource Manager mode that determines which resource types are evaluated by the Policy Definition. Possible values are `All`, `Indexed`, `Microsoft.ContainerService.Data`, `Microsoft.CustomerLockbox.Data`, `Microsoft.DataCatalog.Data`, `Microsoft.KeyVault.Data`, `Microsoft.Kubernetes.Data`, `Microsoft.MachineLearningServices.Data`, `Microsoft.Network.Data`, and `Microsoft.Synapse.Data`.
 
-* `display_name` - (Required) The display name of the policy definition.
+-> **Note:** For service-specific availability, see [resource provider modes](https://learn.microsoft.com/azure/governance/policy/concepts/definition-structure#resource-provider-modes).
 
-* `description` - (Optional) The description of the policy definition.
+* `policy_type` - (Required) The type of the Policy Definition. Possible values are `BuiltIn`, `Custom`, `NotSpecified`, and `Static`. Changing this forces a new resource to be created.
 
-* `policy_rule` - (Optional) The policy rule for the policy definition. This is a JSON string representing the rule that contains an if and a then block.
+* `description` - (Optional) The description of the Policy Definition.
 
-* `metadata` - (Optional) The metadata for the policy definition. This is a JSON string representing additional metadata that should be stored with the policy definition.
+* `metadata` - (Optional) A JSON string containing additional metadata for the Policy Definition.
 
-* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON string that allows you to parameterize your policy definition. Reducing the number of parameters forces a new resource to be created.
+-> **Note:** When omitted, `metadata` is populated from the Policy Definition returned by Azure.
+
+* `parameters` - (Optional) A JSON string defining the parameters for the Policy Definition.
+
+~> **Note:** Reducing the number of parameters or clearing `parameters` forces a new resource to be created.
+
+* `policy_rule` - (Optional) A JSON string defining the Policy Definition rule, containing `if` and `then` blocks.
 
 ## Attributes Reference
 
@@ -88,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Policy Definition.
 
-* `role_definition_ids` - A list of role definition id extracted from `policy_rule` required for remediation.
+* `role_definition_ids` - A list of Role Definition IDs extracted from `policy_rule` for remediation.
 
 ## Timeouts
 
@@ -101,10 +105,16 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Policy Definitions can be imported using the `policy name`, e.g.
+A Policy Definition can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_policy_definition.examplePolicy /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
+terraform import azurerm_policy_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyDefinitions/policyDefinition1
+```
+
+A Policy Definition at Management Group scope can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_policy_definition.example /providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.Authorization/policyDefinitions/name
 ```
 
 ## API Providers
