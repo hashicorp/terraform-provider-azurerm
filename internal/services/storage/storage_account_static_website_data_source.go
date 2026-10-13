@@ -63,7 +63,7 @@ func (d AccountStaticWebsiteDataSource) Read() sdk.ResourceFunc {
 
 			var state AccountStaticWebsiteDataModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id, err := commonids.ParseStorageAccountID(state.StorageAccountId)
