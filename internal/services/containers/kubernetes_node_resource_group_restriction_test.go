@@ -82,8 +82,8 @@ func TestKubernetesNodeResourceGroupRestrictionResponse(t *testing.T) {
 			profile *managedclusters.ManagedClusterNodeResourceGroupProfile
 			want    string
 		}{
-			{name: "absent profile preserves prior state", want: prior},
-			{name: "absent level preserves prior state", profile: &managedclusters.ManagedClusterNodeResourceGroupProfile{}, want: prior},
+			{name: "absent profile clears prior state"},
+			{name: "absent level clears prior state", profile: &managedclusters.ManagedClusterNodeResourceGroupProfile{}},
 			{name: "read only", profile: &managedclusters.ManagedClusterNodeResourceGroupProfile{RestrictionLevel: pointer.To(managedclusters.RestrictionLevelReadOnly)}, want: "ReadOnly"},
 			{name: "unrestricted", profile: &managedclusters.ManagedClusterNodeResourceGroupProfile{RestrictionLevel: pointer.To(managedclusters.RestrictionLevelUnrestricted)}, want: "Unrestricted"},
 		} {
