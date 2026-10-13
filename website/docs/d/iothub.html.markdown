@@ -14,8 +14,8 @@ Use this data source to access information about an existing IoTHub.
 
 ```hcl
 data "azurerm_iothub" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-iothub"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
