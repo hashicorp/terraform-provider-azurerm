@@ -1,0 +1,56 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package api_management_workspace_api_version_set
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+func (r Resource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiManagement.ApiVersionSetClient_v2024_05_01
+
+			id, err := apiversionset.ParseWorkspaceApiVersionSetID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.WorkspaceApiVersionSetGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			model := ApiManagementWorkspaceApiVersionSetModel{
+				Name:                     id.VersionSetId,
+				ApiManagementWorkspaceId: workspace.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceId).ID(),
+			}
+
+			if resp.Model != nil {
+				if properties := resp.Model.Properties; properties != nil {
+					model.DisplayName = properties.DisplayName
+					model.VersioningScheme = string(properties.VersioningScheme)
+					model.Description = pointer.From(properties.Description)
+					model.VersionHeaderName = pointer.From(properties.VersionHeaderName)
+					model.VersionQueryName = pointer.From(properties.VersionQueryName)
+				}
+			}
+
+			return metadata.Encode(&model)
+		},
+	}
+}
