@@ -4,9 +4,8 @@
 package api_management_api_operation_policy
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
