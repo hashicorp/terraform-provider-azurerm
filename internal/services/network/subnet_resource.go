@@ -347,8 +347,9 @@ func resourceSubnet() *pluginsdk.Resource {
 		serviceDelegation := delegation.Schema["service_delegation"].Elem.(*pluginsdk.Resource)
 
 		serviceDelegation.Schema["actions"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			// Note: O+C because Azure ignores configured values and returns the actions fixed by the delegated service, so omitting this would otherwise cause a persistent diff
 			Computed:   true,
 			Deprecated: "`delegation.service_delegation.actions` will become read-only in v6.0 of the AzureRM Provider, since this property is read-only in the Azure API and any configured value is ignored",
 			Elem: &pluginsdk.Schema{
