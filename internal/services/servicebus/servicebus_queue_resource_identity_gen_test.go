@@ -17,8 +17,8 @@ func TestAccServicebusQueue_resourceIdentity(t *testing.T) {
 	r := ServicebusQueueResource{}
 
 	checkedFields := map[string]struct{}{
+		"name":                {},
 		"namespace_name":      {},
-		"queue_name":          {},
 		"resource_group_name": {},
 		"subscription_id":     {},
 	}
@@ -28,8 +28,8 @@ func TestAccServicebusQueue_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_servicebus_queue.test", checkedFields),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_servicebus_queue.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_queue.test", tfjsonpath.New("namespace_name"), tfjsonpath.New("namespace_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_queue.test", tfjsonpath.New("queue_name"), tfjsonpath.New("namespace_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_queue.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("namespace_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_servicebus_queue.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("namespace_id")),
 			},

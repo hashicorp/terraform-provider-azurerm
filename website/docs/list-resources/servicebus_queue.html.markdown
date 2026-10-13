@@ -18,7 +18,7 @@ Lists Servicebus Queue resources.
 list "azurerm_servicebus_queue" "example" {
   provider = azurerm
   config {
-    namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ServiceBus/namespaces/example-namespace"
+    servicebus_namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ServiceBus/namespaces/example-namespace"
   }
 }
 ```
@@ -27,4 +27,4 @@ list "azurerm_servicebus_queue" "example" {
 
 This list resource supports the following arguments:
 
-* `namespace_id` - (Required) The ID of the Namespace to query.
+* `servicebus_namespace_id` - (Required) The ID of the Namespace to query.

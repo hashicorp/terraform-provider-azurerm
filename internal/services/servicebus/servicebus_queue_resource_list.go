@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package servicebus
 
 import (
@@ -6,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -21,7 +24,7 @@ import (
 type ServiceBusQueueListResource struct{}
 
 type ServiceBusQueueListModel struct {
-	NamespaceId types.String `tfsdk:"namespace_id"`
+	NamespaceId types.String `tfsdk:"servicebus_namespace_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(ServiceBusQueueListResource)
@@ -37,7 +40,7 @@ func (ServiceBusQueueListResource) ResourceFunc() *pluginsdk.Resource {
 func (ServiceBusQueueListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"namespace_id": schema.StringAttribute{
+			"servicebus_namespace_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{Func: namespaces.ValidateNamespaceID},

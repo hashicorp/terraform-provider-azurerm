@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/queues"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -parent-id namespace_id
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "namespace_name:namespace_id,resource_group_name:namespace_id,subscription_id:namespace_id"
 
 const serviceBusQueueResourceName = "azurerm_servicebus_queue"
 
@@ -33,7 +34,7 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 		Delete: resourceServiceBusQueueDelete,
 
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&queues.QueueId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&queues.QueueId{}),
 		},
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&queues.QueueId{}),
@@ -341,7 +342,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 			return err
 		}
-
 	} else {
 		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
 		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
@@ -415,25 +415,21 @@ func resourceServiceBusQueueFlatten(ctx context.Context, namespacesClient *names
 			d.Set("express_enabled", props.EnableExpress)
 			d.Set("partitioning_enabled", props.EnablePartitioning)
 
-			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
-				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
-
-				// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
-				// then the max size returned by the API will be 16 times greater than the value set.
-				if includeResource && *props.EnablePartitioning {
-					namespace, err := namespacesClient.Get(ctx, namespaceId)
-					if err != nil {
-						return err
-					}
-
-					if nsModel := namespace.Model; nsModel != nil && nsModel.Sku.Name != namespaces.SkuNamePremium {
-						const partitionCount = 16
-						maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
-					}
+			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
+			// then the max size returned by the API will be 16 times greater than the value set.
+			maxSizeInMegabytes := int(pointer.From(props.MaxSizeInMegabytes))
+			if includeResource && pointer.From(props.EnablePartitioning) {
+				namespace, err := namespacesClient.Get(ctx, namespaceId)
+				if err != nil {
+					return err
 				}
 
-				d.Set("max_size_in_megabytes", maxSizeInMegabytes)
+				if nsModel := namespace.Model; nsModel != nil && nsModel.Sku.Name != namespaces.SkuNamePremium {
+					const partitionCount = 16
+					maxSizeInMegabytes = int(pointer.From(props.MaxSizeInMegabytes) / partitionCount)
+				}
 			}
+			d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
@@ -472,34 +468,34 @@ func serviceBusQueueStatusRefreshFunc(ctx context.Context, client *queues.Queues
 
 		if model := resp.Model; model != nil {
 			if props := model.Properties; props != nil {
-				if props.Status != nil && *props.Status == userConfig["status"] &&
-					props.MaxDeliveryCount != nil && int(*props.MaxDeliveryCount) == userConfig["maxDeliveryCount"].(int) &&
-					props.EnableExpress != nil && *props.EnableExpress == userConfig["enableExpress"].(bool) &&
-					props.EnablePartitioning != nil && *props.EnablePartitioning == userConfig["enablePartitioning"].(bool) &&
-					props.EnableBatchedOperations != nil && *props.EnableBatchedOperations == userConfig["enableBatchOps"].(bool) {
+				if pointer.From(props.Status) == userConfig["status"] &&
+					int(pointer.From(props.MaxDeliveryCount)) == userConfig["maxDeliveryCount"].(int) &&
+					pointer.From(props.EnableExpress) == userConfig["enableExpress"].(bool) &&
+					pointer.From(props.EnablePartitioning) == userConfig["enablePartitioning"].(bool) &&
+					pointer.From(props.EnableBatchedOperations) == userConfig["enableBatchOps"].(bool) {
 					queueStatus = "Succeeded"
 				}
 
-				if props.DeadLetteringOnMessageExpiration != nil && userConfig["deadLetteringOnMesExp"] != "" {
-					if *props.DeadLetteringOnMessageExpiration != userConfig["deadLetteringOnMesExp"].(bool) {
+				if userConfig["deadLetteringOnMesExp"] != "" {
+					if pointer.From(props.DeadLetteringOnMessageExpiration) != userConfig["deadLetteringOnMesExp"].(bool) {
 						queueStatus = "Updating"
 					}
 				}
 
-				if props.LockDuration != nil && userConfig["lockDuration"] != "" {
-					if *props.LockDuration != userConfig["lockDuration"].(string) {
+				if userConfig["lockDuration"] != "" {
+					if pointer.From(props.LockDuration) != userConfig["lockDuration"].(string) {
 						queueStatus = "Updating"
 					}
 				}
 
-				if props.ForwardTo != nil && userConfig["forwardTo"] != "" {
-					if *props.ForwardTo != userConfig["forwardTo"].(string) {
+				if userConfig["forwardTo"] != "" {
+					if pointer.From(props.ForwardTo) != userConfig["forwardTo"].(string) {
 						queueStatus = "Updating"
 					}
 				}
 
-				if props.ForwardDeadLetteredMessagesTo != nil && userConfig["forwardDeadLetteredMessagesTo"] != nil {
-					if *props.ForwardDeadLetteredMessagesTo != userConfig["forwardDeadLetteredMessagesTo"].(string) {
+				if userConfig["forwardDeadLetteredMessagesTo"] != nil {
+					if pointer.From(props.ForwardDeadLetteredMessagesTo) != userConfig["forwardDeadLetteredMessagesTo"].(string) {
 						queueStatus = "Updating"
 					}
 				}
