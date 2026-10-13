@@ -290,6 +290,9 @@ func (r RouteMapResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.Rules = expandRules(model.Rules)
 			}
 
+			locks.ByID(model.VirtualHubId)
+			defer locks.UnlockByID(model.VirtualHubId)
+
 			if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -393,11 +396,15 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 									locks.ByID(expressRouteConnectionIdString)
 									expressRouteConnectionId, err := expressrouteconnections.ParseExpressRouteConnectionID(expressRouteConnectionIdString)
 									if err != nil {
+										locks.UnlockByID(expressRouteConnectionIdString)
+
 										return err
 									}
 
 									expressRouteConnectionGetResponse, err := expressRouteConnectionClient.Get(ctx, *expressRouteConnectionId)
 									if err != nil {
+										locks.UnlockByID(expressRouteConnectionIdString)
+
 										return fmt.Errorf("retrieving %s: %+v", *expressRouteConnectionId, err)
 									}
 
@@ -412,6 +419,8 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 										}
 
 										if err := expressRouteConnectionClient.CreateOrUpdateThenPoll(ctx, *expressRouteConnectionId, *param); err != nil {
+											locks.UnlockByID(expressRouteConnectionIdString)
+
 											return fmt.Errorf("updating %s: %+v", *expressRouteConnectionId, err)
 										}
 									}
