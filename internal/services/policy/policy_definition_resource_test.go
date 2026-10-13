@@ -643,7 +643,7 @@ resource "azurerm_policy_definition" "test" {
 
   parameters = jsonencode({
     allowedLocations = {
-      type     = "Array"
+      type = "Array"
       metadata = {
         description = "The list of allowed locations for resources."
         displayName = "Allowed locations"
