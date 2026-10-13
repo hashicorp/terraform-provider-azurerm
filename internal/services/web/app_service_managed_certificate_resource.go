@@ -98,7 +98,7 @@ func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	appServiceClient := meta.(*clients.Client).Web.WebAppsClient
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
@@ -169,7 +169,7 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 	// An API issue prevents setting tags using the PUT operation, so we'll patch them in after
 	// https://github.com/Azure/azure-rest-api-specs/issues/14529
 	t := certificates.CertificatePatchResource{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Update(ctx, id, t); err != nil {
@@ -179,7 +179,7 @@ func resourceAppServiceManagedCertificateCreate(d *pluginsdk.ResourceData, meta 
 	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -216,7 +216,7 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -232,7 +232,7 @@ func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	payload := certificates.CertificatePatchResource{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -242,7 +242,7 @@ func resourceAppServiceManagedCertificateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

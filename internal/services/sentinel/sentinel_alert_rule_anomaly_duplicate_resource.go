@@ -46,7 +46,7 @@ type AlertRuleAnomalyDuplicateResource struct{}
 
 var _ sdk.ResourceWithUpdate = AlertRuleAnomalyDuplicateResource{}
 
-func (r AlertRuleAnomalyDuplicateResource) ModelObject() interface{} {
+func (r AlertRuleAnomalyDuplicateResource) ModelObject() any {
 	return &AlertRuleAnomalyDuplicateModel{}
 }
 
@@ -388,7 +388,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 					Techniques:             builtInAnomalyRuleProps.Techniques,
 					AnomalyVersion:         builtInAnomalyRuleProps.AnomalyVersion,
 					Frequency:              builtInAnomalyRuleProps.Frequency,
-					IsDefaultSettings:      false, // for duplicate one, it's not default settings.
 					AnomalySettingsVersion: builtInAnomalyRuleProps.AnomalySettingsVersion,
 					SettingsDefinitionId:   builtInAnomalyRuleProps.SettingsDefinitionId,
 					Enabled:                config.Enabled,

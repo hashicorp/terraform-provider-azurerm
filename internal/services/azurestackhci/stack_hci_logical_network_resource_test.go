@@ -19,11 +19,25 @@ import (
 
 type StackHCILogicalNetworkResource struct{}
 
-// https://learn.microsoft.com/en-us/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites
+// https://learn.microsoft.com/azure-stack/hci/manage/create-logical-networks?tabs=azurecli#prerequisites
 // The resource can only be created on the customlocation generated after HCI deployment
 const (
 	customLocationIdEnv = "ARM_TEST_STACK_HCI_CUSTOM_LOCATION_ID"
 )
+
+func TestAccStackHCILogicalNetwork_regressionTest(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
+	r := StackHCILogicalNetworkResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccStackHCILogicalNetwork_dynamic(t *testing.T) {
 	if os.Getenv(customLocationIdEnv) == "" {

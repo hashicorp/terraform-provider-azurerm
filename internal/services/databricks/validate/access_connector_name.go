@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func AccessConnectorName(i interface{}, k string) ([]string, []error) {
+func AccessConnectorName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 64),
 		validation.StringMatch(regexp.MustCompile("^[a-zA-Z0-9_-]*$"), "can contain only alphanumeric characters, underscores, and hyphens"),

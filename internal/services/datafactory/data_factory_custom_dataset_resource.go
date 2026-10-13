@@ -6,12 +6,12 @@ package datafactory
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryCustomDataset() *pluginsdk.Resource {
@@ -88,7 +88,7 @@ func resourceDataFactoryCustomDataset() *pluginsdk.Resource {
 			"type_properties_json": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 
@@ -131,14 +131,14 @@ func resourceDataFactoryCustomDataset() *pluginsdk.Resource {
 			"schema_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				StateFunc:        helpers.NormalizeJson,
+				StateFunc:        pluginsdk.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 		},
 	}
 }
 
-func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -164,9 +164,9 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	props := map[string]interface{}{
+	props := map[string]any{
 		"type":              d.Get("type").(string),
-		"linkedServiceName": expandDataFactoryLinkedService(d.Get("linked_service").([]interface{})),
+		"linkedServiceName": expandDataFactoryLinkedService(d.Get("linked_service").([]any)),
 	}
 
 	typePropertiesJson := fmt.Sprintf(`{ "typeProperties": %s }`, d.Get("type_properties_json").(string))
@@ -174,13 +174,11 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	additionalProperties := d.Get("additional_properties").(map[string]interface{})
-	for k, v := range additionalProperties {
-		props[k] = v
-	}
+	additionalProperties := d.Get("additional_properties").(map[string]any)
+	maps.Copy(props, additionalProperties)
 
 	if v, ok := d.GetOk("annotations"); ok {
-		props["annotations"] = v.([]interface{})
+		props["annotations"] = v.([]any)
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -194,7 +192,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		props["parameters"] = expandDataSetParameters(v.(map[string]interface{}))
+		props["parameters"] = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("schema_json"); ok {
@@ -204,7 +202,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	jsonData, err := json.Marshal(map[string]interface{}{
+	jsonData, err := json.Marshal(map[string]any{
 		"properties": props,
 	})
 	if err != nil {
@@ -227,7 +225,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceDataFactoryCustomDatasetRead(d, meta)
 }
 
-func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -292,7 +290,7 @@ func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta interf
 	}
 	d.Set("folder", folder)
 
-	annotations := make([]interface{}, 0)
+	annotations := make([]any, 0)
 	if v, ok := m["annotations"]; ok && v != nil {
 		if err := json.Unmarshal(*v, &annotations); err != nil {
 			return err
@@ -351,7 +349,7 @@ func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta interf
 	delete(m, "structure")
 
 	// set "additional_properties"
-	additionalProperties := make(map[string]interface{})
+	additionalProperties := make(map[string]any)
 	bytes, err := json.Marshal(m)
 	if err != nil {
 		return err
@@ -364,7 +362,7 @@ func resourceDataFactoryCustomDatasetRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceDataFactoryCustomDatasetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryCustomDatasetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -381,26 +379,26 @@ func resourceDataFactoryCustomDatasetDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandDataFactoryLinkedService(input []interface{}) *datafactory.LinkedServiceReference {
+func expandDataFactoryLinkedService(input []any) *datafactory.LinkedServiceReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &datafactory.LinkedServiceReference{
 		ReferenceName: pointer.To(v["name"].(string)),
 		Type:          pointer.To("LinkedServiceReference"),
-		Parameters:    v["parameters"].(map[string]interface{}),
+		Parameters:    v["parameters"].(map[string]any),
 	}
 }
 
-func flattenDataFactoryLinkedService(input *datafactory.LinkedServiceReference) []interface{} {
+func flattenDataFactoryLinkedService(input *datafactory.LinkedServiceReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":       pointer.From(input.ReferenceName),
 			"parameters": input.Parameters,
 		},

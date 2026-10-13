@@ -337,7 +337,7 @@ resource "azurerm_policy_definition" "test" {
           "environment": "D-137",
           "owner": "Rick",
           "application": "Portal",
-          "implementor": "Morty"
+          "implementer": "Morty"
         }
       }
     ]

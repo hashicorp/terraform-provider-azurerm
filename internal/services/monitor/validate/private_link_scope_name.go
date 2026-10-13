@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func PrivateLinkScopeName(i interface{}, k string) ([]string, []error) {
+func PrivateLinkScopeName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 255),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9()-_.]*[a-zA-Z0-9_-]$`), "only allows alphanumeric characters, periods, underscores, hyphens and parenthesis and cannot end in a period"),

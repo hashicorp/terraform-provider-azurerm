@@ -177,7 +177,7 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -208,7 +208,7 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 			ValidityInYears:   pointer.To(int64(d.Get("validity_in_years").(int))),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, certificateOrder, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -220,7 +220,7 @@ func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta in
 	return resourceAppServiceCertificateOrderRead(d, meta)
 }
 
-func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -279,7 +279,7 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -329,7 +329,7 @@ func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -339,7 +339,7 @@ func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceAppServiceCertificateOrderRead(d, meta)
 }
 
-func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -357,14 +357,14 @@ func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func flattenArmCertificateOrderCertificate(input *map[string]appservicecertificateorders.AppServiceCertificate) []interface{} {
-	results := make([]interface{}, 0)
+func flattenArmCertificateOrderCertificate(input *map[string]appservicecertificateorders.AppServiceCertificate) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for k, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 
 		result["certificate_name"] = k
 

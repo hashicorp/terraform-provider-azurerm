@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,7 +55,7 @@ func (r ManagerConnectivityConfigurationResource) ResourceType() string {
 	return "azurerm_network_manager_connectivity_configuration"
 }
 
-func (r ManagerConnectivityConfigurationResource) ModelObject() interface{} {
+func (r ManagerConnectivityConfigurationResource) ModelObject() any {
 	return &ManagerConnectivityConfigurationModel{}
 }
 
@@ -385,7 +385,6 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 				Hub:                                 flattenHubModel(properties.Hubs),
 				ConnectedGroupAddressOverlapEnabled: true,
 				ConnectedGroupPrivateEndpointsScale: string(connectivityconfigurations.ConnectedGroupPrivateEndpointsScaleStandard),
-				PeeringEnforcementEnabled:           false,
 			}
 
 			if properties.ConnectivityCapabilities != nil {

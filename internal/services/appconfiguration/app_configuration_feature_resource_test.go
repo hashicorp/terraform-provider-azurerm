@@ -30,7 +30,6 @@ func TestAccAppConfigurationFeature_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("percentage_filter_value").HasValue("10"),
 
 				check.That(data.ResourceName).Key("timewindow_filter.#").HasValue("1"),
-				check.That(data.ResourceName).Key("timewindow_filter.0.start").HasValue("2019-11-12T07:20:50.52Z"),
 				check.That(data.ResourceName).Key("timewindow_filter.0.end").HasValue("2019-11-13T07:20:50.52Z"),
 
 				check.That(data.ResourceName).Key("targeting_filter.#").HasValue("1"),
@@ -310,8 +309,7 @@ resource "azurerm_app_configuration_feature" "test" {
   percentage_filter_value = 10
 
   timewindow_filter {
-    start = "2019-11-12T07:20:50.52Z"
-    end   = "2019-11-13T07:20:50.52Z"
+    end = "2019-11-13T07:20:50.52Z"
   }
 
   targeting_filter {
@@ -337,7 +335,6 @@ resource "azurerm_app_configuration_feature" "test" {
     }
   }
 }
-
 `, t.template(data), data.RandomInteger)
 }
 

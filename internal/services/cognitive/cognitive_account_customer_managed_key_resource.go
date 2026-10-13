@@ -61,7 +61,7 @@ func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +118,7 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 	return resourceCognitiveAccountCustomerManagedKeyRead(d, meta)
 }
 
-func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceCognitiveAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

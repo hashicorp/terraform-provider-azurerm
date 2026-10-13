@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, err
@@ -30,7 +30,7 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 }
 
 func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystemTypes, resourceType string) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err
@@ -84,7 +84,7 @@ func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystem
 			d.Set("admin_password", "ignored-as-imported")
 		}
 
-		var updatedExtensions []map[string]interface{}
+		var updatedExtensions []map[string]any
 		if vm.Model.Properties.VirtualMachineProfile.ExtensionProfile != nil {
 			if extensionsProfile := vm.Model.Properties.VirtualMachineProfile.ExtensionProfile; extensionsProfile != nil {
 				for _, v := range *extensionsProfile.Extensions {

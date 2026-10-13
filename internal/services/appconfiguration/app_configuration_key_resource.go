@@ -42,16 +42,16 @@ const (
 )
 
 type KeyResourceModel struct {
-	ConfigurationStoreId string                 `tfschema:"configuration_store_id"`
-	Key                  string                 `tfschema:"key"`
-	ContentType          string                 `tfschema:"content_type"`
-	Etag                 string                 `tfschema:"etag"`
-	Label                string                 `tfschema:"label"`
-	Value                string                 `tfschema:"value"`
-	Locked               bool                   `tfschema:"locked"`
-	Tags                 map[string]interface{} `tfschema:"tags"`
-	Type                 string                 `tfschema:"type"`
-	VaultKeyReference    string                 `tfschema:"vault_key_reference"`
+	ConfigurationStoreId string         `tfschema:"configuration_store_id"`
+	Key                  string         `tfschema:"key"`
+	ContentType          string         `tfschema:"content_type"`
+	Etag                 string         `tfschema:"etag"`
+	Label                string         `tfschema:"label"`
+	Value                string         `tfschema:"value"`
+	Locked               bool           `tfschema:"locked"`
+	Tags                 map[string]any `tfschema:"tags"`
+	Type                 string         `tfschema:"type"`
+	VaultKeyReference    string         `tfschema:"vault_key_reference"`
 }
 
 type VaultKeyReference struct {
@@ -130,7 +130,7 @@ func (k KeyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k KeyResource) ModelObject() interface{} {
+func (k KeyResource) ModelObject() any {
 	return &KeyResourceModel{}
 }
 
@@ -171,7 +171,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 				return errors.New("internal-error: context had no deadline")
 			}
 
-			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
+			// from https://learn.microsoft.com/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
 			// allow some time for role permission to be propagated
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"Forbidden"},

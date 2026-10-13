@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-func FirewallManagementSubnetName(v interface{}, k string) (warnings []string, errors []error) {
+func FirewallManagementSubnetName(v any, k string) (warnings []string, errors []error) {
 	parsed, err := commonids.ParseSubnetID(v.(string))
 	if err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q: %+v", v.(string), err))

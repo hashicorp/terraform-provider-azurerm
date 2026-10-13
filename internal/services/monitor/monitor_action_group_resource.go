@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
@@ -27,6 +26,8 @@ import (
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
+
+const monitorActionGroupResourceName = "azurerm_monitor_action_group"
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -441,7 +442,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -469,24 +470,24 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	shortName := d.Get("short_name").(string)
 	enabled := d.Get("enabled").(bool)
 
-	emailReceiversRaw := d.Get("email_receiver").([]interface{})
-	itsmReceiversRaw := d.Get("itsm_receiver").([]interface{})
-	azureAppPushReceiversRaw := d.Get("azure_app_push_receiver").([]interface{})
-	smsReceiversRaw := d.Get("sms_receiver").([]interface{})
-	webhookReceiversRaw := d.Get("webhook_receiver").([]interface{})
-	automationRunbookReceiversRaw := d.Get("automation_runbook_receiver").([]interface{})
-	voiceReceiversRaw := d.Get("voice_receiver").([]interface{})
-	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
-	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
-	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
-	eventHubReceiversRaw := d.Get("event_hub_receiver").([]interface{})
+	emailReceiversRaw := d.Get("email_receiver").([]any)
+	itsmReceiversRaw := d.Get("itsm_receiver").([]any)
+	azureAppPushReceiversRaw := d.Get("azure_app_push_receiver").([]any)
+	smsReceiversRaw := d.Get("sms_receiver").([]any)
+	webhookReceiversRaw := d.Get("webhook_receiver").([]any)
+	automationRunbookReceiversRaw := d.Get("automation_runbook_receiver").([]any)
+	voiceReceiversRaw := d.Get("voice_receiver").([]any)
+	logicAppReceiversRaw := d.Get("logic_app_receiver").([]any)
+	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]any)
+	armRoleReceiversRaw := d.Get("arm_role_receiver").([]any)
+	eventHubReceiversRaw := d.Get("event_hub_receiver").([]any)
 
 	expandedItsmReceiver, err := expandMonitorActionGroupItsmReceiver(itsmReceiversRaw)
 	if err != nil {
 		return err
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := actiongroupsapis.ActionGroupResource{
 		Location: location,
@@ -505,7 +506,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			ArmRoleReceivers:           expandMonitorActionGroupRoleReceiver(armRoleReceiversRaw),
 			EventHubReceivers:          expandMonitorActionGroupEventHubReceiver(tenantId, subscriptionId, eventHubReceiversRaw),
 		},
-		Tags: helpers.ExpandPtrMapStringString(t),
+		Tags: pluginsdk.ExpandPtrMapStringString(t),
 	}
 
 	if _, err := client.ActionGroupsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -520,7 +521,7 @@ func resourceMonitorActionGroupCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceMonitorActionGroupRead(d, meta)
 }
 
-func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -539,10 +540,15 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMonitorActionGroupFlatten(d, id, resp.Model)
+}
+
+func resourceMonitorActionGroupFlatten(d *pluginsdk.ResourceData, id *actiongroupsapis.ActionGroupId, model *actiongroupsapis.ActionGroupResource) error {
+	var err error
 	d.Set("name", id.ActionGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -591,14 +597,14 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `event_hub_receiver`: %+v", err)
 			}
 		}
-		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -618,10 +624,10 @@ func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]actiongroupsapis.EmailReceiver {
+func expandMonitorActionGroupEmailReceiver(v []any) *[]actiongroupsapis.EmailReceiver {
 	receivers := make([]actiongroupsapis.EmailReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.EmailReceiver{
 			Name:                 val["name"].(string),
 			EmailAddress:         val["email_address"].(string),
@@ -632,10 +638,10 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]actiongroupsapis.
 	return &receivers
 }
 
-func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.ItsmReceiver, error) {
+func expandMonitorActionGroupItsmReceiver(v []any) (*[]actiongroupsapis.ItsmReceiver, error) {
 	receivers := make([]actiongroupsapis.ItsmReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		ticketConfiguration := val["ticket_configuration"].(string)
 		receiver := actiongroupsapis.ItsmReceiver{
 			Name:                val["name"].(string),
@@ -647,7 +653,7 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 
 		// https://github.com/Azure/azure-rest-api-specs/issues/20488 ticket_configuration should have `PayloadRevision` and `WorkItemType` keys
 
-		j := make(map[string]interface{})
+		j := make(map[string]any)
 		if err := json.Unmarshal([]byte(ticketConfiguration), &j); err != nil {
 			return nil, fmt.Errorf("`itsm_receiver.ticket_configuration` %s unmarshall json error: %+v", ticketConfiguration, err)
 		}
@@ -662,10 +668,10 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) (*[]actiongroupsapis.
 	return &receivers, nil
 }
 
-func expandMonitorActionGroupAzureAppPushReceiver(v []interface{}) *[]actiongroupsapis.AzureAppPushReceiver {
+func expandMonitorActionGroupAzureAppPushReceiver(v []any) *[]actiongroupsapis.AzureAppPushReceiver {
 	receivers := make([]actiongroupsapis.AzureAppPushReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.AzureAppPushReceiver{
 			Name:         val["name"].(string),
 			EmailAddress: val["email_address"].(string),
@@ -675,10 +681,10 @@ func expandMonitorActionGroupAzureAppPushReceiver(v []interface{}) *[]actiongrou
 	return &receivers
 }
 
-func expandMonitorActionGroupSmsReceiver(v []interface{}) *[]actiongroupsapis.SmsReceiver {
+func expandMonitorActionGroupSmsReceiver(v []any) *[]actiongroupsapis.SmsReceiver {
 	receivers := make([]actiongroupsapis.SmsReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.SmsReceiver{
 			Name:        val["name"].(string),
 			CountryCode: val["country_code"].(string),
@@ -689,17 +695,17 @@ func expandMonitorActionGroupSmsReceiver(v []interface{}) *[]actiongroupsapis.Sm
 	return &receivers
 }
 
-func expandMonitorActionGroupWebHookReceiver(tenantId string, v []interface{}) *[]actiongroupsapis.WebhookReceiver {
+func expandMonitorActionGroupWebHookReceiver(tenantId string, v []any) *[]actiongroupsapis.WebhookReceiver {
 	receivers := make([]actiongroupsapis.WebhookReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.WebhookReceiver{
 			Name:                 val["name"].(string),
 			ServiceUri:           val["service_uri"].(string),
 			UseCommonAlertSchema: pointer.To(val["use_common_alert_schema"].(bool)),
 		}
-		if v, ok := val["aad_auth"].([]interface{}); ok && len(v) > 0 {
-			secureWebhook := v[0].(map[string]interface{})
+		if v, ok := val["aad_auth"].([]any); ok && len(v) > 0 {
+			secureWebhook := v[0].(map[string]any)
 			receiver.UseAadAuth = pointer.To(true)
 			receiver.ObjectId = pointer.To(secureWebhook["object_id"].(string))
 			receiver.IdentifierUri = pointer.To(secureWebhook["identifier_uri"].(string))
@@ -714,10 +720,10 @@ func expandMonitorActionGroupWebHookReceiver(tenantId string, v []interface{}) *
 	return &receivers
 }
 
-func expandMonitorActionGroupAutomationRunbookReceiver(v []interface{}) *[]actiongroupsapis.AutomationRunbookReceiver {
+func expandMonitorActionGroupAutomationRunbookReceiver(v []any) *[]actiongroupsapis.AutomationRunbookReceiver {
 	receivers := make([]actiongroupsapis.AutomationRunbookReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.AutomationRunbookReceiver{
 			Name:                 pointer.To(val["name"].(string)),
 			AutomationAccountId:  val["automation_account_id"].(string),
@@ -732,10 +738,10 @@ func expandMonitorActionGroupAutomationRunbookReceiver(v []interface{}) *[]actio
 	return &receivers
 }
 
-func expandMonitorActionGroupVoiceReceiver(v []interface{}) *[]actiongroupsapis.VoiceReceiver {
+func expandMonitorActionGroupVoiceReceiver(v []any) *[]actiongroupsapis.VoiceReceiver {
 	receivers := make([]actiongroupsapis.VoiceReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.VoiceReceiver{
 			Name:        val["name"].(string),
 			CountryCode: val["country_code"].(string),
@@ -746,10 +752,10 @@ func expandMonitorActionGroupVoiceReceiver(v []interface{}) *[]actiongroupsapis.
 	return &receivers
 }
 
-func expandMonitorActionGroupLogicAppReceiver(v []interface{}) *[]actiongroupsapis.LogicAppReceiver {
+func expandMonitorActionGroupLogicAppReceiver(v []any) *[]actiongroupsapis.LogicAppReceiver {
 	receivers := make([]actiongroupsapis.LogicAppReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.LogicAppReceiver{
 			Name:                 val["name"].(string),
 			ResourceId:           val["resource_id"].(string),
@@ -761,10 +767,10 @@ func expandMonitorActionGroupLogicAppReceiver(v []interface{}) *[]actiongroupsap
 	return &receivers
 }
 
-func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]actiongroupsapis.AzureFunctionReceiver {
+func expandMonitorActionGroupAzureFunctionReceiver(v []any) *[]actiongroupsapis.AzureFunctionReceiver {
 	receivers := make([]actiongroupsapis.AzureFunctionReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.AzureFunctionReceiver{
 			Name:                  val["name"].(string),
 			FunctionAppResourceId: val["function_app_resource_id"].(string),
@@ -777,10 +783,10 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]actiongro
 	return &receivers
 }
 
-func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]actiongroupsapis.ArmRoleReceiver {
+func expandMonitorActionGroupRoleReceiver(v []any) *[]actiongroupsapis.ArmRoleReceiver {
 	receivers := make([]actiongroupsapis.ArmRoleReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 		receiver := actiongroupsapis.ArmRoleReceiver{
 			Name:                 val["name"].(string),
 			RoleId:               val["role_id"].(string),
@@ -791,10 +797,10 @@ func expandMonitorActionGroupRoleReceiver(v []interface{}) *[]actiongroupsapis.A
 	return &receivers
 }
 
-func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []interface{}) *[]actiongroupsapis.EventHubReceiver {
+func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId string, v []any) *[]actiongroupsapis.EventHubReceiver {
 	receivers := make([]actiongroupsapis.EventHubReceiver, 0)
 	for _, receiverValue := range v {
-		val := receiverValue.(map[string]interface{})
+		val := receiverValue.(map[string]any)
 
 		eventHubNameSpace, eventHubName, subId := val["event_hub_namespace"].(string), val["event_hub_name"].(string), val["subscription_id"].(string)
 
@@ -822,11 +828,11 @@ func expandMonitorActionGroupEventHubReceiver(tenantId string, subscriptionId st
 	return &receivers
 }
 
-func flattenMonitorActionGroupEmailReceiver(receivers *[]actiongroupsapis.EmailReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupEmailReceiver(receivers *[]actiongroupsapis.EmailReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["email_address"] = receiver.EmailAddress
@@ -840,11 +846,11 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]actiongroupsapis.EmailR
 	return result
 }
 
-func flattenMonitorActionGroupItsmReceiver(receivers *[]actiongroupsapis.ItsmReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupItsmReceiver(receivers *[]actiongroupsapis.ItsmReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["workspace_id"] = receiver.WorkspaceId
@@ -858,11 +864,11 @@ func flattenMonitorActionGroupItsmReceiver(receivers *[]actiongroupsapis.ItsmRec
 	return result
 }
 
-func flattenMonitorActionGroupAzureAppPushReceiver(receivers *[]actiongroupsapis.AzureAppPushReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupAzureAppPushReceiver(receivers *[]actiongroupsapis.AzureAppPushReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["email_address"] = receiver.EmailAddress
@@ -873,11 +879,11 @@ func flattenMonitorActionGroupAzureAppPushReceiver(receivers *[]actiongroupsapis
 	return result
 }
 
-func flattenMonitorActionGroupSmsReceiver(receivers *[]actiongroupsapis.SmsReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupSmsReceiver(receivers *[]actiongroupsapis.SmsReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["country_code"] = receiver.CountryCode
@@ -889,11 +895,11 @@ func flattenMonitorActionGroupSmsReceiver(receivers *[]actiongroupsapis.SmsRecei
 	return result
 }
 
-func flattenMonitorActionGroupWebHookReceiver(receivers *[]actiongroupsapis.WebhookReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupWebHookReceiver(receivers *[]actiongroupsapis.WebhookReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			result = append(result, map[string]interface{}{
+			result = append(result, map[string]any{
 				"name":                    receiver.Name,
 				"service_uri":             receiver.ServiceUri,
 				"use_common_alert_schema": pointer.From(receiver.UseCommonAlertSchema),
@@ -904,9 +910,9 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]actiongroupsapis.Webh
 	return result
 }
 
-func flattenMonitorActionGroupSecureWebHookReceiver(receiver actiongroupsapis.WebhookReceiver) []interface{} {
+func flattenMonitorActionGroupSecureWebHookReceiver(receiver actiongroupsapis.WebhookReceiver) []any {
 	if receiver.UseAadAuth == nil || !*receiver.UseAadAuth {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var objectId, identifierUri, tenantId string
@@ -920,8 +926,8 @@ func flattenMonitorActionGroupSecureWebHookReceiver(receiver actiongroupsapis.We
 	if v := receiver.TenantId; v != nil {
 		tenantId = *v
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"object_id":      objectId,
 			"identifier_uri": identifierUri,
 			"tenant_id":      tenantId,
@@ -929,11 +935,11 @@ func flattenMonitorActionGroupSecureWebHookReceiver(receiver actiongroupsapis.We
 	}
 }
 
-func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]actiongroupsapis.AutomationRunbookReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]actiongroupsapis.AutomationRunbookReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}
@@ -955,11 +961,11 @@ func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]actiongroup
 	return result
 }
 
-func flattenMonitorActionGroupVoiceReceiver(receivers *[]actiongroupsapis.VoiceReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupVoiceReceiver(receivers *[]actiongroupsapis.VoiceReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["country_code"] = receiver.CountryCode
@@ -971,11 +977,11 @@ func flattenMonitorActionGroupVoiceReceiver(receivers *[]actiongroupsapis.VoiceR
 	return result
 }
 
-func flattenMonitorActionGroupLogicAppReceiver(receivers *[]actiongroupsapis.LogicAppReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupLogicAppReceiver(receivers *[]actiongroupsapis.LogicAppReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["resource_id"] = receiver.ResourceId
@@ -990,11 +996,11 @@ func flattenMonitorActionGroupLogicAppReceiver(receivers *[]actiongroupsapis.Log
 	return result
 }
 
-func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]actiongroupsapis.AzureFunctionReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]actiongroupsapis.AzureFunctionReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["function_app_resource_id"] = receiver.FunctionAppResourceId
@@ -1010,11 +1016,11 @@ func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]actiongroupsapi
 	return result
 }
 
-func flattenMonitorActionGroupRoleReceiver(receivers *[]actiongroupsapis.ArmRoleReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupRoleReceiver(receivers *[]actiongroupsapis.ArmRoleReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 			val["role_id"] = receiver.RoleId
@@ -1028,11 +1034,11 @@ func flattenMonitorActionGroupRoleReceiver(receivers *[]actiongroupsapis.ArmRole
 	return result
 }
 
-func flattenMonitorActionGroupEventHubReceiver(receivers *[]actiongroupsapis.EventHubReceiver) []interface{} {
-	result := make([]interface{}, 0)
+func flattenMonitorActionGroupEventHubReceiver(receivers *[]actiongroupsapis.EventHubReceiver) []any {
+	result := make([]any, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{})
+			val := make(map[string]any)
 
 			val["name"] = receiver.Name
 

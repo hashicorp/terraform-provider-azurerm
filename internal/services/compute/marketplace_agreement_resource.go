@@ -69,7 +69,7 @@ func resourceMarketplaceAgreement() *pluginsdk.Resource {
 	}
 }
 
-func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -127,7 +127,7 @@ func resourceMarketplaceAgreementCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceMarketplaceAgreementRead(d, meta)
 }
 
-func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +166,7 @@ func resourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMarketplaceAgreementDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

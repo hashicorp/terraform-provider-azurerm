@@ -296,14 +296,14 @@ func resourceManagedDisk() *pluginsdk.Resource {
 
 		// Encryption Settings cannot be disabled once enabled
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 		),
 	}
 }
 
-func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -333,7 +333,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	osType := disks.OperatingSystemTypes(d.Get("os_type").(string))
 	maxShares := d.Get("max_shares").(int)
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	skuName := disks.DiskStorageAccountTypes(storageAccountType)
 
 	props := &disks.DiskProperties{
@@ -443,7 +443,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
-		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(v.([]interface{}))
+		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(v.([]any))
 	}
 
 	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
@@ -577,7 +577,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	virtualMachinesClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	skusClient := meta.(*clients.Client).Compute.SkusClient
@@ -634,7 +634,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]any)
 		diskUpdate.Tags = tags.Expand(t)
 	}
 
@@ -717,7 +717,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("encryption_settings") {
-		diskUpdate.Properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
+		diskUpdate.Properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(d.Get("encryption_settings").([]any))
 	}
 
 	if d.HasChange("disk_encryption_set_id") {
@@ -807,7 +807,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceManagedDiskRead(d, meta)
 }
 
-func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -852,7 +852,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("logical_sector_size", creationData.LogicalSectorSize)
 			}
 
-			// imageReference is returned as well when galleryImageRefernece is used, only check imageReference when galleryImageReference is not returned
+			// imageReference is returned as well when galleryImageReference is used, only check imageReference when galleryImageReference is not returned
 			galleryImageReferenceId := ""
 			imageReferenceId := ""
 			if galleryImageReference := creationData.GalleryImageReference; galleryImageReference != nil && galleryImageReference.Id != nil {
@@ -875,11 +875,11 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_iops_read_only", props.DiskIOPSReadOnly)
 			d.Set("disk_mbps_read_only", props.DiskMBpsReadOnly)
 			d.Set("optimized_frequent_attach_enabled", props.OptimizedForFrequentAttach)
-			d.Set("os_type", string(pointer.From(props.OsType)))
+			d.Set("os_type", pointer.FromEnum(props.OsType))
 			d.Set("tier", props.Tier)
 			d.Set("max_shares", props.MaxShares)
-			d.Set("hyper_v_generation", string(pointer.From(props.HyperVGeneration)))
-			d.Set("network_access_policy", string(pointer.From(props.NetworkAccessPolicy)))
+			d.Set("hyper_v_generation", pointer.FromEnum(props.HyperVGeneration))
+			d.Set("network_access_policy", pointer.FromEnum(props.NetworkAccessPolicy))
 			d.Set("disk_access_id", props.DiskAccessId)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == disks.PublicNetworkAccessEnabled)
 
@@ -922,7 +922,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

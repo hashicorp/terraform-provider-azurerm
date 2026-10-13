@@ -48,7 +48,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 
 		Schema: resourcePolicyDefinitionSchema(),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
 			if d.HasChange("parameters") {
 				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
@@ -79,7 +79,7 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.PolicyDefinitionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -207,7 +207,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourcePolicyDefinitionRead(d, meta)
 }
 
-func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.PolicyDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) e
 	var id any
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
-	switch scopeId := oldId.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := oldId.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
@@ -274,7 +274,7 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.PolicyDefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +284,7 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	switch scopeId := oldId.PolicyScopeId.(type) { // nolint gocritic
+	switch scopeId := oldId.PolicyScopeId.(type) { //nolint:gocritic
 	case parse.ScopeAtManagementGroup:
 		id := policydefinitions.NewProviders2PolicyDefinitionID(scopeId.ManagementGroupName, oldId.Name)
 		if _, err := client.DeleteAtManagementGroup(ctx, id); err != nil {
@@ -301,7 +301,7 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func policyDefinitionRefreshFunc(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id any) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, result, err := getPolicyDefinitionByID(ctx, client, id)
 		if err != nil {
 			return nil, strconv.Itoa(resp.StatusCode), fmt.Errorf("issuing read request in policyDefinitionRefreshFunc for %s: %+v", id, err)
@@ -325,12 +325,12 @@ func getPolicyDefinition(ctx context.Context, client *policydefinitions.PolicyDe
 	return resp.HttpResponse, resp.Model, err
 }
 
-func flattenJSON(stringMap interface{}) string {
+func flattenJSON(stringMap any) string {
 	if stringMap != nil {
-		if v, ok := stringMap.(*interface{}); ok {
+		if v, ok := stringMap.(*any); ok {
 			stringMap = *v
 		}
-		value := stringMap.(map[string]interface{})
+		value := stringMap.(map[string]any)
 		jsonString, err := pluginsdk.FlattenJsonToString(value)
 		if err == nil {
 			return jsonString

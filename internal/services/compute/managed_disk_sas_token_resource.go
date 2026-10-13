@@ -53,7 +53,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateManagedDiskID,
 			},
 
-			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
+			// unable to provide upper value of 4294967295 as it's not compatible with 32-bit (overflow errors)
 			"duration_in_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
@@ -80,7 +80,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceManagedDiskSasTokenRead(d, meta)
 }
 
-func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +173,7 @@ func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

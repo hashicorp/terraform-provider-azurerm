@@ -18,7 +18,7 @@ import (
 
 type AdvisorSuppressionResource struct{}
 
-func TestAccAnalysisServicesServer_basic(t *testing.T) {
+func TestAccAdvisorSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
 	r := AdvisorSuppressionResource{}
 

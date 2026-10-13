@@ -32,7 +32,7 @@ type ContainerAppEnvironmentStorageModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
 
-func (r ContainerAppEnvironmentStorageResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentStorageResource) ModelObject() any {
 	return &ContainerAppEnvironmentStorageModel{}
 }
 

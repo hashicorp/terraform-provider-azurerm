@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
-	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -94,7 +94,7 @@ func (r RoleManagementPolicyResource) ResourceType() string {
 	return "azurerm_role_management_policy"
 }
 
-func (r RoleManagementPolicyResource) ModelObject() interface{} {
+func (r RoleManagementPolicyResource) ModelObject() any {
 	return &RoleManagementPolicyModel{}
 }
 
@@ -115,11 +115,11 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:    true,
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
-				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
 				// It seems only user account is allowed to be elevated access.
 				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
 
-				billingValidate.EnrollmentID,
+				validate.EnrollmentID,
 				commonids.ValidateManagementGroupID,
 				commonids.ValidateSubscriptionID,
 				commonids.ValidateResourceGroupID,
@@ -484,7 +484,7 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
 													ID:   pointer.From(pa.Id),
-													Type: string(pointer.From(pa.UserType)),
+													Type: pointer.FromEnum(pa.UserType),
 												}
 											}
 										}

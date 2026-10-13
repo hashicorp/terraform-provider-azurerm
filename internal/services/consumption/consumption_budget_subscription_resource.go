@@ -62,7 +62,7 @@ func (r SubscriptionConsumptionBudget) Attributes() map[string]*pluginsdk.Schema
 	return r.base.attributes()
 }
 
-func (r SubscriptionConsumptionBudget) ModelObject() interface{} {
+func (r SubscriptionConsumptionBudget) ModelObject() any {
 	return &SubscriptionConsumptionBudgetModel{}
 }
 
