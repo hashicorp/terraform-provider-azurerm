@@ -143,8 +143,6 @@ resource "azurerm_subnet" "test" {
     }
   }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 

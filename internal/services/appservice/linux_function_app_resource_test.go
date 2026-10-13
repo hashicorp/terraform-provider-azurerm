@@ -4740,10 +4740,6 @@ resource "azurerm_linux_function_app" "test" {
   site_config {}
 
 }
-
-
-
-
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 

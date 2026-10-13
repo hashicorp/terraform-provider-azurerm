@@ -374,8 +374,6 @@ resource "azurerm_app_service_environment_v3" "test" {
 func (r AppServiceEnvironmentV3Resource) updateVnet(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_virtual_network" "test2" {

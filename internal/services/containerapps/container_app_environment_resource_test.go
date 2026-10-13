@@ -1133,8 +1133,6 @@ func (r ContainerAppEnvironmentResource) templateVNet(data acceptance.TestData) 
 	return fmt.Sprintf(`
 
 
-
-
 %[1]s
 
 resource "azurerm_virtual_network" "test" {
@@ -1157,10 +1155,6 @@ resource "azurerm_subnet" "control" {
     }
   }
 }
-
-
-
-
 `, r.template(data), data.RandomInteger)
 }
 

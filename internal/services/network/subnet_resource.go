@@ -349,7 +349,8 @@ func resourceSubnet() *pluginsdk.Resource {
 		serviceDelegation.Schema["actions"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
-			Deprecated: "`actions` has been deprecated and will become read-only in v6.0 of the AzureRM Provider, since this property is read-only in the Azure API and any configured value is ignored",
+			Computed:   true,
+			Deprecated: "`delegation.service_delegation.actions` will become read-only in v6.0 of the AzureRM Provider, since this property is read-only in the Azure API and any configured value is ignored",
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -889,20 +890,20 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 		deleData := deleValue.(map[string]interface{})
 		srvDelegations := deleData["service_delegation"].([]interface{})
 		srvDelegation := srvDelegations[0].(map[string]interface{})
-		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
-
-		retSrvActions := make([]string, 0)
-		for _, srvAction := range srvActions {
-			srvActionData := srvAction.(string)
-			retSrvActions = append(retSrvActions, srvActionData)
-		}
 
 		retDelegation := subnets.Delegation{
 			Name: pointer.To(deleData["name"].(string)),
 			Properties: &subnets.ServiceDelegationPropertiesFormat{
 				ServiceName: pointer.To(srvDelegation["name"].(string)),
-				Actions:     &retSrvActions,
 			},
+		}
+
+		if !features.SixPointOh() {
+			retSrvActions := make([]string, 0)
+			for _, srvAction := range srvDelegation["actions"].(*pluginsdk.Set).List() {
+				retSrvActions = append(retSrvActions, srvAction.(string))
+			}
+			retDelegation.Properties.Actions = &retSrvActions
 		}
 
 		retDelegations = append(retDelegations, retDelegation)
