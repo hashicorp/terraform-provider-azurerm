@@ -251,9 +251,7 @@ The `managed_rules` block supports the following:
 
 * `exception` - (Optional) One or more `exception` blocks as defined above. A maximum of 60 exceptions is supported per policy.
 
-~> **Note:** An `exception` block requires a `managed_rule_set` with `type` set to `OWASP` and `version` set to `3.2` or later, or `type` set to `Microsoft_DefaultRuleSet` and `version` set to `2.1` or later.
-
-~> **Note:** WAF Exceptions are [generally available](https://azure.microsoft.com/en-us/updates?id=574343). For more information, see the [Azure Application Gateway WAF Exceptions documentation](https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions).
+~> **Note:** An `exception` block requires a `managed_rule_set` with `type` set to `OWASP` and `version` set to `3.2` or later, or `type` set to `Microsoft_DefaultRuleSet` and `version` set to `2.1` or later. For more information, see the [Azure Application Gateway WAF Exceptions documentation](https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions).
 
 * `exclusion` - (Optional) One or more `exclusion` block defined below.
 
