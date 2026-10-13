@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package analysisservices
+package analysis_services_server
 
 import (
 	"context"
@@ -17,19 +17,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AnalysisServicesServerListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(AnalysisServicesServerListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (AnalysisServicesServerListResource) ResourceFunc() *pluginsdk.Resource {
-	return resourceAnalysisServicesServer()
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return RegisterResource()
 }
 
-func (AnalysisServicesServerListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = analysisServicesServerResourceName
 }
 
-func (AnalysisServicesServerListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.AnalysisServices.Servers
 
 	var data sdk.DefaultListModel
@@ -72,7 +72,7 @@ func (AnalysisServicesServerListResource) List(ctx context.Context, request list
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			rd := resourceAnalysisServicesServer().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 
 			id, err := servers.ParseServerID(pointer.From(item.Id))
 			if err != nil {

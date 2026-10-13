@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package analysisservices_test
+package analysis_services_server_test
 
 import (
 	"testing"
