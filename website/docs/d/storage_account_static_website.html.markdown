@@ -36,9 +36,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Storage Account Static Website.
 
-* `error_404_document` - Whether the absolute path to a custom webpage should be used when a request is made which does not correspond to an existing file.
+* `error_404_document` - The absolute path to a custom webpage that is used when a request is made which does not correspond to an existing file.
 
-* `index_document` - Whether the webpage Azure Storage serves for requests to the root of a website or any subfolder.
+* `index_document` - The webpage that Azure Storage serves for requests to the root of a website or any subfolder.
 
 ## Timeouts
 
