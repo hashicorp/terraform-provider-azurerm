@@ -34,7 +34,7 @@ func testAccNetworkWatcher_listBySubscriptionAndRG(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_network_watcher.list", 1),
+					querycheck.ExpectLength("azurerm_network_watcher.list", 1),
 					querycheck.ExpectIdentity(
 						"azurerm_network_watcher.list",
 						map[string]knownvalue.Check{
