@@ -278,7 +278,7 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.SpilloverDeploymentName != "" {
-				properties.Properties.SpilloverDeploymentName = &model.SpilloverDeploymentName
+				properties.Properties.SpilloverDeploymentName = pointer.To(model.SpilloverDeploymentName)
 			}
 
 			properties.Sku = expandDeploymentSkuModel(model.Sku)

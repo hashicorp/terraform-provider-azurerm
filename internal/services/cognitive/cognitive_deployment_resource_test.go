@@ -121,21 +121,21 @@ func TestAccCognitiveDeployment_spilloverDeploymentName(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.spilloverDeploymentName(data, false),
+			Config: r.withoutSpilloverDeploymentName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.spilloverDeploymentName(data, true),
+			Config: r.withSpilloverDeploymentName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.spilloverDeploymentName(data, false),
+			Config: r.withoutSpilloverDeploymentName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -325,48 +325,7 @@ resource "azurerm_cognitive_deployment" "test" {
 `, template, data.RandomInteger, versionUpgradeOption)
 }
 
-func (r CognitiveDeploymentResource) spilloverDeploymentName(data acceptance.TestData, enabled bool) string {
-	testDeployment := fmt.Sprintf(`
-resource "azurerm_cognitive_deployment" "test" {
-  name                 = "acctest-cd-%d"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-  model {
-    format  = "OpenAI"
-    name    = "gpt-5.4-mini"
-    version = "2026-03-17"
-  }
-  sku {
-    name     = "DataZoneProvisionedManaged"
-    capacity = 15
-  }
-  lifecycle {
-    ignore_changes = [model.0.version]
-  }
-}
-`, data.RandomInteger)
-
-	if enabled {
-		testDeployment = fmt.Sprintf(`
-resource "azurerm_cognitive_deployment" "test" {
-  name                      = "acctest-cd-%d"
-  cognitive_account_id      = azurerm_cognitive_account.test.id
-  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name
-  model {
-    format  = "OpenAI"
-    name    = "gpt-5.4-mini"
-    version = "2026-03-17"
-  }
-  sku {
-    name     = "DataZoneProvisionedManaged"
-    capacity = 15
-  }
-  lifecycle {
-    ignore_changes = [model.0.version]
-  }
-}
-`, data.RandomInteger)
-	}
-
+func (r CognitiveDeploymentResource) withoutSpilloverDeploymentName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -385,8 +344,64 @@ resource "azurerm_cognitive_deployment" "spillover" {
     ignore_changes = [model.0.version]
   }
 }
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  model {
+    format  = "OpenAI"
+    name    = "gpt-5.4-mini"
+    version = "2026-03-17"
+  }
+  sku {
+    name     = "DataZoneProvisionedManaged"
+    capacity = 15
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveDeploymentResource) withSpilloverDeploymentName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 %s
-`, r.template(data), data.RandomInteger, testDeployment)
+
+resource "azurerm_cognitive_deployment" "spillover" {
+  name                 = "acctest-cd-spillover-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  model {
+    format  = "OpenAI"
+    name    = "gpt-5.4-mini"
+    version = "2026-03-17"
+  }
+  sku {
+    name = "DataZoneStandard"
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
+  }
+}
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                      = "acctest-cd-%d"
+  cognitive_account_id      = azurerm_cognitive_account.test.id
+  spillover_deployment_name = azurerm_cognitive_deployment.spillover.name
+  model {
+    format  = "OpenAI"
+    name    = "gpt-5.4-mini"
+    version = "2026-03-17"
+  }
+  sku {
+    name     = "DataZoneProvisionedManaged"
+    capacity = 15
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r CognitiveDeploymentResource) spilloverDeploymentNameInvalidSku(data acceptance.TestData) string {
