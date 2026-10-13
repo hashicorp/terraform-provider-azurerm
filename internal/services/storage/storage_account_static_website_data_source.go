@@ -73,7 +73,7 @@ func (d AccountStaticWebsiteDataSource) Read() sdk.ResourceFunc {
 
 			accountDetails, err := client.GetAccount(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("a retrieving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			accountsClient, err := client.AccountsDataPlaneClient(ctx, *accountDetails, client.DataPlaneOperationSupportingAnyAuthMethod())
