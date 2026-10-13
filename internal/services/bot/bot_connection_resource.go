@@ -20,12 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceArmBotConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmBotConnectionCreate,
 		Read:   resourceArmBotConnectionRead,
 		Update: resourceArmBotConnectionUpdate,
@@ -96,11 +95,9 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -111,11 +108,11 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Bot Connection %q (Bot %q / Resource Group %q): %+v", resourceId.ConnectionName, resourceId.BotServiceName, resourceId.ResourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_bot_connection", resourceId.ID())
 		}
 	}
@@ -161,7 +158,7 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]interface{}))
+		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]any))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName, connection); err != nil {
@@ -172,7 +169,7 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceArmBotConnectionRead(d, meta)
 }
 
-func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +181,7 @@ func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Bot Connection %q (Bot %q / Resource Group %q) was not found - removing from state!", id.ConnectionName, id.BotServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
@@ -209,7 +206,7 @@ func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +228,7 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]interface{}))
+		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName, connection); err != nil {
@@ -241,7 +238,7 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceArmBotConnectionRead(d, meta)
 }
 
-func resourceArmBotConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +258,7 @@ func resourceArmBotConnectionDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.ConnectionSettingParameter {
+func expandBotConnectionParameters(input map[string]any) *[]botservice.ConnectionSettingParameter {
 	output := make([]botservice.ConnectionSettingParameter, 0)
 
 	for k, v := range input {
@@ -273,8 +270,8 @@ func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.C
 	return &output
 }
 
-func flattenBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]any {
+	output := make(map[string]any)
 	if input == nil {
 		return output
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/servers"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -400,19 +399,17 @@ func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
 }
 
 func (MssqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerID(state.ID)
+	id, err := commonids.ParseSqlServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.Name)
-
-	resp, err := client.MSSQL.ServersClient.Get(ctx, serverId, servers.DefaultGetOperationOptions())
+	resp, err := client.MSSQL.ServersClient.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroupName)
 		}
-		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroupName, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

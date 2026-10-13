@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +49,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageEncryptionScopeName,
+				ValidateFunc: validate.StorageEncryptionScopeName,
 			},
 
 			"storage_account_id": {
@@ -60,12 +60,9 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 			},
 
 			"source": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointKeyVault),
-					string(encryptionscopes.EncryptionScopeSourceMicrosoftPointStorage),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(encryptionscopes.PossibleValuesForEncryptionScopeSource(), false),
 			},
 
 			"key_vault_key_id": {
@@ -83,7 +80,7 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +114,7 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 
 	payload := encryptionscopes.EncryptionScope{
 		Properties: &encryptionscopes.EncryptionScopeProperties{
-			Source: pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string))),
+			Source: pointer.ToEnum[encryptionscopes.EncryptionScopeSource](d.Get("source").(string)),
 			State:  pointer.To(encryptionscopes.EncryptionScopeStateEnabled),
 			KeyVaultProperties: &encryptionscopes.EncryptionScopeKeyVaultProperties{
 				KeyUri: pointer.To(d.Get("key_vault_key_id").(string)),
@@ -140,7 +137,7 @@ func resourceStorageEncryptionScopeCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +172,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 	if d.HasChange("source") {
-		payload.Properties.Source = pointer.To(encryptionscopes.EncryptionScopeSource(d.Get("source").(string)))
+		payload.Properties.Source = pointer.ToEnum[encryptionscopes.EncryptionScopeSource](d.Get("source").(string))
 	}
 
 	if _, err := client.Patch(ctx, *id, *payload); err != nil {
@@ -185,7 +182,7 @@ func resourceStorageEncryptionScopeUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +215,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 			}
 
 			d.Set("infrastructure_encryption_required", props.RequireInfrastructureEncryption)
-			d.Set("source", string(pointer.From(props.Source)))
+			d.Set("source", pointer.FromEnum(props.Source))
 
 			keyVaultKeyUri := ""
 			if props.KeyVaultProperties != nil {
@@ -231,7 +228,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.EncryptionScopes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

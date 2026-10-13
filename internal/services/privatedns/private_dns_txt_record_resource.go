@@ -90,7 +90,7 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -121,7 +121,7 @@ func resourcePrivateDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata:   tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
 			TxtRecords: expandAzureRmPrivateDnsTxtRecords(d),
 		},
@@ -143,7 +143,7 @@ func resourcePrivateDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourcePrivateDnsTxtRecordRead(d, meta)
 }
 
-func resourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,7 +183,7 @@ func resourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourcePrivateDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,16 +202,15 @@ func resourcePrivateDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func flattenAzureRmPrivateDnsTxtRecords(records *[]privatedns.TxtRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmPrivateDnsTxtRecords(records *[]privatedns.TxtRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
-			txtRecord := make(map[string]interface{})
+			txtRecord := make(map[string]any)
 
 			if v := record.Value; v != nil {
-				value := strings.Join(*v, "")
-				txtRecord["value"] = value
+				txtRecord["value"] = strings.Join(*v, "")
 			}
 
 			results = append(results, txtRecord)
@@ -231,7 +230,7 @@ func expandAzureRmPrivateDnsTxtRecords(d *pluginsdk.ResourceData) *[]privatedns.
 			continue
 		}
 
-		record := v.(map[string]interface{})
+		record := v.(map[string]any)
 		v := record["value"].(string)
 
 		var value []string
@@ -241,11 +240,9 @@ func expandAzureRmPrivateDnsTxtRecords(d *pluginsdk.ResourceData) *[]privatedns.
 		}
 		value = append(value, v)
 
-		txtRecord := privatedns.TxtRecord{
+		records[i] = privatedns.TxtRecord{
 			Value: &value,
 		}
-
-		records[i] = txtRecord
 	}
 
 	return &records

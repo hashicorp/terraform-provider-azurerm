@@ -45,6 +45,8 @@ The following arguments are supported:
 
 * `administrator_username` - (Optional) The administrator username of the MongoDB Cluster. Changing this forces a new resource to be created.
 
+~> **Note:** `administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured.
+
 * `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possible values are `Default`, `GeoReplica` and `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
@@ -74,6 +76,10 @@ The following arguments are supported:
 * `authentication_methods` - (Optional) A list of allowed authentication modes for the MongoDB Cluster. Possible values are `NativeAuth` and `MicrosoftEntraID`.
 
 * `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
+
+* `cosmos_db_network_bypass_enabled` - (Optional) Whether Cosmos DB network bypass is enabled for the MongoDB Cluster. Defaults to `false`.
+
+~> **Note:** `cosmos_db_network_bypass_enabled` can only be set to `true` when `public_network_access` is `Disabled`, `authentication_methods` contains only `MicrosoftEntraID`, and no firewall rules exist on the cluster. This is not supported on portal yet because Entra ID-only authentication is not supported there.
 
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
@@ -154,4 +160,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2025-09-01
+* `Microsoft.DocumentDB` - 2026-06-01

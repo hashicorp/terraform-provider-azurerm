@@ -48,7 +48,7 @@ func (r ContainerRegistryTaskScheduleResource) ResourceType() string {
 	return "azurerm_container_registry_task_schedule_run_now"
 }
 
-func (r ContainerRegistryTaskScheduleResource) ModelObject() interface{} {
+func (r ContainerRegistryTaskScheduleResource) ModelObject() any {
 	return &ContainerRegistryTaskScheduleModel{}
 }
 
@@ -98,10 +98,9 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 				// If the SDK didn't parse the response body, try parsing it on our side.
 				if scheduleResp.HttpResponse != nil {
 					scheduleRunModel := registries.Run{}
-					err = json.
+					if err = json.
 						NewDecoder(scheduleResp.HttpResponse.Body).
-						Decode(&scheduleRunModel)
-					if err != nil {
+						Decode(&scheduleRunModel); err != nil {
 						return fmt.Errorf("can't decode ScheduleRun model, err: %w for taskID %s", err, taskId)
 					}
 
@@ -127,7 +126,7 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending: []string{string(registries.RunStatusQueued), string(registries.RunStatusStarted), string(registries.RunStatusRunning)},
 				Target:  []string{string(registries.RunStatusSucceeded)},
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					resp, err := runsClient.Get(ctx, runId)
 					if err != nil {
 						return nil, "", fmt.Errorf("getting the scheduled run: %v", err)

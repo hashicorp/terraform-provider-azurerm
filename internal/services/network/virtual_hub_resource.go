@@ -14,15 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -56,7 +54,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubName,
+				ValidateFunc: validate.VirtualHubName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -67,7 +65,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CIDR,
+				ValidateFunc: validation.IsCIDRIPv4,
 			},
 
 			"branch_to_branch_traffic_enabled": {
@@ -116,13 +114,13 @@ func resourceVirtualHub() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validate.CIDR,
+								ValidateFunc: validation.IsCIDRIPv4,
 							},
 						},
 						"next_hop_ip_address": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 				},
@@ -131,14 +129,10 @@ func resourceVirtualHub() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"hub_routing_preference": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.HubRoutingPreferenceExpressRoute),
-					string(virtualwans.HubRoutingPreferenceVpnGateway),
-					string(virtualwans.HubRoutingPreferenceASPath),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(virtualwans.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForHubRoutingPreference(), false),
 			},
 
 			"default_route_table_id": {
@@ -156,7 +150,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -188,9 +182,9 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		Properties: &virtualwans.VirtualHubProperties{
 			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
 			RouteTable:                 expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
-			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
+			HubRoutingPreference:       pointer.ToEnum[virtualwans.HubRoutingPreference](d.Get("hub_routing_preference").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("address_prefix"); ok {
@@ -242,7 +236,7 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceVirtualHubRead(d, meta)
 }
 
-func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,11 +276,11 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("hub_routing_preference") {
-		payload.Properties.HubRoutingPreference = pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string)))
+		payload.Properties.HubRoutingPreference = pointer.ToEnum[virtualwans.HubRoutingPreference](d.Get("hub_routing_preference").(string))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("virtual_router_auto_scale_min_capacity") {
@@ -324,7 +318,7 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceVirtualHubRead(d, meta)
 }
 
-func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,7 +355,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `route`: %+v", err)
 			}
 
-			d.Set("hub_routing_preference", string(pointer.From(props.HubRoutingPreference)))
+			d.Set("hub_routing_preference", pointer.FromEnum(props.HubRoutingPreference))
 
 			var virtualWanId *string
 			if props.VirtualWAN != nil {
@@ -391,7 +385,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -411,7 +405,7 @@ func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandVirtualHubRoute(input []interface{}) *virtualwans.VirtualHubRouteTable {
+func expandVirtualHubRoute(input []any) *virtualwans.VirtualHubRouteTable {
 	if len(input) == 0 {
 		return nil
 	}
@@ -422,12 +416,12 @@ func expandVirtualHubRoute(input []interface{}) *virtualwans.VirtualHubRouteTabl
 			continue
 		}
 
-		v := item.(map[string]interface{})
-		addressPrefixes := v["address_prefixes"].([]interface{})
+		v := item.(map[string]any)
+		addressPrefixes := v["address_prefixes"].([]any)
 		nextHopIpAddress := v["next_hop_ip_address"].(string)
 
 		results = append(results, virtualwans.VirtualHubRoute{
-			AddressPrefixes:  helpers.ExpandStringSlice(addressPrefixes),
+			AddressPrefixes:  pluginsdk.ExpandStringSlice(addressPrefixes),
 			NextHopIPAddress: pointer.To(nextHopIpAddress),
 		})
 	}
@@ -439,23 +433,18 @@ func expandVirtualHubRoute(input []interface{}) *virtualwans.VirtualHubRouteTabl
 	return &result
 }
 
-func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []any {
+	results := make([]any, 0)
 	if input == nil || input.Routes == nil {
 		return results
 	}
 
 	for _, item := range *input.Routes {
-		addressPrefixes := helpers.FlattenStringSlice(item.AddressPrefixes)
-		nextHopIpAddress := ""
+		addressPrefixes := pluginsdk.FlattenSlice(item.AddressPrefixes)
 
-		if item.NextHopIPAddress != nil {
-			nextHopIpAddress = *item.NextHopIPAddress
-		}
-
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"address_prefixes":    addressPrefixes,
-			"next_hop_ip_address": nextHopIpAddress,
+			"next_hop_ip_address": pointer.From(item.NextHopIPAddress),
 		})
 	}
 
@@ -463,7 +452,7 @@ func flattenVirtualHubRoute(input *virtualwans.VirtualHubRouteTable) []interface
 }
 
 func virtualHubCreateRefreshFunc(ctx context.Context, client *virtualwans.VirtualWANsClient, id virtualwans.VirtualHubId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.VirtualHubsGet(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {

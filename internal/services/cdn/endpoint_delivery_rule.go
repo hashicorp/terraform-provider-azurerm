@@ -4,7 +4,7 @@
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/deliveryruleconditions"
@@ -162,7 +162,7 @@ func endpointDeliveryRule() *pluginsdk.Schema {
 	}
 }
 
-func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.DeliveryRule, error) {
+func expandArmCdnEndpointDeliveryRule(rule map[string]any) (*cdn.DeliveryRule, error) {
 	deliveryRule := cdn.DeliveryRule{
 		Name:  pointer.To(rule["name"].(string)),
 		Order: pointer.To(int32(rule["order"].(int))),
@@ -179,11 +179,11 @@ func expandArmCdnEndpointDeliveryRule(rule map[string]interface{}) (*cdn.Deliver
 	return &deliveryRule, nil
 }
 
-func expandDeliveryRuleConditions(input map[string]interface{}) *[]cdn.BasicDeliveryRuleCondition {
+func expandDeliveryRuleConditions(input map[string]any) *[]cdn.BasicDeliveryRuleCondition {
 	conditions := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	// @tombuildsstuff: we'd generally avoid over generalization, but this is /very/ repetitive so makes sense
-	type expandFunc func(input []interface{}) []cdn.BasicDeliveryRuleCondition
+	type expandFunc func(input []any) []cdn.BasicDeliveryRuleCondition
 	conditionTypes := map[string]expandFunc{
 		"cookies_condition":            deliveryruleconditions.ExpandArmCdnEndpointConditionCookies,
 		"device_condition":             deliveryruleconditions.ExpandArmCdnEndpointConditionDevice,
@@ -202,7 +202,7 @@ func expandDeliveryRuleConditions(input map[string]interface{}) *[]cdn.BasicDeli
 	}
 
 	for schemaKey, expandFunc := range conditionTypes {
-		raw := input[schemaKey].([]interface{})
+		raw := input[schemaKey].([]any)
 		expanded := expandFunc(raw)
 		conditions = append(conditions, expanded...)
 	}
@@ -210,10 +210,10 @@ func expandDeliveryRuleConditions(input map[string]interface{}) *[]cdn.BasicDeli
 	return &conditions
 }
 
-func expandDeliveryRuleActions(input map[string]interface{}) ([]cdn.BasicDeliveryRuleAction, error) {
+func expandDeliveryRuleActions(input map[string]any) ([]cdn.BasicDeliveryRuleAction, error) {
 	actions := make([]cdn.BasicDeliveryRuleAction, 0)
 
-	type expandFunc func(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error)
+	type expandFunc func(input []any) (*[]cdn.BasicDeliveryRuleAction, error)
 	actionTypes := map[string]expandFunc{
 		"cache_expiration_action":       deliveryruleactions.ExpandArmCdnEndpointActionCacheExpiration,
 		"cache_key_query_string_action": deliveryruleactions.ExpandArmCdnEndpointActionCacheKeyQueryString,
@@ -224,7 +224,7 @@ func expandDeliveryRuleActions(input map[string]interface{}) ([]cdn.BasicDeliver
 	}
 
 	for schemaKey, expandFunc := range actionTypes {
-		raw := input[schemaKey].([]interface{})
+		raw := input[schemaKey].([]any)
 		expanded, err := expandFunc(raw)
 		if err != nil {
 			return nil, err
@@ -236,19 +236,14 @@ func expandDeliveryRuleActions(input map[string]interface{}) ([]cdn.BasicDeliver
 	return actions, nil
 }
 
-func flattenArmCdnEndpointDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]interface{}, error) {
-	name := ""
-	if deliveryRule.Name != nil {
-		name = *deliveryRule.Name
-	}
-
+func flattenArmCdnEndpointDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[string]any, error) {
 	order := -1
 	if deliveryRule.Order != nil {
 		order = int(*deliveryRule.Order)
 	}
 
-	output := map[string]interface{}{
-		"name":  name,
+	output := map[string]any{
+		"name":  pointer.From(deliveryRule.Name),
 		"order": order,
 	}
 
@@ -273,8 +268,8 @@ func flattenArmCdnEndpointDeliveryRule(deliveryRule cdn.DeliveryRule) (*map[stri
 	return &output, nil
 }
 
-func flattenDeliveryRuleActions(actions *[]cdn.BasicDeliveryRuleAction) (*map[string][]interface{}, error) {
-	type flattenFunc = func(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error)
+func flattenDeliveryRuleActions(actions *[]cdn.BasicDeliveryRuleAction) (*map[string][]any, error) {
+	type flattenFunc = func(input cdn.BasicDeliveryRuleAction) (*map[string]any, error)
 	type validateFunc = func(input cdn.BasicDeliveryRuleAction) bool
 
 	actionTypes := map[string]struct {
@@ -326,9 +321,9 @@ func flattenDeliveryRuleActions(actions *[]cdn.BasicDeliveryRuleAction) (*map[st
 	}
 
 	// first ensure there's a map for all of the keys
-	output := make(map[string][]interface{})
+	output := make(map[string][]any)
 	for schemaKey := range actionTypes {
-		output[schemaKey] = make([]interface{}, 0)
+		output[schemaKey] = make([]any, 0)
 	}
 
 	// intentionally bail here now we have defaults populated
@@ -357,8 +352,8 @@ func flattenDeliveryRuleActions(actions *[]cdn.BasicDeliveryRuleAction) (*map[st
 	return &output, nil
 }
 
-func flattenDeliveryRuleConditions(conditions *[]cdn.BasicDeliveryRuleCondition) (*map[string][]interface{}, error) {
-	type flattenFunc = func(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error)
+func flattenDeliveryRuleConditions(conditions *[]cdn.BasicDeliveryRuleCondition) (*map[string][]any, error) {
+	type flattenFunc = func(input cdn.BasicDeliveryRuleCondition) (*map[string]any, error)
 	type validateFunc = func(input cdn.BasicDeliveryRuleCondition) bool
 
 	conditionTypes := map[string]struct {
@@ -466,9 +461,9 @@ func flattenDeliveryRuleConditions(conditions *[]cdn.BasicDeliveryRuleCondition)
 	}
 
 	// first ensure there's a map for all of the keys
-	output := make(map[string][]interface{})
+	output := make(map[string][]any)
 	for schemaKey := range conditionTypes {
-		output[schemaKey] = make([]interface{}, 0)
+		output[schemaKey] = make([]any, 0)
 	}
 
 	// intentionally bail here now we have defaults populated

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,7 +100,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: commonids.ValidateDiskEncryptionSetID,
+							ValidateFunc: validation.AsGeneratedID(commonids.ParseDiskEncryptionSetIDInsensitively),
 						},
 
 						"exclude_from_latest_enabled": {
@@ -112,14 +114,10 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
 						// So currently terraform would directly return the error message from Service API while updating this property. If this property needs to be updated, please recreate this pluginsdk.
 						"storage_account_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(galleryimageversions.StorageAccountTypePremiumLRS),
-								string(galleryimageversions.StorageAccountTypeStandardLRS),
-								string(galleryimageversions.StorageAccountTypeStandardZRS),
-							}, false),
-							Default: string(galleryimageversions.StorageAccountTypeStandardLRS),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForStorageAccountType(), false),
+							Default:      string(galleryimageversions.StorageAccountTypeStandardLRS),
 						},
 					},
 				},
@@ -169,14 +167,11 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 			},
 
 			"replication_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(galleryimageversions.ReplicationModeFull),
-					string(galleryimageversions.ReplicationModeShallow),
-				}, false),
-				Default: galleryimageversions.ReplicationModeFull,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForReplicationMode(), false),
+				Default:      galleryimageversions.ReplicationModeFull,
 			},
 
 			"exclude_from_latest": {
@@ -192,18 +187,77 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"uefi": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"signature_template_names": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForUefiSignatureTemplateName(), false),
+							},
+						},
+						"additional_signatures": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"db": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+									"dbx": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+									"kek": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+									"pk": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										ForceNew:     true,
+										MaxItems:     1,
+										Elem:         uefiKeySchema(),
+										AtLeastOneOf: []string{"uefi.0.additional_signatures.0.db", "uefi.0.additional_signatures.0.dbx", "uefi.0.additional_signatures.0.kek", "uefi.0.additional_signatures.0.pk"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) != "" && new.(string) == ""
 			}),
 		),
 	}
 }
 
-func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -234,7 +288,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		Properties: &galleryimageversions.GalleryImageVersionProperties{
 			PublishingProfile: &galleryimageversions.GalleryArtifactPublishingProfileBase{
 				ExcludeFromLatest: pointer.To(d.Get("exclude_from_latest").(bool)),
-				ReplicationMode:   pointer.To(galleryimageversions.ReplicationMode(d.Get("replication_mode").(string))),
+				ReplicationMode:   pointer.ToEnum[galleryimageversions.ReplicationMode](d.Get("replication_mode").(string)),
 				TargetRegions:     targetRegions,
 			},
 			SafetyProfile: &galleryimageversions.GalleryImageVersionSafetyProfile{
@@ -242,7 +296,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 			},
 			StorageProfile: galleryimageversions.GalleryImageVersionStorageProfile{},
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("end_of_life_date"); ok {
@@ -282,13 +336,19 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	if v, ok := d.GetOk("uefi"); ok {
+		version.Properties.SecurityProfile = &galleryimageversions.ImageVersionSecurityProfile{
+			UefiSettings: expandUefiSettings(v.([]any)),
+		}
+	}
+
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, version, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	readCtx, cancelCtx := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancelCtx()
-	err = retry.RetryContext(readCtx, 5*time.Second, func() *retry.RetryError {
+	if err = retry.RetryContext(readCtx, 5*time.Second, func() *retry.RetryError {
 		read, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
 		if err != nil {
 			if response.WasNotFound(read.HttpResponse) {
@@ -300,8 +360,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 			return retry.RetryableError(fmt.Errorf("waiting for `model` to become available for %s", id))
 		}
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
@@ -310,7 +369,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -361,7 +420,7 @@ func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -373,7 +432,7 @@ func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSharedImageVersionRead(d, meta)
 }
 
-func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -383,7 +442,9 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, galleryimageversions.DefaultGetOperationOptions())
+	resp, err := client.Get(ctx, *id, galleryimageversions.GetOperationOptions{
+		Expand: pointer.To(galleryimageversions.ReplicationStatusTypesUefiSettings),
+	})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", id)
@@ -439,10 +500,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			osDiskSnapShotID := ""
 			storageAccountID := ""
 			if props.StorageProfile.OsDiskImage != nil && props.StorageProfile.OsDiskImage.Source != nil {
-				sourceID := ""
-				if props.StorageProfile.OsDiskImage.Source.Id != nil {
-					sourceID = *props.StorageProfile.OsDiskImage.Source.Id
-				}
+				sourceID := pointer.From(props.StorageProfile.OsDiskImage.Source.Id)
 
 				if props.StorageProfile.OsDiskImage.Source.StorageAccountId != nil {
 					sourceID = *props.StorageProfile.OsDiskImage.Source.StorageAccountId
@@ -461,6 +519,12 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			if safetyProfile := props.SafetyProfile; safetyProfile != nil {
 				d.Set("deletion_of_replicated_locations_enabled", pointer.From(safetyProfile.AllowDeletionOfReplicatedLocations))
 			}
+
+			if securityProfile := props.SecurityProfile; securityProfile != nil && securityProfile.UefiSettings != nil {
+				if err := d.Set("uefi", flattenUefiSettings(securityProfile.UefiSettings)); err != nil {
+					return fmt.Errorf("setting `uefi`: %+v", err)
+				}
+			}
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -469,7 +533,7 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -484,48 +548,24 @@ func resourceSharedImageVersionDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	// @tombuildsstuff: there appears to be an eventual consistency issue here
-	timeout, _ := ctx.Deadline()
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageVersionDeleteStateRefreshFunc(ctx, client, *id),
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
-		Timeout:                   time.Until(timeout),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(10, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id, galleryimageversions.DefaultGetOperationOptions())
+		return resp.HttpResponse, err
+	}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func sharedImageVersionDeleteStateRefreshFunc(ctx context.Context, client *galleryimageversions.GalleryImageVersionsClient, id galleryimageversions.ImageVersionId) pluginsdk.StateRefreshFunc {
-	// Whilst the Shared Image Version is deleted quickly, it appears it's not actually finished replicating at this time
-	// so the deletion of the parent Shared Image fails with "can not delete until nested resources are deleted"
-	// ergo we need to poll on this for a bit
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-
-			return nil, "", fmt.Errorf("failed to poll to check if the Shared Image Version has been deleted: %+v", err)
-		}
-
-		return res, "Exists", nil
-	}
-}
-
 func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galleryimageversions.TargetRegion, error) {
-	vs := d.Get("target_region").([]interface{})
+	vs := d.Get("target_region").([]any)
 	results := make([]galleryimageversions.TargetRegion, 0)
 
 	for _, v := range vs {
-		input := v.(map[string]interface{})
+		input := v.(map[string]any)
 
 		name := input["name"].(string)
 		regionalReplicaCount := input["regional_replica_count"].(int)
@@ -537,7 +577,7 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 			Name:                 name,
 			ExcludeFromLatest:    pointer.To(excludeFromLatest),
 			RegionalReplicaCount: pointer.To(int64(regionalReplicaCount)),
-			StorageAccountType:   pointer.To(galleryimageversions.StorageAccountType(storageAccountType)),
+			StorageAccountType:   pointer.ToEnum[galleryimageversions.StorageAccountType](storageAccountType),
 		}
 
 		if diskEncryptionSetId != "" {
@@ -558,12 +598,167 @@ func expandSharedImageVersionTargetRegions(d *pluginsdk.ResourceData) (*[]galler
 	return &results, nil
 }
 
-func flattenSharedImageVersionTargetRegions(input *[]galleryimageversions.TargetRegion) []interface{} {
-	results := make([]interface{}, 0)
+func expandUefiSettings(input []any) *galleryimageversions.GalleryImageVersionUefiSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	result := &galleryimageversions.GalleryImageVersionUefiSettings{}
+
+	if templateNamesSet, ok := v["signature_template_names"].(*pluginsdk.Set); ok {
+		result.SignatureTemplateNames = expandSignatureTemplateNames(templateNamesSet.List())
+	}
+
+	if additionalSignatures, ok := v["additional_signatures"].([]any); ok {
+		result.AdditionalSignatures = expandAdditionalSignatures(additionalSignatures)
+	}
+
+	return result
+}
+
+func expandSignatureTemplateNames(input []any) *[]galleryimageversions.UefiSignatureTemplateName {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]galleryimageversions.UefiSignatureTemplateName, 0)
+	for _, v := range input {
+		result = append(result, galleryimageversions.UefiSignatureTemplateName(v.(string)))
+	}
+	return &result
+}
+
+func expandAdditionalSignatures(input []any) *galleryimageversions.UefiKeySignatures {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	result := &galleryimageversions.UefiKeySignatures{}
+
+	if db, ok := v["db"].([]any); ok {
+		result.Db = expandUefiKeyList(db)
+	}
+
+	if dbx, ok := v["dbx"].([]any); ok {
+		result.Dbx = expandUefiKeyList(dbx)
+	}
+
+	if kek, ok := v["kek"].([]any); ok {
+		result.Kek = expandUefiKeyList(kek)
+	}
+
+	if pk, ok := v["pk"].([]any); ok {
+		result.Pk = expandUefiKey(pk)
+	}
+
+	return result
+}
+
+func expandUefiKeyList(input []any) *[]galleryimageversions.UefiKey {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]galleryimageversions.UefiKey, 0)
+	for _, v := range input {
+		if item := expandUefiKey([]any{v}); item != nil {
+			result = append(result, *item)
+		}
+	}
+	return &result
+}
+
+func expandUefiKey(input []any) *galleryimageversions.UefiKey {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	data := input[0].(map[string]any)
+
+	certData := make([]string, 0)
+	if certList, ok := data["values_base64"].([]any); ok {
+		for _, item := range certList {
+			if str, ok := item.(string); ok {
+				certData = append(certData, str)
+			}
+		}
+	}
+
+	return &galleryimageversions.UefiKey{
+		Type:  pointer.ToEnum[galleryimageversions.UefiKeyType](data["type"].(string)),
+		Value: &certData,
+	}
+}
+
+func flattenUefiSettings(input *galleryimageversions.GalleryImageVersionUefiSettings) []any {
+	results := make([]any, 0)
+
+	if input == nil {
+		return results
+	}
+
+	results = append(results, map[string]any{
+		"signature_template_names": pointer.From(input.SignatureTemplateNames),
+		"additional_signatures":    flattenAdditionalSignatures(input.AdditionalSignatures),
+	})
+
+	return results
+}
+
+func flattenAdditionalSignatures(input *galleryimageversions.UefiKeySignatures) []any {
+	results := make([]any, 0)
+
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]any)
+	result["db"] = flattenUefiKeyList(input.Db)
+	result["dbx"] = flattenUefiKeyList(input.Dbx)
+	result["kek"] = flattenUefiKeyList(input.Kek)
+	result["pk"] = flattenUefiKey(input.Pk)
+
+	return append(results, result)
+}
+
+func flattenUefiKeyList(input *[]galleryimageversions.UefiKey) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		if item := flattenUefiKey(&v); len(item) > 0 {
+			results = append(results, item[0])
+		}
+	}
+
+	return results
+}
+
+func flattenUefiKey(input *galleryimageversions.UefiKey) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]any)
+	if input.Value != nil && len(*input.Value) > 0 {
+		result["values_base64"] = *input.Value
+	}
+	result["type"] = pointer.From(input.Type)
+
+	return append(results, result)
+}
+
+func flattenSharedImageVersionTargetRegions(input *[]galleryimageversions.TargetRegion) []any {
+	results := make([]any, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 
 			output["name"] = location.Normalize(v.Name)
 

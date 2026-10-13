@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -95,10 +94,6 @@ func TestAccPowerBIEmbedded_gen2(t *testing.T) {
 }
 
 func TestAccPowerBIEmbedded_defaultMode5x(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skipf("Skipping test for 5.0 default behavior when not running in 5.0 mode")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 	r := PowerBIEmbeddedResource{}
 

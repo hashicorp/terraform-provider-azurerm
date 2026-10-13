@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -76,7 +76,7 @@ func dataSourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ManagedHSMs.ManagedHsmClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -106,12 +106,8 @@ func dataSourceKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceDa
 		d.Set("sku_name", skuName)
 
 		if props := model.Properties; props != nil {
-			tenantId := ""
-			if props.TenantId != nil {
-				tenantId = *props.TenantId
-			}
-			d.Set("tenant_id", tenantId)
-			d.Set("admin_object_ids", helpers.FlattenStringSlice(props.InitialAdminObjectIds))
+			d.Set("tenant_id", pointer.From(props.TenantId))
+			d.Set("admin_object_ids", pluginsdk.FlattenSlice(props.InitialAdminObjectIds))
 			d.Set("hsm_uri", props.HsmUri)
 			d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 			d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)

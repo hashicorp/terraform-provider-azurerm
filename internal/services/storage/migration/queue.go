@@ -37,7 +37,7 @@ func (QueueV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (QueueV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		environment := meta.(*clients.Client).Account.Environment
 		storageDomainSuffix, ok := environment.Storage.DomainSuffix()
 		if !ok {
@@ -46,8 +46,7 @@ func (QueueV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		queueName := rawState["name"]
 		storageAccountName := rawState["storage_account_name"]
-		newID := fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, *storageDomainSuffix, queueName)
-		rawState["id"] = newID
+		rawState["id"] = fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, *storageDomainSuffix, queueName)
 
 		return rawState, nil
 	}

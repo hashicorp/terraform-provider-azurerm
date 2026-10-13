@@ -91,7 +91,7 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -122,7 +122,7 @@ func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta in
 			},
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
+		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]any))),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -134,7 +134,7 @@ func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta in
 	return resourceAutomationDscConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +196,7 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{})))
+		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]any)))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
@@ -206,7 +206,7 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceAutomationDscConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +236,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 		if props := model.Properties; props != nil {
 			d.Set("log_verbose", props.LogVerbose)
 			d.Set("description", props.Description)
-			d.Set("state", string(pointer.From(props.State)))
+			d.Set("state", pointer.FromEnum(props.State))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -255,16 +255,14 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 			if _, err := buf.ReadFrom(contentResp.HttpResponse.Body); err != nil {
 				return fmt.Errorf("reading from AzureRM Automation Dsc Configuration buffer %q: %+v", id.ConfigurationName, err)
 			}
-			content := buf.String()
-
-			d.Set("content_embedded", content)
+			d.Set("content_embedded", buf.String())
 		}
 	}
 
 	return nil
 }
 
-func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

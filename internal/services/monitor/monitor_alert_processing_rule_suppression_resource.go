@@ -34,7 +34,7 @@ func (r AlertProcessingRuleSuppressionResource) ResourceType() string {
 	return "azurerm_monitor_alert_processing_rule_suppression"
 }
 
-func (r AlertProcessingRuleSuppressionResource) ModelObject() interface{} {
+func (r AlertProcessingRuleSuppressionResource) ModelObject() any {
 	return &AlertProcessingRuleSuppressionModel{}
 }
 
@@ -43,8 +43,7 @@ func (r AlertProcessingRuleSuppressionResource) IDValidationFunc() pluginsdk.Sch
 }
 
 func (r AlertProcessingRuleSuppressionResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := schemaAlertProcessingRule()
-	return arguments
+	return schemaAlertProcessingRule()
 }
 
 func (r AlertProcessingRuleSuppressionResource) Attributes() map[string]*pluginsdk.Schema {

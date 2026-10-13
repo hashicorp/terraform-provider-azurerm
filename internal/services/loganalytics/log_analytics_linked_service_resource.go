@@ -42,10 +42,10 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 
 		Schema: resourceLogAnalyticsLinkedServiceSchema(),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
-					if _, err := automationaccount.ValidateAutomationAccountID(readAccessID, "read_acces_id"); err != nil {
+					if _, err := automationaccount.ValidateAutomationAccountID(readAccessID, "read_access_id"); err != nil {
 						return fmt.Errorf("'read_access_id' must be an Automation Account resource ID, got %q", readAccessID)
 					}
 				}
@@ -64,7 +64,7 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -132,7 +132,7 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceLogAnalyticsLinkedServiceRead(d, meta)
 }
 
-func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -159,23 +159,15 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("workspace_id", workspace.ID())
 
 	if model := resp.Model; model != nil {
-		readAccessId := ""
-		if model.Properties.ResourceId != nil {
-			readAccessId = *model.Properties.ResourceId
-		}
-		d.Set("read_access_id", readAccessId)
+		d.Set("read_access_id", pointer.From(model.Properties.ResourceId))
 
-		writeAccessId := ""
-		if model.Properties.WriteAccessResourceId != nil {
-			writeAccessId = *model.Properties.WriteAccessResourceId
-		}
-		d.Set("write_access_id", writeAccessId)
+		d.Set("write_access_id", pointer.From(model.Properties.WriteAccessResourceId))
 	}
 
 	return nil
 }
 
-func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,8 +177,7 @@ func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -221,7 +212,7 @@ func resourceLogAnalyticsLinkedServiceSchema() map[string]*pluginsdk.Schema {
 
 		"read_access_id": {
 			Type:         pluginsdk.TypeString,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
 			ExactlyOneOf: []string{"read_access_id", "write_access_id"},

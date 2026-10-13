@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -65,17 +64,9 @@ func resourceSearchService() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SkuNameFree),
-					string(services.SkuNameBasic),
-					string(services.SkuNameStandard),
-					string(services.SkuNameStandardTwo),
-					string(services.SkuNameStandardThree),
-					string(services.SkuNameStorageOptimizedLOne),
-					string(services.SkuNameStorageOptimizedLTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSkuName(), false),
 			},
 
 			"replica_count": {
@@ -106,23 +97,17 @@ func resourceSearchService() *pluginsdk.Resource {
 			},
 
 			"authentication_failure_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.AadAuthFailureModeHTTPFourZeroOneWithBearerChallenge),
-					string(services.AadAuthFailureModeHTTPFourZeroThree),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForAadAuthFailureMode(), false),
 			},
 
 			"hosting_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(services.HostingModeDefault),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.HostingModeDefault),
-					string(services.HostingModeHighDensity),
-				}, true),
+				Type:                  pluginsdk.TypeString,
+				Optional:              true,
+				ForceNew:              true,
+				Default:               string(services.HostingModeDefault),
+				ValidateFunc:          validation.StringInSlice(services.PossibleValuesForHostingMode(), true),
 				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
 				DiffSuppressOnRefresh: true,
 			},
@@ -195,20 +180,17 @@ func resourceSearchService() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.Any(
-						validate.IPv4Address,
-						validate.CIDR,
+						validation.IsIPv4Address,
+						validation.IsCIDRIPv4,
 					),
 				},
 			},
 
 			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SearchBypassAzureServices),
-					string(services.SearchBypassNone),
-				}, false),
-				Default: string(services.SearchBypassNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(services.PossibleValuesForSearchBypass(), false),
+				Default:      string(services.SearchBypassNone),
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -218,7 +200,7 @@ func resourceSearchService() *pluginsdk.Resource {
 	}
 }
 
-func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -242,7 +224,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		publicNetworkAccess = services.PublicNetworkAccessDisabled
 	}
 
-	var apiKeyOnly interface{} = make(map[string]interface{}, 0)
+	var apiKeyOnly any = make(map[string]any, 0)
 	skuName := services.SkuName(d.Get("sku").(string))
 	ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 	hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
@@ -306,7 +288,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		// API & RBAC Mode..
 		authenticationOptions = pointer.To(services.DataPlaneAuthOptions{
 			AadOrApiKey: pointer.To(services.DataPlaneAadOrApiKeyAuthOption{
-				AadAuthFailureMode: pointer.To(services.AadAuthFailureMode(authenticationFailureMode)),
+				AadAuthFailureMode: pointer.ToEnum[services.AadAuthFailureMode](authenticationFailureMode),
 			}),
 		})
 	}
@@ -337,10 +319,10 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			ReplicaCount:     pointer.To(replicaCount),
 			SemanticSearch:   pointer.To(semanticSearchSku),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -352,8 +334,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		payload.Identity = expandedIdentity
 	}
 
-	err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d))
-	if err != nil {
+	if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, services.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -361,7 +342,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceSearchServiceRead(d, meta)
 }
 
-func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -427,7 +408,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -448,7 +429,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 
-		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
+		var apiKeyOnly any = make(map[string]any, 0)
 
 		// API Only Mode (Default)...
 		authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
@@ -534,7 +515,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, model, services.CreateOrUpdateOperationOptions{}); err != nil {
@@ -544,7 +525,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceSearchServiceRead(d, meta)
 }
 
-func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -581,7 +562,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			partitionCount := 1         // Default
 			replicaCount := 1           // Default
 			publicNetworkAccess := true // publicNetworkAccess defaults to true...
-			cmkEnforcement := false     // cmkEnforcment defaults to false...
+			cmkEnforcement := false     // cmkEnforcement defaults to false...
 			endpoint := ""
 			hostingMode := services.HostingModeDefault
 			localAuthEnabled := true
@@ -599,7 +580,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			// NOTE: There is a bug in the API where it returns the PublicNetworkAccess value
 			// as 'Disabled' instead of 'disabled'
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
+				publicNetworkAccess = strings.EqualFold(pointer.FromEnum(props.PublicNetworkAccess), string(services.PublicNetworkAccessEnabled))
 			}
 
 			if props.HostingMode != nil {
@@ -607,8 +588,8 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			if props.EncryptionWithCmk != nil {
-				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
-				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+				cmkEnforcement = strings.EqualFold(pointer.FromEnum(props.EncryptionWithCmk.Enforcement), string(services.SearchEncryptionWithCmkEnabled))
+				d.Set("customer_managed_key_encryption_compliance_status", pointer.FromEnum(props.EncryptionWithCmk.EncryptionComplianceStatus))
 			}
 
 			if props.Endpoint != nil {
@@ -626,13 +607,13 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					// API Keys Only Mode or RBAC & API Keys Mode...
 					if props.AuthOptions.AadOrApiKey != nil && props.AuthOptions.AadOrApiKey.AadAuthFailureMode != nil {
 						// You are in RBAC & API Keys Mode...
-						authFailureMode = string(pointer.From(props.AuthOptions.AadOrApiKey.AadAuthFailureMode))
+						authFailureMode = pointer.FromEnum(props.AuthOptions.AadOrApiKey.AadAuthFailureMode)
 					}
 				}
 			}
 
 			if props.SemanticSearch != nil && pointer.From(props.SemanticSearch) != services.SearchSemanticSearchDisabled {
-				semanticSearchSku = string(pointer.From(props.SemanticSearch))
+				semanticSearchSku = pointer.FromEnum(props.SemanticSearch)
 			}
 
 			d.Set("authentication_failure_mode", authFailureMode)
@@ -647,7 +628,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("semantic_search_sku", semanticSearchSku)
 
 			if props.NetworkRuleSet != nil {
-				d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleSet.Bypass)))
+				d.Set("network_rule_bypass_option", pointer.FromEnum(props.NetworkRuleSet.Bypass))
 			}
 		}
 
@@ -695,7 +676,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -712,7 +693,7 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 	// only validate if the resource already exists
 	if diff.Id() == "" {
 		return nil
@@ -735,23 +716,23 @@ func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.Resourc
 		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
 	}
 
-	oldLevel, oldExists := skuHierarchy[oldSku]
-	newLevel, newExists := skuHierarchy[newSku]
+	_, oldExists := skuHierarchy[oldSku]
+	_, newExists := skuHierarchy[newSku]
 
-	// If it's not a valid upgrade, force recreation instead of blocking the change
-	if !oldExists || !newExists || newLevel <= oldLevel {
+	// If it's not a valid upgrade (upgrades between basic and standard skus), force recreation instead of blocking the change
+	if !oldExists || !newExists {
 		return diff.ForceNew("sku")
 	}
 
 	return nil
 }
 
-func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []any {
+	results := make([]any, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"name": pointer.From(v.Name),
 				"key":  pointer.From(v.Key),
 			})
@@ -761,7 +742,7 @@ func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	return results
 }
 
-func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
+func expandSearchServiceIPRules(input []any) *[]services.IPRule {
 	output := make([]services.IPRule, 0)
 
 	for _, rule := range input {
@@ -775,8 +756,8 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	return &output
 }
 
-func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
-	result := make([]interface{}, 0)
+func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []any {
+	result := make([]any, 0)
 	if input != nil && input.IPRules != nil {
 		for _, rule := range *input.IPRules {
 			result = append(result, rule.Value)
@@ -800,7 +781,7 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 	return replicaCount, nil
 }
 
-func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 	auth := diff.Get("local_authentication_enabled").(bool)
 	failureMode := diff.Get("authentication_failure_mode").(string)
 

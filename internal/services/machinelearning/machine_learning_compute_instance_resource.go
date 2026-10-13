@@ -71,12 +71,10 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			},
 
 			"authorization_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(machinelearningcomputes.ComputeInstanceAuthorizationTypePersonal),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(machinelearningcomputes.PossibleValuesForComputeInstanceAuthorizationType(), false),
 			},
 
 			"assign_to_user": {
@@ -162,7 +160,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 	return &resource
 }
 
-func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -184,7 +182,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -226,15 +224,15 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	parameters := machinelearningcomputes.ComputeResource{
 		Identity: identity,
 		Location: pointer.To(location.Normalize(*model.Location)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	props := machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
 			VMSize:                          pointer.To(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
-			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
-			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]any)),
+			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]any)),
 			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
 		},
 		Description:      pointer.To(d.Get("description").(string)),
@@ -248,7 +246,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
 
 	if v, ok := d.GetOk("authorization_type"); ok {
-		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
+		props.Properties.ComputeInstanceAuthorizationType = pointer.ToEnum[machinelearningcomputes.ComputeInstanceAuthorizationType](v.(string))
 	}
 
 	parameters.Properties = props
@@ -261,7 +259,7 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceComputeInstanceRead(d, meta)
 }
 
-func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -311,7 +309,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if props.Properties != nil {
 		d.Set("virtual_machine_size", props.Properties.VMSize)
-		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
+		d.Set("authorization_type", pointer.FromEnum(props.Properties.ComputeInstanceAuthorizationType))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 
@@ -329,7 +327,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
-func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -351,11 +349,11 @@ func resourceComputeInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinelearningcomputes.PersonalComputeInstanceSettings {
+func expandComputePersonalComputeInstanceSetting(input []any) *machinelearningcomputes.PersonalComputeInstanceSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	value := input[0].(map[string]interface{})
+	value := input[0].(map[string]any)
 	return &machinelearningcomputes.PersonalComputeInstanceSettings{
 		AssignedUser: &machinelearningcomputes.AssignedUser{
 			ObjectId: value["object_id"].(string),
@@ -364,38 +362,38 @@ func expandComputePersonalComputeInstanceSetting(input []interface{}) *machinele
 	}
 }
 
-func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.ComputeInstanceSshSettings {
+func expandComputeSSHSetting(input []any) *machinelearningcomputes.ComputeInstanceSshSettings {
 	if len(input) == 0 {
 		return &machinelearningcomputes.ComputeInstanceSshSettings{
 			SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessDisabled),
 		}
 	}
-	value := input[0].(map[string]interface{})
+	value := input[0].(map[string]any)
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
 		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
 		AdminPublicKey:  pointer.To(value["public_key"].(string)),
 	}
 }
 
-func flattenComputePersonalComputeInstanceSetting(settings *machinelearningcomputes.PersonalComputeInstanceSettings) interface{} {
+func flattenComputePersonalComputeInstanceSetting(settings *machinelearningcomputes.PersonalComputeInstanceSettings) any {
 	if settings == nil || settings.AssignedUser == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"tenant_id": settings.AssignedUser.TenantId,
 			"object_id": settings.AssignedUser.ObjectId,
 		},
 	}
 }
 
-func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceSshSettings) interface{} {
+func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceSshSettings) any {
 	if settings == nil || strings.EqualFold(string(*settings.SshPublicAccess), string(machinelearningcomputes.SshPublicAccessDisabled)) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"public_key": settings.AdminPublicKey,
 			"username":   settings.AdminUserName,
 			"port":       settings.SshPort,

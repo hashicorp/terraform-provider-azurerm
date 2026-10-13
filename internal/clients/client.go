@@ -18,7 +18,6 @@ import (
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
 	servicenetworking_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"
-	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
@@ -112,7 +111,6 @@ import (
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	oracle "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
-	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
@@ -125,7 +123,6 @@ import (
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
-	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
@@ -251,7 +248,6 @@ type Client struct {
 	Nginx                             *nginx_2024_11_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
 	Oracle                            *oracle.Client
-	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client
 	Policy                            *policy.Client
 	Portal                            *portal.Client
@@ -264,7 +260,6 @@ type Client struct {
 	RecoveryServices                  *recoveryServices.Client
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
-	RedisEnterprise                   *redisenterprise.Client
 	Relay                             *relay.Client
 	Resource                          *resource.Client
 	Search                            *search.Client
@@ -278,7 +273,6 @@ type Client struct {
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
 	StorageCache                      *storagecache_2024_07_01.Client
-	StorageCache_2023_05_01           *storagecache_2023_05_01.Client
 	StorageMover                      *storageMover.Client
 	StreamAnalytics                   *streamAnalytics.Client
 	Subscription                      *subscription.Client
@@ -573,9 +567,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Oracle, err = oracle.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for OracleDatabase: %+v", err)
 	}
-	if client.Orbital, err = orbital.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Orbital: %+v", err)
-	}
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
 	}
@@ -611,9 +602,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
-	}
-	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
@@ -653,9 +641,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
-	}
-	if client.StorageCache_2023_05_01, err = storageCache.NewClient_2023_05_01(o); err != nil {
-		return fmt.Errorf("building clients for Storage Cache 2023-05-01: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)

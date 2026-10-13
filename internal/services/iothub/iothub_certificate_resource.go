@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubCertificate() *pluginsdk.Resource {
@@ -78,7 +78,7 @@ func resourceIotHubCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -89,12 +89,12 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_iothub_certificate", id.ID())
 		}
 	}
@@ -115,7 +115,7 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubCertificateRead(d, meta)
 }
 
-func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +127,7 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -146,7 +146,7 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -159,10 +159,7 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("reading %s: %v", id, err)
 	}
 
-	etag := ""
-	if existing.Etag != nil {
-		etag = *existing.Etag
-	}
+	etag := pointer.From(existing.Etag)
 
 	if d.HasChange("is_verified") {
 		existing.Properties.IsVerified = pointer.To(d.Get("is_verified").(bool))
@@ -179,7 +176,7 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubCertificateRead(d, meta)
 }
 
-func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +188,7 @@ func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.IotHubName, id.CertificateName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)

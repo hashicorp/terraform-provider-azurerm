@@ -145,7 +145,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -166,12 +166,12 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	identityVal, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityVal, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	enc, err := expandEncryption(d.Get("encryption").([]interface{}))
+	enc, err := expandEncryption(d.Get("encryption").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `encryption`: %v", err)
 	}
@@ -193,7 +193,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	if identityVal.Type != identity.TypeNone {
 		parameters.Identity = identityVal
 	}
-	if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+	if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]any)); tagsVal != nil {
 		parameters.Tags = &tagsVal
 	}
 
@@ -209,7 +209,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceAutomationAccountRead(d, meta)
 }
 
-func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,12 +219,12 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	identityVal, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityVal, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	enc, err := expandEncryption(d.Get("encryption").([]interface{}))
+	enc, err := expandEncryption(d.Get("encryption").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `encryption`: %v", err)
 	}
@@ -245,7 +245,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 	}
 
-	if tagsVal := tags.Expand(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+	if tagsVal := tags.Expand(d.Get("tags").(map[string]any)); tagsVal != nil {
 		parameters.Tags = tagsVal
 	}
 
@@ -256,7 +256,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceAutomationAccountRead(d, meta)
 }
 
-func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.AutomationAccount
 	registrationClient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -351,7 +351,7 @@ func resourceAutomationAccountFlatten(d *pluginsdk.ResourceData, id *automationa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -373,16 +373,16 @@ func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandEncryption(input []interface{}) (*automationaccount.EncryptionProperties, error) {
+func expandEncryption(input []any) (*automationaccount.EncryptionProperties, error) {
 	if len(input) == 0 {
 		return &automationaccount.EncryptionProperties{
 			KeySource: pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation),
 		}, nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
-	var id interface{}
+	var id any
 	id, ok := v["user_assigned_identity_id"].(string)
 	if !ok {
 		return nil, fmt.Errorf("read encryption user identity id error")
@@ -410,9 +410,9 @@ func expandEncryption(input []interface{}) (*automationaccount.EncryptionPropert
 	return prop, nil
 }
 
-func flattenEncryption(encryption *automationaccount.EncryptionProperties) []interface{} {
+func flattenEncryption(encryption *automationaccount.EncryptionProperties) []any {
 	if encryption == nil || encryption.KeySource == nil || *encryption.KeySource != automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault {
-		return []interface{}{}
+		return []any{}
 	}
 
 	keyVaultKeyId := ""
@@ -434,24 +434,22 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 			}
 		}
 	}
-	flattened := []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"key_vault_key_id":          keyVaultKeyId,
 			"user_assigned_identity_id": userAssignedIdentityId,
 		},
 	}
-
-	return flattened
 }
 
-func flattenPrivateEndpointConnections(input *[]automationaccount.PrivateEndpointConnection) []interface{} {
+func flattenPrivateEndpointConnections(input *[]automationaccount.PrivateEndpointConnection) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, item := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"id":   pointer.From(item.Id),
 			"name": pointer.From(item.Name),
 		})

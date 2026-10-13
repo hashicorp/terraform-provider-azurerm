@@ -14,11 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -31,7 +30,7 @@ type ManagerModel struct {
 	Name              string                         `tfschema:"name"`
 	Location          string                         `tfschema:"location"`
 	ResourceGroupName string                         `tfschema:"resource_group_name"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	Tags              map[string]any                 `tfschema:"tags"`
 }
 
 type ManagerScopeModel struct {
@@ -66,7 +65,7 @@ func (r ManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networkmanagers.ValidateNetworkManagerID
 }
 
-func (r ManagerResource) ModelObject() interface{} {
+func (r ManagerResource) ModelObject() any {
 	return &ManagerModel{}
 }
 
@@ -95,7 +94,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: managementGroupValidate.ManagementGroupID,
+							ValidateFunc: validate.ManagementGroupID,
 						},
 						AtLeastOneOf: []string{"scope.0.management_group_ids", "scope.0.subscription_ids"},
 					},
@@ -198,7 +197,7 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 					NetworkManagerScopes:        expandNetworkManagerScope(state.Scope),
 					NetworkManagerScopeAccesses: expandNetworkManagerScopeAccesses(state.ScopeAccesses),
 				},
-				Tags: helpers.ExpandPtrMapStringString(state.Tags),
+				Tags: pluginsdk.ExpandPtrMapStringString(state.Tags),
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, input); err != nil {
@@ -261,7 +260,7 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 				ScopeAccesses:     scopeAccesses,
 				Scope:             scope,
-				Tags:              helpers.FlattenPtrMapStringString(resp.Model.Tags),
+				Tags:              pluginsdk.FlattenPtrMapStringString(resp.Model.Tags),
 			})
 		},
 	}
@@ -306,7 +305,7 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = helpers.ExpandPtrMapStringString(state.Tags)
+				existing.Model.Tags = pluginsdk.ExpandPtrMapStringString(state.Tags)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -327,10 +326,9 @@ func (r ManagerResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
+			if err = client.DeleteThenPoll(ctx, *id, networkmanagers.DeleteOperationOptions{
 				Force: pointer.To(true),
-			})
-			if err != nil {
+			}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

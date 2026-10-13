@@ -15,8 +15,8 @@ Use this data source to access information about an existing Bastion Host.
 
 ```hcl
 data "azurerm_bastion_host" "example" {
-  name                = "existing-bastion"
-  resource_group_name = "existing-resources"
+  name                = "example-bastion"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -86,4 +86,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

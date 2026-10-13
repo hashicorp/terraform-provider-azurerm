@@ -13,10 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +23,7 @@ import (
 )
 
 func resourcePowerBIEmbedded() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourcePowerBIEmbeddedCreate,
 		Read:   resourcePowerBIEmbeddedRead,
 		Update: resourcePowerBIEmbeddedUpdate,
@@ -80,28 +78,19 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			},
 
 			"mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(capacities.ModeGenTwo),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(capacities.ModeGenOne),
-					string(capacities.ModeGenTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(capacities.ModeGenTwo),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(capacities.PossibleValuesForMode(), false),
 			},
 
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["mode"].Default = string(capacities.ModeGenOne)
-	}
-
-	return resource
 }
 
-func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -128,14 +117,14 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &capacities.DedicatedCapacityProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: helpers.ExpandStringSlice(administrators),
+				Members: pluginsdk.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		},
 		Sku: capacities.CapacitySku{
 			Name: d.Get("sku_name").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -146,7 +135,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,7 +166,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if props.Administration != nil {
 				adminMembers = props.Administration.Members
 			}
-			if err := d.Set("administrators", helpers.FlattenStringSlice(adminMembers)); err != nil {
+			if err := d.Set("administrators", pluginsdk.FlattenSlice(adminMembers)); err != nil {
 				return fmt.Errorf("setting `administration`: %+v", err)
 			}
 
@@ -198,7 +187,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +205,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		parameters.Properties = &capacities.DedicatedCapacityMutableProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
-				Members: helpers.ExpandStringSlice(administrators),
+				Members: pluginsdk.ExpandStringSlice(administrators),
 			},
 			Mode: &mode,
 		}
@@ -229,7 +218,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -239,7 +228,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -72,7 +72,7 @@ func resourceIotHubDPSCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubDPSCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -111,7 +111,7 @@ func resourceIotHubDPSCertificateCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceIotHubDPSCertificateRead(d, meta)
 }
 
-func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,18 +136,14 @@ func resourceIotHubDPSCertificateRead(d *pluginsdk.ResourceData, meta interface{
 	// We are unable to set `certificate_content` since it is not returned from the API
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			isVerified := false
-			if props.IsVerified != nil {
-				isVerified = *props.IsVerified
-			}
-			d.Set("is_verified", isVerified)
+			d.Set("is_verified", pointer.From(props.IsVerified))
 		}
 	}
 
 	return nil
 }
 
-func resourceIotHubDPSCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -180,7 +176,7 @@ func resourceIotHubDPSCertificateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceIotHubDPSCertificateRead(d, meta)
 }
 
-func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDPSCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

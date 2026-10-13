@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -180,6 +179,18 @@ func TestAccEventHubNamespace_networkrule_publicNetworkAccessDiff(t *testing.T) 
 		{
 			Config:      r.networkrule_publicNetworkAccessDiff(data),
 			ExpectError: regexp.MustCompile("the value of public network access of namespace should be the same as of the network rulesets"),
+		},
+	})
+}
+
+func TestAccEventHubNamespace_networkrule_denyWithNoRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.networkrule_denyWithNoRules(data),
+			ExpectError: regexp.MustCompile("the `default_action` of `network_rulesets` can only be set to `Deny` when at least one `ip_rule` or `virtual_network_rule` block is specified"),
 		},
 	})
 }
@@ -495,31 +506,6 @@ func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
-func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("The `minimum_tls_version` has only one possible value `1.2`, we can not update it.")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	r := EventHubNamespaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
-			),
-		},
-		{
-			Config: r.minimumTLSUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
-			),
-		},
-	})
-}
-
 func TestAccEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
@@ -755,6 +741,31 @@ resource "azurerm_eventhub_namespace" "test" {
       ip_mask = "10.0.0.0/16"
       action  = "Allow"
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) networkrule_denyWithNoRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  capacity            = "2"
+
+  network_rulesets {
+    default_action = "Deny"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1066,27 +1077,6 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Basic"
   public_network_access_enabled = false
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (EventHubNamespaceResource) minimumTLSUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eh-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  minimum_tls_version = "1.1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

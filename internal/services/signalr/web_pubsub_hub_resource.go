@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -156,7 +155,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -191,12 +190,12 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	parameters := webpubsub.WebPubSubHub{
 		Properties: webpubsub.WebPubSubHubProperties{
-			EventHandlers:          expandEventHandler(d.Get("event_handler").([]interface{})),
+			EventHandlers:          expandEventHandler(d.Get("event_handler").([]any)),
 			AnonymousConnectPolicy: &anonymousPolicyEnabled,
 		},
 	}
 
-	eventListener, err := expandEventListener(d.Get("event_listener").([]interface{}))
+	eventListener, err := expandEventListener(d.Get("event_listener").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding event listener for web pubsub %s: %+v", id, err)
 	}
@@ -217,7 +216,7 @@ func resourceWebPubSubHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceWebPubSubHubRead(d, meta)
 }
 
-func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +252,7 @@ func resourceWebPubSubHubRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceWebPubSubHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceWebPubSubHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.WebPubSubClient.WebPubSub
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +269,7 @@ func resourceWebPubSubHubDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
+func expandEventHandler(input []any) *[]webpubsub.EventHandler {
 	if len(input) == 0 {
 		return nil
 	}
@@ -278,7 +277,7 @@ func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 	results := make([]webpubsub.EventHandler, 0)
 
 	for _, eventHandlerItem := range input {
-		block := eventHandlerItem.(map[string]interface{})
+		block := eventHandlerItem.(map[string]any)
 		eventHandlerSettings := webpubsub.EventHandler{
 			UrlTemplate: block["url_template"].(string),
 		}
@@ -295,7 +294,7 @@ func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 			eventHandlerSettings.SystemEvents = &systemEvents
 		}
 
-		if v, ok := block["auth"].([]interface{}); ok {
+		if v, ok := block["auth"].([]any); ok {
 			if len(v) > 0 {
 				eventHandlerSettings.Auth = expandAuth(v)
 			}
@@ -306,31 +305,26 @@ func expandEventHandler(input []interface{}) *[]webpubsub.EventHandler {
 	return &results
 }
 
-func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
-	eventHandlerBlock := make([]interface{}, 0)
+func flattenEventHandler(input *[]webpubsub.EventHandler) []any {
+	eventHandlerBlock := make([]any, 0)
 	if input == nil {
 		return eventHandlerBlock
 	}
 
 	for _, item := range *input {
-		userEventPatten := ""
-		if item.UserEventPattern != nil {
-			userEventPatten = *item.UserEventPattern
-		}
-
-		sysEvents := make([]interface{}, 0)
+		sysEvents := make([]any, 0)
 		if item.SystemEvents != nil {
-			sysEvents = helpers.FlattenStringSlice(item.SystemEvents)
+			sysEvents = pluginsdk.FlattenSlice(item.SystemEvents)
 		}
 
-		authBlock := make([]interface{}, 0)
+		authBlock := make([]any, 0)
 		if item.Auth != nil {
 			authBlock = flattenAuth(item.Auth)
 		}
 
-		eventHandlerBlock = append(eventHandlerBlock, map[string]interface{}{
+		eventHandlerBlock = append(eventHandlerBlock, map[string]any{
 			"url_template":       item.UrlTemplate,
-			"user_event_pattern": userEventPatten,
+			"user_event_pattern": pointer.From(item.UserEventPattern),
 			"system_events":      sysEvents,
 			"auth":               authBlock,
 		})
@@ -338,23 +332,23 @@ func flattenEventHandler(input *[]webpubsub.EventHandler) []interface{} {
 	return eventHandlerBlock
 }
 
-func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error) {
+func expandEventListener(input []any) (*[]webpubsub.EventListener, error) {
 	result := make([]webpubsub.EventListener, 0)
 	if len(input) == 0 {
 		return &result, nil
 	}
 
 	for _, eventListenerItem := range input {
-		block := eventListenerItem.(map[string]interface{})
+		block := eventListenerItem.(map[string]any)
 		systemEvents := make([]string, 0)
 		userEventPattern := ""
-		if v, ok := block["user_event_name_filter"]; ok && len(v.([]interface{})) > 0 {
-			userEventPatternList := helpers.ExpandStringSlice(v.([]interface{}))
+		if v, ok := block["user_event_name_filter"]; ok && len(v.([]any)) > 0 {
+			userEventPatternList := pluginsdk.ExpandStringSlice(v.([]any))
 			userEventPattern = strings.Join(*userEventPatternList, ",")
 		}
 
 		if v, ok := block["system_event_name_filter"]; ok {
-			for _, item := range v.([]interface{}) {
+			for _, item := range v.([]any) {
 				systemEvents = append(systemEvents, item.(string))
 			}
 		}
@@ -382,24 +376,24 @@ func expandEventListener(input []interface{}) (*[]webpubsub.EventListener, error
 	return &result, nil
 }
 
-func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
-	eventListenerBlocks := make([]interface{}, 0)
+func flattenEventListener(listener *[]webpubsub.EventListener) []any {
+	eventListenerBlocks := make([]any, 0)
 	if listener == nil {
 		return eventListenerBlocks
 	}
 
 	for _, item := range *listener {
-		listenerBlock := make(map[string]interface{}, 0)
+		listenerBlock := make(map[string]any, 0)
 		// todo use the type Assertion or Type field in sdk to get the different sub-class
 		if eventFilter := item.Filter; eventFilter != nil {
 			eventNameFilter := item.Filter.(webpubsub.EventNameFilter)
-			userNameFilterList := make([]interface{}, 0)
+			userNameFilterList := make([]any, 0)
 			if eventNameFilter.SystemEvents != nil {
-				listenerBlock["system_event_name_filter"] = helpers.FlattenStringSlice(eventNameFilter.SystemEvents)
+				listenerBlock["system_event_name_filter"] = pluginsdk.FlattenSlice(eventNameFilter.SystemEvents)
 			}
 			if eventNameFilter.UserEventPattern != nil && *eventNameFilter.UserEventPattern != "" {
-				v := strings.Split(*eventNameFilter.UserEventPattern, ",")
-				for _, s := range v {
+				v := strings.SplitSeq(*eventNameFilter.UserEventPattern, ",")
+				for s := range v {
 					userNameFilterList = append(userNameFilterList, s)
 				}
 				listenerBlock["user_event_name_filter"] = userNameFilterList
@@ -417,34 +411,31 @@ func flattenEventListener(listener *[]webpubsub.EventListener) []interface{} {
 	return eventListenerBlocks
 }
 
-func expandAuth(input []interface{}) *webpubsub.UpstreamAuthSettings {
+func expandAuth(input []any) *webpubsub.UpstreamAuthSettings {
 	if len(input) == 0 || input[0] == nil {
-		authType := webpubsub.UpstreamAuthTypeNone
 		return &webpubsub.UpstreamAuthSettings{
-			Type: &authType,
+			Type: pointer.To(webpubsub.UpstreamAuthTypeNone),
 		}
 	}
 
-	authRaw := input[0].(map[string]interface{})
-	authId := authRaw["managed_identity_id"].(string)
-	authType := webpubsub.UpstreamAuthTypeManagedIdentity
+	authRaw := input[0].(map[string]any)
 	return &webpubsub.UpstreamAuthSettings{
-		Type: &authType,
+		Type: pointer.To(webpubsub.UpstreamAuthTypeManagedIdentity),
 		ManagedIdentity: &webpubsub.ManagedIdentitySettings{
-			Resource: &authId,
+			Resource: pointer.To(authRaw["managed_identity_id"].(string)),
 		},
 	}
 }
 
-func flattenAuth(input *webpubsub.UpstreamAuthSettings) []interface{} {
+func flattenAuth(input *webpubsub.UpstreamAuthSettings) []any {
 	if input == nil || input.Type == nil || *input.Type == webpubsub.UpstreamAuthTypeNone || input.ManagedIdentity == nil || input.ManagedIdentity.Resource == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	authId := *input.ManagedIdentity.Resource
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"managed_identity_id": authId,
 		},
 	}

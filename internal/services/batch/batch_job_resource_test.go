@@ -21,6 +21,16 @@ import (
 
 type BatchJobResource struct{}
 
+func TestAccBatchJob_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_job", "test")
+	r := BatchJobResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBatchJob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_job", "test")
 	r := BatchJobResource{}

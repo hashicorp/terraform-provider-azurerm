@@ -45,7 +45,7 @@ func dataSourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbMongoDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

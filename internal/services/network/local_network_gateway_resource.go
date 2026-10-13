@@ -12,12 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +27,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
-	r := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create:   resourceLocalNetworkGatewayCreate,
 		Read:     resourceLocalNetworkGatewayRead,
 		Update:   resourceLocalNetworkGatewayUpdate,
@@ -105,15 +104,9 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		r.Schema["address_space"].Type = pluginsdk.TypeList
-	}
-
-	return r
 }
 
-func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -141,7 +134,7 @@ func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface
 			LocalNetworkAddressSpace: expandLocalNetworkGatewayAddressSpaces(d),
 			BgpSettings:              expandLocalNetworkGatewayBGPSettings(d),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if ipAddress := d.Get("gateway_address").(string); ipAddress != "" {
@@ -162,7 +155,7 @@ func resourceLocalNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
-func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,32 +189,13 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, *id)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
 	if d.HasChange("address_space") {
-		if !features.FivePointOh() {
-			// There is a bug in the provider where the address space ordering doesn't change as expected.
-			// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
-			// since the local network gateway cannot have both empty address prefix and empty BGP setting(confirmed with service team, it is by design),
-			// replace the empty address prefix with the first address prefix in the "address_space" list to avoid error.
-			if v := d.Get("address_space").([]interface{}); len(v) > 0 {
-				payload.Properties.LocalNetworkAddressSpace = &localnetworkgateways.AddressSpace{
-					AddressPrefixes: &[]string{v[0].(string)},
-				}
-			}
-
-			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
-				return fmt.Errorf("removing %s: %+v", id, err)
-			}
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return err
-			}
-		}
-
 		payload.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 	}
 
@@ -238,7 +212,7 @@ func resourceLocalNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceLocalNetworkGatewayRead(d, meta)
 }
 
-func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,8 +245,7 @@ func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
 			d.Set("address_space", lnas.AddressPrefixes)
 		}
-		flattenedSettings := flattenLocalNetworkGatewayBGPSettings(props.BgpSettings)
-		if err := d.Set("bgp_settings", flattenedSettings); err != nil {
+		if err := d.Set("bgp_settings", flattenLocalNetworkGatewayBGPSettings(props.BgpSettings)); err != nil {
 			return err
 		}
 
@@ -284,7 +257,7 @@ func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.LocalNetworkGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,8 +289,8 @@ func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *localnetwo
 		return nil
 	}
 
-	settings := v.([]interface{})
-	setting := settings[0].(map[string]interface{})
+	settings := v.([]any)
+	setting := settings[0].(map[string]any)
 
 	bgpSettings := localnetworkgateways.BgpSettings{
 		Asn:               pointer.To(int64(setting["asn"].(int))),
@@ -331,14 +304,8 @@ func expandLocalNetworkGatewayBGPSettings(d *pluginsdk.ResourceData) *localnetwo
 func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *localnetworkgateways.AddressSpace {
 	prefixes := make([]string, 0)
 
-	if !features.FivePointOh() {
-		for _, pref := range d.Get("address_space").([]interface{}) {
-			prefixes = append(prefixes, pref.(string))
-		}
-	} else {
-		for _, pref := range d.Get("address_space").(*pluginsdk.Set).List() {
-			prefixes = append(prefixes, pref.(string))
-		}
+	for _, pref := range d.Get("address_space").(*pluginsdk.Set).List() {
+		prefixes = append(prefixes, pref.(string))
 	}
 
 	return &localnetworkgateways.AddressSpace{
@@ -346,16 +313,16 @@ func expandLocalNetworkGatewayAddressSpaces(d *pluginsdk.ResourceData) *localnet
 	}
 }
 
-func flattenLocalNetworkGatewayBGPSettings(input *localnetworkgateways.BgpSettings) []interface{} {
-	output := make(map[string]interface{})
+func flattenLocalNetworkGatewayBGPSettings(input *localnetworkgateways.BgpSettings) []any {
+	output := make(map[string]any)
 
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	output["asn"] = int(*input.Asn)
 	output["bgp_peering_address"] = *input.BgpPeeringAddress
 	output["peer_weight"] = int(*input.PeerWeight)
 
-	return []interface{}{output}
+	return []any{output}
 }

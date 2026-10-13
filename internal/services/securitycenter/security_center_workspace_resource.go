@@ -8,8 +8,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // only valid name is default
@@ -63,7 +63,7 @@ func resourceSecurityCenterWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// TODO: split this create/update
 
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
@@ -76,12 +76,12 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.WorkspaceSettingName)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_security_center_workspace", id.ID())
 			}
 		}
@@ -117,7 +117,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		Target:     []string{"Populated"},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err2 := client.Get(ctx, id.WorkspaceSettingName)
 			if err2 != nil {
 				return resp, "Error", fmt.Errorf("reading Security Center Workspace: %+v", err2)
@@ -144,14 +144,14 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceSecurityCenterWorkspaceRead(d, meta)
 }
 
-func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, securityCenterWorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] Security Center Subscription Workspace was not found: %v", err)
 			d.SetId("")
 			return nil
@@ -176,14 +176,14 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Delete(ctx, securityCenterWorkspaceName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription Workspace was not found: %v", err)
 			return nil
 		}

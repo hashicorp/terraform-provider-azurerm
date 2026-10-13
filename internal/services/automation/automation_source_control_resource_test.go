@@ -29,8 +29,8 @@ type githubRepo struct {
 
 func newSourceControlResource(t *testing.T) SourceControlResource {
 	// - ARM_TEST_ASC_GITHUB_REPOSITORY_URL represents the user repo
-	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
-	// Checkout https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task for details.
+	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
+	// Checkout https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task for details.
 	ins := SourceControlResource{
 		githubRepo: githubRepo{
 			url:   os.Getenv("ARM_TEST_ASC_GITHUB_REPOSITORY_URL"),
@@ -124,6 +124,16 @@ resource "azurerm_automation_source_control" "test" {
   }
 }
 `, s.template(data), data.RandomInteger, s.url, s.token)
+}
+
+func TestAccSourceControl_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SourceControlResource{}.ResourceType(), "test")
+	r := newSourceControlResource(t)
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
 }
 
 func TestAccSourceControl_basic(t *testing.T) {

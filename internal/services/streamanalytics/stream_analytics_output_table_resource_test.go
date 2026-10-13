@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -143,36 +142,6 @@ resource "azurerm_stream_analytics_output_table" "test" {
 }
 
 func (r StreamAnalyticsOutputTableResource) updated(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account" "updated" {
-  name                     = "acctestaccu%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_table" "updated" {
-  name                 = "accteststu%[3]d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
-resource "azurerm_stream_analytics_output_table" "test" {
-  name                      = "acctestoutput-%[3]d"
-  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
-  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
-  storage_account_name      = azurerm_storage_account.updated.name
-  storage_account_key       = azurerm_storage_account.updated.primary_access_key
-  table                     = "updated"
-  partition_key             = "partitionkeyupdated"
-  row_key                   = "rowkeyupdated"
-  batch_size                = 50
-}
-`, r.template(data), data.RandomString, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -246,51 +215,6 @@ resource "azurerm_stream_analytics_output_table" "import" {
 }
 
 func (r StreamAnalyticsOutputTableResource) template(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
-}
-
-resource "azurerm_stream_analytics_job" "test" {
-  name                                     = "acctestjob-%[1]d"
-  resource_group_name                      = azurerm_resource_group.test.name
-  location                                 = azurerm_resource_group.test.location
-  compatibility_level                      = "1.0"
-  data_locale                              = "en-GB"
-  events_late_arrival_max_delay_in_seconds = 60
-  events_out_of_order_max_delay_in_seconds = 50
-  events_out_of_order_policy               = "Adjust"
-  output_error_policy                      = "Drop"
-  streaming_units                          = 3
-
-  transformation_query = <<QUERY
-		    SELECT *
-		    INTO [YourOutputAlias]
-		    FROM [YourInputAlias]
-		QUERY
-
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -19,7 +19,7 @@ import (
 )
 
 func resourceAutomationCertificate() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceAutomationCertificateCreate,
 		Read:   resourceAutomationCertificateRead,
 		Update: resourceAutomationCertificateUpdate,
@@ -79,11 +79,9 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return resource
 }
 
-func resourceAutomationCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Certificate
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -122,7 +120,7 @@ func resourceAutomationCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAutomationCertificateRead(d, meta)
 }
 
-func resourceAutomationCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +163,7 @@ func resourceAutomationCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAutomationCertificateRead(d, meta)
 }
 
-func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +198,7 @@ func resourceAutomationCertificateRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceAutomationCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Certificate
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

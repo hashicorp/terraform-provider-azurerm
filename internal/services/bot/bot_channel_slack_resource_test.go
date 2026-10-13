@@ -10,15 +10,29 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelSlackResource struct{}
+
+func TestAccBotChannelSlack_regressionTest(t *testing.T) {
+	if ok := skipSlackChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
+	r := BotChannelSlackResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccBotChannelSlack_basic(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
@@ -82,12 +96,12 @@ func TestAccBotChannelSlack_update(t *testing.T) {
 }
 
 func (t BotChannelSlackResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotChannelID(state.ID)
+	id, err := commonids.ParseBotServiceChannelID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
+	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

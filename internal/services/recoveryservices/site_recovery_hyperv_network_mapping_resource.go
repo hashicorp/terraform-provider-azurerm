@@ -82,7 +82,7 @@ func (s HyperVNetworkMappingResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (s HyperVNetworkMappingResource) ModelObject() interface{} {
+func (s HyperVNetworkMappingResource) ModelObject() any {
 	return &HyperVNetworkMappingModel{}
 }
 
@@ -208,8 +208,7 @@ func (s HyperVNetworkMappingResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.RecoveryServices.NetworkMappingClient
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 

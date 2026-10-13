@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `status` - (Optional) Specifies the status of the Event Hub resource. Possible values are `Active`, `Disabled` and `SendDisabled`. Defaults to `Active`.
 
+~> **Note:** `status` cannot be set to `SendDisabled` when creating an Event Hub - the Event Hub must be created with a `status` of `Active` or `Disabled` and can then be updated to `SendDisabled`.
+
 ---
 
 A `capture_description` block supports the following:

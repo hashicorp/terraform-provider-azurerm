@@ -6,10 +6,11 @@ package costmanagement
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -60,7 +61,7 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 		"chart_type": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(views.PossibleValuesForChartType(), false),
+			ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForChartType(), false),
 		},
 
 		"accumulated": {
@@ -70,17 +71,15 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 		},
 
 		"report_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(views.ReportTypeUsage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportType(), false),
 		},
 
 		"timeframe": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportTimeframeType(), false),
+			ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportTimeframeType(), false),
 		},
 
 		"dataset": {
@@ -92,7 +91,7 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 					"granularity": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportGranularityType(), false),
+						ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportGranularityType(), false),
 					},
 
 					"aggregation": {
@@ -122,7 +121,7 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 								"direction": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportConfigSortingType(), false),
+									ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForReportConfigSortingType(), false),
 								},
 								"name": {
 									Type:     pluginsdk.TypeString,
@@ -140,7 +139,7 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 								"type": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(views.PossibleValuesForQueryColumnType(), false),
+									ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForQueryColumnType(), false),
 								},
 								"name": {
 									Type:     pluginsdk.TypeString,
@@ -161,7 +160,7 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 					"type": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(views.PossibleValuesForKpiTypeType(), false),
+						ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForKpiTypeType(), false),
 					},
 				},
 			},
@@ -179,16 +178,14 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 					"type": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringInSlice(views.PossibleValuesForPivotTypeType(), false),
+						ValidateFunc: validation.StringInSlice(viewoperationgroup.PossibleValuesForPivotTypeType(), false),
 					},
 				},
 			},
 		},
 	}
 
-	for k, v := range fields {
-		output[k] = v
-	}
+	maps.Copy(output, fields)
 
 	return output
 }
@@ -201,14 +198,14 @@ func (br costManagementViewBaseResource) deleteFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
 
-			id, err := views.ParseScopedViewID(metadata.ResourceData.Id())
+			id, err := viewoperationgroup.ParseScopedViewID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err = client.DeleteByScope(ctx, *id); err != nil {
+			if _, err = client.ViewsDeleteByScope(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -219,32 +216,32 @@ func (br costManagementViewBaseResource) deleteFunc() sdk.ResourceFunc {
 
 // Typed model expand/flatten helpers
 
-func expandDatasetFromModel(input []CostManagementViewDatasetModel) *views.ReportConfigDataset {
+func expandDatasetFromModel(input []CostManagementViewDatasetModel) *viewoperationgroup.ReportConfigDataset {
 	if len(input) == 0 {
 		return nil
 	}
 
 	ds := input[0]
-	dataset := &views.ReportConfigDataset{
-		Granularity: pointer.To(views.ReportGranularityType(ds.Granularity)),
+	dataset := &viewoperationgroup.ReportConfigDataset{
+		Granularity: pointer.ToEnum[viewoperationgroup.ReportGranularityType](ds.Granularity),
 	}
 
 	if len(ds.Aggregation) > 0 {
-		aggregation := map[string]views.ReportConfigAggregation{}
+		aggregation := map[string]viewoperationgroup.ReportConfigAggregation{}
 		for _, a := range ds.Aggregation {
-			aggregation[a.Name] = views.ReportConfigAggregation{
+			aggregation[a.Name] = viewoperationgroup.ReportConfigAggregation{
 				Name:     a.ColumnName,
-				Function: views.FunctionTypeSum,
+				Function: viewoperationgroup.FunctionTypeSum,
 			}
 		}
 		dataset.Aggregation = &aggregation
 	}
 
 	if len(ds.Sorting) > 0 {
-		sorting := make([]views.ReportConfigSorting, 0)
+		sorting := make([]viewoperationgroup.ReportConfigSorting, 0)
 		for _, s := range ds.Sorting {
-			sorting = append(sorting, views.ReportConfigSorting{
-				Direction: pointer.To(views.ReportConfigSortingType(s.Direction)),
+			sorting = append(sorting, viewoperationgroup.ReportConfigSorting{
+				Direction: pointer.ToEnum[viewoperationgroup.ReportConfigSortingType](s.Direction),
 				Name:      s.Name,
 			})
 		}
@@ -252,10 +249,10 @@ func expandDatasetFromModel(input []CostManagementViewDatasetModel) *views.Repor
 	}
 
 	if len(ds.Grouping) > 0 {
-		grouping := make([]views.ReportConfigGrouping, 0)
+		grouping := make([]viewoperationgroup.ReportConfigGrouping, 0)
 		for _, g := range ds.Grouping {
-			grouping = append(grouping, views.ReportConfigGrouping{
-				Type: views.QueryColumnType(g.Type),
+			grouping = append(grouping, viewoperationgroup.ReportConfigGrouping{
+				Type: viewoperationgroup.QueryColumnType(g.Type),
 				Name: g.Name,
 			})
 		}
@@ -265,7 +262,7 @@ func expandDatasetFromModel(input []CostManagementViewDatasetModel) *views.Repor
 	return dataset
 }
 
-func flattenDatasetToModel(input *views.ReportConfigDataset) []CostManagementViewDatasetModel {
+func flattenDatasetToModel(input *viewoperationgroup.ReportConfigDataset) []CostManagementViewDatasetModel {
 	if input == nil {
 		return []CostManagementViewDatasetModel{}
 	}
@@ -315,18 +312,18 @@ func flattenDatasetToModel(input *views.ReportConfigDataset) []CostManagementVie
 	return []CostManagementViewDatasetModel{ds}
 }
 
-func expandKpisFromModel(input []CostManagementViewKpiModel) *[]views.KpiProperties {
-	kpis := make([]views.KpiProperties, 0)
+func expandKpisFromModel(input []CostManagementViewKpiModel) *[]viewoperationgroup.KpiProperties {
+	kpis := make([]viewoperationgroup.KpiProperties, 0)
 	for _, k := range input {
-		kpis = append(kpis, views.KpiProperties{
-			Type:    pointer.To(views.KpiTypeType(k.Type)),
+		kpis = append(kpis, viewoperationgroup.KpiProperties{
+			Type:    pointer.ToEnum[viewoperationgroup.KpiTypeType](k.Type),
 			Enabled: pointer.To(true),
 		})
 	}
 	return &kpis
 }
 
-func flattenKpisToModel(input *[]views.KpiProperties) []CostManagementViewKpiModel {
+func flattenKpisToModel(input *[]viewoperationgroup.KpiProperties) []CostManagementViewKpiModel {
 	if input == nil || len(*input) == 0 {
 		return []CostManagementViewKpiModel{}
 	}
@@ -344,18 +341,18 @@ func flattenKpisToModel(input *[]views.KpiProperties) []CostManagementViewKpiMod
 	return result
 }
 
-func expandPivotsFromModel(input []CostManagementViewPivotModel) *[]views.PivotProperties {
-	pivots := make([]views.PivotProperties, 0)
+func expandPivotsFromModel(input []CostManagementViewPivotModel) *[]viewoperationgroup.PivotProperties {
+	pivots := make([]viewoperationgroup.PivotProperties, 0)
 	for _, p := range input {
-		pivots = append(pivots, views.PivotProperties{
-			Type: pointer.To(views.PivotTypeType(p.Type)),
+		pivots = append(pivots, viewoperationgroup.PivotProperties{
+			Type: pointer.ToEnum[viewoperationgroup.PivotTypeType](p.Type),
 			Name: pointer.To(p.Name),
 		})
 	}
 	return &pivots
 }
 
-func flattenPivotsToModel(input *[]views.PivotProperties) []CostManagementViewPivotModel {
+func flattenPivotsToModel(input *[]viewoperationgroup.PivotProperties) []CostManagementViewPivotModel {
 	if input == nil || len(*input) == 0 {
 		return []CostManagementViewPivotModel{}
 	}
@@ -366,10 +363,7 @@ func flattenPivotsToModel(input *[]views.PivotProperties) []CostManagementViewPi
 		if v := item.Type; v != nil {
 			pivotType = string(*v)
 		}
-		name := ""
-		if p := item.Name; p != nil {
-			name = *p
-		}
+		name := pointer.From(item.Name)
 		result = append(result, CostManagementViewPivotModel{
 			Name: name,
 			Type: pivotType,

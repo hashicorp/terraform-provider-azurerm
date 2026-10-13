@@ -9,14 +9,24 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type BotServiceAzureBotResource struct{}
+
+func TestAccBotServiceAzureBot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
+	r := BotServiceAzureBotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccBotServiceAzureBot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
@@ -138,12 +148,12 @@ func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 }
 
 func (t BotServiceAzureBotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotServiceID(state.ID)
+	id, err := commonids.ParseBotServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Bot.BotClient.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

@@ -24,7 +24,7 @@ import (
 )
 
 func resourceApiConnection() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceApiConnectionCreate,
 		Read:   resourceApiConnectionRead,
 		Update: resourceApiConnectionUpdate,
@@ -81,11 +81,9 @@ func resourceApiConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
-func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -117,9 +115,9 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 				Id: pointer.To(managedAppId.ID()),
 			},
 			DisplayName:     pointer.To(d.Get("display_name").(string)),
-			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]interface{})),
+			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if v := d.Get("display_name").(string); v != "" {
 		model.Properties.DisplayName = pointer.To(v)
@@ -133,7 +131,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta interface{}) error
 	return resourceApiConnectionRead(d, meta)
 }
 
-func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +178,7 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,11 +211,11 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 	// this is fixed in later (preview) versions of the API but these don't have an API spec available.
 	props.NonSecretParameterValues = nil
 	if d.HasChange("parameter_values") {
-		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
+		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]any))
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -227,7 +225,7 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta interface{}) error
 	return resourceApiConnectionRead(d, meta)
 }
 
-func resourceApiConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiConnectionDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Connections.ConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +244,7 @@ func resourceApiConnectionDelete(d *schema.ResourceData, meta interface{}) error
 
 // Because this API may return other primitive types for `parameter_values`
 // we need to ensure each value in the map is a string to prevent panics when setting this into state.
-func flattenParameterValues(input map[string]interface{}) map[string]string {
+func flattenParameterValues(input map[string]any) map[string]string {
 	output := make(map[string]string)
 
 	for k, v := range input {

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeterprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecurityperimeters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -49,7 +49,7 @@ func (NetworkSecurityPerimeterProfileDataSource) Attributes() map[string]*plugin
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (NetworkSecurityPerimeterProfileDataSource) ModelObject() interface{} {
+func (NetworkSecurityPerimeterProfileDataSource) ModelObject() any {
 	return &NetworkSecurityPerimeterProfileDataSourceModel{}
 }
 

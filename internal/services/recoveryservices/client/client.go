@@ -6,15 +6,15 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
-	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
-	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
@@ -45,7 +45,6 @@ type Client struct {
 	BackupOperationStatusesClient             *backup.OperationStatusesClient
 	BackupOperationResultsClient              *backup.OperationResultsClient
 	VaultsClient                              *vaults.VaultsClient
-	VaultsConfigsClient                       *backupresourcevaultconfigs.BackupResourceVaultConfigsClient
 	VaultCertificatesClient                   *azuresdkhacks.VaultCertificatesClient
 	VaultReplicationProvider                  *replicationrecoveryservicesproviders.ReplicationRecoveryServicesProvidersClient
 	VaultsSettingsClient                      *replicationvaultsetting.ReplicationVaultSettingClient
@@ -58,14 +57,12 @@ type Client struct {
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 	ReplicationNetworksClient                 *replicationnetworks.ReplicationNetworksClient
 	ResourceGuardProxyClient                  *resourceguardproxy.ResourceGuardProxyClient
-	VMWareMachinesClient                      *vmwaremachines.MachinesClient
-	VMWareRunAsAccountsClient                 *vmwarerunasaccounts.RunAsAccountsClient
+	ResourceGuardProxiesClient                *resourceguardproxies.ResourceGuardProxiesClient
+	VMWareMachinesClient                      *machines.MachinesClient
+	VMWareRunAsAccountsClient                 *runasaccounts.RunAsAccountsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	vaultConfigsClient := backupresourcevaultconfigs.NewBackupResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
-
 	vaultSettingsClient, err := replicationvaultsetting.NewReplicationVaultSettingClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ReplicationVaultSettings client: %+v", err)
@@ -162,13 +159,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourceGuardProxyClient := resourceguardproxy.NewResourceGuardProxyClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
 
-	vmwareMachinesClient, err := vmwaremachines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	resourceGuardProxiesClient := resourceguardproxies.NewResourceGuardProxiesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&resourceGuardProxiesClient.Client, o.ResourceManagerAuthorizer)
+
+	vmwareMachinesClient, err := machines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMWare Machine client: %+v", err)
 	}
 	o.Configure(vmwareMachinesClient.Client, o.Authorizers.ResourceManager)
 
-	vmwareRunAsAccountsClient, err := vmwarerunasaccounts.NewRunAsAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	vmwareRunAsAccountsClient, err := runasaccounts.NewRunAsAccountsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMWare Run As Accounts client: %+v", err)
 	}
@@ -186,7 +186,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BackupOperationStatusesClient:             &backupOperationStatusesClient,
 		BackupOperationResultsClient:              &backupOperationResultClient,
 		VaultsClient:                              vaultsClient,
-		VaultsConfigsClient:                       &vaultConfigsClient,
 		VaultCertificatesClient:                   &vaultCertificatesClient,
 		VaultsSettingsClient:                      vaultSettingsClient,
 		FabricClient:                              fabricClient,
@@ -198,6 +197,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ReplicationRecoveryPlansClient:            replicationRecoveryPlanClient,
 		ReplicationNetworksClient:                 replicationNetworksClient,
 		ResourceGuardProxyClient:                  &resourceGuardProxyClient,
+		ResourceGuardProxiesClient:                &resourceGuardProxiesClient,
 		VMWareMachinesClient:                      vmwareMachinesClient,
 		VMWareRunAsAccountsClient:                 vmwareRunAsAccountsClient,
 	}, nil

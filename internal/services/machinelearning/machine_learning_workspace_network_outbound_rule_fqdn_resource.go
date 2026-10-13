@@ -34,7 +34,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) ResourceType() string {
 	return "azurerm_machine_learning_workspace_network_outbound_rule_fqdn"
 }
 
-func (r WorkspaceNetworkOutboundRuleFqdn) ModelObject() interface{} {
+func (r WorkspaceNetworkOutboundRuleFqdn) ModelObject() any {
 	return &machineLearningWorkspaceOutboundRuleFqdnModel{}
 }
 
@@ -43,7 +43,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) IDValidationFunc() pluginsdk.SchemaVal
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdn) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -64,7 +64,6 @@ func (r WorkspaceNetworkOutboundRuleFqdn) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	return arguments
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdn) Attributes() map[string]*pluginsdk.Schema {

@@ -19,9 +19,7 @@ import (
 
 func consumptionBudgetTestStartDate() time.Time {
 	utcNow := time.Now().UTC()
-	startDate := time.Date(utcNow.Year(), utcNow.Month(), 1, 0, 0, 0, 0, utcNow.Location())
-
-	return startDate
+	return time.Date(utcNow.Year(), utcNow.Month(), 1, 0, 0, 0, 0, utcNow.Location())
 }
 
 type ConsumptionBudgetSubscriptionResource struct{}
@@ -334,7 +332,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 }
 
 func (ConsumptionBudgetSubscriptionResource) completeUpdate(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

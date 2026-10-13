@@ -10,6 +10,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -125,7 +126,7 @@ func dataSourceImage() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceImageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -210,14 +211,11 @@ func dataSourceImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenImageDataSourceOSDisk(input *images.ImageOSDisk) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImageDataSourceOSDisk(input *images.ImageOSDisk) []any {
+	output := make([]any, 0)
 
 	if input != nil {
-		blobUri := ""
-		if uri := input.BlobUri; uri != nil {
-			blobUri = *uri
-		}
+		blobUri := pointer.From(input.BlobUri)
 		caching := ""
 		if input.Caching != nil {
 			caching = string(*input.Caching)
@@ -230,7 +228,7 @@ func flattenImageDataSourceOSDisk(input *images.ImageOSDisk) []interface{} {
 		if disk := input.ManagedDisk; disk != nil && disk.Id != nil {
 			managedDiskId = *disk.Id
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"blob_uri":        blobUri,
 			"caching":         caching,
 			"managed_disk_id": managedDiskId,
@@ -243,15 +241,12 @@ func flattenImageDataSourceOSDisk(input *images.ImageOSDisk) []interface{} {
 	return output
 }
 
-func flattenImageDataSourceDataDisks(input *[]images.ImageDataDisk) []interface{} {
-	output := make([]interface{}, 0)
+func flattenImageDataSourceDataDisks(input *[]images.ImageDataDisk) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, disk := range *input {
-			blobUri := ""
-			if disk.BlobUri != nil {
-				blobUri = *disk.BlobUri
-			}
+			blobUri := pointer.From(disk.BlobUri)
 			caching := ""
 			if disk.Caching != nil {
 				caching = string(*disk.Caching)
@@ -264,7 +259,7 @@ func flattenImageDataSourceDataDisks(input *[]images.ImageDataDisk) []interface{
 			if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 				managedDiskId = *disk.ManagedDisk.Id
 			}
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"blob_uri":        blobUri,
 				"caching":         caching,
 				"lun":             int(disk.Lun),

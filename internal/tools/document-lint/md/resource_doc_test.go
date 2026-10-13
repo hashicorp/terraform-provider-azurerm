@@ -135,8 +135,7 @@ func TestDefaultValueReg(t *testing.T) {
 func TestForceNewReg(t *testing.T) {
 	// str := "* `address` - (Required) The list of upto 3 lines for address information. Changing this forces a new Databox Edge Order to be created.\n"
 	str := "* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created"
-	res := ForceNewReg.MatchString(str)
-	t.Log(res)
+	t.Log(ForceNewReg.MatchString(str))
 	str = ForceNewReg.ReplaceAllString(str, "")
 	t.Log(str)
 }

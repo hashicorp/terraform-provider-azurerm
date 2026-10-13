@@ -277,7 +277,12 @@ resource "azurerm_datadog_monitor" "import" {
 
 func (r DatadogMonitorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+provider "azurerm" {
+  features {}
+}
+
+%s
+
 resource "azurerm_datadog_monitor" "test" {
   name                = "acctest-datadog-%s"
   resource_group_name = azurerm_resource_group.test.name

@@ -43,7 +43,7 @@ func (r StorageMoverResource) ResourceType() string {
 	return "azurerm_storage_mover"
 }
 
-func (r StorageMoverResource) ModelObject() interface{} {
+func (r StorageMoverResource) ModelObject() any {
 	return &StorageMoverModel{}
 }
 

@@ -73,7 +73,7 @@ func resourceContainerRegistryToken() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -121,7 +121,7 @@ func resourceContainerRegistryTokenCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceContainerRegistryTokenRead(d, meta)
 }
 
-func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceContainerRegistryTokenUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceContainerRegistryTokenRead(d, meta)
 }
 
-func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,18 +191,14 @@ func resourceContainerRegistryTokenRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("enabled", status)
 
-			scopeMapId := ""
-			if v := props.ScopeMapId; v != nil {
-				scopeMapId = *v
-			}
-			d.Set("scope_map_id", scopeMapId)
+			d.Set("scope_map_id", pointer.From(props.ScopeMapId))
 		}
 	}
 
 	return nil
 }
 
-func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryTokenDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Tokens
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -9,11 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -90,9 +89,6 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 }
 
 func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skipf("the `subplan` forces new in 4.0, but should be updated in 5.0.")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -225,7 +221,7 @@ func testAccSecurityCenterSubscriptionPricing_cloudPostureExtensionStandardToFre
 }
 
 func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := pricings_v2023_01_01.ParsePricingIDInsensitively(state.ID)
+	id, err := pricings.ParsePricingIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +231,7 @@ func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree), nil
+	return pointer.To(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings.PricingTierFree), nil
 }
 
 func (SecurityCenterSubscriptionPricingResource) tier(tier string, resource_type string) string {

@@ -9,15 +9,25 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelDirectlineResource struct{}
+
+func TestAccBotChannelDirectline_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
+	r := BotChannelDirectlineResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeConfig(data),
+		},
+	}, "")
+}
 
 func TestAccBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
@@ -79,12 +89,12 @@ func TestAccBotChannelDirectline_update(t *testing.T) {
 }
 
 func (t BotChannelDirectlineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotChannelID(state.ID)
+	id, err := commonids.ParseBotServiceChannelID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
+	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
