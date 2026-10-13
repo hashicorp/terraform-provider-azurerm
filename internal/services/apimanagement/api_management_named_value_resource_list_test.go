@@ -35,7 +35,7 @@ func TestAccApiManagementNamedValue_listByApiManagementID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_api_management_named_value.list", 1),
+					querycheck.ExpectLength("azurerm_api_management_named_value.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_api_management_named_value.list",
 						map[string]knownvalue.Check{

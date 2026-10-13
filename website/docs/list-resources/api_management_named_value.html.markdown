@@ -3,12 +3,12 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_named_value"
 description: |-
-    Lists Api Management Named Value resources.
+    Lists API Management Named Value resources.
 ---
 
 # List resource: azurerm_api_management_named_value
 
-Lists Api Management Named Value resources.
+Lists API Management Named Value resources.
 
 ## Example Usage
 

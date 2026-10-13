@@ -76,12 +76,13 @@ func (ApiManagementNamedValueListResource) List(ctx context.Context, request lis
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			rd := resourceApiManagementNamedValue().Data(&terraform.InstanceState{})
-			id, err := namedvalue.ParseNamedValueIDInsensitively(pointer.From(item.Id))
+			id, err := namedvalue.ParseNamedValueID(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing ID for `%s`", azureApiManagementNamedValueResourceName), err)
 				return
 			}
+
+			rd := resourceApiManagementNamedValue().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
 			if err := resourceApiManagementNamedValueFlatten(rd, id, &item); err != nil {
