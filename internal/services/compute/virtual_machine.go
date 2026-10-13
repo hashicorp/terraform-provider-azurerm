@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -650,6 +651,7 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 					// NOTE: O+C because Azure API returns the value even when it's not configured.
 					Computed:     true,
 					ValidateFunc: validation.IntPositive,
+					AtLeastOneOf: []string{"size_properties.0.vcpu_available", "size_properties.0.vcpu_per_core"},
 				},
 
 				"vcpu_per_core": {
@@ -657,7 +659,8 @@ func virtualMachineSizePropertiesSchema() *pluginsdk.Schema {
 					Optional: true,
 					// NOTE: O+C because Azure API returns the value even when it's not configured.
 					Computed:     true,
-					ValidateFunc: validation.IntPositive,
+					ValidateFunc: validation.IntBetween(1, 2),
+					AtLeastOneOf: []string{"size_properties.0.vcpu_available", "size_properties.0.vcpu_per_core"},
 				},
 			},
 		},
@@ -676,6 +679,27 @@ func expandVirtualMachineSizeProperties(input []any) *virtualmachines.VMSizeProp
 	}
 	if v := sizeProps["vcpu_per_core"].(int); v > 0 {
 		out.VCPUsPerCore = pointer.To(int64(v))
+	}
+	return out
+}
+
+func expandVirtualMachineSizePropertiesFromRawConfig(sizeProps cty.Value) *virtualmachines.VMSizeProperties {
+	if !sizeProps.IsKnown() || sizeProps.IsNull() || sizeProps.LengthInt() == 0 {
+		return nil
+	}
+
+	config := sizeProps.AsValueSlice()[0]
+	if !config.IsKnown() || config.IsNull() {
+		return nil
+	}
+
+	out := &virtualmachines.VMSizeProperties{}
+	configMap := config.AsValueMap()
+	if v, _ := pluginsdk.GoValueFromTerraformValue[int](configMap["vcpu_available"]); v != nil && *v > 0 {
+		out.VCPUsAvailable = pointer.To(int64(*v))
+	}
+	if v, _ := pluginsdk.GoValueFromTerraformValue[int](configMap["vcpu_per_core"]); v != nil && *v > 0 {
+		out.VCPUsPerCore = pointer.To(int64(*v))
 	}
 	return out
 }

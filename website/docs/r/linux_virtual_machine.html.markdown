@@ -368,9 +368,13 @@ A `size_properties` block supports the following:
 
 * `vcpu_available` - (Optional) The number of vCPUs available for this Virtual Machine.
 
-* `vcpu_per_core` - (Optional) The number of vCPUs per physical core for this Virtual Machine.
+~> **Note:** `vcpu_available` cannot exceed the default vCPU count of the selected `size`, and must be an even number on hyperthreaded sizes.
+
+* `vcpu_per_core` - (Optional) The number of vCPUs per physical core for this Virtual Machine. Setting this to `1` disables hyperthreading.
 
 ~> **Note:** Modifying `vcpu_available` or `vcpu_per_core` on an existing Virtual Machine causes the Virtual Machine to be restarted, resulting in a brief period of downtime.
+
+~> **Note:** Because Azure populates `vcpu_available` and `vcpu_per_core` when they are not configured, removing the `size_properties` block or either field does not reset them to the `size` defaults.
 
 ---
 
