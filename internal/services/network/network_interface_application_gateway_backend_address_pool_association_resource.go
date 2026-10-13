@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -76,8 +77,8 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 		return err
 	}
 
-	locks.ByID(networkInterfaceId.ID())
-	defer locks.UnlockByID(networkInterfaceId.ID())
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	resp, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -229,8 +230,8 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDele
 
 	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	locks.ByID(networkInterfaceId.ID())
-	defer locks.UnlockByID(networkInterfaceId.ID())
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	resp, err := client.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
