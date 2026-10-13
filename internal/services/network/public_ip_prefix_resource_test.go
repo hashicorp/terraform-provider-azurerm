@@ -11,9 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -286,6 +289,11 @@ func TestAccPublicIpPrefix_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIpPrefixResource{}
 
+	edgeZoneOmittedAction := plancheck.ResourceActionNoop
+	if features.SixPointOh() {
+		edgeZoneOmittedAction = plancheck.ResourceActionReplace
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.edgeZone(data),
@@ -294,6 +302,19 @@ func TestAccPublicIpPrefix_edgeZone(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			// a recreated Public IP Prefix is allocated a different IP range, so omitting `edge_zone` from the configuration
+			// of an existing Public IP Prefix within an Edge Zone must not force a new resource prior to 6.0
+			Config: r.edgeZoneOmitted(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, edgeZoneOmittedAction),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -317,7 +338,7 @@ resource "azurerm_public_ip_prefix" "test" {
 }
 
 func (PublicIpPrefixResource) edgeZone(data acceptance.TestData) string {
-	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
+	// WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
 
 	return fmt.Sprintf(`
@@ -339,6 +360,28 @@ resource "azurerm_public_ip_prefix" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (PublicIpPrefixResource) edgeZoneOmitted(data acceptance.TestData) string {
+	// WestUS has an edge zone available - so hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

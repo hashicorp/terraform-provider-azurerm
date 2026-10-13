@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Public IP Prefix should exist. Changing this forces a new Public IP Prefix to be created.
 
+-> **Note:** A recreated Public IP Prefix is allocated a different IP range. To avoid unexpectedly replacing an existing Public IP Prefix which is already within an Edge Zone (for example one which has been imported), removing `edge_zone` from the configuration will not force a new Public IP Prefix to be created.
+
 * `sku` - (Optional) The SKU of the Public IP Prefix. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`.
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP Prefix. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
