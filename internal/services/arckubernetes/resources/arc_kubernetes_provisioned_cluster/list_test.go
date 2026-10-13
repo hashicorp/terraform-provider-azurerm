@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package arckubernetes_test
+package arc_kubernetes_provisioned_cluster_test
 
 import (
 	"context"

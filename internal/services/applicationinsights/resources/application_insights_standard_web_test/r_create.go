@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	tfbase64 "github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -108,7 +108,7 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	request.Headers = expandApplicationInsightsStandardWebTestRequestHeaders(requestInput.Header)
 
 	if v := requestInput.Body; v != "" {
-		request.RequestBody = pointer.To(tfbase64.EncodeIfNot(v))
+		request.RequestBody = pointer.To(base64.EncodeIfNot(v))
 	}
 
 	if v := requestInput.URL; v != "" {

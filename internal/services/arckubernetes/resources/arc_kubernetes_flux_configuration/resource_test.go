@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package arckubernetes_test
+package arc_kubernetes_flux_configuration_test
 
 import (
 	"context"
