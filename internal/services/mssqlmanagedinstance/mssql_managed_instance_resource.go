@@ -441,14 +441,7 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			oldPricingModel, newPricingModel := rd.GetChange("pricing_model")
-			// An unknown pricing model may resolve to Freemium, which requires replacement.
-			if oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && (!rd.NewValueKnown("pricing_model") || newPricingModel.(string) == string(managedinstances.PricingModelFreemium)) {
-				if !features.SixPointOh() && !rd.NewValueKnown("pricing_model") {
-					// Preserve the unknown O+C value when the SDK recalculates the replacement diff.
-					if err := rd.SetNewComputed("pricing_model"); err != nil {
-						return err
-					}
-				}
+			if rd.NewValueKnown("pricing_model") && oldPricingModel.(string) == string(managedinstances.PricingModelRegular) && newPricingModel.(string) == string(managedinstances.PricingModelFreemium) {
 				if err := rd.ForceNew("pricing_model"); err != nil {
 					return err
 				}
@@ -475,7 +468,7 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				if rd.NewValueKnown("zone_redundant_enabled") && rd.Get("zone_redundant_enabled").(bool) {
-					return fmt.Errorf("`zone_redundant_enabled` must be `false` when `pricing_model` is `Freemium`")
+					return errors.New("`zone_redundant_enabled` must be `false` when `pricing_model` is `Freemium`")
 				}
 			}
 
