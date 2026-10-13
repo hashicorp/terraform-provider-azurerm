@@ -26,7 +26,7 @@ output "index_document" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) The ID of the Storage Account to set Static Website on.
+* `storage_account_id` - (Required) The ID of the Storage Account where the Static Website exists.
 
 ## Attributes Reference
 
