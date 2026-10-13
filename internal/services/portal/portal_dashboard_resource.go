@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -108,31 +110,11 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta any) er
 	if d.IsNewResource() {
 		d.SetId(id.ID())
 
-		// The API is eventually consistent - a `Get` immediately following `CreateOrUpdate` can 404 before the
-		// platform has finished propagating the newly created Dashboard, which surfaces to users as `Provider
-		// produced inconsistent result after apply`.
-		deadline, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal error: context had no deadline")
-		}
-		log.Printf("[DEBUG] Waiting for %s to become available..", id)
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{"404"},
-			Target:     []string{"200"},
-			MinTimeout: 10 * time.Second,
-			Timeout:    time.Until(deadline),
-			Refresh: func() (interface{}, string, error) {
-				resp, err := client.Get(ctx, id)
-				if err != nil {
-					if response.WasNotFound(resp.HttpResponse) {
-						return resp, "404", nil
-					}
-					return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-				}
-				return resp, "200", nil
-			},
-		}
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		// `CreateOrUpdate` isn't a Long Running Operation and the Dashboard can briefly 404 after it returns, which
+		// surfaces as `Provider produced inconsistent result after apply`, so wait for it to become available.
+		pollerType := custompollers.NewDashboardPoller(client, id)
+		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for %s to become available: %+v", id, err)
 		}
 	}
