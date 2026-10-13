@@ -21,7 +21,7 @@ func TestAccStorageAccountStaticWebsiteDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That("azurerm_storage_account.test").Key("id")),
+				check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That("azurerm_storage_account.test").Key("id")),
 				check.That(data.ResourceName).Key("error_404_document").HasValue("sadpanda_2.html"),
 				check.That(data.ResourceName).Key("index_document").HasValue("index_2.html"),
 			),
