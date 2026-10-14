@@ -5,6 +5,7 @@ package service_plan
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,4 +27,8 @@ func (r Resource) ResourceType() string {
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateAppServicePlanID
+}
+
+func (r Resource) Identity() resourceids.ResourceId {
+	return &commonids.AppServicePlanId{}
 }
