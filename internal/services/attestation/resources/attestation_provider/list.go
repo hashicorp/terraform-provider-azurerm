@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package attestation
+package attestation_provider
 
 import (
 	"context"
@@ -17,19 +17,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AttestationProviderListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(AttestationProviderListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (AttestationProviderListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = attestationProviderResourceName
 }
 
-func (AttestationProviderListResource) ResourceFunc() *pluginsdk.Resource {
-	return resourceAttestationProvider()
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return RegisterResource()
 }
 
-func (AttestationProviderListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Attestation.ProviderClient
 
 	var data sdk.DefaultListModel
@@ -80,7 +80,7 @@ func (AttestationProviderListResource) List(ctx context.Context, request list.Li
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			rd := resourceAttestationProvider().Data(&terraform.InstanceState{})
+			rd := RegisterResource().Data(&terraform.InstanceState{})
 			id, err := attestationproviders.ParseAttestationProvidersIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing `%s` ID", attestationProviderResourceName), err)

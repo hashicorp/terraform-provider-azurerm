@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package attestation
+package attestation_provider
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ import (
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
-func dataSourceAttestationProvider() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceArmAttestationProviderRead,
 
