@@ -261,8 +261,8 @@ resource "azurerm_eventgrid_domain" "test" {
   local_auth_enabled                        = false
   auto_create_topic_with_first_subscription = false
   auto_delete_topic_with_last_subscription  = false
-  minimum_tls_version     = "1.2"
-  data_residency_boundary = "WithinRegion"
+  minimum_tls_version                       = "1.2"
+  data_residency_boundary                   = "WithinRegion"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
