@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestBackendHttpSettingsCollectionID(t *testing.T) {
+func TestValidateBackendHttpSettingsCollectionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
