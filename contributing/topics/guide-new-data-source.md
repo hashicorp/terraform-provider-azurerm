@@ -59,7 +59,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Resource Groups Client: %+v", err)
 	}
 	o.Configure(resourceGroupsClient.Client, o.Authorizer.ResourceManager)
-	
+
 	// ...
 
 	return &Client{
@@ -86,7 +86,7 @@ client := metadata.Client.Resource.ResourceGroupsClient
 
 ### Step 3: Define the Resource ID
 
-Every resource is tracked by its Azure Resource ID, both in Terraform state and when calling the API. Most IDs come from the go-azure-sdk package for the service. The ones shared across services, such as resource groups, subnets and user assigned identities, come from commonids. A Resource Group uses commonids.ResourceGroupId, which gives us NewResourceGroupID, ParseResourceGroupID and ValidateResourceGroupID.
+Every resource is tracked by its Azure Resource ID, both in Terraform state and when calling the API. Most IDs come from the go-azure-sdk package for the service. The ones shared across services, such as resource groups, subnets and user assigned identities, come from `commonids`. A Resource Group uses `commonids.ResourceGroupId`, which gives us `NewResourceGroupID`, `ParseResourceGroupID` and `ValidateResourceGroupID`.
 
 Each Resource ID type comes with two functions a Data Source can use:
 
@@ -140,7 +140,7 @@ In this case the interface `sdk.DataSource` defines all of the methods required 
 type DataSource interface {
     Arguments() map[string]*pluginsdk.Schema
     Attributes() map[string]*pluginsdk.Schema
-    ModelObject() any{}
+    ModelObject() any
     ResourceType() string
 	Read() ResourceFunc
 }
