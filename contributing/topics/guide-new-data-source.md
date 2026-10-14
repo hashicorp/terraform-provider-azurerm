@@ -103,7 +103,7 @@ id := commonids.NewResourceGroupID(subscriptionId, state.Name)
 // when the Argument is a full Resource ID
 id, err := commonids.ParseStorageAccountID(state.StorageAccountId)
 if err != nil {
-return err
+    return err
 }
 ```
 Where the functions live depends on the Resource:
