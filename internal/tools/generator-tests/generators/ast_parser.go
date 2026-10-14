@@ -44,6 +44,7 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 	var isVirtual bool
 	var isComposite bool
 	var compositeProperties []string
+	var parseErr error
 
 	// Walk AST to find Identity() or GenerateIdentitySchema
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -106,7 +107,8 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 					case "GenerateIdentitySchema":
 						if len(x.Args) >= 1 {
 							if isCompositeExpr(x.Args[0]) {
-								isComposite = true
+								parseErr = fmt.Errorf("composite resource IDs in %s must use GenerateCompositeIdentitySchema with explicit property names", filePath)
+								return false
 							} else if unary, uOk := x.Args[0].(*ast.UnaryExpr); uOk && unary.Op == token.AND {
 								if comp, cOk := unary.X.(*ast.CompositeLit); cOk {
 									if typeSel, sOk := comp.Type.(*ast.SelectorExpr); sOk {
@@ -132,9 +134,13 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 		return true
 	})
 
+	if parseErr != nil {
+		return nil, parseErr
+	}
+
 	if isComposite {
-		if len(compositeProperties) == 0 {
-			compositeProperties = []string{"resource_id1", "resource_id2"}
+		if len(compositeProperties) != 2 {
+			return nil, fmt.Errorf("composite identity in %s requires exactly 2 property names, got %d", filePath, len(compositeProperties))
 		}
 		return &InferredIdentity{
 			Properties: compositeProperties,

@@ -44,7 +44,7 @@ func SetIDAndIdentityWithTypeCallback(client any, id resourceids.ResourceId, d *
 	return setIDCallback(client, id, d, true, identityType)
 }
 
-func SetIDAndCompositeIdentityCallback(client any, id resourceids.ResourceId, d *pluginsdk.ResourceData, customNames ...string) func() error {
+func SetIDAndCompositeIdentityCallback(client any, id resourceids.ResourceId, d *pluginsdk.ResourceData, firstName, secondName string) func() error {
 	c, ok := client.(*clients.Client)
 	if !ok {
 		panic(fmt.Sprintf("internal-error: expected `*clients.Client` but got %T", client))
@@ -53,7 +53,7 @@ func SetIDAndCompositeIdentityCallback(client any, id resourceids.ResourceId, d 
 	if c.Features.PersistIDOnCreateBeforePollingForCompletion {
 		return func() error {
 			d.SetId(id.ID())
-			return pluginsdk.SetCompositeResourceIdentityData(d, id, customNames...)
+			return pluginsdk.SetCompositeResourceIdentityData(d, id, firstName, secondName)
 		}
 	}
 
@@ -74,6 +74,6 @@ func (rmd ResourceMetaData) SetIDAndIdentityWithTypeCallback(id resourceids.Reso
 	return setIDCallback(rmd.Client, id, rmd.ResourceData, true, identityType)
 }
 
-func (rmd ResourceMetaData) SetIDAndCompositeIdentityCallback(id resourceids.ResourceId, customNames ...string) func() error {
-	return SetIDAndCompositeIdentityCallback(rmd.Client, id, rmd.ResourceData, customNames...)
+func (rmd ResourceMetaData) SetIDAndCompositeIdentityCallback(id resourceids.ResourceId, firstName, secondName string) func() error {
+	return SetIDAndCompositeIdentityCallback(rmd.Client, id, rmd.ResourceData, firstName, secondName)
 }
