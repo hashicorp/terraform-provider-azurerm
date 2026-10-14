@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. This attribute cannot be set when the `kind` is `OpenAI` or `AIServices`.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Cognitive Account.
 
