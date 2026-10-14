@@ -452,8 +452,7 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta any) err
 			d.Set("encoding", encodingName)
 		}
 
-		compression := flattenDataFactoryDatasetCompression(properties.Compression)
-		if err := d.Set("compression", compression); err != nil {
+		if err := d.Set("compression", flattenDataFactoryDatasetCompression(properties.Compression)); err != nil {
 			return fmt.Errorf("setting `compression`: %+v", err)
 		}
 	}
