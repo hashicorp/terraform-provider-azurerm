@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestEnrichmentID(t *testing.T) {
+func TestValidateEnrichmentID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
