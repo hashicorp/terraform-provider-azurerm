@@ -16,6 +16,16 @@ import (
 
 type AutomationVariableBoolResource struct{}
 
+func TestAccAutomationVariableBool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
+	r := AutomationVariableBoolResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationVariableBool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 	r := AutomationVariableBoolResource{}
