@@ -20,13 +20,13 @@ func TestAccMonitorDiagnosticSetting_V0ToV1_560(t *testing.T) {
 
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.managementGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/providers/Microsoft.Management/managementGroups/acctestMG%[1]d|acctestMDS%[1]d", data.RandomInteger)),
 			),
 		},
 		{
-			Config: r.basic(data),
+			Config: r.managementGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("id").HasValue(fmt.Sprintf("/providers/Microsoft.Management/managementGroups/acctestMG%[1]d/providers/Microsoft.Insights/diagnosticSettings/acctestMDS%[1]d", data.RandomInteger)),
