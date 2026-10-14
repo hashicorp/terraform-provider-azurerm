@@ -54,4 +54,3 @@ This list resource supports the following arguments:
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to query associations for. Exactly one of `data_collection_endpoint_id`, `data_collection_rule_id`, or `target_resource_id` must be specified.
 
 * `target_resource_id` - (Optional) The ID of the Target Azure Resource to query associations for. Exactly one of `data_collection_endpoint_id`, `data_collection_rule_id`, or `target_resource_id` must be specified.
-
