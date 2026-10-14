@@ -14,8 +14,8 @@ Use this data source to access information about an existing NGINX Deployment.
 
 ```hcl
 data "azurerm_nginx_deployment" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-nginx-deployment"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

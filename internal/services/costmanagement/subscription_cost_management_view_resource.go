@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/viewoperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
@@ -76,17 +76,17 @@ func (r SubscriptionCostManagementViewResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
 
 			var config SubscriptionCostManagementViewModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := views.NewScopedViewID(config.SubId, config.Name)
+			id := viewoperationgroup.NewScopedViewID(config.SubId, config.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.GetByScope(ctx, id)
+				existing, err := client.ViewsGetByScope(ctx, id)
 				if err != nil {
 					if !response.WasNotFound(existing.HttpResponse) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -98,27 +98,27 @@ func (r SubscriptionCostManagementViewResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			accumulated := views.AccumulatedTypeFalse
+			accumulated := viewoperationgroup.AccumulatedTypeFalse
 			if config.Accumulated {
-				accumulated = views.AccumulatedTypeTrue
+				accumulated = viewoperationgroup.AccumulatedTypeTrue
 			}
 
-			props := views.View{
-				Properties: &views.ViewProperties{
+			props := viewoperationgroup.View{
+				Properties: &viewoperationgroup.ViewProperties{
 					Accumulated: pointer.To(accumulated),
 					DisplayName: pointer.To(config.DisplayName),
-					Chart:       pointer.ToEnum[views.ChartType](config.ChartType),
-					Query: &views.ReportConfigDefinition{
+					Chart:       pointer.ToEnum[viewoperationgroup.ChartType](config.ChartType),
+					Query: &viewoperationgroup.ReportConfigDefinition{
 						DataSet:   expandDatasetFromModel(config.Dataset),
-						Timeframe: views.ReportTimeframeType(config.Timeframe),
-						Type:      views.ReportTypeUsage,
+						Timeframe: viewoperationgroup.ReportTimeframeType(config.Timeframe),
+						Type:      viewoperationgroup.ReportTypeUsage,
 					},
 					Kpis:   expandKpisFromModel(config.Kpi),
 					Pivots: expandPivotsFromModel(config.Pivot),
 				},
 			}
 
-			if _, err := client.CreateOrUpdateByScope(ctx, id, props); err != nil {
+			if _, err := client.ViewsCreateOrUpdateByScope(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -132,14 +132,14 @@ func (r SubscriptionCostManagementViewResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
 
-			id, err := views.ParseScopedViewID(metadata.ResourceData.Id())
+			id, err := viewoperationgroup.ParseScopedViewID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.GetByScope(ctx, *id)
+			resp, err := client.ViewsGetByScope(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -157,7 +157,7 @@ func (r SubscriptionCostManagementViewResource) Read() sdk.ResourceFunc {
 					state.ChartType = pointer.FromEnum(props.Chart)
 					state.DisplayName = pointer.From(props.DisplayName)
 
-					state.Accumulated = views.AccumulatedTypeTrue == pointer.From(props.Accumulated)
+					state.Accumulated = viewoperationgroup.AccumulatedTypeTrue == pointer.From(props.Accumulated)
 
 					state.Kpi = flattenKpisToModel(props.Kpis)
 					state.Pivot = flattenPivotsToModel(props.Pivots)
@@ -185,9 +185,9 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ViewsClient
+			client := metadata.Client.CostManagement.ViewOperationGroupClient
 
-			id, err := views.ParseScopedViewID(metadata.ResourceData.Id())
+			id, err := viewoperationgroup.ParseScopedViewID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -198,7 +198,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 			}
 
 			// Update operation requires latest eTag to be set in the request.
-			existing, err := client.GetByScope(ctx, *id)
+			existing, err := client.ViewsGetByScope(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -219,7 +219,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("chart_type") {
-				model.Properties.Chart = pointer.ToEnum[views.ChartType](config.ChartType)
+				model.Properties.Chart = pointer.ToEnum[viewoperationgroup.ChartType](config.ChartType)
 			}
 
 			if metadata.ResourceData.HasChange("dataset") {
@@ -227,7 +227,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("timeframe") {
-				model.Properties.Query.Timeframe = views.ReportTimeframeType(config.Timeframe)
+				model.Properties.Query.Timeframe = viewoperationgroup.ReportTimeframeType(config.Timeframe)
 			}
 
 			if metadata.ResourceData.HasChange("kpi") {
@@ -238,7 +238,7 @@ func (r SubscriptionCostManagementViewResource) Update() sdk.ResourceFunc {
 				model.Properties.Pivots = expandPivotsFromModel(config.Pivot)
 			}
 
-			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model); err != nil {
+			if _, err = client.ViewsCreateOrUpdateByScope(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestLoadBalancingID(t *testing.T) {
+func TestValidateLoadBalancingID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestStorageShareResourceManagerID(t *testing.T) {
+func TestValidateStorageShareResourceManagerID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
