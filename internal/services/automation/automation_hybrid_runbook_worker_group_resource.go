@@ -56,7 +56,7 @@ func (m HybridRunbookWorkerGroupResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m HybridRunbookWorkerGroupResource) ModelObject() interface{} {
+func (m HybridRunbookWorkerGroupResource) ModelObject() any {
 	return &HybridRunbookWorkerGroupModel{}
 }
 
@@ -83,7 +83,7 @@ func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}
@@ -184,7 +184,6 @@ func (m HybridRunbookWorkerGroupResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 
 			// NOTE: Due to incorrect tags in Azure Swagger, the delete operation is only available
 			// in the ListAllHybridRunbookWorkerGroupInAutomationAccount client, not in the

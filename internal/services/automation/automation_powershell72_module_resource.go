@@ -32,10 +32,10 @@ type ModuleHash struct {
 }
 
 type AutomationPowerShell72ModuleModel struct {
-	AutomationAccountID string                 `tfschema:"automation_account_id"`
-	Name                string                 `tfschema:"name"`
-	ModuleLink          []ModuleLinkModel      `tfschema:"module_link"`
-	Tags                map[string]interface{} `tfschema:"tags"`
+	AutomationAccountID string            `tfschema:"automation_account_id"`
+	Name                string            `tfschema:"name"`
+	ModuleLink          []ModuleLinkModel `tfschema:"module_link"`
+	Tags                map[string]any    `tfschema:"tags"`
 }
 
 type PowerShell72ModuleResource struct{}
@@ -95,7 +95,7 @@ func (r PowerShell72ModuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r PowerShell72ModuleResource) ModelObject() interface{} {
+func (r PowerShell72ModuleResource) ModelObject() any {
 	return &AutomationPowerShell72ModuleModel{}
 }
 
@@ -178,7 +178,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 					string(module.ModuleProvisioningStateSucceeded),
 				},
 				MinTimeout: 30 * time.Second,
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					resp, err2 := client.PowerShell72ModuleGet(ctx, id)
 					if err2 != nil {
 						return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
@@ -268,7 +268,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 					string(module.ModuleProvisioningStateSucceeded),
 				},
 				MinTimeout: 30 * time.Second,
-				Refresh: func() (interface{}, string, error) {
+				Refresh: func() (any, string, error) {
 					resp, err2 := client.PowerShell72ModuleGet(ctx, *id)
 					if err2 != nil {
 						return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)

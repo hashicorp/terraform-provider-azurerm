@@ -6,6 +6,7 @@ package servicefabricmanaged
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -52,11 +53,6 @@ type ADAuthentication struct {
 type Authentication struct {
 	ADAuth             []ADAuthentication `tfschema:"active_directory"`
 	CertAuthentication []ThumbprintAuth   `tfschema:"certificate"`
-}
-
-type PortRange struct {
-	From int64 `tfschema:"from"`
-	To   int64 `tfschema:"to"`
 }
 
 type VaultCertificates struct {
@@ -120,7 +116,7 @@ type ClusterResourceModel struct {
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
 	SubnetId             string                               `tfschema:"subnet_id"`
-	Tags                 map[string]interface{}               `tfschema:"tags"`
+	Tags                 map[string]any                       `tfschema:"tags"`
 	UpgradeWave          managedcluster.ClusterUpgradeCadence `tfschema:"upgrade_wave"`
 }
 
@@ -133,7 +129,7 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"dns_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+(-*[a-z0-9])*$`), "The dns name of the cluster must have lowercase letters, numbers and hyphens. The first character must be a letter and the last character a letter or number"),
 		},
 		"dns_service_enabled": {
@@ -206,26 +202,19 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"lb_rule": lbRulesSchema(),
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Basic",
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.SkuNameBasic),
-				string(managedcluster.SkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "Basic",
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForSkuName(), false),
 		},
 		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 		"tags":      commonschema.Tags(),
 		"upgrade_wave": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  managedcluster.ClusterUpgradeCadenceWaveZero,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedcluster.ClusterUpgradeCadenceWaveZero),
-				string(managedcluster.ClusterUpgradeCadenceWaveOne),
-				string(managedcluster.ClusterUpgradeCadenceWaveTwo),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      managedcluster.ClusterUpgradeCadenceWaveZero,
+			ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForClusterUpgradeCadence(), false),
 		},
 	}
 }
@@ -234,7 +223,7 @@ func (k ClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k ClusterResource) ModelObject() interface{} {
+func (k ClusterResource) ModelObject() any {
 	return &ClusterResourceModel{}
 }
 
@@ -288,15 +277,15 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			toDelete := make([]string, 0)
 			if metadata.ResourceData.HasChange("node_type") {
 				o, n := metadata.ResourceData.GetChange("node_type")
-				ont := o.([]interface{})
-				nnt := n.([]interface{})
+				ont := o.([]any)
+				nnt := n.([]any)
 
 				for _, on := range ont {
-					oldNodeType := on.(map[string]interface{})
+					oldNodeType := on.(map[string]any)
 					oldId := oldNodeType["name"].(string)
 					found := false
 					for _, nt := range nnt {
-						newNodeType := nt.(map[string]interface{})
+						newNodeType := nt.(map[string]any)
 						newId := newNodeType["name"].(string)
 						if oldId == newId {
 							found = true
@@ -422,15 +411,15 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 			toDelete := make([]string, 0)
 			if metadata.ResourceData.HasChange("node_type") {
 				o, n := metadata.ResourceData.GetChange("node_type")
-				ont := o.([]interface{})
-				nnt := n.([]interface{})
+				ont := o.([]any)
+				nnt := n.([]any)
 
 				for _, on := range ont {
-					oldNodeType := on.(map[string]interface{})
+					oldNodeType := on.(map[string]any)
 					oldId := oldNodeType["name"].(string)
 					found := false
 					for _, nt := range nnt {
-						newNodeType := nt.(map[string]interface{})
+						newNodeType := nt.(map[string]any)
 						newId := newNodeType["name"].(string)
 						if oldId == newId {
 							found = true
@@ -499,8 +488,8 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 			sku := rd.Get("sku").(string)
 			var primary bool
-			for _, nti := range rd.Get("node_type").([]interface{}) {
-				nt := nti.(map[string]interface{})
+			for _, nti := range rd.Get("node_type").([]any) {
+				nt := nti.(map[string]any)
 				vmCount := nt["vm_instance_count"].(int)
 				if sku == string(managedcluster.SkuNameBasic) && vmCount < 3 {
 					return fmt.Errorf("basic SKU requires at least 3 instances in a node type")
@@ -515,8 +504,8 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			for _, lbi := range rd.Get("lb_rule").([]interface{}) {
-				lb := lbi.(map[string]interface{})
+			for _, lbi := range rd.Get("lb_rule").([]any) {
+				lb := lbi.(map[string]any)
 				probeProto := lb["probe_protocol"].(string)
 				if probeProto == string(managedcluster.ProbeProtocolHTTP) || probeProto == string(managedcluster.ProbeProtocolHTTPS) {
 					probePath := lb["probe_request_path"]
@@ -527,13 +516,13 @@ func (k ClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			o, n := rd.GetChange("node_type")
-			oi := o.([]interface{})
-			ni := n.([]interface{})
+			oi := o.([]any)
+			ni := n.([]any)
 			if len(oi) > 0 && !reflect.DeepEqual(oi, ni) {
 				for idx := range oi {
-					oNodeType := oi[idx].(map[string]interface{})
+					oNodeType := oi[idx].(map[string]any)
 					for nIdx := range ni {
-						newNodeType := ni[nIdx].(map[string]interface{})
+						newNodeType := ni[nIdx].(map[string]any)
 						if oNodeType["name"].(string) != newNodeType["name"].(string) {
 							continue
 						}
@@ -654,7 +643,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	}
 
 	if t := cluster.Tags; t != nil {
-		modelTags := make(map[string]interface{})
+		modelTags := make(map[string]any)
 		for tag, value := range *t {
 			// This tag is temporary and will be removed at a later date.
 			// More info can be found here https://azure.microsoft.com/en-us/updates/default-outbound-access-for-vms-in-azure-will-be-retired-transition-to-a-new-method-of-internet-access/
@@ -705,9 +694,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 
 	if capacities := props.Capacities; capacities != nil {
 		caps := make(map[string]string)
-		for k, v := range *capacities {
-			caps[k] = v
-		}
+		maps.Copy(caps, *capacities)
 		out.Capacities = caps
 	}
 
@@ -717,9 +704,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 
 	if placementProps := props.PlacementProperties; placementProps != nil {
 		placements := make(map[string]string)
-		for k, v := range *placementProps {
-			placements[k] = v
-		}
+		maps.Copy(placements, *placementProps)
 		out.PlacementProperties = placements
 	}
 
@@ -987,10 +972,9 @@ func nodeTypeSchema() *pluginsdk.Schema {
 				"application_port_range": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
-					ValidateFunc: func(i interface{}, s string) ([]string, []error) {
-						input := i.(string)
+					ValidateFunc: func(i any, s string) ([]string, []error) {
 						errors := make([]error, 0)
-						if _, _, err := parsePortRange(input); err != nil {
+						if _, _, err := parsePortRange(i.(string)); err != nil {
 							errors = append(errors, err)
 						}
 						return nil, errors
@@ -1004,14 +988,10 @@ func nodeTypeSchema() *pluginsdk.Schema {
 					},
 				},
 				"data_disk_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(nodetype.DiskTypeStandardLRS),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(nodetype.DiskTypeStandardLRS),
-						string(nodetype.DiskTypeStandardSSDLRS),
-						string(nodetype.DiskTypePremiumLRS),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(nodetype.DiskTypeStandardLRS),
+					ValidateFunc: validation.StringInSlice(nodetype.PossibleValuesForDiskType(), false),
 				},
 				"ephemeral_port_range": {
 					Type:     pluginsdk.TypeString,
@@ -1136,13 +1116,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 65535),
 				},
 				"probe_protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProbeProtocolHTTP),
-						string(managedcluster.ProbeProtocolHTTPS),
-						string(managedcluster.ProbeProtocolTcp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProbeProtocol(), false),
 				},
 				"probe_request_path": {
 					Type:         pluginsdk.TypeString,
@@ -1150,12 +1126,9 @@ func lbRulesSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotWhiteSpace,
 				},
 				"protocol": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(managedcluster.ProtocolTcp),
-						string(managedcluster.ProtocolUdp),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(managedcluster.PossibleValuesForProtocol(), false),
 				},
 			},
 		},

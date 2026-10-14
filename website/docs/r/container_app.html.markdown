@@ -472,7 +472,7 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `server` - (Required) The hostname for the Container Registry.
+* `server` - (Required) The FQDN for the Container Registry.
 
 The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
 

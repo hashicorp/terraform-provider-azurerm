@@ -18,17 +18,17 @@ import (
 )
 
 type WatcherModel struct {
-	AutomationAccountID         string                 `tfschema:"automation_account_id"`
-	Name                        string                 `tfschema:"name"`
-	Location                    string                 `tfschema:"location"`
-	Tags                        map[string]interface{} `tfschema:"tags"`
-	Etag                        string                 `tfschema:"etag"`
-	ExecutionFrequencyInSeconds int64                  `tfschema:"execution_frequency_in_seconds"`
-	ScriptName                  string                 `tfschema:"script_name"`
-	ScriptParameters            map[string]interface{} `tfschema:"script_parameters"`
-	ScriptRunOn                 string                 `tfschema:"script_run_on"`
-	Description                 string                 `tfschema:"description"`
-	Status                      string                 `tfschema:"status"`
+	AutomationAccountID         string         `tfschema:"automation_account_id"`
+	Name                        string         `tfschema:"name"`
+	Location                    string         `tfschema:"location"`
+	Tags                        map[string]any `tfschema:"tags"`
+	Etag                        string         `tfschema:"etag"`
+	ExecutionFrequencyInSeconds int64          `tfschema:"execution_frequency_in_seconds"`
+	ScriptName                  string         `tfschema:"script_name"`
+	ScriptParameters            map[string]any `tfschema:"script_parameters"`
+	ScriptRunOn                 string         `tfschema:"script_run_on"`
+	Description                 string         `tfschema:"description"`
+	Status                      string         `tfschema:"status"`
 }
 
 type WatcherResource struct{}
@@ -106,7 +106,7 @@ func (m WatcherResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m WatcherResource) ModelObject() interface{} {
+func (m WatcherResource) ModelObject() any {
 	return &WatcherModel{}
 }
 
@@ -250,7 +250,6 @@ func (m WatcherResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 			client := meta.Client.Automation.WatcherClient
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)

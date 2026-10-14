@@ -15,10 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -88,20 +86,14 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(smartdetectoralertrules.SeveritySevZero),
-						string(smartdetectoralertrules.SeveritySevOne),
-						string(smartdetectoralertrules.SeveritySevTwo),
-						string(smartdetectoralertrules.SeveritySevThree),
-						string(smartdetectoralertrules.SeveritySevFour),
-					}, false,
+					smartdetectoralertrules.PossibleValuesForSeverity(), false,
 				),
 			},
 
 			"frequency": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: commonValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"action_group": {
@@ -150,7 +142,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 			"throttling_duration": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: commonValidate.ISO8601Duration,
+				ValidateFunc: validation.ISO8601Duration,
 			},
 
 			"tags": commonschema.Tags(),
@@ -158,7 +150,7 @@ func resourceMonitorSmartDetectorAlertRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -196,10 +188,10 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 			Detector: smartdetectoralertrules.Detector{
 				Id: d.Get("detector_type").(string),
 			},
-			Scope:        pointer.From(helpers.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
-			ActionGroups: pointer.From(expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{}))),
+			Scope:        pointer.From(pluginsdk.ExpandStringSlice(d.Get("scope_resource_ids").(*pluginsdk.Set).List())),
+			ActionGroups: pointer.From(expandMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]any))),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("throttling_duration"); ok {
@@ -216,7 +208,7 @@ func resourceMonitorSmartDetectorAlertRuleCreateUpdate(d *pluginsdk.ResourceData
 	return resourceMonitorSmartDetectorAlertRuleRead(d, meta)
 }
 
-func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +261,7 @@ func resourceMonitorSmartDetectorAlertRuleRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.SmartDetectorAlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,21 +277,21 @@ func resourceMonitorSmartDetectorAlertRuleDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func expandMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *smartdetectoralertrules.ActionGroupsInformation {
+func expandMonitorSmartDetectorAlertRuleActionGroup(input []any) *smartdetectoralertrules.ActionGroupsInformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &smartdetectoralertrules.ActionGroupsInformation{
 		CustomEmailSubject:   pointer.To(v["email_subject"].(string)),
 		CustomWebhookPayload: pointer.To(v["webhook_payload"].(string)),
-		GroupIds:             pointer.From(helpers.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
+		GroupIds:             pointer.From(pluginsdk.ExpandStringSlice(v["ids"].(*pluginsdk.Set).List())),
 	}
 }
 
-func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertrules.ActionGroupsInformation) ([]interface{}, error) {
+func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertrules.ActionGroupsInformation) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
 	var customEmailSubject, CustomWebhookPayload string
@@ -319,8 +311,8 @@ func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertru
 		groupIds = append(groupIds, id.ID())
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"ids":             groupIds,
 			"email_subject":   customEmailSubject,
 			"webhook_payload": CustomWebhookPayload,

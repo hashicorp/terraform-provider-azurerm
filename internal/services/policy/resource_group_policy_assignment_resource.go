@@ -6,10 +6,10 @@ package policy
 import (
 	"regexp"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -45,7 +45,7 @@ type ResourceGroupAssignmentModel struct {
 	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
 }
 
-func (r ResourceGroupAssignmentResource) ModelObject() interface{} {
+func (r ResourceGroupAssignmentResource) ModelObject() any {
 	return &ResourceGroupAssignmentModel{}
 }
 
@@ -66,7 +66,7 @@ func (r ResourceGroupAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: resourceValidate.ResourceGroupID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseResourceGroupIDInsensitively),
 		},
 	}
 	return r.base.arguments(schema)

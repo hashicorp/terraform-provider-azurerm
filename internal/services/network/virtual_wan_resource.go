@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -65,15 +65,10 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			},
 
 			"office365_local_breakout_category": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualwans.OfficeTrafficCategoryAll),
-					string(virtualwans.OfficeTrafficCategoryNone),
-					string(virtualwans.OfficeTrafficCategoryOptimize),
-					string(virtualwans.OfficeTrafficCategoryOptimizeAndAllow),
-				}, false),
-				Default: string(virtualwans.OfficeTrafficCategoryNone),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForOfficeTrafficCategory(), false),
+				Default:      string(virtualwans.OfficeTrafficCategoryNone),
 			},
 
 			"type": {
@@ -87,7 +82,7 @@ func resourceVirtualWan() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -110,7 +105,7 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	wan := virtualwans.VirtualWAN{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &virtualwans.VirtualWanProperties{
 			DisableVpnEncryption:           pointer.To(d.Get("disable_vpn_encryption").(bool)),
 			AllowBranchToBranchTraffic:     pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
@@ -128,7 +123,7 @@ func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +164,7 @@ func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -181,7 +176,7 @@ func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	return resourceVirtualWanRead(d, meta)
 }
 
-func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +215,7 @@ func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

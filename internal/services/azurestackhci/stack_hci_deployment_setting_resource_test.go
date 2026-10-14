@@ -31,6 +31,21 @@ const (
 	deploymentUserPasswordEnv  = "ARM_TEST_HCI_DEPLOYMENT_USER_PASSWORD"
 )
 
+func TestAccStackHCIDeploymentSetting_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_deployment_setting", "test")
+	r := StackHCIDeploymentSettingResource{}
+
+	if os.Getenv(imageIdEnv) == "" || os.Getenv(localAdminUserEnv) == "" || os.Getenv(domainAdminUserEnv) == "" || os.Getenv(domainAdminUserEnv) == "" || os.Getenv(domainAdminUserPasswordEnv) == "" || os.Getenv(deploymentUserEnv) == "" || os.Getenv(deploymentUserPasswordEnv) == "" {
+		t.Skipf("skip the test as one or more of below environment variables are not specified: %q, %q, %q, %q, %q, %q, %q", imageIdEnv, localAdminUserEnv, localAdminUserPasswordEnv, domainAdminUserEnv, domainAdminUserPasswordEnv, deploymentUserEnv, deploymentUserPasswordEnv)
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccStackHCIDeploymentSetting_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_deployment_setting", "test")
 	r := StackHCIDeploymentSettingResource{}
@@ -692,7 +707,7 @@ resource "azurerm_role_assignment" "connect2" {
   principal_id         = azuread_service_principal.test.object_id
 }
 
-// this is following https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-tool-active-directory
+// this is following https://learn.microsoft.com/azure-stack/hci/deploy/deployment-tool-active-directory
 resource "terraform_data" "ad_creation_provisioner" {
   depends_on = [azurerm_virtual_machine.test]
 

@@ -54,7 +54,7 @@ func dataSourceDataShareDatasetKustoCluster() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataShareDatasetKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetKustoClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

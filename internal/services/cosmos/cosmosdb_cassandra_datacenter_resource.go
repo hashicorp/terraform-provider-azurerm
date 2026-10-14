@@ -129,7 +129,7 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 	}
 }
 
-func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceCassandraDatacenterCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
-func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,7 +232,7 @@ func resourceCassandraDatacenterRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +288,7 @@ func resourceCassandraDatacenterUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCassandraDatacenterRead(d, meta)
 }
 
-func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.ManagedCassandraClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -306,7 +306,7 @@ func resourceCassandraDatacenterDelete(d *pluginsdk.ResourceData, meta interface
 }
 
 func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcassandras.ManagedCassandrasClient, id managedcassandras.DataCenterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.CassandraDataCentersGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
@@ -321,8 +321,8 @@ func cassandraDatacenterStateRefreshFunc(ctx context.Context, client *managedcas
 	}
 }
 
-func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCassandraDatacenterSeedNodes(input *[]managedcassandras.SeedNode) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

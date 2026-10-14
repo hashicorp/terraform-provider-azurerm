@@ -51,7 +51,7 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 			"tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -67,7 +67,7 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorThreatIntelligenceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorThreatIntelligenceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -123,7 +123,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreate(d *pluginsdk.Resource
 	return resourceSentinelDataConnectorThreatIntelligenceRead(d, meta)
 }
 
-func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceSentinelDataConnectorThreatIntelligenceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorThreatIntelligenceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

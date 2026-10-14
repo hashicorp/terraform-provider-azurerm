@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/failovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/failovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type MsSqlFailoverGroupDataSourceModel struct {
@@ -48,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
-func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
+func (d MsSqlFailoverGroupDataSource) ModelObject() any {
 	return &MsSqlFailoverGroupDataSourceModel{}
 }
 
@@ -63,7 +64,7 @@ func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"server_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.ServerID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlServerIDInsensitively),
 		},
 	}
 }
@@ -190,7 +191,7 @@ func flattenPartnerServers(input []failovergroups.PartnerInfo) []PartnerServerDa
 	for _, partner := range input {
 		model := PartnerServerDataSourceModel{
 			Location: location.NormalizeNilable(partner.Location),
-			Role:     string(pointer.From(partner.ReplicationRole)),
+			Role:     pointer.FromEnum(partner.ReplicationRole),
 			ID:       partner.Id,
 		}
 

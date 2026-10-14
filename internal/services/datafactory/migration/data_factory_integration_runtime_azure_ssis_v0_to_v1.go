@@ -367,7 +367,7 @@ func (DataFactoryIntegrationRuntimeAzureSsisV0ToV1) Schema() map[string]*plugins
 }
 
 func (DataFactoryIntegrationRuntimeAzureSsisV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// Migration to update ID segment from lowercase to camelCase (integrationruntimes to integrationRuntimes)
 
 		oldId := rawState["id"].(string)

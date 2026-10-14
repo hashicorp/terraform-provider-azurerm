@@ -19,7 +19,7 @@ var enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 //
 // NOTE: this is best-effort - if the users offline, or the API doesn't return it we'll
 // fall back to the original approach
-func EnhancedValidate(i interface{}, k string) ([]string, []error) {
+func EnhancedValidate(i any, k string) ([]string, []error) {
 	if !enhancedEnabled || cachedResourceProviders == nil {
 		return validation.StringIsNotEmpty(i, k)
 	}
@@ -27,7 +27,8 @@ func EnhancedValidate(i interface{}, k string) ([]string, []error) {
 	return enhancedValidation(i, k)
 }
 
-func enhancedValidation(i interface{}, k string) ([]string, []error) {
+// lintignore:V013 // this validates against a list of Resource Providers cached at runtime, not a static list
+func enhancedValidation(i any, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}

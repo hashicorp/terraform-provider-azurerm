@@ -73,7 +73,7 @@ func (m TrustedSigningAccountResource) Attributes() map[string]*pluginsdk.Schema
 	}
 }
 
-func (m TrustedSigningAccountResource) ModelObject() interface{} {
+func (m TrustedSigningAccountResource) ModelObject() any {
 	return &TrustedSigningAccountModel{}
 }
 
@@ -212,8 +212,6 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-			meta.Logger.Infof("deleting %s", id)
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -40,7 +40,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) ResourceType()
 	return "azurerm_mssql_managed_instance_active_directory_administrator"
 }
 
-func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) ModelObject() any {
 	return &MsSqlManagedInstanceActiveDirectoryAdministratorModel{}
 }
 
@@ -54,7 +54,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Arguments() ma
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"login_username": {
@@ -225,8 +225,7 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 			}
 
 			model := MsSqlManagedInstanceActiveDirectoryAdministratorModel{
-				ManagedInstanceId:         managedInstanceId.ID(),
-				AzureADAuthenticationOnly: false,
+				ManagedInstanceId: managedInstanceId.ID(),
 			}
 
 			if result.Model != nil {
@@ -268,11 +267,9 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 			managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
 
 			// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
-			// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
+			// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behaviour of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
 			aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
-				Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{
-					AzureADOnlyAuthentication: false,
-				},
+				Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{},
 			}
 
 			if err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams); err != nil {

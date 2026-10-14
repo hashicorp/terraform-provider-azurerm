@@ -4,11 +4,13 @@
 package generators
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -19,7 +21,7 @@ import (
 
 var (
 	cwd, _          = os.Getwd()
-	riOutputFileFmt = "/%s_resource_identity_gen_test.go"
+	riOutputFileFmt = "%s_resource_identity_gen_test.go"
 )
 
 type ResourceIdentityCommand struct {
@@ -41,6 +43,8 @@ type resourceIdentityData struct {
 	CompareValueMap        map[string]string
 	NoSubscriptionID       bool
 	TestName               string
+	TestEnvVarsFlag        string
+	TestEnvVars            []string
 	TestExpectNonEmptyPlan bool
 	TestSequential         bool
 	RewriteTag             bool
@@ -72,6 +76,8 @@ Optional args:
 		- 'no-subscription-id' can be passed to omit the default subscription ID known value in the test if the resource's ID doesn't contain subscription ID. Defaults to 'false'.
 	- test-name [string]
 		'test-name' specifies the test config name that will be used to test Resource Identity. Defaults to 'basic'.
+	- test-env-vars [string]
+		- 'test-env-vars' specifies any environment variables that are required for the test to run, the test is skipped if specified env vars are not defined.
 	- test-expect-non-empty [bool]
 		'test-expect-non-empty' indicates whether the test should expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import.
 	- test-sequential [bool]
@@ -120,6 +126,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.ParentID, "parent-id", "", "(Optional) for sub-resources with a virtual identity, specify the schema property name of the parent ID (e.g. `workspace_id`). This automatically expands into compare-values.")
 	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Optional) the path to the directory containing the service package to write the generated test to. For Go generate this will be picked up from $GOPACKAGE or current working directory.")
 	argSet.StringVar(&d.BasicTestParams, "test-params", "", "(Optional) comma separated list of additional properties that need to be passed to the basic test config for this resource.")
+	argSet.StringVar(&d.TestEnvVarsFlag, "test-env-vars", "", "(Optional) comma separated list of env vars that need to be passed to the basic test config for this resource, if any of the provided env vars are missing the test is skipped.")
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
 	argSet.BoolVar(&d.NoSubscriptionID, "no-subscription-id", false, "(Optional) 'no-subscription-id' can be passed to omit the default subscription ID known value in the test if the resource's ID doesn't contain subscription ID. Defaults to 'false'.")
@@ -132,9 +139,13 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		return
 	}
 
-	if d.ResourceName == "" {
-		if goFile := os.Getenv("GOFILE"); goFile != "" {
+	if d.ResourceName == "" || d.ResourceName == "resource.go" || d.ResourceName == "resource" {
+		if goFile := os.Getenv("GOFILE"); goFile != "" && goFile != "resource.go" {
 			d.ResourceName = strings.TrimSuffix(goFile, "_resource.go")
+		} else if pkg := os.Getenv("GOPACKAGE"); pkg != "" {
+			d.ResourceName = pkg
+		} else {
+			d.ResourceName = filepath.Base(cwd)
 		}
 	}
 
@@ -180,8 +191,8 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		}
 	} else if len(d.IdentityProperties) > 0 {
 		d.PropertyNameMap = map[string]string{}
-		propertiesList := strings.Split(d.IdentityProperties, ",")
-		for _, property := range propertiesList {
+		propertiesList := strings.SplitSeq(d.IdentityProperties, ",")
+		for property := range propertiesList {
 			v := strings.Split(property, ":")
 			switch len(v) {
 			case 1:
@@ -197,9 +208,9 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 
 	if len(d.CompareValues) > 0 {
 		d.CompareValueMap = make(map[string]string)
-		kv := strings.Split(d.CompareValues, ",")
+		kv := strings.SplitSeq(d.CompareValues, ",")
 
-		for _, v := range kv {
+		for v := range kv {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
 				errors = append(errors, fmt.Errorf("invalid property format in compare-values: '%s'", v))
@@ -345,11 +356,15 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		d.TestParams = strings.Split(d.BasicTestParams, ",")
 	}
 
+	if len(d.TestEnvVarsFlag) > 0 {
+		d.TestEnvVars = strings.Split(d.TestEnvVarsFlag, ",")
+	}
+
 	if len(d.KnownValues) > 0 {
 		d.KnownValueMap = make(map[string]string)
-		kv := strings.Split(d.KnownValues, ",")
+		kv := strings.SplitSeq(d.KnownValues, ",")
 
-		for _, v := range kv {
+		for v := range kv {
 			vParts := strings.Split(v, ":")
 			if len(vParts) != 2 {
 				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
@@ -368,15 +383,49 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	return
 }
 
+func isRefactoredSubpackage(dir string) bool {
+	if os.Getenv("GOFILE") == "resource.go" {
+		return true
+	}
+	if info, err := os.Stat(filepath.Join(dir, "resource.go")); err == nil && !info.IsDir() {
+		return true
+	}
+
+	providerRoot, err := findProviderRoot(dir)
+	if err != nil {
+		return false
+	}
+	servicesDir := filepath.Join(providerRoot, "internal", "services")
+	rel, err := filepath.Rel(servicesDir, dir)
+	if err != nil {
+		return false
+	}
+	parts := strings.Split(filepath.ToSlash(rel), "/")
+	return len(parts) >= 2 && parts[0] != ".." && parts[0] != "."
+}
+
 func (d *resourceIdentityData) exec() error {
 	tpl := template.Must(template.New("identity_test.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
 
-	outputPath := cwd + fmt.Sprintf(riOutputFileFmt, d.ResourceName)
-	cwdParts := strings.Split(cwd, "internal"+string(os.PathSeparator)+"services"+string(os.PathSeparator))
+	var outputFilename string
+	if isRefactoredSubpackage(cwd) {
+		outputFilename = "resource_identity_gen_test.go"
+		legacyPath := filepath.Join(cwd, fmt.Sprintf(riOutputFileFmt, d.ResourceName))
+		if _, err := os.Stat(legacyPath); err == nil {
+			_ = os.Remove(legacyPath)
+		}
+	} else {
+		outputFilename = fmt.Sprintf(riOutputFileFmt, d.ResourceName)
+	}
+	outputPath := filepath.Join(cwd, outputFilename)
 
-	// Allow service package name override if needed (unlikely)
-	if d.ServicePackageName == "" {
-		d.ServicePackageName = cwdParts[len(cwdParts)-1]
+	// Allow service package name override if needed, otherwise infer from GOPACKAGE or cwd
+	if pkg := os.Getenv("GOPACKAGE"); pkg != "" {
+		d.ServicePackageName = pkg
+	} else if d.ServicePackageName == "" {
+		d.ServicePackageName = filepath.Base(cwd)
+	} else if strings.Contains(d.ServicePackageName, string(os.PathSeparator)) || strings.Contains(d.ServicePackageName, "/") {
+		d.ServicePackageName = filepath.Base(d.ServicePackageName)
 	}
 
 	f, err := os.Create(outputPath)
@@ -420,7 +469,7 @@ func (d *resourceIdentityData) exec() error {
 			newContent = reKnownSub.ReplaceAllString(newContent, "")
 
 			// Clean up double spaces if any on the go generate line
-			reSpaces := regexp.MustCompile(`(go run ../../tools/generator-tests resourceidentity)[ \t]+`)
+			reSpaces := regexp.MustCompile(`(go run \S*generator-tests resourceidentity)[ \t]+`)
 			newContent = reSpaces.ReplaceAllString(newContent, "$1 ")
 			newContent = strings.ReplaceAll(newContent, "  ", " ")
 
@@ -437,7 +486,7 @@ func (d *resourceIdentityData) exec() error {
 			}
 
 			// Clean up any trailing space before a newline on the go generate line
-			reTrailing := regexp.MustCompile(`(go run ../../tools/generator-tests resourceidentity.*?)[ \t]+\n`)
+			reTrailing := regexp.MustCompile(`(go run \S*generator-tests resourceidentity.*?)[ \t]+\n`)
 			newContent = reTrailing.ReplaceAllString(newContent, "$1\n")
 
 			if err := os.WriteFile(goFile, []byte(newContent), 0o644); err != nil {
@@ -445,7 +494,7 @@ func (d *resourceIdentityData) exec() error {
 			}
 
 			// Run gofumpt
-			cmd := exec.Command("gofumpt", "-w", goFile)
+			cmd := exec.CommandContext(context.Background(), "gofumpt", "-w", goFile)
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed running gofumpt on %s: %w", goFile, err)
 			}

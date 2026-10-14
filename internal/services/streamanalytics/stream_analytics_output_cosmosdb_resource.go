@@ -101,7 +101,7 @@ func (r OutputCosmosDBResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r OutputCosmosDBResource) ModelObject() interface{} {
+func (r OutputCosmosDBResource) ModelObject() any {
 	return &OutputCosmosDBResourceModel{}
 }
 
@@ -216,7 +216,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 
 					state.PartitionKey = pointer.From(output.Properties.PartitionKey)
 
-					state.AuthenticationMode = string(pointer.From(output.Properties.AuthenticationMode))
+					state.AuthenticationMode = pointer.FromEnum(output.Properties.AuthenticationMode)
 
 					return metadata.Encode(&state)
 				}

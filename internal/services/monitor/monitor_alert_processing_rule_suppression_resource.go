@@ -34,7 +34,7 @@ func (r AlertProcessingRuleSuppressionResource) ResourceType() string {
 	return "azurerm_monitor_alert_processing_rule_suppression"
 }
 
-func (r AlertProcessingRuleSuppressionResource) ModelObject() interface{} {
+func (r AlertProcessingRuleSuppressionResource) ModelObject() any {
 	return &AlertProcessingRuleSuppressionModel{}
 }
 

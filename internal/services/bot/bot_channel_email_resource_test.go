@@ -10,15 +10,29 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelEmailResource struct{}
+
+func TestAccBotChannelEmail_regressionTest(t *testing.T) {
+	if ok := skipEmailChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
+	r := BotChannelEmailResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
 
 func TestAccBotChannelEmail_basic(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
@@ -83,12 +97,12 @@ func TestAccBotChannelEmail_magicCode(t *testing.T) {
 }
 
 func (t BotChannelEmailResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotChannelID(state.ID)
+	id, err := commonids.ParseBotServiceChannelID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameEmailChannel))
+	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameEmailChannel))
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}

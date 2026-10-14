@@ -10,15 +10,27 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelFacebookResource struct{}
+
+func TestAccBotChannelFacebook_regressionTest(t *testing.T) {
+	skipFacebookChannel(t)
+
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
+	r := BotChannelFacebookResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccBotChannelFacebook_basic(t *testing.T) {
 	skipFacebookChannel(t)
@@ -79,12 +91,12 @@ func TestAccBotChannelFacebook_update(t *testing.T) {
 }
 
 func (t BotChannelFacebookResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BotChannelID(state.ID)
+	id, err := commonids.ParseBotServiceChannelID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
+	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameFacebookChannel))
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
