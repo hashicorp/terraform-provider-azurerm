@@ -23,7 +23,7 @@ func TestAccMonitorDiagnosticSetting_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.managementGroup(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_monitor_diagnostic_setting.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_monitor_diagnostic_setting.test", tfjsonpath.New("name"), tfjsonpath.New("name")),

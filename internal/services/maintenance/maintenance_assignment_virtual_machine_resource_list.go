@@ -29,10 +29,15 @@ type MaintenanceAssignmentVirtualMachineListModel struct {
 	VirtualMachineId types.String `tfsdk:"virtual_machine_id"`
 }
 
+const azureMaintenanceAssignmentVirtualMachine = "azurerm_maintenance_assignment_virtual_machine"
+
 var _ sdk.FrameworkListWrappedResource = &MaintenanceAssignmentVirtualMachineListResource{}
 
 func (MaintenanceAssignmentVirtualMachineListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_maintenance_assignment_virtual_machine"
+	response.TypeName = azureMaintenanceAssignmentVirtualMachine
+	response.ResourceBehavior = resource.ResourceBehavior{
+		MutableIdentity: true, // Note: Since this resource relies on a case-insensitivity workaround, we need to potentially update the value in future if the API response starts coming back in the case it was sent.
+	}
 }
 
 func (MaintenanceAssignmentVirtualMachineListResource) ResourceFunc() *pluginsdk.Resource {
@@ -102,7 +107,7 @@ func (MaintenanceAssignmentVirtualMachineListResource) List(ctx context.Context,
 			rd.SetId(id.ID())
 
 			if err := resourceArmMaintenanceAssignmentVirtualMachineFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting resource data for `azurerm_maintenance_assignment_virtual_machine`", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureMaintenanceAssignmentVirtualMachine), err)
 				return
 			}
 

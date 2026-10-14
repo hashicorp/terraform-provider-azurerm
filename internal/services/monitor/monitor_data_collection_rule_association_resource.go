@@ -121,17 +121,17 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			}
 
 			input := datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource{
-				Name: pointer.To(model.Name),
+				Name: new(model.Name),
 				Properties: &datacollectionruleassociations.DataCollectionRuleAssociation{
-					Description: pointer.To(model.Description),
+					Description: new(model.Description),
 				},
 			}
 
 			if model.DataCollectionEndpointId != "" {
-				input.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
+				input.Properties.DataCollectionEndpointId = new(model.DataCollectionEndpointId)
 			}
 			if model.DataCollectionRuleId != "" {
-				input.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
+				input.Properties.DataCollectionRuleId = new(model.DataCollectionRuleId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -166,30 +166,34 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var description, dataCollectionEndpointId, dataCollectionRuleId string
-
-			if model := resp.Model; model != nil {
-				if prop := model.Properties; prop != nil {
-					dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
-					dataCollectionRuleId = pointer.From(prop.DataCollectionRuleId)
-					description = pointer.From(prop.Description)
-				}
-			}
-
-			if err := metadata.Encode(&DataCollectionRuleAssociationModel{
-				Name:                     id.DataCollectionRuleAssociationName,
-				TargetResourceId:         id.ResourceUri,
-				DataCollectionEndpointId: dataCollectionEndpointId,
-				DataCollectionRuleId:     dataCollectionRuleId,
-				Description:              description,
-			}); err != nil {
-				return err
-			}
-
-			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
+			return r.flatten(metadata, id, resp.Model)
 		},
 		Timeout: 5 * time.Minute,
 	}
+}
+
+func (r DataCollectionRuleAssociationResource) flatten(metadata sdk.ResourceMetaData, id *datacollectionruleassociations.ScopedDataCollectionRuleAssociationId, model *datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource) error {
+	var description, dataCollectionEndpointId, dataCollectionRuleId string
+
+	if model != nil {
+		if prop := model.Properties; prop != nil {
+			dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
+			dataCollectionRuleId = pointer.From(prop.DataCollectionRuleId)
+			description = pointer.From(prop.Description)
+		}
+	}
+
+	if err := metadata.Encode(&DataCollectionRuleAssociationModel{
+		Name:                     id.DataCollectionRuleAssociationName,
+		TargetResourceId:         id.ResourceUri,
+		DataCollectionEndpointId: dataCollectionEndpointId,
+		DataCollectionRuleId:     dataCollectionRuleId,
+		Description:              description,
+	}); err != nil {
+		return err
+	}
+
+	return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 }
 
 func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
@@ -220,7 +224,7 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
 				if model.DataCollectionEndpointId != "" {
-					existing.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
+					existing.Properties.DataCollectionEndpointId = new(model.DataCollectionEndpointId)
 				} else {
 					existing.Properties.DataCollectionEndpointId = nil
 				}
@@ -228,14 +232,14 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_rule_id") {
 				if model.DataCollectionRuleId != "" {
-					existing.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
+					existing.Properties.DataCollectionRuleId = new(model.DataCollectionRuleId)
 				} else {
 					existing.Properties.DataCollectionRuleId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = pointer.To(model.Description)
+				existing.Properties.Description = new(model.Description)
 			}
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {

@@ -3,7 +3,7 @@
 
 package monitor
 
-//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_uri:target_resource_id,name"
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_uri:target_resource_id,name" -test-name managementGroup
 
 import (
 	"bytes"
@@ -220,23 +220,23 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any)
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
-		parameters.Properties.EventHubAuthorizationRuleId = pointer.To(eventHubAuthorizationRuleId)
-		parameters.Properties.EventHubName = pointer.To(eventHubName)
+		parameters.Properties.EventHubAuthorizationRuleId = new(eventHubAuthorizationRuleId)
+		parameters.Properties.EventHubName = new(eventHubName)
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
-		parameters.Properties.WorkspaceId = pointer.To(workspaceId)
+		parameters.Properties.WorkspaceId = new(workspaceId)
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
-		parameters.Properties.StorageAccountId = pointer.To(storageAccountId)
+		parameters.Properties.StorageAccountId = new(storageAccountId)
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
-		parameters.Properties.MarketplacePartnerId = pointer.To(partnerSolutionId)
+		parameters.Properties.MarketplacePartnerId = new(partnerSolutionId)
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
@@ -357,23 +357,23 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta any)
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
-		parameters.Properties.EventHubAuthorizationRuleId = pointer.To(eventHubAuthorizationRuleId)
-		parameters.Properties.EventHubName = pointer.To(eventHubName)
+		parameters.Properties.EventHubAuthorizationRuleId = new(eventHubAuthorizationRuleId)
+		parameters.Properties.EventHubName = new(eventHubName)
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
-		parameters.Properties.WorkspaceId = pointer.To(workspaceId)
+		parameters.Properties.WorkspaceId = new(workspaceId)
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
-		parameters.Properties.StorageAccountId = pointer.To(storageAccountId)
+		parameters.Properties.StorageAccountId = new(storageAccountId)
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
-		parameters.Properties.MarketplacePartnerId = pointer.To(partnerSolutionId)
+		parameters.Properties.MarketplacePartnerId = new(partnerSolutionId)
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
@@ -523,9 +523,9 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []any) (*[]diagnosticsett
 
 		switch {
 		case category != "":
-			output.Category = pointer.To(category)
+			output.Category = new(category)
 		case categoryGroup != "":
-			output.CategoryGroup = pointer.To(categoryGroup)
+			output.CategoryGroup = new(categoryGroup)
 		default:
 			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}
@@ -584,7 +584,7 @@ func expandMonitorDiagnosticsSettingsEnabledMetrics(input []any) []diagnosticset
 		v := raw.(map[string]any)
 
 		output := diagnosticsettings.DiagnosticsMetricSettings{
-			Category: pointer.To(v["category"].(string)),
+			Category: new(v["category"].(string)),
 			Enabled:  true,
 		}
 
