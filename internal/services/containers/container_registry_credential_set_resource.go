@@ -85,7 +85,7 @@ type ContainerRegistryCredentialSetModel struct {
 	Identity                 []identity.ModelSystemAssigned `tfschema:"identity"`
 }
 
-func (ContainerRegistryCredentialSetResource) ModelObject() interface{} {
+func (ContainerRegistryCredentialSetResource) ModelObject() any {
 	return &ContainerRegistryCredentialSetModel{}
 }
 

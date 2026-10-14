@@ -302,7 +302,7 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m DeploymentResource) ModelObject() interface{} {
+func (m DeploymentResource) ModelObject() any {
 	return &DeploymentModel{}
 }
 

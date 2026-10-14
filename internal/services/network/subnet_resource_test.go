@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -540,6 +540,18 @@ func TestAccSubnet_serviceEndpointBlockMultiple(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.serviceEndpointBlockMultipleUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("3"),
+				check.That(data.ResourceName).Key("service_endpoint.0.service").HasValue("Microsoft.Sql"),
+				check.That(data.ResourceName).Key("service_endpoint.1.service").HasValue("Microsoft.Storage"),
+				check.That(data.ResourceName).Key("service_endpoint.1.network_identifier").Exists(),
+				check.That(data.ResourceName).Key("service_endpoint.2.service").HasValue("Microsoft.ServiceBus"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceEndpointBlockMultipleUpdateReorder(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_endpoint.#").HasValue("3"),
@@ -1536,6 +1548,40 @@ resource "azurerm_subnet" "test" {
 
   service_endpoint {
     service = "Microsoft.ServiceBus"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r SubnetResource) serviceEndpointBlockMultipleUpdateReorder(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  service_endpoint {
+    service = "Microsoft.ServiceBus"
+  }
+
+  service_endpoint {
+    service = "Microsoft.Sql"
+  }
+
+  service_endpoint {
+    service            = "Microsoft.Storage"
+    network_identifier = azurerm_public_ip.test.id
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +17,16 @@ import (
 )
 
 type ArcKubernetesProvisionedClusterResource struct{}
+
+func TestAccArcKubernetesProvisionedCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
+	r := ArcKubernetesProvisionedClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccArcKubernetesProvisionedCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
@@ -99,7 +109,7 @@ func TestAccArcKubernetesProvisionedCluster_complete(t *testing.T) {
 }
 
 func (r ArcKubernetesProvisionedClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := arckubernetes.ParseConnectedClusterID(state.ID)
+	id, err := connectedclusters.ParseConnectedClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}

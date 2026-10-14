@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +17,16 @@ import (
 )
 
 type ApplicationInsightsWebTestResource struct{}
+
+func TestAccApplicationInsightsWebTests_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
+	r := ApplicationInsightsWebTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
@@ -99,7 +109,7 @@ func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
 }
 
 func (t ApplicationInsightsWebTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := webtests.ParseWebTestID(state.ID)
+	id, err := webtestsapis.ParseWebTestID(state.ID)
 	if err != nil {
 		return nil, err
 	}

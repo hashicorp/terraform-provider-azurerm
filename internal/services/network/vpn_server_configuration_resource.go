@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -264,7 +264,7 @@ func resourceVPNServerConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -285,7 +285,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	aadAuthenticationRaw := d.Get("azure_active_directory_authentication").([]interface{})
+	aadAuthenticationRaw := d.Get("azure_active_directory_authentication").([]any)
 	aadAuthentication := expandVpnServerConfigurationAADAuthentication(aadAuthenticationRaw)
 
 	clientRevokedCertsRaw := d.Get("client_revoked_certificate").(*pluginsdk.Set).List()
@@ -294,10 +294,10 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 	clientRootCertsRaw := d.Get("client_root_certificate").(*pluginsdk.Set).List()
 	clientRootCerts := expandVpnServerConfigurationClientRootCertificates(clientRootCertsRaw)
 
-	ipSecPoliciesRaw := d.Get("ipsec_policy").([]interface{})
+	ipSecPoliciesRaw := d.Get("ipsec_policy").([]any)
 	ipSecPolicies := expandVpnServerConfigurationIPSecPolicies(ipSecPoliciesRaw)
 
-	radius := expandVpnServerConfigurationRadius(d.Get("radius").([]interface{}))
+	radius := expandVpnServerConfigurationRadius(d.Get("radius").([]any))
 
 	vpnProtocolsRaw := d.Get("vpn_protocols").(*pluginsdk.Set).List()
 	vpnProtocols := expandVpnServerConfigurationVPNProtocols(vpnProtocolsRaw)
@@ -306,7 +306,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 	supportsCertificates := false
 	supportsRadius := false
 
-	vpnAuthenticationTypesRaw := d.Get("vpn_authentication_types").([]interface{})
+	vpnAuthenticationTypesRaw := d.Get("vpn_authentication_types").([]any)
 	vpnAuthenticationTypes := make([]virtualwans.VpnAuthenticationType, 0)
 	for _, v := range vpnAuthenticationTypesRaw {
 		authType := virtualwans.VpnAuthenticationType(v.(string))
@@ -363,7 +363,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	parameters := virtualwans.VpnServerConfiguration{
 		Location:   pointer.To(location),
 		Properties: &props,
@@ -379,7 +379,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceVPNServerConfigurationRead(d, meta)
 }
 
-func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -427,7 +427,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("setting `radius`: %+v", err)
 			}
 
-			vpnAuthenticationTypes := make([]interface{}, 0)
+			vpnAuthenticationTypes := make([]any, 0)
 			if props.VpnAuthenticationTypes != nil {
 				for _, v := range *props.VpnAuthenticationTypes {
 					vpnAuthenticationTypes = append(vpnAuthenticationTypes, string(v))
@@ -451,7 +451,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -477,7 +477,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 	payload := existing.Model
 
 	if d.HasChange("azure_active_directory_authentication") {
-		payload.Properties.AadAuthenticationParameters = expandVpnServerConfigurationAADAuthentication(d.Get("azure_active_directory_authentication").([]interface{}))
+		payload.Properties.AadAuthenticationParameters = expandVpnServerConfigurationAADAuthentication(d.Get("azure_active_directory_authentication").([]any))
 	}
 
 	if d.HasChange("client_revoked_certificate") {
@@ -489,7 +489,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.HasChange("ipsec_policy") {
-		payload.Properties.VpnClientIPsecPolicies = expandVpnServerConfigurationIPSecPolicies(d.Get("ipsec_policy").([]interface{}))
+		payload.Properties.VpnClientIPsecPolicies = expandVpnServerConfigurationIPSecPolicies(d.Get("ipsec_policy").([]any))
 	}
 
 	if d.HasChange("vpn_protocols") {
@@ -500,7 +500,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 	supportsCertificates := false
 	supportsRadius := false
 
-	vpnAuthenticationTypesRaw := d.Get("vpn_authentication_types").([]interface{})
+	vpnAuthenticationTypesRaw := d.Get("vpn_authentication_types").([]any)
 	vpnAuthenticationTypes := make([]virtualwans.VpnAuthenticationType, 0)
 	for _, v := range vpnAuthenticationTypesRaw {
 		authType := virtualwans.VpnAuthenticationType(v.(string))
@@ -534,7 +534,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Properties.RadiusServerRootCertificates = nil
 		payload.Properties.RadiusServers = nil
 
-		radius := expandVpnServerConfigurationRadius(d.Get("radius").([]interface{}))
+		radius := expandVpnServerConfigurationRadius(d.Get("radius").([]any))
 		if supportsRadius {
 			if radius == nil {
 				return fmt.Errorf("`radius` must be specified when `vpn_authentication_type` is set to `Radius`")
@@ -562,7 +562,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.VpnServerConfigurationsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -574,7 +574,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceVPNServerConfigurationRead(d, meta)
 }
 
-func resourceVPNServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVPNServerConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -591,12 +591,12 @@ func resourceVPNServerConfigurationDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandVpnServerConfigurationAADAuthentication(input []interface{}) *virtualwans.AadAuthenticationParameters {
+func expandVpnServerConfigurationAADAuthentication(input []any) *virtualwans.AadAuthenticationParameters {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &virtualwans.AadAuthenticationParameters{
 		AadAudience: pointer.To(v["audience"].(string)),
 		AadIssuer:   pointer.To(v["issuer"].(string)),
@@ -604,13 +604,13 @@ func expandVpnServerConfigurationAADAuthentication(input []interface{}) *virtual
 	}
 }
 
-func flattenVpnServerConfigurationAADAuthentication(input *virtualwans.AadAuthenticationParameters) []interface{} {
+func flattenVpnServerConfigurationAADAuthentication(input *virtualwans.AadAuthenticationParameters) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"audience": pointer.From(input.AadAudience),
 			"issuer":   pointer.From(input.AadIssuer),
 			"tenant":   pointer.From(input.AadTenant),
@@ -618,11 +618,11 @@ func flattenVpnServerConfigurationAADAuthentication(input *virtualwans.AadAuthen
 	}
 }
 
-func expandVpnServerConfigurationClientRootCertificates(input []interface{}) *[]virtualwans.VpnServerConfigVpnClientRootCertificate {
+func expandVpnServerConfigurationClientRootCertificates(input []any) *[]virtualwans.VpnServerConfigVpnClientRootCertificate {
 	clientRootCertificates := make([]virtualwans.VpnServerConfigVpnClientRootCertificate, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 		clientRootCertificates = append(clientRootCertificates, virtualwans.VpnServerConfigVpnClientRootCertificate{
 			Name:           pointer.To(raw["name"].(string)),
 			PublicCertData: pointer.To(raw["public_cert_data"].(string)),
@@ -632,15 +632,15 @@ func expandVpnServerConfigurationClientRootCertificates(input []interface{}) *[]
 	return &clientRootCertificates
 }
 
-func flattenVpnServerConfigurationClientRootCertificates(input *[]virtualwans.VpnServerConfigVpnClientRootCertificate) []interface{} {
+func flattenVpnServerConfigurationClientRootCertificates(input *[]virtualwans.VpnServerConfigVpnClientRootCertificate) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":             pointer.From(v.Name),
 			"public_cert_data": pointer.From(v.PublicCertData),
 		})
@@ -649,11 +649,11 @@ func flattenVpnServerConfigurationClientRootCertificates(input *[]virtualwans.Vp
 	return output
 }
 
-func expandVpnServerConfigurationClientRevokedCertificates(input []interface{}) *[]virtualwans.VpnServerConfigVpnClientRevokedCertificate {
+func expandVpnServerConfigurationClientRevokedCertificates(input []any) *[]virtualwans.VpnServerConfigVpnClientRevokedCertificate {
 	clientRevokedCertificates := make([]virtualwans.VpnServerConfigVpnClientRevokedCertificate, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 		clientRevokedCertificates = append(clientRevokedCertificates, virtualwans.VpnServerConfigVpnClientRevokedCertificate{
 			Name:       pointer.To(raw["name"].(string)),
 			Thumbprint: pointer.To(raw["thumbprint"].(string)),
@@ -663,14 +663,14 @@ func expandVpnServerConfigurationClientRevokedCertificates(input []interface{}) 
 	return &clientRevokedCertificates
 }
 
-func flattenVpnServerConfigurationClientRevokedCertificates(input *[]virtualwans.VpnServerConfigVpnClientRevokedCertificate) []interface{} {
+func flattenVpnServerConfigurationClientRevokedCertificates(input *[]virtualwans.VpnServerConfigVpnClientRevokedCertificate) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":       pointer.From(v.Name),
 			"thumbprint": pointer.From(v.Thumbprint),
 		})
@@ -678,11 +678,11 @@ func flattenVpnServerConfigurationClientRevokedCertificates(input *[]virtualwans
 	return output
 }
 
-func expandVpnServerConfigurationIPSecPolicies(input []interface{}) *[]virtualwans.IPsecPolicy {
+func expandVpnServerConfigurationIPSecPolicies(input []any) *[]virtualwans.IPsecPolicy {
 	ipSecPolicies := make([]virtualwans.IPsecPolicy, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		ipSecPolicies = append(ipSecPolicies, virtualwans.IPsecPolicy{
 			DhGroup:             virtualwans.DhGroup(v["dh_group"].(string)),
 			IkeEncryption:       virtualwans.IkeEncryption(v["ike_encryption"].(string)),
@@ -698,14 +698,14 @@ func expandVpnServerConfigurationIPSecPolicies(input []interface{}) *[]virtualwa
 	return &ipSecPolicies
 }
 
-func flattenVpnServerConfigurationIPSecPolicies(input *[]virtualwans.IPsecPolicy) []interface{} {
+func flattenVpnServerConfigurationIPSecPolicies(input *[]virtualwans.IPsecPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"dh_group":               string(v.DhGroup),
 			"ipsec_encryption":       string(v.IPsecEncryption),
 			"ipsec_integrity":        string(v.IPsecIntegrity),
@@ -727,17 +727,17 @@ type vpnServerConfigurationRadius struct {
 	serverRootCertificates *[]virtualwans.VpnServerConfigRadiusServerRootCertificate
 }
 
-func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigurationRadius {
+func expandVpnServerConfigurationRadius(input []any) *vpnServerConfigurationRadius {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	val := input[0].(map[string]interface{})
+	val := input[0].(map[string]any)
 
 	clientRootCertificates := make([]virtualwans.VpnServerConfigRadiusClientRootCertificate, 0)
 	clientRootCertsRaw := val["client_root_certificate"].(*pluginsdk.Set).List()
 	for _, raw := range clientRootCertsRaw {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		clientRootCertificates = append(clientRootCertificates, virtualwans.VpnServerConfigRadiusClientRootCertificate{
 			Name:       pointer.To(v["name"].(string)),
 			Thumbprint: pointer.To(v["thumbprint"].(string)),
@@ -747,7 +747,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	serverRootCertificates := make([]virtualwans.VpnServerConfigRadiusServerRootCertificate, 0)
 	serverRootCertsRaw := val["server_root_certificate"].(*pluginsdk.Set).List()
 	for _, raw := range serverRootCertsRaw {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		serverRootCertificates = append(serverRootCertificates, virtualwans.VpnServerConfigRadiusServerRootCertificate{
 			Name:           pointer.To(v["name"].(string)),
 			PublicCertData: pointer.To(v["public_cert_data"].(string)),
@@ -759,9 +759,9 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	secret := ""
 
 	if val["server"] != nil {
-		radiusServersRaw := val["server"].([]interface{})
+		radiusServersRaw := val["server"].([]any)
 		for _, raw := range radiusServersRaw {
-			v := raw.(map[string]interface{})
+			v := raw.(map[string]any)
 			radiusServers = append(radiusServers, virtualwans.RadiusServer{
 				RadiusServerAddress: v["address"].(string),
 				RadiusServerSecret:  pointer.To(v["secret"].(string)),
@@ -779,35 +779,35 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	}
 }
 
-func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, d *pluginsdk.ResourceData) []interface{} {
-	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
-		return []interface{}{}
+func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, d *pluginsdk.ResourceData) []any {
+	if input == nil || (pointer.From(input.RadiusServerAddress) == "" && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
+		return []any{}
 	}
 
-	clientRootCertificates := make([]interface{}, 0)
+	clientRootCertificates := make([]any, 0)
 	if input.RadiusClientRootCertificates != nil {
 		for _, v := range *input.RadiusClientRootCertificates {
-			clientRootCertificates = append(clientRootCertificates, map[string]interface{}{
+			clientRootCertificates = append(clientRootCertificates, map[string]any{
 				"name":       pointer.From(v.Name),
 				"thumbprint": pointer.From(v.Thumbprint),
 			})
 		}
 	}
 
-	serverRootCertificates := make([]interface{}, 0)
+	serverRootCertificates := make([]any, 0)
 	if input.RadiusServerRootCertificates != nil {
 		for _, v := range *input.RadiusServerRootCertificates {
-			serverRootCertificates = append(serverRootCertificates, map[string]interface{}{
+			serverRootCertificates = append(serverRootCertificates, map[string]any{
 				"name":             pointer.From(v.Name),
 				"public_cert_data": pointer.From(v.PublicCertData),
 			})
 		}
 	}
 
-	servers := make([]interface{}, 0)
+	servers := make([]any, 0)
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
 		for i, v := range *input.RadiusServers {
-			servers = append(servers, map[string]interface{}{
+			servers = append(servers, map[string]any{
 				"address": v.RadiusServerAddress,
 				// setting this because the azure api does not return the secret, so need to read it in from the config
 				"secret": d.Get(fmt.Sprintf("radius.0.server.%d.secret", i)),
@@ -816,8 +816,8 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"client_root_certificate": clientRootCertificates,
 			"server_root_certificate": serverRootCertificates,
 			"server":                  servers,
@@ -825,7 +825,7 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 	}
 }
 
-func expandVpnServerConfigurationVPNProtocols(input []interface{}) *[]virtualwans.VpnGatewayTunnelingProtocol {
+func expandVpnServerConfigurationVPNProtocols(input []any) *[]virtualwans.VpnGatewayTunnelingProtocol {
 	vpnProtocols := make([]virtualwans.VpnGatewayTunnelingProtocol, 0)
 
 	for _, v := range input {
@@ -835,12 +835,12 @@ func expandVpnServerConfigurationVPNProtocols(input []interface{}) *[]virtualwan
 	return &vpnProtocols
 }
 
-func flattenVpnServerConfigurationVPNProtocols(input *[]virtualwans.VpnGatewayTunnelingProtocol) []interface{} {
+func flattenVpnServerConfigurationVPNProtocols(input *[]virtualwans.VpnGatewayTunnelingProtocol) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		output = append(output, string(v))

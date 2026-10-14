@@ -106,7 +106,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_single_node_virtual_instance"
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ModelObject() interface{} {
+func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ModelObject() any {
 	return &WorkloadsSAPSingleNodeVirtualInstanceModel{}
 }
 
@@ -432,11 +432,11 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.Resou
 	}
 }
 
-func hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(input []interface{}) bool {
+func hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(input []any) bool {
 	seen := make(map[string]bool)
 
 	for _, v := range input {
-		diskVolume := v.(map[string]interface{})
+		diskVolume := v.(map[string]any)
 		volumeName := diskVolume["volume_name"].(string)
 
 		if seen[volumeName] {
@@ -536,7 +536,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -606,7 +606,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) flatten(metadata sdk.Reso
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 
@@ -833,7 +833,7 @@ func flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input *sapvirtu
 		}
 
 		if sku := v.Sku; sku != nil {
-			diskVolumeConfiguration.SkuName = string(pointer.From(sku.Name))
+			diskVolumeConfiguration.SkuName = pointer.FromEnum(sku.Name)
 		}
 
 		result = append(result, diskVolumeConfiguration)
@@ -936,7 +936,7 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 
 	singleServerConfig := SingleServerConfiguration{
 		AppResourceGroupName:        input.AppResourceGroup,
-		DatabaseType:                string(pointer.From(input.DatabaseType)),
+		DatabaseType:                pointer.FromEnum(input.DatabaseType),
 		DiskVolumeConfigurations:    flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input.DbDiskConfiguration),
 		SubnetId:                    input.SubnetId,
 		VirtualMachineConfiguration: flattenSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input.VirtualMachineConfiguration, d),

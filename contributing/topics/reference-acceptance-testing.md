@@ -14,35 +14,23 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 * Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
 
+* Use a fixed password that meets the service's rules rather than generating one, unless the test is about generated passwords.
+
 ### Running the Tests
 
 See [Running the Tests](running-the-tests.md).
 
 ### PreCheck Helpers
 
-Acceptance tests frequently require additional prerequisites beyond the standard Azure credentials and test locations (for example, access to a real DNS zone, an existing Key Vault/certificate, or other shared infrastructure).
+Some tests need something not every subscription has, such as a real DNS zone or an existing Key Vault certificate. Without a check up front, the test starts creating resources it can never finish.
 
-To keep tests reliable (and to avoid creating resources that will inevitably fail), use a **pre-check** to either:
+#### Global pre-check
 
-* **Skip** a test when optional external prerequisites are not available (e.g. an environment variable pointing to shared infrastructure is not set).
-* **Fail fast** only when the prerequisite is considered mandatory for all acceptance tests in the suite.
+`acceptance.PreCheck(t)` already checks credentials and test locations. It fails outright, which is right for something every test needs.
 
-#### Global pre-check (mandatory)
+#### Resource-specific pre-check
 
-The acceptance test framework already includes a global pre-check (`acceptance.PreCheck(t)`) which validates the required Azure authentication and test location environment variables.
-
-This is intended for prerequisites that are required for *all* acceptance tests.
-
-#### Resource/service-specific pre-check (recommended pattern)
-
-For additional, test-specific prerequisites, the common convention in this repository is to implement a receiver method named `preCheck(t *testing.T)` on the test struct (for example `type ExampleResource struct {}`) and call it at the start of each `TestAcc...` that requires it.
-
-When the prerequisites are not met, these pre-checks should typically call `t.Skip(...)` / `t.Skipf(...)` (rather than `t.Fatalf(...)`) so that:
-
-* contributors without the optional infrastructure can still run unrelated tests successfully;
-* CI or scheduled runs can provide the prerequisites and run the full suite.
-
-Example:
+Give the test struct a `preCheck` method that skips the test when the environment variable for it is unset, and call it at the start of each test that needs it. Skip rather than fail, so contributors without that infrastructure can still run everything else while CI supplies it and runs the full suite.
 
 ```go
 type ExampleResource struct{}
@@ -72,11 +60,11 @@ func (ExampleResource) preCheck(t *testing.T) {
 
 #### Where to put `preCheck`
 
-Go does not require a specific function order, but for readability it is recommended to place `preCheck` close to the tests that call it (commonly after the `TestAcc...` functions and before the `Exists`/`Destroy` methods), following the pattern used throughout `internal/services/*/*_test.go`.
+Next to the tests that call it, after the `TestAcc...` functions and before `Exists`.
 
 ### Test Package
 
-While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:
+While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aadb2c/aadb2c_directory_data_source_test.go` the package should be:
 
 ```go
 package aadb2c_test
@@ -157,8 +145,6 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 ```
 
-> Originally, the acceptance tests were in the same package as the resource or data source. In order to avoid a name collision, test structs were suffixed with `Test`. However, moving tests to their own package made the struct suffix superfluous.
-
 ### Which Tests are Required?
 
 At a minimum, a Data Source requires:
@@ -173,7 +159,7 @@ At a minimum, a Resource requires:
 
 * A `basic` test ([Example](#example---resource---basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
-* A `requiresImport` test ([Example](#example---resource---requires-import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
+* A `requiresImport` test ([Example](#example---resource---requires-import)) - creates the resource twice and expects the second attempt to fail, using `RequiresImportErrorStep`.
 
 * A `complete` test ([Example](#example---resource---complete)) - this tests all possible fields (e.g. all Required/Optional fields) for this Resource.
 
@@ -183,9 +169,7 @@ However, more complex Resource generally warrant additional acceptance tests - c
 
 ### Example - Data Source - Basic
 
-A Data Source generally has one or two Required properties and a number of Computed properties - as such it's typical for this test to reuse the Terraform Configuration from the `Complete` test for the associated Resource (as this exercises all options on the resource).
-
-Since the Data Source primarily exposes Computed-only fields which aren't specified in the Terraform Configuration, we typically assert that these computed fields have a/an expected value - which differs from the Acceptance Tests for the Resource where we'll use an Import step to confirm that the Terraform Configuration matches the imported state.
+Reuse the resource's `complete` configuration, so every attribute the data source exposes has a value to assert, and check those values. There is no import step, since a data source has nothing to import.
 
 When one config helper is only being threaded into `fmt.Sprintf` once, pass it directly as the argument instead of assigning a temporary variable first.
 
@@ -303,12 +287,10 @@ resource "azurerm_example_resource" "example" {
 
 ### Example - Resource - Requires Import
 
-This test is intended to confirm that the logic within the create function (to check for the presence of an existing resource) works as intended - as the Azure Resource Manager API's are Upserts, meaning that without this check it's possible to unintentionally "adopt" existing resources.
-
-Since this test is attempting to provision the same resource, with the same identifier, twice - this test typically reuses the `Basic` test as a part of it - interpolating it's values as required.
+Azure would silently overwrite an existing resource, so the create function checks for one first. This test creates the resource with the `basic` config, then tries to create it again with the same name and expects the error.
 
 ```go
-func TestAccExampleResource_basic(t *testing.T) {
+func TestAccExampleResource_requiresImport(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
         r := ExampleResource{}
 
@@ -400,7 +382,7 @@ func TestAccExampleResource_someSetting(t *testing.T) {
     })
 }
 
-func (ExampleResource) someSettingEnabled(data acceptance.TestData) string {
+func (ExampleResource) someSetting(data acceptance.TestData, enabled bool) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -408,8 +390,9 @@ provider "azurerm" {
 
 resource "azurerm_example_resource" "example" {
   name                 = "my_example_resource"
-  location             = "%s"
+  location             = "%[1]s"
+  some_setting_enabled = %[2]t
 }
-`, data.Locations.Primary)
+`, data.Locations.Primary, enabled)
 }
 ```

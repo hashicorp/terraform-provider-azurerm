@@ -5,7 +5,7 @@ package arcresourcebridge_test
 
 import (
 	"context"
-	cryptoRand "crypto/rand"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -21,6 +21,16 @@ import (
 )
 
 type ArcResourceBridgeApplianceResource struct{}
+
+func TestAccArcResourceBridgeAppliance_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_resource_bridge_appliance", "test")
+	r := ArcResourceBridgeApplianceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccArcResourceBridgeAppliance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_resource_bridge_appliance", "test")
@@ -201,7 +211,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (r ArcResourceBridgeApplianceResource) generatePublicKey() string {
-	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return ""
 	}

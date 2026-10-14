@@ -261,7 +261,7 @@ func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clien
 
 	resp, err := clients.Network.VirtualWANs.VpnConnectionsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading VPN Gateway Connnection (%s): %+v", id, err)
+		return nil, fmt.Errorf("reading VPN Gateway Connection (%s): %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

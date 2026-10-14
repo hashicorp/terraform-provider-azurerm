@@ -86,7 +86,7 @@ func resourceRedisFirewallRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +129,7 @@ func resourceRedisFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceRedisFirewallRuleRead(d, meta)
 }
 
-func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +166,7 @@ func resourceRedisFirewallRuleFlatten(d *pluginsdk.ResourceData, id *redisfirewa
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRedisFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

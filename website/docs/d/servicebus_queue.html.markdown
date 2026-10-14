@@ -14,8 +14,8 @@ Use this data source to access information about an existing Service Bus Queue.
 
 ```hcl
 data "azurerm_servicebus_queue" "example" {
-  name         = "existing"
-  namespace_id = "existing"
+  name         = "example-queue"
+  namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ServiceBus/namespaces/example-namespace"
 }
 
 output "id" {
@@ -79,4 +79,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus` - 2024-01-01
+* `Microsoft.ServiceBus` - 2026-01-01

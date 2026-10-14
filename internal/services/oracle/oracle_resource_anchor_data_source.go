@@ -53,7 +53,7 @@ func (ResourceAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ResourceAnchorDataSource) ModelObject() interface{} {
+func (ResourceAnchorDataSource) ModelObject() any {
 	return &ResourceAnchorDataSourceModel{}
 }
 

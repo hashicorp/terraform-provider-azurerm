@@ -4,7 +4,7 @@
 package databaselink
 
 import (
-	set "github.com/hashicorp/go-set/v3"
+	"github.com/hashicorp/go-set/v3"
 )
 
 // Given current state of geoReplication database ids (fromIds) and intended state (toIds), compute the idsToUnlink,

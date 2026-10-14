@@ -68,7 +68,7 @@ func replaceNBSP(line string) string {
 		return false
 	}
 	var res []rune
-	for _, ch := range []rune(line) { //nolint:gosimple,staticcheck
+	for _, ch := range []rune(line) { //nolint:staticcheck
 		if unicode.IsSpace(ch) && !isNormalSpace(ch) {
 			res = append(res, rune(' '))
 		} else {

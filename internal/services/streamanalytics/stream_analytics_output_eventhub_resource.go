@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
@@ -116,7 +115,7 @@ func resourceStreamAnalyticsOutputEventHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -142,10 +141,10 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 	serviceBusNamespace := d.Get("servicebus_namespace").(string)
 	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
-	propertyColumns := d.Get("property_columns").([]interface{})
+	propertyColumns := d.Get("property_columns").([]any)
 	partitionKey := d.Get("partition_key").(string)
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -153,7 +152,7 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 
 	eventHubOutputDataSourceProps := &outputs.EventHubOutputDataSourceProperties{
 		PartitionKey:        pointer.To(partitionKey),
-		PropertyColumns:     helpers.ExpandStringSlice(propertyColumns),
+		PropertyColumns:     pluginsdk.ExpandStringSlice(propertyColumns),
 		EventHubName:        pointer.To(eventHubName),
 		ServiceBusNamespace: pointer.To(serviceBusNamespace),
 		AuthenticationMode:  pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
@@ -192,7 +191,7 @@ func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *pluginsdk.ResourceData
 	return resourceStreamAnalyticsOutputEventHubRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +247,7 @@ func resourceStreamAnalyticsOutputEventHubRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceStreamAnalyticsOutputEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

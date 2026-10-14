@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -29,7 +28,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT0S",
-					ValidateFunc: validate.ISO8601Duration,
+					ValidateFunc: validation.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 
@@ -38,7 +37,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT0S",
-					ValidateFunc: validate.ISO8601Duration,
+					ValidateFunc: validation.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 
@@ -47,7 +46,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      "PT0S",
-					ValidateFunc: validate.ISO8601Duration,
+					ValidateFunc: validation.ISO8601Duration,
 					AtLeastOneOf: atLeastOneOf,
 				},
 
@@ -88,12 +87,12 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
+func ExpandLongTermRetentionPolicy(input []any) *longtermretentionpolicies.LongTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	policy := input[0].(map[string]interface{})
+	policy := input[0].(map[string]any)
 
 	output := longtermretentionpolicies.LongTermRetentionPolicyProperties{
 		WeeklyRetention:  pointer.To("PT0S"),
@@ -120,9 +119,9 @@ func ExpandLongTermRetentionPolicy(input []interface{}) *longtermretentionpolici
 	return pointer.To(output)
 }
 
-func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy) []interface{} {
+func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	monthlyRetention := "PT0S"
@@ -145,8 +144,8 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 		yearlyRetention = *input.Properties.YearlyRetention
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"monthly_retention": monthlyRetention,
 			"weekly_retention":  weeklyRetention,
 			"week_of_year":      weekOfYear,
@@ -155,12 +154,12 @@ func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRet
 	}
 }
 
-func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties {
+func ExpandShortTermRetentionPolicy(input []any) *backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	policy := input[0].(map[string]interface{})
+	policy := input[0].(map[string]any)
 
 	props := backupshorttermretentionpolicies.BackupShortTermRetentionPolicyProperties{
 		RetentionDays: pointer.To(int64(7)),
@@ -177,14 +176,14 @@ func ExpandShortTermRetentionPolicy(input []interface{}) *backupshorttermretenti
 	return &props
 }
 
-func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy) []interface{} {
-	result := make([]interface{}, 0)
+func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
-	output := map[string]interface{}{}
+	output := map[string]any{}
 
 	output["retention_days"] = int64(7)
 	if input.Properties.RetentionDays != nil {

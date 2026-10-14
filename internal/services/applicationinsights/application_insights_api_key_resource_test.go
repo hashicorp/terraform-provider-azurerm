@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +18,16 @@ import (
 )
 
 type AppInsightsAPIKey struct{}
+
+func TestAccApplicationInsightsAPIKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	r := AppInsightsAPIKey{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleKeys(data),
+		},
+	}, "")
+}
 
 func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
@@ -136,7 +146,7 @@ func TestAccApplicationInsightsAPIKey_multiple_keys(t *testing.T) {
 }
 
 func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := apikeys.ParseApiKeyID(state.Attributes["id"])
+	id, err := componentapikeysapis.ParseApiKeyID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}

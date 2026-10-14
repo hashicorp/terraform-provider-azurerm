@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +17,16 @@ import (
 )
 
 type ApplicationInsightsResource struct{}
+
+func TestAccApplicationInsights_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
+	r := ApplicationInsightsResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "web"),
+		},
+	}, "")
+}
 
 func TestAccApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
@@ -172,7 +182,7 @@ func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 }
 
 func (t ApplicationInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := components.ParseComponentID(state.ID)
+	id, err := componentsapis.ParseComponentID(state.ID)
 	if err != nil {
 		return nil, err
 	}

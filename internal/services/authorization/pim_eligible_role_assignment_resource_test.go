@@ -21,6 +21,16 @@ import (
 
 type PimEligibleRoleAssignmentResource struct{}
 
+func TestAccPimEligibleRoleAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noExpiration(data),
+		},
+	}, "")
+}
+
 func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
 	r := PimEligibleRoleAssignmentResource{}
@@ -150,7 +160,7 @@ func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *c
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("listing role eligiblity schedules for %s: %+v", scopeId, err)
+		return nil, fmt.Errorf("listing role eligibility schedules for %s: %+v", scopeId, err)
 	}
 
 	for _, schedule := range schedulesResult.Items {

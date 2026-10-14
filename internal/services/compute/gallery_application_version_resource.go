@@ -218,7 +218,7 @@ func (r GalleryApplicationVersionResource) ResourceType() string {
 	return "azurerm_gallery_application_version"
 }
 
-func (r GalleryApplicationVersionResource) ModelObject() interface{} {
+func (r GalleryApplicationVersionResource) ModelObject() any {
 	return &GalleryApplicationVersionModel{}
 }
 

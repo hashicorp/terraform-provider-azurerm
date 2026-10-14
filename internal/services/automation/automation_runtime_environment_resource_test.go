@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_test
@@ -29,6 +29,16 @@ func (a AutomationRuntimeEnvironmentResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
+}
+
+func TestAccAutomationRuntimeEnvironment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
+	r := AutomationRuntimeEnvironmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePowerShell(data),
+		},
+	}, "")
 }
 
 func TestAccAutomationRuntimeEnvironment_completePowerShell(t *testing.T) {

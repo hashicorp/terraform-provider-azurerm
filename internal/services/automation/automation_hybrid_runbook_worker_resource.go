@@ -98,7 +98,7 @@ func (m HybridRunbookWorkerResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m HybridRunbookWorkerResource) ModelObject() interface{} {
+func (m HybridRunbookWorkerResource) ModelObject() any {
 	return &HybridRunbookWorkerModel{}
 }
 
@@ -125,7 +125,7 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 				existing, err := client.Get(ctx, id)
 				if !response.WasNotFound(existing.HttpResponse) {
 					if err != nil {
-						return fmt.Errorf("retreiving %s: %v", id, err)
+						return fmt.Errorf("retrieving %s: %v", id, err)
 					}
 					return metadata.ResourceRequiresImport(m.ResourceType(), id)
 				}

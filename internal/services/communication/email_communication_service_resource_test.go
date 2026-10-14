@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +18,16 @@ import (
 )
 
 type EmailCommunicationServiceResource struct{}
+
+func TestAccEmailService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")
+	r := EmailCommunicationServiceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccEmailService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service", "test")

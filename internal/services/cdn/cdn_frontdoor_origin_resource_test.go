@@ -18,6 +18,16 @@ import (
 
 type CdnFrontdoorOriginResource struct{}
 
+func TestAccCdnFrontDoorOrigin_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
+	r := CdnFrontdoorOriginResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
 	r := CdnFrontdoorOriginResource{}
@@ -275,7 +285,6 @@ resource "azurerm_storage_account" "test" {
 `, template, data.RandomString)
 }
 
-// nolint: unused
 func (r CdnFrontdoorOriginResource) templatePrivateLinkStorageStaticWebSite(data acceptance.TestData) string {
 	template := r.template(data, "Premium_AzureFrontDoor", false)
 	return fmt.Sprintf(`

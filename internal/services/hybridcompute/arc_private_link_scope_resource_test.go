@@ -109,7 +109,7 @@ func (r ArcPrivateLinkScopeResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ArcPrivateLinkScopeResource) template(data acceptance.TestData) interface{} {
+func (r ArcPrivateLinkScopeResource) template(data acceptance.TestData) any {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

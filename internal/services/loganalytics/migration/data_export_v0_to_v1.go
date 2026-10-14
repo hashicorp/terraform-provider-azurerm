@@ -16,7 +16,7 @@ var _ pluginsdk.StateUpgrade = DataExportV0ToV1{}
 type DataExportV0ToV1 struct{}
 
 func (DataExportV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId, err := dataexport.ParseDataExportIDInsensitively(rawState["id"].(string))
 		if err != nil {
 			return rawState, err
