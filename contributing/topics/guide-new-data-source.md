@@ -234,7 +234,6 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 
 			// build the Resource ID from the Subscription ID and the name in the config
 			id := commonids.NewResourceGroupID(subscriptionId, state.Name)
-			
 			// then retrieve the Resource Group by its ID
 			resp, err := client.Get(ctx, id)
 			if err != nil {
