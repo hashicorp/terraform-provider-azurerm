@@ -106,6 +106,7 @@ if err != nil {
 return err
 }
 ```
+
 Where the functions live depends on the Resource:
 
 * For most Resources they're generated into the SDK package for that Resource, for example `runbook.NewRunbookID` in `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook`.
