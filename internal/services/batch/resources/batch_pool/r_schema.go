@@ -905,7 +905,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceBatchPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+func resourceBatchPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 	rawConfig := d.GetRawConfig()
 	if !rawConfig.IsKnown() || rawConfig.IsNull() {
 		return nil
