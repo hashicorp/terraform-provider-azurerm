@@ -255,7 +255,7 @@ Examples of invalid uses of O+C:
 
 Examples of valid uses of O+C:
 
-1. (Hypothetical) Adding an O+C property with `ForceNew: true` to `azurerm_public_ip` (a high-impact or foundational resource) where Azure sets a non-static default value. There have been cases where CD pipelines were not appropriately set up to check plan diffs, resulting in accidental, catastrophic resource replacements. Using O+C means the default behaviour is to opt-out from tracking the property and prevent such replacements.
+1. (Hypothetical) Temporarily adding an O+C property with `ForceNew: true` to `azurerm_public_ip` (a high-impact or foundational resource) where Azure sets a non-static default value. There have been cases where CD pipelines were not appropriately set up to check plan diffs, resulting in accidental, catastrophic resource replacements. Using O+C means the default behaviour is to opt-out from tracking the property and prevent such replacements. This O+C should be replaced by a `Required` in the next major version. Follow the behaviour switching pattern described in [the breaking changes guide](./guide-breaking-changes.md).
 2. Allowing Azure to set a location-specific default value that is preferable to a hardcoded default. For example, `PremiumSSDv2` for `mongo_cluster.storage_type` is [preferred for its performance and cost benefits](https://github.com/hashicorp/terraform-provider-azurerm/pull/33361#discussion_r4167778143), but is not yet available in all locations.
 3. Renaming properties according to the [breaking change guide](./guide-breaking-changes.md).
 
