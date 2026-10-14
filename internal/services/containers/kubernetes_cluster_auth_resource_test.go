@@ -959,6 +959,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data acceptance.TestData, tenantId string) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%[1]s"
@@ -1011,7 +1012,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     azure_rbac_enabled = false
   }
 }
-`, tenantId, data.Locations.Primary, data.RandomInteger, olderKubernetesVersion)
+`, tenantId, data.Locations.Primary, data.RandomInteger, meta.OlderKubernetesVersion)
 }
 
 func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data acceptance.TestData, tenantId string) string {

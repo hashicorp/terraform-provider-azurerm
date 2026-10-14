@@ -278,21 +278,22 @@ func TestAccKubernetesCluster_podSubnet(t *testing.T) {
 func TestAccKubernetesCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeConfig(data, olderKubernetesVersion),
+			Config: r.upgradeConfig(data, meta.OlderKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.OlderKubernetesVersion),
 				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 		{
-			Config: r.upgradeConfig(data, currentKubernetesVersion),
+			Config: r.upgradeConfig(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.CurrentKubernetesVersion),
 				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
@@ -424,53 +425,54 @@ func TestAccKubernetesCluster_diskEncryption(t *testing.T) {
 func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	autoUpgradeChannel := "automatic_upgrade_channel"
 	nodeOsUpgradeChannel := "node_os_upgrade_channel"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "rapid"),
+			Config: r.upgradeChannelConfig(data, meta.OlderKubernetesVersion, "rapid"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.OlderKubernetesVersion),
 				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("rapid"),
 			),
 		},
 		data.ImportStep(nodeOsUpgradeChannel),
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
+			Config: r.upgradeChannelConfig(data, meta.OlderKubernetesVersion, "patch"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.OlderKubernetesVersion),
 				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("patch"),
 			),
 		},
 		data.ImportStep(nodeOsUpgradeChannel),
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
+			Config: r.upgradeChannelConfig(data, meta.OlderKubernetesVersion, "node-image"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.OlderKubernetesVersion),
 				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("node-image"),
 			),
 		},
 		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			// unset = none
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
+			Config: r.upgradeChannelConfig(data, meta.OlderKubernetesVersion, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.OlderKubernetesVersion),
 				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue(""),
 			),
 		},
 		data.ImportStep(nodeOsUpgradeChannel),
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
+			Config: r.upgradeChannelConfig(data, meta.OlderKubernetesVersion, "stable"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(meta.OlderKubernetesVersion),
 				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("stable"),
 			),
 		},
@@ -3176,6 +3178,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) workloadRuntimeKataVmIsolation(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3214,7 +3217,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
@@ -4006,6 +4009,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) aiToolchainOperatorProfile(data acceptance.TestData, enabled bool) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4043,5 +4047,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, enabled, currentKubernetesVersion)
+  `, data.RandomInteger, data.Locations.Primary, enabled, meta.CurrentKubernetesVersion)
 }
