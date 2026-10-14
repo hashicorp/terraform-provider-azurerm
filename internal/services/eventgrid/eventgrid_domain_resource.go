@@ -153,9 +153,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"data_residency_boundary": {
-				Type:     pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 				Optional: true,
-				Default:  string(domains.DataResidencyBoundaryWithinGeopair),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					domains.PossibleValuesForDataResidencyBoundary(),
 					false,
@@ -196,9 +197,10 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"minimum_tls_version": {
-				Type:         pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 				Optional:     true,
-				Default:      string(domains.TlsVersionOnePointTwo),
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(domains.PossibleValuesForTlsVersion(), false),
 			},
 
@@ -261,8 +263,6 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 			InputSchema:                          pointer.ToEnum[domains.InputSchema](d.Get("input_schema").(string)),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
-			MinimumTlsVersionAllowed:             pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string)),
-			DataResidencyBoundary:                pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
@@ -273,6 +273,14 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		domain.Identity = identity
+	}
+
+	if tls, ok := d.GetOk("minimum_tls_version"); ok {
+		domain.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](tls.(string))
+	}
+
+	if boundary, ok := d.GetOk("data_residency_boundary"); ok {
+		domain.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](boundary.(string))
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, domain, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -322,14 +330,6 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("auto_delete_topic_with_last_subscription") {
 		payload.Properties.AutoDeleteTopicWithLastSubscription = pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool))
-	}
-
-	if d.HasChange("data_residency_boundary") {
-		payload.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
-	}
-
-	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("data_residency_boundary") {

@@ -174,9 +174,10 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			},
 
 			"data_residency_boundary": {
-				Type:     pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 				Optional: true,
-				Default:  string(topics.DataResidencyBoundaryWithinGeopair),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					topics.PossibleValuesForDataResidencyBoundary(),
 					false,
@@ -203,9 +204,10 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"minimum_tls_version": {
-				Type:     pluginsdk.TypeString,
-				Default:  string(topics.TlsVersionOnePointTwo),
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					topics.PossibleValuesForTlsVersion(),
 					false,
@@ -245,13 +247,11 @@ func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta any) error {
 	topic := topics.Topic{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &topics.TopicProperties{
-			InputSchemaMapping:       expandTopicInputMapping(d),
-			InputSchema:              pointer.ToEnum[topics.InputSchema](d.Get("input_schema").(string)),
-			PublicNetworkAccess:      pointer.To(publicNetworkAccess),
-			MinimumTlsVersionAllowed: pointer.ToEnum[topics.TlsVersion](d.Get("minimum_tls_version").(string)),
-			InboundIPRules:           inboundIPRules,
-			DisableLocalAuth:         pointer.To(!d.Get("local_auth_enabled").(bool)),
-			DataResidencyBoundary:    pointer.ToEnum[topics.DataResidencyBoundary](d.Get("data_residency_boundary").(string)),
+			InputSchemaMapping:  expandTopicInputMapping(d),
+			InputSchema:         pointer.ToEnum[topics.InputSchema](d.Get("input_schema").(string)),
+			PublicNetworkAccess: pointer.To(publicNetworkAccess),
+			InboundIPRules:      inboundIPRules,
+			DisableLocalAuth:    pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
@@ -263,6 +263,14 @@ func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta any) error {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		topic.Identity = identity
+	}
+
+	if tls, ok := d.GetOk("minimum_tls_version"); ok {
+		topic.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[topics.TlsVersion](tls.(string))
+	}
+
+	if boundary, ok := d.GetOk("data_residency_boundary"); ok {
+		topic.Properties.DataResidencyBoundary = pointer.ToEnum[topics.DataResidencyBoundary](boundary.(string))
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, topic, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -386,12 +394,6 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
 			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
-
-			minimumTlsVersion := topics.TlsVersionOnePointTwo
-			if props.MinimumTlsVersionAllowed != nil {
-				minimumTlsVersion = *props.MinimumTlsVersionAllowed
-			}
-			d.Set("minimum_tls_version", minimumTlsVersion)
 
 			if err := d.Set("inbound_ip_rule", flattenTopicInboundIPRules(props.InboundIPRules)); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule`: %+v", err)
