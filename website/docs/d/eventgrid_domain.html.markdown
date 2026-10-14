@@ -60,8 +60,6 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below.
 
-* `minimum_tls_version` - The minimum version of TLS required for client communication.
-
 ---
 
 A `input_mapping_fields` supports the following:
