@@ -407,7 +407,7 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
+		data.ImportStep(),
 		{
 			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
 			Config: r.diskOSImportManagedDiskUpdate(data),
@@ -441,7 +441,7 @@ func TestAccWindowsVirtualMachine_diskOSImportManagedDiskUpdateSize(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("bypass_platform_safety_checks_on_user_schedule_enabled"),
+		data.ImportStep(),
 		{
 			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
 			Config: r.diskOSImportManagedDiskWithSize(data, 140),
