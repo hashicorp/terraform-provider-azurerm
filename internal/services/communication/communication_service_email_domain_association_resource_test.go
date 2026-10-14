@@ -22,6 +22,16 @@ import (
 
 type CommunicationServiceEmailDomainAssociationResource struct{}
 
+func TestAccCommunicationServiceEmailDomainAssociationResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_communication_service_email_domain_association", "test")
+	r := CommunicationServiceEmailDomainAssociationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCommunicationServiceEmailDomainAssociationResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service_email_domain_association", "test")
 	r := CommunicationServiceEmailDomainAssociationResource{}
