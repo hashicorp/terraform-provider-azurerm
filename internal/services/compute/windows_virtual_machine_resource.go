@@ -1024,11 +1024,11 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 
 			// defaulted to false to avoid missing attribute during import
 			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
 
 			if profile := props.OsProfile; profile != nil {
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
-				d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
 				d.Set("computer_name", profile.ComputerName)
 
 				if config := profile.WindowsConfiguration; config != nil {
