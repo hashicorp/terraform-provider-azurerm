@@ -19,7 +19,7 @@ import (
 )
 
 func TestAccApiManagementApiOperationPolicy_listByOperationID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "testlist1")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "list")
 	r := ApiManagementApiOperationPolicyResource{}
 
 	resource.Test(t, resource.TestCase{
@@ -35,12 +35,12 @@ func TestAccApiManagementApiOperationPolicy_listByOperationID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_api_management_api_operation_policy.list", 1),
+					querycheck.ExpectLength("azurerm_api_management_api_operation_policy.list", 1),
 					querycheck.ExpectIdentity(
 						"azurerm_api_management_api_operation_policy.list",
 						map[string]knownvalue.Check{
 							"api_id":              knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"operation_id":        knownvalue.StringExact("acctest-operation-0"),
+							"operation_id":        knownvalue.StringExact("acctest-operation"),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"service_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
@@ -57,22 +57,20 @@ func (r ApiManagementApiOperationPolicyResource) basicList(data acceptance.TestD
 %s
 
 resource "azurerm_api_management_api_operation" "test" {
-  count               = 3
-  operation_id        = "acctest-operation-${count.index}"
+  operation_id        = "acctest-operation"
   api_name            = azurerm_api_management_api.test.name
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  display_name        = "DELETE Resource ${count.index}"
+  display_name        = "DELETE Resource"
   method              = "DELETE"
-  url_template        = "/resource-${count.index}"
+  url_template        = "/resource"
 }
 
 resource "azurerm_api_management_api_operation_policy" "test" {
-  count               = 3
   api_name            = azurerm_api_management_api.test.name
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  operation_id        = azurerm_api_management_api_operation.test[count.index].operation_id
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
   xml_link            = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/refs/heads/main/internal/services/apimanagement/testdata/api_management_api_operation_policy.xml"
 }
 `, ApiManagementApiOperationResource{}.template(data))
@@ -83,7 +81,7 @@ func (r ApiManagementApiOperationPolicyResource) basicQuery() string {
 list "azurerm_api_management_api_operation_policy" "list" {
   provider = azurerm
   config {
-    api_management_api_operation_id = azurerm_api_management_api_operation.test[0].id
+    api_management_api_operation_id = azurerm_api_management_api_operation.test.id
   }
 }
 `
