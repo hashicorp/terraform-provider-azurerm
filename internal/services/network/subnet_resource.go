@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -112,7 +113,7 @@ var subnetDelegationServiceNames = []string{
 }
 
 func resourceSubnet() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceSubnetCreate,
 		Read:     resourceSubnetRead,
 		Update:   resourceSubnetUpdate,
@@ -235,19 +236,9 @@ func resourceSubnet() *pluginsdk.Resource {
 
 									"actions": {
 										Type:     pluginsdk.TypeSet,
-										Optional: true,
+										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"Microsoft.Network/networkinterfaces/*",
-												"Microsoft.Network/publicIPAddresses/join/action",
-												"Microsoft.Network/publicIPAddresses/read",
-												"Microsoft.Network/virtualNetworks/read",
-												"Microsoft.Network/virtualNetworks/subnets/action",
-												"Microsoft.Network/virtualNetworks/subnets/join/action",
-												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-												"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-											}, false),
 										},
 									},
 								},
@@ -350,6 +341,34 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		delegation := resource.Schema["delegation"].Elem.(*pluginsdk.Resource)
+		serviceDelegation := delegation.Schema["service_delegation"].Elem.(*pluginsdk.Resource)
+
+		serviceDelegation.Schema["actions"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			// Note: O+C because Azure ignores configured values and returns the actions fixed by the delegated service, so omitting this would otherwise cause a persistent diff
+			Computed:   true,
+			Deprecated: "`delegation.service_delegation.actions` will become read-only in v6.0 of the AzureRM Provider, since this property is read-only in the Azure API and any configured value is ignored",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft.Network/networkinterfaces/*",
+					"Microsoft.Network/publicIPAddresses/join/action",
+					"Microsoft.Network/publicIPAddresses/read",
+					"Microsoft.Network/virtualNetworks/read",
+					"Microsoft.Network/virtualNetworks/subnets/action",
+					"Microsoft.Network/virtualNetworks/subnets/join/action",
+					"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+					"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+				}, false),
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta any) error {
@@ -872,20 +891,20 @@ func expandSubnetDelegation(input []any) *[]subnets.Delegation {
 		deleData := deleValue.(map[string]any)
 		srvDelegations := deleData["service_delegation"].([]any)
 		srvDelegation := srvDelegations[0].(map[string]any)
-		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
-
-		retSrvActions := make([]string, 0)
-		for _, srvAction := range srvActions {
-			srvActionData := srvAction.(string)
-			retSrvActions = append(retSrvActions, srvActionData)
-		}
 
 		retDelegation := subnets.Delegation{
 			Name: pointer.To(deleData["name"].(string)),
 			Properties: &subnets.ServiceDelegationPropertiesFormat{
 				ServiceName: pointer.To(srvDelegation["name"].(string)),
-				Actions:     &retSrvActions,
 			},
+		}
+
+		if !features.SixPointOh() {
+			retSrvActions := make([]string, 0)
+			for _, srvAction := range srvDelegation["actions"].(*pluginsdk.Set).List() {
+				retSrvActions = append(retSrvActions, srvAction.(string))
+			}
+			retDelegation.Properties.Actions = &retSrvActions
 		}
 
 		retDelegations = append(retDelegations, retDelegation)

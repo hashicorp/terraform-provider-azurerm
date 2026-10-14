@@ -175,9 +175,6 @@ resource "azurerm_subnet" "test" {
     name = "apim-delegation"
     service_delegation {
       name = "Microsoft.Web/serverFarms"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/action"
-      ]
     }
   }
 }
@@ -226,9 +223,6 @@ resource "azurerm_subnet" "test" {
     name = "apim-delegation"
     service_delegation {
       name = "Microsoft.Web/serverFarms"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/action"
-      ]
     }
   }
 }

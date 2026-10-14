@@ -4967,8 +4967,7 @@ resource "azurerm_subnet" "test" {
     name = "aks-delegation"
 
     service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.ContainerService/managedClusters"
+      name = "Microsoft.ContainerService/managedClusters"
     }
   }
 }
