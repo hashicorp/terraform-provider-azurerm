@@ -14,6 +14,16 @@ import (
 
 type AutomationRunbookDataSource struct{}
 
+func TestAccAutomationRunbookDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_runbook", "test")
+	r := AutomationRunbookDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationRunbookDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_runbook", "test")
 	r := AutomationRunbookDataSource{}

@@ -18,6 +18,16 @@ import (
 
 type ArcKubernetesProvisionedClusterResource struct{}
 
+func TestAccArcKubernetesProvisionedCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
+	r := ArcKubernetesProvisionedClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccArcKubernetesProvisionedCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_provisioned_cluster", "test")
 	r := ArcKubernetesProvisionedClusterResource{}
