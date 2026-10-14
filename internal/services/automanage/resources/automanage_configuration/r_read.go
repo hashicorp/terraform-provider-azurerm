@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/resources/automanage_configuration/migration"
@@ -137,10 +136,6 @@ type SchedulePolicyConfiguration struct {
 	ScheduleRunTimes     []string `tfschema:"schedule_run_times"`
 	ScheduleRunDays      []string `tfschema:"schedule_run_days"`
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
-}
-
-func (r Resource) Identity() resourceids.ResourceId {
-	return &configurationprofiles.ConfigurationProfileId{}
 }
 
 func (r Resource) StateUpgraders() sdk.StateUpgradeData {

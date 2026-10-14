@@ -4,6 +4,7 @@
 package automanage_configuration
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,4 +26,8 @@ func (r Resource) ResourceType() string {
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurationprofiles.ValidateConfigurationProfileID
+}
+
+func (r Resource) Identity() resourceids.ResourceId {
+	return &configurationprofiles.ConfigurationProfileId{}
 }
