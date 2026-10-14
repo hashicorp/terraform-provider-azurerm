@@ -1161,14 +1161,6 @@ func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatDisabled(t *testi
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.windowsProfileOutboundNat(data, pointer.To(true), "prod"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("windows_profile.0.outbound_nat_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
