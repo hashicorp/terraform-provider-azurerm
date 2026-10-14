@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package billing
+package billing_mca_account_scope
 
 import (
 	"fmt"
@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func dataSourceBillingMPAAccountScope() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBillingMPAAccountRead,
+		Read: dataSourceBillingMCAAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,7 +26,13 @@ func dataSourceBillingMPAAccountScope() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"customer_name": {
+			"billing_profile_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"invoice_section_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -35,10 +41,10 @@ func dataSourceBillingMPAAccountScope() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBillingMPAAccountRead(d *pluginsdk.ResourceData, meta any) error {
+func dataSourceBillingMCAAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	// (@jackofallops) - This is a helper Data Source until the Billing API is usable in the Azure SDK
-	billingScopeMPAFmt := "/providers/Microsoft.Billing/billingAccounts/%s/customers/%s"
+	billingScopeMCAFmt := "/providers/Microsoft.Billing/billingAccounts/%s/billingProfiles/%s/invoiceSections/%s"
 
-	d.SetId(fmt.Sprintf(billingScopeMPAFmt, d.Get("billing_account_name").(string), d.Get("customer_name").(string)))
+	d.SetId(fmt.Sprintf(billingScopeMCAFmt, d.Get("billing_account_name").(string), d.Get("billing_profile_name").(string), d.Get("invoice_section_name").(string)))
 	return nil
 }

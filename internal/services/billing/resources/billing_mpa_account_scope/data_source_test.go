@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package billing_test
+package billing_mpa_account_scope_test
 
 import (
 	"testing"

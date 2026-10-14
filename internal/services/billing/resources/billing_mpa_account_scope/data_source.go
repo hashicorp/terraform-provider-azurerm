@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package billing
+package billing_mpa_account_scope
 
 import (
 	"fmt"
@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func dataSourceBillingEnrollmentAccountScope() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceBillingEnrollemntAccountRead,
+		Read: dataSourceBillingMPAAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -26,7 +26,7 @@ func dataSourceBillingEnrollmentAccountScope() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"enrollment_account_name": {
+			"customer_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -35,10 +35,10 @@ func dataSourceBillingEnrollmentAccountScope() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBillingEnrollemntAccountRead(d *pluginsdk.ResourceData, meta any) error {
+func dataSourceBillingMPAAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	// (@jackofallops) - This is a helper Data Source until the Billing API is usable in the Azure SDK
-	billingScopeEnrollmentFmt := "/providers/Microsoft.Billing/billingAccounts/%s/enrollmentAccounts/%s"
+	billingScopeMPAFmt := "/providers/Microsoft.Billing/billingAccounts/%s/customers/%s"
 
-	d.SetId(fmt.Sprintf(billingScopeEnrollmentFmt, d.Get("billing_account_name").(string), d.Get("enrollment_account_name").(string)))
+	d.SetId(fmt.Sprintf(billingScopeMPAFmt, d.Get("billing_account_name").(string), d.Get("customer_name").(string)))
 	return nil
 }
