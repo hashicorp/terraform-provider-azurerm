@@ -347,4 +347,3 @@ func toSnakeCase(s string) string {
 	// Some structs might end up with `i_d`, fix to `id`
 	return strings.ReplaceAll(res.String(), "_i_d", "_id")
 }
-
