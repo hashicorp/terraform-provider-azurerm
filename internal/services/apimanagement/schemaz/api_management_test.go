@@ -21,7 +21,7 @@ func TestFlattenApiManagementOperationParameterExampleContract_stableOrder(t *te
 	expected := []string{"Alpha", "Mike", "NoMatch", "UniqueMatch", "Zulu"}
 
 	// map iteration order is randomised, so repeat to make an unsorted implementation fail reliably
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		output, err := FlattenApiManagementOperationParameterExampleContract(input)
 		if err != nil {
 			t.Fatalf("unexpected error: %+v", err)
