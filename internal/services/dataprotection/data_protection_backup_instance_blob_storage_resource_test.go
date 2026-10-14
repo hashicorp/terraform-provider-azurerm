@@ -378,7 +378,11 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   storage_account_id = azurerm_storage_account.test.id
   backup_policy_id   = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_storage_container.test,
+    azurerm_storage_container.another,
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -395,7 +399,11 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   backup_policy_id        = azurerm_data_protection_backup_policy_blob_storage.hybrid.id
   auto_protection_enabled = true
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_storage_container.test,
+    azurerm_storage_container.another,
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -413,7 +421,11 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   auto_protection_enabled          = true
   excluded_container_name_prefixes = ["temp-", azurerm_storage_container.another.name]
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_storage_container.test,
+    azurerm_storage_container.another,
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -431,7 +443,11 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   auto_protection_enabled         = true
   storage_account_container_names = [azurerm_storage_container.test.name]
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_storage_container.test,
+    azurerm_storage_container.another,
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -449,7 +465,11 @@ resource "azurerm_data_protection_backup_instance_blob_storage" "test" {
   auto_protection_enabled          = false
   excluded_container_name_prefixes = ["temp-"]
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_storage_container.test,
+    azurerm_storage_container.another,
+  ]
 }
 `, template, data.RandomInteger)
 }
