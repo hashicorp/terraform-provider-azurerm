@@ -2042,17 +2042,17 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "script"
-  storage_container_id   = azurerm_storage_container.test.id
-  type                   = "Page"
-  size                   = 512
+  name                 = "script"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_storage_blob" "test2" {
-  name                   = "script2"
-  storage_container_id   = azurerm_storage_container.test.id
-  type                   = "Page"
-  size                   = 512
+  name                 = "script2"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 512
 }
 
 resource "azurerm_shared_image_gallery" "test" {
