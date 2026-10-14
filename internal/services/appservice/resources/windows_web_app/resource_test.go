@@ -4046,7 +4046,7 @@ resource "azurerm_windows_web_app" "test" {
     }
   }
 
-  zip_deploy_file = "./testdata/dotnet-zipdeploy.zip"
+  zip_deploy_file = "../../testdata/dotnet-zipdeploy.zip"
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }

@@ -2317,7 +2317,7 @@ resource "azurerm_windows_function_app" "test" {
       dotnet_version = "v6.0"
     }
   }
-  zip_deploy_file = "./testdata/functionapp-zipdeploy.zip"
+  zip_deploy_file = "../../testdata/functionapp-zipdeploy.zip"
 }
 `, r.template(data, SkuStandardPlan), data.RandomInteger)
 }
