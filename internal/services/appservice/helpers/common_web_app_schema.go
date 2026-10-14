@@ -82,7 +82,7 @@ type VirtualDirectory struct {
 	PhysicalPath string `tfschema:"physical_path"`
 }
 
-func virtualApplicationsSchema() *pluginsdk.Schema {
+func VirtualApplicationsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
@@ -129,7 +129,7 @@ func virtualApplicationsSchema() *pluginsdk.Schema {
 	}
 }
 
-func virtualApplicationsSchemaComputed() *pluginsdk.Schema {
+func VirtualApplicationsSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -599,9 +599,9 @@ func LogsConfigSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"application_logs": applicationLogSchema(),
+				"application_logs": ApplicationLogSchema(),
 
-				"http_logs": httpLogSchema(),
+				"http_logs": HttpLogSchema(),
 
 				"failed_request_tracing": {
 					Type:     pluginsdk.TypeBool,
@@ -625,9 +625,9 @@ func LogsConfigSchemaComputed() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"application_logs": applicationLogSchemaComputed(),
+				"application_logs": ApplicationLogSchemaComputed(),
 
-				"http_logs": httpLogSchemaComputed(),
+				"http_logs": HttpLogSchemaComputed(),
 
 				"failed_request_tracing": {
 					Type:     pluginsdk.TypeBool,
@@ -643,7 +643,7 @@ func LogsConfigSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func applicationLogSchema() *pluginsdk.Schema {
+func ApplicationLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -656,7 +656,7 @@ func applicationLogSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
 				},
 
-				"azure_blob_storage": appLogBlobStorageSchema(),
+				"azure_blob_storage": AppLogBlobStorageSchema(),
 			},
 		},
 		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
@@ -691,7 +691,7 @@ func applicationLogSchema() *pluginsdk.Schema {
 	}
 }
 
-func applicationLogSchemaComputed() *pluginsdk.Schema {
+func ApplicationLogSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -702,13 +702,13 @@ func applicationLogSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"azure_blob_storage": appLogBlobStorageSchemaComputed(),
+				"azure_blob_storage": AppLogBlobStorageSchemaComputed(),
 			},
 		},
 	}
 }
 
-func appLogBlobStorageSchema() *pluginsdk.Schema {
+func AppLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -739,7 +739,7 @@ func appLogBlobStorageSchema() *pluginsdk.Schema {
 	}
 }
 
-func appLogBlobStorageSchemaComputed() *pluginsdk.Schema {
+func AppLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -763,36 +763,36 @@ func appLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func httpLogSchema() *pluginsdk.Schema {
+func HttpLogSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"file_system": httpLogFileSystemSchema(),
+				"file_system": HttpLogFileSystemSchema(),
 
-				"azure_blob_storage": httpLogBlobStorageSchema(),
+				"azure_blob_storage": HttpLogBlobStorageSchema(),
 			},
 		},
 	}
 }
 
-func httpLogSchemaComputed() *pluginsdk.Schema {
+func HttpLogSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"file_system": httpLogFileSystemSchemaComputed(),
+				"file_system": HttpLogFileSystemSchemaComputed(),
 
-				"azure_blob_storage": httpLogBlobStorageSchemaComputed(),
+				"azure_blob_storage": HttpLogBlobStorageSchemaComputed(),
 			},
 		},
 	}
 }
 
-func httpLogFileSystemSchema() *pluginsdk.Schema {
+func HttpLogFileSystemSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
@@ -816,7 +816,7 @@ func httpLogFileSystemSchema() *pluginsdk.Schema {
 	}
 }
 
-func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
+func HttpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -836,7 +836,7 @@ func httpLogFileSystemSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func httpLogBlobStorageSchema() *pluginsdk.Schema {
+func HttpLogBlobStorageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
@@ -860,7 +860,7 @@ func httpLogBlobStorageSchema() *pluginsdk.Schema {
 	}
 }
 
-func httpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
+func HttpLogBlobStorageSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -1013,7 +1013,7 @@ func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *webapp
 	return result
 }
 
-func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+func ExpandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
 	if len(handlerMapping) == 0 {
 		return nil
 	}
@@ -1037,7 +1037,7 @@ func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMa
 	return &result
 }
 
-func expandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+func ExpandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
 	result := make([]webapps.HandlerMapping, 0)
 	if len(handlerMapping) == 0 {
 		return &result
@@ -1060,7 +1060,7 @@ func expandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.
 	return &result
 }
 
-func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
+func ExpandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
 	if len(virtualApplicationConfig) == 0 {
 		return nil
 	}
@@ -1089,7 +1089,7 @@ func expandVirtualApplications(virtualApplicationConfig []VirtualApplication) *[
 	return &result
 }
 
-func expandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
+func ExpandVirtualApplicationsForUpdate(virtualApplicationConfig []VirtualApplication) *[]webapps.VirtualApplication {
 	if len(virtualApplicationConfig) == 0 {
 		// to remove this block from the config we need to give the service the original default back, sending an empty struct leaves the previous config in place
 		return &[]webapps.VirtualApplication{
@@ -1176,7 +1176,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		return []LogsConfig{}
 	}
 	props := *logsConfig.Properties
-	if onlyDefaultLoggingConfig(props) {
+	if OnlyDefaultLoggingConfig(props) {
 		return []LogsConfig{}
 	}
 
@@ -1269,7 +1269,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	return []LogsConfig{logs}
 }
 
-func onlyDefaultLoggingConfig(props webapps.SiteLogsConfigProperties) bool {
+func OnlyDefaultLoggingConfig(props webapps.SiteLogsConfigProperties) bool {
 	if props.ApplicationLogs == nil || props.HTTPLogs == nil || props.FailedRequestsTracing == nil || props.DetailedErrorMessages == nil {
 		return false
 	}
@@ -1402,7 +1402,7 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 	return input
 }
 
-func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []HandlerMappings {
+func FlattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []HandlerMappings {
 	if appHandlerMappings == nil {
 		return []HandlerMappings{}
 	}
@@ -1420,8 +1420,8 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 	return handlerMappings
 }
 
-func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication, alwaysOn bool) []VirtualApplication {
-	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications, alwaysOn) {
+func FlattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication, alwaysOn bool) []VirtualApplication {
+	if appVirtualApplications == nil || OnlyDefaultVirtualApplication(*appVirtualApplications, alwaysOn) {
 		return []VirtualApplication{}
 	}
 
@@ -1451,7 +1451,7 @@ func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplica
 	return virtualApplications
 }
 
-func onlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn bool) bool {
+func OnlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn bool) bool {
 	if len(input) > 1 {
 		return false
 	}
@@ -1501,12 +1501,12 @@ func DisabledLogsConfig() *webapps.SiteLogsConfig {
 
 func IsFreeOrSharedServicePlan(inputSKU string) bool {
 	result := false
-	for _, sku := range freeSkus {
+	for _, sku := range FreeSkus {
 		if inputSKU == sku {
 			result = true
 		}
 	}
-	for _, sku := range sharedSkus {
+	for _, sku := range SharedSkus {
 		if inputSKU == sku {
 			result = true
 		}

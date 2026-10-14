@@ -24,25 +24,25 @@ const (
 	ServicePlanTypeWorkflow        = "workflow"
 )
 
-var appServicePlanSkus = []string{
+var AppServicePlanSkus = []string{
 	"B1", "B2", "B3", // basic
 	"S1", "S2", "S3", // standard
 }
 
-var freeSkus = []string{
+var FreeSkus = []string{
 	"F1",
 }
 
-var sharedSkus = []string{
+var SharedSkus = []string{
 	"D1",
 	"SHARED",
 }
 
-var consumptionSkus = []string{
+var ConsumptionSkus = []string{
 	"Y1",
 }
 
-var premiumSkus = []string{
+var PremiumSkus = []string{
 	"P1v2", "P2v2", "P3v2", // Premium V2
 	"P0v3", "P1v3", "P2v3", "P3v3", // Premium V3
 	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
@@ -50,36 +50,36 @@ var premiumSkus = []string{
 	"P1mv4", "P2mv4", "P3mv4", "P4mv4", "P5mv4", // Premium V4 memory optimized
 }
 
-var flexConsumptionSkus = []string{
+var FlexConsumptionSkus = []string{
 	"FC1",
 }
 
-var elasticSkus = []string{
+var ElasticSkus = []string{
 	"EP1", "EP2", "EP3",
 }
 
-var isolatedSkus = []string{
+var IsolatedSkus = []string{
 	"I1", "I2", "I3", // Isolated V1 - ASEV2
 	"I1v2", "I2v2", "I3v2", "I4v2", "I5v2", "I6v2", // Isolated v2 - ASEv3
 	"I1mv2", "I2mv2", "I3mv2", "I4mv2", "I5mv2", // Isolated v2 - ASEv3 memory optimized
 }
 
-var workflowSkus = []string{
+var WorkflowSkus = []string{
 	"WS1", "WS2", "WS3",
 }
 
 // AllKnownServicePlanSkus returns a list of all supported known SKU names
 func AllKnownServicePlanSkus() []string {
 	allSkus := make([]string, 0)
-	allSkus = append(allSkus, appServicePlanSkus...)
-	allSkus = append(allSkus, consumptionSkus...)
-	allSkus = append(allSkus, elasticSkus...)
-	allSkus = append(allSkus, flexConsumptionSkus...)
-	allSkus = append(allSkus, freeSkus...)
-	allSkus = append(allSkus, isolatedSkus...)
-	allSkus = append(allSkus, premiumSkus...)
-	allSkus = append(allSkus, sharedSkus...)
-	allSkus = append(allSkus, workflowSkus...)
+	allSkus = append(allSkus, AppServicePlanSkus...)
+	allSkus = append(allSkus, ConsumptionSkus...)
+	allSkus = append(allSkus, ElasticSkus...)
+	allSkus = append(allSkus, FlexConsumptionSkus...)
+	allSkus = append(allSkus, FreeSkus...)
+	allSkus = append(allSkus, IsolatedSkus...)
+	allSkus = append(allSkus, PremiumSkus...)
+	allSkus = append(allSkus, SharedSkus...)
+	allSkus = append(allSkus, WorkflowSkus...)
 
 	return allSkus
 }
@@ -88,7 +88,7 @@ func PlanIsConsumption(input *string) bool {
 	if input == nil {
 		return false
 	}
-	for _, v := range consumptionSkus {
+	for _, v := range ConsumptionSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}
@@ -101,7 +101,7 @@ func PlanIsPremium(input string) bool {
 	if input == "" {
 		return false
 	}
-	for _, v := range premiumSkus {
+	for _, v := range PremiumSkus {
 		if strings.EqualFold(input, v) {
 			return true
 		}
@@ -114,7 +114,7 @@ func PlanIsFlexConsumption(input *string) bool {
 	if input == nil {
 		return false
 	}
-	for _, v := range flexConsumptionSkus {
+	for _, v := range FlexConsumptionSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}
@@ -127,7 +127,7 @@ func PlanIsElastic(input *string) bool {
 	if input == nil {
 		return false
 	}
-	for _, v := range elasticSkus {
+	for _, v := range ElasticSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}
@@ -140,7 +140,7 @@ func PlanIsIsolated(input *string) bool {
 	if input == nil {
 		return false
 	}
-	for _, v := range isolatedSkus {
+	for _, v := range IsolatedSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}
@@ -153,7 +153,7 @@ func PlanIsAppPlan(input *string) bool {
 	if input == nil {
 		return false
 	}
-	for _, v := range appServicePlanSkus {
+	for _, v := range AppServicePlanSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}
@@ -166,7 +166,7 @@ func PlanIsWorkflow(input *string) bool {
 	if input == nil {
 		return false
 	}
-	for _, v := range workflowSkus {
+	for _, v := range WorkflowSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}

@@ -85,9 +85,9 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"application_stack": linuxApplicationStackSchema(),
+				"application_stack": LinuxApplicationStackSchema(),
 
-				"auto_heal_setting": autoHealSettingSchemaLinux(),
+				"auto_heal_setting": AutoHealSettingSchemaLinux(),
 
 				"container_registry_use_managed_identity": {
 					Type:     pluginsdk.TypeBool,
@@ -297,9 +297,9 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"application_stack": linuxApplicationStackSchemaComputed(),
+				"application_stack": LinuxApplicationStackSchemaComputed(),
 
-				"auto_heal_setting": autoHealSettingSchemaLinuxComputed(),
+				"auto_heal_setting": AutoHealSettingSchemaLinuxComputed(),
 
 				"container_registry_use_managed_identity": {
 					Type:     pluginsdk.TypeBool,
@@ -456,36 +456,36 @@ type AutoHealActionLinux struct {
 	MinimumProcessTime string `tfschema:"minimum_process_execution_time"` // Minimum uptime for process before action will trigger
 }
 
-func autoHealSettingSchemaLinux() *pluginsdk.Schema {
+func AutoHealSettingSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaLinux(),
+				"trigger": AutoHealTriggerSchemaLinux(),
 
-				"action": autoHealActionSchemaLinux(),
+				"action": AutoHealActionSchemaLinux(),
 			},
 		},
 	}
 }
 
-func autoHealSettingSchemaLinuxComputed() *pluginsdk.Schema {
+func AutoHealSettingSchemaLinuxComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaLinuxComputed(),
+				"trigger": AutoHealTriggerSchemaLinuxComputed(),
 
-				"action": autoHealActionSchemaLinuxComputed(),
+				"action": AutoHealActionSchemaLinuxComputed(),
 			},
 		},
 	}
 }
 
-func autoHealActionSchemaLinux() *pluginsdk.Schema {
+func AutoHealActionSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -511,7 +511,7 @@ func autoHealActionSchemaLinux() *pluginsdk.Schema {
 	}
 }
 
-func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
+func AutoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -532,7 +532,7 @@ func autoHealActionSchemaLinuxComputed() *pluginsdk.Schema {
 }
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
-func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
+func AutoHealTriggerSchemaLinux() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -667,7 +667,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 	}
 }
 
-func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
+func AutoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -909,7 +909,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 
 	if len(s.AutoHealSettings) == 1 {
 		expanded.AutoHealEnabled = pointer.To(true)
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
 	return expanded, nil
@@ -1072,7 +1072,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		if len(s.AutoHealSettings) != 0 {
 			expanded.AutoHealEnabled = pointer.To(true)
 		}
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
 	return &expanded, nil
@@ -1082,7 +1082,7 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 	if appSiteConfig != nil {
 		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
 		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
-		s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
+		s.AutoHealSettings = FlattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
 		s.ContainerRegistryMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
 		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
 		s.DefaultDocuments = pointer.From(appSiteConfig.DefaultDocuments)
@@ -1122,7 +1122,7 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 			var linuxAppStack ApplicationStackLinux
 			s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
 
-			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+			linuxAppStack = DecodeApplicationStackLinux(s.LinuxFxVersion)
 			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 		}
 	}
@@ -1154,14 +1154,14 @@ func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
 		applicationStack.DockerRegistryPassword = v
 	}
 
-	registryHost := trimURLScheme(strings.TrimSuffix(applicationStack.DockerRegistryUrl, "/"))
+	registryHost := TrimURLScheme(strings.TrimSuffix(applicationStack.DockerRegistryUrl, "/"))
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
-func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webapps.AutoHealRules {
+func ExpandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
 		return nil
 	}
@@ -1254,7 +1254,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 	return result
 }
 
-func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHealSettingLinux {
+func FlattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHealSettingLinux {
 	if autoHealRules == nil {
 		return []AutoHealSettingLinux{}
 	}
