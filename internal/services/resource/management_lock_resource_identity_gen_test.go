@@ -23,7 +23,7 @@ func TestAccManagementLock_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.resourceGroupReadOnlyBasic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_management_lock.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_management_lock.test", tfjsonpath.New("name"), tfjsonpath.New("name")),

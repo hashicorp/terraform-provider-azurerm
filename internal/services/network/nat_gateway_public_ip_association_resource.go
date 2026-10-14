@@ -190,6 +190,10 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta a
 		return nil
 	}
 
+	return resourceNATGatewayPublicIpAssociationFlatten(d, id)
+}
+
+func resourceNATGatewayPublicIpAssociationFlatten(d *pluginsdk.ResourceData, id *commonids.CompositeResourceID[*natgateways.NatGatewayId, *commonids.PublicIPAddressId]) error {
 	d.Set("nat_gateway_id", id.First.ID())
 	d.Set("public_ip_address_id", id.Second.ID())
 

@@ -3,7 +3,7 @@
 
 package resource
 
-//go:generate go run ../../tools/generator-tests resourceidentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-name resourceGroupReadOnlyBasic
 
 import (
 	"context"
