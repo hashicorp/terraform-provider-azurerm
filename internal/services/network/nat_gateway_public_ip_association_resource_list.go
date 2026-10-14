@@ -31,6 +31,8 @@ type NatGatewayPublicIpAssociationListModel struct {
 	ResourceGroupName types.String `tfsdk:"resource_group_name"`
 }
 
+const natGatewayPublicIPAssociation = "azurerm_nat_gateway_public_ip_association"
+
 var _ sdk.FrameworkListWrappedResource = &NatGatewayPublicIpAssociationListResource{}
 
 func (r NatGatewayPublicIpAssociationListResource) ResourceFunc() *pluginsdk.Resource {
@@ -38,7 +40,7 @@ func (r NatGatewayPublicIpAssociationListResource) ResourceFunc() *pluginsdk.Res
 }
 
 func (r NatGatewayPublicIpAssociationListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_nat_gateway_public_ip_association"
+	response.TypeName = natGatewayPublicIPAssociation
 }
 
 func (r NatGatewayPublicIpAssociationListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
@@ -150,11 +152,9 @@ func (r NatGatewayPublicIpAssociationListResource) List(ctx context.Context, req
 
 				rd := resourceNATGatewayPublicIpAssociation().Data(&terraform.InstanceState{})
 				rd.SetId(id.ID())
-				rd.Set("nat_gateway_id", id.First.ID())
-				rd.Set("public_ip_address_id", id.Second.ID())
 
-				if err := pluginsdk.SetCompositeResourceIdentityData(rd, id, "nat_gateway_id", "public_ip_address_id"); err != nil {
-					sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting resource identity for `azurerm_nat_gateway_public_ip_association`", err)
+				if err := resourceNATGatewayPublicIpAssociationFlatten(rd, &id); err != nil {
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", natGatewayPublicIPAssociation), err)
 					return
 				}
 

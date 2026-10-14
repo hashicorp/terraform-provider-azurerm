@@ -34,10 +34,12 @@ type ManagementLockListModel struct {
 	ResourceId        types.String `tfsdk:"resource_id"`
 }
 
+const azureManagementLock = "azurerm_management_lock"
+
 var _ sdk.FrameworkListWrappedResource = &ManagementLockListResource{}
 
 func (ManagementLockListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_management_lock"
+	response.TypeName = azureManagementLock
 }
 
 func (ManagementLockListResource) ResourceFunc() *pluginsdk.Resource {
@@ -182,7 +184,7 @@ func (ManagementLockListResource) List(ctx context.Context, request list.ListReq
 			rd.SetId(id.ID())
 
 			if err := resourceManagementLockFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting resource data for `azurerm_management_lock`", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("setting resource data for `%s`", azureManagementLock), err)
 				return
 			}
 
