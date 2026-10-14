@@ -116,7 +116,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
 				},
 
-				"application_stack": windowsFunctionAppStackSchema(),
+				"application_stack": WindowsFunctionAppStackSchema(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
@@ -429,7 +429,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Description:  "The Connection String for linking the Linux Function App to Application Insights.",
 				},
 
-				"application_stack": linuxFunctionAppStackSchema(),
+				"application_stack": LinuxFunctionAppStackSchema(),
 
 				"app_service_logs": FunctionAppAppServiceLogsSchema(),
 
@@ -689,9 +689,9 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	if metadata.ResourceData.HasChanges("site_config.0.health_check_path", "site_config.0.health_check_eviction_time_in_min") {
 		v := strconv.FormatInt(windowsSlotSiteConfig.HealthCheckEvictionTime, 10)
 		if v == "0" || windowsSlotSiteConfig.HealthCheckPath == "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 		} else {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 		}
 	}
 
@@ -739,34 +739,34 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		windowsAppStack := windowsSlotSiteConfig.ApplicationStack[0]
 		if windowsAppStack.DotNetVersion != "" {
 			if windowsAppStack.DotNetIsolated {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
+				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
 			} else {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+				appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
 			}
 			expanded.NetFrameworkVersion = pointer.To(windowsAppStack.DotNetVersion)
 		}
 
 		if windowsAppStack.NodeVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", windowsAppStack.NodeVersion, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", windowsAppStack.NodeVersion, false)
 		}
 
 		if windowsAppStack.JavaVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
 			expanded.JavaVersion = pointer.To(windowsAppStack.JavaVersion)
 		}
 
 		if windowsAppStack.PowerShellCoreVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
 			expanded.PowerShellVersion = pointer.To(strings.TrimPrefix(windowsAppStack.PowerShellCoreVersion, "~"))
 		}
 
 		if windowsAppStack.CustomHandler {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
 			expanded.WindowsFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
+		appSettings = UpdateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
 		expanded.WindowsFxVersion = pointer.To("")
 	}
 
@@ -979,9 +979,9 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	if metadata.ResourceData.HasChanges("site_config.0.health_check_path", "site_config.0.health_check_eviction_time_in_min") {
 		v := strconv.FormatInt(linuxSlotSiteConfig.HealthCheckEvictionTime, 10)
 		if v == "0" || linuxSlotSiteConfig.HealthCheckPath == "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 		} else {
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
+			appSettings = UpdateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 		}
 	}
 

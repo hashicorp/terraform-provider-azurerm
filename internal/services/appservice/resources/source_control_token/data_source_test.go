@@ -1,0 +1,57 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package source_control_token_test
+
+import (
+	"fmt"
+	"os"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+)
+
+type AppServiceGithubTokenDataSource struct{}
+
+func TestAccSourceControlGitHubTokenDataSource_regressionTest(t *testing.T) {
+	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	data := acceptance.BuildTestData(t, "data.azurerm_source_control_token", "test")
+	r := AppServiceGithubTokenDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(token),
+		},
+	}, "")
+}
+
+func TestAccSourceControlGitHubTokenDataSource_basic(t *testing.T) {
+	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	if token == "" {
+		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "data.azurerm_source_control_token", "test")
+	r := AppServiceGithubTokenDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(token),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("token").Exists(),
+			),
+		},
+	})
+}
+
+func (AppServiceGithubTokenDataSource) basic(token string) string {
+	return fmt.Sprintf(`
+
+%s
+
+data azurerm_source_control_token test {
+  type = azurerm_source_control_token.test.type
+}
+`, AppServiceGitHubTokenResource{}.basic(token))
+}
