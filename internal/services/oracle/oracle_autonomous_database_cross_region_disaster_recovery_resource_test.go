@@ -31,7 +31,7 @@ func (a AdbsCrossRegionDisasterRecoveryResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestAdbsCrossRegionDisasterRecoveryResource_basic(t *testing.T) {
+func TestAccAdbsCrossRegionDisasterRecoveryResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AdbsCrossRegionDisasterRecoveryResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -59,7 +59,7 @@ func TestAdbsCrossRegionDisasterRecoveryResource_basic(t *testing.T) {
 	})
 }
 
-func TestAdbsCrossRegionDisasterRecoveryResource_complete(t *testing.T) {
+func TestAccAdbsCrossRegionDisasterRecoveryResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AdbsCrossRegionDisasterRecoveryResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -73,7 +73,7 @@ func TestAdbsCrossRegionDisasterRecoveryResource_complete(t *testing.T) {
 	})
 }
 
-func TestAdbsCrossRegionDisasterRecoveryResource_requiresImport(t *testing.T) {
+func TestAccAdbsCrossRegionDisasterRecoveryResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AdbsCrossRegionDisasterRecoveryResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
