@@ -512,7 +512,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 func resourceWindowsVirtualMachineCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
 	rawConfig := diff.GetRawConfig().AsValueMap()
 	adminUsername, ok := rawConfig["admin_username"]
-	if !ok || adminUsername.IsNull() || !adminUsername.IsKnown() {
+	if !ok || adminUsername.IsNull() {
 		return nil
 	}
 

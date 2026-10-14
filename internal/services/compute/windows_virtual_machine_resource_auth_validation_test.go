@@ -85,6 +85,46 @@ func TestWindowsVirtualMachineImportedWriteOnlyPasswordVersion(t *testing.T) {
 	}
 }
 
+func TestWindowsVirtualMachineUnknownUsernameRequiresPassword(t *testing.T) {
+	r := resourceWindowsVirtualMachine()
+	raw := windowsVMPasswordVersionConfig(t, r, false, cty.NullVal(cty.Number))
+	stateValues := raw.AsValueMap()
+	stateValues["id"] = cty.StringVal("imported-vm")
+	state, err := r.ShimInstanceStateFromValue(cty.ObjectVal(stateValues))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name      string
+		password  cty.Value
+		wantError bool
+	}{
+		{"missing password", cty.NullVal(cty.String), true},
+		{"unknown password", cty.UnknownVal(cty.String), false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			values := raw.AsValueMap()
+			values["admin_username"] = cty.UnknownVal(cty.String)
+			values["admin_password"] = test.password
+			config := cty.ObjectVal(values)
+			cfg := terraform.NewResourceConfigShimmed(config, r.CoreConfigSchema())
+			if diags := r.Validate(cfg); diags.HasError() {
+				t.Fatalf("unexpected configuration errors: %v", diags)
+			}
+
+			state.RawConfig = config
+			_, err := r.SimpleDiff(context.Background(), state, cfg, nil)
+			if test.wantError {
+				if err == nil || !strings.Contains(err.Error(), "one of `admin_password` or `admin_password_wo_version` must be specified") {
+					t.Fatalf("expected missing password error, got %v", err)
+				}
+			} else if err != nil {
+				t.Fatalf("unexpected plan error: %v", err)
+			}
+		})
+	}
+}
+
 func windowsVMPasswordVersionConfig(t *testing.T, r *pluginsdk.Resource, writeOnly bool, version cty.Value) cty.Value {
 	t.Helper()
 	const prefix = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/"
