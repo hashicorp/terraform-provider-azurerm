@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -86,7 +87,7 @@ func (r AlertPrometheusRuleGroupResource) CustomizeDiff() sdk.ResourceFunc {
 					_, actionOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".action")
 					// Use raw config for severity so post-apply plans don't treat state-populated zero values as user-set.
 					severityOk := false
-					rawSeverity, diags := metadata.ResourceDiff.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i)))
+					rawSeverity, diags := metadata.ResourceDiff.GetRawConfigAt(ctyhelpers.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i)))
 					if !diags.HasError() {
 						severityOk = !rawSeverity.IsNull()
 					}

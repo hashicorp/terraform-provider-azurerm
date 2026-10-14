@@ -120,7 +120,7 @@ func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, client
 
 func (r AlertPrometheusRuleGroupTestResource) checkAlertRuleSeverity(alertName string, expectedSeverity int64) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(state.ID)
+		id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(state.ID)
 		if err != nil {
 			return err
 		}
