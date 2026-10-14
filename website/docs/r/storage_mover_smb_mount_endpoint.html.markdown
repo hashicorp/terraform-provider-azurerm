@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `host` - (Required) Specifies the host name or IP address of the SMB server. Must be a valid IPv4 address or hostname/FQDN (letters, numbers, dots, hyphens only). Changing this forces a new resource to be created.
 
-* `share_name` - (Required) Specifies the name of the SMB share. Must be 1-80 characters and cannot contain: `\` `/` `[` `]` `:` `<` `>` `+` `=` `;` `,` `*` `?` or control characters. Changing this forces a new resource to be created.
+* `share_name` - (Required) Specifies the name of the SMB share. Must be 1-80 characters and cannot contain spaces, `\` `/` `[` `]` `:` `<` `>` `+` `=` `;` `,` `*` `?` or control characters. Changing this forces a new resource to be created.
 
 * `description` - (Optional) Specifies a description for the Storage Mover SMB Mount Endpoint. Maximum length 1024 characters.
 

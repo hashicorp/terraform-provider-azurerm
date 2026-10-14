@@ -101,7 +101,7 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 				validation.StringLenBetween(1, 80),
 				validation.StringMatch(
 					regexp.MustCompile(`^[^\\/\[\]:<> +=;,*?\x00-\x1f\x7f]+$`),
-					"Share name must be 1-80 characters and cannot contain: \\ / [ ] : < > + = ; , * ? or control characters.",
+					"Share name must be 1-80 characters and cannot contain spaces, \\ / [ ] : < > + = ; , * ? or control characters.",
 				),
 			),
 		},
