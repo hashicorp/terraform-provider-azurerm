@@ -20,6 +20,16 @@ import (
 
 type StaticWebAppFunctionAppRegistrationResource struct{}
 
+func TestAccStaticWebAppFunctionAppRegistrationResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app_function_app_registration", "test")
+	r := StaticWebAppFunctionAppRegistrationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccStaticWebAppFunctionAppRegistrationResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app_function_app_registration", "test")
 	r := StaticWebAppFunctionAppRegistrationResource{}
