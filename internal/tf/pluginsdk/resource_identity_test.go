@@ -90,25 +90,18 @@ func TestGenerateIdentitySchema_Composite(t *testing.T) {
 	subId := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 	compositeId := commonids.NewCompositeResourceID(&rgId, &subId)
 
-	schemaFn := GenerateIdentitySchema(compositeId)
-	idSchema := schemaFn()
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatalf("expected GenerateIdentitySchema to panic when given a composite resource ID")
+		}
+		expectedMsg := "composite resource IDs require explicit segment names; use GenerateCompositeIdentitySchema"
+		if r != expectedMsg {
+			t.Fatalf("expected panic %q, got %v", expectedMsg, r)
+		}
+	}()
 
-	if len(idSchema) != 2 {
-		t.Fatalf("expected 2 schema items, got %d", len(idSchema))
-	}
-
-	for _, k := range []string{"resource_id1", "resource_id2"} {
-		s, ok := idSchema[k]
-		if !ok {
-			t.Fatalf("expected schema to have %q", k)
-		}
-		if !s.RequiredForImport {
-			t.Fatalf("expected %q to have RequiredForImport=true", k)
-		}
-		if s.Type != schema.TypeString {
-			t.Fatalf("expected %q to be TypeString, got %v", k, s.Type)
-		}
-	}
+	_ = GenerateIdentitySchema(compositeId)
 }
 
 func TestGenerateCompositeIdentitySchema(t *testing.T) {
@@ -132,6 +125,15 @@ func TestGenerateCompositeIdentitySchema(t *testing.T) {
 			t.Fatalf("expected %q to have RequiredForImport=true", k)
 		}
 	}
+
+	// Empty segment names must panic
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatalf("expected GenerateCompositeIdentitySchema to panic when names are empty")
+		}
+	}()
+	_ = GenerateCompositeIdentitySchema(compositeId, "", "subscription_id")
 }
 
 func TestValidateResourceId_Composite(t *testing.T) {
@@ -165,25 +167,13 @@ func TestSetResourceIdentityData_Composite(t *testing.T) {
 			"dummy": {Type: schema.TypeString, Optional: true},
 		},
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: GenerateIdentitySchema(compositeId),
+			SchemaFunc: GenerateCompositeIdentitySchema(compositeId, "rg_id", "sub_id"),
 		},
 	}
 
 	d := r.TestResourceData()
-	if err := SetResourceIdentityData(d, compositeId); err != nil {
-		t.Fatalf("expected SetResourceIdentityData to succeed, got: %s", err)
-	}
-
-	identity, err := d.Identity()
-	if err != nil {
-		t.Fatalf("getting identity: %s", err)
-	}
-
-	if v := identity.Get("resource_id1"); v != rgId.ID() {
-		t.Fatalf("expected resource_id1 to be %q, got %q", rgId.ID(), v)
-	}
-	if v := identity.Get("resource_id2"); v != subId.ID() {
-		t.Fatalf("expected resource_id2 to be %q, got %q", subId.ID(), v)
+	if err := SetResourceIdentityData(d, compositeId); err == nil {
+		t.Fatalf("expected SetResourceIdentityData to fail for composite ID without explicit names")
 	}
 }
 
@@ -224,20 +214,15 @@ func TestValidateResourceIdentityData_Composite(t *testing.T) {
 	subId := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 	compositeId := commonids.NewCompositeResourceID(&rgId, &subId)
 
-	idSchema := GenerateIdentitySchema(compositeId)()
+	idSchema := GenerateCompositeIdentitySchema(compositeId, "rg_id", "sub_id")()
 	rawIdentity := map[string]string{
-		"resource_id1": rgId.ID(),
-		"resource_id2": subId.ID(),
+		"rg_id":  rgId.ID(),
+		"sub_id": subId.ID(),
 	}
 
 	d := schema.TestResourceDataWithIdentityRaw(t, map[string]*schema.Schema{}, idSchema, rawIdentity)
-	if err := ValidateResourceIdentityData(d, compositeId); err != nil {
-		t.Fatalf("expected ValidateResourceIdentityData to succeed, got: %s", err)
-	}
-
-	expectedId := compositeId.ID()
-	if d.Id() != expectedId {
-		t.Fatalf("expected d.Id() to be %q, got %q", expectedId, d.Id())
+	if err := ValidateResourceIdentityData(d, compositeId); err == nil {
+		t.Fatalf("expected ValidateResourceIdentityData to fail for composite ID without explicit names")
 	}
 }
 
