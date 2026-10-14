@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package blueprints_test
+package blueprint_assignment_test
 
 import (
 	"context"
