@@ -174,9 +174,9 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			},
 
 			"data_residency_boundary": {
-				Type: pluginsdk.TypeString,
-				// NOTE: O+C Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C because Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					topics.PossibleValuesForDataResidencyBoundary(),
@@ -204,9 +204,9 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 
 			"minimum_tls_version": {
-				Type: pluginsdk.TypeString,
-				// NOTE: O+C Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
+				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C because Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
 				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					topics.PossibleValuesForTlsVersion(),
