@@ -104,13 +104,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta any) bool {
 				return old != "" && new == ""
 			}),
-			pluginsdk.ForceNewIf("node_resource_group_restriction_level", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
-				if !d.NewValueKnown("node_resource_group_restriction_level") {
-					return false
-				}
-				old, new := d.GetChange("node_resource_group_restriction_level")
-				return old != "" && new == ""
-			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
 				old, new := d.GetChange("default_node_pool.0.name")
 				defaultName := d.Get("default_node_pool.0.name")
@@ -1376,6 +1369,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"node_resource_group_restriction_level": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Default:      string(managedclusters.RestrictionLevelUnrestricted),
 				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForRestrictionLevel(), false),
 			},
 
@@ -2868,7 +2862,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
 
-			restrictionLevel := ""
+			restrictionLevel := string(managedclusters.RestrictionLevelUnrestricted)
 			if props.NodeResourceGroupProfile != nil && props.NodeResourceGroupProfile.RestrictionLevel != nil {
 				restrictionLevel = string(*props.NodeResourceGroupProfile.RestrictionLevel)
 			}
