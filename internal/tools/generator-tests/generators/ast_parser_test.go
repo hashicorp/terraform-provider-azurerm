@@ -34,7 +34,7 @@ func TestInferIdentityProperties_CompositeResource(t *testing.T) {
 	}
 }
 
-func TestInferIdentityProperties_CompositeResource_DefaultFallback(t *testing.T) {
+func TestInferIdentityProperties_CompositeResource_RejectsGenerateIdentitySchema(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "example_composite_resource.go")
 
@@ -58,20 +58,9 @@ func resourceCompositeExample() *pluginsdk.Resource {
 		t.Fatalf("failed to write test file: %v", err)
 	}
 
-	inferred, err := InferIdentityProperties(testFile)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	expectedProps := []string{"resource_id1", "resource_id2"}
-	if !slices.Equal(inferred.Properties, expectedProps) {
-		t.Fatalf("expected properties %v, got %v", expectedProps, inferred.Properties)
-	}
-	if inferred.HasSubscriptionID {
-		t.Fatalf("expected HasSubscriptionID to be false for composite resource")
-	}
-	if inferred.IsVirtual {
-		t.Fatalf("expected IsVirtual to be false")
+	_, err := InferIdentityProperties(testFile)
+	if err == nil {
+		t.Fatalf("expected error when using GenerateIdentitySchema with composite ID, got nil")
 	}
 }
 
@@ -197,7 +186,7 @@ func TestResourceIdentityData_parseArgs_NoSubscriptionID(t *testing.T) {
 	t.Setenv("GOFILE", filepath.Join(rt, "internal", "services", "network", "nat_gateway_public_ip_association_resource.go"))
 
 	data := &resourceIdentityData{}
-	args := []string{"-properties", "resource_id1:nat_gateway_id,resource_id2:public_ip_address_id"}
+	args := []string{"-properties", "nat_gateway_id:nat_gateway_id,public_ip_address_id:public_ip_address_id"}
 	errs := data.parseArgs(args)
 	if len(errs) > 0 {
 		t.Fatalf("unexpected parseArgs errors: %v", errs)

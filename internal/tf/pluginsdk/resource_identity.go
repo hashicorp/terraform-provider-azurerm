@@ -74,29 +74,45 @@ func SegmentName(segment resourceids.Segment, idType ResourceTypeForIdentity, nu
 
 // GenerateIdentitySchema generates the resource identity schema from the resource ID type
 func GenerateIdentitySchema(id resourceids.ResourceId, idType ...ResourceTypeForIdentity) func() map[string]*schema.Schema {
+	if isCompositeResourceId(id) {
+		panic("composite resource IDs require explicit segment names; use GenerateCompositeIdentitySchema")
+	}
 	return func() map[string]*schema.Schema {
 		return identitySchema(id, identityType(idType))
 	}
 }
 
-// GenerateCompositeIdentitySchema generates the resource identity schema for a composite resource ID with optional custom segment names
-func GenerateCompositeIdentitySchema(id resourceids.ResourceId, customNames ...string) func() map[string]*schema.Schema {
+// GenerateCompositeIdentitySchema generates the resource identity schema for a composite resource ID with required segment names
+func GenerateCompositeIdentitySchema(id resourceids.ResourceId, firstName, secondName string) func() map[string]*schema.Schema {
+	if firstName == "" || secondName == "" {
+		panic("both firstName and secondName must be non-empty when generating composite identity schema")
+	}
 	return func() map[string]*schema.Schema {
-		return identitySchema(id, ResourceTypeForIdentityDefault, customNames...)
+		return compositeIdentitySchema(id, firstName, secondName)
 	}
 }
 
-func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity, customNames ...string) map[string]*schema.Schema {
+func compositeIdentitySchema(_ resourceids.ResourceId, firstName, secondName string) map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		firstName: {
+			Type:              schema.TypeString,
+			RequiredForImport: true,
+		},
+		secondName: {
+			Type:              schema.TypeString,
+			RequiredForImport: true,
+		},
+	}
+}
+
+func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) map[string]*schema.Schema {
 	idSchema := make(map[string]*schema.Schema)
 
-	segments := compositeSegments(id)
+	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
 		if SegmentTypeSupported(segment.Type) {
 			name := SegmentName(segment, idType, numSegments, idx)
-			if idx < len(customNames) && customNames[idx] != "" {
-				name = customNames[idx]
-			}
 
 			idSchema[name] = &schema.Schema{
 				Type:              schema.TypeString,
@@ -113,12 +129,15 @@ func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity, c
 func ValidateResourceId(id resourceids.ResourceId, inputId string, insensitively bool) error {
 	if isCompositeResourceId(id) {
 		components := strings.Split(inputId, "|")
-		segments := compositeSegments(id)
-		if len(components) != len(segments) {
-			return fmt.Errorf("parsing %q: expected %d resource IDs separated by '|', got %d", inputId, len(segments), len(components))
+		comps, hasComps := getCompositeResourceComponents(id)
+		expectedCount := 2
+		if hasComps {
+			expectedCount = len(comps)
+		}
+		if len(components) != expectedCount {
+			return fmt.Errorf("parsing %q: expected %d resource IDs separated by '|', got %d", inputId, expectedCount, len(components))
 		}
 
-		comps, hasComps := getCompositeResourceComponents(id)
 		for i, compStr := range components {
 			if strings.TrimSpace(compStr) == "" {
 				return fmt.Errorf("parsing %q: component %d cannot be empty", inputId, i+1)
@@ -144,13 +163,13 @@ func ValidateResourceId(id resourceids.ResourceId, inputId string, insensitively
 // ValidateResourceIdentityData validates the resource identity data provided by the user when performing a plannable
 // import using resource identity
 func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
+	if isCompositeResourceId(id) {
+		return fmt.Errorf("composite resource IDs require explicit segment names; use ValidateCompositeResourceIdentityData")
+	}
+
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
-	}
-
-	if isCompositeResourceId(id) {
-		return validateCompositeResourceIdentityData(d, identity, id, identityType(idType))
 	}
 
 	var components []string
@@ -227,48 +246,43 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 	return nil
 }
 
-// ValidateCompositeResourceIdentityData validates composite resource identity data with optional custom segment names
-func ValidateCompositeResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, customNames ...string) error {
+// ValidateCompositeResourceIdentityData validates composite resource identity data with required segment names
+func ValidateCompositeResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, firstName, secondName string) error {
+	if firstName == "" || secondName == "" {
+		return fmt.Errorf("both firstName and secondName must be non-empty when validating composite identity data")
+	}
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
 	}
 
-	return validateCompositeResourceIdentityData(d, identity, id, ResourceTypeForIdentityDefault, customNames...)
+	return validateCompositeResourceIdentityData(d, identity, id, firstName, secondName)
 }
 
-func validateCompositeResourceIdentityData(d *schema.ResourceData, identity *schema.IdentityData, id resourceids.ResourceId, idType ResourceTypeForIdentity, customNames ...string) error {
-	segments := compositeSegments(id)
-	numSegments := len(segments)
-	values := make([]string, 0, numSegments)
+func validateCompositeResourceIdentityData(d *schema.ResourceData, identity *schema.IdentityData, id resourceids.ResourceId, firstName, secondName string) error {
+	names := []string{firstName, secondName}
+	values := make([]string, 0, len(names))
 
-	for idx, segment := range segments {
-		if SegmentTypeSupported(segment.Type) {
-			name := SegmentName(segment, idType, numSegments, idx)
-			if idx < len(customNames) && customNames[idx] != "" {
-				name = customNames[idx]
-			}
-
-			field, ok := identity.GetOk(name)
-			if !ok {
-				return fmt.Errorf("getting %q in resource identity", name)
-			}
-
-			value, ok := field.(string)
-			if !ok {
-				return fmt.Errorf("converting %q to string", name)
-			}
-
-			if value == "" {
-				return fmt.Errorf("%q cannot be empty", name)
-			}
-
-			if err := identity.Set(name, value); err != nil {
-				return fmt.Errorf("error setting id: %+v", err)
-			}
-
-			values = append(values, value)
+	for _, name := range names {
+		field, ok := identity.GetOk(name)
+		if !ok {
+			return fmt.Errorf("getting %q in resource identity", name)
 		}
+
+		value, ok := field.(string)
+		if !ok {
+			return fmt.Errorf("converting %q to string", name)
+		}
+
+		if value == "" {
+			return fmt.Errorf("%q cannot be empty", name)
+		}
+
+		if err := identity.Set(name, value); err != nil {
+			return fmt.Errorf("error setting id: %+v", err)
+		}
+
+		values = append(values, value)
 	}
 
 	identityString := strings.Join(values, "|")
@@ -283,13 +297,13 @@ func validateCompositeResourceIdentityData(d *schema.ResourceData, identity *sch
 
 // SetResourceIdentityData sets the resource identity data in state
 func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
+	if isCompositeResourceId(id) {
+		return fmt.Errorf("composite resource IDs require explicit segment names; use SetCompositeResourceIdentityData")
+	}
+
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
-	}
-
-	if isCompositeResourceId(id) {
-		return compositeResourceIdentityData(identity, id, identityType(idType))
 	}
 
 	if err := resourceIdentityData(identity, id, identityType(idType)); err != nil {
@@ -299,44 +313,39 @@ func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, 
 	return nil
 }
 
-// SetCompositeResourceIdentityData sets the composite resource identity data in state with optional custom segment names
-func SetCompositeResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, customNames ...string) error {
+// SetCompositeResourceIdentityData sets the composite resource identity data in state with required segment names
+func SetCompositeResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, firstName, secondName string) error {
+	if firstName == "" || secondName == "" {
+		return fmt.Errorf("both firstName and secondName must be non-empty when setting composite identity data")
+	}
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
 	}
 
-	return compositeResourceIdentityData(identity, id, ResourceTypeForIdentityDefault, customNames...)
+	return compositeResourceIdentityData(identity, id, firstName, secondName)
 }
 
-func compositeResourceIdentityData(identity *schema.IdentityData, id resourceids.ResourceId, idType ResourceTypeForIdentity, customNames ...string) error {
+func compositeResourceIdentityData(identity *schema.IdentityData, id resourceids.ResourceId, firstName, secondName string) error {
 	components := strings.Split(id.ID(), "|")
-	segments := compositeSegments(id)
-	numSegments := len(segments)
-
-	if len(components) != numSegments {
-		return fmt.Errorf("parsing resource ID %q: expected %d parts separated by '|', got %d", id.ID(), numSegments, len(components))
+	if len(components) != 2 {
+		return fmt.Errorf("parsing resource ID %q: expected 2 parts separated by '|', got %d", id.ID(), len(components))
 	}
 
 	comps, hasComps := getCompositeResourceComponents(id)
-	for idx, segment := range segments {
-		if SegmentTypeSupported(segment.Type) {
-			name := SegmentName(segment, idType, numSegments, idx)
-			if idx < len(customNames) && customNames[idx] != "" {
-				name = customNames[idx]
-			}
+	names := []string{firstName, secondName}
 
-			val := components[idx]
-			if hasComps && idx < len(comps) {
-				parser := resourceids.NewParserFromResourceIdType(comps[idx])
-				if _, err := parser.Parse(val, true); err != nil {
-					return fmt.Errorf("parsing component %d of resource ID %s: %w", idx+1, id.ID(), err)
-				}
+	for idx, name := range names {
+		val := components[idx]
+		if hasComps && idx < len(comps) {
+			parser := resourceids.NewParserFromResourceIdType(comps[idx])
+			if _, err := parser.Parse(val, true); err != nil {
+				return fmt.Errorf("parsing component %d of resource ID %s: %w", idx+1, id.ID(), err)
 			}
+		}
 
-			if err := identity.Set(name, val); err != nil {
-				return fmt.Errorf("setting `%s` in resource identity: %+v", name, err)
-			}
+		if err := identity.Set(name, val); err != nil {
+			return fmt.Errorf("setting `%s` in resource identity: %+v", name, err)
 		}
 	}
 
@@ -431,26 +440,12 @@ func getCompositeResourceComponents(id resourceids.ResourceId) ([]resourceids.Re
 	return nil, false
 }
 
-func compositeSegments(id resourceids.ResourceId) []resourceids.Segment {
-	if comps, ok := getCompositeResourceComponents(id); ok && len(comps) == 2 {
-		firstSegments := comps[0].Segments()
-		secondSegments := comps[1].Segments()
-		return []resourceids.Segment{
-			resourceids.ResourceIDSegment("resourceID1", resourceids.BuildExpectedResourceId(firstSegments)),
-			resourceids.ResourceIDSegment("resourceID2", resourceids.BuildExpectedResourceId(secondSegments)),
-		}
-	}
-	return id.Segments()
-}
-
 // normaliseSegmentName replaces any known oddities when generating based on struct field names with predetermined values.
 func normaliseSegmentName(input string) string {
 	// For now, use complete values, if this becomes unmanageable investigate a more general replacement strategy
 	replacements := map[string]string{
 		"signal_r_name":    "signalr_name",
 		"web_pub_sub_name": "web_pubsub_name",
-		"resource_id_1":    "resource_id1",
-		"resource_id_2":    "resource_id2",
 	}
 
 	if v, ok := replacements[input]; ok {

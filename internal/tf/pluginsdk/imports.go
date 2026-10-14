@@ -88,16 +88,16 @@ func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc Importer
 }
 
 // ImporterValidatingCompositeIdentity validates the ID provided at import time is valid or that the composite resource identity data provided in the import block is valid
-func ImporterValidatingCompositeIdentity(id resourceids.ResourceId, customNames ...string) *schema.ResourceImporter {
+func ImporterValidatingCompositeIdentity(id resourceids.ResourceId, firstName, secondName string) *schema.ResourceImporter {
 	thenFunc := func(ctx context.Context, d *ResourceData, meta any) ([]*ResourceData, error) {
 		return []*ResourceData{d}, nil
 	}
 
-	return ImporterValidatingCompositeIdentityThen(id, thenFunc, customNames...)
+	return ImporterValidatingCompositeIdentityThen(id, thenFunc, firstName, secondName)
 }
 
 // ImporterValidatingCompositeIdentityThen validates the ID provided at import time is valid or that the composite resource identity data provided in the import block is valid, then runs thenFunc
-func ImporterValidatingCompositeIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, customNames ...string) *schema.ResourceImporter {
+func ImporterValidatingCompositeIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, firstName, secondName string) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *ResourceData, meta any) ([]*ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
@@ -115,7 +115,7 @@ func ImporterValidatingCompositeIdentityThen(id resourceids.ResourceId, thenFunc
 				return thenFunc(ctx, d, meta)
 			}
 
-			if err := ValidateCompositeResourceIdentityData(d, id, customNames...); err != nil {
+			if err := ValidateCompositeResourceIdentityData(d, id, firstName, secondName); err != nil {
 				return nil, err
 			}
 
