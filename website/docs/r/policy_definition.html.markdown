@@ -120,3 +120,5 @@ terraform import azurerm_policy_definition.examplePolicy /providers/Microsoft.Ma
 This resource uses the following Azure API Providers:
 
 * `Microsoft.Authorization` - 2025-01-01
+
+* `Microsoft.Management` - 2025-01-01
