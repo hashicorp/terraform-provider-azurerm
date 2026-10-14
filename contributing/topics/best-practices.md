@@ -251,7 +251,7 @@ Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
 
 Examples of invalid uses of O+C:
 
-1. Preventing users from seeing a plan diff when upgrading to an AzureRM version that adds support for a new property. In this situation, users are expected to either adjust their HCL configuration to match Azure or explicitly opt out from managing the property using `ignore_changes`.
+1. Preventing users from seeing a plan diff when upgrading to an AzureRM version that adds support for a new property in a low impact / less-frequently-used resource. In this situation, users are expected to either adjust their HCL configuration to match Azure or explicitly opt out from managing the property using `ignore_changes`.
 
 Examples of valid uses of O+C:
 
