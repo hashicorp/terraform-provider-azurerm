@@ -14,6 +14,16 @@ import (
 
 type CognitiveAccountDataSource struct{}
 
+func TestAccCognitiveAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cognitive_account", "test")
+	r := CognitiveAccountDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cognitive_account", "test")
 	r := CognitiveAccountDataSource{}

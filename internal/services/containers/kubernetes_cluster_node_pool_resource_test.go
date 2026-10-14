@@ -3371,6 +3371,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (KubernetesClusterNodePoolResource) workloadRuntimeKataVmIsolation(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3412,7 +3413,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
 }
 
 func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {

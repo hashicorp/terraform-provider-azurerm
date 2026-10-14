@@ -13,6 +13,16 @@ import (
 
 type CommunicationServiceDataSource struct{}
 
+func TestAccCommunicationServiceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_communication_service", "test")
+	r := CommunicationServiceDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCommunicationServiceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_communication_service", "test")
 	d := CommunicationServiceDataSource{}

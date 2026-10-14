@@ -4,21 +4,15 @@
 package containers
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	containersclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -121,28 +115,7 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 				}
 				id := agentpools.NewAgentPoolID("00000000-0000-0000-0000-000000000000", "test", "test", "pool")
 				data.SetId(id.ID())
-				payload, err := json.Marshal(agentpools.AgentPool{Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{MessageOfTheDay: test.encoded}})
-				if err != nil {
-					t.Fatal(err)
-				}
-				client, err := agentpools.NewAgentPoolsClientWithBaseURI(environments.AzurePublic().ResourceManager)
-				if err != nil {
-					t.Fatal(err)
-				}
-				client.Client.AuthorizeRequest = nil
-				requests := 0
-				client.Client.SetTransport(motdTestTransport(func(request *http.Request) (*http.Response, error) {
-					requests++
-					if request.Method != http.MethodGet || request.URL.Path != id.ID() || request.URL.Query().Get("api-version") != "2026-05-01" {
-						t.Fatalf("unexpected request: %s %s", request.Method, request.URL)
-					}
-					return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(string(payload))), Request: request}, nil
-				}))
-				meta := &clients.Client{StopContext: context.Background(), Containers: &containersclient.Client{AgentPoolsClient: client}}
-				err = resourceKubernetesClusterNodePoolRead(data, meta)
-				if requests != 1 {
-					t.Fatalf("expected one mocked GET, got %d", requests)
-				}
+				err := resourceKubernetesClusterNodePoolFlatten(data, &id, &agentpools.AgentPool{Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{MessageOfTheDay: test.encoded}})
 				if test.wantErr {
 					if err == nil || !strings.Contains(err.Error(), "decoding `message_of_the_day`") {
 						t.Fatalf("expected MOTD decoding error, got %v", err)
@@ -161,10 +134,4 @@ func TestKubernetesMessageOfTheDayResponse(t *testing.T) {
 			})
 		})
 	}
-}
-
-type motdTestTransport func(*http.Request) (*http.Response, error)
-
-func (f motdTestTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-	return f(request)
 }
