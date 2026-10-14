@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/service_plan/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,10 +36,6 @@ func (r Resource) Read() sdk.ResourceFunc {
 			return r.flatten(metadata, id, servicePlan.Model)
 		},
 	}
-}
-
-func (r Resource) Identity() resourceids.ResourceId {
-	return &commonids.AppServicePlanId{}
 }
 
 type OSType string
