@@ -64,6 +64,8 @@ func TestAccEventGridDomain_update(t *testing.T) {
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("false"),
 				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("false"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
 			),
 		},
 		data.ImportStep(),
@@ -191,39 +193,7 @@ func TestAccEventGridDomain_basicWithUserAssignedManagedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccEventGridDomain_basicWithTlsMinimumVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
-	r := EventGridDomainResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccEventGridDomain_basicWithDataResidencyBoundary(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
-	r := EventGridDomainResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccEventGridDomain_defaultTlsMinimumVersion(t *testing.T) {
+func TestAccEventGridDomain_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 	r := EventGridDomainResource{}
 
@@ -233,6 +203,7 @@ func TestAccEventGridDomain_defaultTlsMinimumVersion(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
 			),
 		},
 		data.ImportStep(),
@@ -290,6 +261,8 @@ resource "azurerm_eventgrid_domain" "test" {
   local_auth_enabled                        = false
   auto_create_topic_with_first_subscription = false
   auto_delete_topic_with_last_subscription  = false
+  minimum_tls_version     = "1.2"
+  data_residency_boundary = "WithinRegion"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
