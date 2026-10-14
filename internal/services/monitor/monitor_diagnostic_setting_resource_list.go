@@ -28,10 +28,12 @@ type MonitorDiagnosticSettingListModel struct {
 	TargetResourceId types.String `tfsdk:"target_resource_id"`
 }
 
+const monitorDiagnosticSetting = "azurerm_monitor_diagnostic_setting"
+
 var _ sdk.FrameworkListWrappedResource = new(MonitorDiagnosticSettingListResource)
 
 func (MonitorDiagnosticSettingListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_monitor_diagnostic_setting"
+	response.TypeName = monitorDiagnosticSetting
 }
 
 func (MonitorDiagnosticSettingListResource) ResourceFunc() *pluginsdk.Resource {
@@ -92,7 +94,7 @@ func (MonitorDiagnosticSettingListResource) List(ctx context.Context, request li
 			rd.SetId(id.ID())
 
 			if err := resourceMonitorDiagnosticSettingFlatten(rd, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding `azurerm_monitor_diagnostic_setting` resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", monitorDiagnosticSetting), err)
 				return
 			}
 
