@@ -106,3 +106,6 @@ vitual_network_to_hub_gateways_traffic_allowed = "vitual_network_to_hub_gateways
 
 # repo secret name as it exists in the repository settings
 GH_MEMEBERSHIP_CHECK_TOKEN = "GH_MEMEBERSHIP_CHECK_TOKEN"
+
+# sku false positives
+Standard_B2als_v2 = "Standard_B2als_v2" # cheapest current SKU for AKS cluster testing
