@@ -249,8 +249,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
--> **Note:** When only `tags` change, the provider uses the tags-only PATCH API rather than a full cluster PUT. Updates that also change other cluster properties continue to use the existing update APIs.
-
 * `upgrade_override` - (Optional) A `upgrade_override` block as defined below.
 
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.

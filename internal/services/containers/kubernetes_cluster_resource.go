@@ -2084,6 +2084,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
 	updateCluster := false
+	updateTagsOnly := d.HasChange("tags") && !d.HasChangesExcept("tags")
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control_enabled") {
@@ -2351,7 +2352,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if d.HasChange("tags") {
-		updateCluster = true
+		updateCluster = !updateTagsOnly
 		t := d.Get("tags").(map[string]any)
 		existing.Model.Tags = tags.Expand(t)
 	}
@@ -2553,18 +2554,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			existing.Model.Properties.SecurityProfile.Defender = nil
 		}
 
+		if err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+	} else if updateTagsOnly {
 		// if Tags are the only thing that's changed we can use the lighter-weight Update Tags API, which issues a
 		// PATCH, rather than the full Create/Update API, which issues a PUT and can trigger an unnecessary cluster
 		// reconcile
-		if d.HasChange("tags") && !d.HasChangesExcept("tags") {
-			tagsObject := managedclusters.TagsObject{
-				Tags: existing.Model.Tags,
-			}
-			if err = clusterClient.UpdateTagsThenPoll(ctx, *id, tagsObject, managedclusters.DefaultUpdateTagsOperationOptions()); err != nil {
-				return fmt.Errorf("updating tags for %s: %+v", *id, err)
-			}
-		} else if err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating %s: %+v", *id, err)
+		tagsObject := managedclusters.TagsObject{
+			Tags: existing.Model.Tags,
+		}
+		if err = clusterClient.UpdateTagsThenPoll(ctx, *id, tagsObject, managedclusters.DefaultUpdateTagsOperationOptions()); err != nil {
+			return fmt.Errorf("updating tags for %s: %+v", *id, err)
 		}
 	}
 
