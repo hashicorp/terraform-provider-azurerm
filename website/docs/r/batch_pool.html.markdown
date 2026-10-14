@@ -223,7 +223,7 @@ A `managed_disk` block supports the following:
 
 * `security_encryption_type` - (Optional) The encryption type of the managed disk. Possible values are `VMGuestStateOnly` and `NonPersistedTPM`.
 
-~> **Note:** `security_encryption_type` is required when `security_type` in the `security_profile` block is set to `confidentialVM` and must not be specified for other security types.
+~> **Note:** A `managed_disk` block with `security_encryption_type` is required when `security_type` in the `security_profile` block is set to `confidentialVM`. `security_encryption_type` must not be specified otherwise.
 
 * `storage_account_type` - (Optional) The storage account type to be used for the OS disk. Possible values are `Standard_LRS`, `Premium_LRS`, and `StandardSSD_LRS`. Defaults to `Standard_LRS`.
 
