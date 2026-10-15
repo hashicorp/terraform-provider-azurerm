@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `database_edition` - (Optional) The Oracle Database edition that applies to the Autonomous Database. Possible values are `EnterpriseEdition` and `StandardEdition`. This must be specified when `license_model` is `BringYourOwnLicense` and cannot be specified with another license model. Changing this forces a new resource to be created.
 
-~> **Note:** Previous AzureRM versions did not expose `database_edition`. When upgrading an existing Autonomous Database, review any `database_edition` change in the Terraform plan before applying. A change to this property requires replacing the database.
+~> **Note:** `database_edition` must be specified when `license_model` is `BringYourOwnLicense` and cannot be specified with another license model.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
 
