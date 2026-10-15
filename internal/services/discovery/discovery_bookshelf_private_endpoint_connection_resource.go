@@ -12,12 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/discovery/2026-06-01/bookshelfprivateendpointconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -properties name -compare-values subscription_id:bookshelf_id,resource_group_name:bookshelf_id,bookshelf_name:bookshelf_id
 
 var (
 	_ sdk.ResourceWithUpdate   = DiscoveryBookshelfPrivateEndpointConnectionResource{}
@@ -27,14 +26,14 @@ var (
 type DiscoveryBookshelfPrivateEndpointConnectionResource struct{}
 
 type DiscoveryBookshelfPrivateEndpointConnectionModel struct {
-	Name        string `tfschema:"name"`
-	BookshelfId string `tfschema:"bookshelf_id"`
-	Description string `tfschema:"description"`
-	Status      string `tfschema:"status"`
+	BookshelfId       string `tfschema:"bookshelf_id"`
+	PrivateEndpointId string `tfschema:"private_endpoint_id"`
+	Description       string `tfschema:"description"`
+	Status            string `tfschema:"status"`
 
-	ActionsRequired   string   `tfschema:"actions_required"`
-	GroupIds          []string `tfschema:"group_ids"`
-	PrivateEndpointId string   `tfschema:"private_endpoint_id"`
+	ActionsRequired string   `tfschema:"actions_required"`
+	GroupIds        []string `tfschema:"group_ids"`
+	Name            string   `tfschema:"name"`
 }
 
 func (r DiscoveryBookshelfPrivateEndpointConnectionResource) ResourceType() string {
@@ -55,18 +54,18 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Identity() resource
 
 func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"bookshelf_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: bookshelfprivateendpointconnections.ValidateBookshelfID,
+		},
+
+		"private_endpoint_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 		},
 
 		"status": {
@@ -81,6 +80,7 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Arguments() map[str
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
@@ -101,7 +101,7 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Attributes() map[st
 			},
 		},
 
-		"private_endpoint_id": {
+		"name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -124,24 +124,35 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Create() sdk.Resour
 				return err
 			}
 
-			id := bookshelfprivateendpointconnections.NewBookshelfPrivateEndpointConnectionID(bookshelfId.SubscriptionId, bookshelfId.ResourceGroupName, bookshelfId.BookshelfName, model.Name)
-
-			// The Private Endpoint Connection is created by Azure when a Private Endpoint targets the
-			// Bookshelf, so this resource adopts that connection in order to set its status rather than
-			// creating it. As such there is no import check - the connection is always expected to exist.
-			existing, err := client.Get(ctx, id)
+			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(model.PrivateEndpointId)
 			if err != nil {
-				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("%s was not found - a Private Endpoint targeting %s must exist before its connection can be managed", id, *bookshelfId)
+				return err
+			}
+
+			connections, err := client.ListByBookshelfComplete(ctx, *bookshelfId)
+			if err != nil {
+				return fmt.Errorf("listing Private Endpoint Connections for %s: %+v", *bookshelfId, err)
+			}
+
+			var existing *bookshelfprivateendpointconnections.BookshelfPrivateEndpointConnection
+			for _, item := range connections.Items {
+				if item.Properties == nil || item.Properties.PrivateEndpoint == nil || item.Properties.PrivateEndpoint.Id == nil {
+					continue
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+
+				if candidate, err := privateendpoints.ParsePrivateEndpointIDInsensitively(*item.Properties.PrivateEndpoint.Id); err == nil && resourceids.Match(candidate, privateEndpointId) {
+					existing = &item
+					break
+				}
 			}
 
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			if existing == nil || existing.Name == nil {
+				return fmt.Errorf("no Private Endpoint Connection for %s was found on %s - the Private Endpoint must target the Bookshelf before its connection can be managed, and must be recreated if its connection was previously deleted", *privateEndpointId, *bookshelfId)
 			}
 
-			payload := *existing.Model
+			id := bookshelfprivateendpointconnections.NewBookshelfPrivateEndpointConnectionID(bookshelfId.SubscriptionId, bookshelfId.ResourceGroupName, bookshelfId.BookshelfName, *existing.Name)
+
+			payload := *existing
 			payload.Properties = &bookshelfprivateendpointconnections.PrivateEndpointConnectionProperties{
 				PrivateLinkServiceConnectionState: bookshelfprivateendpointconnections.PrivateLinkServiceConnectionState{
 					Status: pointer.To(bookshelfprivateendpointconnections.PrivateEndpointServiceConnectionStatus(model.Status)),
@@ -194,8 +205,12 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Read() sdk.Resource
 			if props := resp.Model.Properties; props != nil {
 				state.GroupIds = pointer.From(props.GroupIds)
 
-				if privateEndpoint := props.PrivateEndpoint; privateEndpoint != nil {
-					state.PrivateEndpointId = pointer.From(privateEndpoint.Id)
+				if privateEndpoint := props.PrivateEndpoint; privateEndpoint != nil && privateEndpoint.Id != nil {
+					privateEndpointId, err := privateendpoints.ParsePrivateEndpointIDInsensitively(*privateEndpoint.Id)
+					if err != nil {
+						return err
+					}
+					state.PrivateEndpointId = privateEndpointId.ID()
 				}
 
 				connectionState := props.PrivateLinkServiceConnectionState

@@ -64,11 +64,14 @@ resource "azurerm_discovery_bookshelf" "example" {
 
   tags = {
     environment = "Production"
+    indexSize   = "small"
   }
 }
 ```
 
 -> **Note:** Microsoft Discovery Bookshelves are only available in a subset of Azure Regions, and provisioning one requires Azure OpenAI model capacity (`text-embedding-3-small`, `gpt-5-mini` and `gpt-5.2` on the `GlobalStandard` SKU) in the same region. Requests which exceed the available quota are rejected during creation.
+
+-> **Note:** The size of the search infrastructure provisioned for a Bookshelf is controlled by the `indexSize` tag, which accepts `small`, `medium` (the default) or `large`. Each size requires a corresponding amount of `Microsoft.App` memory optimized cores quota in the region - for example `medium` requires 80 cores. See [the Microsoft Discovery documentation](https://learn.microsoft.com/azure/microsoft-discovery/how-to-index-bookshelf-knowledgebase) for more information.
 
 ## Arguments Reference
 
@@ -90,7 +93,7 @@ The following arguments are supported:
 
 ---
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. When specified, data at rest is encrypted with a customer managed key.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. When specified, data at rest is encrypted with a customer managed key. Adding or removing this block forces a new Microsoft Discovery Bookshelf to be created.
 
 -> **Note:** `log_analytics_cluster_id` is required when `customer_managed_key` is specified.
 
@@ -110,7 +113,7 @@ A `customer_managed_key` block supports the following:
 
 * `key_vault_uri` - (Required) The URI of the Key Vault. Changing this forces a new Microsoft Discovery Bookshelf to be created.
 
-* `key_version` - (Optional) The version of the Key Vault Key. When omitted the latest version of the key is used.
+* `key_version` - (Optional) The version of the Key Vault Key. When omitted the latest version of the key is used. Removing a previously specified `key_version` forces a new Microsoft Discovery Bookshelf to be created.
 
 ## Attributes Reference
 
@@ -128,10 +131,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Microsoft Discovery Bookshelf.
+* `create` - (Defaults to 1 hour) Used when creating the Microsoft Discovery Bookshelf.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Discovery Bookshelf.
-* `update` - (Defaults to 30 minutes) Used when updating the Microsoft Discovery Bookshelf.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Microsoft Discovery Bookshelf.
+* `update` - (Defaults to 1 hour) Used when updating the Microsoft Discovery Bookshelf.
+* `delete` - (Defaults to 1 hour) Used when deleting the Microsoft Discovery Bookshelf.
 
 ## Import
 

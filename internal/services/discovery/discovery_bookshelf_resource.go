@@ -89,9 +89,10 @@ func (r DiscoveryBookshelfResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"customer_managed_key": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			RequiredWith: []string{"log_analytics_cluster_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity_client_id": {
@@ -193,9 +194,19 @@ func (r DiscoveryBookshelfResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
 
-			customerManagedKey := diff.Get("customer_managed_key").([]interface{})
-			if len(customerManagedKey) > 0 && diff.Get("log_analytics_cluster_id").(string) == "" {
-				return fmt.Errorf("`log_analytics_cluster_id` must be specified when `customer_managed_key` is set")
+			if !diff.HasChange("customer_managed_key") {
+				return nil
+			}
+
+			// the Update API can't enable or disable customer managed keys, nor unset a pinned key version
+			oldCMK, newCMK := diff.GetChange("customer_managed_key")
+			if len(oldCMK.([]interface{})) != len(newCMK.([]interface{})) {
+				return diff.ForceNew("customer_managed_key")
+			}
+
+			oldVersion, newVersion := diff.GetChange("customer_managed_key.0.key_version")
+			if oldVersion.(string) != "" && newVersion.(string) == "" {
+				return diff.ForceNew("customer_managed_key.0.key_version")
 			}
 
 			return nil
@@ -205,7 +216,7 @@ func (r DiscoveryBookshelfResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (r DiscoveryBookshelfResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Discovery.Bookshelves
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -321,7 +332,7 @@ func (r DiscoveryBookshelfResource) Read() sdk.ResourceFunc {
 
 func (r DiscoveryBookshelfResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Discovery.Bookshelves
 
@@ -372,7 +383,7 @@ func (r DiscoveryBookshelfResource) Update() sdk.ResourceFunc {
 
 func (r DiscoveryBookshelfResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Discovery.Bookshelves
 
@@ -442,7 +453,6 @@ func flattenDiscoveryBookshelfWorkloadIdentities(input *map[string]bookshelves.U
 	}
 
 	for id := range *input {
-		// the API returns the ID in a different casing than the one supplied, so it's normalised here to avoid a diff
 		if parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(id); err == nil {
 			output = append(output, parsed.ID())
 			continue
