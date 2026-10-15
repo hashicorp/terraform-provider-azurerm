@@ -94,14 +94,14 @@ func GenerateCompositeIdentitySchema(id resourceids.ResourceId, firstName, secon
 
 func compositeIdentitySchema(_ resourceids.ResourceId, firstName, secondName string) map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		// lintignore:S013
 		firstName: {
 			Type:              schema.TypeString,
-			Required:          true,
 			RequiredForImport: true,
 		},
+		// lintignore:S013
 		secondName: {
 			Type:              schema.TypeString,
-			Required:          true,
 			RequiredForImport: true,
 		},
 	}
