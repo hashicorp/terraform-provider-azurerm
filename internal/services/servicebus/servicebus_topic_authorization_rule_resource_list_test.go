@@ -35,7 +35,7 @@ func TestAccServiceBusTopicAuthorizationRule_listByTopicID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_servicebus_topic_authorization_rule.list", 3),
+					querycheck.ExpectLength("azurerm_servicebus_topic_authorization_rule.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_servicebus_topic_authorization_rule.list",
 						map[string]knownvalue.Check{

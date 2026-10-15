@@ -3,16 +3,16 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic_authorization_rule"
 description: |-
-    Lists ServiceBus Topic Authorization Rule resources.
+    Lists Service Bus Topic Authorization Rule resources.
 ---
 
 # List resource: azurerm_servicebus_topic_authorization_rule
 
-Lists ServiceBus Topic Authorization Rule resources.
+Lists Service Bus Topic Authorization Rule resources.
 
 ## Example Usage
 
-### List all ServiceBus Topic Authorization Rules in a Topic
+### List all Service Bus Topic Authorization Rules in a Topic
 
 ```hcl
 list "azurerm_servicebus_topic_authorization_rule" "example" {
