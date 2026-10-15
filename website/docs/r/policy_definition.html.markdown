@@ -103,7 +103,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Policy Definitions can be imported using the `resource id`, e.g.
+Policy Definitions can be imported using the `policy name`, e.g.
 
 ```shell
 terraform import azurerm_policy_definition.examplePolicy /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
