@@ -5,6 +5,7 @@ package storage_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -26,6 +27,28 @@ func TestAccStorageAccountStaticWebsiteDataSource_basic(t *testing.T) {
 			),
 		},
 	})
+}
+func TestAccStorageAccountStaticWebsiteDataSource_staticNotEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_static_website", "test")
+	r := StorageAccountStaticWebsiteDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config:      r.staticNotEnabled(data),
+			ExpectError: regexp.MustCompile(`static website is not enabled`),
+		},
+	})
+}
+
+func (d StorageAccountStaticWebsiteDataSource) staticNotEnabled(data acceptance.TestData) string {
+	template := StorageAccountResource{}.basic(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_account_static_website" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, template)
 }
 
 func (d StorageAccountStaticWebsiteDataSource) basic(data acceptance.TestData) string {
