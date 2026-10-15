@@ -20,6 +20,16 @@ import (
 
 type RoleAssignmentResource struct{}
 
+func TestAccRoleAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subscriptionScoped(data),
+		},
+	}, "")
+}
+
 func TestAccRoleAssignment_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	r := RoleAssignmentResource{}

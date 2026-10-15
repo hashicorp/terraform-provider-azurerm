@@ -126,6 +126,16 @@ resource "azurerm_automation_source_control" "test" {
 `, s.template(data), data.RandomInteger, s.url, s.token)
 }
 
+func TestAccSourceControl_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SourceControlResource{}.ResourceType(), "test")
+	r := newSourceControlResource(t)
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSourceControl_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.SourceControlResource{}.ResourceType(), "test")
 	r := newSourceControlResource(t)
