@@ -249,13 +249,12 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"severity": {
-    Type:             pluginsdk.TypeString,
-    Optional:         true,
-    Default:          "0",
-    ValidateFunc:     validateMonitorSeverity,
-    StateFunc:        normalizeMonitorSeverityState,
-    DiffSuppressFunc: suppressMonitorSeverityDiff,
-},
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validateMonitorSeverity,
+			StateFunc:        normalizeMonitorSeverityState,
+			DiffSuppressFunc: suppressMonitorSeverityDiff,
+		},
 
 		"window_duration": {
 			Type:     pluginsdk.TypeString,

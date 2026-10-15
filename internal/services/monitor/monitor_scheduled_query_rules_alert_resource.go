@@ -145,6 +145,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 			"severity": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
+				Default:          "0",
 				ValidateFunc:     validateMonitorSeverity,
 				StateFunc:        normalizeMonitorSeverityState,
 				DiffSuppressFunc: suppressMonitorSeverityDiff,
