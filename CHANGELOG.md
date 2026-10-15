@@ -1,3 +1,41 @@
+## 5.10.0 (October 15, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_capacity_reservation` ([#33255](https://github.com/hashicorp/terraform-provider-azurerm/issues/33255))
+* **New List Resource**: `azurerm_lb_backend_address_pool` ([#33328](https://github.com/hashicorp/terraform-provider-azurerm/issues/33328))
+* **New List Resource**: `azurerm_network_watcher_flow_log` ([#33267](https://github.com/hashicorp/terraform-provider-azurerm/issues/33267))
+* **New List Resource**: `azurerm_postgresql_flexible_server_configuration` ([#33382](https://github.com/hashicorp/terraform-provider-azurerm/issues/33382))
+
+ENHANCEMENTS:
+
+* dependencies: `Go` - update to `1.26.9` ([#33608](https://github.com/hashicorp/terraform-provider-azurerm/issues/33608))
+* dependencies: `costmanagement` - update API version to `2025-03-01` ([#33601](https://github.com/hashicorp/terraform-provider-azurerm/issues/33601))
+* dependencies: `golang.org/x/net` - update to `0.60.0` ([#33608](https://github.com/hashicorp/terraform-provider-azurerm/issues/33608))
+* `azurerm_netapp_volume` - add support for the `unix_permissions` property ([#31113](https://github.com/hashicorp/terraform-provider-azurerm/issues/31113))
+* `azurerm_backup_policy_file_share` - add support for values `1` and `2` for hourly interval ([#33620](https://github.com/hashicorp/terraform-provider-azurerm/issues/33620))
+* `azurerm_cognitive_deployment` - add support for `spillover_deployment_name` property ([#32876](https://github.com/hashicorp/terraform-provider-azurerm/issues/32876))
+* `azurerm_eventgrid_domain` - support for `minimum_tls_version` and `data_residency` ([#30708](https://github.com/hashicorp/terraform-provider-azurerm/issues/30708))
+* `azurerm_eventgrid_topic` - support for `minimum_tls_version` and `data_residency` ([#30708](https://github.com/hashicorp/terraform-provider-azurerm/issues/30708))
+* `azurerm_key_vault_secret` - the `version` and `resource_id` properties are now marked as `(known after apply)` when the `value` or `value_wo_version` property changes ([#33437](https://github.com/hashicorp/terraform-provider-azurerm/issues/33437))
+* `azurerm_kubernetes_cluster_cluster_node_pool` - suppress a perpetual diff that occurred when configuring a `{major}.{minor}` alias for the`orchestrator_version` property ([#32625](https://github.com/hashicorp/terraform-provider-azurerm/issues/32625))
+* `azurerm_kubernetes_cluster` - suppress a perpetual diff that occurred when configuring a `{major}.{minor}` alias for the `kubernetes_version` and `default_node_pool.orchestrator_version` properties ([#32625](https://github.com/hashicorp/terraform-provider-azurerm/issues/32625))
+* `azurerm_shared_image_version` - support for the `uefi` block ([#28076](https://github.com/hashicorp/terraform-provider-azurerm/issues/28076))
+
+BUG FIXES:
+
+* `azurerm_chaos_studio_experiment` - remove a problematic custom poller in favour of the `go-azure-sdk` built-in poller ([#32703](https://github.com/hashicorp/terraform-provider-azurerm/issues/32703))
+* `azurerm_data_protection_backup_policy_blob_storage` - fix an error when creating a backup policy with both operational and vaulted retention configured ([#33485](https://github.com/hashicorp/terraform-provider-azurerm/issues/33485))
+* `azurerm_eventhub` - fix a panic when values in the `capture_description` block are unknown at plan time ([#33609](https://github.com/hashicorp/terraform-provider-azurerm/issues/33609))
+* `azurerm_logic_app_standard` - correctly update `public_network_access` in the site configuration ([#33618](https://github.com/hashicorp/terraform-provider-azurerm/issues/33618))
+* `azurerm_network_interface_application_gateway_backend_address_pool_association` - change resource update lock to `ByID()` to align with locks in other nic resources ([#33625](https://github.com/hashicorp/terraform-provider-azurerm/issues/33625))
+* `azurerm_network_interface_application_security_group_association` - change resource update lock to `ByID()` to align with locks in other nic resources ([#33625](https://github.com/hashicorp/terraform-provider-azurerm/issues/33625))
+* `azurerm_network_interface_backend_address_pool_association` - change resource update lock to `ByID()` to align with locks in other nic resources ([#33625](https://github.com/hashicorp/terraform-provider-azurerm/issues/33625))
+* `azurerm_network_interface_nat_rule_association` - change resource update lock to `ByID()` to align with locks in other nic resources ([#33625](https://github.com/hashicorp/terraform-provider-azurerm/issues/33625))
+* `azurerm_network_interface` - change resource update lock to `ByID()` to align with locks in other nic resources ([#33625](https://github.com/hashicorp/terraform-provider-azurerm/issues/33625))
+* `azurerm_subnet` - fix plan difference on `service_endpoint` when list order is only difference ([#33613](https://github.com/hashicorp/terraform-provider-azurerm/issues/33613))
+* `azurerm_virtual_desktop_application` - fix `name` property `ValidateFunc` ([#33634](https://github.com/hashicorp/terraform-provider-azurerm/issues/33634))
+
 ## 5.9.0 (October 8, 2026)
 
 FEATURES:
