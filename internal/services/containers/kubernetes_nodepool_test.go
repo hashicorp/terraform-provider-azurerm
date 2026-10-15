@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-cty/cty"
-	ctyjson "github.com/hashicorp/go-cty/cty/json"
+	"github.com/hashicorp/go-cty/cty/json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -46,7 +46,7 @@ func TestExpandSysctlConfig_ZeroValues(t *testing.T) {
 			},
 		}
 
-		cfgVal, err := ctyjson.Unmarshal(jsonConfig, res.CoreConfigSchema().ImpliedType())
+		cfgVal, err := json.Unmarshal(jsonConfig, res.CoreConfigSchema().ImpliedType())
 		if err != nil {
 			t.Fatalf("unmarshal error: %v", err)
 		}
@@ -178,7 +178,7 @@ func TestExpandAgentPoolSysctlConfig_ZeroValues(t *testing.T) {
 			},
 		}
 
-		cfgVal, err := ctyjson.Unmarshal(jsonConfig, res.CoreConfigSchema().ImpliedType())
+		cfgVal, err := json.Unmarshal(jsonConfig, res.CoreConfigSchema().ImpliedType())
 		if err != nil {
 			t.Fatalf("unmarshal error: %v", err)
 		}
