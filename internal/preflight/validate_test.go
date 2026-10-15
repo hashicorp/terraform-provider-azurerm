@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func TestValidateResource(t *testing.T) {
+func TestAccPreflight_validateResource(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skipf("Acceptance tests skipped unless env 'TF_ACC' set")
 	}
