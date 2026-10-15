@@ -205,11 +205,6 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     priority = 25
 
     life_cycle {
-      duration        = "P7D"
-      data_store_type = "OperationalStore"
-    }
-
-    life_cycle {
       duration        = "P84D"
       data_store_type = "OperationalStore"
     }

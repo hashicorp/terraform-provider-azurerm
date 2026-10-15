@@ -36,6 +36,23 @@ func (r AttestationProviderResource) basicForResourceIdentity(data acceptance.Te
 	return r.basic(data)
 }
 
+func TestAccAttestationProvider_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	r := AttestationProviderResource{
+		name: fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10)),
+	}
+	testCertificate, err := testGenerateTestCertificate("ENCOM")
+	if err != nil {
+		t.Fatalf("Test case failed: '%+v'", err)
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeString(data, testCertificate),
+		},
+	}, "")
+}
+
 func TestAccAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{
