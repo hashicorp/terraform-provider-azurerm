@@ -30,13 +30,14 @@ class BuildComponentsTests {
             CheckScheduleConstraints()
         }
         val scriptStep = steps.items.single() as ScriptBuildStep
+        val content = scriptStep.scriptContent ?: ""
         assertTrue(
             "CheckScheduleConstraints script should check DISABLE_TRIGGERS",
-            scriptStep.scriptContent.contains("%DISABLE_TRIGGERS%")
+            content.contains("%DISABLE_TRIGGERS%")
         )
         assertTrue(
             "CheckScheduleConstraints script should set SCHEDULE_MATCHES to false when triggers are disabled",
-            scriptStep.scriptContent.contains("SCHEDULE_MATCHES' value='false'")
+            content.contains("SCHEDULE_MATCHES' value='false'")
         )
     }
 }
