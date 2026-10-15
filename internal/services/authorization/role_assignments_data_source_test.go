@@ -13,6 +13,16 @@ import (
 
 type RoleAssignmentsDataSource struct{}
 
+func TestAccRoleAssignmentsDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_assignments", "test")
+	r := RoleAssignmentsDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccRoleAssignmentsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_assignments", "test")
 	d := RoleAssignmentsDataSource{}
