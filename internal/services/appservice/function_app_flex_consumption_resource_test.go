@@ -20,6 +20,16 @@ import (
 
 type FunctionAppFlexConsumptionResource struct{}
 
+func TestAccFunctionAppFlexConsumption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 // remove in 6.0 starts
 func TestAccFunctionAppFlexConsumption_FivePointOhBasic(t *testing.T) {
 	if features.SixPointOh() {
