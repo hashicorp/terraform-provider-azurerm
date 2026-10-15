@@ -87,3 +87,14 @@ func flattenConnectionStrings(connStrings *autonomousdatabases.ConnectionStringT
 
 	return flattened
 }
+
+// coalesceStorageSizeToGbs normalizes API responses which may contain only one storage unit.
+func coalesceStorageSizeToGbs(sizeInGbs, sizeInTbs *int64) int64 {
+	if sizeInGbs != nil {
+		return *sizeInGbs
+	}
+	if sizeInTbs != nil {
+		return *sizeInTbs * 1024
+	}
+	return 0
+}

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/autonomousdatabases"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +38,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	ComputeCount                 float64                         `tfschema:"compute_count"`
 	ComputeModel                 string                          `tfschema:"compute_model"`
 	DataStorageSizeInGbs         int64                           `tfschema:"data_storage_size_in_gbs"`
-	DataStorageSizeInTbs         int64                           `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInTbs         int64                           `tfschema:"data_storage_size_in_tbs,removedInNextMajorVersion"`
 	DbVersion                    string                          `tfschema:"db_version"`
 	DbWorkload                   string                          `tfschema:"db_workload"`
 	DisplayName                  string                          `tfschema:"display_name"`
@@ -56,7 +57,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 }
 
 func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 
 		"name": {
@@ -103,21 +104,9 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"data_storage_size_in_gbs": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// NOTE: O+C The API returns both storage sizes even when only one is specified in the request.
-			Computed:     true,
-			ExactlyOneOf: []string{"data_storage_size_in_gbs", "data_storage_size_in_tbs"},
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 393216),
-		},
-
-		"data_storage_size_in_tbs": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			// NOTE: O+C The API returns both storage sizes even when only one is specified in the request.
-			Computed:     true,
-			ExactlyOneOf: []string{"data_storage_size_in_gbs", "data_storage_size_in_tbs"},
-			ValidateFunc: validation.IntBetween(1, 384),
 		},
 
 		"db_version": {
@@ -237,6 +226,28 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		args["data_storage_size_in_gbs"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C The API may return storage in either unit; GB is populated when deprecated TB is configured.
+			Computed:     true,
+			ExactlyOneOf: []string{"data_storage_size_in_gbs", "data_storage_size_in_tbs"},
+			ValidateFunc: validation.IntBetween(1, 393216),
+		}
+		args["data_storage_size_in_tbs"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C Preserve legacy TB state when storage is configured in GB until the next major version.
+			Computed:     true,
+			ExactlyOneOf: []string{"data_storage_size_in_gbs", "data_storage_size_in_tbs"},
+			ValidateFunc: validation.IntBetween(1, 384),
+			Deprecated:   "`data_storage_size_in_tbs` has been deprecated in favour of `data_storage_size_in_gbs` and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+
+	return args
 }
 
 func (AutonomousDatabaseRegularResource) Attributes() map[string]*pluginsdk.Schema {
@@ -295,10 +306,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
 			}
 
-			if model.DataStorageSizeInGbs != 0 {
-				properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGbs)
-			} else {
+			if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "data_storage_size_in_tbs") {
 				properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+			} else {
+				properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGbs)
 			}
 
 			if len(model.CustomerContacts) > 0 {
@@ -374,11 +385,13 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("tags") {
 					generalUpdate.Tags = pointer.To(model.Tags)
 				}
-				if metadata.ResourceData.HasChange("data_storage_size_in_gbs") {
+				// Only send the configured unit: the other value may have been computed from the previous state.
+				if !features.SixPointOh() && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "data_storage_size_in_tbs") {
+					if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
+						generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+					}
+				} else if metadata.ResourceData.HasChange("data_storage_size_in_gbs") {
 					generalUpdate.Properties.DataStorageSizeInGbs = pointer.To(model.DataStorageSizeInGbs)
-				}
-				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
-					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
 				}
 				if metadata.ResourceData.HasChange("compute_count") {
 					generalUpdate.Properties.ComputeCount = pointer.To(model.ComputeCount)
@@ -476,14 +489,12 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-
-				if props.DataStorageSizeInGbs != nil && props.DataStorageSizeInTbs == nil && *props.DataStorageSizeInGbs%1024 == 0 {
-					state.DataStorageSizeInTbs = *props.DataStorageSizeInGbs / 1024
-				}
-				if props.DataStorageSizeInTbs != nil && props.DataStorageSizeInGbs == nil {
-					state.DataStorageSizeInGbs = *props.DataStorageSizeInTbs * 1024
+				state.DataStorageSizeInGbs = coalesceStorageSizeToGbs(props.DataStorageSizeInGbs, props.DataStorageSizeInTbs)
+				if !features.SixPointOh() {
+					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+					if props.DataStorageSizeInTbs == nil && props.DataStorageSizeInGbs != nil && *props.DataStorageSizeInGbs%1024 == 0 {
+						state.DataStorageSizeInTbs = *props.DataStorageSizeInGbs / 1024
+					}
 				}
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DbVersion = pointer.From(props.DbVersion)
@@ -563,13 +574,16 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
 	// lintignore:R019 // deliberate subset: only the fields covered by the general update payload; the remaining attributes are updated via separate calls
-	return metadata.ResourceData.HasChanges(
+	keys := []string{
 		"tags",
 		"data_storage_size_in_gbs",
-		"data_storage_size_in_tbs",
 		"compute_count",
 		"auto_scaling_enabled",
 		"auto_scaling_for_storage_enabled",
 		"allowed_ips",
-	)
+	}
+	if !features.SixPointOh() {
+		keys = append(keys, "data_storage_size_in_tbs")
+	}
+	return metadata.ResourceData.HasChanges(keys...)
 }
