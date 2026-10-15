@@ -145,6 +145,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 	}
 
 	parameters := policydefinitions.PolicyDefinition{
+		Name:       pointer.To(name),
 		Properties: &properties,
 	}
 
