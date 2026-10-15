@@ -19,6 +19,16 @@ import (
 
 type AppInsightsAPIKey struct{}
 
+func TestAccApplicationInsightsAPIKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	r := AppInsightsAPIKey{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleKeys(data),
+		},
+	}, "")
+}
+
 func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
