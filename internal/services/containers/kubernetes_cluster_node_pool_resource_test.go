@@ -898,34 +898,36 @@ func TestAccKubernetesClusterNodePool_security(t *testing.T) {
 		secureBoot bool
 		vtpm       bool
 		noChange   bool
+		skipImport bool
+		noRotation bool
 	}{
 		{label: "initial"},
+		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "initial", skipImport: true, noRotation: true},
 		{security: "security {\nsecure_boot_enabled = true\nvtpm_enabled = true\n}", label: "initial", secureBoot: true, vtpm: true},
-		// Removing the block alone must not rotate or disable the pool.
-		{label: "initial", secureBoot: true, vtpm: true, noChange: true},
+		{label: "initial"},
 		// Exercise the production update path while security is omitted.
-		{label: "updated", secureBoot: true, vtpm: true},
+		{label: "updated"},
 		{security: "security {\nsecure_boot_enabled = true\n}", label: "updated", secureBoot: true},
 		{security: "security {\nvtpm_enabled = true\n}", label: "updated", vtpm: true},
-		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "updated"},
-		{security: "security {}", label: "updated", noChange: true},
-		{security: "security {\nsecure_boot_enabled = null\nvtpm_enabled = null\n}", label: "updated", noChange: true},
+		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "updated", skipImport: true},
+		{security: "security {}", label: "updated", noChange: true, skipImport: true},
+		{security: "security {\nsecure_boot_enabled = null\nvtpm_enabled = null\n}", label: "updated", noChange: true, skipImport: true},
 	} {
-		config := r.securityConfig(data, tc.security, tc.label)
+		config := r.securityConfig(data, tc.security, tc.label, !tc.noRotation)
 		if tc.noChange {
 			steps = append(steps, acceptance.TestStep{Config: config, PlanOnly: true})
 		}
-		steps = append(steps,
-			acceptance.TestStep{
-				Config: config,
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					data.CheckWithClient(r.checkSecurity(tc.secureBoot, tc.vtpm)),
-				),
-			},
-			data.ImportStep("temporary_name_for_rotation"),
-			acceptance.TestStep{Config: config, PlanOnly: true},
-		)
+		steps = append(steps, acceptance.TestStep{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.checkSecurity(tc.secureBoot, tc.vtpm)),
+			),
+		})
+		if !tc.skipImport {
+			steps = append(steps, data.ImportStep("temporary_name_for_rotation"))
+		}
+		steps = append(steps, acceptance.TestStep{Config: config, PlanOnly: true})
 	}
 
 	data.ResourceTest(t, r, steps)
@@ -936,7 +938,7 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
-	config := r.securityConfig(data, "", "initial")
+	config := r.securityConfig(data, "", "initial", true)
 	previous := map[string]resource.ExternalProvider{
 		"azurerm": {Source: "hashicorp/azurerm", VersionConstraint: "=5.7.0"},
 	}
@@ -3163,7 +3165,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) securityConfig(data acceptance.TestData, security, label string) string {
+func (r KubernetesClusterNodePoolResource) securityConfig(data acceptance.TestData, security, label string, rotation bool) string {
+	rotationSetting := "null"
+	if rotation {
+		rotationSetting = `"tempnp"`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3203,7 +3209,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                        = "internal"
   kubernetes_cluster_id       = azurerm_kubernetes_cluster.test.id
   node_count                  = 1
-  temporary_name_for_rotation = "tempnp"
+  temporary_name_for_rotation = %[5]s
   vm_size                     = "Standard_D2s_v3"
 
   node_labels = {
@@ -3216,7 +3222,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, security, label)
+`, data.RandomInteger, data.Locations.Primary, security, label, rotationSetting)
 }
 
 func (r KubernetesClusterNodePoolResource) maxSizeConfig(data acceptance.TestData) string {

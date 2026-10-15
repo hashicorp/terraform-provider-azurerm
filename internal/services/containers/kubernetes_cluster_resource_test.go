@@ -60,34 +60,36 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 		secureBoot bool
 		vtpm       bool
 		noChange   bool
+		skipImport bool
+		noRotation bool
 	}{
 		{label: "initial"},
+		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "initial", skipImport: true, noRotation: true},
 		{security: "security {\nsecure_boot_enabled = true\nvtpm_enabled = true\n}", label: "initial", secureBoot: true, vtpm: true},
-		// Removing the block alone must not rotate or disable the pool.
-		{label: "initial", secureBoot: true, vtpm: true, noChange: true},
+		{label: "initial"},
 		// Exercise the production update path while security is omitted.
-		{label: "updated", secureBoot: true, vtpm: true},
+		{label: "updated"},
 		{security: "security {\nsecure_boot_enabled = true\n}", label: "updated", secureBoot: true},
 		{security: "security {\nvtpm_enabled = true\n}", label: "updated", vtpm: true},
-		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "updated"},
-		{security: "security {}", label: "updated", noChange: true},
-		{security: "security {\nsecure_boot_enabled = null\nvtpm_enabled = null\n}", label: "updated", noChange: true},
+		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "updated", skipImport: true},
+		{security: "security {}", label: "updated", noChange: true, skipImport: true},
+		{security: "security {\nsecure_boot_enabled = null\nvtpm_enabled = null\n}", label: "updated", noChange: true, skipImport: true},
 	} {
-		config := r.defaultNodePoolSecurity(data, tc.security, tc.label)
+		config := r.defaultNodePoolSecurity(data, tc.security, tc.label, !tc.noRotation)
 		if tc.noChange {
 			steps = append(steps, acceptance.TestStep{Config: config, PlanOnly: true})
 		}
-		steps = append(steps,
-			acceptance.TestStep{
-				Config: config,
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					data.CheckWithClient(r.checkDefaultNodePoolSecurity(tc.secureBoot, tc.vtpm)),
-				),
-			},
-			data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
-			acceptance.TestStep{Config: config, PlanOnly: true},
-		)
+		steps = append(steps, acceptance.TestStep{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.checkDefaultNodePoolSecurity(tc.secureBoot, tc.vtpm)),
+			),
+		})
+		if !tc.skipImport {
+			steps = append(steps, data.ImportStep("default_node_pool.0.temporary_name_for_rotation"))
+		}
+		steps = append(steps, acceptance.TestStep{Config: config, PlanOnly: true})
 	}
 
 	data.ResourceTest(t, r, steps)
@@ -98,7 +100,7 @@ func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	config := r.defaultNodePoolSecurity(data, "", "initial")
+	config := r.defaultNodePoolSecurity(data, "", "initial", true)
 	previous := map[string]resource.ExternalProvider{
 		"azurerm": {Source: "hashicorp/azurerm", VersionConstraint: "=5.7.0"},
 	}
@@ -559,7 +561,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, security, label string) string {
+func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, security, label string, rotation bool) string {
+	rotationSetting := "null"
+	if rotation {
+		rotationSetting = `"temp"`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -579,7 +585,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    temporary_name_for_rotation = "temp"
+    temporary_name_for_rotation = %[5]s
     vm_size                     = "Standard_D2s_v3"
 
     node_labels = {
@@ -602,7 +608,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, security, label)
+`, data.RandomInteger, data.Locations.Primary, security, label, rotationSetting)
 }
 
 func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {

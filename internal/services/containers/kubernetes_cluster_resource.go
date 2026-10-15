@@ -2586,6 +2586,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		}
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
+		if d.HasChange("default_node_pool.0.security") {
+			if agentProfile.Properties.SecurityProfile == nil {
+				agentProfile.Properties.SecurityProfile = &agentpools.AgentPoolSecurityProfile{
+					EnableSecureBoot: pointer.To(false),
+					EnableVTPM:       pointer.To(false),
+				}
+			}
+			currentNodePoolId := defaultNodePoolId
+			if d.HasChange("default_node_pool.0.name") {
+				oldName, _ := d.GetChange("default_node_pool.0.name")
+				currentNodePoolId = agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, oldName.(string))
+			}
+			existingNodePool, err := nodePoolsClient.Get(ctx, currentNodePoolId)
+			if err != nil && !response.WasNotFound(existingNodePool.HttpResponse) {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", currentNodePoolId, err)
+			}
+			if existingNodePool.Model != nil && existingNodePool.Model.Properties != nil && existingNodePool.Model.Properties.SecurityProfile != nil {
+				agentProfile.Properties.SecurityProfile.SshAccess = existingNodePool.Model.Properties.SecurityProfile.SshAccess
+			}
+		}
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
@@ -2616,7 +2636,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
 			"default_node_pool.0.pod_subnet_id",
-			"default_node_pool.0.security",
 			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
 			"default_node_pool.0.vnet_subnet_id",
@@ -2626,6 +2645,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
 		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+		oldSecurity, newSecurity := d.GetChange("default_node_pool.0.security")
+		if nodePoolSecurityFlagsChanged(oldSecurity.([]any), newSecurity.([]any)) {
+			cycleNodePool = true
+			cycleNodePoolProperties = append(cycleNodePoolProperties, "default_node_pool.0.security")
+		}
 		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 		if d.HasChange("default_node_pool.0.os_sku") {
 			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")

@@ -907,7 +907,17 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 	}
 
 	if d.HasChange("security") {
-		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security").([]any))
+		securityProfile := expandAgentPoolSecurityProfile(d.Get("security").([]any))
+		if securityProfile == nil {
+			securityProfile = &agentpools.AgentPoolSecurityProfile{
+				EnableSecureBoot: pointer.To(false),
+				EnableVTPM:       pointer.To(false),
+			}
+		}
+		if props.SecurityProfile != nil {
+			securityProfile.SshAccess = props.SecurityProfile.SshAccess
+		}
+		props.SecurityProfile = securityProfile
 	}
 
 	if d.HasChange("zones") {
@@ -955,7 +965,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		"os_disk_type",
 		"pod_subnet_id",
 		"snapshot_id",
-		"security",
 		"ultra_ssd_enabled",
 		"vm_size",
 		"vnet_subnet_id",
@@ -964,6 +973,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 
 	// if the node pool name has changed, it means the initial attempt at resizing failed
 	cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+	oldSecurity, newSecurity := d.GetChange("security")
+	if nodePoolSecurityFlagsChanged(oldSecurity.([]any), newSecurity.([]any)) {
+		cycleNodePool = true
+		cycleNodePoolProperties = append(cycleNodePoolProperties, "security")
+	}
 	// os_sku can only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 	if d.HasChange("os_sku") {
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
@@ -1224,7 +1238,11 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
-		if err := d.Set("security", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+		securityProfile := flattenAgentPoolSecurityProfile(props.SecurityProfile)
+		if props.SecurityProfile != nil && len(d.Get("security").([]any)) == 0 && !pointer.From(props.SecurityProfile.EnableSecureBoot) && !pointer.From(props.SecurityProfile.EnableVTPM) {
+			securityProfile = []any{}
+		}
+		if err := d.Set("security", securityProfile); err != nil {
 			return fmt.Errorf("setting `security`: %+v", err)
 		}
 

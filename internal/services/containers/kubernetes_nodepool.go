@@ -278,8 +278,6 @@ func schemaNodePoolSecurity() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		// NOTE: O+C AKS returns a default security profile when omitted; TypeList does not support Default.
-		Computed: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -297,6 +295,21 @@ func schemaNodePoolSecurity() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func nodePoolSecurityFlagsChanged(oldRaw, newRaw []any) bool {
+	old := expandManagedClusterAgentPoolSecurityProfile(oldRaw)
+	new := expandManagedClusterAgentPoolSecurityProfile(newRaw)
+
+	oldSecureBoot, oldVTPM := false, false
+	if old != nil {
+		oldSecureBoot, oldVTPM = pointer.From(old.EnableSecureBoot), pointer.From(old.EnableVTPM)
+	}
+	newSecureBoot, newVTPM := false, false
+	if new != nil {
+		newSecureBoot, newVTPM = pointer.From(new.EnableSecureBoot), pointer.From(new.EnableVTPM)
+	}
+	return oldSecureBoot != newSecureBoot || oldVTPM != newVTPM
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
@@ -1351,6 +1364,9 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
 	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(agentPool.SecurityProfile)
+	if agentPool.SecurityProfile != nil && len(d.Get("default_node_pool.0.security").([]any)) == 0 && !pointer.From(agentPool.SecurityProfile.EnableSecureBoot) && !pointer.From(agentPool.SecurityProfile.EnableVTPM) {
+		securityProfile = []any{}
+	}
 
 	out := map[string]any{
 		"auto_scaling_enabled":          enableAutoScaling,

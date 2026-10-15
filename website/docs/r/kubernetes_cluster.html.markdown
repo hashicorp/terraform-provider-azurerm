@@ -373,7 +373,7 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `security`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool. `temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `security` (when either flag changes), `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
@@ -411,7 +411,7 @@ A `default_node_pool` block supports the following:
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
-* `security` - (Optional) A `security` block as documented below. `temporary_name_for_rotation` must be specified when changing this block.
+* `security` - (Optional) A `security` block as documented below. `temporary_name_for_rotation` must be specified when changing the effective value of either flag.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
@@ -569,7 +569,7 @@ A `security` block supports the following:
 
 ~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
 
--> **Note:** Omitting or removing this block preserves the API-reported settings. Within a configured block, omitted flags default to `false`. To request disabling a feature, explicitly set its flag to `false` and specify `temporary_name_for_rotation`; the existing node pool rotation requirements and AKS restrictions apply.
+-> **Note:** Omitting this block leaves Secure Boot and vTPM disabled. Removing a configured block disables both settings; if either was enabled, `temporary_name_for_rotation` is required. Within a configured block, omitted flags default to `false`.
 
 * `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Default Node Pool. Defaults to `false`.
 
