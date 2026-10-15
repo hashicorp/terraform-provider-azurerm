@@ -103,7 +103,7 @@ func TestAccDiscoveryBookshelf_customerManagedKeyRequiresLogAnalyticsCluster(t *
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.customerManagedKeyWithoutLogAnalyticsCluster(data),
-			ExpectError: regexp.MustCompile("`log_analytics_cluster_id` must be specified when `customer_managed_key` is set"),
+			ExpectError: regexp.MustCompile("all of `customer_managed_key,log_analytics_cluster_id` must be specified"),
 		},
 	})
 }
@@ -182,6 +182,10 @@ resource "azurerm_discovery_bookshelf" "test" {
   private_endpoint_subnet_id = azurerm_subnet.private_endpoint.id
   search_subnet_id           = azurerm_subnet.search.id
   workload_identity_ids      = [azurerm_user_assigned_identity.test.id]
+
+  tags = {
+    indexSize = "small"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -197,6 +201,7 @@ resource "azurerm_discovery_bookshelf" "import" {
   private_endpoint_subnet_id = azurerm_discovery_bookshelf.test.private_endpoint_subnet_id
   search_subnet_id           = azurerm_discovery_bookshelf.test.search_subnet_id
   workload_identity_ids      = azurerm_discovery_bookshelf.test.workload_identity_ids
+  tags                       = azurerm_discovery_bookshelf.test.tags
 }
 `, r.basic(data))
 }
@@ -216,6 +221,7 @@ resource "azurerm_discovery_bookshelf" "test" {
 
   tags = {
     environment = "Testing"
+    indexSize   = "small"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -232,6 +238,10 @@ resource "azurerm_discovery_bookshelf" "test" {
   private_endpoint_subnet_id = azurerm_subnet.private_endpoint.id
   search_subnet_id           = azurerm_subnet.search.id
   workload_identity_ids      = [azurerm_user_assigned_identity.test.id]
+
+  tags = {
+    indexSize = "small"
+  }
 
   customer_managed_key {
     identity_client_id = "00000000-0000-0000-0000-000000000000"

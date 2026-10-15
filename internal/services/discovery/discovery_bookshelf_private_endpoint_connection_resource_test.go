@@ -127,9 +127,9 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) basic(data acceptan
 %[1]s
 
 resource "azurerm_discovery_bookshelf_private_endpoint_connection" "test" {
-  name         = azurerm_private_endpoint.test.name
-  bookshelf_id = azurerm_discovery_bookshelf.test.id
-  status       = "Approved"
+  bookshelf_id        = azurerm_discovery_bookshelf.test.id
+  private_endpoint_id = azurerm_private_endpoint.test.id
+  status              = "Approved"
 }
 `, r.template(data))
 }
@@ -139,10 +139,10 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) complete(data accep
 %[1]s
 
 resource "azurerm_discovery_bookshelf_private_endpoint_connection" "test" {
-  name         = azurerm_private_endpoint.test.name
-  bookshelf_id = azurerm_discovery_bookshelf.test.id
-  status       = "%[2]s"
-  description  = "%[3]s"
+  bookshelf_id        = azurerm_discovery_bookshelf.test.id
+  private_endpoint_id = azurerm_private_endpoint.test.id
+  status              = "%[2]s"
+  description         = "%[3]s"
 }
 `, r.template(data), status, description)
 }
