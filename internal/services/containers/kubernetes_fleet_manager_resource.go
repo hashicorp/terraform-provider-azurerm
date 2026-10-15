@@ -112,7 +112,6 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 						MaxItems: 1,
 						Type:     pluginsdk.TypeList,
 					},
-					// The 2025-03-01 API adds VNet integration and subnet fields to this profile.
 					"api_server_access_profile": {
 						Optional: true,
 						// NOTE: O+C - populated by the API when the service returns the effective hub API server access settings.
