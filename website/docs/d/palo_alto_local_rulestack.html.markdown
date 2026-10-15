@@ -14,8 +14,8 @@ Use this data source to access information about an existing Palo Alto Networks 
 
 ```hcl
 data "azurerm_palo_alto_local_rulestack" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-rulestack"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

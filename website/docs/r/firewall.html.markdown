@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `firewall_policy_id` - (Optional) The ID of the Firewall Policy applied to this Firewall.
 
-* `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
+* `ip_configuration` - (Optional) An `ip_configuration` block as defined below.
 
 * `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 
@@ -80,11 +80,11 @@ The following arguments are supported:
 
 * `private_ip_ranges` - (Optional) A list of SNAT private CIDR IP ranges, or the special string `IANAPrivateRanges`, which indicates Azure Firewall does not SNAT when the destination IP address is a private range per IANA RFC 1918.
 
-* `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created. Changing this forces a new resource to be created.
+* `management_ip_configuration` - (Optional) A `management_ip_configuration` block as defined below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created. Changing this forces a new resource to be created.
 
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`.
 
-* `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
+* `virtual_hub` - (Optional) A `virtual_hub` block as defined below.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Azure Firewall should be located. Changing this forces a new Azure Firewall to be created.
 
