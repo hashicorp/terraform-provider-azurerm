@@ -385,7 +385,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/json"
-  value               = file("testdata/api_management_api_schema_swagger.json")
+  value               = file("../../testdata//api_management_api_schema_swagger.json")
 }
 
 resource "azurerm_api_management_api_operation" "test" {

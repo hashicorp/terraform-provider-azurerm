@@ -123,7 +123,7 @@ resource "azurerm_api_management_policy_fragment" "test" {
   api_management_id = azurerm_api_management.test.id
   name              = azurerm_api_management.test.name
   description       = "Some descriptive text"
-  value             = file("testdata/api_management_policy_fragment_test_xml.xml")
+  value             = file("../../testdata//api_management_policy_fragment_test_xml.xml")
 }
 `, r.template(data))
 }
@@ -149,7 +149,7 @@ resource "azurerm_api_management_policy_fragment" "test" {
   api_management_id = azurerm_api_management.test.id
   name              = azurerm_api_management.test.name
   description       = "Some descriptive text which is updated"
-  value             = file("testdata/api_management_policy_fragment_test_xml.xml")
+  value             = file("../../testdata//api_management_policy_fragment_test_xml.xml")
   format            = "rawxml"
 }
 `, r.template(data))
@@ -164,7 +164,7 @@ resource "azurerm_api_management_policy_fragment" "test" {
   name              = azurerm_api_management.test.name
   description       = "Some descriptive text"
   format            = "rawxml"
-  value             = file("testdata/api_management_policy_fragment_test_rawxml.xml")
+  value             = file("../../testdata//api_management_policy_fragment_test_rawxml.xml")
 }
 `, r.template(data))
 }

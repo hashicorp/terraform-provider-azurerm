@@ -75,7 +75,7 @@ resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  data                = filebase64("testdata/keyvaultcert.pfx")
+  data                = filebase64("../../testdata//keyvaultcert.pfx")
 }
 
 resource "azurerm_api_management_gateway_host_name_configuration" "test" {

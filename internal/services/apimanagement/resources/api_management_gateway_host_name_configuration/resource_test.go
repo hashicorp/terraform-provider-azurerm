@@ -150,7 +150,7 @@ resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  data                = filebase64("testdata/keyvaultcert.pfx")
+  data                = filebase64("../../testdata//keyvaultcert.pfx")
   password            = ""
 }
 
@@ -215,7 +215,7 @@ resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  data                = filebase64("testdata/keyvaultcert.pfx")
+  data                = filebase64("../../testdata//keyvaultcert.pfx")
   password            = ""
 }
 
@@ -268,7 +268,7 @@ resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  data                = filebase64("testdata/keyvaultcert.pfx")
+  data                = filebase64("../../testdata//keyvaultcert.pfx")
   password            = ""
 }
 

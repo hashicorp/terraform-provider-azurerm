@@ -140,7 +140,7 @@ provider "azurerm" {
 resource "azurerm_api_management_workspace_policy_fragment" "test" {
   name                        = "acctestpolicyfragment%d"
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  xml_content                 = file("testdata/api_management_policy_fragment_test_xml.xml")
+  xml_content                 = file("../../testdata//api_management_policy_fragment_test_xml.xml")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -170,7 +170,7 @@ resource "azurerm_api_management_workspace_policy_fragment" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
   description                 = "A test policy fragment"
   xml_format                  = "rawxml"
-  xml_content                 = file("testdata/api_management_policy_fragment_test_rawxml.xml")
+  xml_content                 = file("../../testdata//api_management_policy_fragment_test_rawxml.xml")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -188,7 +188,7 @@ resource "azurerm_api_management_workspace_policy_fragment" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
   description                 = "Updated policy fragment description"
   xml_format                  = "xml"
-  xml_content                 = file("testdata/api_management_policy_fragment_test_xml.xml")
+  xml_content                 = file("../../testdata//api_management_policy_fragment_test_xml.xml")
 }
 `, r.template(data), data.RandomInteger)
 }

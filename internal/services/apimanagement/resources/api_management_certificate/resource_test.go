@@ -176,7 +176,7 @@ resource "azurerm_api_management_certificate" "test" {
   name                = "example-cert"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  data                = filebase64("testdata/keyvaultcert.pfx")
+  data                = filebase64("../../testdata//keyvaultcert.pfx")
   password            = ""
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -326,7 +326,7 @@ resource "azurerm_key_vault_certificate" "cert1" {
   depends_on = [azurerm_key_vault_access_policy.sptest]
 
   certificate {
-    contents = filebase64("testdata/api_management_api_test.pfx")
+    contents = filebase64("../../testdata//api_management_api_test.pfx")
     password = "terraform"
   }
 
@@ -355,7 +355,7 @@ resource "azurerm_key_vault_certificate" "cert2" {
   depends_on = [azurerm_key_vault_access_policy.sptest]
 
   certificate {
-    contents = filebase64("testdata/api_management_api2_test.pfx")
+    contents = filebase64("../../testdata//api_management_api2_test.pfx")
     password = "terraform"
   }
 
