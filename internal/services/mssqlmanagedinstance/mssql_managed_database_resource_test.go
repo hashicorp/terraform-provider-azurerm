@@ -166,6 +166,18 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedDatabase_recoverDatabase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "recovery")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+		data.ImportStep(""),
+	})
+}
+
 func (r MsSqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
 	id, err := commonids.ParseManagedInstanceDatabaseID(state.ID)
 	if err != nil {
@@ -287,4 +299,16 @@ resource "azurerm_mssql_managed_database" "pitr" {
   }
 }
 `, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) recovery(data acceptance.TestData, recoverableDbId string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "recovery" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d-rec"
+  recover_database_id = "%[3]s"
+}
+`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger, recoverableDbId)
 }
