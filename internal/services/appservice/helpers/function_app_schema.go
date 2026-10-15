@@ -2093,8 +2093,10 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFle
 	}
 
 	if storageUsesMSI {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", "", true)
 		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", backendStorageString, false)
 	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", "", true)
 		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", backendStorageString, false)
 	}
 

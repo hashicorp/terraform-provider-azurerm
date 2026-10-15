@@ -1417,18 +1417,18 @@ func flattenStorageConnectionStrings(input webapps.StringDictionary) (backendSaC
 		return
 	}
 
-	for k, v := range *input.Properties {
-		switch k {
-		case BackendStorageConnStr:
-			backendSaConStr = v
+	properties := *input.Properties
+	deploymentSaConStr = properties[DeploymentStorageConnStr]
 
-		case BackendStorageName:
-			backendSaConStr = v
-			backendSaUseMsi = true
-
-		case DeploymentStorageConnStr:
-			deploymentSaConStr = v
-		}
+	if backendStorageName, ok := properties[BackendStorageName]; ok {
+		return backendStorageName, true, deploymentSaConStr
 	}
+
+	backendSaConStr = properties[BackendStorageConnStr]
+	if strings.Contains(backendSaConStr, "AccountKey=;") {
+		backendSaConStr, _ = helpers.ParseWebJobsStorageString(backendSaConStr)
+		backendSaUseMsi = true
+	}
+
 	return
 }
