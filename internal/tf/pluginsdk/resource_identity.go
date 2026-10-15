@@ -96,10 +96,12 @@ func compositeIdentitySchema(_ resourceids.ResourceId, firstName, secondName str
 	return map[string]*schema.Schema{
 		firstName: {
 			Type:              schema.TypeString,
+			Required:          true,
 			RequiredForImport: true,
 		},
 		secondName: {
 			Type:              schema.TypeString,
+			Required:          true,
 			RequiredForImport: true,
 		},
 	}
