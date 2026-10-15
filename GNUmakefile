@@ -341,6 +341,9 @@ changelog: $(CHANGELOGGY) ## Add a changelog entry (TYPE=<type> BODY='<body>' [P
 changelog-types: $(CHANGELOGGY) ## Lists accepted changelog entry types
 	@$(CHANGELOGGY) types
 
+release-changelog: $(CHANGELOGGY) ## Prepare a release: generate the changelog, export the provider schema and set version/VERSION
+	@./scripts/release-update-changelog-and-export-schema.sh
+
 ##@ Other
 teamcity-test: ## Test the TeamCity configuration
 	@$(MAKE) -C .teamcity tools
