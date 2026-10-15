@@ -444,8 +444,10 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if v, ok := d.GetOkExists(fmt.Sprintf("rule.%d.severity", i)); ok { //nolint:staticcheck // GetOkExists is required to distinguish explicit 0 from unset
-				output.Severity = pointer.To(int64(v.(int)))
+			// Use raw config for severity so an explicit 0 is distinguished from unset.
+			if rawSeverity, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i))); !diags.HasError() && !rawSeverity.IsNull() {
+				severity, _ := rawSeverity.AsBigFloat().Int64()
+				output.Severity = pointer.To(severity)
 			}
 			output.Annotations = pointer.To(v.Annotations)
 			output.ResolveConfiguration = expandPrometheusRuleAlertResolutionModel(v.AlertResolution)
