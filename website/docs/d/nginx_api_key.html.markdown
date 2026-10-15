@@ -14,7 +14,7 @@ Use this data source to access information about an existing NGINX Dataplane API
 
 ```hcl
 data "azurerm_nginx_api_key" "example" {
-  name                = "existing"
+  name                = "example-api-key"
   nginx_deployment_id = azurerm_nginx_deployment.example.id
 }
 

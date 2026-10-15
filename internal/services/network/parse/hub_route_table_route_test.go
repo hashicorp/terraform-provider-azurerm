@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = HubRouteTableRouteId{}
 
-func TestHubRouteTableRouteIDFormatter(t *testing.T) {
+func TestParseHubRouteTableRouteIDFormatter(t *testing.T) {
 	actual := NewHubRouteTableRouteID("12345678-1234-9876-4563-123456789012", "resGroup1", "virtualHub1", "routeTable1", "route1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1/routes/route1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestHubRouteTableRouteIDFormatter(t *testing.T) {
 	}
 }
 
-func TestHubRouteTableRouteID(t *testing.T) {
+func TestParseHubRouteTableRouteID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

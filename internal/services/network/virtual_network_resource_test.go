@@ -458,7 +458,7 @@ func TestAccVirtualNetwork_subnetRouteTable(t *testing.T) {
 	})
 }
 
-func TestVirtualNetworkResource_tagCount(t *testing.T) {
+func TestAccVirtualNetwork_tagCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 

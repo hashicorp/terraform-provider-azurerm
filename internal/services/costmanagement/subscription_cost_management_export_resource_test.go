@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -135,7 +135,7 @@ resource "azurerm_subscription_cost_management_export" "test" {
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
@@ -179,13 +179,13 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_subscription_cost_management_export" "test" {
   name                         = "accrg%d"
   subscription_id              = data.azurerm_subscription.test.id
-  recurrence_type              = "Monthly"
+  recurrence_type              = "Weekly"
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
@@ -210,7 +210,7 @@ resource "azurerm_subscription_cost_management_export" "import" {
 
   export_data_storage_location {
     container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
-    root_folder_path = "/root"
+    root_folder_path = "root"
   }
 
   export_data_options {
