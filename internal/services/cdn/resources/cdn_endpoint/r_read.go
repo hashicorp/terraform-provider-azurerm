@@ -6,7 +6,6 @@ package cdn_endpoint
 import (
 	"fmt"
 
-	//nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
