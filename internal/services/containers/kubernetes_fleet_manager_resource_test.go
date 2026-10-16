@@ -9,9 +9,11 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -60,9 +62,116 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").HasValue(""),
+				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.virtual_machine_size").HasValue("Standard_DS2_v2"),
+				check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.private_cluster_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("hub_profile.0.dns_prefix").HasValue(fmt.Sprintf("val-%s", data.RandomString)),
+				check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
+				check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
+				check.That(data.ResourceName).Key("hub_profile.0.portal_fqdn").Exists(),
 			),
 		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesFleetManager_hubProfileDefaults(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
+	r := KubernetesFleetManagerTestResource{}
+
+	hubCheck := acceptance.ComposeTestCheckFunc(
+		check.That(data.ResourceName).ExistsInAzure(r),
+		check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
+		check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
+		check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
+		check.That(data.ResourceName).Key("hub_profile.0.portal_fqdn").Exists(),
+	)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hubProfileDefaults(data, "initial"),
+			Check: acceptance.ComposeTestCheckFunc(
+				hubCheck,
+				check.That(data.ResourceName).Key("tags.phase").HasValue("initial"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:   r.hubProfileDefaults(data, "initial"),
+			PlanOnly: true,
+		},
+		{
+			Config: r.hubProfileDefaults(data, "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				hubCheck,
+				check.That(data.ResourceName).Key("tags.phase").HasValue("updated"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
+	r := KubernetesFleetManagerTestResource{}
+	subnetId := r.preCheckPrivateHub(t)
+
+	checks := []acceptance.TestCheckFunc{
+		check.That(data.ResourceName).ExistsInAzure(r),
+		check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
+		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.#").HasValue("1"),
+		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").HasValue(subnetId),
+		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.virtual_machine_size").HasValue("Standard_D2as_v7"),
+		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.#").HasValue("1"),
+		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.private_cluster_enabled").HasValue("true"),
+		check.That(data.ResourceName).Key("hub_profile.0.dns_prefix").HasValue(""),
+		check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
+		check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
+		check.That(data.ResourceName).Key("hub_profile.0.portal_fqdn").Exists(),
+	}
+	for _, key := range []string{
+		"hub_profile.#",
+		"hub_profile.0.agent_profile.#",
+		"hub_profile.0.agent_profile.0.subnet_id",
+		"hub_profile.0.agent_profile.0.virtual_machine_size",
+		"hub_profile.0.api_server_access_profile.#",
+		"hub_profile.0.api_server_access_profile.0.private_cluster_enabled",
+		"hub_profile.0.dns_prefix",
+		"hub_profile.0.fqdn",
+		"hub_profile.0.kubernetes_version",
+		"hub_profile.0.portal_fqdn",
+		"tags.phase",
+	} {
+		checks = append(checks, check.That("data.azurerm_kubernetes_fleet_manager.test").Key(key).MatchesOtherKey(
+			check.That(data.ResourceName).Key(key),
+		))
+	}
+	hubCheck := acceptance.ComposeTestCheckFunc(checks...)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateHub(data, subnetId, true, "initial"),
+			Check: acceptance.ComposeTestCheckFunc(
+				hubCheck,
+				check.That(data.ResourceName).Key("tags.phase").HasValue("initial"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:   r.privateHub(data, subnetId, false, "initial"),
+			PlanOnly: true,
+		},
+		{
+			Config: r.privateHub(data, subnetId, false, "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				hubCheck,
+				check.That(data.ResourceName).Key("tags.phase").HasValue("updated"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -79,12 +188,12 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -93,6 +202,36 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestKubernetesFleetManagerPrivateHubPreCheck(t *testing.T) {
+	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctest/providers/Microsoft.Network/virtualNetworks/test/subnets/agents"
+	for name, subnetId := range map[string]string{
+		"canonical":           expected,
+		"mixed_case_segments": "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/acctest/PROVIDERS/microsoft.network/VIRTUALNETWORKS/test/SUBNETS/agents",
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("ARM_TEST_FLEET_SUBNET_ID", subnetId)
+			actual := (KubernetesFleetManagerTestResource{}).preCheckPrivateHub(t)
+			if actual != expected {
+				t.Fatalf("expected normalized subnet ID %q, got %q", expected, actual)
+			}
+		})
+	}
+}
+
+func (KubernetesFleetManagerTestResource) preCheckPrivateHub(t *testing.T) string {
+	t.Helper()
+	subnetId := os.Getenv("ARM_TEST_FLEET_SUBNET_ID")
+	if subnetId == "" {
+		t.Skip("ARM_TEST_FLEET_SUBNET_ID must reference a dedicated subnet with Network Contributor assigned to the Fleet resource provider")
+	}
+
+	id, err := commonids.ParseSubnetIDInsensitively(subnetId)
+	if err != nil {
+		t.Fatalf("parsing ARM_TEST_FLEET_SUBNET_ID: %+v", err)
+	}
+	return id.ID()
 }
 
 func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -134,7 +273,27 @@ resource "azurerm_kubernetes_fleet_manager" "import" {
   name                = azurerm_kubernetes_fleet_manager.test.name
   resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
 }
-`, r.basic(data))
+	`, r.basic(data))
+}
+
+func (r KubernetesFleetManagerTestResource) updated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_kubernetes_fleet_manager" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestkfm-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    environment = "terraform-acctests"
+    some_key    = "some-value"
+  }
+}
+`, r.template(data))
 }
 
 func (r KubernetesFleetManagerTestResource) complete(data acceptance.TestData) string {
@@ -153,8 +312,82 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
     environment = "terraform-acctests"
     some_key    = "some-value"
   }
+  hub_profile {
+    agent_profile {
+      virtual_machine_size = "Standard_DS2_v2"
+    }
+
+    api_server_access_profile {
+      private_cluster_enabled = false
+    }
+
+    dns_prefix = "val-${var.random_string}"
+  }
 }
 `, r.template(data))
+}
+
+func (r KubernetesFleetManagerTestResource) hubProfileDefaults(data acceptance.TestData, phase string) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_kubernetes_fleet_manager" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestkfm-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    phase = %q
+  }
+  hub_profile {}
+}
+`, r.template(data), phase)
+}
+
+func (r KubernetesFleetManagerTestResource) privateHub(data acceptance.TestData, subnetId string, configureProfiles bool, phase string) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+variable "configure_profiles" {
+  default = %t
+}
+
+data "azurerm_kubernetes_fleet_manager" "test" {
+  name                = azurerm_kubernetes_fleet_manager.test.name
+  resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
+}
+
+resource "azurerm_kubernetes_fleet_manager" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestkfm-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  tags = {
+    phase = %q
+  }
+  hub_profile {
+    dynamic "agent_profile" {
+      for_each = var.configure_profiles ? [1] : []
+      content {
+        subnet_id            = %q
+        virtual_machine_size = "Standard_D2as_v7"
+      }
+    }
+    dynamic "api_server_access_profile" {
+      for_each = var.configure_profiles ? [1] : []
+      content {
+        private_cluster_enabled = true
+      }
+    }
+  }
+}
+`, r.template(data), configureProfiles, phase, subnetId)
 }
 
 func (r KubernetesFleetManagerTestResource) template(data acceptance.TestData) string {
