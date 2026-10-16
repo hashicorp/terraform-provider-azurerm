@@ -3,6 +3,6 @@
 
 package kubernetes_fleet_member
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &KubernetesFleetMemberResourceSchema{}
 }
