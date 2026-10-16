@@ -38,9 +38,19 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Managed Kubernetes Automatic Cluster exists.
 
+* `agent_pools` - One or more `agent_pools` blocks as documented below.
+
 * `api_server_access` - An `api_server_access` block as documented below.
 
+* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
+
+* `azure_policy_enabled` - Is Azure Policy enabled on this Managed Kubernetes Automatic Cluster?
+
+* `bootstrap` - A `bootstrap` block as documented below.
+
 * `current_kubernetes_version` - Contains the current version of Kubernetes running on the Cluster.
+
+* `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
 
 * `dns_prefix` - The DNS Prefix of the Managed Kubernetes Automatic Cluster.
 
@@ -50,6 +60,10 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as documented below.
 
+* `key_management_service` - A `key_management_service` block as documented below.
+
+* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
+
 * `kube_config` - A `kube_config` block as defined below.
 
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
@@ -58,9 +72,19 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the Managed Kubernetes Automatic Cluster.
 
+* `microsoft_defender` - A `microsoft_defender` block as documented below.
+
+* `network` - A `network` block as documented below.
+
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
 * `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Automatic Cluster.
+
+* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
+
+* `oidc_issuer_url` - The OIDC issuer URL that is associated with the Managed Kubernetes Automatic Cluster.
+
+* `oms_agent` - An `oms_agent` block as documented below.
 
 * `portal_fully_qualified_domain_name` - The FQDN used by the Azure Portal for this Managed Kubernetes Automatic Cluster.
 
@@ -68,11 +92,71 @@ The following attributes are exported:
 
 * `private_fully_qualified_domain_name` - The FQDN of this Managed Kubernetes Automatic Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located.
 
+* `role_based_access_control_enabled` - Is Role Based Access Control enabled for this Managed Kubernetes Automatic Cluster?
+
 * `service_mesh` - A `service_mesh` block as documented below.
+
+* `storage` - A `storage` block as documented below.
 
 * `tags` - A mapping of tags assigned to this resource.
 
 * `web_app_routing_ingress` - A `web_app_routing_ingress` block as documented below.
+
+---
+
+An `agent_pools` block exports the following:
+
+* `auto_scaling_enabled` - If the auto-scaler is enabled.
+
+* `count` - The number of Agents (VMs) in the Pool.
+
+* `max_count` - Maximum number of nodes for auto-scaling.
+
+* `max_pods` - The maximum number of pods that can run on each agent.
+
+* `min_count` - Minimum number of nodes for auto-scaling.
+
+* `name` - The name assigned to this pool of agents.
+
+* `node_labels` - A map of Kubernetes labels applied to the nodes in this Agent Pool.
+
+* `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
+
+* `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
+
+* `node_taints` - A list of Kubernetes taints applied to the nodes in this Agent Pool.
+
+* `orchestrator_version` - Kubernetes version used for the Agents.
+
+* `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
+
+* `os_type` - The Operating System used for the Agents.
+
+* `tags` - A mapping of tags assigned to the Agent Pool.
+
+* `type` - The type of the Agent Pool.
+
+* `upgrade_settings` - An `upgrade_settings` block as documented below.
+
+* `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
+
+* `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+
+* `zones` - A list of Availability Zones in which the nodes in this Agent Pool are located.
+
+---
+
+An `upgrade_settings` block exports the following:
+
+* `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honours waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
+
+* `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
+
+* `max_unavailable` - The maximum number or percentage of nodes that can be unavailable during an upgrade.
+
+* `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
+
+* `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 
 ---
 
@@ -81,6 +165,24 @@ An `api_server_access` block exports the following:
 * `authorized_ip_ranges` - A list of IP ranges authorised to access the API server.
 
 * `subnet_id` - The ID of the subnet that the API server is accessible from.
+
+---
+
+An `azure_active_directory_role_based_access_control` block exports the following:
+
+* `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
+
+* `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
+
+* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
+
+---
+
+A `bootstrap` block exports the following:
+
+* `artifact_source` - The source from which artifacts are pulled during bootstrap.
+
+* `container_registry_id` - The ID of the Azure Container Registry used for caching artifacts during bootstrap.
 
 ---
 
@@ -101,6 +203,34 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Managed Kubernetes Automatic Cluster.
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Managed Kubernetes Automatic Cluster.
+
+---
+
+A `key_management_service` block exports the following:
+
+* `key_vault_key_id` - Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
+
+* `key_vault_network_access` - Network access of the key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link.
+
+---
+
+A `key_vault_secrets_provider` block exports the following:
+
+* `secret_identity` - A `secret_identity` block as documented below.
+
+* `secret_rotation_enabled` - Is secret rotation enabled?
+
+* `secret_rotation_interval` - The interval to poll for secret rotation.
+
+---
+
+The `secret_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the Secret Provider.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the Secret Provider.
 
 ---
 
@@ -143,6 +273,52 @@ The `kubelet_identity` block exports the following:
 
 ---
 
+A `microsoft_defender` block exports the following:
+
+* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which Microsoft Defender uses to send audit logs to.
+
+---
+
+A `network` block exports the following:
+
+* `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
+
+* `load_balancer_sku` - The SKU of the Load Balancer used for this Managed Kubernetes Automatic Cluster.
+
+* `network_plugin` - Network plugin used such as `azure` or `kubenet`.
+
+* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico`, `azure` or `cilium`.
+
+* `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic.
+
+* `pod_cidr` - The CIDR used for pod IP addresses.
+
+* `service_cidr` - Network range used by the Kubernetes service.
+
+---
+
+An `oms_agent` block exports the following:
+
+* `log_analytics_workspace_id` - The ID of the Log Analytics Workspace to which the OMS Agent should send data.
+
+* `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
+
+* `oms_agent_identity` - An `oms_agent_identity` block as documented below.
+
+* `retina_flow_logs_enabled` - Is Retina Flow Logs collection enabled?
+
+---
+
+The `oms_agent_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
+---
+
 A `private_cluster` block exports the following:
 
 * `public_fully_qualified_domain_name_enabled` - If the public FQDN for this Managed Kubernetes Automatic Cluster is enabled.
@@ -176,6 +352,18 @@ A `certificate_authority` block exports the following:
 * `certificate_object_name` - The intermediate certificate object name in Azure Key Vault.
 
 * `key_object_name` - The intermediate certificate private key object name in Azure Key Vault.
+
+---
+
+A `storage` block exports the following:
+
+* `blob_driver_enabled` - Is the Blob CSI driver enabled?
+
+* `disk_driver_enabled` - Is the Disk CSI driver enabled?
+
+* `file_driver_enabled` - Is the File CSI driver enabled?
+
+* `snapshot_controller_enabled` - Is the Snapshot Controller enabled?
 
 ---
 
