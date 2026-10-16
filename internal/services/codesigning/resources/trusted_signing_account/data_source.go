@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package codesigning
+package trusted_signing_account
 
 import (
 	"context"
@@ -28,11 +28,11 @@ type TrustedSigningAccountDataSourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type TrustedSigningAccountDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = TrustedSigningAccountDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (d TrustedSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -50,7 +50,7 @@ func (d TrustedSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (d TrustedSigningAccountDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
 			Type:     pluginsdk.TypeString,
@@ -68,15 +68,15 @@ func (d TrustedSigningAccountDataSource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (d TrustedSigningAccountDataSource) ModelObject() any {
+func (d DataSource) ModelObject() any {
 	return &TrustedSigningAccountDataSourceModel{}
 }
 
-func (d TrustedSigningAccountDataSource) ResourceType() string {
+func (d DataSource) ResourceType() string {
 	return "azurerm_trusted_signing_account"
 }
 
-func (d TrustedSigningAccountDataSource) Read() sdk.ResourceFunc {
+func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

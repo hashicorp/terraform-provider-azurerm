@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package codesigning_test
+package trusted_signing_account_test
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/resources/trusted_signing_account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -32,7 +32,7 @@ func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clien
 }
 
 func TestAccTrustedSigningAccount_regressionTest(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, trusted_signing_account.Resource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
@@ -42,7 +42,7 @@ func TestAccTrustedSigningAccount_regressionTest(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, trusted_signing_account.Resource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -56,7 +56,7 @@ func TestAccTrustedSigningAccount_basic(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, trusted_signing_account.Resource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccTrustedSigningAccount_update(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, trusted_signing_account.Resource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +98,7 @@ func TestAccTrustedSigningAccount_complete(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, trusted_signing_account.Resource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
