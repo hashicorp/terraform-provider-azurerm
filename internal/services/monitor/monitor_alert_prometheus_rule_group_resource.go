@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -84,7 +85,12 @@ func (r AlertPrometheusRuleGroupResource) CustomizeDiff() sdk.ResourceFunc {
 				// actions, severity, annotations, for, alert_resolution must be empty when type is recording rule
 				if r.Record != "" {
 					_, actionOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".action")
-					_, severityOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".severity")
+					// Use raw config for severity so post-apply plans don't treat state-populated zero values as user-set.
+					severityOk := false
+					rawSeverity, diags := metadata.ResourceDiff.GetRawConfigAt(ctyhelpers.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i)))
+					if !diags.HasError() {
+						severityOk = !rawSeverity.IsNull()
+					}
 					_, annotationsOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".annotations")
 					_, forOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".for")
 					_, resolveConfigurationOk := metadata.ResourceDiff.GetOk("rule." + strconv.Itoa(i) + ".alert_resolution")
@@ -438,8 +444,10 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.severity", i)); ok {
-				output.Severity = pointer.To(int64(v.(int)))
+			// Use raw config for severity so an explicit 0 is distinguished from unset.
+			if rawSeverity, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(fmt.Sprintf("rule.%d.severity", i))); !diags.HasError() && !rawSeverity.IsNull() {
+				severity, _ := rawSeverity.AsBigFloat().Int64()
+				output.Severity = pointer.To(severity)
 			}
 			output.Annotations = pointer.To(v.Annotations)
 			output.ResolveConfiguration = expandPrometheusRuleAlertResolutionModel(v.AlertResolution)
