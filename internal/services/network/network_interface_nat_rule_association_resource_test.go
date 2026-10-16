@@ -88,6 +88,7 @@ func TestAccNetworkInterfaceNATRuleAssociation_updateNIC(t *testing.T) {
 			Config: r.updateNIC(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.associationOnlyOnNamedIPConfiguration),
 			),
 		},
 		data.ImportStep(),
@@ -135,6 +136,53 @@ func (t NetworkInterfaceNATRuleAssociationResource) Exists(ctx context.Context, 
 	}
 
 	return pointer.To(found), nil
+}
+
+func (NetworkInterfaceNATRuleAssociationResource) associationOnlyOnNamedIPConfiguration(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.InboundNatRuleId{})
+	if err != nil {
+		return err
+	}
+
+	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	read, err := client.Network.NetworkInterfaces.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
+	}
+	if read.Model == nil || read.Model.Properties == nil || read.Model.Properties.IPConfigurations == nil {
+		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", networkInterfaceId)
+	}
+
+	for _, config := range *read.Model.Properties.IPConfigurations {
+		props := config.Properties
+		if props == nil {
+			return fmt.Errorf("retrieving %s: `properties` was nil for IP configuration %q", networkInterfaceId, pointer.From(config.Name))
+		}
+
+		associated := false
+		if props.LoadBalancerInboundNatRules != nil {
+			for _, rule := range *props.LoadBalancerInboundNatRules {
+				if rule.Id != nil && *rule.Id == id.Second.ID() {
+					associated = true
+					break
+				}
+			}
+		}
+
+		isTarget := pointer.From(config.Name) == id.First.IpConfigurationName
+		if isTarget && !associated {
+			return fmt.Errorf("expected NAT Rule %q to be associated with IP configuration %q but it was not", id.Second.ID(), id.First.IpConfigurationName)
+		}
+		if !isTarget && associated {
+			return fmt.Errorf("expected NAT Rule %q not to be associated with IP configuration %q but it was", id.Second.ID(), pointer.From(config.Name))
+		}
+	}
+
+	return nil
 }
 
 func (NetworkInterfaceNATRuleAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
