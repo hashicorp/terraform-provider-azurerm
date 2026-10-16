@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storageactions/2023-01-01/storagetasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
@@ -32,6 +33,8 @@ type Client struct {
 	SyncRegisteredServerClient *registeredserverresource.RegisteredServerResourceClient
 	SyncServerEndpointsClient  *serverendpointresource.ServerEndpointResourceClient
 	SyncServiceClient          *storagesyncservicesresource.StorageSyncServicesResourceClient
+
+	StorageTasksClient *storagetasks.StorageTasksClient
 
 	StorageUseAzureAD bool
 
@@ -84,6 +87,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(syncGroupsClient.Client, o.Authorizers.ResourceManager)
 
+	storageTasksClient, err := storagetasks.NewStorageTasksClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageTasks client: %+v", err)
+	}
+	o.Configure(storageTasksClient.Client, o.Authorizers.ResourceManager)
+
 	storageDiscoveryWorkspacesClient, err := storagediscoveryworkspaces.NewStorageDiscoveryWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building StorageDiscoveryWorkspaces client: %+v", err)
@@ -100,6 +109,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SyncServerEndpointsClient:        syncServerEndpointClient,
 		SyncServiceClient:                syncServiceClient,
 		SyncGroupsClient:                 syncGroupsClient,
+
+		StorageTasksClient: storageTasksClient,
 
 		StorageDomainSuffix: *storageSuffix,
 	}
