@@ -20,6 +20,16 @@ import (
 
 type SharedImageVersionResource struct{}
 
+func TestAccSharedImageVersion_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.setup(data),
+		},
+	}, "")
+}
+
 func TestAccSharedImageVersion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
