@@ -75,6 +75,10 @@ output "database_id" {
 
 * `transparent_data_encryption_key_automatic_rotation_enabled` - Whether or not TDE automatically rotates the encryption Key to latest version.
 
+* `use_free_limit` - Whether or not this database uses the Azure Free Tier limits.
+
+* `free_limit_exhaustion_behavior` - The behavior when monthly free limits are exhausted. Possible values are `AutoPause` and `BillOverUsage`.
+
 * `tags` -  A mapping of tags to assign to the resource.
 
 ---
