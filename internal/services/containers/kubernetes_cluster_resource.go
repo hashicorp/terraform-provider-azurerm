@@ -1367,9 +1367,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"node_resource_group_restriction_level": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(managedclusters.RestrictionLevelUnrestricted),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C - preserves an existing restriction when the setting is omitted.
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForRestrictionLevel(), false),
 			},
 

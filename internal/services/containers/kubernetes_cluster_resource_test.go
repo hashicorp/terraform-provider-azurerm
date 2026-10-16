@@ -1477,20 +1477,19 @@ func TestAccKubernetesCluster_nodeResourceGroupRestrictionLevel(t *testing.T) {
 			Config: r.nodeResourceGroupRestrictionLevel(data, ""),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionNoop),
 					plancheck.ExpectResourceAction("azurerm_resource_group.test", plancheck.ResourceActionNoop),
 				},
 			},
+		},
+		{
+			Config: r.nodeResourceGroupRestrictionLevel(data, "Unrestricted"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("node_resource_group_restriction_level").HasValue("Unrestricted"),
 			),
 		},
 		data.ImportStep(),
-		{
-			Config:   r.nodeResourceGroupRestrictionLevel(data, "Unrestricted"),
-			PlanOnly: true,
-		},
 	})
 }
 
