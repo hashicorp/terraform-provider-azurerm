@@ -14,7 +14,7 @@ Use this data source to access information about an existing Relay Namespace.
 
 ```hcl
 data "azurerm_relay_namespace" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
