@@ -2703,23 +2703,228 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (ContainerAppResource) template(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.basic(data)
+func (r ContainerAppResource) containerAppEnvironmentTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-CAE-%[1]d"
+  location = "%[2]s"
 }
 
-func (ContainerAppResource) templateNoProvider(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.basicNoProvider(data)
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.complete(data)
+func (r ContainerAppResource) containerAppEnvironmentComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
 }
 
-func (ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.completeMultipleWorkloadProfiles(data)
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+  mutual_tls_enabled             = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
 }
 
-func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, r.containerAppEnvironmentTemplate(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) templateNoProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, r.containerAppEnvironmentTemplate(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+  mutual_tls_enabled             = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) templateVNet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "control" {
+  name                 = "control-plane"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+
+  delegation {
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
+  }
+}
+
+
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "E4-01"
+    workload_profile_type = "E4"
+  }
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "D4-02"
+    workload_profile_type = "E4"
+  }
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
 resource "azurerm_container_registry" "test" {
@@ -2757,7 +2962,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-	`, ContainerAppEnvironmentResource{}.complete(data), data.RandomInteger, data.RandomString)
+	`, r.containerAppEnvironmentComplete(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {
