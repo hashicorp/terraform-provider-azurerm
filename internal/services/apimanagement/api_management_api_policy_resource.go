@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apipolicy"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
@@ -22,16 +23,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const azurermApiManagementApiPolicy = "azurerm_api_management_api_policy"
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "api_id:api_name,service_name:api_management_name,resource_group_name" -test-expect-non-empty
+
 func resourceApiManagementApiPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApiManagementAPIPolicyCreateUpdate,
 		Read:   resourceApiManagementAPIPolicyRead,
 		Update: resourceApiManagementAPIPolicyCreateUpdate,
 		Delete: resourceApiManagementAPIPolicyDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := apipolicy.ParseApiID(id)
-			return err
-		}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&apipolicy.ApiId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&apipolicy.ApiId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -89,7 +96,7 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_api_management_api_policy", id.ID())
+				return tf.ImportAsExistsError(azurermApiManagementApiPolicy, id.ID())
 			}
 		}
 	}
@@ -127,6 +134,9 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApiManagementAPIPolicyRead(d, meta)
 }
@@ -152,11 +162,15 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta any) err
 		return fmt.Errorf("making Read request for %s: %+v", *id, err)
 	}
 
+	return resourceApiManagementApiPolicyFlatten(d, id, resp.Model)
+}
+
+func resourceApiManagementApiPolicyFlatten(d *pluginsdk.ResourceData, id *apipolicy.ApiId, model *apipolicy.PolicyContract) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 	d.Set("api_name", getApiName(id.ApiId))
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			policyContent := ""
 			if pc := props.Value; pc != "" {
@@ -168,7 +182,7 @@ func resourceApiManagementAPIPolicyRead(d *pluginsdk.ResourceData, meta any) err
 			d.Set("xml_content", policyContent)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementAPIPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
