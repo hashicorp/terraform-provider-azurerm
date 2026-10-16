@@ -108,15 +108,11 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"principal_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // azignore:AZS007 - pre-existing violation
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"User",
-					"Group",
-					"ServicePrincipal",
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(roleassignments.PossibleValuesForPrincipalType(), false),
 			},
 
 			"skip_service_principal_aad_check": {
