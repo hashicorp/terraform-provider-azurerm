@@ -32,6 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -672,7 +673,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		if osType != string(managedclusters.OSTypeLinux) {
 			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
-		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(d, "linux_os_config.0.", linuxOSConfig)
 		if err != nil {
 			return err
 		}
@@ -781,7 +782,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
 			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
-		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfigRaw)
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(d, "linux_os_config.0.", linuxOSConfigRaw)
 		if err != nil {
 			return err
 		}
@@ -1423,12 +1424,12 @@ func expandNodeLabels(input map[string]any) *map[string]string {
 	return &result
 }
 
-func expandAgentPoolLinuxOSConfig(input []any) (*agentpools.LinuxOSConfig, error) {
+func expandAgentPoolLinuxOSConfig(d *pluginsdk.ResourceData, prefix string, input []any) (*agentpools.LinuxOSConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 	raw := input[0].(map[string]any)
-	sysctlConfig, err := expandAgentPoolSysctlConfig(raw["sysctl_config"].([]any))
+	sysctlConfig, err := expandAgentPoolSysctlConfig(d, prefix+"sysctl_config.0.", raw["sysctl_config"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -1448,7 +1449,7 @@ func expandAgentPoolLinuxOSConfig(input []any) (*agentpools.LinuxOSConfig, error
 	return result, nil
 }
 
-func expandAgentPoolSysctlConfig(input []any) (*agentpools.SysctlConfig, error) {
+func expandAgentPoolSysctlConfig(d *pluginsdk.ResourceData, prefix string, input []any) (*agentpools.SysctlConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -1539,11 +1540,29 @@ func expandAgentPoolSysctlConfig(input []any) (*agentpools.SysctlConfig, error) 
 	if v := raw["vm_max_map_count"].(int); v != 0 {
 		result.VMMaxMapCount = pointer.To(int64(v))
 	}
-	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VMSwappiness = pointer.To(int64(v))
-	}
-	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VMVfsCachePressure = pointer.To(int64(v))
+	if d != nil {
+		if val, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(prefix + "vm_swappiness")); !diags.HasError() {
+			if val.IsKnown() && !val.IsNull() {
+				result.VMSwappiness = pointer.To(int64(raw["vm_swappiness"].(int)))
+			}
+		} else if v := raw["vm_swappiness"].(int); v != 0 {
+			result.VMSwappiness = pointer.To(int64(v))
+		}
+
+		if val, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(prefix + "vm_vfs_cache_pressure")); !diags.HasError() {
+			if val.IsKnown() && !val.IsNull() {
+				result.VMVfsCachePressure = pointer.To(int64(raw["vm_vfs_cache_pressure"].(int)))
+			}
+		} else if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
+			result.VMVfsCachePressure = pointer.To(int64(v))
+		}
+	} else {
+		if v := raw["vm_swappiness"].(int); v != 0 {
+			result.VMSwappiness = pointer.To(int64(v))
+		}
+		if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
+			result.VMVfsCachePressure = pointer.To(int64(v))
+		}
 	}
 	return result, nil
 }
