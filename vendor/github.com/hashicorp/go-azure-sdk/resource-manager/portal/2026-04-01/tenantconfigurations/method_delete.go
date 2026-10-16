@@ -1,4 +1,4 @@
-package tenantconfiguration
+package tenantconfigurations
 
 import (
 	"context"
@@ -17,7 +17,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c TenantConfigurationClient) Delete(ctx context.Context) (result DeleteOperationResponse, err error) {
+func (c TenantConfigurationsClient) Delete(ctx context.Context, id TenantConfigurationId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -25,7 +25,7 @@ func (c TenantConfigurationClient) Delete(ctx context.Context) (result DeleteOpe
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
-		Path:       "/providers/Microsoft.Portal/tenantConfigurations/default",
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
