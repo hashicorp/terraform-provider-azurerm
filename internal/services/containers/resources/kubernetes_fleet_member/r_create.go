@@ -45,9 +45,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			var payload fleetmembers.FleetMember
-			if err := r.mapKubernetesFleetMemberResourceSchemaToFleetMember(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
-			}
+			r.mapKubernetesFleetMemberResourceSchemaToFleetMember(config, &payload)
 
 			if err := client.CreateThenPoll(ctx, id, payload, fleetmembers.DefaultCreateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)

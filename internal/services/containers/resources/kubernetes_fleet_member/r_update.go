@@ -29,9 +29,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			var payload fleetmembers.FleetMemberUpdate
-			if err := r.mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
-			}
+			r.mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(config, &payload)
 
 			if err := client.UpdateThenPoll(ctx, *id, payload, fleetmembers.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)

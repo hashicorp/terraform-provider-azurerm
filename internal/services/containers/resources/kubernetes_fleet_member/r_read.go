@@ -40,9 +40,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.KubernetesFleetId = kubernetesFleetId.ID()
 				schema.Name = id.MemberName
-				if err := r.mapFleetMemberToKubernetesFleetMemberResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
-				}
+				r.mapFleetMemberToKubernetesFleetMemberResourceSchema(*model, &schema)
 			}
 
 			return metadata.Encode(&schema)
@@ -57,68 +55,33 @@ type KubernetesFleetMemberResourceSchema struct {
 	Name                string `tfschema:"name"`
 }
 
-func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMember(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMember) error {
+func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMember(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMember) {
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberProperties{}
 	}
-	if err := r.mapKubernetesFleetMemberResourceSchemaToFleetMemberProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "FleetMemberProperties", "Properties", err)
-	}
 
-	return nil
+	output.Properties.Group = new(input.Group)
+	output.Properties.ClusterResourceId = input.KubernetesClusterId
 }
 
-func (r Resource) mapFleetMemberToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMember, output *KubernetesFleetMemberResourceSchema) error {
+func (r Resource) mapFleetMemberToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMember, output *KubernetesFleetMemberResourceSchema) {
 	if input.Properties == nil {
 		input.Properties = &fleetmembers.FleetMemberProperties{}
 	}
-	if err := r.mapFleetMemberPropertiesToKubernetesFleetMemberResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "FleetMemberProperties", "Properties", err)
-	}
 
-	return nil
+	output.Group = pointer.From(input.Properties.Group)
+	output.KubernetesClusterId = input.Properties.ClusterResourceId
 }
 
-func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberProperties(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberProperties) error {
-	output.Group = &input.Group
+func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberProperties(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberProperties) {
+	output.Group = new(input.Group)
 	output.ClusterResourceId = input.KubernetesClusterId
-	return nil
 }
 
-func (r Resource) mapFleetMemberPropertiesToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMemberProperties, output *KubernetesFleetMemberResourceSchema) error {
-	output.Group = pointer.From(input.Group)
-	output.KubernetesClusterId = input.ClusterResourceId
-	return nil
-}
-
-func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberUpdate) error {
+func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberUpdate) {
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberUpdateProperties{}
 	}
-	if err := r.mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdateProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "FleetMemberUpdateProperties", "Properties", err)
-	}
 
-	return nil
-}
-
-func (r Resource) mapFleetMemberUpdateToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMemberUpdate, output *KubernetesFleetMemberResourceSchema) error {
-	if input.Properties == nil {
-		input.Properties = &fleetmembers.FleetMemberUpdateProperties{}
-	}
-	if err := r.mapFleetMemberUpdatePropertiesToKubernetesFleetMemberResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "FleetMemberUpdateProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdateProperties(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberUpdateProperties) error {
-	output.Group = &input.Group
-	return nil
-}
-
-func (r Resource) mapFleetMemberUpdatePropertiesToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMemberUpdateProperties, output *KubernetesFleetMemberResourceSchema) error {
-	output.Group = pointer.From(input.Group)
-	return nil
+	output.Properties.Group = new(input.Group)
 }
