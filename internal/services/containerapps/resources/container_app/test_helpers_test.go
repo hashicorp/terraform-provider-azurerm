@@ -101,22 +101,3 @@ resource "azurerm_container_app_environment" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
-
-type ContainerAppEnvironmentResource struct{}
-
-func (r ContainerAppEnvironmentResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-CAE-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
