@@ -289,6 +289,24 @@ func TestAccKubernetesCluster_bootstrapProfile(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_bootstrapProfileManagedRegistry(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkIsolatedBootstrapProfileManagedRegistry(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bootstrap_profile.0.artifact_source").HasValue("Cache"),
+				check.That(data.ResourceName).Key("bootstrap_profile.0.container_registry_id").HasValue(""),
+				check.That("data.azurerm_kubernetes_cluster.test").Key("bootstrap_profile.0.container_registry_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -1347,4 +1365,58 @@ resource "azurerm_kubernetes_cluster" "test" {
     azurerm_role_assignment.aks_to_vnet,
   ]
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
+}
+
+func (KubernetesClusterResource) networkIsolatedBootstrapProfileManagedRegistry(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                    = "acctestaks%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%[2]d"
+  private_cluster_enabled = true
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    outbound_type       = "none"
+  }
+
+  bootstrap_profile {
+    artifact_source = "Cache"
+  }
+}
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}`, data.Locations.Primary, data.RandomInteger)
 }

@@ -784,6 +784,8 @@ A `bootstrap_profile` block supports the following:
 
 * `container_registry_id` - (Optional) The resource Id of Azure Container Registry.
 
+When `Cache` uses an AKS-managed registry, omit `container_registry_id`. The managed registry ID is available from the `azurerm_kubernetes_cluster` data source, but is not stored in the resource state unless it was configured.
+
 -> **Note:** The `container_registry_id` requires an ACR with a private link to the cluster. You must manage permissions, cache rules, the associated private link and the private endpoint. Please see the product [documentation](https://learn.microsoft.com/azure/container-registry/container-registry-private-link) for more information on configuring an ACR with a private endpoint.
 
 ---
