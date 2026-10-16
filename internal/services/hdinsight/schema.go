@@ -1122,6 +1122,43 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []any, gen2storageAccounts 
 	return &results, clusterIdentity, nil
 }
 
+func flattenHDInsightStorageAccounts(input *clusters.StorageProfile, d *pluginsdk.ResourceData) ([]any, []any) {
+	storageAccounts := make([]any, 0)
+	storageAccountsGen2 := make([]any, 0)
+	if input == nil || input.Storageaccounts == nil {
+		return storageAccounts, storageAccountsGen2
+	}
+
+	// storageAccountCount is used to grab the `storage_account_key` from config since it is not returned from state
+	storageAccountCount := 0
+	for _, account := range *input.Storageaccounts {
+		// MsiResourceId is specific to storageAccountGen2 and can be used to determine if a storage account is Gen2 or not
+		if account.MsiResourceId != nil {
+			storageAccountsGen2 = append(storageAccountsGen2, map[string]any{
+				"storage_account_id":        pointer.From(account.ResourceId),
+				"filesystem_id":             fmt.Sprintf("https://%s/%s", pointer.From(account.Name), pointer.From(account.FileSystem)),
+				"user_assigned_identity_id": pointer.From(account.MsiResourceId),
+				"is_default":                pointer.From(account.IsDefault),
+			})
+		} else {
+			var storageAccountKey string
+			if v, ok := d.GetOk(fmt.Sprintf("storage_account.%d.storage_account_key", storageAccountCount)); ok {
+				storageAccountKey = v.(string)
+			}
+			storageAccountCount += 1
+
+			storageAccounts = append(storageAccounts, map[string]any{
+				"storage_container_url": fmt.Sprintf("https://%s/%s", pointer.From(account.Name), pointer.From(account.Container)),
+				"storage_account_id":    pointer.From(account.ResourceId),
+				"is_default":            pointer.From(account.IsDefault),
+				"storage_account_key":   storageAccountKey,
+			})
+		}
+	}
+
+	return storageAccounts, storageAccountsGen2
+}
+
 type HDInsightNodeDefinition struct {
 	CanSpecifyInstanceCount  bool
 	MinInstanceCount         int
