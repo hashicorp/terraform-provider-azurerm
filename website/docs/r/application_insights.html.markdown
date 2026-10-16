@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `ip_masking_enabled` - (Optional) By default the real client IP is masked as `0.0.0.0` in the logs. Set this argument to `false` to disable masking and log the real client IP. Defaults to `true`.
 
+* `javascript_source_map_storage_uri` - (Optional) The blob container URL used by Application Insights for JavaScript source maps (portal: "JavaScript source map blob storage URL"). Azure stores this as the `hidden-link:Insights.Sourcemap.Storage` tag.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource.
