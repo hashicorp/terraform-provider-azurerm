@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,12 +99,12 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 }
 
 func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := singlesignon.ParseSingleSignOnConfigurationID(state.ID)
+	id, err := datadogsinglesignonresources.ParseSingleSignOnConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Datadog.SingleSignOn.ConfigurationsGet(ctx, *id)
+	resp, err := client.Datadog.DatadogSingleSignOnResources.SingleSignOnConfigurationsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
