@@ -14,6 +14,7 @@ type Registration struct{}
 
 var (
 	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
@@ -36,6 +37,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{}
+}
+
+// DataSources returns the typed DataSources supported by this service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		RelayNamespaceDataSource{},
+	}
+}
+
+// Resources returns the typed Resources supported by this service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
