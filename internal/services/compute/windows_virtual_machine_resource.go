@@ -307,9 +307,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsVMGuestPatchMode(), false),
-				ConflictsWith: []string{
-					"os_managed_disk_id",
-				},
 			},
 
 			"patch_assessment_mode": {
@@ -317,9 +314,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional:     true,
 				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForWindowsPatchAssessmentMode(), false),
-				ConflictsWith: []string{
-					"os_managed_disk_id",
-				},
 			},
 
 			"hotpatching_enabled": {
@@ -886,6 +880,34 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 		return err
 	}
 
+	if osDiskIsImported {
+		patchSettings := virtualmachines.PatchSettings{}
+		shouldUpdatePatchSettings := false
+		if !d.GetRawConfig().AsValueMap()["patch_mode"].IsNull() {
+			patchSettings.PatchMode = pointer.ToEnum[virtualmachines.WindowsVMGuestPatchMode](patchMode)
+			shouldUpdatePatchSettings = true
+		}
+		if !d.GetRawConfig().AsValueMap()["patch_assessment_mode"].IsNull() {
+			patchSettings.AssessmentMode = pointer.ToEnum[virtualmachines.WindowsPatchAssessmentMode](assessmentMode)
+			shouldUpdatePatchSettings = true
+		}
+
+		if shouldUpdatePatchSettings {
+			update := virtualmachines.VirtualMachineUpdate{
+				Properties: &virtualmachines.VirtualMachineProperties{
+					OsProfile: &virtualmachines.OSProfile{
+						WindowsConfiguration: &virtualmachines.WindowsConfiguration{
+							PatchSettings: &patchSettings,
+						},
+					},
+				},
+			}
+			if err := client.UpdateThenPoll(ctx, id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("updating patch settings for Windows %s: %+v", id, err)
+			}
+		}
+	}
+
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
@@ -1033,7 +1055,13 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 					}
 
 					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
-					d.Set("provision_vm_agent", config.ProvisionVMAgent)
+					// The API defaults an omitted provisionVMAgent to true. Treating
+					// nil as false prevents subsequent patch assessment updates.
+					provisionVMAgent := true
+					if config.ProvisionVMAgent != nil {
+						provisionVMAgent = *config.ProvisionVMAgent
+					}
+					d.Set("provision_vm_agent", provisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 					assessmentMode := string(virtualmachines.WindowsPatchAssessmentModeImageDefault)
