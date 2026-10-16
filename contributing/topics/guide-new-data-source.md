@@ -57,7 +57,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourceGroupsClient, err := resourcegroups.NewResourceGroupsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Resource Groups Client: %+v", err)
-    }
+	}
 	o.Configure(resourceGroupsClient.Client, o.Authorizer.ResourceManager)
 
 	// ...
@@ -88,6 +88,31 @@ client := metadata.Client.Resource.ResourceGroupsClient
 
 Every resource is tracked by its Azure Resource ID, both in Terraform state and when calling the API. Most IDs come from the go-azure-sdk package for the service. The ones shared across services, such as resource groups, subnets and user assigned identities, come from `commonids`. A Resource Group uses `commonids.ResourceGroupId`, which gives us `NewResourceGroupID`, `ParseResourceGroupID` and `ValidateResourceGroupID`.
 
+Each Resource ID type comes with 3 functions a Data Source can use:
+
+* `New{Name}ID` builds the struct from its individual values
+* `Parse{Name}ID` parses an existing ID string into the struct
+* `Validate{Name}ID` checks that a string is a well-formed ID, and is used by Resources for `terraform import`
+
+A Data Source uses the first two. Which one depends on its Arguments. When the user supplies the individual values, for example `name` and `resource_group_name`, the Read builds the ID with `New{Name}ID`, which is what this guide's example does. When the user supplies a full Resource ID as a single Argument, for example `storage_account_id`, the Read parses it with `Parse{Name}ID` instead.
+
+```go
+// when the Arguments are the individual values
+id := commonids.NewResourceGroupID(subscriptionId, state.Name)
+
+// when the Argument is a full Resource ID
+id, err := commonids.ParseStorageAccountID(state.StorageAccountId)
+if err != nil {
+    return err
+}
+```
+
+Where the functions live depends on the Resource:
+
+* For most Resources they're generated into the SDK package for that Resource, for example `runbook.NewRunbookID` in `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook`.
+
+* For Resource IDs shared across many Services — Resource Groups, Storage Accounts, Subscriptions and a few others they live in `github.com/hashicorp/go-azure-helpers/resourcemanager/commonids` instead, so that every Service uses the same type.
+
 See [Resource IDs](guide-resource-ids.md) for the details.
 
 ### Step 4: Scaffold an empty/new Data Source
@@ -114,8 +139,8 @@ In this case the interface `sdk.DataSource` defines all of the methods required 
 
 ```go
 type DataSource interface {
-    Arguments() map[string]*schema.Schema
-    Attributes() map[string]*schema.Schema
+    Arguments() map[string]*pluginsdk.Schema
+    Attributes() map[string]*pluginsdk.Schema
     ModelObject() any
     ResourceType() string
 	Read() ResourceFunc
@@ -208,8 +233,8 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			// build the Resource ID from the Subscription ID and the name in the config
 			id := commonids.NewResourceGroupID(subscriptionId, state.Name)
-
 			// then retrieve the Resource Group by its ID
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -272,6 +297,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
