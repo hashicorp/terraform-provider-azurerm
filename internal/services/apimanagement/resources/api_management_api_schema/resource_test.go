@@ -22,7 +22,7 @@ type ApiManagementApiSchemaResource struct{}
 func TestAccApiManagementApiSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 	r := ApiManagementApiSchemaResource{}
-	schema, _ := os.ReadFile("../../testdata//api_management_api_schema.xml")
+	schema, _ := os.ReadFile("../../testdata/api_management_api_schema.xml")
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +122,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
-  value               = file("../../testdata//api_management_api_schema.xml")
+  value               = file("../../testdata/api_management_api_schema.xml")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -137,7 +137,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/json"
-  value               = file("../../testdata//api_management_api_schema_swagger.json")
+  value               = file("../../testdata/api_management_api_schema_swagger.json")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -199,7 +199,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.oai.openapi.components+json"
-  components          = file("../../testdata//api_management_api_schema_swagger.json")
+  components          = file("../../testdata/api_management_api_schema_swagger.json")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -214,7 +214,7 @@ resource "azurerm_api_management_api_schema" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   schema_id           = "acctestSchema%d"
   content_type        = "application/vnd.ms-azure-apim.swagger.definitions+json"
-  definitions         = file("../../testdata//api_management_api_swagger_definitions.json")
+  definitions         = file("../../testdata/api_management_api_swagger_definitions.json")
 }
 `, r.template(data), data.RandomInteger)
 }

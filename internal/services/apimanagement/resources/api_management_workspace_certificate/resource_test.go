@@ -189,7 +189,7 @@ provider "azurerm" {
 resource "azurerm_api_management_workspace_certificate" "test" {
   name                        = "acctest-cert-%d"
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  certificate_data_base64     = filebase64("../../testdata//testacc_nopassword.pfx")
+  certificate_data_base64     = filebase64("../../testdata/testacc_nopassword.pfx")
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -205,7 +205,7 @@ provider "azurerm" {
 resource "azurerm_api_management_workspace_certificate" "test" {
   name                        = "acctest-cert-%d"
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  certificate_data_base64     = filebase64("../../testdata//api_management_api_test.pfx")
+  certificate_data_base64     = filebase64("../../testdata/api_management_api_test.pfx")
   password                    = "terraform"
 }
 `, r.template(data), data.RandomInteger)
@@ -222,7 +222,7 @@ provider "azurerm" {
 resource "azurerm_api_management_workspace_certificate" "test" {
   name                        = "acctest-cert-%d"
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  certificate_data_base64     = filebase64("../../testdata//testacc.pfx")
+  certificate_data_base64     = filebase64("../../testdata/testacc.pfx")
   password                    = "TestAcc"
 }
 `, r.template(data), data.RandomInteger)
@@ -389,7 +389,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = filebase64("../../testdata//api_management_api_test.pfx")
+    contents = filebase64("../../testdata/api_management_api_test.pfx")
     password = "terraform"
   }
 
@@ -465,7 +465,7 @@ resource "azurerm_key_vault_certificate" "test2" {
   key_vault_id = azurerm_key_vault.test2.id
 
   certificate {
-    contents = filebase64("../../testdata//api_management_api2_test.pfx")
+    contents = filebase64("../../testdata/api_management_api2_test.pfx")
     password = "terraform"
   }
 
@@ -545,7 +545,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = filebase64("../../testdata//api_management_api_test.pfx")
+    contents = filebase64("../../testdata/api_management_api_test.pfx")
     password = "terraform"
   }
 
@@ -618,7 +618,7 @@ resource "azurerm_key_vault_certificate" "test2" {
   key_vault_id = azurerm_key_vault.test2.id
 
   certificate {
-    contents = filebase64("../../testdata//api_management_api2_test.pfx")
+    contents = filebase64("../../testdata/api_management_api2_test.pfx")
     password = "terraform"
   }
 
