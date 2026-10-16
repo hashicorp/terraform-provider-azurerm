@@ -267,10 +267,50 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+
+					"security": schemaNodePoolSecurity(),
 				}
 			}(),
 		},
 	}
+}
+
+func schemaNodePoolSecurity() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"secure_boot_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"vtpm_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func nodePoolSecurityFlagsChanged(oldRaw, newRaw []any) bool {
+	old := expandManagedClusterAgentPoolSecurityProfile(oldRaw)
+	new := expandManagedClusterAgentPoolSecurityProfile(newRaw)
+
+	oldSecureBoot, oldVTPM := false, false
+	if old != nil {
+		oldSecureBoot, oldVTPM = pointer.From(old.EnableSecureBoot), pointer.From(old.EnableVTPM)
+	}
+	newSecureBoot, newVTPM := false, false
+	if new != nil {
+		newSecureBoot, newVTPM = pointer.From(new.EnableSecureBoot), pointer.From(new.EnableVTPM)
+	}
+	return oldSecureBoot != newSecureBoot || oldVTPM != newVTPM
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
@@ -747,6 +787,15 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		}
 		agentpool.Properties.NetworkProfile = &networkProfile
 	}
+	if securityProfileRaw := defaultCluster.SecurityProfile; securityProfileRaw != nil {
+		agentpool.Properties.SecurityProfile = &agentpools.AgentPoolSecurityProfile{
+			EnableSecureBoot: securityProfileRaw.EnableSecureBoot,
+			EnableVTPM:       securityProfileRaw.EnableVTPM,
+		}
+		if securityProfileRaw.SshAccess != nil {
+			agentpool.Properties.SecurityProfile.SshAccess = pointer.ToEnum[agentpools.AgentPoolSSHAccess](string(*securityProfileRaw.SshAccess))
+		}
+	}
 	if osTypeNodePool := defaultCluster.OsType; osTypeNodePool != nil {
 		agentpool.Properties.OsType = pointer.ToEnum[agentpools.OSType](string(*osTypeNodePool))
 	}
@@ -994,6 +1043,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	if networkProfile := raw["node_network_profile"].([]any); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
+	}
+
+	if securityProfile := raw["security"].([]any); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandManagedClusterAgentPoolSecurityProfile(securityProfile)
 	}
 
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
@@ -1311,6 +1364,10 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(agentPool.SecurityProfile)
+	if agentPool.SecurityProfile != nil && len(d.Get("default_node_pool.0.security").([]any)) == 0 && !pointer.From(agentPool.SecurityProfile.EnableSecureBoot) && !pointer.From(agentPool.SecurityProfile.EnableVTPM) {
+		securityProfile = []any{}
+	}
 
 	out := map[string]any{
 		"auto_scaling_enabled":          enableAutoScaling,
@@ -1350,6 +1407,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
+		"security":                      securityProfile,
 	}
 
 	return &[]any{
@@ -1805,6 +1863,31 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]ma
 		out = append(out, ipTag)
 	}
 	return &out
+}
+
+func expandManagedClusterAgentPoolSecurityProfile(input []any) *managedclusters.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	return &managedclusters.AgentPoolSecurityProfile{
+		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
+		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
+	}
+}
+
+func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+		},
+	}
 }
 
 func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []any {

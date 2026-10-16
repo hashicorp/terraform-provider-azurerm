@@ -422,6 +422,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"security": schemaNodePoolSecurity(),
 	}
 }
 
@@ -683,6 +685,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if securityProfile := d.Get("security").([]any); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
+	}
+
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
 			SourceResourceId: pointer.To(snapshotId),
@@ -905,6 +911,20 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]any))
 	}
 
+	if d.HasChange("security") {
+		securityProfile := expandAgentPoolSecurityProfile(d.Get("security").([]any))
+		if securityProfile == nil {
+			securityProfile = &agentpools.AgentPoolSecurityProfile{
+				EnableSecureBoot: pointer.To(false),
+				EnableVTPM:       pointer.To(false),
+			}
+		}
+		if props.SecurityProfile != nil {
+			securityProfile.SshAccess = props.SecurityProfile.SshAccess
+		}
+		props.SecurityProfile = securityProfile
+	}
+
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		props.AvailabilityZones = &zones
@@ -958,6 +978,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 
 	// if the node pool name has changed, it means the initial attempt at resizing failed
 	cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+	oldSecurity, newSecurity := d.GetChange("security")
+	if nodePoolSecurityFlagsChanged(oldSecurity.([]any), newSecurity.([]any)) {
+		cycleNodePool = true
+		cycleNodePoolProperties = append(cycleNodePoolProperties, "security")
+	}
 	// os_sku can only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 	if d.HasChange("os_sku") {
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
@@ -1216,6 +1241,14 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		securityProfile := flattenAgentPoolSecurityProfile(props.SecurityProfile)
+		if props.SecurityProfile != nil && len(d.Get("security").([]any)) == 0 && !pointer.From(props.SecurityProfile.EnableSecureBoot) && !pointer.From(props.SecurityProfile.EnableVTPM) {
+			securityProfile = []any{}
+		}
+		if err := d.Set("security", securityProfile); err != nil {
+			return fmt.Errorf("setting `security`: %+v", err)
 		}
 
 		if err := tags.FlattenAndSet(d, props.Tags); err != nil {
@@ -1818,6 +1851,31 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]agen
 		out = append(out, ipTag)
 	}
 	return &out
+}
+
+func expandAgentPoolSecurityProfile(input []any) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	return &agentpools.AgentPoolSecurityProfile{
+		EnableSecureBoot: pointer.To(v["secure_boot_enabled"].(bool)),
+		EnableVTPM:       pointer.To(v["vtpm_enabled"].(bool)),
+	}
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+		},
+	}
 }
 
 func flattenAgentPoolNetworkProfile(input *agentpools.AgentPoolNetworkProfile) []any {
