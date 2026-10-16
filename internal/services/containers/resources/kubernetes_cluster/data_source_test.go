@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 type KubernetesClusterDataSource struct{}
@@ -578,7 +579,7 @@ func TestAccDataSourceKubernetesCluster_serviceMeshCertificateAuthority(t *testi
 func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 	olderRev := meta.PreviousMeshRevision
 	newerRev := meta.LatestMeshRevision
 

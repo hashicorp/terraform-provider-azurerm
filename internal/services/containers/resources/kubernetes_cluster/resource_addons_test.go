@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 var addOnAppGatewaySubnetCIDR string = "10.225.0.0/24" // Azure CNI Overlay requires AGIC subnet prefix length to be /24 or smaller
@@ -320,7 +321,7 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_certificateAuthorit
 func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 	olderRev := meta.PreviousMeshRevision
 	newerRev := meta.LatestMeshRevision
 

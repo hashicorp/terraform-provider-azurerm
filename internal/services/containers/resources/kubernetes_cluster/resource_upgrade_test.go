@@ -10,12 +10,13 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 func TestAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +39,7 @@ func TestAccKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 func TestAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +68,7 @@ func TestAccKubernetesCluster_upgradeControlPlane(t *testing.T) {
 func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +95,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether(t *t
 func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -130,7 +131,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase(t *t
 func TestAccKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -153,7 +154,7 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -196,7 +197,7 @@ func TestAccKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails(t *te
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -222,7 +223,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherVersionAlias
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -254,7 +255,7 @@ func TestAccKubernetesCluster_upgradeControlPlaneAndAllPoolsTogetherSpot(t *test
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package kubernetes_cluster_test
+package helpers
 
 import (
 	"context"
@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 )
 
+var aksMetadataCache sync.Map
+
 // AKSTestMetadata stores supported Kubernetes versions and Service Mesh revisions
 // retrieved dynamically from Azure for a specific location.
 type AKSTestMetadata struct {
@@ -29,22 +31,20 @@ type AKSTestMetadata struct {
 	LatestMeshRevision            string
 }
 
-var aksMetadataCache sync.Map
-
-// getAKSTestMetadata returns Kubernetes versions and Service Mesh revisions for an Azure location.
+// GetAKSTestMetadata returns Kubernetes versions and Service Mesh revisions for an Azure location.
 // Use this in test functions (*testing.T). It fails the test immediately if an error happens.
-func getAKSTestMetadata(t *testing.T, loc string) AKSTestMetadata {
+func GetAKSTestMetadata(t *testing.T, loc string) AKSTestMetadata {
 	t.Helper()
-	meta, err := obtainAKSMetadata(loc)
+	meta, err := ObtainAKSMetadata(loc)
 	if err != nil {
 		t.Fatalf("obtaining AKS test metadata for location %q: %+v", loc, err)
 	}
 	return meta
 }
 
-// obtainAKSMetadata returns Kubernetes versions and Service Mesh revisions for an Azure location.
+// ObtainAKSMetadata returns Kubernetes versions and Service Mesh revisions for an Azure location.
 // Use this in test config helpers where *testing.T is not available. It returns an error if retrieval fails.
-func obtainAKSMetadata(loc string) (AKSTestMetadata, error) {
+func ObtainAKSMetadata(loc string) (AKSTestMetadata, error) {
 	norm := location.Normalize(loc)
 	if val, ok := aksMetadataCache.Load(norm); ok {
 		return val.(AKSTestMetadata), nil

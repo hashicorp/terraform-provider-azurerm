@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 func TestAccKubernetesCluster_updateVmSize(t *testing.T) {
@@ -1097,7 +1098,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) autoscaleWithAvailabilityZonesConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1145,7 +1146,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1191,7 +1192,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) autoScalingProfileConfigComplete(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
@@ -132,7 +133,7 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -1573,7 +1574,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool, revisions ...string) string {
 	if len(revisions) == 0 {
-		meta, err := obtainAKSMetadata(data.Locations.Primary)
+		meta, err := helpers.ObtainAKSMetadata(data.Locations.Primary)
 		if err == nil {
 			revisions = []string{meta.LatestMeshRevision}
 		}
@@ -3179,7 +3180,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) standardLoadBalancerConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3333,7 +3334,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) standardLoadBalancerProfileConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3404,7 +3405,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3484,7 +3485,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3557,7 +3558,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) basicLoadBalancerProfileConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3628,7 +3629,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) unsetPrefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3706,7 +3707,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3791,7 +3792,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3876,7 +3877,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3961,7 +3962,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) unsetLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4046,7 +4047,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) httpProxyConfigUpdate(data acceptance.TestData, noProxy string) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -4222,7 +4223,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData, noProxy string) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -4400,7 +4401,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -4580,7 +4581,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

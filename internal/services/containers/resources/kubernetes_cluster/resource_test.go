@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,7 +25,7 @@ type KubernetesClusterResource struct{}
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +55,7 @@ func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -77,7 +78,7 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -98,7 +99,7 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +114,7 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -138,7 +139,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -162,7 +163,7 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -228,7 +229,7 @@ func TestAccKubernetesCluster_nodeProvisioningProfileUpdate(t *testing.T) {
 func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -389,7 +390,7 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 	dnsPrefix := fmt.Sprintf("1stCluster%d", data.RandomInteger)
 
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -569,7 +570,7 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
 }
 
 func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 

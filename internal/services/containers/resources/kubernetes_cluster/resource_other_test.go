@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
@@ -278,7 +279,7 @@ func TestAccKubernetesCluster_podSubnet(t *testing.T) {
 func TestAccKubernetesCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -425,7 +426,7 @@ func TestAccKubernetesCluster_diskEncryption(t *testing.T) {
 func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	meta := getAKSTestMetadata(t, data.Locations.Primary)
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	autoUpgradeChannel := "automatic_upgrade_channel"
 	nodeOsUpgradeChannel := "node_os_upgrade_channel"
@@ -3178,7 +3179,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) workloadRuntimeKataVmIsolation(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4009,7 +4010,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) aiToolchainOperatorProfile(data acceptance.TestData, enabled bool) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

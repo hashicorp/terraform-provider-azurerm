@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -146,7 +147,7 @@ resource "azurerm_kubernetes_fleet_update_run" "import" {
 }
 
 func (r KubernetesFleetUpdateRunTestResource) complete(data acceptance.TestData) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 

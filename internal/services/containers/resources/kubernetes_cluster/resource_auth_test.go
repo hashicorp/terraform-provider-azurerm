@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
@@ -959,7 +960,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data acceptance.TestData, tenantId string) string {
-	meta, _ := obtainAKSMetadata(data.Locations.Primary)
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 variable "tenant_id" {
   default = "%[1]s"
