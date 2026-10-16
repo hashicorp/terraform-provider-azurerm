@@ -7,27 +7,28 @@ type UserFeatures struct {
 	PersistIDOnCreateBeforePollingForCompletion                 bool
 	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
 
-	ApiManagement            ApiManagementFeatures
-	AppConfiguration         AppConfigurationFeatures
-	ApplicationInsights      ApplicationInsightFeatures
-	CognitiveAccount         CognitiveAccountFeatures
-	DatabricksWorkspace      DatabricksWorkspaceFeatures
-	EnhancedValidation       EnhancedValidationFeatures
-	KeyVault                 KeyVaultFeatures
-	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
-	MachineLearning          MachineLearningFeatures
-	ManagedDisk              ManagedDiskFeatures
-	NetApp                   NetAppFeatures
-	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
-	RecoveryService          RecoveryServiceFeatures
-	RecoveryServicesVault    RecoveryServicesVault
-	ResourceGroup            ResourceGroupFeatures
-	Storage                  StorageFeatures
-	Subscription             SubscriptionFeatures
-	TemplateDeployment       TemplateDeploymentFeatures
-	VirtualMachine           VirtualMachineFeatures
-	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
-	ServiceBus               ServiceBusFeatures
+	ApiManagement                           ApiManagementFeatures
+	AppConfiguration                        AppConfigurationFeatures
+	ApplicationInsights                     ApplicationInsightFeatures
+	CognitiveAccount                        CognitiveAccountFeatures
+	DatabricksWorkspace                     DatabricksWorkspaceFeatures
+	EnhancedValidation                      EnhancedValidationFeatures
+	KeyVault                                KeyVaultFeatures
+	LogAnalyticsWorkspace                   LogAnalyticsWorkspaceFeatures
+	MachineLearning                         MachineLearningFeatures
+	ManagedDisk                             ManagedDiskFeatures
+	NetApp                                  NetAppFeatures
+	PostgresqlFlexibleServer                PostgresqlFlexibleServerFeatures
+	PostgresqlFlexibleServerVirtualEndpoint PostgresqlFlexibleServerVirtualEndpointFeatures
+	RecoveryService                         RecoveryServiceFeatures
+	RecoveryServicesVault                   RecoveryServicesVault
+	ResourceGroup                           ResourceGroupFeatures
+	Storage                                 StorageFeatures
+	Subscription                            SubscriptionFeatures
+	TemplateDeployment                      TemplateDeploymentFeatures
+	VirtualMachine                          VirtualMachineFeatures
+	VirtualMachineScaleSet                  VirtualMachineScaleSetFeatures
+	ServiceBus                              ServiceBusFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -112,6 +113,10 @@ type RecoveryServicesVault struct {
 
 type PostgresqlFlexibleServerFeatures struct {
 	RestartServerOnConfigurationValueChange bool
+}
+
+type PostgresqlFlexibleServerVirtualEndpointFeatures struct {
+	RecreateResourceAfterFailover bool
 }
 
 type MachineLearningFeatures struct {
