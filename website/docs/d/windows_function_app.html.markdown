@@ -14,8 +14,8 @@ Use this data source to access information about an existing Windows Function Ap
 
 ```hcl
 data "azurerm_windows_function_app" "example" {
-  name                = "example-function-app"
-  resource_group_name = "example-resources"
+  name                = "existing"
+  resource_group_name = "existing"
 }
 
 output "id" {
@@ -108,6 +108,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `tags` - A mapping of tags assigned to the Windows Function App.
 
 * `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
+
+* `virtual_network_application_traffic_enabled` - Whether application traffic is routed over the virtual network.
 
 * `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
 
@@ -595,4 +597,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01
+* `Microsoft.Web` - 2025-05-01
