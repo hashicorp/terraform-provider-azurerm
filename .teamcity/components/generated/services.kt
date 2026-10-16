@@ -112,6 +112,7 @@ var services = mapOf(
         "redis" to "Redis",
         "relay" to "Relay",
         "resource" to "Resources",
+        "sreagent" to "SRE Agent",
         "search" to "Search",
         "securitycenter" to "Security Center",
         "sentinel" to "Sentinel",
