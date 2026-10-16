@@ -594,6 +594,8 @@ func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 			if props.Administrators != nil {
 				d.Set("azuread_administrator", flattenMsSqlServerAdministrators(*props.Administrators))
+			} else {
+				d.Set("azuread_administrator", nil)
 			}
 		}
 
