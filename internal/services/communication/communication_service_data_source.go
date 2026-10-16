@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -23,16 +24,17 @@ var _ sdk.DataSource = CommunicationServiceDataSource{}
 type CommunicationServiceDataSource struct{}
 
 type CommunicationServiceDataSourceModel struct {
-	Name                      string            `tfschema:"name"`
-	ResourceGroupName         string            `tfschema:"resource_group_name"`
-	DataLocation              string            `tfschema:"data_location"`
-	PrimaryConnectionString   string            `tfschema:"primary_connection_string"`
-	PrimaryKey                string            `tfschema:"primary_key"`
-	SecondaryConnectionString string            `tfschema:"secondary_connection_string"`
-	SecondaryKey              string            `tfschema:"secondary_key"`
-	Tags                      map[string]string `tfschema:"tags"`
-	HostName                  string            `tfschema:"hostname"`
-	ImmutableResourceId       string            `tfschema:"immutable_resource_id"`
+	Name                      string                                     `tfschema:"name"`
+	ResourceGroupName         string                                     `tfschema:"resource_group_name"`
+	DataLocation              string                                     `tfschema:"data_location"`
+	PrimaryConnectionString   string                                     `tfschema:"primary_connection_string"`
+	PrimaryKey                string                                     `tfschema:"primary_key"`
+	SecondaryConnectionString string                                     `tfschema:"secondary_connection_string"`
+	SecondaryKey              string                                     `tfschema:"secondary_key"`
+	Tags                      map[string]string                          `tfschema:"tags"`
+	HostName                  string                                     `tfschema:"hostname"`
+	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	ImmutableResourceId       string                                     `tfschema:"immutable_resource_id"`
 }
 
 func (CommunicationServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,6 +86,9 @@ func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 		"immutable_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -128,6 +133,12 @@ func (CommunicationServiceDataSource) Read() sdk.ResourceFunc {
 					state.HostName = pointer.From(props.HostName)
 					state.ImmutableResourceId = pointer.From(props.ImmutableResourceId)
 				}
+
+				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = flattenedIdentity
 
 				state.Tags = pointer.From(model.Tags)
 			}
