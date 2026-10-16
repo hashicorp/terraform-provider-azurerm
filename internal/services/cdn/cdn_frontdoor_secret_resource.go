@@ -80,6 +80,16 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 										ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate),
 									},
 
+									"key_vault_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: commonids.ValidateKeyVaultID,
+										DiffSuppressFunc: func(_, _, new string, _ *pluginsdk.ResourceData) bool {
+											return new == ""
+										},
+									},
+
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
 										Computed: true,
@@ -216,13 +226,17 @@ func expandCdnFrontDoorSecretParameters(ctx context.Context, input []any, client
 		return nil, err
 	}
 
-	keyVaultBaseId, err := clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, commonids.NewSubscriptionID(clients.Account.SubscriptionId), certificateId.KeyVaultBaseURL)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL (`%s`): %w", certificateId.KeyVaultBaseURL, err)
-	}
+	// a Key Vault in another subscription can't be found from its URL, so it can be given explicitly
+	keyVaultBaseId := pointer.To(cc0["key_vault_id"].(string))
+	if *keyVaultBaseId == "" {
+		keyVaultBaseId, err = clients.KeyVault.KeyVaultIDFromBaseUrl(ctx, commonids.NewSubscriptionID(clients.Account.SubscriptionId), certificateId.KeyVaultBaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL (`%s`): %w", certificateId.KeyVaultBaseURL, err)
+		}
 
-	if keyVaultBaseId == nil {
-		return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL (`%s`): id was nil", certificateId.KeyVaultBaseURL)
+		if keyVaultBaseId == nil {
+			return nil, fmt.Errorf("retrieving the Key Vault Resource ID from the Key Vault Base URL (`%s`): id was nil", certificateId.KeyVaultBaseURL)
+		}
 	}
 
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultBaseId)
@@ -286,6 +300,7 @@ func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.Secr
 		map[string]any{
 			"expiration_date":           pointer.From(customerCertificate.ExpirationDate),
 			"key_vault_certificate_id":  certificateID,
+			"key_vault_id":              keyVaultId.ID(),
 			"subject_alternative_names": pluginsdk.FlattenSlice(customerCertificate.SubjectAlternativeNames),
 		},
 	}
