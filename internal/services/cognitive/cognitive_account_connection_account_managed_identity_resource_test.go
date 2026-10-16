@@ -20,6 +20,16 @@ import (
 
 type CognitiveAccountConnectionAccountManagedIdentityResource struct{}
 
+func TestAccCognitiveAccountConnectionAccountManagedIdentity_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_account_managed_identity", "test")
+	r := CognitiveAccountConnectionAccountManagedIdentityResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountConnectionAccountManagedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_account_managed_identity", "test")
 	r := CognitiveAccountConnectionAccountManagedIdentityResource{}
