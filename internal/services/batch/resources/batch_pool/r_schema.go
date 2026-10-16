@@ -4,6 +4,8 @@
 package batch_pool
 
 import (
+	"context"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -611,13 +613,34 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 				pool.PossibleValuesForDiffDiskPlacement(), false,
 			),
 		},
+		"managed_disk": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"security_encryption_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityEncryptionTypes(), false),
+						AtLeastOneOf: []string{"managed_disk.0.security_encryption_type", "managed_disk.0.storage_account_type"},
+					},
+					"storage_account_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(pool.StorageAccountTypeStandardLRS),
+						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForStorageAccountType(), false),
+						AtLeastOneOf: []string{"managed_disk.0.security_encryption_type", "managed_disk.0.storage_account_type"},
+					},
+				},
+			},
+		},
 		"inter_node_communication": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(pool.InterNodeCommunicationStateEnabled),
 			ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInterNodeCommunicationState(), false),
 		},
-
 		"security_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -880,4 +903,58 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func resourceBatchPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
+	rawConfig := d.GetRawConfig()
+	if !rawConfig.IsKnown() || rawConfig.IsNull() {
+		return nil
+	}
+
+	securityProfile := rawConfig.AsValueMap()["security_profile"]
+	managedDisk := rawConfig.AsValueMap()["managed_disk"]
+
+	if !securityProfile.IsKnown() || !managedDisk.IsKnown() {
+		return nil
+	}
+
+	securityType := ""
+	if !securityProfile.IsNull() && securityProfile.LengthInt() > 0 {
+		block := securityProfile.AsValueSlice()[0]
+		if !block.IsKnown() {
+			return nil
+		}
+
+		value := block.AsValueMap()["security_type"]
+		if !value.IsKnown() {
+			return nil
+		}
+		if !value.IsNull() {
+			securityType = value.AsString()
+		}
+	}
+
+	encryptionTypeConfigured := false
+	if !managedDisk.IsNull() && managedDisk.LengthInt() > 0 {
+		block := managedDisk.AsValueSlice()[0]
+		if !block.IsKnown() {
+			return nil
+		}
+
+		value := block.AsValueMap()["security_encryption_type"]
+		if !value.IsKnown() {
+			return nil
+		}
+		encryptionTypeConfigured = !value.IsNull()
+	}
+
+	if securityType == string(pool.SecurityTypesConfidentialVM) && !encryptionTypeConfigured {
+		return errors.New("`managed_disk.0.security_encryption_type` is required when `security_profile.0.security_type` is `confidentialVM`")
+	}
+
+	if securityType != string(pool.SecurityTypesConfidentialVM) && encryptionTypeConfigured {
+		return errors.New("`managed_disk.0.security_encryption_type` can only be specified when `security_profile.0.security_type` is `confidentialVM`")
+	}
+
+	return nil
 }
