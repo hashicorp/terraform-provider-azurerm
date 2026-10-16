@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CdnFrontDoorCustomDomainResource struct{}
+type CdnFrontdoorCustomDomainResource struct{}
 
 func TestAccCdnFrontDoorCustomDomain_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
@@ -32,7 +32,7 @@ func TestAccCdnFrontDoorCustomDomain_regressionTest(t *testing.T) {
 
 func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,7 +48,7 @@ func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 
 func TestAccCdnFrontDoorCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -64,7 +64,7 @@ func TestAccCdnFrontDoorCustomDomain_requiresImport(t *testing.T) {
 
 func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -80,7 +80,7 @@ func TestAccCdnFrontDoorCustomDomain_complete(t *testing.T) {
 
 func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	testSteps := []acceptance.TestStep{
@@ -115,7 +115,7 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_validation(t *testing.T) {
 
 func TestAccCdnFrontDoorCustomDomain_managedCertificate_hostNameConstraints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -135,7 +135,7 @@ func TestAccCdnFrontDoorCustomDomain_managedCertificate_hostNameConstraints(t *t
 
 func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
+	r := CdnFrontdoorCustomDomainResource{}
 	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -192,7 +192,7 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
 	})
 }
 
-func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
+func (r CdnFrontdoorCustomDomainResource) preCheck(t *testing.T) {
 	if os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skipf("`ARM_TEST_DATA_RESOURCE_GROUP` must be set for acceptance tests")
 	}
@@ -201,7 +201,7 @@ func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
 	}
 }
 
-func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CdnFrontdoorCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := afddomains.ParseCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (r CdnFrontDoorCustomDomainResource) Exists(ctx context.Context, clients *c
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CdnFrontDoorCustomDomainResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -237,7 +237,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -256,7 +256,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "import" {
 `, config)
 }
 
-func (r CdnFrontDoorCustomDomainResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -293,7 +293,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 // signed cert it must be an official cert from the approved list of cert
 // providers by the service.
 
-func (r CdnFrontDoorCustomDomainResource) template(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) template(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	childZoneSuffix := data.RandomString
@@ -354,7 +354,7 @@ resource "azurerm_dns_txt_record" "validation" {
 `, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, childZoneSuffix)
 }
 
-func (r CdnFrontDoorCustomDomainResource) templateWildcard(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) templateWildcard(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
@@ -414,7 +414,7 @@ resource "azurerm_dns_txt_record" "validation" {
 `, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, data.RandomString)
 }
 
-func (r CdnFrontDoorCustomDomainResource) validationTemplate(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) validationTemplate(data acceptance.TestData) string {
 	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE")
 	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	childZoneSuffix := data.RandomString
@@ -460,7 +460,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG, childZoneSuffix)
 }
 
-func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteWithoutBlock(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) customizedCipherSuiteWithoutBlock(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -485,7 +485,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteEmpty(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) customizedCipherSuiteEmpty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -515,7 +515,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls12MissingWithTls12Min(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) customizedCipherSuiteTls12MissingWithTls12Min(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -547,7 +547,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls13MissingOneDefault(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) customizedCipherSuiteTls13MissingOneDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -581,7 +581,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) customizedCipherSuiteTls12Unsupported(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) customizedCipherSuiteTls12Unsupported(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -616,7 +616,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -651,7 +651,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Multiple(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) cipherSuitesTls12Multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -688,7 +688,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinSingle(data acceptance.TestData) string {
+// func (r CdnFrontdoorCustomDomainResource) cipherSuitesMixedWithTls12MinSingle(data acceptance.TestData) string {
 // 	return fmt.Sprintf(`
 // %[1]s
 
@@ -723,7 +723,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 // `, r.template(data), data.RandomInteger, data.RandomString)
 // }
 
-func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinMultiple(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) cipherSuitesMixedWithTls12MinMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -758,7 +758,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) customCiphersWithPresetType(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) customCiphersWithPresetType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -790,7 +790,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) managedCertificateHostNameTooLong(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) managedCertificateHostNameTooLong(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -811,7 +811,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.validationTemplate(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorCustomDomainResource) managedCertificateWildcardDomain(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) managedCertificateWildcardDomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
