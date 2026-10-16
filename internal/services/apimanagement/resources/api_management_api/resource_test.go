@@ -650,7 +650,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "1"
 
   import {
-    content_value  = file("../../testdata//api_management_api_swagger.json")
+    content_value  = file("../../testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
   }
   %s
@@ -672,7 +672,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "current"
 
   import {
-    content_value  = file("../../testdata//api_management_api_openapi.yaml")
+    content_value  = file("../../testdata/api_management_api_openapi.yaml")
     content_format = "openapi"
   }
 
@@ -697,7 +697,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "current"
 
   import {
-    content_value  = file("../../testdata//api_management_api_openapi_invalid.yaml")
+    content_value  = file("../../testdata/api_management_api_openapi_invalid.yaml")
     content_format = "openapi"
   }
 }
@@ -720,7 +720,7 @@ resource "azurerm_api_management_api" "test" {
   service_url         = "https://example.com/foo/bar"
 
   import {
-    content_value  = file("../../testdata//api_management_api_swagger.json")
+    content_value  = file("../../testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
   }
 }
@@ -743,7 +743,7 @@ resource "azurerm_api_management_api" "test" {
   service_url         = "https://example.com/foo/bar"
 
   import {
-    content_value  = file("../../testdata//api_management_api_swagger.json")
+    content_value  = file("../../testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
   }
 }
@@ -764,7 +764,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "1"
 
   import {
-    content_value  = file("../../testdata//api_management_api_wsdl.xml")
+    content_value  = file("../../testdata/api_management_api_wsdl.xml")
     content_format = "wsdl"
   }
 }
@@ -785,7 +785,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "1"
 
   import {
-    content_value  = file("../../testdata//api_management_api_wsdl_multiple.xml")
+    content_value  = file("../../testdata/api_management_api_wsdl_multiple.xml")
     content_format = "wsdl"
 
     wsdl_selector {

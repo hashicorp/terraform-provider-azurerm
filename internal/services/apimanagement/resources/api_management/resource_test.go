@@ -1446,24 +1446,24 @@ resource "azurerm_api_management" "test" {
   }
 
   certificate {
-    encoded_certificate  = filebase64("../../testdata//api_management_api_test.pfx")
+    encoded_certificate  = filebase64("../../testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "CertificateAuthority"
   }
 
   certificate {
-    encoded_certificate  = filebase64("../../testdata//api_management_api_test.pfx")
+    encoded_certificate  = filebase64("../../testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "Root"
   }
 
   certificate {
-    encoded_certificate = filebase64("../../testdata//api_management_api_test.cer")
+    encoded_certificate = filebase64("../../testdata/api_management_api_test.cer")
     store_name          = "Root"
   }
 
   certificate {
-    encoded_certificate = filebase64("../../testdata//api_management_api_test.cer")
+    encoded_certificate = filebase64("../../testdata/api_management_api_test.cer")
     store_name          = "CertificateAuthority"
   }
 
@@ -1498,7 +1498,7 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api.terraform.io"
-      certificate                  = filebase64("../../testdata//api_management_api_test.pfx")
+      certificate                  = filebase64("../../testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
       default_ssl_binding          = true
       negotiate_client_certificate = false
@@ -1506,20 +1506,20 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api2.terraform.io"
-      certificate                  = filebase64("../../testdata//api_management_api2_test.pfx")
+      certificate                  = filebase64("../../testdata/api_management_api2_test.pfx")
       certificate_password         = "terraform"
       negotiate_client_certificate = true
     }
 
     portal {
       host_name            = "portal.terraform.io"
-      certificate          = filebase64("../../testdata//api_management_portal_test.pfx")
+      certificate          = filebase64("../../testdata/api_management_portal_test.pfx")
       certificate_password = "terraform"
     }
 
     developer_portal {
       host_name            = "developer-portal.terraform.io"
-      certificate          = filebase64("../../testdata//api_management_developer_portal_test.pfx")
+      certificate          = filebase64("../../testdata/api_management_developer_portal_test.pfx")
       certificate_password = "terraform"
     }
   }
@@ -1570,24 +1570,24 @@ resource "azurerm_api_management" "test" {
   }
 
   certificate {
-    encoded_certificate  = filebase64("../../testdata//api_management_api_test.pfx")
+    encoded_certificate  = filebase64("../../testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "CertificateAuthority"
   }
 
   certificate {
-    encoded_certificate  = filebase64("../../testdata//api_management_api_test.pfx")
+    encoded_certificate  = filebase64("../../testdata/api_management_api_test.pfx")
     certificate_password = "terraform"
     store_name           = "Root"
   }
 
   certificate {
-    encoded_certificate = filebase64("../../testdata//api_management_api_test.cer")
+    encoded_certificate = filebase64("../../testdata/api_management_api_test.cer")
     store_name          = "Root"
   }
 
   certificate {
-    encoded_certificate = filebase64("../../testdata//api_management_api_test.cer")
+    encoded_certificate = filebase64("../../testdata/api_management_api_test.cer")
     store_name          = "CertificateAuthority"
   }
 
@@ -1622,7 +1622,7 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api.terraform.io"
-      certificate                  = filebase64("../../testdata//api_management_api_test.pfx")
+      certificate                  = filebase64("../../testdata/api_management_api_test.pfx")
       certificate_password         = "terraform"
       default_ssl_binding          = true
       negotiate_client_certificate = false
@@ -1630,20 +1630,20 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api2.terraform.io"
-      certificate                  = filebase64("../../testdata//api_management_api2_test.pfx")
+      certificate                  = filebase64("../../testdata/api_management_api2_test.pfx")
       certificate_password         = "terraform"
       negotiate_client_certificate = true
     }
 
     portal {
       host_name            = "portal.terraform.io"
-      certificate          = filebase64("../../testdata//api_management_portal_test.pfx")
+      certificate          = filebase64("../../testdata/api_management_portal_test.pfx")
       certificate_password = "terraform"
     }
 
     developer_portal {
       host_name            = "developer-portal.terraform.io"
-      certificate          = filebase64("../../testdata//api_management_developer_portal_test.pfx")
+      certificate          = filebase64("../../testdata/api_management_developer_portal_test.pfx")
       certificate_password = "terraform"
     }
   }
