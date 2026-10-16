@@ -2798,57 +2798,11 @@ resource "azurerm_container_app_environment" "test" {
 }
 
 func (r ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  logs_destination           = "log-analytics"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  infrastructure_subnet_id   = azurerm_subnet.control.id
-
-  internal_load_balancer_enabled = true
-  zone_redundancy_enabled        = true
-  mutual_tls_enabled             = true
-
-  workload_profile {
-    maximum_count         = 3
-    minimum_count         = 0
-    name                  = "D4-01"
-    workload_profile_type = "D4"
-  }
-
-  tags = {
-    Foo    = "Bar"
-    secret = "sauce"
-  }
-}
-
-resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                       = "diagnostics"
-  target_resource_id         = azurerm_container_app_environment.test.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  enabled_log {
-    category_group = "allLogs"
-  }
-
-  enabled_metric {
-    category = "AllMetrics"
-  }
-}
-`, r.templateVNet(data), data.RandomInteger)
+	return r.containerAppEnvironmentComplete(data)
 }
 
 func (r ContainerAppResource) templateVNet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 
 %[1]s
 
@@ -2874,8 +2828,7 @@ resource "azurerm_subnet" "control" {
   }
 }
 
-
-`, r.template(data), data.RandomInteger)
+`, r.containerAppEnvironmentTemplate(data), data.RandomInteger)
 }
 
 func (r ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.TestData) string {
@@ -2996,7 +2949,7 @@ resource "azurerm_container_app_environment_storage" "test" {
 
 func (r ContainerAppResource) ingressTrafficValidation(data acceptance.TestData, trafficBlock string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
@@ -3018,7 +2971,7 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "http"
-	%s
+	%[3]s
   }
 }
 `, r.template(data), data.RandomInteger, trafficBlock)
