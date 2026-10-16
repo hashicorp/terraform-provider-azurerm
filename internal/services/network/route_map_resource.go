@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -223,6 +224,9 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+			defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+
 			id := virtualwans.NewRouteMapID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -266,6 +270,9 @@ func (r RouteMapResource) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+
+			locks.ByName(id.VirtualHubName, virtualHubResourceName)
+			defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
 
 			existing, err := client.RouteMapsGet(ctx, *id)
 			if err != nil {
@@ -342,6 +349,9 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByName(id.VirtualHubName, virtualHubResourceName)
+			defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
 
 			if err := client.RouteMapsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
