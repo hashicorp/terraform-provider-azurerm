@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package consumption
+package helpers
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenConsumptionBudgetTimePeriod(input *budgets.BudgetTimePeriod) []any {
+func FlattenConsumptionBudgetTimePeriod(input *budgets.BudgetTimePeriod) []any {
 	timePeriod := make([]any, 0)
 
 	if input == nil {
@@ -24,7 +24,7 @@ func flattenConsumptionBudgetTimePeriod(input *budgets.BudgetTimePeriod) []any {
 	})
 }
 
-func flattenConsumptionBudgetNotifications(input *map[string]budgets.Notification, scope string) []any {
+func FlattenConsumptionBudgetNotifications(input *map[string]budgets.Notification, scope string) []any {
 	if input == nil {
 		return []any{}
 	}
@@ -75,7 +75,7 @@ func flattenConsumptionBudgetNotifications(input *map[string]budgets.Notificatio
 	return notifications
 }
 
-func flattenConsumptionBudgetComparisonExpression(input *budgets.BudgetComparisonExpression) *map[string]any {
+func FlattenConsumptionBudgetComparisonExpression(input *budgets.BudgetComparisonExpression) *map[string]any {
 	consumptionBudgetComparisonExpression := make(map[string]any)
 
 	consumptionBudgetComparisonExpression["name"] = input.Name
@@ -85,7 +85,7 @@ func flattenConsumptionBudgetComparisonExpression(input *budgets.BudgetCompariso
 	return &consumptionBudgetComparisonExpression
 }
 
-func flattenConsumptionBudgetFilter(input *budgets.BudgetFilter) []any {
+func FlattenConsumptionBudgetFilter(input *budgets.BudgetFilter) []any {
 	filter := make([]any, 0)
 
 	if input == nil {
@@ -100,9 +100,9 @@ func flattenConsumptionBudgetFilter(input *budgets.BudgetFilter) []any {
 	if input.And != nil {
 		for _, v := range *input.And {
 			if v.Dimensions != nil {
-				dimensions = append(dimensions, flattenConsumptionBudgetComparisonExpression(v.Dimensions))
+				dimensions = append(dimensions, FlattenConsumptionBudgetComparisonExpression(v.Dimensions))
 			} else {
-				tags = append(tags, flattenConsumptionBudgetComparisonExpression(v.Tags))
+				tags = append(tags, FlattenConsumptionBudgetComparisonExpression(v.Tags))
 			}
 		}
 
@@ -115,11 +115,11 @@ func flattenConsumptionBudgetFilter(input *budgets.BudgetFilter) []any {
 		}
 	} else {
 		if input.Tags != nil {
-			filterBlock["tag"] = append(tags, flattenConsumptionBudgetComparisonExpression(input.Tags))
+			filterBlock["tag"] = append(tags, FlattenConsumptionBudgetComparisonExpression(input.Tags))
 		}
 
 		if input.Dimensions != nil {
-			filterBlock["dimension"] = append(dimensions, flattenConsumptionBudgetComparisonExpression(input.Dimensions))
+			filterBlock["dimension"] = append(dimensions, FlattenConsumptionBudgetComparisonExpression(input.Dimensions))
 		}
 	}
 

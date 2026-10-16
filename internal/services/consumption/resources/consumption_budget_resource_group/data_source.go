@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package consumption
+package consumption_budget_resource_group
 
 import (
 	"fmt"
@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmConsumptionBudgetResourceGroupDataSource() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: resourceArmConsumptionBudgetResourceGroupDataSourceRead,
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -241,9 +242,9 @@ func resourceArmConsumptionBudgetResourceGroupDataSourceRead(d *pluginsdk.Resour
 		if props := model.Properties; props != nil {
 			d.Set("amount", props.Amount)
 			d.Set("time_grain", string(props.TimeGrain))
-			d.Set("time_period", flattenConsumptionBudgetTimePeriod(&props.TimePeriod))
-			d.Set("notification", flattenConsumptionBudgetNotifications(props.Notifications, id.Scope))
-			d.Set("filter", flattenConsumptionBudgetFilter(props.Filter))
+			d.Set("time_period", helpers.FlattenConsumptionBudgetTimePeriod(&props.TimePeriod))
+			d.Set("notification", helpers.FlattenConsumptionBudgetNotifications(props.Notifications, id.Scope))
+			d.Set("filter", helpers.FlattenConsumptionBudgetFilter(props.Filter))
 		}
 	}
 

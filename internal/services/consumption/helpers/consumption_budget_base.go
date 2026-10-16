@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package consumption
+package helpers
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type consumptionBudgetBaseResource struct{}
+type ConsumptionBudgetBaseResource struct{}
 
 // Shared nested model structs for consumption budget resources
 
@@ -55,7 +55,7 @@ type ConsumptionBudgetNotificationModel struct {
 	ContactRoles  []string `tfschema:"contact_roles"`
 }
 
-func getDimensionNames() []string {
+func GetDimensionNames() []string {
 	return []string{
 		"ChargeType",
 		"Frequency",
@@ -84,7 +84,7 @@ func getDimensionNames() []string {
 	}
 }
 
-func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+func (br ConsumptionBudgetBaseResource) Arguments(fields map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	output := map[string]*pluginsdk.Schema{
 		"etag": { // TODO 6.0: this should probably be computed only?
 			Type:     pluginsdk.TypeString,
@@ -114,7 +114,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(getDimensionNames(), false),
+									ValidateFunc: validation.StringInSlice(GetDimensionNames(), false),
 								},
 								"operator": {
 									Type:     pluginsdk.TypeString,
@@ -269,11 +269,11 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 	return output
 }
 
-func (br consumptionBudgetBaseResource) attributes() map[string]*pluginsdk.Schema {
+func (br ConsumptionBudgetBaseResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (br consumptionBudgetBaseResource) deleteFunc() sdk.ResourceFunc {
+func (br ConsumptionBudgetBaseResource) DeleteFunc() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -292,7 +292,7 @@ func (br consumptionBudgetBaseResource) deleteFunc() sdk.ResourceFunc {
 	}
 }
 
-func (br consumptionBudgetBaseResource) importerFunc() sdk.ResourceRunFunc {
+func (br ConsumptionBudgetBaseResource) ImporterFunc() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		if _, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id()); err != nil {
 			return err
@@ -302,7 +302,7 @@ func (br consumptionBudgetBaseResource) importerFunc() sdk.ResourceRunFunc {
 	}
 }
 
-func expandConsumptionBudgetTimePeriodFromModel(input []ConsumptionBudgetTimePeriodModel) (*budgets.BudgetTimePeriod, error) {
+func ExpandConsumptionBudgetTimePeriodFromModel(input []ConsumptionBudgetTimePeriodModel) (*budgets.BudgetTimePeriod, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -325,7 +325,7 @@ func expandConsumptionBudgetTimePeriodFromModel(input []ConsumptionBudgetTimePer
 	return &timePeriod, nil
 }
 
-func flattenConsumptionBudgetTimePeriodToModel(input *budgets.BudgetTimePeriod) []ConsumptionBudgetTimePeriodModel {
+func FlattenConsumptionBudgetTimePeriodToModel(input *budgets.BudgetTimePeriod) []ConsumptionBudgetTimePeriodModel {
 	if input == nil {
 		return []ConsumptionBudgetTimePeriodModel{}
 	}
@@ -338,7 +338,7 @@ func flattenConsumptionBudgetTimePeriodToModel(input *budgets.BudgetTimePeriod) 
 	}
 }
 
-func expandConsumptionBudgetNotificationsFromModel(input []ConsumptionBudgetNotificationModel) *map[string]budgets.Notification {
+func ExpandConsumptionBudgetNotificationsFromModel(input []ConsumptionBudgetNotificationModel) *map[string]budgets.Notification {
 	if len(input) == 0 {
 		return nil
 	}
@@ -369,7 +369,7 @@ func expandConsumptionBudgetNotificationsFromModel(input []ConsumptionBudgetNoti
 	return &notifications
 }
 
-func flattenConsumptionBudgetNotificationsToModel(input *map[string]budgets.Notification) []ConsumptionBudgetNotificationModel {
+func FlattenConsumptionBudgetNotificationsToModel(input *map[string]budgets.Notification) []ConsumptionBudgetNotificationModel {
 	if input == nil {
 		return []ConsumptionBudgetNotificationModel{}
 	}
@@ -402,7 +402,7 @@ func flattenConsumptionBudgetNotificationsToModel(input *map[string]budgets.Noti
 	return result
 }
 
-func expandConsumptionBudgetFilterFromModel(input []ConsumptionBudgetFilterModel) *budgets.BudgetFilter {
+func ExpandConsumptionBudgetFilterFromModel(input []ConsumptionBudgetFilterModel) *budgets.BudgetFilter {
 	if len(input) == 0 {
 		return nil
 	}
@@ -457,7 +457,7 @@ func expandConsumptionBudgetFilterFromModel(input []ConsumptionBudgetFilterModel
 	return &filter
 }
 
-func flattenConsumptionBudgetFilterToModel(input *budgets.BudgetFilter) []ConsumptionBudgetFilterModel {
+func FlattenConsumptionBudgetFilterToModel(input *budgets.BudgetFilter) []ConsumptionBudgetFilterModel {
 	if input == nil {
 		return []ConsumptionBudgetFilterModel{}
 	}

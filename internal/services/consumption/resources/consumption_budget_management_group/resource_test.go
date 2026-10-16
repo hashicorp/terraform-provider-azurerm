@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package consumption_test
+package consumption_budget_management_group_test
 
 import (
 	"context"
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ConsumptionBudgetResourceGroupResource struct{}
+type ConsumptionBudgetManagementGroupResource struct{}
 
-func TestAccConsumptionBudgetResourceGroup_regressionTest(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
+func TestAccConsumptionBudgetManagementGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -29,9 +29,9 @@ func TestAccConsumptionBudgetResourceGroup_regressionTest(t *testing.T) {
 	}, "")
 }
 
-func TestAccConsumptionBudgetResourceGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
+func TestAccConsumptionBudgetManagementGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,9 +44,9 @@ func TestAccConsumptionBudgetResourceGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_basicUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
+func TestAccConsumptionBudgetManagementGroup_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,9 +66,9 @@ func TestAccConsumptionBudgetResourceGroup_basicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
+func TestAccConsumptionBudgetManagementGroup_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,14 +79,14 @@ func TestAccConsumptionBudgetResourceGroup_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_consumption_budget_resource_group"),
+			ExpectError: acceptance.RequiresImportError("azurerm_consumption_budget_management_group"),
 		},
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
+func TestAccConsumptionBudgetManagementGroup_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,13 +99,13 @@ func TestAccConsumptionBudgetResourceGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
+func TestAccConsumptionBudgetManagementGroup_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_management_group", "test")
+	r := ConsumptionBudgetManagementGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -121,7 +121,7 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	})
 }
 
-func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ConsumptionBudgetManagementGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := budgets.ParseScopedBudgetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -135,22 +135,21 @@ func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ConsumptionBudgetResourceGroupResource) basic(data acceptance.TestData) string {
+func (ConsumptionBudgetManagementGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
+data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+data "azurerm_management_group" "tenant_root" {
+  name = data.azurerm_client_config.current.tenant_id
 }
 
-resource "azurerm_consumption_budget_resource_group" "test" {
-  name              = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id = azurerm_resource_group.test.id
+resource "azurerm_consumption_budget_management_group" "test" {
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -163,7 +162,7 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     tag {
       name = "foo"
       values = [
-        "bar",
+        "bar"
       ]
     }
   }
@@ -179,27 +178,26 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
-func (ConsumptionBudgetResourceGroupResource) basicUpdate(data acceptance.TestData) string {
+func (ConsumptionBudgetManagementGroupResource) basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
+data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+data "azurerm_management_group" "tenant_root" {
+  name = data.azurerm_client_config.current.tenant_id
 }
 
-resource "azurerm_consumption_budget_resource_group" "test" {
-  name              = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id = azurerm_resource_group.test.id
+resource "azurerm_consumption_budget_management_group" "test" {
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
-  // Changed the amount from 1000 to 2000
+  // Changed the amount from 1000 to 3000
   amount     = 3000
   time_grain = "Monthly"
 
@@ -215,8 +213,8 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   notification {
     enabled        = true
     threshold      = 95.0
-    operator       = "GreaterThan"
     threshold_type = "Forecasted"
+    operator       = "GreaterThan"
 
     contact_emails = [
       "foo@example.com",
@@ -224,20 +222,20 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
-func (ConsumptionBudgetResourceGroupResource) requiresImport(data acceptance.TestData) string {
-	template := ConsumptionBudgetResourceGroupResource{}.basic(data)
+func (ConsumptionBudgetManagementGroupResource) requiresImport(data acceptance.TestData) string {
+	template := ConsumptionBudgetManagementGroupResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_consumption_budget_resource_group" "import" {
-  name              = azurerm_consumption_budget_resource_group.test.name
-  resource_group_id = azurerm_resource_group.test.id
+resource "azurerm_consumption_budget_management_group" "import" {
+  name                = azurerm_consumption_budget_management_group.test.name
+  management_group_id = azurerm_consumption_budget_management_group.test.management_group_id
 
-  amount     = azurerm_consumption_budget_resource_group.test.amount
-  time_grain = azurerm_consumption_budget_resource_group.test.time_grain
+  amount     = azurerm_consumption_budget_management_group.test.amount
+  time_grain = azurerm_consumption_budget_management_group.test.time_grain
 
   time_period {
     start_date = "%s"
@@ -257,13 +255,17 @@ resource "azurerm_consumption_budget_resource_group" "import" {
 `, template, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
-func (ConsumptionBudgetResourceGroupResource) complete(data acceptance.TestData) string {
+func (ConsumptionBudgetManagementGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
+data "azurerm_client_config" "current" {}
+
+data "azurerm_management_group" "tenant_root" {
+  name = data.azurerm_client_config.current.tenant_id
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -276,9 +278,9 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestAG"
 }
 
-resource "azurerm_consumption_budget_resource_group" "test" {
-  name              = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id = azurerm_resource_group.test.id
+resource "azurerm_consumption_budget_management_group" "test" {
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
   amount     = 1000
   time_grain = "Monthly"
@@ -313,29 +315,21 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 
   notification {
-    enabled        = true
-    threshold      = 90.0
-    operator       = "EqualTo"
-    threshold_type = "Forecasted"
+    enabled   = true
+    threshold = 90.0
+    operator  = "EqualTo"
 
     contact_emails = [
       "foo@example.com",
       "bar@example.com",
     ]
-
-    contact_groups = [
-      azurerm_monitor_action_group.test.id,
-    ]
-
-    contact_roles = [
-      "Owner",
-    ]
   }
 
   notification {
-    enabled   = false
-    threshold = 100.0
-    operator  = "GreaterThan"
+    enabled        = false
+    threshold      = 100.0
+    operator       = "GreaterThan"
+    threshold_type = "Forecasted"
 
     contact_emails = [
       "foo@example.com",
@@ -346,13 +340,17 @@ resource "azurerm_consumption_budget_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
-func (ConsumptionBudgetResourceGroupResource) completeUpdate(data acceptance.TestData) string {
+func (ConsumptionBudgetManagementGroupResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {}
+data "azurerm_client_config" "current" {}
+
+data "azurerm_management_group" "tenant_root" {
+  name = data.azurerm_client_config.current.tenant_id
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -365,13 +363,15 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestAG"
 }
 
-resource "azurerm_consumption_budget_resource_group" "test" {
-  name              = "acctestconsumptionbudgetresourcegroup-%d"
-  resource_group_id = azurerm_resource_group.test.id
+resource "azurerm_consumption_budget_management_group" "test" {
+  name                = "acctestconsumptionbudgetManagementGroup-%d"
+  management_group_id = data.azurerm_management_group.tenant_root.id
 
+  // Changed the amount from 1000 to 2000
   amount     = 2000
   time_grain = "Monthly"
 
+  // Removed end_date
   time_period {
     start_date = "%s"
   }
@@ -392,6 +392,7 @@ resource "azurerm_consumption_budget_resource_group" "test" {
       ]
     }
 
+    // Added tag: zip
     tag {
       name = "zip"
       values = [
@@ -399,6 +400,8 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "zop",
       ]
     }
+
+    // Removed not block 
   }
 
   notification {
@@ -408,28 +411,24 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     threshold_type = "Actual"
 
     contact_emails = [
+      // Added baz@example.com
       "baz@example.com",
       "foo@example.com",
       "bar@example.com",
     ]
-
-    contact_groups = [
-      azurerm_monitor_action_group.test.id,
-    ]
   }
 
   notification {
-    enabled   = true
-    threshold = 100.0
-    operator  = "GreaterThanOrEqualTo"
+    // Set enabled to true
+    enabled        = true
+    threshold      = 100.0
+    threshold_type = "Forecasted"
+    // Changed from EqualTo to GreaterThanOrEqualTo 
+    operator = "GreaterThanOrEqualTo"
 
     contact_emails = [
       "foo@example.com",
       "bar@example.com",
-    ]
-
-    contact_groups = [
-      azurerm_monitor_action_group.test.id,
     ]
   }
 
