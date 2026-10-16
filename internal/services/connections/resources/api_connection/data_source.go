@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package connections
+package api_connection
 
 import (
 	"context"
@@ -28,23 +28,23 @@ type ApiConnectionDataSourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type ApiConnectionDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ApiConnectionDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (r ApiConnectionDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_api_connection"
 }
 
-func (r ApiConnectionDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ApiConnectionDataSourceModel{}
 }
 
-func (r ApiConnectionDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return connections.ValidateConnectionID
 }
 
-func (r ApiConnectionDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -56,7 +56,7 @@ func (r ApiConnectionDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ApiConnectionDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -82,7 +82,7 @@ func (r ApiConnectionDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
