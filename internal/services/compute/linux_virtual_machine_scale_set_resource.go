@@ -378,8 +378,22 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = ExpandVirtualMachineScaleSetOsImageNotificationProfile(v.([]any))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]any))
+		terminateNotificationProfile = ExpandVirtualMachineScaleSetTerminateNotificationProfile(v.([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		virtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]any)
@@ -708,9 +722,22 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta a
 		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		osImageNotificationProfile = ExpandVirtualMachineScaleSetOsImageNotificationProfile(d.Get("os_image_notification").([]any))
+	}
+
 	if d.HasChange("termination_notification") {
-		notificationRaw := d.Get("termination_notification").([]any)
-		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+		terminateNotificationProfile = ExpandVirtualMachineScaleSetTerminateNotificationProfile(d.Get("termination_notification").([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		updateProps.VirtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
@@ -1011,7 +1038,11 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any
 				}
 
 				if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-					if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+					if err := d.Set("os_image_notification", FlattenVirtualMachineScaleSetOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+						return fmt.Errorf("setting `os_image_notification`: %+v", err)
+					}
+
+					if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 						return fmt.Errorf("setting `termination_notification`: %+v", err)
 					}
 				}
@@ -1409,6 +1440,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"scale_in": VirtualMachineScaleSetScaleInPolicySchema(),
 
 		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
+
+		"os_image_notification": VirtualMachineScaleSetOsImageNotificationSchema(),
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 

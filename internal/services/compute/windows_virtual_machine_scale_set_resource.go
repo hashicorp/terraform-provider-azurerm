@@ -382,8 +382,22 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = ExpandVirtualMachineScaleSetOsImageNotificationProfile(v.([]any))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]any))
+		terminateNotificationProfile = ExpandVirtualMachineScaleSetTerminateNotificationProfile(v.([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		virtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if v, ok := d.GetOk("user_data"); ok {
@@ -720,9 +734,22 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		osImageNotificationProfile = ExpandVirtualMachineScaleSetOsImageNotificationProfile(d.Get("os_image_notification").([]any))
+	}
+
 	if d.HasChange("termination_notification") {
-		notificationRaw := d.Get("termination_notification").([]any)
-		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+		terminateNotificationProfile = ExpandVirtualMachineScaleSetTerminateNotificationProfile(d.Get("termination_notification").([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		updateProps.VirtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
@@ -1050,7 +1077,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta a
 				}
 
 				if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-					if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+					if err := d.Set("os_image_notification", FlattenVirtualMachineScaleSetOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+						return fmt.Errorf("setting `os_image_notification`: %+v", err)
+					}
+
+					if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 						return fmt.Errorf("setting `termination_notification`: %+v", err)
 					}
 				}
@@ -1453,6 +1484,8 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Optional: true,
 			Default:  false,
 		},
+
+		"os_image_notification": VirtualMachineScaleSetOsImageNotificationSchema(),
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
