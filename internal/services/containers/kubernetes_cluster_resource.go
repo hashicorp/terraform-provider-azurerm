@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -3052,7 +3053,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 
 			d.Set("support_plan", pointer.From(props.SupportPlan))
 
-			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			stateRegistryID, _ := d.Get("bootstrap_profile.0.container_registry_id").(string)
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile, id.SubscriptionId, nodeResourceGroup, bootstrapProfileContainerRegistryIDConfigured(d.GetRawConfig(), stateRegistryID))
 			if err != nil {
 				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
 			}
@@ -3330,7 +3332,28 @@ func expandBootstrapProfile(rawBootstrapProfile []any) *managedclusters.ManagedC
 	}
 }
 
-func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) ([]any, error) {
+func bootstrapProfileContainerRegistryIDConfigured(rawConfig cty.Value, stateRegistryID string) bool {
+	if !rawConfig.IsKnown() || rawConfig.IsNull() {
+		return stateRegistryID != ""
+	}
+	rawBootstrapProfile, ok := rawConfig.AsValueMap()["bootstrap_profile"]
+	if !ok || rawBootstrapProfile.IsNull() {
+		return false
+	}
+	if !rawBootstrapProfile.IsKnown() {
+		return stateRegistryID != ""
+	}
+	if rawBootstrapProfile.LengthInt() == 0 {
+		return false
+	}
+	rawRegistryID := rawBootstrapProfile.AsValueSlice()[0].AsValueMap()["container_registry_id"]
+	if !rawRegistryID.IsKnown() {
+		return stateRegistryID != ""
+	}
+	return !rawRegistryID.IsNull()
+}
+
+func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile, nodeSubscriptionID, nodeResourceGroup string, configuredRegistryID bool) ([]any, error) {
 	if profile == nil || profile.ArtifactSource == nil {
 		return []any{}, nil
 	}
@@ -3341,7 +3364,10 @@ func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapPro
 		if err != nil {
 			return nil, err
 		}
-		containerRegistryID = id.ID()
+		// AKS-created registries live in the node resource group and are not configured by the user.
+		if configuredRegistryID || nodeResourceGroup == "" || !strings.EqualFold(id.SubscriptionId, nodeSubscriptionID) || !strings.EqualFold(id.ResourceGroupName, nodeResourceGroup) {
+			containerRegistryID = id.ID()
+		}
 	}
 	return []any{
 		map[string]any{
