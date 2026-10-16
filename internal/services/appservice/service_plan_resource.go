@@ -17,8 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -276,8 +278,10 @@ func (r ServicePlanResource) Delete() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.ServicePlanClient
 
-			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %v", id, err)
+			pollerType := custompollers.NewServicePlanDeletePoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
