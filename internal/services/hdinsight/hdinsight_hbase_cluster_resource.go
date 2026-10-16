@@ -237,11 +237,13 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta any) er
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]any))
 
 		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		params.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceId != nil {
+			if params.Identity == nil {
+				params.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
 			params.Identity.IdentityIds[*params.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
 				// intentionally empty
 			}
@@ -252,6 +254,18 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta any) er
 		params.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]any))
 		if err != nil {
 			return err
+		}
+		if params.Properties.DiskEncryptionProperties.MsiResourceId != nil {
+			if params.Identity == nil {
+				params.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
+
+			params.Identity.IdentityIds[*params.Properties.DiskEncryptionProperties.MsiResourceId] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
 		}
 	}
 
