@@ -89,6 +89,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - the API returns a default LTR policy during read/import even when this block is omitted.
 			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -122,8 +123,9 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 
 					// WeekOfYear - The week of year to take the yearly backup.
 					"week_of_year": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						// NOTE: O+C - the API defaults weekOfYear to 1 when yearly retention is configured without an explicit week.
 						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
