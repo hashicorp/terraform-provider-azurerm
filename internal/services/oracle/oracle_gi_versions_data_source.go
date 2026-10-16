@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exadbvmclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/giversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,10 +22,11 @@ import (
 type GiVersionsDataSource struct{}
 
 type GiVersionsModel struct {
-	Versions []string `tfschema:"versions"`
-	Location string   `tfschema:"location"`
-	Shape    string   `tfschema:"shape"`
-	Zone     string   `tfschema:"zone"`
+	Versions       []string `tfschema:"versions"`
+	Location       string   `tfschema:"location"`
+	Shape          string   `tfschema:"shape"`
+	ShapeAttribute string   `tfschema:"shape_attribute"`
+	Zone           string   `tfschema:"zone"`
 }
 
 func (d GiVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -35,6 +37,12 @@ func (d GiVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(giversions.PossibleValuesForSystemShapes(), false),
 			Description:  "Filter the versions by system shape. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.",
+		},
+		"shape_attribute": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(exadbvmclusters.PossibleValuesForShapeAttribute(), false),
+			Description:  "Filters the result for the given Shape Attribute. Possible values are 'BLOCK_STORAGE' or 'SMART_STORAGE'.",
 		},
 		"zone": {
 			Type:        pluginsdk.TypeString,
