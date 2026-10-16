@@ -18,6 +18,16 @@ import (
 
 type ApiManagementDiagnosticResource struct{}
 
+func TestAccApiManagementDiagnostic_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
+	r := ApiManagementDiagnosticResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
 	r := ApiManagementDiagnosticResource{}

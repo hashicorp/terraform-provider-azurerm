@@ -18,6 +18,16 @@ import (
 
 type ApiManagementStandaloneGatewayResource struct{}
 
+func TestAccApiManagementStandaloneGateway_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_standalone_gateway", "test")
+	r := ApiManagementStandaloneGatewayResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementStandaloneGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_standalone_gateway", "test")
 	r := ApiManagementStandaloneGatewayResource{}

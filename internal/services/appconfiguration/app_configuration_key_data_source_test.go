@@ -14,6 +14,16 @@ import (
 
 type AppConfigurationKeyDataSource struct{}
 
+func TestAccAppConfigurationKeyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration_key", "test")
+	r := AppConfigurationKeyDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAppConfigurationKeyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration_key", "test")
 	d := AppConfigurationKeyDataSource{}
