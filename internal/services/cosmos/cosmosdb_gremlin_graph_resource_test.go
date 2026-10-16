@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2026-03-15/openapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -214,12 +214,12 @@ func TestAccCosmosDbGremlinGraph_analyticalStorageTtl(t *testing.T) {
 }
 
 func (t CosmosGremlinGraphResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := cosmosdb.ParseGraphID(state.ID)
+	id, err := openapis.ParseGraphID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CosmosDBClient.GremlinResourcesGetGremlinGraph(ctx, *id)
+	resp, err := clients.Cosmos.OpenapisClient.GremlinResourcesGetGremlinGraph(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
