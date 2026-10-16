@@ -21,8 +21,8 @@ import (
 type CdnEndpointResource struct{}
 
 func TestAccCdnEndpoint_regressionTest(t *testing.T) {
-	if cdn.IsCdnDeprecatedForCreation() {
-		t.Skip(cdn.CreateDeprecationMessage)
+	if helpers.IsCdnDeprecatedForCreation() {
+		t.Skip(helpers.CreateDeprecationMessage)
 	}
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
