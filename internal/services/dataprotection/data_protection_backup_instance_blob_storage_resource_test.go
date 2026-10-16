@@ -143,17 +143,7 @@ resource "azurerm_storage_container" "another" {
   container_access_type = "blob"
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  soft_delete         = "Off"
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[4]s
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
@@ -193,7 +183,7 @@ resource "azurerm_data_protection_backup_policy_blob_storage" "hybrid" {
     }
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+	`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), DataProtectionBackupVaultResource{}.template(data, "Off"))
 }
 
 func (r DataProtectionBackupInstanceBlobStorageResource) basic(data acceptance.TestData) string {

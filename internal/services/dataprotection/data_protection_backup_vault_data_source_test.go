@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,18 +23,57 @@ type DataProtectionBackupVaultDataSource struct{}
 func TestAccDataProtectionBackupVaultDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultDataSource{}
+	storageSettingsCheck := acceptance.ComposeTestCheckFunc(
+		check.That(data.ResourceName).Key("storage_settings.#").HasValue("1"),
+		check.That(data.ResourceName).Key("storage_settings.0.datastore_type").HasValue("VaultStore"),
+		check.That(data.ResourceName).Key("storage_settings.0.redundancy").HasValue("LocallyRedundant"),
+	)
+	if !features.SixPointOh() {
+		storageSettingsCheck = acceptance.ComposeTestCheckFunc(
+			check.That(data.ResourceName).Key("datastore_type").HasValue("VaultStore"),
+			check.That(data.ResourceName).Key("redundancy").HasValue("LocallyRedundant"),
+		)
+	}
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("datastore_type").HasValue("VaultStore"),
-				check.That(data.ResourceName).Key("redundancy").HasValue("LocallyRedundant"),
+				storageSettingsCheck,
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
+			),
+		},
+	})
+}
+
+func TestAccDataProtectionBackupVaultDataSource_archiveStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultDataSource{}
+	storageSettingsCheck := acceptance.ComposeTestCheckFunc(
+		check.That(data.ResourceName).Key("storage_settings.#").HasValue("2"),
+		check.That(data.ResourceName).Key("storage_settings.0.datastore_type").HasValue("ArchiveStore"),
+		check.That(data.ResourceName).Key("storage_settings.0.redundancy").HasValue("GeoRedundant"),
+		check.That(data.ResourceName).Key("storage_settings.1.datastore_type").HasValue("VaultStore"),
+		check.That(data.ResourceName).Key("storage_settings.1.redundancy").HasValue("GeoRedundant"),
+	)
+	if !features.SixPointOh() {
+		storageSettingsCheck = acceptance.ComposeTestCheckFunc(
+			check.That(data.ResourceName).Key("datastore_type").HasValue("ArchiveStore"),
+			check.That(data.ResourceName).Key("redundancy").HasValue("GeoRedundant"),
+		)
+	}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.archiveStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				storageSettingsCheck,
 			),
 		},
 	})
@@ -56,33 +96,22 @@ func (r DataProtectionBackupVaultDataSource) Exists(ctx context.Context, client 
 
 func (r DataProtectionBackupVaultDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+%s
 
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-bv-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = {
-    ENV = "Test"
-  }
-}
 data "azurerm_data_protection_backup_vault" "test" {
   name                = azurerm_data_protection_backup_vault.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, DataProtectionBackupVaultResource{}.complete(data))
+}
+
+func (DataProtectionBackupVaultDataSource) archiveStore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_data_protection_backup_vault" "test" {
+  name                = azurerm_data_protection_backup_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, DataProtectionBackupVaultResource{}.datastoreType(data, "ArchiveStore", "GeoRedundant", 14))
 }

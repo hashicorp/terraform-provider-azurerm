@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,7 +23,7 @@ import (
 )
 
 func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceDataProtectionBackupVaultRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -43,14 +44,21 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"datastore_type": {
-				Type:     pluginsdk.TypeString,
+			"storage_settings": {
+				Type:     pluginsdk.TypeList,
 				Computed: true,
-			},
-
-			"redundancy": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"datastore_type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"redundancy": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -58,6 +66,20 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.SixPointOh() {
+		delete(resource.Schema, "storage_settings")
+		resource.Schema["datastore_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+		resource.Schema["redundancy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) error {
@@ -86,12 +108,6 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
-		props := model.Properties
-		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", pointer.FromEnum(props.StorageSettings[0].DatastoreType))
-			d.Set("redundancy", pointer.FromEnum(props.StorageSettings[0].Type))
-		}
-
 		identity, err := dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)
 		if err != nil {
 			return err
@@ -100,6 +116,17 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any
 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
+		}
+
+		if !features.SixPointOh() {
+			datastoreType, redundancy := flattenBackupVaultStorageSettingsLegacy(model.Properties.StorageSettings, "")
+			d.Set("datastore_type", datastoreType)
+			d.Set("redundancy", redundancy)
+			return nil
+		}
+
+		if err := d.Set("storage_settings", flattenBackupVaultStorageSettings(model.Properties.StorageSettings)); err != nil {
+			return fmt.Errorf("setting `storage_settings`: %+v", err)
 		}
 	}
 	return nil

@@ -76,24 +76,7 @@ func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) Exists(ctx c
 }
 
 func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dbv-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	return DataProtectionBackupVaultResource{}.basic(data)
 }
 
 func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) basic(data acceptance.TestData) string {
