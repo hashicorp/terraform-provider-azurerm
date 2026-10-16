@@ -1234,7 +1234,7 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 
 		restriction.Action = pointer.To(v.Action)
 
-		restriction.Headers = expandIpRestrictionHeaders(v.Headers)
+		restriction.Headers = ExpandIpRestrictionHeaders(v.Headers)
 
 		expanded = append(expanded, restriction)
 	}
@@ -1242,7 +1242,7 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 	return &expanded, nil
 }
 
-func expandIpRestrictionHeaders(headers []IpRestrictionHeaders) *map[string][]string {
+func ExpandIpRestrictionHeaders(headers []IpRestrictionHeaders) *map[string][]string {
 	result := make(map[string][]string)
 	if len(headers) == 0 {
 		return nil
@@ -1563,7 +1563,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]webapps.IPSecurityRestriction) 
 			ipRestriction.Action = *v.Action
 		}
 
-		ipRestriction.Headers = flattenIpRestrictionHeaders(pointer.From(v.Headers))
+		ipRestriction.Headers = FlattenIpRestrictionHeaders(pointer.From(v.Headers))
 		if v.Description != nil {
 			ipRestriction.Description = *v.Description
 		}
@@ -1574,7 +1574,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]webapps.IPSecurityRestriction) 
 	return ipRestrictions
 }
 
-func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHeaders {
+func FlattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHeaders {
 	if len(headers) == 0 {
 		return []IpRestrictionHeaders{}
 	}

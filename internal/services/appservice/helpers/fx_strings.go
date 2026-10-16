@@ -27,12 +27,12 @@ const (
 
 type FxStringPrefix string
 
-var urlSchemes = []string{
+var UrlSchemes = []string{
 	"https://",
 	"http://",
 }
 
-func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
+func DecodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
 	if len(parts) != 2 {
@@ -210,7 +210,7 @@ func DecodeFunctionAppDockerFxString(input string, partial ApplicationStackDocke
 	}
 
 	dockerUrl := partial.RegistryURL
-	for _, prefix := range urlSchemes {
+	for _, prefix := range UrlSchemes {
 		if after, ok := strings.CutPrefix(dockerUrl, prefix); ok {
 			dockerUrl = after
 			continue
@@ -321,7 +321,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 func EncodeDockerFxString(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 
-	registryUrl = trimURLScheme(strings.TrimSuffix(registryUrl, "/"))
+	registryUrl = TrimURLScheme(strings.TrimSuffix(registryUrl, "/"))
 
 	return fmt.Sprintf(template, registryUrl, image)
 }
@@ -330,7 +330,7 @@ func EncodeDockerFxStringWindows(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 	dockerHubTemplate := "DOCKER|%s"
 
-	registryUrl = trimURLScheme(registryUrl)
+	registryUrl = TrimURLScheme(registryUrl)
 
 	// Windows App Services fail to auth if the index portion of the image ref is `index.docker.io` so it must not be included.
 	if strings.EqualFold(registryUrl, "index.docker.io") {
