@@ -3915,7 +3915,7 @@ func TestAccKubernetesClusterNodePool_messageOfTheDay(t *testing.T) {
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
-			Config: r.messageOfTheDay(data, "Welcome to our Kubernetes node!"),
+			Config: r.messageOfTheDay(data, "Welcome to our Kubernetes node!", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("message_of_the_day").HasValue("Welcome to our Kubernetes node!"),
@@ -3923,7 +3923,15 @@ func TestAccKubernetesClusterNodePool_messageOfTheDay(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.messageOfTheDay(data, ""),
+			Config: r.messageOfTheDay(data, "", true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionNoop),
+				},
+			},
+		},
+		{
+			Config: r.messageOfTheDay(data, "", false),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
@@ -3936,7 +3944,7 @@ func TestAccKubernetesClusterNodePool_messageOfTheDay(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.messageOfTheDay(data, "Welcome back to our Kubernetes node!"),
+			Config: r.messageOfTheDay(data, "Welcome back to our Kubernetes node!", false),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
@@ -4244,7 +4252,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (KubernetesClusterNodePoolResource) messageOfTheDay(data acceptance.TestData, message string) string {
+func (KubernetesClusterNodePoolResource) messageOfTheDay(data acceptance.TestData, message string, omitMessage bool) string {
+	messageArgument := fmt.Sprintf("  message_of_the_day    = %q", message)
+	if omitMessage {
+		messageArgument = ""
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4284,12 +4296,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
-  message_of_the_day    = %[3]q
+%[3]s
   upgrade_settings {
     max_surge = "10%%"
   }
 }
-`, data.Locations.Primary, data.RandomInteger, message)
+`, data.Locations.Primary, data.RandomInteger, messageArgument)
 }
 
 func (r KubernetesClusterNodePoolResource) messageOfTheDayWindows(data acceptance.TestData) string {

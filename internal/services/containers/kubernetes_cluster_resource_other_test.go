@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -1255,7 +1257,7 @@ func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!"),
+			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue("Welcome to the initial AKS cluster!"),
@@ -1263,7 +1265,15 @@ func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.defaultNodePoolMessageOfTheDay(data, "Updated message for the AKS cluster!"),
+			Config: r.defaultNodePoolMessageOfTheDay(data, "", true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionNoop),
+				},
+			},
+		},
+		{
+			Config: r.defaultNodePoolMessageOfTheDay(data, "Updated message for the AKS cluster!", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue("Updated message for the AKS cluster!"),
@@ -1271,7 +1281,7 @@ func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.defaultNodePoolMessageOfTheDay(data, ""),
+			Config: r.defaultNodePoolMessageOfTheDay(data, "", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue(""),
@@ -1279,7 +1289,7 @@ func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!"),
+			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.message_of_the_day").HasValue("Welcome to the initial AKS cluster!"),
@@ -4090,7 +4100,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, enabled, meta.CurrentKubernetesVersion)
 }
 
-func (KubernetesClusterResource) defaultNodePoolMessageOfTheDay(data acceptance.TestData, message string) string {
+func (KubernetesClusterResource) defaultNodePoolMessageOfTheDay(data acceptance.TestData, message string, omitMessage bool) string {
+	messageArgument := fmt.Sprintf("    message_of_the_day          = %q", message)
+	if omitMessage {
+		messageArgument = ""
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4108,10 +4122,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[1]s"
 
   default_node_pool {
-    name                        = "default"
-    node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
-    message_of_the_day          = %[3]q
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+%[3]s
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
@@ -4127,5 +4141,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomString, data.Locations.Primary, message)
+  `, data.RandomString, data.Locations.Primary, messageArgument)
 }

@@ -409,7 +409,7 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
-* `message_of_the_day` - (Optional) A plain-text string to write to `/etc/motd` on Linux nodes. The provider base64-encodes this value before sending it to the API. It cannot be specified for Windows nodes. Shell commands are printed as text rather than executed. `temporary_name_for_rotation` must be specified when changing this property.
+* `message_of_the_day` - (Optional) A plain-text string to write to `/etc/motd` on Linux nodes. The provider base64-encodes this value before sending it to the API. It cannot be specified for Windows nodes. Shell commands are printed as text rather than executed. Omitting this argument retains an existing message; set it to an empty string to clear it. `temporary_name_for_rotation` must be specified when changing this property.
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as defined below.
 

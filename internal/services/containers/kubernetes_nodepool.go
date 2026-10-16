@@ -124,6 +124,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"message_of_the_day": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// NOTE: O+C - preserves an existing message when the setting is omitted.
+						Computed: true,
 					},
 
 					"min_count": {
