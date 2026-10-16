@@ -109,6 +109,14 @@ The following attributes are exported:
 
 * `secondary_readonly_mongodb_connection_string` - The secondary readonly Mongodb connection string for the CosmosDB account.
 
+* `primary_table_connection_string` - The primary Table connection string for the CosmosDB account.
+
+* `secondary_table_connection_string` - The secondary Table connection string for the CosmosDB account.
+
+* `primary_readonly_table_connection_string` - The primary readonly Table connection string for the CosmosDB account.
+
+* `secondary_readonly_table_connection_string` - The secondary readonly Table connection string for the CosmosDB account.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
