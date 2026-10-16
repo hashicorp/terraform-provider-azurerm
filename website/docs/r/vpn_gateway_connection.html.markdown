@@ -139,6 +139,10 @@ A `vpn_link` block supports the following:
 
 * `shared_key` - (Optional) SharedKey for this VPN Link Connection.
 
+* `shared_key_wo` - (Optional, Write-Only) SharedKey for this VPN Link Connection.
+
+* `shared_key_wo_version` - (Optional) An integer value used to trigger an update for `shared_key_wo`. This property should be incremented when updating `shared_key_wo`.
+
 * `local_azure_ip_address_enabled` - (Optional) Whether to use local Azure IP to initiate connection? Defaults to `false`.
 
 * `policy_based_traffic_selector_enabled` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
