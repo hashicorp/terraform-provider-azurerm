@@ -1022,6 +1022,10 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 			}
 			d.Set("platform_fault_domain", platformFaultDomain)
 
+			// defaulted to false to avoid missing attribute during import
+			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
+
 			if profile := props.OsProfile; profile != nil {
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
@@ -1037,7 +1041,6 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 					assessmentMode := string(virtualmachines.WindowsPatchAssessmentModeImageDefault)
-					bypassPlatformSafetyChecksOnUserScheduleEnabled := false
 					rebootSetting := ""
 					if patchSettings := config.PatchSettings; patchSettings != nil {
 						d.Set("patch_mode", pointer.From(patchSettings.PatchMode))
