@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -21,16 +23,25 @@ import (
 type ContainerAppEnvironmentStorageResource struct{}
 
 type ContainerAppEnvironmentStorageModel struct {
-	Name                      string `tfschema:"name"`
-	ContainerAppEnvironmentId string `tfschema:"container_app_environment_id"`
-	AccountName               string `tfschema:"account_name"`
-	AccessKey                 string `tfschema:"access_key"`
-	ShareName                 string `tfschema:"share_name"`
-	AccessMode                string `tfschema:"access_mode"`
-	NfsServer                 string `tfschema:"nfs_server_url"`
+	Name                      string                                         `tfschema:"name"`
+	ContainerAppEnvironmentId string                                         `tfschema:"container_app_environment_id"`
+	AccountName               string                                         `tfschema:"account_name"`
+	AccessKey                 string                                         `tfschema:"access_key"`
+	AccessKeyVaultSecret      []ContainerAppEnvironmentStorageKeyVaultSecret `tfschema:"access_key_vault_secret"`
+	ShareName                 string                                         `tfschema:"share_name"`
+	AccessMode                string                                         `tfschema:"access_mode"`
+	NfsServer                 string                                         `tfschema:"nfs_server_url"`
 }
 
-var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
+type ContainerAppEnvironmentStorageKeyVaultSecret struct {
+	Identity         string `tfschema:"identity"`
+	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
+}
+
+var (
+	_ sdk.ResourceWithUpdate        = ContainerAppEnvironmentStorageResource{}
+	_ sdk.ResourceWithCustomizeDiff = ContainerAppEnvironmentStorageResource{}
+)
 
 func (r ContainerAppEnvironmentStorageResource) ModelObject() any {
 	return &ContainerAppEnvironmentStorageModel{}
@@ -67,18 +78,47 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Optional:      true,
 			ForceNew:      true,
 			ValidateFunc:  storageValidate.StorageAccountName,
-			RequiredWith:  []string{"access_key"},
 			ConflictsWith: []string{"nfs_server_url"},
 			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
 		"access_key": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"account_name"},
-			Description:  "The Storage Account Access Key.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Sensitive:     true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			RequiredWith:  []string{"account_name"},
+			ConflictsWith: []string{"access_key_vault_secret"},
+			Description:   "The Storage Account Access Key.",
+		},
+
+		"access_key_vault_secret": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			MaxItems:      1,
+			RequiredWith:  []string{"account_name"},
+			ConflictsWith: []string{"access_key"},
+			Description:   "A Key Vault Secret reference containing the Storage Account Access Key.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"identity": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.Any(
+							commonids.ValidateUserAssignedIdentityID,
+							validation.StringInSlice([]string{"System"}, false),
+						),
+						Description: "The identity used to access the Key Vault. Possible values are `System` or the ID of a User Assigned Identity.",
+					},
+
+					"key_vault_secret_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+						Description:  "The ID of the Key Vault Secret containing the Storage Account Access Key. Can be either a versioned or versionless ID.",
+					},
+				},
+			},
 		},
 
 		"share_name": {
@@ -156,10 +196,14 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 				managedEnvironmentStorage.Properties = &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
-						AccountKey:  pointer.To(storage.AccessKey),
 						AccountName: pointer.To(storage.AccountName),
 						ShareName:   pointer.To(storage.ShareName),
 					},
+				}
+				if len(storage.AccessKeyVaultSecret) > 0 {
+					managedEnvironmentStorage.Properties.AzureFile.AccountKeyVaultProperties = expandContainerAppEnvironmentStorageKeyVaultSecret(storage.AccessKeyVaultSecret)
+				} else {
+					managedEnvironmentStorage.Properties.AzureFile.AccountKey = pointer.To(storage.AccessKey)
 				}
 			}
 
@@ -206,6 +250,7 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 							state.AccessMode = string(*azureFile.AccessMode)
 						}
 						state.ShareName = pointer.From(azureFile.ShareName)
+						state.AccessKeyVaultSecret = flattenContainerAppEnvironmentStorageKeyVaultSecret(azureFile.AccountKeyVaultProperties)
 					} else if nfsAzureFile := props.NfsAzureFile; nfsAzureFile != nil {
 						state.NfsServer = pointer.From(nfsAzureFile.Server)
 						if nfsAzureFile.AccessMode != nil {
@@ -265,18 +310,78 @@ func (r ContainerAppEnvironmentStorageResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s for update: %+v", *id, err)
 			}
 
-			if existing.Model.Properties == nil || existing.Model.Properties.AzureFile == nil {
+			if existing.Model == nil || existing.Model.Properties == nil || existing.Model.Properties.AzureFile == nil {
 				return fmt.Errorf("could not update %s: existing resource is missing `AzureFile` properties", *id)
 			}
 
-			// This *must* be sent, and is currently the only updatable property on the resource.
-			existing.Model.Properties.AzureFile.AccountKey = pointer.To(metadata.ResourceData.Get("access_key").(string))
+			// One of the account key or the Key Vault reference *must* be sent, these are currently the only updatable properties on the resource.
+			azureFile := existing.Model.Properties.AzureFile
+			if len(storage.AccessKeyVaultSecret) > 0 {
+				azureFile.AccountKey = nil
+				azureFile.AccountKeyVaultProperties = expandContainerAppEnvironmentStorageKeyVaultSecret(storage.AccessKeyVaultSecret)
+			} else {
+				azureFile.AccountKey = pointer.To(storage.AccessKey)
+				azureFile.AccountKeyVaultProperties = nil
+			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
+		},
+	}
+}
+
+func (r ContainerAppEnvironmentStorageResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			rawConfig := metadata.ResourceDiff.GetRawConfig()
+			if rawConfig.IsNull() || !rawConfig.IsKnown() {
+				return nil
+			}
+
+			config := rawConfig.AsValueMap()
+			if config["account_name"].IsNull() {
+				return nil
+			}
+
+			accessKeySet := !config["access_key"].IsNull()
+			keyVaultSecretSet := !config["access_key_vault_secret"].IsNull() && (!config["access_key_vault_secret"].IsKnown() || config["access_key_vault_secret"].LengthInt() > 0)
+			if !accessKeySet && !keyVaultSecretSet {
+				return fmt.Errorf("one of `access_key` or `access_key_vault_secret` must be specified when `account_name` is set")
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandContainerAppEnvironmentStorageKeyVaultSecret(input []ContainerAppEnvironmentStorageKeyVaultSecret) *managedenvironmentsstorages.SecretKeyVaultProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &managedenvironmentsstorages.SecretKeyVaultProperties{
+		Identity:    pointer.To(input[0].Identity),
+		KeyVaultURL: pointer.To(input[0].KeyVaultSecretId),
+	}
+}
+
+func flattenContainerAppEnvironmentStorageKeyVaultSecret(input *managedenvironmentsstorages.SecretKeyVaultProperties) []ContainerAppEnvironmentStorageKeyVaultSecret {
+	if input == nil || input.KeyVaultURL == nil {
+		return []ContainerAppEnvironmentStorageKeyVaultSecret{}
+	}
+
+	return []ContainerAppEnvironmentStorageKeyVaultSecret{
+		{
+			Identity:         pointer.From(input.Identity),
+			KeyVaultSecretId: pointer.From(input.KeyVaultURL),
 		},
 	}
 }
