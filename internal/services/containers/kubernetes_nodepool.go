@@ -29,6 +29,29 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// Optional+Computed treats an explicit empty string as unset, so only suppress changes when the argument is absent.
+func suppressOmittedKubernetesClusterMessageOfTheDay(_, _, _ string, d *pluginsdk.ResourceData) bool {
+	raw := d.GetRawConfig()
+	if !raw.IsKnown() || raw.IsNull() {
+		return false
+	}
+	pool, ok := raw.AsValueMap()["default_node_pool"]
+	if !ok || !pool.IsKnown() || pool.IsNull() || pool.LengthInt() == 0 {
+		return false
+	}
+	message, ok := pool.AsValueSlice()[0].AsValueMap()["message_of_the_day"]
+	return !ok || message.IsNull()
+}
+
+func suppressOmittedKubernetesClusterNodePoolMessageOfTheDay(_, _, _ string, d *pluginsdk.ResourceData) bool {
+	raw := d.GetRawConfig()
+	if !raw.IsKnown() || raw.IsNull() {
+		return false
+	}
+	message, ok := raw.AsValueMap()["message_of_the_day"]
+	return !ok || message.IsNull()
+}
+
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -122,10 +145,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
 					"message_of_the_day": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						// NOTE: O+C - preserves an existing message when the setting is omitted.
-						Computed: true,
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: suppressOmittedKubernetesClusterMessageOfTheDay,
 					},
 
 					"min_count": {

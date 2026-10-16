@@ -227,11 +227,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 
 		// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
 		"message_of_the_day": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C - preserves an existing message when the setting is omitted.
-			Computed: true,
-			ForceNew: true,
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: suppressOmittedKubernetesClusterNodePoolMessageOfTheDay,
+			ForceNew:         true,
 		},
 
 		"mode": {
