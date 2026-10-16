@@ -144,6 +144,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected key_vault.recover_soft_deleted_hsm_keys to be true")
 	}
 
+	if features.KeyVault.SetValueWoVersionOnImport {
+		t.Errorf("expected key_vault.set_value_wo_version_on_import to be false")
+	}
+
 	if features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
 		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be false")
 	}
@@ -268,6 +272,8 @@ func defaultFeaturesList() types.List {
 		"recover_soft_deleted_key_vaults":                         basetypes.NewBoolNull(),
 		"recover_soft_deleted_keys":                               basetypes.NewBoolNull(),
 		"recover_soft_deleted_secrets":                            basetypes.NewBoolNull(),
+		"recover_soft_deleted_hardware_security_module_keys":      basetypes.NewBoolNull(),
+		"set_value_wo_version_on_import":                          basetypes.NewBoolNull(),
 	})
 	keyVaultList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes), []attr.Value{keyVault})
 

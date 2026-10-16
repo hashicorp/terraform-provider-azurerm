@@ -66,6 +66,7 @@ type KeyVaultFeatures struct {
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
 	RecoverSoftDeletedHSMKeys        bool
+	SetValueWoVersionOnImport        bool
 }
 
 type TemplateDeploymentFeatures struct {
