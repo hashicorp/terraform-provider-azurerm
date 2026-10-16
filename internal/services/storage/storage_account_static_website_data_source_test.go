@@ -28,6 +28,7 @@ func TestAccStorageAccountStaticWebsiteDataSource_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccStorageAccountStaticWebsiteDataSource_staticNotEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_static_website", "test")
 	r := StorageAccountStaticWebsiteDataSource{}
