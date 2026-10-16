@@ -222,6 +222,14 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					}, false),
 				},
 
+				"tier": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// NOTE: O+C Azure sets a baseline tier based on the disk size when not specified
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"write_accelerator_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -301,6 +309,56 @@ func expandVirtualMachineOSDisk(input []any, osType virtualmachines.OperatingSys
 	return &disk, nil
 }
 
+func validateVirtualMachineOSDiskTier(input []any) error {
+	raw := input[0].(map[string]any)
+
+	if len(raw["diff_disk_settings"].([]any)) > 0 {
+		return fmt.Errorf("`tier` cannot be specified when `diff_disk_settings` is set")
+	}
+
+	switch raw["storage_account_type"].(string) {
+	case string(virtualmachines.StorageAccountTypesPremiumLRS), string(virtualmachines.StorageAccountTypesPremiumZRS):
+	case "":
+		// an existing disk is being used via `os_managed_disk_id`
+	default:
+		return fmt.Errorf("`tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`")
+	}
+
+	return nil
+}
+
+// updateVirtualMachineOSDiskTier sets the performance tier on the OS Disk itself since it can't be done via the VM API
+func updateVirtualMachineOSDiskTier(ctx context.Context, client *virtualmachines.VirtualMachinesClient, disksClient *disks.DisksClient, id virtualmachines.VirtualMachineId, tier string) error {
+	resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	osDiskId := ""
+	if model := resp.Model; model != nil && model.Properties != nil && model.Properties.StorageProfile != nil {
+		if osDisk := model.Properties.StorageProfile.OsDisk; osDisk != nil && osDisk.ManagedDisk != nil {
+			osDiskId = pointer.From(osDisk.ManagedDisk.Id)
+		}
+	}
+
+	diskId, err := commonids.ParseManagedDiskIDInsensitively(osDiskId)
+	if err != nil {
+		return err
+	}
+
+	update := disks.DiskUpdate{
+		Properties: &disks.DiskUpdateProperties{
+			Tier: pointer.To(tier),
+		},
+	}
+
+	if err := disksClient.UpdateThenPoll(ctx, *diskId, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", diskId, err)
+	}
+
+	return nil
+}
+
 func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksClient, input *virtualmachines.OSDisk) ([]any, error) {
 	if input == nil {
 		return []any{}, nil
@@ -331,6 +389,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
 	osDiskId := ""
+	tier := ""
 
 	if input.ManagedDisk != nil {
 		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
@@ -368,6 +427,11 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 				if disk.Model.Properties.Encryption != nil && disk.Model.Properties.Encryption.DiskEncryptionSetId != nil {
 					diskEncryptionSetId = *disk.Model.Properties.Encryption.DiskEncryptionSetId
 				}
+
+				// same goes for tier
+				if disk.Model.Properties.Tier != nil {
+					tier = *disk.Model.Properties.Tier
+				}
 			}
 
 			osDiskId = id.ID()
@@ -393,6 +457,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
 			"security_encryption_type":         securityEncryptionType,
+			"tier":                             tier,
 			"write_accelerator_enabled":        writeAcceleratorEnabled,
 		},
 	}, nil

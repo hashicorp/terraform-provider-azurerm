@@ -569,6 +569,13 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
 
+	osDiskTier := d.Get("os_disk.0.tier").(string)
+	if osDiskTier != "" {
+		if err := validateVirtualMachineOSDiskTier(osDiskRaw); err != nil {
+			return err
+		}
+	}
+
 	securityEncryptionType := ""
 
 	if !osDiskIsImported {
@@ -857,6 +864,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) erro
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	if osDiskTier != "" {
+		if err := updateVirtualMachineOSDiskTier(ctx, client, meta.(*clients.Client).Compute.DisksClient, id, osDiskTier); err != nil {
+			return fmt.Errorf("setting the performance tier of the OS Disk for Linux %s: %+v", id, err)
+		}
 	}
 
 	return resourceLinuxVirtualMachineRead(d, meta)
@@ -1365,6 +1378,12 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
+		if d.HasChange("os_disk.0.tier") {
+			if err := validateVirtualMachineOSDiskTier(osDiskRaw); err != nil {
+				return err
+			}
+		}
+
 		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) != "" {
 			osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 		}
@@ -1691,6 +1710,12 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		}
 
 		log.Printf("[DEBUG] Resized OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.DiskName, id.ResourceGroupName, newSize)
+	}
+
+	if d.HasChange("os_disk.0.tier") {
+		if err := updateVirtualMachineOSDiskTier(ctx, client, meta.(*clients.Client).Compute.DisksClient, *id, d.Get("os_disk.0.tier").(string)); err != nil {
+			return fmt.Errorf("updating the performance tier of the OS Disk for Linux %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("os_disk.0.disk_encryption_set_id") {
