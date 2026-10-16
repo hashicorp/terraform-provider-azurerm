@@ -3,7 +3,9 @@
 
 package dataprotection
 
-import "github.com/hashicorp/go-azure-helpers/lang/pointer"
+import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+)
 
 func expandTags(input map[string]any) *map[string]string {
 	output := make(map[string]string)
