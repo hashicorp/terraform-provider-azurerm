@@ -73,11 +73,6 @@ func (r Resource) mapFleetMemberToKubernetesFleetMemberResourceSchema(input flee
 	output.KubernetesClusterId = input.Properties.ClusterResourceId
 }
 
-func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberProperties(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberProperties) {
-	output.Group = new(input.Group)
-	output.ClusterResourceId = input.KubernetesClusterId
-}
-
 func (r Resource) mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberUpdate) {
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberUpdateProperties{}
