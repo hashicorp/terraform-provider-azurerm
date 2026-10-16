@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -126,6 +127,33 @@ func TestAccApiManagementApiDiagnostic_dataMasking(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApiDiagnostic_azuremonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azuremonitor(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApiDiagnostic_azuremonitorWithOperationNameFormat(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.azuremonitorWithOperationNameFormat(data),
+			ExpectError: regexp.MustCompile("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`"),
+		},
 	})
 }
 
@@ -435,4 +463,114 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (ApiManagementApiDiagnosticResource) templateAzureMonitor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku = "PerGB2018"
+
+  internet_ingestion_enabled = false
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1" # Consumption_0 does not support Azure Monitor
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "acctest-DS-%[1]d"
+  target_resource_id         = azurerm_api_management.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    enabled  = false
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestAMA-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  revision            = "1"
+  display_name        = "Test API"
+  path                = "test"
+  protocols           = ["https"]
+
+  import {
+    content_format = "swagger-link-json"
+    content_value  = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/refs/heads/main/internal/services/apimanagement/testdata/api_management_api_swagger.json"
+  }
+}
+
+resource "terraform_data" "logger_waiter" {
+  triggers_replace = [
+    # The azuremonitor logger is automatically created after the diagnostic setting is created
+    azurerm_monitor_diagnostic_setting.test.id,
+  ]
+
+  provisioner "local-exec" {
+    command = <<-EOF
+    while [ $(az rest --method get --url 'https://management.azure.com${azurerm_api_management.test.id}/loggers?api-version=2024-05-01' --query count) -eq 0 ]; do
+      echo Waiting for the azuremonitor logger to be created...
+      sleep 15
+    done
+    EOF
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ApiManagementApiDiagnosticResource) azuremonitor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_diagnostic" "test" {
+  identifier               = "azuremonitor"
+  resource_group_name      = azurerm_resource_group.test.name
+  api_management_name      = azurerm_api_management.test.name
+  api_name                 = azurerm_api_management_api.test.name
+  api_management_logger_id = "${azurerm_api_management.test.id}/loggers/azuremonitor"
+
+  # Wait until the azuremonitor logger is created
+  depends_on = [terraform_data.logger_waiter]
+}
+`, r.templateAzureMonitor(data))
+}
+
+func (r ApiManagementApiDiagnosticResource) azuremonitorWithOperationNameFormat(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_diagnostic" "test" {
+  identifier               = "azuremonitor"
+  resource_group_name      = azurerm_resource_group.test.name
+  api_management_name      = azurerm_api_management.test.name
+  api_name                 = azurerm_api_management_api.test.name
+  api_management_logger_id = "${azurerm_api_management.test.id}/loggers/azuremonitor"
+  operation_name_format    = "Name"
+}
+`, r.templateAzureMonitor(data))
 }
