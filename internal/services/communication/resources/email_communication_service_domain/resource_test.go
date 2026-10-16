@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package communication_test
+package email_communication_service_domain_test
 
 import (
 	"context"

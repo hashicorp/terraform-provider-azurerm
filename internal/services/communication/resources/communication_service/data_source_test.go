@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package communication_test
+package communication_service_test
 
 import (
 	"fmt"

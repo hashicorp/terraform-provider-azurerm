@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package communication
+package communication_service
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.DataSource = CommunicationServiceDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type CommunicationServiceDataSource struct{}
+type DataSource struct{}
 
 type CommunicationServiceDataSourceModel struct {
 	Name                      string            `tfschema:"name"`
@@ -35,7 +35,7 @@ type CommunicationServiceDataSourceModel struct {
 	ImmutableResourceId       string            `tfschema:"immutable_resource_id"`
 }
 
-func (CommunicationServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -47,7 +47,7 @@ func (CommunicationServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_location": {
 			Type:     pluginsdk.TypeString,
@@ -91,15 +91,15 @@ func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (CommunicationServiceDataSource) ModelObject() any {
+func (DataSource) ModelObject() any {
 	return &CommunicationServiceDataSourceModel{}
 }
 
-func (CommunicationServiceDataSource) ResourceType() string {
+func (DataSource) ResourceType() string {
 	return "azurerm_communication_service"
 }
 
-func (CommunicationServiceDataSource) Read() sdk.ResourceFunc {
+func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
