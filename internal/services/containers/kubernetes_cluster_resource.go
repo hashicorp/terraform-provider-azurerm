@@ -1367,6 +1367,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_resource_group_restriction_level": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C - preserves an existing restriction when the setting is omitted.
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForRestrictionLevel(), false),
+			},
+
 			"current_kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1912,6 +1920,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta any) error 
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("node_resource_group_restriction_level"); ok {
+		parameters.Properties.NodeResourceGroupProfile = &managedclusters.ManagedClusterNodeResourceGroupProfile{
+			RestrictionLevel: pointer.ToEnum[managedclusters.RestrictionLevel](v.(string)),
+		}
+	}
+
 	if d.Get("ai_toolchain_operator_enabled").(bool) {
 		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
 			Enabled: pointer.To(true),
@@ -2360,6 +2374,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		updateCluster = true
 		windowsProfileRaw := d.Get("windows_profile").([]any)
 		existing.Model.Properties.WindowsProfile = expandKubernetesClusterWindowsProfile(windowsProfileRaw)
+	}
+
+	if d.HasChange("node_resource_group_restriction_level") {
+		updateCluster = true
+		if existing.Model.Properties.NodeResourceGroupProfile == nil {
+			existing.Model.Properties.NodeResourceGroupProfile = &managedclusters.ManagedClusterNodeResourceGroupProfile{}
+		}
+		if v, ok := d.GetOk("node_resource_group_restriction_level"); ok {
+			existing.Model.Properties.NodeResourceGroupProfile.RestrictionLevel = pointer.ToEnum[managedclusters.RestrictionLevel](v.(string))
+		}
 	}
 
 	if d.HasChange("identity") {
@@ -2839,6 +2863,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 
 			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
+
+			restrictionLevel := string(managedclusters.RestrictionLevelUnrestricted)
+			if props.NodeResourceGroupProfile != nil && props.NodeResourceGroupProfile.RestrictionLevel != nil {
+				restrictionLevel = string(*props.NodeResourceGroupProfile.RestrictionLevel)
+			}
+			d.Set("node_resource_group_restriction_level", restrictionLevel)
 
 			upgradeChannel := ""
 			nodeOSUpgradeChannel := ""
