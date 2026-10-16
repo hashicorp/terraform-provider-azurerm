@@ -3,8 +3,6 @@
 
 package cognitive_deployment
 
-
-
 type cognitiveDeploymentModel struct {
 	Name                     string                 `tfschema:"name"`
 	CognitiveAccountId       string                 `tfschema:"cognitive_account_id"`
