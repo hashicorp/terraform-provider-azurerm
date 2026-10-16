@@ -3,28 +3,44 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_operation_tag"
 description: |-
-  Manages a API Management API Operation Tag.
+  Manages an API Management API Operation Tag.
 ---
 
 # azurerm_api_management_api_operation_tag
 
-Manages a API Management API Operation Tag.
+Manages the Assignment of an API Management Tag to an Operation.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_api" "example" {
-  name                = "search-api"
-  api_management_name = "search-api-management"
-  resource_group_name = "search-service"
-  revision            = "2"
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_resource_group" "example" {
+  name = "example-resources"
+}
+
+data "azurerm_api_management" "example" {
+  name                = "example-apim"
+  resource_group_name = data.azurerm_resource_group.example.name
+}
+
+resource "azurerm_api_management_api" "example" {
+  name                = "example-api"
+  resource_group_name = data.azurerm_resource_group.example.name
+  api_management_name = data.azurerm_api_management.example.name
+  revision            = "1"
+  display_name        = "Example API"
+  path                = "example"
+  protocols           = ["https"]
 }
 
 resource "azurerm_api_management_api_operation" "example" {
   operation_id        = "user-delete"
-  api_name            = data.azurerm_api_management_api.example.name
-  api_management_name = data.azurerm_api_management_api.example.api_management_name
-  resource_group_name = data.azurerm_api_management_api.example.resource_group_name
+  api_name            = azurerm_api_management_api.example.name
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_resource_group.example.name
   display_name        = "Delete User Operation"
   method              = "DELETE"
   url_template        = "/users/{id}/delete"
@@ -41,10 +57,14 @@ resource "azurerm_api_management_api_operation" "example" {
   }
 }
 
+resource "azurerm_api_management_tag" "example" {
+  api_management_id = data.azurerm_api_management.example.id
+  name              = "example-tag"
+}
+
 resource "azurerm_api_management_api_operation_tag" "example" {
-  name             = "example-Tag"
+  name             = azurerm_api_management_tag.example.name
   api_operation_id = azurerm_api_management_api_operation.example.id
-  display_name     = "example-Tag"
 }
 ```
 
@@ -54,11 +74,7 @@ The following arguments are supported:
 
 * `api_operation_id` - (Required) The ID of the API Management API Operation. Changing this forces a new API Management API Operation Tag to be created.
 
-* `name` - (Required) The name which should be used for this API Management API Operation Tag. Changing this forces a new API Management API Operation Tag to be created. The name must be unique in the API Management Service.
-
----
-
-* `display_name` - (Required) The display name of the API Management API Operation Tag.
+* `name` - (Required) The name of an existing API Management Tag to assign to the operation. Changing this forces a new API Management API Operation Tag to be created.
 
 ## Attributes Reference
 
