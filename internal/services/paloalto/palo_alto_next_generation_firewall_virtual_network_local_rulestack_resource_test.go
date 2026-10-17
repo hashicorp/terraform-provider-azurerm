@@ -180,12 +180,23 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                 = "acctest-ngfwvn-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
   marketplace_offer_id = "pan_swfw_cloud_ngfw"
   plan_id              = "panw-cngfw-payg"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
@@ -242,12 +253,23 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                 = "acctest-ngfwvn-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
   marketplace_offer_id = "pan_swfw_cloud_ngfw"
   plan_id              = "panw-cngfw-payg"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
