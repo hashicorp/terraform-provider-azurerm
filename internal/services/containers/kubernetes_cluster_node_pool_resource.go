@@ -5,6 +5,7 @@ package containers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -90,6 +91,28 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			}),
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta any) bool {
 				return old != "" && new == ""
+			}),
+			// Azure rejects moving an existing pool into or out of `Gateway` mode:
+			// "Changing property 'agentPoolProfile.mode' from 'Gateway' to 'User' is not allowed"
+			pluginsdk.ForceNewIfChange("mode", func(ctx context.Context, old, new, meta any) bool {
+				gateway := string(agentpools.AgentPoolModeGateway)
+				return strings.EqualFold(old.(string), gateway) || strings.EqualFold(new.(string), gateway)
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway.
+				// It's Optional+Computed, so dropping it from the config leaves the previous
+				// value in the plan - consult the raw config to see whether it was really set.
+				rawConfig := d.GetRawConfig()
+				if rawConfig.IsNull() || !rawConfig.IsKnown() {
+					return nil
+				}
+				if v, ok := rawConfig.AsValueMap()["gateway_public_ip_prefix_size"]; ok && !v.IsNull() {
+					if !strings.EqualFold(d.Get("mode").(string), string(agentpools.AgentPoolModeGateway)) {
+						return errors.New("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
+					}
+				}
+
+				return nil
 			}),
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 				priority := d.Get("priority").(string)
@@ -205,6 +228,14 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 		},
 
+		"gateway_public_ip_prefix_size": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C Azure sets a default value if not specified by the user
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(28, 31),
+		},
+
 		"kubelet_disk_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -225,13 +256,10 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(agentpools.AgentPoolModeUser),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.AgentPoolModeSystem),
-				string(agentpools.AgentPoolModeUser),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(agentpools.AgentPoolModeUser),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForAgentPoolMode(), false),
 		},
 
 		"min_count": {
@@ -541,6 +569,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		}
 	}
 
+	profile.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
+
 	if osSku := d.Get("os_sku").(string); osSku != "" {
 		profile.OsSKU = pointer.ToEnum[agentpools.OSSKU](osSku)
 	}
@@ -774,6 +804,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 
 	if d.HasChange("kubelet_disk_type") {
 		props.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string))
+	}
+
+	if d.HasChange("gateway_public_ip_prefix_size") {
+		props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
 	}
 
 	if d.HasChange("linux_os_config") {
@@ -1083,6 +1117,14 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 
 		if v := props.GpuProfile; v != nil {
 			d.Set("gpu_driver", pointer.FromEnum(v.Driver))
+		}
+
+		gatewayPublicIPPrefixSize := 0
+		if props.GatewayProfile != nil {
+			gatewayPublicIPPrefixSize = int(pointer.From(props.GatewayProfile.PublicIPPrefixSize))
+		}
+		if err := d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize); err != nil {
+			return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
 		}
 
 		if props.CreationData != nil {
@@ -1862,4 +1904,14 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
+}
+
+func expandAgentPoolGatewayProfile(publicIPPrefixSize int) *agentpools.AgentPoolGatewayProfile {
+	if publicIPPrefixSize == 0 {
+		return nil
+	}
+
+	return &agentpools.AgentPoolGatewayProfile{
+		PublicIPPrefixSize: pointer.To(int64(publicIPPrefixSize)),
+	}
 }
