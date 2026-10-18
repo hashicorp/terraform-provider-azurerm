@@ -308,6 +308,32 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			if metadata.ResourceData.HasChange("configuration_settings") {
+				previous, _ := metadata.ResourceData.GetChange("configuration_settings")
+				if kubernetesClusterExtensionSettingsRemoved(previous.(map[string]interface{}), model.ConfigurationSettings) {
+					existing, err := client.Get(ctx, *id)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", *id, err)
+					}
+					if existing.Model == nil {
+						return fmt.Errorf("retrieving %s: missing extension", *id)
+					}
+
+					previousProtected, _ := metadata.ResourceData.GetChange("configuration_protected_settings")
+					properties, err := expandKubernetesClusterExtensionFullUpdate(*existing.Model, model.ConfigurationSettings, model.ConfigurationProtectedSettings, previousProtected.(map[string]interface{}))
+					if err != nil {
+						return err
+					}
+
+					// PATCH merges the map, so omitting a key does not remove it. PUT
+					// replaces it while retaining the existing extension's lifecycle.
+					if err := client.CreateThenPoll(ctx, *id, properties); err != nil {
+						return fmt.Errorf("updating %s: %+v", *id, err)
+					}
+					return nil
+				}
+			}
+
 			properties := &extensions.PatchExtension{
 				Properties: &extensions.PatchExtensionProperties{},
 			}
