@@ -25,6 +25,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTestsForPullRequest(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
@@ -35,7 +36,6 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
 
             features {
                 Golang()
-                BuildCacheFeature()
             }
 
             params {
@@ -49,6 +49,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 BuildStartTime()
 
                 text("SERVICES", "portal")
+                text("env.SCHEDULE_MATCHES", "true")
             }
         }
     }
