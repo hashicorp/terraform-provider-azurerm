@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
+	sdkclient "github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -85,6 +86,7 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 					t.Errorf("unexpected request target")
 				}
 				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set(sdkclient.SkipPollingDelayHeader, "true")
 				switch req.Method {
 				case http.MethodGet:
 				case http.MethodPut, http.MethodPatch:
