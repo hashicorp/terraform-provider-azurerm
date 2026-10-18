@@ -158,7 +158,10 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		if props := model.Properties; props != nil {
 			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 			// as such there is no way to set `xml_link` and we'll let Terraform handle it
-			d.Set("xml_content", html.UnescapeString(props.Value))
+			policyContent := html.UnescapeString(props.Value)
+			if currentContent := d.Get("xml_content").(string); !XmlWithDotNetInterpolationsDiffSuppress("xml_content", currentContent, policyContent, d) {
+				d.Set("xml_content", policyContent)
+			}
 		}
 	}
 

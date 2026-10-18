@@ -27,9 +27,16 @@ func TestAccApiManagementWorkspacePolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.basicPolicyXml()+"\n"),
 			),
 		},
-		data.ImportStep(),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.basicPolicyXml()),
+		},
 	})
 }
 
@@ -71,9 +78,16 @@ func TestAccApiManagementWorkspacePolicy_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.basicPolicyXml()+"\n"),
 			),
 		},
-		data.ImportStep(),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.basicPolicyXml()),
+		},
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -110,14 +124,10 @@ resource "azurerm_api_management_workspace_policy" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
 
   xml_content = <<XML
-<policies>
-  <inbound>
-    <find-and-replace from="xyz" to="abc" />
-  </inbound>
-</policies>
+%s
 XML
 }
-`, r.template(data))
+`, r.template(data), r.basicPolicyXml())
 }
 
 func (r ApiManagementWorkspacePolicyTestResource) complete(data acceptance.TestData) string {
@@ -173,4 +183,12 @@ resource "azurerm_api_management_workspace" "test" {
   description       = "Test workspace for policy"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ApiManagementWorkspacePolicyTestResource) basicPolicyXml() string {
+	return `<policies>
+  <inbound>
+    <find-and-replace from="xyz" to="abc" />
+  </inbound>
+</policies>`
 }

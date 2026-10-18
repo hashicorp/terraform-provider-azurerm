@@ -73,7 +73,13 @@ func TestAccApiManagementAPIPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		r.importStep(data, r.customPolicyXml()),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
+		},
 	})
 }
 
@@ -88,7 +94,13 @@ func TestAccApiManagementAPIPolicy_customPolicy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		r.importStep(data, r.customPolicyXml()),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
+		},
 	})
 }
 
@@ -114,7 +126,13 @@ func TestAccApiManagementAPIPolicy_rawXmlUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("xml_content").HasValue(string(policy)),
 			),
 		},
-		r.importStep(data, string(policy)),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(string(policy)),
+		},
 		{
 			Config: r.rawXml(data, "api_management_api_policy_raw_updated.xml"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -122,7 +140,13 @@ func TestAccApiManagementAPIPolicy_rawXmlUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("xml_content").HasValue(string(updatedPolicy)),
 			),
 		},
-		r.importStep(data, string(updatedPolicy)),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(string(updatedPolicy)),
+		},
 		{
 			Config: r.rawXml(data, "api_management_api_policy_raw.xml"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -130,25 +154,29 @@ func TestAccApiManagementAPIPolicy_rawXmlUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("xml_content").HasValue(string(policy)),
 			),
 		},
-		r.importStep(data, string(policy)),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(string(policy)),
+		},
 	})
 }
 
-func (ApiManagementApiPolicyResource) importStep(data acceptance.TestData, policyContent string) acceptance.TestStep {
-	step := data.ImportStep("xml_content", "xml_link")
-	step.ImportStateCheck = func(states []*pluginsdk.InstanceState) error {
+func checkImportedPolicyContent(expected string) func([]*pluginsdk.InstanceState) error {
+	return func(states []*pluginsdk.InstanceState) error {
 		if len(states) != 1 {
 			return fmt.Errorf("expected one imported policy, got %d", len(states))
 		}
 
 		importedContent := states[0].Attributes["xml_content"]
-		if !apimanagement.XmlWithDotNetInterpolationsDiffSuppress("xml_content", policyContent, importedContent, nil) {
-			return fmt.Errorf("imported xml_content differs from the expected policy: expected %q, got %q", policyContent, importedContent)
+		if !apimanagement.XmlWithDotNetInterpolationsDiffSuppress("xml_content", expected, importedContent, nil) {
+			return fmt.Errorf("imported xml_content differs from the expected policy: expected %q, got %q", expected, importedContent)
 		}
 
 		return nil
 	}
-	return step
 }
 
 func (ApiManagementApiPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

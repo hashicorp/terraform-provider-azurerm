@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -64,17 +65,20 @@ func TestAccApiManagementAPIOperationPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("xml_link"),
 		{
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.customPolicyXml()+"\n"),
 			),
 		},
 		{
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"xml_link"},
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
 		},
 	})
 }
@@ -83,14 +87,26 @@ func TestAccApiManagementAPIOperationPolicy_rawXml(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
 	r := ApiManagementApiOperationPolicyResource{}
 
+	policy, err := os.ReadFile("testdata/api_management_api_operation_policy.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.rawXml(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(string(policy)),
 			),
 		},
-		data.ImportStep(),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(string(policy)),
+		},
 	})
 }
 
@@ -147,16 +163,11 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   operation_id        = azurerm_api_management_api_operation.test.operation_id
 
   xml_content = <<XML
-<policies>
-  <inbound>
-    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
-    <find-and-replace from="xyz" to="abc" />
-  </inbound>
-</policies>
+%s
 XML
 
 }
-`, ApiManagementApiOperationResource{}.basic(data))
+`, ApiManagementApiOperationResource{}.basic(data), r.customPolicyXml())
 }
 
 func (r ApiManagementApiOperationPolicyResource) rawXml(data acceptance.TestData) string {
@@ -172,4 +183,13 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   xml_content = file("testdata/api_management_api_operation_policy.xml")
 }
 `, ApiManagementApiOperationResource{}.basic(data))
+}
+
+func (ApiManagementApiOperationPolicyResource) customPolicyXml() string {
+	return `<policies>
+  <inbound>
+    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
+    <find-and-replace from="xyz" to="abc" />
+  </inbound>
+</policies>`
 }
