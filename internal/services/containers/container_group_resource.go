@@ -1729,10 +1729,10 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 }
 
 func flattenConfigMap(input *containerinstance.ConfigMap) map[string]any {
-	if input == nil || input.KeyValuePairs == nil {
-		return nil
-	}
 	out := map[string]any{}
+	if input == nil || input.KeyValuePairs == nil {
+		return out
+	}
 	for k, v := range *input.KeyValuePairs {
 		out[k] = v
 	}
