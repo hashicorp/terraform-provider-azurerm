@@ -110,7 +110,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	if o.Features.Storage.DataPlaneAuthAnyScopeEnabled {
-		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/authorize-access-azure-active-directory#microsoft-authentication-library-msal
+		// See: https://learn.microsoft.com/azure/storage/blobs/authorize-access-azure-active-directory#microsoft-authentication-library-msal
 		client.aadAuthResourceIdentifier = "https://storage.azure.com"
 	}
 
