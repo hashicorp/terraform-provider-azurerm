@@ -310,7 +310,7 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("configuration_settings") {
 				previous, _ := metadata.ResourceData.GetChange("configuration_settings")
-				if kubernetesClusterExtensionSettingsRemoved(previous.(map[string]interface{}), model.ConfigurationSettings) {
+				if kubernetesClusterExtensionSettingsRemoved(previous.(map[string]any), model.ConfigurationSettings) {
 					existing, err := client.Get(ctx, *id)
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -320,7 +320,7 @@ func (r KubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 					}
 
 					previousProtected, _ := metadata.ResourceData.GetChange("configuration_protected_settings")
-					properties, err := expandKubernetesClusterExtensionFullUpdate(*existing.Model, model.ConfigurationSettings, model.ConfigurationProtectedSettings, previousProtected.(map[string]interface{}))
+					properties, err := expandKubernetesClusterExtensionFullUpdate(*existing.Model, model.ConfigurationSettings, model.ConfigurationProtectedSettings, previousProtected.(map[string]any))
 					if err != nil {
 						return err
 					}

@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 	sdkclient "github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -27,24 +28,24 @@ import (
 func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 	cases := []struct {
 		name                string
-		previous            map[string]interface{}
+		previous            map[string]any
 		settings            map[string]string
 		protected           map[string]string
-		previousProtected   map[string]interface{}
+		previousProtected   map[string]any
 		advertisedProtected map[string]string
 		omitProtectedMap    bool
 		method              string
 		errorContains       string
 	}{
-		{name: "remove one key", previous: map[string]interface{}{"keep": "old", "remove": "true"}, settings: map[string]string{"keep": "new"}, method: http.MethodPut},
-		{name: "remove last key", previous: map[string]interface{}{"remove": "true"}, method: http.MethodPut},
-		{name: "change value uses patch", previous: map[string]interface{}{"keep": "old"}, settings: map[string]string{"keep": "new"}, method: http.MethodPatch},
-		{name: "add key uses patch", previous: map[string]interface{}{}, settings: map[string]string{"add": "true"}, method: http.MethodPatch},
-		{name: "preserve protected value from state", previous: map[string]interface{}{"remove": "true"}, protected: map[string]string{"protected": "fixture-value"}, previousProtected: map[string]interface{}{"protected": "fixture-value"}, advertisedProtected: map[string]string{"protected": ""}, method: http.MethodPut},
-		{name: "rotate protected value with key removal", previous: map[string]interface{}{"remove": "true"}, protected: map[string]string{"protected": "new-fixture-value"}, previousProtected: map[string]interface{}{"protected": "old-fixture-value"}, advertisedProtected: map[string]string{"protected": ""}, method: http.MethodPut},
-		{name: "supply previously unmanaged protected value", previous: map[string]interface{}{"remove": "true"}, protected: map[string]string{"protected": "fixture-value"}, advertisedProtected: map[string]string{"protected": ""}, method: http.MethodPut},
-		{name: "reject missing protected map", previous: map[string]interface{}{"remove": "true"}, omitProtectedMap: true, errorContains: "cannot be verified"},
-		{name: "reject unknown protected value", previous: map[string]interface{}{"remove": "true"}, advertisedProtected: map[string]string{"unmanaged": ""}, errorContains: "not available in Terraform state"},
+		{name: "remove one key", previous: map[string]any{"keep": "old", "remove": "true"}, settings: map[string]string{"keep": "new"}, method: http.MethodPut},
+		{name: "remove last key", previous: map[string]any{"remove": "true"}, method: http.MethodPut},
+		{name: "change value uses patch", previous: map[string]any{"keep": "old"}, settings: map[string]string{"keep": "new"}, method: http.MethodPatch},
+		{name: "add key uses patch", previous: map[string]any{}, settings: map[string]string{"add": "true"}, method: http.MethodPatch},
+		{name: "preserve protected value from state", previous: map[string]any{"remove": "true"}, protected: map[string]string{"protected": "fixture-value"}, previousProtected: map[string]any{"protected": "fixture-value"}, advertisedProtected: map[string]string{"protected": ""}, method: http.MethodPut},
+		{name: "rotate protected value with key removal", previous: map[string]any{"remove": "true"}, protected: map[string]string{"protected": "new-fixture-value"}, previousProtected: map[string]any{"protected": "old-fixture-value"}, advertisedProtected: map[string]string{"protected": ""}, method: http.MethodPut},
+		{name: "supply previously unmanaged protected value", previous: map[string]any{"remove": "true"}, protected: map[string]string{"protected": "fixture-value"}, advertisedProtected: map[string]string{"protected": ""}, method: http.MethodPut},
+		{name: "reject missing protected map", previous: map[string]any{"remove": "true"}, omitProtectedMap: true, errorContains: "cannot be verified"},
+		{name: "reject unknown protected value", previous: map[string]any{"remove": "true"}, advertisedProtected: map[string]string{"unmanaged": ""}, errorContains: "not available in Terraform state"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -59,23 +60,23 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 				advertised = map[string]string{}
 			}
 			writes := []string{}
-			payload := map[string]interface{}{}
+			payload := map[string]any{}
 			var mutex sync.Mutex
-			response := func() map[string]interface{} {
-				result := map[string]interface{}{
+			response := func() map[string]any {
+				result := map[string]any{
 					"id": id.ID(), "name": "test", "type": "Microsoft.KubernetesConfiguration/extensions",
-					"systemData": map[string]interface{}{"createdBy": "not-a-writable-field"},
-					"identity":   map[string]interface{}{"type": "SystemAssigned", "principalId": "generated", "tenantId": "generated"},
-					"plan":       map[string]interface{}{"name": "plan", "product": "product", "publisher": "publisher"},
-					"properties": map[string]interface{}{
-						"extensionType": "Microsoft.ArgoCD", "autoUpgradeMinorVersion": false, "releaseTrain": "Stable", "version": "1.0.19", "currentVersion": "1.0.19", "scope": map[string]interface{}{"cluster": map[string]interface{}{"releaseNamespace": "argocd"}},
+					"systemData": map[string]any{"createdBy": "not-a-writable-field"},
+					"identity":   map[string]any{"type": "SystemAssigned", "principalId": "generated", "tenantId": "generated"},
+					"plan":       map[string]any{"name": "plan", "product": "product", "publisher": "publisher"},
+					"properties": map[string]any{
+						"extensionType": "Microsoft.ArgoCD", "autoUpgradeMinorVersion": false, "releaseTrain": "Stable", "version": "1.0.19", "currentVersion": "1.0.19", "scope": map[string]any{"cluster": map[string]any{"releaseNamespace": "argocd"}},
 						"configurationSettings": current, "configurationProtectedSettings": advertised,
 						"provisioningState": "Succeeded", "packageUri": "not-a-writable-field", "customLocationSettings": map[string]string{"generated": "true"}, "isSystemExtension": false,
-						"aksAssignedIdentity": map[string]interface{}{"type": "SystemAssigned", "principalId": "generated", "tenantId": "generated"},
+						"aksAssignedIdentity": map[string]any{"type": "SystemAssigned", "principalId": "generated", "tenantId": "generated"},
 					},
 				}
 				if tc.omitProtectedMap {
-					delete(result["properties"].(map[string]interface{}), "configurationProtectedSettings")
+					delete(result["properties"].(map[string]any), "configurationProtectedSettings")
 				}
 				return result
 			}
@@ -94,11 +95,11 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						t.Errorf("decoding request: %v", err)
 					}
-					props := payload["properties"].(map[string]interface{})
+					props := payload["properties"].(map[string]any)
 					if req.Method == http.MethodPut {
 						current = map[string]string{}
 					}
-					if m, ok := props["configurationSettings"].(map[string]interface{}); ok {
+					if m, ok := props["configurationSettings"].(map[string]any); ok {
 						for k, v := range m {
 							current[k] = v.(string)
 						}
@@ -142,7 +143,7 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 			}
 			metadata.ResourceData.SetId(id.ID())
 			previousState := metadata.ResourceData.State()
-			desired := terraform.NewResourceConfigRaw(map[string]interface{}{
+			desired := terraform.NewResourceConfigRaw(map[string]any{
 				"name": "test", "cluster_id": clusterID, "extension_type": "Microsoft.ArgoCD", "version": "1.0.19", "release_namespace": "argocd",
 				"configuration_settings": stringMapForExtensionTest(settings), "configuration_protected_settings": stringMapForExtensionTest(protected),
 			})
@@ -181,7 +182,7 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 			if metadata.ResourceData.Id() != id.ID() {
 				t.Error("resource ID changed")
 			}
-			props := payload["properties"].(map[string]interface{})
+			props := payload["properties"].(map[string]any)
 			if tc.method == http.MethodPut {
 				if !reflect.DeepEqual(props["configurationProtectedSettings"], stringMapForExtensionTest(protected)) {
 					t.Error("protected values were not preserved from configuration/state")
@@ -189,13 +190,13 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 				if props["extensionType"] != "Microsoft.ArgoCD" || props["version"] != "1.0.19" || props["releaseTrain"] != "Stable" || props["autoUpgradeMinorVersion"] != false {
 					t.Error("extension version or upgrade policy changed")
 				}
-				if !reflect.DeepEqual(props["scope"], map[string]interface{}{"cluster": map[string]interface{}{"releaseNamespace": "argocd"}}) {
+				if !reflect.DeepEqual(props["scope"], map[string]any{"cluster": map[string]any{"releaseNamespace": "argocd"}}) {
 					t.Error("extension scope changed")
 				}
-				if !reflect.DeepEqual(payload["identity"], map[string]interface{}{"type": "SystemAssigned"}) || !reflect.DeepEqual(props["aksAssignedIdentity"], map[string]interface{}{"type": "SystemAssigned"}) {
+				if !reflect.DeepEqual(payload["identity"], map[string]any{"type": "SystemAssigned"}) || !reflect.DeepEqual(props["aksAssignedIdentity"], map[string]any{"type": "SystemAssigned"}) {
 					t.Error("identity type changed or generated IDs were replayed")
 				}
-				if !reflect.DeepEqual(payload["plan"], map[string]interface{}{"name": "plan", "product": "product", "publisher": "publisher"}) {
+				if !reflect.DeepEqual(payload["plan"], map[string]any{"name": "plan", "product": "product", "publisher": "publisher"}) {
 					t.Error("marketplace plan changed")
 				}
 				for _, key := range []string{"id", "name", "type", "systemData"} {
@@ -215,8 +216,8 @@ func TestKubernetesClusterExtensionUpdate(t *testing.T) {
 	}
 }
 
-func stringMapForExtensionTest(input map[string]string) map[string]interface{} {
-	result := make(map[string]interface{}, len(input))
+func stringMapForExtensionTest(input map[string]string) map[string]any {
+	result := make(map[string]any, len(input))
 	for k, v := range input {
 		result[k] = v
 	}
@@ -232,20 +233,14 @@ func TestKubernetesClusterExtensionFullUpdateRejectsIncompleteResponse(t *testin
 }
 
 func TestKubernetesClusterExtensionFullUpdatePreservesNamespaceScope(t *testing.T) {
-	extensionType := "Microsoft.ArgoCD"
-	upgrade := true
-	train := "Preview"
-	namespace := "target-namespace"
-	generated := "generated-principal"
-	empty := map[string]string{}
 	existing := extensions.Extension{
 		Properties: &extensions.ExtensionProperties{
-			ExtensionType:                  &extensionType,
-			AutoUpgradeMinorVersion:        &upgrade,
-			ReleaseTrain:                   &train,
-			Scope:                          &extensions.Scope{Namespace: &extensions.ScopeNamespace{TargetNamespace: &namespace}},
-			ConfigurationProtectedSettings: &empty,
-			AksAssignedIdentity:            &extensions.ExtensionPropertiesAksAssignedIdentity{PrincipalId: &generated},
+			ExtensionType:                  pointer.To("Microsoft.ArgoCD"),
+			AutoUpgradeMinorVersion:        pointer.To(true),
+			ReleaseTrain:                   pointer.To("Preview"),
+			Scope:                          &extensions.Scope{Namespace: &extensions.ScopeNamespace{TargetNamespace: pointer.To("target-namespace")}},
+			ConfigurationProtectedSettings: pointer.To(map[string]string{}),
+			AksAssignedIdentity:            &extensions.ExtensionPropertiesAksAssignedIdentity{PrincipalId: pointer.To("generated-principal")},
 		},
 	}
 	payload, err := expandKubernetesClusterExtensionFullUpdate(existing, nil, nil, nil)

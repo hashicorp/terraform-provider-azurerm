@@ -5,11 +5,12 @@ package containers
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions"
 )
 
-func kubernetesClusterExtensionSettingsRemoved(previous map[string]interface{}, settings map[string]string) bool {
+func kubernetesClusterExtensionSettingsRemoved(previous map[string]any, settings map[string]string) bool {
 	for key := range previous {
 		if _, ok := settings[key]; !ok {
 			return true
@@ -18,7 +19,7 @@ func kubernetesClusterExtensionSettingsRemoved(previous map[string]interface{}, 
 	return false
 }
 
-func expandKubernetesClusterExtensionFullUpdate(existing extensions.Extension, settings, protectedSettings map[string]string, previousProtectedSettings map[string]interface{}) (extensions.Extension, error) {
+func expandKubernetesClusterExtensionFullUpdate(existing extensions.Extension, settings, protectedSettings map[string]string, previousProtectedSettings map[string]any) (extensions.Extension, error) {
 	properties := existing.Properties
 	if properties == nil || properties.ExtensionType == nil || properties.AutoUpgradeMinorVersion == nil || properties.Scope == nil {
 		return extensions.Extension{}, fmt.Errorf("cannot replace extension configuration: missing existing extension properties")
@@ -41,13 +42,9 @@ func expandKubernetesClusterExtensionFullUpdate(existing extensions.Extension, s
 	// Use explicit empty objects when removing the last setting, rather than
 	// sending null maps whose replacement semantics may differ.
 	configuration := make(map[string]string, len(settings))
-	for key, value := range settings {
-		configuration[key] = value
-	}
+	maps.Copy(configuration, settings)
 	protected := make(map[string]string, len(protectedSettings))
-	for key, value := range protectedSettings {
-		protected[key] = value
-	}
+	maps.Copy(protected, protectedSettings)
 
 	// Build a writable payload, not a copy of GET. In particular, generated
 	// principal IDs, provisioning status, and system metadata must not be sent.
