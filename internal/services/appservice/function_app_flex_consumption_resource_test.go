@@ -21,11 +21,14 @@ import (
 type FunctionAppFlexConsumptionResource struct{}
 
 func TestAccFunctionAppFlexConsumption_regressionTest(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("Skipping as this resource was removed in 6.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.completeFivePointOh(data),
 		},
 	}, "")
 }
