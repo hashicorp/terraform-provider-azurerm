@@ -370,7 +370,7 @@ A `size_properties` block supports the following:
 
 ~> **Note:** `vcpu_available` cannot exceed the default vCPU count of the selected `size`, and must be an even number on hyperthreaded sizes.
 
-* `vcpu_per_core` - (Optional) The number of vCPUs per physical core for this Virtual Machine. Setting this to `1` disables hyperthreading.
+* `vcpu_per_core` - (Optional) The number of vCPUs per physical core for this Virtual Machine. Possible values are `1` and `2`. Setting this to `1` disables hyperthreading.
 
 ~> **Note:** Modifying `vcpu_available` or `vcpu_per_core` on an existing Virtual Machine causes the Virtual Machine to be restarted, resulting in a brief period of downtime.
 
