@@ -104,7 +104,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 			// ContainerRegistries from the GET response omits sensitive fields (e.g. passwords), so always
 			// repopulate from config to avoid a MissingRequiredProperty error from the API.
 			if v, ok := d.GetOk("container_configuration"); ok {
-				containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{}))
+				containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `container_configuration` for %s: %+v", *id, err)
 				}
