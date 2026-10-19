@@ -14,7 +14,7 @@ import (
 
 type AutonomousDatabaseRegularDataSource struct{}
 
-func TestAdbsRegularDataSource_basic(t *testing.T) {
+func TestAccAdbsRegularDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularDataSource{}.ResourceType(), "test")
 	r := AutonomousDatabaseRegularDataSource{}
 
