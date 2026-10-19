@@ -152,6 +152,17 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"data_residency_boundary": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C because Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
+				Computed: true,
+				ValidateFunc: validation.StringInSlice(
+					domains.PossibleValuesForDataResidencyBoundary(),
+					false,
+				),
+			},
+
 			"auto_create_topic_with_first_subscription": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -183,6 +194,14 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C because Azure defaults value when not specified, to avoid breaking existing deployments, we will not set a default value here.
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(domains.PossibleValuesForTlsVersion(), false),
 			},
 
 			"endpoint": {
@@ -256,6 +275,14 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 		domain.Identity = identity
 	}
 
+	if tls, ok := d.GetOk("minimum_tls_version"); ok {
+		domain.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](tls.(string))
+	}
+
+	if boundary, ok := d.GetOk("data_residency_boundary"); ok {
+		domain.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](boundary.(string))
+	}
+
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, domain, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %s", id, err)
 	}
@@ -303,6 +330,14 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("auto_delete_topic_with_last_subscription") {
 		payload.Properties.AutoDeleteTopicWithLastSubscription = pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool))
+	}
+
+	if d.HasChange("data_residency_boundary") {
+		payload.Properties.DataResidencyBoundary = pointer.ToEnum[domains.DataResidencyBoundary](d.Get("data_residency_boundary").(string))
+	}
+
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.ToEnum[domains.TlsVersion](d.Get("minimum_tls_version").(string))
 	}
 
 	if d.HasChange("inbound_ip_rule") {
@@ -404,6 +439,9 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta any) error {
 				autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
 			}
 			d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
+
+			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
+			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
 
 			autoDeleteTopicWithLastSubscription := true
 			if props.AutoDeleteTopicWithLastSubscription != nil {
