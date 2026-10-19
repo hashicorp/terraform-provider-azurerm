@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package domainservices_test
+package active_directory_domain_service_test
 
 import (
 	"context"
