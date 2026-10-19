@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hdinsight
+package helpers
 
 import (
 	"fmt"
@@ -61,11 +61,11 @@ func SchemaHDInsightClusterVersion() *pluginsdk.Schema {
 		Required:         true,
 		ForceNew:         true,
 		ValidateFunc:     validate.HDInsightClusterVersion,
-		DiffSuppressFunc: hdinsightClusterVersionDiffSuppressFunc,
+		DiffSuppressFunc: HdinsightClusterVersionDiffSuppressFunc,
 	}
 }
 
-func hdinsightClusterVersionDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
+func HdinsightClusterVersionDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
 	// `3.6` gets converted to `3.6.1000.67`; so let's just compare major/minor if possible
 	o := strings.Split(old, ".")
 	n := strings.Split(new, ".")
@@ -363,48 +363,6 @@ func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
 	}
 }
 
-func SchemaHDInsightsHttpsEndpoints() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"access_modes": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"destination_port": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					ValidateFunc: validation.IsPortNumber,
-				},
-
-				"disable_gateway_auth": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-				},
-
-				"private_ip_address": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.IsIPAddress,
-				},
-
-				"sub_domain_suffix": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-		},
-	}
-}
-
 func ExpandHDInsightsRolesScriptActions(input []any) *[]clusters.ScriptAction {
 	if len(input) == 0 {
 		return nil
@@ -628,7 +586,7 @@ func ExpandHDInsightPrivateLinkConfigurationIpConfigurationProperties(input []an
 	return pointer.To(props)
 }
 
-func flattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolationProperties) []any {
+func FlattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolationProperties) []any {
 	hostSku := ""
 	enableComputeIsolation := false
 	if input != nil {
@@ -648,7 +606,7 @@ func flattenHDInsightComputeIsolationProperties(input *clusters.ComputeIsolation
 	}
 }
 
-func flattenHDInsightsNetwork(input *clusters.NetworkProperties) []any {
+func FlattenHDInsightsNetwork(input *clusters.NetworkProperties) []any {
 	if input == nil {
 		return make([]any, 0)
 	}
@@ -671,7 +629,7 @@ func flattenHDInsightsNetwork(input *clusters.NetworkProperties) []any {
 	}
 }
 
-func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConfiguration) []any {
+func FlattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConfiguration) []any {
 	if input == nil {
 		return make([]any, 0)
 	}
@@ -681,12 +639,12 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 		map[string]any{
 			"name":             v.Name,
 			"group_id":         v.Properties.GroupId,
-			"ip_configuration": flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(pointer.To(v.Properties.IPConfigurations[0])),
+			"ip_configuration": FlattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(pointer.To(v.Properties.IPConfigurations[0])),
 		},
 	}
 }
 
-func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []any {
+func FlattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []any {
 	if input == nil {
 		return make([]any, 0)
 	}
@@ -1024,7 +982,7 @@ func ExpandHDInsightsDiskEncryptionProperties(input []any) (*clusters.DiskEncryp
 	return diskEncryptionProps, nil
 }
 
-func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]any, error) {
+func FlattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]any, error) {
 	if input == nil {
 		return pointer.To(make([]any, 0)), nil
 	}
@@ -1778,7 +1736,7 @@ func FindHDInsightRole(input *[]clusters.Role, name string) *clusters.Role {
 	return nil
 }
 
-func findHDInsightConnectivityEndpoint(name string, input *[]clusters.ConnectivityEndpoint) string {
+func FindHDInsightConnectivityEndpoint(name string, input *[]clusters.ConnectivityEndpoint) string {
 	if input == nil {
 		return ""
 	}
@@ -1865,7 +1823,7 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *clusters.AutoscaleRecu
 	}
 }
 
-func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *pluginsdk.ResourceData) []any {
+func FlattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *pluginsdk.ResourceData) []any {
 	if input == nil {
 		return make([]any, 0)
 	}

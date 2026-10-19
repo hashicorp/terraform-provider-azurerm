@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hdinsight
+package helpers
 
 import (
 	"context"
@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
+func HdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) pluginsdk.UpdateFunc {
 	return func(d *pluginsdk.ResourceData, meta any) error {
 		client := meta.(*clients.Client).HDInsight.Clusters
 		extensionsClient := meta.(*clients.Client).HDInsight.Extensions
@@ -96,7 +96,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 				}
 
 				if newEdgeNodeInt != 0 {
-					if err = createHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
+					if err = CreateHDInsightEdgeNodes(ctx, applicationsClient, applicationId, edgeNodeConfig); err != nil {
 						return err
 					}
 				}
@@ -115,10 +115,10 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("monitor"); ok {
 				monitorRaw := v.([]any)
-				if err := enableHDInsightMonitoring(ctx, extensionsClient, *id, monitorRaw); err != nil {
+				if err := EnableHDInsightMonitoring(ctx, extensionsClient, *id, monitorRaw); err != nil {
 					return err
 				}
-			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, *id); err != nil {
+			} else if err := DisableHDInsightMonitoring(ctx, extensionsClient, *id); err != nil {
 				return err
 			}
 		}
@@ -126,10 +126,10 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			if v, ok := d.GetOk("extension"); ok {
 				extensionRaw := v.([]any)
-				if err := enableHDInsightAzureMonitor(ctx, extensionsClient, *id, extensionRaw); err != nil {
+				if err := EnableHDInsightAzureMonitor(ctx, extensionsClient, *id, extensionRaw); err != nil {
 					return err
 				}
-			} else if err := disableHDInsightAzureMonitor(ctx, extensionsClient, *id); err != nil {
+			} else if err := DisableHDInsightAzureMonitor(ctx, extensionsClient, *id); err != nil {
 				return err
 			}
 		}
@@ -151,7 +151,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc pluginsdk.ReadFunc) plu
 	}
 }
 
-func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
+func HdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
 	return func(d *pluginsdk.ResourceData, meta any) error {
 		client := meta.(*clients.Client).HDInsight.Clusters
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -170,7 +170,7 @@ func hdinsightClusterDelete(clusterKind string) pluginsdk.DeleteFunc {
 	}
 }
 
-type hdInsightRoleDefinition struct {
+type HdInsightRoleDefinition struct {
 	HeadNodeDef            HDInsightNodeDefinition
 	WorkerNodeDef          HDInsightNodeDefinition
 	ZookeeperNodeDef       HDInsightNodeDefinition
@@ -178,7 +178,7 @@ type hdInsightRoleDefinition struct {
 	EdgeNodeDef            *HDInsightNodeDefinition
 }
 
-func expandHDInsightRoles(input []any, definition hdInsightRoleDefinition) (*[]clusters.Role, error) {
+func ExpandHDInsightRoles(input []any, definition HdInsightRoleDefinition) (*[]clusters.Role, error) {
 	v := input[0].(map[string]any)
 
 	headNodeRaw := v["head_node"].([]any)
@@ -229,7 +229,7 @@ func expandHDInsightRoles(input []any, definition hdInsightRoleDefinition) (*[]c
 	return &roles, nil
 }
 
-func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputeProfile, definition hdInsightRoleDefinition) []any {
+func FlattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputeProfile, definition HdInsightRoleDefinition) []any {
 	if input == nil || input.Roles == nil {
 		return []any{}
 	}
@@ -283,8 +283,8 @@ func flattenHDInsightRoles(d *pluginsdk.ResourceData, input *clusters.ComputePro
 	}
 }
 
-func createHDInsightEdgeNodes(ctx context.Context, client *applications.ApplicationsClient, applicationId applications.ApplicationId, input map[string]any) error {
-	installScriptActions := expandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]any))
+func CreateHDInsightEdgeNodes(ctx context.Context, client *applications.ApplicationsClient, applicationId applications.ApplicationId, input map[string]any) error {
+	installScriptActions := ExpandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]any))
 
 	payload := applications.Application{
 		Properties: &applications.ApplicationProperties{
@@ -303,11 +303,11 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 	}
 
 	if v, ok := input["https_endpoints"]; ok {
-		payload.Properties.HTTPSEndpoints = expandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]any))
+		payload.Properties.HTTPSEndpoints = ExpandHDInsightApplicationEdgeNodeHttpsEndpoints(v.([]any))
 	}
 
 	if v, ok := input["uninstall_script_actions"]; ok {
-		payload.Properties.UninstallScriptActions = expandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]any))
+		payload.Properties.UninstallScriptActions = ExpandHDInsightApplicationEdgeNodeUninstallScriptActions(v.([]any))
 	}
 
 	if err := client.CreateThenPoll(ctx, applicationId, payload); err != nil {
@@ -317,7 +317,7 @@ func createHDInsightEdgeNodes(ctx context.Context, client *applications.Applicat
 	return nil
 }
 
-func expandHDInsightsMetastore(input []any) map[string]any {
+func ExpandHDInsightsMetastore(input []any) map[string]any {
 	if len(input) == 0 || input[0] == nil {
 		return map[string]any{}
 	}
@@ -340,7 +340,7 @@ func expandHDInsightsMetastore(input []any) map[string]any {
 	return config
 }
 
-func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]string) {
+func FlattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]string) {
 	result := map[string]any{}
 
 	hiveEnv, envExists := configurations["hive-env"]
@@ -367,7 +367,7 @@ func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[s
 	}
 }
 
-func flattenHDInsightMonitoring(input *extensions.ClusterMonitoringResponse) []any {
+func FlattenHDInsightMonitoring(input *extensions.ClusterMonitoringResponse) []any {
 	output := make([]any, 0)
 
 	if input != nil && input.ClusterMonitoringEnabled != nil && *input.ClusterMonitoringEnabled {
@@ -380,7 +380,7 @@ func flattenHDInsightMonitoring(input *extensions.ClusterMonitoringResponse) []a
 	return output
 }
 
-func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []any {
+func FlattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []any {
 	output := make([]any, 0)
 
 	if input != nil && input.ClusterMonitoringEnabled != nil && *input.ClusterMonitoringEnabled {
@@ -393,7 +393,7 @@ func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []any 
 	return output
 }
 
-func enableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []any) error {
+func EnableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []any) error {
 	payload := ExpandHDInsightsMonitor(input)
 
 	// This API is an LRO without a header or `provisioningState` - so we need to do custom polling on the field
@@ -411,7 +411,7 @@ func enableHDInsightMonitoring(ctx context.Context, client *extensions.Extension
 	return nil
 }
 
-func disableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) error {
+func DisableHDInsightMonitoring(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) error {
 	// This API is an LRO without a header or `provisioningState` - so we need to do custom polling on the field
 	// ctx: https://github.com/hashicorp/go-azure-sdk/issues/518
 	if _, err := client.DisableMonitoring(ctx, clusterId); err != nil {
@@ -427,7 +427,7 @@ func disableHDInsightMonitoring(ctx context.Context, client *extensions.Extensio
 	return nil
 }
 
-func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []any) error {
+func EnableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId, input []any) error {
 	v := input[0].(map[string]any)
 
 	payload := extensions.AzureMonitorRequest{
@@ -447,7 +447,7 @@ func enableHDInsightAzureMonitor(ctx context.Context, client *extensions.Extensi
 	return nil
 }
 
-func disableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) error {
+func DisableHDInsightAzureMonitor(ctx context.Context, client *extensions.ExtensionsClient, clusterId commonids.HDInsightClusterId) error {
 	if _, err := client.DisableAzureMonitor(ctx, clusterId); err != nil {
 		return fmt.Errorf("disabling Azure Monitor for %s: %+v", clusterId, err)
 	}
