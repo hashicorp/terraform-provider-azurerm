@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSpringCloudDevToolPortalID(t *testing.T) {
+func TestValidateSpringCloudDevToolPortalID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
