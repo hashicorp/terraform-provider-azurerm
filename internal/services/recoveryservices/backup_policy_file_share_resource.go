@@ -765,7 +765,7 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 								"interval": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntInSlice([]int{4, 6, 8, 12}),
+									ValidateFunc: validation.IntInSlice([]int{1, 2, 4, 6, 8, 12}),
 								},
 
 								"start_time": {

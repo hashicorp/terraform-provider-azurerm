@@ -1,0 +1,670 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package virtualwan
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
+
+type RouteMapModel struct {
+	Name         string `tfschema:"name"`
+	VirtualHubId string `tfschema:"virtual_hub_id"`
+	Rules        []Rule `tfschema:"rule"`
+}
+
+type Rule struct {
+	Actions           []Action             `tfschema:"action"`
+	MatchCriteria     []Criterion          `tfschema:"match_criterion"`
+	Name              string               `tfschema:"name"`
+	NextStepIfMatched virtualwans.NextStep `tfschema:"next_step_if_matched"`
+}
+
+type Action struct {
+	Parameters []Parameter                    `tfschema:"parameter"`
+	Type       virtualwans.RouteMapActionType `tfschema:"type"`
+}
+
+type Parameter struct {
+	AsPath      []string `tfschema:"as_path"`
+	Community   []string `tfschema:"community"`
+	RoutePrefix []string `tfschema:"route_prefix"`
+}
+
+type Criterion struct {
+	AsPath         []string                           `tfschema:"as_path"`
+	Community      []string                           `tfschema:"community"`
+	MatchCondition virtualwans.RouteMapMatchCondition `tfschema:"match_condition"`
+	RoutePrefix    []string                           `tfschema:"route_prefix"`
+}
+
+type RouteMapResource struct{}
+
+var (
+	_ sdk.ResourceWithIdentity      = RouteMapResource{}
+	_ sdk.ResourceWithUpdate        = RouteMapResource{}
+	_ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+)
+
+func (r RouteMapResource) Identity() resourceids.ResourceId {
+	return &virtualwans.RouteMapId{}
+}
+
+func (r RouteMapResource) ResourceType() string {
+	return "azurerm_route_map"
+}
+
+func (r RouteMapResource) ModelObject() any {
+	return &RouteMapModel{}
+}
+
+func (r RouteMapResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return virtualwans.ValidateRouteMapID
+}
+
+func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.RouteMapName,
+		},
+
+		"virtual_hub_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: virtualwans.ValidateVirtualHubID,
+		},
+
+		"rule": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"action": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"parameter": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"as_path": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+
+											"community": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+
+											"route_prefix": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
+									},
+								},
+
+								"type": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForRouteMapActionType(), false),
+								},
+							},
+						},
+					},
+
+					"match_criterion": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"match_condition": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForRouteMapMatchCondition(), false),
+								},
+
+								"as_path": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+
+								"community": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+
+								"route_prefix": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+
+					"next_step_if_matched": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(virtualwans.NextStepUnknown),
+						ValidateFunc: validation.StringInSlice(virtualwans.PossibleValuesForNextStep(), false),
+					},
+				},
+			},
+		},
+	}
+}
+
+func (r RouteMapResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r RouteMapResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model RouteMapModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			client := metadata.Client.VirtualWan.VirtualWANs
+			virtualHubId, err := virtualwans.ParseVirtualHubID(model.VirtualHubId)
+			if err != nil {
+				return err
+			}
+
+			id := virtualwans.NewRouteMapID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.RouteMapsGet(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
+			}
+
+			props := &virtualwans.RouteMap{
+				Properties: &virtualwans.RouteMapProperties{
+					Rules: expandRules(model.Rules),
+				},
+			}
+
+			locks.ByID(model.VirtualHubId)
+			defer locks.UnlockByID(model.VirtualHubId)
+
+			if err := client.RouteMapsCreateOrUpdateCallbackThenPoll(ctx, id, *props, metadata.SetIDAndIdentityCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
+		},
+	}
+}
+
+func (r RouteMapResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.VirtualWan.VirtualWANs
+
+			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model RouteMapModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.RouteMapsGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			if metadata.ResourceData.HasChange("rule") {
+				existing.Model.Properties.Rules = expandRules(model.Rules)
+			}
+
+			locks.ByID(model.VirtualHubId)
+			defer locks.UnlockByID(model.VirtualHubId)
+
+			if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r RouteMapResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.VirtualWan.VirtualWANs
+
+			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.RouteMapsGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state := RouteMapModel{
+				Name:         id.RouteMapName,
+				VirtualHubId: virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName).ID(),
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Rules = flattenRules(props.Rules)
+				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r RouteMapResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.VirtualWan.VirtualWANs
+			expressRouteGatewayClient := metadata.Client.VirtualWan.ExpressRouteGateways
+			expressRouteConnectionClient := metadata.Client.VirtualWan.ExpressRouteConnections
+
+			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			// Remove corresponding `InboundRouteMap` or `OutboundRouteMap` property from Express Route Connection or the deletion will fail
+			resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
+			expressRouteGatewayListResponse, err := expressRouteGatewayClient.ListByResourceGroup(ctx, resourceGroupId)
+			if err != nil {
+				return fmt.Errorf("listing Express Route Gateways in %s: %+v", resourceGroupId, err)
+			}
+
+			if expressRouteGatewayListResponse.Model != nil && expressRouteGatewayListResponse.Model.Value != nil {
+				for _, expressRouteGateway := range *expressRouteGatewayListResponse.Model.Value {
+					expressRouteGatewayId, err := expressrouteconnections.ParseExpressRouteGatewayID(pointer.From(expressRouteGateway.Id))
+					if err != nil {
+						return err
+					}
+
+					expressRouteConnectionListResponse, err := expressRouteConnectionClient.List(ctx, *expressRouteGatewayId)
+					if err != nil {
+						return fmt.Errorf("listing Express Route Connections in %s: %+v", expressRouteGatewayId, err)
+					}
+
+					if expressRouteConnectionListResponse.Model != nil && expressRouteConnectionListResponse.Model.Value != nil {
+						for _, expressRouteConnection := range *expressRouteConnectionListResponse.Model.Value {
+							removeInboundRouteMap := false
+							removeOutboundRouteMap := false
+							if expressRouteConnection.Properties != nil && expressRouteConnection.Properties.RoutingConfiguration != nil {
+								routingConfiguration := expressRouteConnection.Properties.RoutingConfiguration
+								if routingConfiguration.InboundRouteMap != nil && strings.EqualFold(pointer.From(routingConfiguration.InboundRouteMap.Id), metadata.ResourceData.Id()) {
+									removeInboundRouteMap = true
+								}
+
+								if routingConfiguration.OutboundRouteMap != nil && strings.EqualFold(pointer.From(routingConfiguration.OutboundRouteMap.Id), metadata.ResourceData.Id()) {
+									expressRouteConnection.Properties.RoutingConfiguration.OutboundRouteMap = nil
+									removeOutboundRouteMap = true
+								}
+
+								if removeInboundRouteMap || removeOutboundRouteMap {
+									expressRouteConnectionIdString := pointer.From(expressRouteConnection.Id)
+
+									// Lock to avoid race condition and retrieve latest Express Route Connection model in case if other deletion happens first
+									locks.ByID(expressRouteConnectionIdString)
+									expressRouteConnectionId, err := expressrouteconnections.ParseExpressRouteConnectionID(expressRouteConnectionIdString)
+									if err != nil {
+										locks.UnlockByID(expressRouteConnectionIdString)
+
+										return err
+									}
+
+									expressRouteConnectionGetResponse, err := expressRouteConnectionClient.Get(ctx, *expressRouteConnectionId)
+									if err != nil {
+										locks.UnlockByID(expressRouteConnectionIdString)
+
+										return fmt.Errorf("retrieving %s: %+v", *expressRouteConnectionId, err)
+									}
+
+									param := expressRouteConnectionGetResponse.Model
+									if param != nil && param.Properties != nil && param.Properties.RoutingConfiguration != nil {
+										if removeInboundRouteMap {
+											param.Properties.RoutingConfiguration.InboundRouteMap = nil
+										}
+
+										if removeOutboundRouteMap {
+											param.Properties.RoutingConfiguration.OutboundRouteMap = nil
+										}
+
+										if err := expressRouteConnectionClient.CreateOrUpdateThenPoll(ctx, *expressRouteConnectionId, *param); err != nil {
+											locks.UnlockByID(expressRouteConnectionIdString)
+
+											return fmt.Errorf("updating %s: %+v", *expressRouteConnectionId, err)
+										}
+									}
+
+									locks.UnlockByID(expressRouteConnectionIdString)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if err := client.RouteMapsDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r RouteMapResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config RouteMapModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// Validate that all actions have parameters when they are not of type Drop
+			for _, rule := range config.Rules {
+				for _, action := range rule.Actions {
+					if action.Type != virtualwans.RouteMapActionTypeDrop && len(action.Parameters) == 0 {
+						return fmt.Errorf("parameters are required when rule action is not `Drop`")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandRules(input []Rule) *[]virtualwans.RouteMapRule {
+	if input == nil {
+		return nil
+	}
+
+	rules := make([]virtualwans.RouteMapRule, 0, len(input))
+	for _, v := range input {
+		rule := virtualwans.RouteMapRule{
+			Name:          pointer.To(v.Name),
+			Actions:       expandActions(v.Actions),
+			MatchCriteria: expandCriteria(v.MatchCriteria),
+		}
+
+		if v.NextStepIfMatched != "" {
+			rule.NextStepIfMatched = pointer.To(v.NextStepIfMatched)
+		}
+
+		rules = append(rules, rule)
+	}
+
+	return &rules
+}
+
+func expandActions(input []Action) *[]virtualwans.Action {
+	if input == nil {
+		return nil
+	}
+
+	actions := make([]virtualwans.Action, 0, len(input))
+	for _, v := range input {
+		action := virtualwans.Action{
+			Type:       pointer.To(v.Type),
+			Parameters: expandParameters(v.Parameters),
+		}
+
+		actions = append(actions, action)
+	}
+
+	return &actions
+}
+
+func expandParameters(input []Parameter) *[]virtualwans.Parameter {
+	if input == nil {
+		return nil
+	}
+
+	parameters := make([]virtualwans.Parameter, 0, len(input))
+	for _, item := range input {
+		v := item
+		parameter := virtualwans.Parameter{}
+
+		if v.AsPath != nil {
+			parameter.AsPath = &v.AsPath
+		}
+
+		if v.Community != nil {
+			parameter.Community = &v.Community
+		}
+
+		if v.RoutePrefix != nil {
+			parameter.RoutePrefix = &v.RoutePrefix
+		}
+
+		parameters = append(parameters, parameter)
+	}
+
+	return &parameters
+}
+
+func expandCriteria(input []Criterion) *[]virtualwans.Criterion {
+	if input == nil {
+		return nil
+	}
+
+	criteria := make([]virtualwans.Criterion, 0, len(input))
+	for _, item := range input {
+		v := item
+		criterion := virtualwans.Criterion{
+			MatchCondition: pointer.To(v.MatchCondition),
+		}
+
+		if v.AsPath != nil {
+			criterion.AsPath = &v.AsPath
+		}
+
+		if v.Community != nil {
+			criterion.Community = &v.Community
+		}
+
+		if v.RoutePrefix != nil {
+			criterion.RoutePrefix = &v.RoutePrefix
+		}
+
+		criteria = append(criteria, criterion)
+	}
+
+	return &criteria
+}
+
+func flattenRules(input *[]virtualwans.RouteMapRule) []Rule {
+	if input == nil {
+		return []Rule{}
+	}
+
+	rules := make([]Rule, 0, len(*input))
+	for _, v := range *input {
+		rule := Rule{
+			Actions:       flattenActions(v.Actions),
+			MatchCriteria: flattenCriteria(v.MatchCriteria),
+		}
+
+		if v.Name != nil {
+			rule.Name = *v.Name
+		}
+
+		if v.NextStepIfMatched != nil {
+			rule.NextStepIfMatched = pointer.From(v.NextStepIfMatched)
+		}
+
+		rules = append(rules, rule)
+	}
+
+	return rules
+}
+
+func flattenActions(input *[]virtualwans.Action) []Action {
+	if input == nil {
+		return []Action{}
+	}
+
+	actions := make([]Action, 0, len(*input))
+	for _, v := range *input {
+		action := Action{
+			Parameters: flattenParameters(v.Parameters),
+		}
+
+		if v.Type != nil {
+			action.Type = pointer.From(v.Type)
+		}
+
+		actions = append(actions, action)
+	}
+
+	return actions
+}
+
+func flattenParameters(input *[]virtualwans.Parameter) []Parameter {
+	if input == nil {
+		return []Parameter{}
+	}
+
+	parameters := make([]Parameter, 0, len(*input))
+	for _, v := range *input {
+		parameter := Parameter{}
+
+		if v.AsPath != nil {
+			parameter.AsPath = *v.AsPath
+		}
+
+		if v.Community != nil {
+			parameter.Community = *v.Community
+		}
+
+		if v.RoutePrefix != nil {
+			parameter.RoutePrefix = *v.RoutePrefix
+		}
+
+		parameters = append(parameters, parameter)
+	}
+
+	return parameters
+}
+
+func flattenCriteria(input *[]virtualwans.Criterion) []Criterion {
+	if input == nil {
+		return []Criterion{}
+	}
+
+	criteria := make([]Criterion, 0, len(*input))
+	for _, v := range *input {
+		criterion := Criterion{}
+
+		if v.AsPath != nil {
+			criterion.AsPath = *v.AsPath
+		}
+
+		if v.Community != nil {
+			criterion.Community = *v.Community
+		}
+
+		if v.MatchCondition != nil {
+			criterion.MatchCondition = pointer.From(v.MatchCondition)
+		}
+
+		if v.RoutePrefix != nil {
+			criterion.RoutePrefix = *v.RoutePrefix
+		}
+
+		criteria = append(criteria, criterion)
+	}
+
+	return criteria
+}

@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestDomainServiceReplicaSetID(t *testing.T) {
+func TestValidateDomainServiceReplicaSetID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
