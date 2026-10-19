@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package datadog_test
+package datadog_monitor_test
 
 import (
 	"context"
