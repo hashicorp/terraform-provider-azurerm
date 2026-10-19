@@ -19,7 +19,7 @@ import (
 
 type WebAppActiveSlotResource struct{}
 
-func TestWebAppAccActiveSlot_regressionTest(t *testing.T) {
+func TestAccWebAppActiveSlot_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
@@ -29,7 +29,7 @@ func TestWebAppAccActiveSlot_regressionTest(t *testing.T) {
 	}, "")
 }
 
-func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
+func TestAccWebAppActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -44,7 +44,7 @@ func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_basicLinux(t *testing.T) {
+func TestAccWebAppActiveSlot_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -59,7 +59,7 @@ func TestWebAppAccActiveSlot_basicLinux(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_windowsUpdate(t *testing.T) {
+func TestAccWebAppActiveSlot_windowsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -81,7 +81,7 @@ func TestWebAppAccActiveSlot_windowsUpdate(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_linuxUpdate(t *testing.T) {
+func TestAccWebAppActiveSlot_linuxUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
