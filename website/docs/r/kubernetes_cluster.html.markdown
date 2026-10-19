@@ -569,7 +569,7 @@ A `security` block supports the following:
 
 ~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
 
--> **Note:** Omitting this block leaves Secure Boot and vTPM disabled. Removing a configured block disables both settings; if either was enabled, `temporary_name_for_rotation` is required. Within a configured block, omitted flags default to `false`.
+-> **Note:** Omitting this block leaves Secure Boot and vTPM disabled. Removing a configured block disables both settings; if either was enabled, `temporary_name_for_rotation` is required. When the block is present, at least one flag must be specified; the other defaults to `false`.
 
 * `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Default Node Pool. Defaults to `false`.
 

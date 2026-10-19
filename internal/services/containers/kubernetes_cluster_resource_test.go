@@ -59,7 +59,6 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 		label      string
 		secureBoot bool
 		vtpm       bool
-		noChange   bool
 		skipImport bool
 		noRotation bool
 	}{
@@ -72,13 +71,8 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 		{security: "security {\nsecure_boot_enabled = true\n}", label: "updated", secureBoot: true},
 		{security: "security {\nvtpm_enabled = true\n}", label: "updated", vtpm: true},
 		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "updated", skipImport: true},
-		{security: "security {}", label: "updated", noChange: true, skipImport: true},
-		{security: "security {\nsecure_boot_enabled = null\nvtpm_enabled = null\n}", label: "updated", noChange: true, skipImport: true},
 	} {
 		config := r.defaultNodePoolSecurity(data, tc.security, tc.label, !tc.noRotation)
-		if tc.noChange {
-			steps = append(steps, acceptance.TestStep{Config: config, PlanOnly: true})
-		}
 		steps = append(steps, acceptance.TestStep{
 			Config: config,
 			Check: acceptance.ComposeTestCheckFunc(

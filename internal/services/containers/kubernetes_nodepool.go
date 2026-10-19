@@ -267,14 +267,17 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional: true,
 					},
 
-					"security": schemaNodePoolSecurity(),
+					"security": schemaNodePoolSecurity("default_node_pool.0.security"),
 				}
 			}(),
 		},
 	}
 }
 
-func schemaNodePoolSecurity() *pluginsdk.Schema {
+func schemaNodePoolSecurity(path string) *pluginsdk.Schema {
+	secureBootPath := fmt.Sprintf("%s.0.secure_boot_enabled", path)
+	vtpmPath := fmt.Sprintf("%s.0.vtpm_enabled", path)
+
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -282,15 +285,17 @@ func schemaNodePoolSecurity() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"secure_boot_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					Default:      false,
+					AtLeastOneOf: []string{secureBootPath, vtpmPath},
 				},
 
 				"vtpm_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					Default:      false,
+					AtLeastOneOf: []string{secureBootPath, vtpmPath},
 				},
 			},
 		},

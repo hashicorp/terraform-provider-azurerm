@@ -422,7 +422,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"security": schemaNodePoolSecurity(),
+		"security": schemaNodePoolSecurity("security"),
 	}
 }
 
