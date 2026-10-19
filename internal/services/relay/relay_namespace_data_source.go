@@ -69,13 +69,13 @@ func (d RelayNamespaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:  true,
 		},
 
-		"secondary_key": {
+		"secondary_connection_string": {
 			Type:      pluginsdk.TypeString,
 			Sensitive: true,
 			Computed:  true,
 		},
 
-		"secondary_connection_string": {
+		"secondary_key": {
 			Type:      pluginsdk.TypeString,
 			Sensitive: true,
 			Computed:  true,
