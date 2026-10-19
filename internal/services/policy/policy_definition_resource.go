@@ -5,9 +5,12 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -307,6 +310,38 @@ func flattenJSON(stringMap any) string {
 	return ""
 }
 
+// The SDK normalizes parameter type casing, so ignore those differences without ignoring case-sensitive values elsewhere in the JSON for existing resources.
+func policyDefinitionParametersDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
+	var oldParameters, newParameters map[string]any
+	if err := json.Unmarshal([]byte(old), &oldParameters); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(new), &newParameters); err != nil {
+		return false
+	}
+
+	for _, parameters := range []map[string]any{oldParameters, newParameters} {
+		for _, parameter := range parameters {
+			definition, ok := parameter.(map[string]any)
+			if !ok {
+				continue
+			}
+			parameterType, ok := definition["type"].(string)
+			if !ok {
+				continue
+			}
+			for _, knownType := range policydefinitions.PossibleValuesForParameterType() {
+				if strings.EqualFold(parameterType, knownType) {
+					definition["type"] = knownType
+					break
+				}
+			}
+		}
+	}
+
+	return reflect.DeepEqual(oldParameters, newParameters)
+}
+
 func resourcePolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -368,7 +403,7 @@ func resourcePolicyDefinitionSchema() map[string]*pluginsdk.Schema {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ValidateFunc:     validation.StringIsJSON,
-			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			DiffSuppressFunc: policyDefinitionParametersDiffSuppressFunc,
 		},
 
 		"role_definition_ids": {

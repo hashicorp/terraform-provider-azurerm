@@ -36,6 +36,21 @@ func TestAccPolicyDefinition_basic(t *testing.T) {
 	})
 }
 
+func TestAccPolicyDefinition_basicWithLowercaseParameterType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithLowercaseParameterType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
@@ -257,6 +272,44 @@ POLICY_RULE
     }
   }
 PARAMETERS
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) basicWithLowercaseParameterType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = jsonencode({
+    if = {
+      not = {
+        field = "location"
+        in    = "[parameters('allowedLocations')]"
+      }
+    }
+    then = {
+      effect = "audit"
+    }
+  })
+
+  parameters = jsonencode({
+    allowedLocations = {
+      type = "array"
+      metadata = {
+        description = "The list of allowed locations for resources."
+        displayName = "Allowed locations"
+        strongType  = "location"
+      }
+    }
+  })
 }
 `, data.RandomInteger, data.RandomInteger)
 }
