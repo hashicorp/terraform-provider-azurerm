@@ -21,7 +21,7 @@ import (
 
 type EventhubResource struct{}
 
-func TestAccEventHub_partitionCountValidation(t *testing.T) {
+func TestEventHub_partitionCountValidation(t *testing.T) {
 	cases := []struct {
 		Value    int
 		ErrCount int
@@ -65,7 +65,7 @@ func TestAccEventHub_partitionCountValidation(t *testing.T) {
 	}
 }
 
-func TestAccEventHub_messageRetentionCountValidation(t *testing.T) {
+func TestEventHub_messageRetentionCountValidation(t *testing.T) {
 	cases := []struct {
 		Value    int
 		ErrCount int
@@ -109,7 +109,7 @@ func TestAccEventHub_messageRetentionCountValidation(t *testing.T) {
 	}
 }
 
-func TestAccEventHub_archiveNameFormatValidation(t *testing.T) {
+func TestEventHub_archiveNameFormatValidation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
