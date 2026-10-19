@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hdinsight
+package helpers
 
 import "testing"
 
@@ -45,7 +45,7 @@ func TestHDInsightClusterVersionDiffSuppress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			wasSuppressed := hdinsightClusterVersionDiffSuppressFunc("", tt.userInput, tt.azureResponse, nil)
+			wasSuppressed := HdinsightClusterVersionDiffSuppressFunc("", tt.userInput, tt.azureResponse, nil)
 			if tt.suppressed != wasSuppressed {
 				t.Errorf("Expected %q to be %t but got %t", tt.name, tt.suppressed, wasSuppressed)
 			}

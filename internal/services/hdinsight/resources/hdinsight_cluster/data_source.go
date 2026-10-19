@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hdinsight
+package hdinsight_cluster
 
 import (
 	"fmt"
@@ -16,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceHDInsightClusterRead,
 
@@ -163,14 +164,14 @@ func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta any) error {
 
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(props.ClusterDefinition.ComponentVersion))
 			d.Set("kind", pointer.FromEnum(props.ClusterDefinition.Kind))
-			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration, d)); err != nil {
+			if err := d.Set("gateway", helpers.FlattenHDInsightsConfigurations(configuration, d)); err != nil {
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
-			d.Set("edge_ssh_endpoint", findHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints))
-			d.Set("https_endpoint", findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
-			d.Set("ssh_endpoint", findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
-			d.Set("kafka_rest_proxy_endpoint", findHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints))
+			d.Set("edge_ssh_endpoint", helpers.FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints))
+			d.Set("https_endpoint", helpers.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints))
+			d.Set("ssh_endpoint", helpers.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints))
+			d.Set("kafka_rest_proxy_endpoint", helpers.FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

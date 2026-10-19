@@ -1,36 +1,13 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hdinsight_test
+package hdinsight_hbase_cluster_test
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 )
-
-// These tests are run sequentially because they depend on azurerm_active_directory_domain_service,
-// which has a quota of one per tenant.
-func TestAccHDInsightCluster_securityProfileSequential(t *testing.T) {
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"interactiveQuery": {
-			"securityProfile": testAccHDInsightInteractiveQueryCluster_securityProfile,
-		},
-		"hadoop": {
-			"securityProfile": testAccHDInsightHadoopCluster_securityProfile,
-		},
-		"hbase": {
-			"securityProfile": testAccHDInsightHBaseCluster_securityProfile,
-		},
-		"kafka": {
-			"securityProfile": testAccHDInsightKafkaCluster_securityProfile,
-		},
-		"spark": {
-			"securityProfile": testAccHDInsightSparkCluster_securityProfile,
-		},
-	})
-}
 
 func hdInsightsecurityProfileCommonTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`

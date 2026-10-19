@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hdinsight_test
+package hdinsight_interactive_query_cluster_test
 
 import (
 	"context"
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HDInsightSparkClusterResource struct{}
+type HDInsightInteractiveQueryClusterResource struct{}
 
-func TestAccHDInsightSparkCluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -40,29 +40,9 @@ func TestAccHDInsightSparkCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-	})
-}
-
-func TestAccHDInsightSparkCluster_roleScriptActions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_roleScriptActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.roleScriptActions(data),
@@ -83,9 +63,9 @@ func TestAccHDInsightSparkCluster_roleScriptActions(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_gen2basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_gen2basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.gen2basic(data),
@@ -105,9 +85,9 @@ func TestAccHDInsightSparkCluster_gen2basic(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_privateLink(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_privateLink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateLink(data),
@@ -125,9 +105,9 @@ func TestAccHDInsightSparkCluster_privateLink(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -142,9 +122,9 @@ func TestAccHDInsightSparkCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -179,9 +159,9 @@ func TestAccHDInsightSparkCluster_update(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_sshKeys(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_sshKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshKeys(data),
@@ -201,9 +181,9 @@ func TestAccHDInsightSparkCluster_sshKeys(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_virtualNetwork(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_virtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualNetwork(data),
@@ -223,9 +203,31 @@ func TestAccHDInsightSparkCluster_virtualNetwork(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_tls(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightInteractiveQueryCluster_tls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.tls(data),
@@ -245,9 +247,9 @@ func TestAccHDInsightSparkCluster_tls(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_encryption_in_transit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_encryption_in_transit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryption_in_transit(data),
@@ -268,9 +270,9 @@ func TestAccHDInsightSparkCluster_encryption_in_transit(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_diskEncryption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_diskEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.diskEncryption(data),
@@ -288,9 +290,29 @@ func TestAccHDInsightSparkCluster_diskEncryption(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_allMetastores(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_computeIsolation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.computeIsolation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightInteractiveQueryCluster_allMetastores(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.allMetastores(data),
@@ -313,9 +335,9 @@ func TestAccHDInsightSparkCluster_allMetastores(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_hiveMetastore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_hiveMetastore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.hiveMetastore(data),
@@ -328,9 +350,9 @@ func TestAccHDInsightSparkCluster_hiveMetastore(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_monitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_monitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.monitor(data),
@@ -350,9 +372,9 @@ func TestAccHDInsightSparkCluster_monitor(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_updateMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// No monitor
 		{
@@ -424,12 +446,12 @@ func TestAccHDInsightSparkCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_azureMonitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_azureMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureMonitor(data),
+			Config: r.monitor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -446,27 +468,12 @@ func TestAccHDInsightSparkCluster_azureMonitor(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_updateAzureMonitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_updateAzureMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-		{
-			Config: r.azureMonitor(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("https_endpoint").Exists(),
@@ -516,9 +523,9 @@ func TestAccHDInsightSparkCluster_updateAzureMonitor(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_autoscaleWithSchedule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func TestAccHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.autoscale_schedule(data),
@@ -553,46 +560,9 @@ func TestAccHDInsightSparkCluster_autoscaleWithSchedule(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_autoscaleWithCapacity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.autoscale_capacity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_endpoint").Exists(),
-				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-	})
-}
-
-func testAccHDInsightSparkCluster_securityProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
+func testAccHDInsightInteractiveQueryCluster_securityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	r := HDInsightInteractiveQueryClusterResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -613,27 +583,7 @@ func testAccHDInsightSparkCluster_securityProfile(t *testing.T) {
 	})
 }
 
-func TestAccHDInsightSparkCluster_computeIsolation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	r := HDInsightSparkClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.computeIsolation(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("roles.0.head_node.0.password",
-			"roles.0.head_node.0.vm_size",
-			"roles.0.worker_node.0.password",
-			"roles.0.worker_node.0.vm_size",
-			"roles.0.zookeeper_node.0.password",
-			"roles.0.zookeeper_node.0.vm_size",
-			"storage_account"),
-	})
-}
-
-func (r HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r HDInsightInteractiveQueryClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseHDInsightClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -641,17 +591,17 @@ func (r HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.HDInsight.Clusters.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Spark %s: %+v", id, err)
+		return nil, fmt.Errorf("reading HDInsight Interactive Query Cluster (%s): %+v", id.String(), err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r HDInsightSparkClusterResource) basic(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -660,7 +610,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -676,20 +626,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -698,270 +648,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) complete(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) roleScriptActions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsql-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "sql_admin"
-  administrator_login_password = "TerrAform123!"
-  version                      = "12.0"
-}
-
-resource "azurerm_mssql_database" "hive" {
-  name        = "hive"
-  server_id   = azurerm_mssql_server.test.id
-  collation   = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode = "Default"
-}
-
-resource "azurerm_mssql_database" "oozie" {
-  name        = "oozie"
-  server_id   = azurerm_mssql_server.test.id
-  collation   = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode = "Default"
-}
-
-resource "azurerm_mssql_database" "ambari" {
-  name        = "ambari"
-  server_id   = azurerm_mssql_server.test.id
-  collation   = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode = "Default"
-}
-
-resource "azurerm_mssql_firewall_rule" "AzureServices" {
-  name             = "allow-azure-services"
-  server_id        = azurerm_mssql_server.test.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["172.16.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.16.11.0/26"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["1"]
-}
-
-resource "azurerm_nat_gateway" "test" {
-  name                    = "acctestnat%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  sku_name                = "Standard"
-  idle_timeout_in_minutes = 10
-  zones                   = ["1"]
-}
-
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test.id
-}
-
-resource "azurerm_subnet_nat_gateway_association" "test" {
-  subnet_id      = azurerm_subnet.test.id
-  nat_gateway_id = azurerm_nat_gateway.test.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = azurerm_subnet.test.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "acctestnsg-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  security_rule = [
-    {
-      access                                     = "Allow"
-      description                                = "Rule can be deleted but do not change source ips."
-      destination_address_prefix                 = "*"
-      destination_address_prefixes               = []
-      destination_application_security_group_ids = []
-      destination_port_range                     = "443"
-      destination_port_ranges                    = []
-      direction                                  = "Inbound"
-      name                                       = "Rule-101"
-      priority                                   = 101
-      protocol                                   = "Tcp"
-      source_address_prefix                      = "*"
-      source_address_prefixes                    = []
-      source_application_security_group_ids      = []
-      source_port_range                          = "*"
-      source_port_ranges                         = []
-    }
-  ]
-}
-
-resource "azurerm_hdinsight_spark_cluster" "test" {
-  depends_on = [azurerm_role_assignment.test, azurerm_nat_gateway.test, azurerm_subnet_network_security_group_association.test]
-
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
   tier                = "Standard"
-  zones               = ["1"]
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
-  }
-
-  gateway {
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-
-  storage_account_gen2 {
-    storage_account_id        = azurerm_storage_account.gen2test.id
-    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-    is_default                = true
-  }
-
-  network {
-    connection_direction = "Outbound"
-  }
-
-  roles {
-    head_node {
-      vm_size            = "Standard_A4_V2"
-      username           = "acctestusrvm"
-      password           = "AccTestvdSC4daf986!"
-      subnet_id          = azurerm_subnet.test.id
-      virtual_network_id = azurerm_virtual_network.test.id
-    }
-
-    worker_node {
-      vm_size               = "Standard_A4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
-      subnet_id             = azurerm_subnet.test.id
-      virtual_network_id    = azurerm_virtual_network.test.id
-    }
-
-    zookeeper_node {
-      vm_size            = "Standard_A4_V2"
-      username           = "acctestusrvm"
-      password           = "AccTestvdSC4daf986!"
-      subnet_id          = azurerm_subnet.test.id
-      virtual_network_id = azurerm_virtual_network.test.id
-    }
-  }
-  metastores {
-    hive {
-      server        = azurerm_mssql_server.test.fully_qualified_domain_name
-      database_name = azurerm_mssql_database.hive.name
-      username      = azurerm_mssql_server.test.administrator_login
-      password      = azurerm_mssql_server.test.administrator_login_password
-    }
-    oozie {
-      server        = azurerm_mssql_server.test.fully_qualified_domain_name
-      database_name = azurerm_mssql_database.oozie.name
-      username      = azurerm_mssql_server.test.administrator_login
-      password      = azurerm_mssql_server.test.administrator_login_password
-    }
-    ambari {
-      server        = azurerm_mssql_server.test.fully_qualified_domain_name
-      database_name = azurerm_mssql_database.ambari.name
-      username      = azurerm_mssql_server.test.administrator_login
-      password      = azurerm_mssql_server.test.administrator_login_password
-    }
-  }
-}
-`, r.gen2template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r HDInsightSparkClusterResource) gen2basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hdinsight_spark_cluster" "test" {
-  depends_on = [azurerm_role_assignment.test]
-
-  name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "5.1"
-  tier                = "Standard"
-  tls_min_version     = "1.2"
-
-  component_version {
-    spark = "3.3"
-  }
-
-  gateway {
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-
-  storage_account_gen2 {
-    storage_account_id        = azurerm_storage_account.gen2test.id
-    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-    is_default                = true
-  }
-
-  roles {
-    head_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-
-    worker_node {
-      vm_size               = "Standard_A4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
-    }
-
-    zookeeper_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-}
-`, r.gen2template(data), data.RandomInteger)
-}
-
-func (r HDInsightSparkClusterResource) roleScriptActions(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hdinsight_spark_cluster" "test" {
-  name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "5.1"
-  tier                = "Standard"
-  tls_min_version     = "1.2"
-
-  component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -977,7 +677,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
       script_actions {
@@ -988,14 +688,14 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1004,9 +704,63 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) privateLink(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) gen2basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+
+  name                = "acctesthdi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  cluster_version     = "5.1"
+  tier                = "Standard"
+  tls_min_version     = "1.2"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account_gen2 {
+    storage_account_id        = azurerm_storage_account.gen2test.id
+    filesystem_id             = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+    is_default                = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_E16_V3"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_E16_V3"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_E16_V3"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.gen2template(data), data.RandomInteger)
+}
+
+func (r HDInsightInteractiveQueryClusterResource) privateLink(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
@@ -1057,7 +811,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   depends_on = [azurerm_role_assignment.test, azurerm_nat_gateway.test, azurerm_subnet_network_security_group_association.test]
 
   name                = "acctesthdi-%d"
@@ -1068,7 +822,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   network {
@@ -1101,7 +855,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
@@ -1110,17 +864,17 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
 
       subnet_id          = azurerm_subnet.test.id
       virtual_network_id = azurerm_virtual_network.test.id
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
@@ -1134,32 +888,33 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.gen2template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, r.nsgTemplate(data))
 }
 
-func (r HDInsightSparkClusterResource) requiresImport(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "import" {
-  name                = azurerm_hdinsight_spark_cluster.test.name
-  resource_group_name = azurerm_hdinsight_spark_cluster.test.resource_group_name
-  location            = azurerm_hdinsight_spark_cluster.test.location
-  cluster_version     = azurerm_hdinsight_spark_cluster.test.cluster_version
-  tier                = azurerm_hdinsight_spark_cluster.test.tier
-  tls_min_version     = azurerm_hdinsight_spark_cluster.test.tls_min_version
+resource "azurerm_hdinsight_interactive_query_cluster" "import" {
+  name                = azurerm_hdinsight_interactive_query_cluster.test.name
+  resource_group_name = azurerm_hdinsight_interactive_query_cluster.test.resource_group_name
+  location            = azurerm_hdinsight_interactive_query_cluster.test.location
+  cluster_version     = azurerm_hdinsight_interactive_query_cluster.test.cluster_version
+  tier                = azurerm_hdinsight_interactive_query_cluster.test.tier
+  tls_min_version     = azurerm_hdinsight_interactive_query_cluster.test.tls_min_version
+
   dynamic "component_version" {
-    for_each = azurerm_hdinsight_spark_cluster.test.component_version
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.component_version
     content {
-      spark = component_version.value.spark
+      interactive_hive = component_version.value.interactive_hive
     }
   }
   dynamic "gateway" {
-    for_each = azurerm_hdinsight_spark_cluster.test.gateway
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.gateway
     content {
       password = gateway.value.password
       username = gateway.value.username
     }
   }
   dynamic "storage_account" {
-    for_each = azurerm_hdinsight_spark_cluster.test.storage_account
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.storage_account
     content {
       is_default            = storage_account.value.is_default
       storage_account_key   = storage_account.value.storage_account_key
@@ -1167,7 +922,7 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
     }
   }
   dynamic "roles" {
-    for_each = azurerm_hdinsight_spark_cluster.test.roles
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.roles
     content {
       dynamic "head_node" {
         for_each = lookup(roles.value, "head_node", [])
@@ -1202,7 +957,7 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
 `, r.basic(data))
 }
 
-func (r HDInsightSparkClusterResource) sshKeys(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) sshKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1210,7 +965,7 @@ variable "ssh_key" {
   default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1219,7 +974,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -1235,20 +990,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       ssh_keys              = [var.ssh_key]
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
@@ -1257,11 +1012,11 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) updated(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1270,7 +1025,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -1286,20 +1041,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1312,7 +1067,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) virtualNetwork(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1330,7 +1085,7 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1339,7 +1094,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -1355,7 +1110,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1363,7 +1118,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -1372,7 +1127,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -1383,7 +1138,87 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (HDInsightSparkClusterResource) template(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "5.1"
+  tier                = "Standard"
+  tls_min_version     = "1.2"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_url = azurerm_storage_container.test.url
+    storage_account_id    = azurerm_storage_account.test.id
+    storage_account_key   = azurerm_storage_account.test.primary_access_key
+    is_default            = true
+  }
+
+  network {
+    connection_direction = "Outbound"
+  }
+
+  roles {
+    head_node {
+      vm_size            = "Standard_E16_V3"
+      username           = "acctestusrvm"
+      password           = "AccTestvdSC4daf986!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
+    }
+
+    worker_node {
+      vm_size               = "Standard_E16_V3"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+      subnet_id             = azurerm_subnet.test.id
+      virtual_network_id    = azurerm_virtual_network.test.id
+    }
+
+    zookeeper_node {
+      vm_size            = "Standard_E16_V3"
+      username           = "acctestusrvm"
+      password           = "AccTestvdSC4daf986!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
+    }
+  }
+
+  tags = {
+    Hello = "World"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (HDInsightInteractiveQueryClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1410,7 +1245,7 @@ resource "azurerm_storage_container" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (HDInsightSparkClusterResource) gen2template(data acceptance.TestData) string {
+func (HDInsightInteractiveQueryClusterResource) gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1453,7 +1288,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (HDInsightSparkClusterResource) nsgTemplate(data acceptance.TestData) string {
+func (HDInsightInteractiveQueryClusterResource) nsgTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
@@ -1665,11 +1500,11 @@ resource "azurerm_network_security_group" "test" {
 `, data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) tls(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) tls(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1678,7 +1513,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -1694,20 +1529,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1716,11 +1551,11 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) encryption_in_transit(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) encryption_in_transit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1731,7 +1566,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   encryption_in_transit_enabled = true
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -1747,20 +1582,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1769,11 +1604,11 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) diskEncryption(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) diskEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1782,7 +1617,11 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
+  }
+
+  disk_encryption {
+    encryption_at_host_enabled = true
   }
 
   gateway {
@@ -1794,10 +1633,6 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     storage_container_url = azurerm_storage_container.test.url
     storage_account_key   = azurerm_storage_account.test.primary_access_key
     is_default            = true
-  }
-
-  disk_encryption {
-    encryption_at_host_enabled = true
   }
 
   roles {
@@ -1811,7 +1646,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
       vm_size               = "Standard_D16a_V4"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
@@ -1824,7 +1659,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) allMetastores(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) allMetastores(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_mssql_server" "test" {
@@ -1859,7 +1694,7 @@ resource "azurerm_mssql_firewall_rule" "AzureServices" {
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
 }
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1868,7 +1703,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
   gateway {
     username = "acctestusrgw"
@@ -1881,18 +1716,18 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1921,7 +1756,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) hiveMetastore(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) hiveMetastore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_mssql_server" "test" {
@@ -1944,7 +1779,7 @@ resource "azurerm_mssql_firewall_rule" "AzureServices" {
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
 }
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1953,7 +1788,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
   gateway {
     username = "acctestusrgw"
@@ -1966,18 +1801,18 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1994,7 +1829,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) monitor(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) monitor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2005,7 +1840,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2014,7 +1849,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -2030,20 +1865,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2057,7 +1892,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) azureMonitor(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) azureMonitor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2068,7 +1903,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2077,7 +1912,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -2093,20 +1928,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2120,10 +1955,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) autoscale_capacity(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) autoscale_schedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2132,7 +1967,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
   gateway {
     username = "acctestusrgw"
@@ -2145,66 +1980,15 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
-      autoscale {
-        capacity {
-          min_instance_count = 2
-          max_instance_count = 3
-        }
-      }
-    }
-    zookeeper_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r HDInsightSparkClusterResource) autoscale_schedule(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-resource "azurerm_hdinsight_spark_cluster" "test" {
-  name                = "acctesthdi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  cluster_version     = "5.1"
-  tier                = "Standard"
-  tls_min_version     = "1.2"
-
-  component_version {
-    spark = "3.3"
-  }
-  gateway {
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-  storage_account {
-    storage_container_url = azurerm_storage_container.test.url
-    storage_account_key   = azurerm_storage_account.test.primary_access_key
-    is_default            = true
-  }
-  roles {
-    head_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-    worker_node {
-      vm_size               = "Standard_A4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
       autoscale {
         recurrence {
           timezone = "Pacific Standard Time"
@@ -2222,7 +2006,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
       }
     }
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -2231,12 +2015,12 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) securityProfile(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) securityProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
-  name                = "acctesthdispark-%[2]d"
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdiiq-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
@@ -2244,7 +2028,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -2260,7 +2044,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
@@ -2268,7 +2052,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "sshuser"
       password              = "TerrAform123!"
       target_instance_count = 1
@@ -2277,7 +2061,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_E16_V3"
       username           = "sshuser"
       password           = "TerrAform123!"
       subnet_id          = azurerm_subnet.test.id
@@ -2302,11 +2086,11 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, hdInsightsecurityProfileCommonTemplate(data), data.RandomInteger)
 }
 
-func (r HDInsightSparkClusterResource) computeIsolation(data acceptance.TestData) string {
+func (r HDInsightInteractiveQueryClusterResource) computeIsolation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -2315,7 +2099,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tls_min_version     = "1.2"
 
   component_version {
-    spark = "3.3"
+    interactive_hive = "3.1"
   }
 
   compute_isolation {
@@ -2335,20 +2119,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_E16_V3"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_E16_V3"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
