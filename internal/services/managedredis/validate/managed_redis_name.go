@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ManagedRedisClusterName(i interface{}, k string) ([]string, []error) {
+func ManagedRedisClusterName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(3, 63),
 		validation.StringDoesNotMatch(regexp.MustCompile(`--`), "must not contain any consecutive hyphens"),

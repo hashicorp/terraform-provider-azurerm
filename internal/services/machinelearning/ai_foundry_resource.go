@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -48,7 +48,7 @@ type AIFoundryModel struct {
 	FriendlyName                string                                     `tfschema:"friendly_name"`
 	DiscoveryUrl                string                                     `tfschema:"discovery_url"`
 	WorkspaceId                 string                                     `tfschema:"workspace_id"`
-	Tags                        map[string]interface{}                     `tfschema:"tags"`
+	Tags                        map[string]any                             `tfschema:"tags"`
 }
 
 type ManagedNetwork struct {
@@ -61,7 +61,7 @@ type Encryption struct {
 	KeyID            string `tfschema:"key_id"`
 }
 
-func (r AIFoundry) ModelObject() interface{} {
+func (r AIFoundry) ModelObject() any {
 	return &AIFoundryModel{}
 }
 
@@ -162,7 +162,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 		"application_insights_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: components.ValidateComponentID,
+			ValidateFunc: componentsapis.ValidateComponentID,
 		},
 
 		"container_registry_id": {
@@ -267,7 +267,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -286,7 +286,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 			}
 
 			if model.ApplicationInsightsId != "" {
-				applicationInsightsId, err := components.ParseComponentID(model.ApplicationInsightsId)
+				applicationInsightsId, err := componentsapis.ParseComponentID(model.ApplicationInsightsId)
 				if err != nil {
 					return err
 				}
@@ -369,7 +369,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("application_insights_id") {
-				applicationInsightsId, err := components.ParseComponentID(state.ApplicationInsightsId)
+				applicationInsightsId, err := componentsapis.ParseComponentID(state.ApplicationInsightsId)
 				if err != nil {
 					return err
 				}
@@ -397,7 +397,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -466,7 +466,7 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					if v := pointer.From(props.ApplicationInsights); v != "" {
-						applicationInsightsId, err := components.ParseComponentIDInsensitively(v)
+						applicationInsightsId, err := componentsapis.ParseComponentIDInsensitively(v)
 						if err != nil {
 							return err
 						}
@@ -617,6 +617,6 @@ func flattenManagedNetwork(input *workspaces.ManagedNetworkSettings) []ManagedNe
 	}
 
 	return append(out, ManagedNetwork{
-		IsolationMode: string(pointer.From(input.IsolationMode)),
+		IsolationMode: pointer.FromEnum(input.IsolationMode),
 	})
 }

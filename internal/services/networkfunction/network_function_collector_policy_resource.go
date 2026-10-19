@@ -26,12 +26,12 @@ import (
 )
 
 type NetworkFunctionCollectorPolicyModel struct {
-	Name                                   string                 `tfschema:"name"`
-	NetworkFunctionAzureTrafficCollectorId string                 `tfschema:"traffic_collector_id"`
-	IpfxEmission                           []IpfxEmissionModel    `tfschema:"ipfx_emission"`
-	IpfxIngestion                          []IpfxIngestionModel   `tfschema:"ipfx_ingestion"`
-	Location                               string                 `tfschema:"location"`
-	Tags                                   map[string]interface{} `tfschema:"tags"`
+	Name                                   string               `tfschema:"name"`
+	NetworkFunctionAzureTrafficCollectorId string               `tfschema:"traffic_collector_id"`
+	IpfxEmission                           []IpfxEmissionModel  `tfschema:"ipfx_emission"`
+	IpfxIngestion                          []IpfxIngestionModel `tfschema:"ipfx_ingestion"`
+	Location                               string               `tfschema:"location"`
+	Tags                                   map[string]any       `tfschema:"tags"`
 }
 
 type IpfxEmissionModel struct {
@@ -50,7 +50,7 @@ func (r NetworkFunctionCollectorPolicyResource) ResourceType() string {
 	return "azurerm_network_function_collector_policy"
 }
 
-func (r NetworkFunctionCollectorPolicyResource) ModelObject() interface{} {
+func (r NetworkFunctionCollectorPolicyResource) ModelObject() any {
 	return &NetworkFunctionCollectorPolicyModel{}
 }
 

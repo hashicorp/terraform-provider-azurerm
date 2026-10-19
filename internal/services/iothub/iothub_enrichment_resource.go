@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubEnrichment() *pluginsdk.Resource {
@@ -88,7 +87,7 @@ func resourceIotHubEnrichment() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -111,12 +110,12 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	enrichmentKey := d.Get("key").(string)
 	enrichmentValue := d.Get("value").(string)
-	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
+	endpointNamesRaw := d.Get("endpoint_names").([]any)
 
 	enrichment := devices.EnrichmentProperties{
 		Key:           &enrichmentKey,
 		Value:         &enrichmentValue,
-		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 	}
 
 	routing := iothub.Properties.Routing
@@ -170,7 +169,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceArmIotHubEnrichmentRead(d, meta)
 }
 
-func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +216,7 @@ func resourceArmIotHubEnrichmentRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmIotHubEnrichmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

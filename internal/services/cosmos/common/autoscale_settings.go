@@ -12,12 +12,12 @@ import (
 )
 
 func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *cosmosdb.AutoScaleSettings {
-	i := d.Get("autoscale_settings").([]interface{})
+	i := d.Get("autoscale_settings").([]any)
 	if len(i) == 0 || i[0] == nil {
 		log.Printf("[DEBUG] Cosmos DB autoscale settings are not set on the resource")
 		return nil
 	}
-	input := i[0].(map[string]interface{})
+	input := i[0].(map[string]any)
 
 	autoscaleSettings := cosmosdb.AutoScaleSettings{}
 
@@ -28,8 +28,8 @@ func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *cosmosdb.AutoSc
 	return &autoscaleSettings
 }
 
-func FlattenCosmosDbAutoscaleSettings(throughputResponse cosmosdb.ThroughputSettingsGetResults) []interface{} {
-	results := make([]interface{}, 0)
+func FlattenCosmosDbAutoscaleSettings(throughputResponse cosmosdb.ThroughputSettingsGetResults) []any {
+	results := make([]any, 0)
 
 	props := throughputResponse.Properties
 	if props == nil {
@@ -47,7 +47,7 @@ func FlattenCosmosDbAutoscaleSettings(throughputResponse cosmosdb.ThroughputSett
 		return results
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["max_throughput"] = autoscaleSettings.MaxThroughput
 

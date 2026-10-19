@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FlexibleServerAdministratorLogin(i interface{}, k string) (warnings []string, errors []error) {
+func FlexibleServerAdministratorLogin(i any, k string) (warnings []string, errors []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 32),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_]*$`), "must only contain characters, numbers or '_'"),

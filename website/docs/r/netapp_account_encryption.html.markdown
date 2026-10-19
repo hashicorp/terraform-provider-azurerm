@@ -140,7 +140,7 @@ The following arguments are supported:
 
 ---
 
-* `system_assigned_identity_principal_id` - (Optional) The ID of the System Assigned Manged Identity. Conflicts with `user_assigned_identity_id`.
+* `system_assigned_identity_principal_id` - (Optional) The ID of the System Assigned Managed Identity. Conflicts with `user_assigned_identity_id`.
 
 * `user_assigned_identity_id` - (Optional) The ID of the User Assigned Managed Identity. Conflicts with `system_assigned_identity_principal_id`.
 

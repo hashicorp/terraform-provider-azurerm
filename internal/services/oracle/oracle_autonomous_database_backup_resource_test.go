@@ -21,7 +21,7 @@ import (
 
 type AutonomousDatabaseBackupResource struct{}
 
-func TestAutonomousDatabaseBackupResource_basic(t *testing.T) {
+func TestAccAutonomousDatabaseBackupResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseBackupResource{}.ResourceType(), "test")
 	r := AutonomousDatabaseBackupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,7 +35,7 @@ func TestAutonomousDatabaseBackupResource_basic(t *testing.T) {
 	})
 }
 
-func TestAutonomousDatabaseBackupResource_complete(t *testing.T) {
+func TestAccAutonomousDatabaseBackupResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseBackupResource{}.ResourceType(), "test")
 	r := AutonomousDatabaseBackupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,7 +49,7 @@ func TestAutonomousDatabaseBackupResource_complete(t *testing.T) {
 	})
 }
 
-func TestAutonomousDatabaseBackupResource_update(t *testing.T) {
+func TestAccAutonomousDatabaseBackupResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseBackupResource{}.ResourceType(), "test")
 	r := AutonomousDatabaseBackupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -69,7 +69,7 @@ func TestAutonomousDatabaseBackupResource_update(t *testing.T) {
 	})
 }
 
-func TestAutonomousDatabaseBackupResource_requiresImport(t *testing.T) {
+func TestAccAutonomousDatabaseBackupResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseBackupResource{}.ResourceType(), "test")
 	r := AutonomousDatabaseBackupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

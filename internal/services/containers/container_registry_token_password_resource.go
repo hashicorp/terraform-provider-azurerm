@@ -107,7 +107,7 @@ func (r ContainerRegistryTokenPasswordResource) ResourceType() string {
 	return "azurerm_container_registry_token_password"
 }
 
-func (r ContainerRegistryTokenPasswordResource) ModelObject() interface{} {
+func (r ContainerRegistryTokenPasswordResource) ModelObject() any {
 	return &ContainerRegistryTokenPasswordModel{}
 }
 
@@ -408,7 +408,7 @@ func (r ContainerRegistryTokenPasswordResource) generatePassword(ctx context.Con
 		return nil, fmt.Errorf("reading existing passwords: %+v", err)
 	}
 
-	// The token password API has the following behavior:
+	// The token password API has the following behaviour:
 	// - To remove password, one uses the PATCH of the ACR token endpoint
 	// - To add password, one uses the POST of the ACR's generate credential endpoint
 	// Hence we'd have to check whether there is any password to clean up before we try to update/create passwords.

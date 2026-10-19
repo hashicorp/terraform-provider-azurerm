@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func WorkspaceName(i interface{}, k string) (warnings []string, errors []error) {
+func WorkspaceName(i any, k string) (warnings []string, errors []error) {
 	// Workspace name can be 3-64 characters in length
 	return validation.All(
 		validation.StringIsNotWhiteSpace,

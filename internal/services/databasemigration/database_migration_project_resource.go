@@ -82,7 +82,7 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -106,7 +106,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	location := location.Normalize(d.Get("location").(string))
 	sourcePlatform := d.Get("source_platform").(string)
 	targetPlatform := d.Get("target_platform").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := projectresource.Project{
 		Location: location,
@@ -128,7 +128,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
-func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +165,7 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
