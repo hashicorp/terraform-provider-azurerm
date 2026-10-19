@@ -670,8 +670,9 @@ func ContainerAppIngressAdditionalPortMapping() *pluginsdk.Schema {
 				},
 
 				"exposed_port": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because the service defaults this to `target_port` when it is not specified.
 					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 65535),
 					Description:  "The exposed port on the container for the additional Ingress traffic. Defaults to `target_port` if not set.",
