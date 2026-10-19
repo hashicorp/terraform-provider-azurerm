@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = StorageAccountManagementPolicyId{}
 
-func TestStorageAccountManagementPolicyIDFormatter(t *testing.T) {
+func TestParseStorageAccountManagementPolicyIDFormatter(t *testing.T) {
 	actual := NewStorageAccountManagementPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "policy1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/managementPolicies/policy1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestStorageAccountManagementPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestStorageAccountManagementPolicyID(t *testing.T) {
+func TestParseStorageAccountManagementPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
