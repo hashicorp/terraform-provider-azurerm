@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package graphservices
+package graph_services_account
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.DataSource = AccountDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type AccountDataSource struct{}
+type DataSource struct{}
 
 type AccountDataSourceModel struct {
 	ApplicationId     string         `tfschema:"application_id"`
@@ -30,15 +30,15 @@ type AccountDataSourceModel struct {
 	Tags              map[string]any `tfschema:"tags"`
 }
 
-func (r AccountDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &AccountDataSourceModel{}
 }
 
-func (r AccountDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_graph_services_account"
 }
 
-func (r AccountDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -50,7 +50,7 @@ func (r AccountDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AccountDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"application_id": {
 			Type:     pluginsdk.TypeString,
@@ -66,7 +66,7 @@ func (r AccountDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AccountDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
