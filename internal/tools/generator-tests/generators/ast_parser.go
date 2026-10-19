@@ -122,10 +122,46 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 	return result, err
 }
 
+// findProviderRoot locates the provider repository root by walking up from startDir (or cwd)
+// until finding go.mod with the provider module path.
+func findProviderRoot(startDir string) (string, error) {
+	if startDir == "" {
+		var err error
+		startDir, err = os.Getwd()
+		if err != nil {
+			return "", fmt.Errorf("failed to get current working directory: %w", err)
+		}
+	}
+	dir, err := filepath.Abs(startDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path for %s: %w", startDir, err)
+	}
+
+	for {
+		goModPath := filepath.Join(dir, "go.mod")
+		if info, err := os.Stat(goModPath); err == nil && !info.IsDir() {
+			content, err := os.ReadFile(goModPath)
+			if err == nil && strings.Contains(string(content), "module github.com/hashicorp/terraform-provider-azurerm") {
+				return dir, nil
+			}
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return "", fmt.Errorf("could not locate provider root (go.mod) starting from %s", startDir)
+}
+
 func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]string, isVirtual bool) (*InferredIdentity, error) {
 	// Map common identity packages to their relative paths in the vendor folder
-	// We assume generator-tests runs from internal/services/<package>
-	providerRoot := "../../../"
+	providerRoot, err := findProviderRoot("")
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine provider root: %w", err)
+	}
 	var pkgPath string
 
 	if importPath, ok := importsMap[pkgName]; ok {

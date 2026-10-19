@@ -29,7 +29,7 @@ resource "azurerm_api_management" "example" {
 }
 
 data "azurerm_api_management_workspace" "example" {
-  name              = "existing"
+  name              = "example-workspace"
   api_management_id = azurerm_api_management.example.id
 }
 
