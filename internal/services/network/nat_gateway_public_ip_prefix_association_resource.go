@@ -57,7 +57,7 @@ func resourceNATGatewayPublicIpPrefixAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData
 	return resourceNATGatewayPublicIpPrefixAssociationRead(d, meta)
 }
 
-func resourceNATGatewayPublicIpPrefixAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpPrefixAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceNATGatewayPublicIpPrefixAssociationRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceNATGatewayPublicIpPrefixAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNATGatewayPublicIpPrefixAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

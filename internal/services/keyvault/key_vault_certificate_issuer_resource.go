@@ -107,7 +107,7 @@ func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -150,7 +150,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if adminsRaw, ok := d.GetOk("admin"); ok {
-		parameter.OrganizationDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))
+		parameter.OrganizationDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]any))
 	}
 
 	accountId, gotAccountId := d.GetOk("account_id")
@@ -172,7 +172,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 	return resourceKeyVaultCertificateIssuerRead(d, meta)
 }
 
-func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -238,7 +238,7 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -285,12 +285,12 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	return err
 }
 
-func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interface{}) *[]keyvault.AdministratorDetails {
+func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []any) *[]keyvault.AdministratorDetails {
 	results := make([]keyvault.AdministratorDetails, 0, len(vs))
 
 	for _, v := range vs {
 		administratorDetails := keyvault.AdministratorDetails{}
-		args := v.(map[string]interface{})
+		args := v.(map[string]any)
 		if firstName, ok := args["first_name"]; ok {
 			administratorDetails.FirstName = pointer.To(firstName.(string))
 		}
@@ -309,14 +309,14 @@ func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interfa
 	return &results
 }
 
-func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) []interface{} {
-	results := make([]interface{}, 0)
+func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, admin := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"email_address": pointer.From(admin.EmailAddress),
 			"first_name":    pointer.From(admin.FirstName),
 			"last_name":     pointer.From(admin.LastName),

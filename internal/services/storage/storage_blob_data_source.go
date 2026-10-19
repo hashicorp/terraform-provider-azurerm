@@ -82,7 +82,7 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

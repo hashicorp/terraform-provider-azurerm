@@ -76,7 +76,7 @@ func (r CustomDomainSignalrServiceResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CustomDomainSignalrServiceResource) ModelObject() interface{} {
+func (r CustomDomainSignalrServiceResource) ModelObject() any {
 	return &CustomDomainSignalrServiceModel{}
 }
 

@@ -78,7 +78,7 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NatGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -102,7 +102,7 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(model.Location))
 		sku := ""
 		if model.Sku != nil {
-			sku = string(pointer.From(model.Sku.Name))
+			sku = pointer.FromEnum(model.Sku.Name)
 		}
 		d.Set("sku_name", sku)
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
@@ -123,8 +123,8 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenNetworkSubResourceID(input *[]natgateways.SubResource) []interface{} {
-	results := make([]interface{}, 0)
+func flattenNetworkSubResourceID(input *[]natgateways.SubResource) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}

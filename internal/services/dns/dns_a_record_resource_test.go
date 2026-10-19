@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TestAccDnsARecordResource struct{}
+type DnsARecordResource struct{}
 
 func TestAccDnsARecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccDnsARecord_basic(t *testing.T) {
 
 func TestAccDnsARecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccDnsARecord_requiresImport(t *testing.T) {
 
 func TestAccDnsARecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccDnsARecord_updateRecords(t *testing.T) {
 
 func TestAccDnsARecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func TestAccDnsARecord_withTags(t *testing.T) {
 
 func TestAccDnsARecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
 	targetResourceName2 := "azurerm_public_ip.test2"
 
@@ -124,7 +124,7 @@ func TestAccDnsARecord_withAlias(t *testing.T) {
 
 func TestAccDnsARecord_RecordsToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -149,7 +149,7 @@ func TestAccDnsARecord_RecordsToAlias(t *testing.T) {
 
 func TestAccDnsARecord_AliasToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
-	r := TestAccDnsARecordResource{}
+	r := DnsARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -172,7 +172,7 @@ func TestAccDnsARecord_AliasToRecords(t *testing.T) {
 	})
 }
 
-func (TestAccDnsARecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DnsARecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := recordsets.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -186,7 +186,7 @@ func (TestAccDnsARecordResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (TestAccDnsARecordResource) basic(data acceptance.TestData) string {
+func (DnsARecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -212,7 +212,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r TestAccDnsARecordResource) requiresImport(data acceptance.TestData) string {
+func (r DnsARecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -226,7 +226,7 @@ resource "azurerm_dns_a_record" "import" {
 `, r.basic(data))
 }
 
-func (TestAccDnsARecordResource) updateRecords(data acceptance.TestData) string {
+func (DnsARecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -252,7 +252,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (TestAccDnsARecordResource) withTags(data acceptance.TestData) string {
+func (DnsARecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -283,7 +283,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (TestAccDnsARecordResource) withTagsUpdate(data acceptance.TestData) string {
+func (DnsARecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -313,7 +313,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (TestAccDnsARecordResource) withAlias(data acceptance.TestData) string {
+func (DnsARecordResource) withAlias(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -347,7 +347,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (TestAccDnsARecordResource) withAliasUpdate(data acceptance.TestData) string {
+func (DnsARecordResource) withAliasUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -381,7 +381,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (TestAccDnsARecordResource) AliasToRecords(data acceptance.TestData) string {
+func (DnsARecordResource) AliasToRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -415,7 +415,7 @@ resource "azurerm_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (TestAccDnsARecordResource) AliasToRecordsUpdate(data acceptance.TestData) string {
+func (DnsARecordResource) AliasToRecordsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

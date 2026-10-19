@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -63,8 +63,8 @@ func flattenTemplateDeploymentDebugSetting(input *resources.DebugSetting) string
 	return ""
 }
 
-func expandTemplateDeploymentBody(input string) (*map[string]interface{}, error) {
-	var output map[string]interface{}
+func expandTemplateDeploymentBody(input string) (*map[string]any, error) {
+	var output map[string]any
 
 	if err := json.Unmarshal([]byte(input), &output); err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func expandTemplateDeploymentBody(input string) (*map[string]interface{}, error)
 	return &output, nil
 }
 
-func flattenTemplateDeploymentBody(input interface{}) (*string, error) {
+func flattenTemplateDeploymentBody(input any) (*string, error) {
 	output := "{}" // since this should be json
 
 	if input == nil {
@@ -89,12 +89,12 @@ func flattenTemplateDeploymentBody(input interface{}) (*string, error) {
 	return &output, nil
 }
 
-func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
+func filterOutTemplateDeploymentParameters(input any) any {
 	if input == nil {
 		return nil
 	}
 
-	items, ok := input.(map[string]interface{})
+	items, ok := input.(map[string]any)
 	if !ok {
 		// this is best-effort
 		return input
@@ -119,7 +119,7 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 		}
 	*/
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	for topLevelKey, topLevelValue := range items {
 		if topLevelValue == nil {
 			continue
@@ -129,8 +129,8 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 		output[topLevelKey] = topLevelValue
 
 		// then filter it if necessary
-		if innerVals, ok := topLevelValue.(map[string]interface{}); ok {
-			outputVals := make(map[string]interface{})
+		if innerVals, ok := topLevelValue.(map[string]any); ok {
+			outputVals := make(map[string]any)
 			for innerKey, innerValue := range innerVals {
 				if strings.EqualFold("type", innerKey) {
 					continue

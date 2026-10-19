@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func flattenPrivateCloudManagementCluster(input *privateclouds.CommonClusterProperties) []interface{} {
+func flattenPrivateCloudManagementCluster(input *privateclouds.CommonClusterProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"size":  input.ClusterSize,
 			"id":    input.ClusterId,
 			"hosts": pluginsdk.FlattenSlice(input.Hosts),
@@ -23,17 +23,17 @@ func flattenPrivateCloudManagementCluster(input *privateclouds.CommonClusterProp
 	}
 }
 
-func flattenPrivateCloudCircuit(input *privateclouds.Circuit) []interface{} {
+func flattenPrivateCloudCircuit(input *privateclouds.Circuit) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	expressRouteId := pointer.From(input.ExpressRouteID)
 	expressRoutePrivatePeeringId := pointer.From(input.ExpressRoutePrivatePeeringID)
 	primarySubnet := pointer.From(input.PrimarySubnet)
 	secondarySubnet := pointer.From(input.SecondarySubnet)
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"express_route_id":                 expressRouteId,
 			"express_route_private_peering_id": expressRoutePrivatePeeringId,
 			"primary_subnet_cidr":              primarySubnet,

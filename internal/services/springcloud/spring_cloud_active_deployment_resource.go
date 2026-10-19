@@ -65,7 +65,7 @@ func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	deploymentClient := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -104,7 +104,7 @@ func resourceSpringCloudActiveDeploymentCreate(d *pluginsdk.ResourceData, meta i
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudActiveDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceSpringCloudActiveDeploymentUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceSpringCloudActiveDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudActiveDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentRead(d *pluginsdk.ResourceData, meta any) error {
 	deploymentClient := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,7 +160,7 @@ func resourceSpringCloudActiveDeploymentRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceSpringCloudActiveDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudActiveDeploymentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

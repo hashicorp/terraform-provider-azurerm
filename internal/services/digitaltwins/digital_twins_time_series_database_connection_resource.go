@@ -116,7 +116,7 @@ func (m TimeSeriesDatabaseConnectionResource) Attributes() map[string]*pluginsdk
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m TimeSeriesDatabaseConnectionResource) ModelObject() interface{} {
+func (m TimeSeriesDatabaseConnectionResource) ModelObject() any {
 	return &TimeSeriesDatabaseConnectionModel{}
 }
 

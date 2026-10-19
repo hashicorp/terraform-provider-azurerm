@@ -97,7 +97,7 @@ func dataSourceSubnet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -136,7 +136,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
-			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
+			d.Set("private_endpoint_network_policies", pointer.FromEnum(props.PrivateEndpointNetworkPolicies))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
 			networkSecurityGroupId := ""

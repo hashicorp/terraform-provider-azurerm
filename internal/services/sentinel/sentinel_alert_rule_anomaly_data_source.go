@@ -152,7 +152,7 @@ func (a AlertRuleAnomalyDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (a AlertRuleAnomalyDataSource) ModelObject() interface{} {
+func (a AlertRuleAnomalyDataSource) ModelObject() any {
 	return &AlertRuleAnomalyDataSourceModel{}
 }
 

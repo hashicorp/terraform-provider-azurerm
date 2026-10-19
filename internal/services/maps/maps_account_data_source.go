@@ -61,7 +61,7 @@ func dataSourceMapsAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMapsAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

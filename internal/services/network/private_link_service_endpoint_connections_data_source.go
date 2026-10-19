@@ -80,7 +80,7 @@ func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PrivateLinkServices
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,14 +121,14 @@ func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]privatelinkservices.PrivateEndpointConnection) []interface{} {
-	results := make([]interface{}, 0)
+func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]privatelinkservices.PrivateEndpointConnection) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		v := make(map[string]interface{})
+		v := make(map[string]any)
 		if id := item.Id; id != nil {
 			v["connection_id"] = *id
 		}

@@ -95,7 +95,7 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("setting `idle_timeout_in_minutes`: %+v", err)
 			}
 
-			if err := d.Set("load_distribution", string(pointer.From(props.LoadDistribution))); err != nil {
+			if err := d.Set("load_distribution", pointer.FromEnum(props.LoadDistribution)); err != nil {
 				return fmt.Errorf("setting `load_distribution`: %+v", err)
 			}
 		}

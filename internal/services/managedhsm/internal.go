@@ -41,7 +41,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"InProgress"},
 		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			item, err := helper.NestedItemHasBeenDeleted(ctx)
 			if err != nil {
 				if response.WasNotFound(item.Response) {
@@ -85,7 +85,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	stateConf = &pluginsdk.StateChangeConf{
 		Pending: []string{"InProgress"},
 		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			item, err := helper.NestedItemHasBeenPurged(ctx)
 			if err != nil {
 				if response.WasNotFound(item.Response) {
@@ -110,7 +110,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 }
 
 func managedHSMKeyRefreshFunc(ctx context.Context, childItemUri string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking to see if Managed HSM Key %q is available..", childItemUri)
 
 		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}

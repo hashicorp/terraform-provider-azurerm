@@ -67,7 +67,7 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -91,7 +91,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.SetId(keyVaultId.ID())
 
 	var names []string
-	var secrets []map[string]interface{}
+	var secrets []map[string]any
 
 	if secretList.Response().Value != nil {
 		for secretList.NotDone() {
@@ -129,8 +129,8 @@ func parseNameFromSecretUrl(input string) (*string, error) {
 	return &segments[2], nil
 }
 
-func expandSecrets(name string, item keyvault.SecretItem) map[string]interface{} {
-	res := map[string]interface{}{
+func expandSecrets(name string, item keyvault.SecretItem) map[string]any {
+	res := map[string]any{
 		"id":   *item.ID,
 		"name": name,
 	}

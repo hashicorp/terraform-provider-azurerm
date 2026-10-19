@@ -15,14 +15,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[string]jobschedule.JobScheduleCreateParameters, error) {
+func ExpandAutomationJobSchedule(input []any, runBookName string) (*map[string]jobschedule.JobScheduleCreateParameters, error) {
 	res := make(map[string]jobschedule.JobScheduleCreateParameters)
 	if len(input) == 0 || input[0] == nil {
 		return &res, nil
 	}
 
 	for _, v := range input {
-		js := v.(map[string]interface{})
+		js := v.(map[string]any)
 		// skip SDK v2 bug: https://github.com/hashicorp/terraform-plugin-sdk/issues/1248
 		if js["schedule_name"] == "" {
 			continue
@@ -40,7 +40,7 @@ func ExpandAutomationJobSchedule(input []interface{}, runBookName string) (*map[
 
 		if v, ok := js["parameters"]; ok {
 			jsParameters := make(map[string]string)
-			for k, v := range v.(map[string]interface{}) {
+			for k, v := range v.(map[string]any) {
 				jsParameters[k] = v.(string)
 			}
 			jobScheduleCreateParameters.Properties.Parameters = &jsParameters
@@ -77,7 +77,7 @@ func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]jobschedule.JobSchedulePro
 			}
 		}
 
-		res.Add(map[string]interface{}{
+		res.Add(map[string]any{
 			"schedule_name":   scheduleName,
 			"parameters":      parameters,
 			"run_on":          runOn,
@@ -88,18 +88,18 @@ func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]jobschedule.JobSchedulePro
 	return res
 }
 
-func ResourceAutomationJobScheduleDigest(v interface{}) string {
+func ResourceAutomationJobScheduleDigest(v any) string {
 	var buf bytes.Buffer
 	var paramString map[string]string
 	var scheduleName, runOn string
 	switch job := v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		scheduleName = job["schedule_name"].(string)
 		runOn = job["run_on"].(string)
 		switch param := job["parameters"].(type) {
 		case map[string]string:
 			paramString = param
-		case map[string]interface{}:
+		case map[string]any:
 			paramString = map[string]string{}
 			for k, v := range param {
 				paramString[k] = fmt.Sprintf("%v", v)
@@ -128,6 +128,6 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 	return buf.String()
 }
 
-func ResourceAutomationJobScheduleHash(v interface{}) int {
+func ResourceAutomationJobScheduleHash(v any) int {
 	return pluginsdk.HashString(ResourceAutomationJobScheduleDigest(v))
 }
