@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+//go:generate go run ../../../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
+
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceApplicationInsightsCreate,

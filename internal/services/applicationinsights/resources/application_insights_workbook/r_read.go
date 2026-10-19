@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
+//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name application_insights_workbook -test-name basicForResourceIdentity
+
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,

@@ -7,6 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/client_config"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/marketplace_role_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/pim_active_role_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/pim_eligible_role_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/role_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/role_assignments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/role_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/resources/role_management_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,32 +45,32 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_client_config": dataSourceArmClientConfig(),
+		"azurerm_client_config": client_config.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_role_assignment": resourceArmRoleAssignment(),
+		"azurerm_role_assignment": role_assignment.RegisterResource(),
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		RoleAssignmentsDataSource{},
-		RoleDefinitionDataSource{},
-		RoleManagementPolicyDataSource{},
+		role_assignments.DataSource{},
+		role_definition.DataSource{},
+		role_management_policy.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		PimActiveRoleAssignmentResource{},
-		PimEligibleRoleAssignmentResource{},
-		RoleAssignmentMarketplaceResource{},
-		RoleDefinitionResource{},
-		RoleManagementPolicyResource{},
+		pim_active_role_assignment.Resource{},
+		pim_eligible_role_assignment.Resource{},
+		marketplace_role_assignment.Resource{},
+		role_definition.Resource{},
+		role_management_policy.Resource{},
 	}
 }
 
