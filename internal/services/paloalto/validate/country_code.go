@@ -263,7 +263,7 @@ var ISO3166_1_alpha2 = []string{
 // ISO3361CountryCode checks that a supplied country code is pesent in the ISO3361-1 alpha 2 country code list as
 // defined at http://www.ip2country.net/ip2country/country_code.html
 // lintignore:V013 // the error message intentionally links to the Palo Alto supported country list
-func ISO3361CountryCode(input interface{}, k string) (warnings []string, errors []error) {
+func ISO3361CountryCode(input any, k string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be of type string", k))

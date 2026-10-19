@@ -218,16 +218,16 @@ func schemaStoragePermissions() *pluginsdk.Schema {
 	}
 }
 
-func expandAccessPolicies(input []interface{}) *[]vaults.AccessPolicyEntry {
+func expandAccessPolicies(input []any) *[]vaults.AccessPolicyEntry {
 	output := make([]vaults.AccessPolicyEntry, 0)
 
 	for _, policySet := range input {
-		policyRaw := policySet.(map[string]interface{})
+		policyRaw := policySet.(map[string]any)
 
-		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
-		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
-		secretPermissionsRaw := policyRaw["secret_permissions"].([]interface{})
-		storagePermissionsRaw := policyRaw["storage_permissions"].([]interface{})
+		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]any)
+		keyPermissionsRaw := policyRaw["key_permissions"].([]any)
+		secretPermissionsRaw := policyRaw["secret_permissions"].([]any)
+		storagePermissionsRaw := policyRaw["storage_permissions"].([]any)
 
 		policy := vaults.AccessPolicyEntry{
 			Permissions: vaults.Permissions{
@@ -248,8 +248,8 @@ func expandAccessPolicies(input []interface{}) *[]vaults.AccessPolicyEntry {
 	return &output
 }
 
-func flattenAccessPolicies(input *[]vaults.AccessPolicyEntry) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+func flattenAccessPolicies(input *[]vaults.AccessPolicyEntry) []map[string]any {
+	result := make([]map[string]any, 0)
 
 	if input == nil {
 		return result
@@ -262,7 +262,7 @@ func flattenAccessPolicies(input *[]vaults.AccessPolicyEntry) []map[string]inter
 		keys := flattenKeyPermissions(policy.Permissions.Keys)
 		secrets := flattenSecretPermissions(policy.Permissions.Secrets)
 		storage := flattenStoragePermissions(policy.Permissions.Storage)
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"application_id":          applicationId,
 			"certificate_permissions": certs,
 			"key_permissions":         keys,
@@ -276,7 +276,7 @@ func flattenAccessPolicies(input *[]vaults.AccessPolicyEntry) []map[string]inter
 	return result
 }
 
-func expandCertificatePermissions(input []interface{}) *[]vaults.CertificatePermissions {
+func expandCertificatePermissions(input []any) *[]vaults.CertificatePermissions {
 	output := make([]vaults.CertificatePermissions, 0)
 
 	for _, permission := range input {
@@ -286,8 +286,8 @@ func expandCertificatePermissions(input []interface{}) *[]vaults.CertificatePerm
 	return &output
 }
 
-func flattenCertificatePermissions(input *[]vaults.CertificatePermissions) []interface{} {
-	output := make([]interface{}, 0)
+func flattenCertificatePermissions(input *[]vaults.CertificatePermissions) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, certificatePermission := range *input {
@@ -299,7 +299,7 @@ func flattenCertificatePermissions(input *[]vaults.CertificatePermissions) []int
 	return output
 }
 
-func expandKeyPermissions(keyPermissionsRaw []interface{}) *[]vaults.KeyPermissions {
+func expandKeyPermissions(keyPermissionsRaw []any) *[]vaults.KeyPermissions {
 	output := make([]vaults.KeyPermissions, 0)
 
 	for _, permission := range keyPermissionsRaw {
@@ -308,8 +308,8 @@ func expandKeyPermissions(keyPermissionsRaw []interface{}) *[]vaults.KeyPermissi
 	return &output
 }
 
-func flattenKeyPermissions(input *[]vaults.KeyPermissions) []interface{} {
-	output := make([]interface{}, 0)
+func flattenKeyPermissions(input *[]vaults.KeyPermissions) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, keyPermission := range *input {
@@ -321,7 +321,7 @@ func flattenKeyPermissions(input *[]vaults.KeyPermissions) []interface{} {
 	return output
 }
 
-func expandSecretPermissions(input []interface{}) *[]vaults.SecretPermissions {
+func expandSecretPermissions(input []any) *[]vaults.SecretPermissions {
 	output := make([]vaults.SecretPermissions, 0)
 
 	for _, permission := range input {
@@ -331,8 +331,8 @@ func expandSecretPermissions(input []interface{}) *[]vaults.SecretPermissions {
 	return &output
 }
 
-func flattenSecretPermissions(input *[]vaults.SecretPermissions) []interface{} {
-	output := make([]interface{}, 0)
+func flattenSecretPermissions(input *[]vaults.SecretPermissions) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, secretPermission := range *input {
@@ -344,7 +344,7 @@ func flattenSecretPermissions(input *[]vaults.SecretPermissions) []interface{} {
 	return output
 }
 
-func expandStoragePermissions(input []interface{}) *[]vaults.StoragePermissions {
+func expandStoragePermissions(input []any) *[]vaults.StoragePermissions {
 	output := make([]vaults.StoragePermissions, 0)
 
 	for _, permission := range input {
@@ -354,8 +354,8 @@ func expandStoragePermissions(input []interface{}) *[]vaults.StoragePermissions 
 	return &output
 }
 
-func flattenStoragePermissions(input *[]vaults.StoragePermissions) []interface{} {
-	output := make([]interface{}, 0)
+func flattenStoragePermissions(input *[]vaults.StoragePermissions) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, storagePermission := range *input {

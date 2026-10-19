@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -33,7 +33,7 @@ func methodsToAPIs(methods []sdkMethod) []API {
 	result := make([]API, 0)
 
 	debugLog := func(m sdkMethod, msg string) {
-		log.WithFields(log.Fields{
+		logrus.WithFields(logrus.Fields{
 			"api_path": m.APIPath,
 			"method":   m.MethodName,
 			"package":  m.Pkg,

@@ -21,7 +21,7 @@ var _ sdk.Resource = DevCenterGalleryResource{}
 
 type DevCenterGalleryResource struct{}
 
-func (r DevCenterGalleryResource) ModelObject() interface{} {
+func (r DevCenterGalleryResource) ModelObject() any {
 	return &DevCenterGalleryResourceSchema{}
 }
 

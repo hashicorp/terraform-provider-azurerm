@@ -273,14 +273,14 @@ func resourceSharedImage() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("end_of_life_date", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) != "" && new.(string) == ""
 			}),
 		),
 	}
 }
 
-func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -317,11 +317,11 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			Architecture:        pointer.ToEnum[galleryimages.Architecture](d.Get("architecture").(string)),
 			OsType:              galleryimages.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    pointer.ToEnum[galleryimages.HyperVGeneration](d.Get("hyper_v_generation").(string)),
-			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
+			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]any)),
 			Features:            expandSharedImageFeatures(d),
 			Recommended:         recommended,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("end_of_life_date"); ok {
@@ -353,7 +353,7 @@ func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceSharedImageRead(d, meta)
 }
 
-func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -421,7 +421,7 @@ func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -433,7 +433,7 @@ func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceSharedImageRead(d, meta)
 }
 
-func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -580,7 +580,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -607,8 +607,8 @@ func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) galleryimages.GalleryImageIdentifier {
-	vs := d.Get("identifier").([]interface{})
-	v := vs[0].(map[string]interface{})
+	vs := d.Get("identifier").([]any)
+	v := vs[0].(map[string]any)
 
 	offer := v["offer"].(string)
 	publisher := v["publisher"].(string)
@@ -621,13 +621,13 @@ func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) galleryimages.Galle
 	}
 }
 
-func flattenGalleryImageIdentifier(input *galleryimages.GalleryImageIdentifier) []interface{} {
+func flattenGalleryImageIdentifier(input *galleryimages.GalleryImageIdentifier) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"offer":     input.Offer,
 			"publisher": input.Publisher,
 			"sku":       input.Sku,
@@ -635,12 +635,12 @@ func flattenGalleryImageIdentifier(input *galleryimages.GalleryImageIdentifier) 
 	}
 }
 
-func expandGalleryImagePurchasePlan(input []interface{}) *galleryimages.ImagePurchasePlan {
+func expandGalleryImagePurchasePlan(input []any) *galleryimages.ImagePurchasePlan {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := galleryimages.ImagePurchasePlan{
 		Name: pointer.To(v["name"].(string)),
 	}
@@ -656,13 +656,13 @@ func expandGalleryImagePurchasePlan(input []interface{}) *galleryimages.ImagePur
 	return &result
 }
 
-func flattenGalleryImagePurchasePlan(input *galleryimages.ImagePurchasePlan) []interface{} {
+func flattenGalleryImagePurchasePlan(input *galleryimages.ImagePurchasePlan) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":      pointer.From(input.Name),
 			"publisher": pointer.From(input.Publisher),
 			"product":   pointer.From(input.Product),

@@ -239,7 +239,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Attributes() map[string]*plug
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AutonomousDatabaseCloneFromDatabaseResource) ModelObject() interface{} {
+func (AutonomousDatabaseCloneFromDatabaseResource) ModelObject() any {
 	return &AutonomousDatabaseCloneFromDatabaseResourceModel{}
 }
 

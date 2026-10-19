@@ -19,6 +19,18 @@ import (
 
 type AutomationScheduleResource struct{}
 
+func TestAccAutomationSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	r := AutomationScheduleResource{}
+	loc, _ := time.LoadLocation("Australia/Perth")
+	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.oneTime_complete(data, startTime),
+		},
+	}, "")
+}
+
 func TestAccAutomationSchedule_oneTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
@@ -321,7 +333,7 @@ resource "azurerm_automation_schedule" "test" {
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, startTime)
 }
 
-// nolint unparam
+//nolint:unparam
 func (AutomationScheduleResource) recurring_basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 %s

@@ -36,7 +36,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) ResourceType() string {
 	return "azurerm_cosmosdb_sql_dedicated_gateway"
 }
 
-func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() interface{} {
+func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() any {
 	return &CosmosDbSqlDedicatedGatewayModel{}
 }
 

@@ -31,7 +31,7 @@ type AutomationRunbookDataSourceModel struct {
 	RunbookType           string            `tfschema:"runbook_type"`
 	LogActivityTrace      int64             `tfschema:"log_activity_trace_level"`
 	Content               string            `tfschema:"content"`
-	Tags                  map[string]string `tfschema:"tags "`
+	Tags                  map[string]string `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = AutomationRunbookDataSource{}
@@ -92,7 +92,7 @@ func (d AutomationRunbookDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d AutomationRunbookDataSource) ModelObject() interface{} {
+func (d AutomationRunbookDataSource) ModelObject() any {
 	return &AutomationRunbookDataSourceModel{}
 }
 
@@ -134,32 +134,18 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
+			props := model.Properties
+			if props == nil {
+				return fmt.Errorf("retrieving %s: properties were nil", id)
+			}
+
 			state.Location = location.Normalize(model.Location)
-
-			if model.Properties.Description != nil {
-				state.Description = pointer.From(model.Properties.Description)
-			}
-
-			if model.Properties.LogProgress != nil {
-				state.LogProgress = pointer.From(model.Properties.LogProgress)
-			}
-
-			if model.Properties.RunbookType != nil {
-				state.RunbookType = string(pointer.From(model.Properties.RunbookType))
-			}
-
-			if model.Properties.LogVerbose != nil {
-				state.LogVerbose = pointer.From(model.Properties.LogVerbose)
-			}
-
-			if model.Properties.LogActivityTrace != nil {
-				state.LogActivityTrace = pointer.From(model.Properties.LogActivityTrace)
-			}
-
-			if contentResp.Model != nil {
-				state.Content = string(pointer.From(contentResp.Model))
-			}
-
+			state.Description = pointer.From(props.Description)
+			state.LogProgress = pointer.From(props.LogProgress)
+			state.RunbookType = pointer.FromEnum(props.RunbookType)
+			state.LogVerbose = pointer.From(props.LogVerbose)
+			state.LogActivityTrace = pointer.From(props.LogActivityTrace)
+			state.Content = string(pointer.From(contentResp.Model))
 			state.Tags = pointer.From(model.Tags)
 
 			metadata.SetID(id)

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,6 +17,16 @@ import (
 )
 
 type EmailCommunicationServiceDomainSenderUsernameResource struct{}
+
+func TestAccEmailServiceDomainSenderUsername_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
+	r := EmailCommunicationServiceDomainSenderUsernameResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccEmailServiceDomainSenderUsername_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")

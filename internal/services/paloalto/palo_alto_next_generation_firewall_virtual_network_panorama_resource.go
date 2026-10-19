@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -35,12 +34,12 @@ type NextGenerationFirewallVnetPanoramaModel struct {
 	MarketplaceOfferId   string                      `tfschema:"marketplace_offer_id"`
 	PanoramaConfig       []schema.Panorama           `tfschema:"panorama"`
 	PlanId               string                      `tfschema:"plan_id"`
-	Tags                 map[string]interface{}      `tfschema:"tags"`
+	Tags                 map[string]any              `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetPanoramaResource{}
 
-func (r NextGenerationFirewallVNetPanoramaResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVNetPanoramaResource) ModelObject() any {
 	return &NextGenerationFirewallVnetPanoramaModel{}
 }
 
@@ -60,7 +59,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 		"panorama_base64_config": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: helpersValidate.Base64EncodedString,
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"network_profile": schema.VnetNetworkProfileSchema(),
@@ -111,7 +110,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := firewallresources.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.FirewallsGet(ctx, id)
@@ -125,21 +124,21 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			firewall := firewalls.FirewallResource{
+			firewall := firewallresources.FirewallResource{
 				Location: location.Normalize(model.Location),
-				Properties: firewalls.FirewallDeploymentProperties{
-					PanoramaConfig: &firewalls.PanoramaConfig{
+				Properties: firewallresources.FirewallDeploymentProperties{
+					PanoramaConfig: &firewallresources.PanoramaConfig{
 						ConfigString: model.PanoramaBase64Config,
 					},
-					IsPanoramaManaged: pointer.To(firewalls.BooleanEnumTRUE),
+					IsPanoramaManaged: pointer.To(firewallresources.BooleanEnumTRUE),
 					DnsSettings:       schema.ExpandDNSSettings(model.DNSSettings),
-					MarketplaceDetails: firewalls.MarketplaceDetails{
+					MarketplaceDetails: firewallresources.MarketplaceDetails{
 						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVnet(model.NetworkProfile),
-					PlanData: firewalls.PlanData{
-						BillingCycle: firewalls.BillingCycleMONTHLY,
+					PlanData: firewallresources.PlanData{
+						BillingCycle: firewallresources.BillingCycleMONTHLY,
 						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
@@ -163,7 +162,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -221,7 +220,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -236,7 +235,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Delete() sdk.ResourceFunc {
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewalls.ValidateFirewallID
+	return firewallresources.ValidateFirewallID
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
@@ -245,7 +244,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

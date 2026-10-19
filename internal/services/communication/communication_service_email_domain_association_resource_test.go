@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,6 +21,16 @@ import (
 )
 
 type CommunicationServiceEmailDomainAssociationResource struct{}
+
+func TestAccCommunicationServiceEmailDomainAssociationResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_communication_service_email_domain_association", "test")
+	r := CommunicationServiceEmailDomainAssociationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccCommunicationServiceEmailDomainAssociationResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_communication_service_email_domain_association", "test")

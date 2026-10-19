@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -65,7 +64,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
-			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta any) bool {
 				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
 				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
 
@@ -80,10 +79,10 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				networkInterfaces := diff.Get("network_interface").([]interface{})
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+				networkInterfaces := diff.Get("network_interface").([]any)
 				for _, v := range networkInterfaces {
-					raw := v.(map[string]interface{})
+					raw := v.(map[string]any)
 					auxiliaryMode := raw["auxiliary_mode"].(string)
 					auxiliarySku := raw["auxiliary_sku"].(string)
 
@@ -102,7 +101,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -125,41 +124,41 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	location := location.Normalize(d.Get("location").(string))
 
-	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]any)
 	additionalCapabilities := ExpandVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
 
-	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]any)
 	bootDiagnostics := expandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 
-	dataDisksRaw := d.Get("data_disk").([]interface{})
+	dataDisksRaw := d.Get("data_disk").([]any)
 	ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
 	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
 	if err != nil {
 		return fmt.Errorf("expanding `data_disk`: %+v", err)
 	}
 
-	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	networkInterfacesRaw := d.Get("network_interface").([]interface{})
+	networkInterfacesRaw := d.Get("network_interface").([]any)
 	networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterface(networkInterfacesRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `network_interface`: %+v", err)
 	}
 
-	osDiskRaw := d.Get("os_disk").([]interface{})
+	osDiskRaw := d.Get("os_disk").([]any)
 	osDisk, err := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, virtualmachinescalesets.OperatingSystemTypesLinux)
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
-	securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+	securityEncryptionType := osDiskRaw[0].(map[string]any)["security_encryption_type"].(string)
 
-	planRaw := d.Get("plan").([]interface{})
+	planRaw := d.Get("plan").([]any)
 	plan := expandPlanVMSS(planRaw)
 
-	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+	sourceImageReferenceRaw := d.Get("source_image_reference").([]any)
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 
@@ -171,8 +170,8 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	healthProbeId := d.Get("health_probe_id").(string)
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
-	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
+	automaticOSUpgradePolicyRaw := d.Get("automatic_os_upgrade_policy").([]any)
+	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]any)
 	useRollingUpgradePolicy := len(rollingUpgradePolicyRaw) > 0
 	automaticOSUpgradePolicy := ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticOSUpgradePolicyRaw, useRollingUpgradePolicy)
 	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, overProvision)
@@ -194,7 +193,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
 
-	secretsRaw := d.Get("secret").([]interface{})
+	secretsRaw := d.Get("secret").([]any)
 	secrets := expandLinuxSecretsVMSS(secretsRaw)
 
 	var computerNamePrefix string
@@ -248,7 +247,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 	}
 
-	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
+	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]any)); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
 			GalleryApplications: galleryApplications,
 		}
@@ -381,10 +380,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("termination_notification"); ok {
-		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
+		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]any))
 	}
 
-	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]any)
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	if automaticRepairsPolicy != nil && healthProbeId == "" && !hasHealthExtension {
@@ -403,7 +402,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		},
 		Identity: identityExpanded,
 		Plan:     plan,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &virtualmachinescalesets.VirtualMachineScaleSetProperties{
 			AdditionalCapabilities:                 additionalCapabilities,
 			AutomaticRepairsPolicy:                 automaticRepairsPolicy,
@@ -420,7 +419,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("scale_in"); ok {
-		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
+		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]any)); v != nil {
 			props.Properties.ScaleInPolicy = v
 		}
 	}
@@ -431,7 +430,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(d.Get("spot_restore").([]interface{})); spotRestorePolicy != nil {
+	if spotRestorePolicy := ExpandVirtualMachineScaleSetSpotRestorePolicy(d.Get("spot_restore").([]any)); spotRestorePolicy != nil {
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
@@ -468,7 +467,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	return resourceLinuxVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -537,8 +536,8 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {
-			automaticRaw := d.Get("automatic_os_upgrade_policy").([]interface{})
-			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+			automaticRaw := d.Get("automatic_os_upgrade_policy").([]any)
+			rollingRaw := d.Get("rolling_upgrade_policy").([]any)
 			useRollingUpgradePolicy := len(rollingRaw) > 0
 			upgradePolicy.AutomaticOSUpgradePolicy = ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(automaticRaw, useRollingUpgradePolicy)
 
@@ -548,7 +547,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if d.HasChange("rolling_upgrade_policy") {
-			rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+			rollingRaw := d.Get("rolling_upgrade_policy").([]any)
 			zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 			rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0, d.Get("overprovision").(bool))
 			if err != nil {
@@ -616,7 +615,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if d.HasChange("secret") {
-			secretsRaw := d.Get("secret").([]interface{})
+			secretsRaw := d.Get("secret").([]any)
 			osProfile.Secrets = expandLinuxSecretsVMSS(secretsRaw)
 		}
 
@@ -632,7 +631,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		if d.HasChange("data_disk") {
 			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
-			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]any), ultraSSDEnabled)
 			if err != nil {
 				return fmt.Errorf("expanding `data_disk`: %+v", err)
 			}
@@ -640,12 +639,12 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if d.HasChange("os_disk") {
-			osDiskRaw := d.Get("os_disk").([]interface{})
+			osDiskRaw := d.Get("os_disk").([]any)
 			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
 
 		if d.HasChanges("source_image_id", "source_image_reference") {
-			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+			sourceImageReferenceRaw := d.Get("source_image_reference").([]any)
 			sourceImageId := d.Get("source_image_id").(string)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
@@ -663,7 +662,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChanges("network_interface", "health_probe_id") {
-		networkInterfacesRaw := d.Get("network_interface").([]interface{})
+		networkInterfacesRaw := d.Get("network_interface").([]any)
 		networkInterfaces, err := ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 		if err != nil {
 			return fmt.Errorf("expanding `network_interface`: %+v", err)
@@ -684,7 +683,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	if d.HasChange("boot_diagnostics") {
 		updateInstances = true
 
-		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]any)
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 	}
 
@@ -699,7 +698,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("scale_in") {
-		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]interface{})); updateScaleInPolicy != nil {
+		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]any)); updateScaleInPolicy != nil {
 			updateProps.ScaleInPolicy = updateScaleInPolicy
 		}
 	}
@@ -711,7 +710,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("termination_notification") {
-		notificationRaw := d.Get("termination_notification").([]interface{})
+		notificationRaw := d.Get("termination_notification").([]any)
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
@@ -722,7 +721,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("automatic_instance_repair") {
-		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]any)
 		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 		if automaticRepairsPolicy != nil {
@@ -748,7 +747,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("identity") {
-		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -765,7 +764,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("plan") {
-		planRaw := d.Get("plan").([]interface{})
+		planRaw := d.Get("plan").([]any)
 		update.Plan = expandPlanVMSS(planRaw)
 	}
 
@@ -799,7 +798,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("tags") {
-		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		update.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("user_data") {
@@ -827,7 +826,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceLinuxVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -931,7 +930,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				}
 				d.Set("max_bid_price", maxBidPrice)
 
-				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
+				d.Set("eviction_policy", pointer.FromEnum(profile.EvictionPolicy))
 
 				if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
 					d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
@@ -1055,7 +1054,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			}
 
 			if policy := props.UpgradePolicy; policy != nil {
-				d.Set("upgrade_mode", string(pointer.From(policy.Mode)))
+				d.Set("upgrade_mode", pointer.FromEnum(policy.Mode))
 
 				if err := d.Set("automatic_os_upgrade_policy", FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)); err != nil {
 					return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
@@ -1073,7 +1072,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1256,7 +1255,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "PT1H30M",
-			ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
+			ValidateFunc: validation.ISO8601DurationBetween("PT15M", "PT2H"),
 		},
 
 		"gallery_application": VirtualMachineScaleSetGalleryApplicationSchema(),

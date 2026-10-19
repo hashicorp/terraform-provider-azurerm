@@ -147,7 +147,7 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -180,8 +180,8 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 
 	props := afdorigingroups.AFDOriginGroup{
 		Properties: &afdorigingroups.AFDOriginGroupProperties{
-			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{})),
-			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{})),
+			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]any)),
+			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]any)),
 			SessionAffinityState:  pointer.To(sessionAffinity),
 			TrafficRestorationTimeToHealedOrNewEndpointsInMinutes: pointer.To(int64(d.Get("restore_traffic_time_to_healed_or_new_endpoint_in_minutes").(int))),
 		},
@@ -200,7 +200,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceCdnFrontDoorOriginGroupRead(d, meta)
 }
 
-func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -245,7 +245,7 @@ func resourceCdnFrontDoorOriginGroupFlatten(d *pluginsdk.ResourceData, id *afdor
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -273,11 +273,11 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	// The API requires that an explicit null be passed as the 'health_probe' value to disable the health probe
 	// e.g. {"properties":{"healthProbeSettings":null}}
 	if d.HasChange("health_probe") {
-		props.HealthProbeSettings = expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]interface{}))
+		props.HealthProbeSettings = expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]any))
 	}
 
 	if d.HasChange("load_balancing") {
-		props.LoadBalancingSettings = expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]interface{}))
+		props.LoadBalancingSettings = expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]any))
 	}
 
 	if d.HasChange("restore_traffic_time_to_healed_or_new_endpoint_in_minutes") {
@@ -298,7 +298,7 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceCdnFrontDoorOriginGroupRead(d, meta)
 }
 
-func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -316,12 +316,12 @@ func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []interface{}) *afdorigingroups.HealthProbeParameters {
+func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []any) *afdorigingroups.HealthProbeParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &afdorigingroups.HealthProbeParameters{
 		ProbeIntervalInSeconds: pointer.To(int64(v["interval_in_seconds"].(int))),
@@ -331,12 +331,12 @@ func expandCdnFrontDoorOriginGroupHealthProbeParameters(input []interface{}) *af
 	}
 }
 
-func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []interface{}) *afdorigingroups.LoadBalancingSettingsParameters {
+func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []any) *afdorigingroups.LoadBalancingSettingsParameters {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &afdorigingroups.LoadBalancingSettingsParameters{
 		AdditionalLatencyInMilliseconds: pointer.To(int64(v["additional_latency_in_milliseconds"].(int))),
@@ -345,13 +345,13 @@ func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []interf
 	}
 }
 
-func flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input *afdorigingroups.LoadBalancingSettingsParameters) []interface{} {
+func flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input *afdorigingroups.LoadBalancingSettingsParameters) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"additional_latency_in_milliseconds": pointer.From(input.AdditionalLatencyInMilliseconds),
 			"sample_size":                        pointer.From(input.SampleSize),
 			"successful_samples_required":        pointer.From(input.SuccessfulSamplesRequired),
@@ -359,13 +359,13 @@ func flattenCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input *afdori
 	}
 }
 
-func flattenCdnFrontDoorOriginGroupHealthProbeParameters(input *afdorigingroups.HealthProbeParameters) []interface{} {
+func flattenCdnFrontDoorOriginGroupHealthProbeParameters(input *afdorigingroups.HealthProbeParameters) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"interval_in_seconds": pointer.From(input.ProbeIntervalInSeconds),
 			"path":                pointer.From(input.ProbePath),
 			"protocol":            pointer.FromEnum(input.ProbeProtocol),

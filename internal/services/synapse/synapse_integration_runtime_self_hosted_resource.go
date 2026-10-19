@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/integrationruntimes"
@@ -83,7 +83,7 @@ func resourceSynapseIntegrationRuntimeSelfHosted() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedCreateUpdate(d *pluginsdk.Resour
 	return resourceSynapseIntegrationRuntimeSelfHostedRead(d, meta)
 }
 
-func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	authKeysClient := meta.(*clients.Client).Synapse.IntegrationRuntimeAuthKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -182,7 +182,7 @@ func resourceSynapseIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceSynapseIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeSelfHostedDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
