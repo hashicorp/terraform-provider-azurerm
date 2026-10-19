@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package databoxedge_test
+package databox_edge_device_test
 
 import (
 	"context"

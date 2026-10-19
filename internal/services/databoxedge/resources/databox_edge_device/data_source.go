@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package databoxedge
+package databox_edge_device
 
 import (
 	"context"
@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EdgeDeviceDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = EdgeDeviceDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (d EdgeDeviceDataSource) Arguments() map[string]*schema.Schema {
+func (d DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -35,7 +35,7 @@ func (d EdgeDeviceDataSource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (d EdgeDeviceDataSource) Attributes() map[string]*schema.Schema {
+func (d DataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -114,15 +114,15 @@ func (d EdgeDeviceDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (d EdgeDeviceDataSource) ModelObject() any {
+func (d DataSource) ModelObject() any {
 	return &EdgeDeviceModel{}
 }
 
-func (d EdgeDeviceDataSource) ResourceType() string {
+func (d DataSource) ResourceType() string {
 	return "azurerm_databox_edge_device"
 }
 
-func (d EdgeDeviceDataSource) Read() sdk.ResourceFunc {
+func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
