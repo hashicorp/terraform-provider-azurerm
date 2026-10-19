@@ -14,9 +14,9 @@ Use this data source to access information about an existing Automation Runbook.
 
 ```hcl
 data "azurerm_automation_runbook" "example" {
-  name                    = "existing-runbook"
-  resource_group_name     = "existing"
-  automation_account_name = "existing-automation"
+  name                    = "example-runbook"
+  resource_group_name     = "example-resources"
+  automation_account_name = "example-automation"
 }
 
 output "id" {

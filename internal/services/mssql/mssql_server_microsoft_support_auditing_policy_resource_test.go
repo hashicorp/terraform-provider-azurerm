@@ -101,7 +101,7 @@ func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_storageAccountBehindFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
 	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
