@@ -144,7 +144,7 @@ func dataSourceArmTrafficManagerProfile() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func RuleName(v interface{}, k string) ([]string, []error) {
+func RuleName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`), "only word characters, numbers, underscores, periods, and hyphens allowed"),
 		validation.StringLenBetween(1, 80),

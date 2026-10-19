@@ -55,7 +55,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_discovery_virtual_instance"
 }
 
-func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ModelObject() interface{} {
+func (r WorkloadsSAPDiscoveryVirtualInstanceResource) ModelObject() any {
 	return &WorkloadsSAPDiscoveryVirtualInstanceModel{}
 }
 
@@ -218,7 +218,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -284,7 +284,7 @@ func (WorkloadsSAPDiscoveryVirtualInstanceResource) flatten(metadata sdk.Resourc
 
 		if props := model.Properties; props != nil {
 			state.Environment = string(props.Environment)
-			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.ManagedResourcesNetworkAccessType = pointer.FromEnum(props.ManagedResourcesNetworkAccessType)
 			state.SapProduct = string(props.SapProduct)
 			state.Tags = pointer.From(model.Tags)
 

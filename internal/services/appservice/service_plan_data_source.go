@@ -40,7 +40,7 @@ type ServicePlanDataSourceModel struct {
 	Tags                        map[string]string `tfschema:"tags"`
 }
 
-func (r ServicePlanDataSource) ModelObject() interface{} {
+func (r ServicePlanDataSource) ModelObject() any {
 	return &ServicePlanDataSourceModel{}
 }
 

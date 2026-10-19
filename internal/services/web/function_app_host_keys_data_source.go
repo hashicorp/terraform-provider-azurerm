@@ -83,7 +83,7 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -33,7 +33,7 @@ type WorkspaceDataSourceModel struct {
 	Tags                            map[string]string `tfschema:"tags"`
 }
 
-func (d WorkspaceDataSource) ModelObject() interface{} {
+func (d WorkspaceDataSource) ModelObject() any {
 	return &WorkspaceDataSource{}
 }
 

@@ -78,7 +78,7 @@ func (r CustomDomainWebPubsubResource) Attributes() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CustomDomainWebPubsubResource) ModelObject() interface{} {
+func (r CustomDomainWebPubsubResource) ModelObject() any {
 	return &CustomDomainWebPubsubModel{}
 }
 

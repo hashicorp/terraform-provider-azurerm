@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,7 +84,7 @@ func resourceDataFactoryManagedPrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -118,7 +118,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 
 	targetResourceId := d.Get("target_resource_id").(string)
 	subResourceName := d.Get("subresource_name").(string)
-	fqdns := d.Get("fqdns").([]interface{})
+	fqdns := d.Get("fqdns").([]any)
 
 	if _, err := privatelinkservices.ParsePrivateLinkServiceID(targetResourceId); err == nil {
 		if len(subResourceName) > 0 {
@@ -172,7 +172,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	return resourceDataFactoryManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -206,7 +206,7 @@ func resourceDataFactoryManagedPrivateEndpointRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.ManagedPrivateEndpoints
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func getManagedPrivateEndpoint(ctx context.Context, client *managedprivateendpoi
 }
 
 func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, id managedprivateendpoints.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		// TODO: it should be possible to remove this function https://github.com/hashicorp/go-azure-sdk/issues/307 has been fixed
 		resp, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
 		if err != nil {

@@ -79,7 +79,7 @@ func (r IotHubDeviceUpdateAccountResource) ResourceType() string {
 	return "azurerm_iothub_device_update_account"
 }
 
-func (r IotHubDeviceUpdateAccountResource) ModelObject() interface{} {
+func (r IotHubDeviceUpdateAccountResource) ModelObject() any {
 	return &IotHubDeviceUpdateAccountModel{}
 }
 
@@ -111,7 +111,7 @@ func (r IotHubDeviceUpdateAccountResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -239,7 +239,7 @@ func (r IotHubDeviceUpdateAccountResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

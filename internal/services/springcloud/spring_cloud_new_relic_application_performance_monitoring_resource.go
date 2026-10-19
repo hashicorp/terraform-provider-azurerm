@@ -52,7 +52,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ResourceTyp
 	return "azurerm_spring_cloud_new_relic_application_performance_monitoring"
 }
 
-func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudNewRelicApplicationPerformanceMonitoringModel{}
 }
 

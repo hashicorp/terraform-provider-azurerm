@@ -65,7 +65,7 @@ func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r EventGridNamespaceTopicResource) ModelObject() interface{} {
+func (r EventGridNamespaceTopicResource) ModelObject() any {
 	return &EventGridNamespaceTopicResourceModel{}
 }
 

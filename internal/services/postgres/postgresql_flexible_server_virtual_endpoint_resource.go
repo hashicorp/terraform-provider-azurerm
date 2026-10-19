@@ -34,7 +34,7 @@ var _ sdk.ResourceWithUpdate = PostgresqlFlexibleServerVirtualEndpointResource{}
 
 var _ sdk.ResourceWithStateMigration = PostgresqlFlexibleServerVirtualEndpointResource{}
 
-func (r PostgresqlFlexibleServerVirtualEndpointResource) ModelObject() interface{} {
+func (r PostgresqlFlexibleServerVirtualEndpointResource) ModelObject() any {
 	return &PostgresqlFlexibleServerVirtualEndpointModel{}
 }
 
@@ -43,7 +43,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) ResourceType() string {
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
+	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
@@ -199,7 +199,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Type = string(pointer.From(props.EndpointType))
+					state.Type = pointer.FromEnum(props.EndpointType)
 
 					if props.Members == nil || len(*props.Members) == 0 {
 						// if members list is nil or empty, this is an endpoint that was previously deleted
