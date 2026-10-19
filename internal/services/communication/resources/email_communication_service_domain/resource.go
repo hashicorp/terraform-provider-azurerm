@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain -properties "name" -compare-values "subscription_id:email_service_id,resource_group_name:email_service_id,email_service_name:email_service_id"
+
 var (
 	_ sdk.ResourceWithUpdate   = Resource{}
 	_ sdk.ResourceWithIdentity = Resource{}

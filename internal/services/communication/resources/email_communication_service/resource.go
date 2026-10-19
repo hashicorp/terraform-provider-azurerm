@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+//go:generate go run ../../../../tools/generator-tests resourceidentity
+
 var (
 	_ sdk.ResourceWithUpdate   = Resource{}
 	_ sdk.ResourceWithIdentity = Resource{}
