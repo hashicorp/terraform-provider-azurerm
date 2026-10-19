@@ -71,11 +71,6 @@ resource "azurerm_subnet" "primary" {
   delegation {
     name = "delegation"
     service_delegation {
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
       name = "Microsoft.Sql/managedInstances"
     }
   }
@@ -161,11 +156,6 @@ resource "azurerm_subnet" "failover" {
   delegation {
     name = "delegation"
     service_delegation {
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-      ]
       name = "Microsoft.Sql/managedInstances"
     }
   }

@@ -148,10 +148,6 @@ resource "azurerm_subnet" "test2" {
     service_delegation {
       name = "Microsoft.HardwareSecurityModules/dedicatedHSMs"
 
-      actions = [
-        "Microsoft.Network/networkinterfaces/*",
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }

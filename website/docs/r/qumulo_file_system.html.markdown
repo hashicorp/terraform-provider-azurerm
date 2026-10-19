@@ -34,8 +34,7 @@ resource "azurerm_subnet" "example" {
   delegation {
     name = "delegation"
     service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Qumulo.Storage/fileSystems"
+      name = "Qumulo.Storage/fileSystems"
     }
   }
 }

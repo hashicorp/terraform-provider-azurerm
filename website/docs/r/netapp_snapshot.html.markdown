@@ -35,8 +35,7 @@ resource "azurerm_subnet" "example" {
     name = "netapp"
 
     service_delegation {
-      name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name = "Microsoft.Netapp/volumes"
     }
   }
 }
