@@ -128,8 +128,6 @@ func flattenScalingHostpoolReference(input *[]scalingplan.ScalingHostPoolReferen
 	return results
 }
 
-var scalingPlanResourceType = "azurerm_virtual_desktop_scaling_plan"
-
 func validateTime() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$`), `The time must be in the format HH:MM.`)
 }
