@@ -602,23 +602,6 @@ import (
 `, id.TestPackageSuffix, importLine, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
 }
 
-// lintIgnoreAT003 emits a lintignore directive for generated test functions whose name collides
-// with tfproviderlint's acceptance test naming checks: a Type Name beginning with `Acc`
-// (e.g. AccessPolicyApplication) produces test names like `TestAccessPolicyApplicationID`, which
-// start with `TestAcc` and are therefore mistaken by AT003 for acceptance test names — these are
-// plain unit tests, so the finding is a false positive.
-//
-// TODO: remove this in favour of renaming the generated tests to `TestParse<Name>*` (parse) and
-// `TestValidate<Name>*` (validate) in a separate PR — that rename regenerates ~550 test files and
-// collides with the hand-written `TestValidateAppServiceID` in `web/validate/app_service_test.go`,
-// so it needs its own review rather than riding along with a lint-config change.
-func (id ResourceIdGenerator) lintIgnoreAT003() string {
-	if !strings.HasPrefix(id.TypeName, "Acc") {
-		return ""
-	}
-	return "// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`\n"
-}
-
 func (id ResourceIdGenerator) testCodeForFormatter() string {
 	arguments := make([]string, 0)
 	for _, segment := range id.Segments {
@@ -629,27 +612,27 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 		return fmt.Sprintf(`
 var _ resourceids.Id = %[1]sId{}
 
-%[4]sfunc Test%[1]sIDFormatter(t *testing.T) {
+func TestParse%[1]sIDFormatter(t *testing.T) {
 	actual := New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)
 	}
 }
-`, id.TypeName, argumentsStr, id.IDRaw, id.lintIgnoreAT003())
+`, id.TypeName, argumentsStr, id.IDRaw)
 	}
 
 	return fmt.Sprintf(`
 var _ resourceid.Formatter = parse.%[1]sId{}
 
-%[4]sfunc Test%[1]sIDFormatter(t *testing.T) {
+func TestParse%[1]sIDFormatter(t *testing.T) {
 	actual := parse.New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)
 	}
 }
-`, id.TypeName, argumentsStr, id.IDRaw, id.lintIgnoreAT003())
+`, id.TypeName, argumentsStr, id.IDRaw)
 }
 
 func (id ResourceIdGenerator) testCodeForParser() string {
@@ -715,7 +698,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-%[4]sfunc Test%[1]sID(t *testing.T) {
+func TestParse%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -741,11 +724,11 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
+`, id.TypeName, testCasesStr, assignmentCheckStr)
 	}
 
 	return fmt.Sprintf(`
-%[4]sfunc Test%[1]sID(t *testing.T) {
+func TestParse%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -771,7 +754,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
+`, id.TypeName, testCasesStr, assignmentCheckStr)
 }
 
 func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
@@ -870,7 +853,7 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 
 	if id.TestPackageSuffix == "" {
 		return fmt.Sprintf(`
-%[4]sfunc Test%[1]sIDInsensitively(t *testing.T) {
+func TestParse%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -896,11 +879,11 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
+`, id.TypeName, testCasesStr, assignmentCheckStr)
 	}
 
 	return fmt.Sprintf(`
-%[4]sfunc Test%[1]sIDInsensitively(t *testing.T) {
+func TestParse%[1]sIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
@@ -926,7 +909,7 @@ func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 %[3]s
 	}
 }
-`, id.TypeName, testCasesStr, assignmentCheckStr, id.lintIgnoreAT003())
+`, id.TypeName, testCasesStr, assignmentCheckStr)
 }
 
 func (id ResourceIdGenerator) ValidatorCode() string {
@@ -1017,7 +1000,7 @@ package validate
 
 import "testing"
 
-%[3]sfunc Test%[1]sID(t *testing.T) {
+func TestValidate%[1]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
@@ -1033,7 +1016,7 @@ import "testing"
 		}
 	}
 }
-`, id.TypeName, testCasesStr, id.lintIgnoreAT003())
+`, id.TypeName, testCasesStr)
 	}
 
 	return fmt.Sprintf(`// Copyright IBM Corp. 2014, 2025
@@ -1049,7 +1032,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/%[4]s/validate"
 )
 
-%[5]sfunc Test%[2]sID(t *testing.T) {
+func TestValidate%[2]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
@@ -1065,7 +1048,7 @@ import (
 		}
 	}
 }
-`, id.TestPackageSuffix, id.TypeName, testCasesStr, id.ServicePackageName, id.lintIgnoreAT003())
+`, id.TestPackageSuffix, id.TypeName, testCasesStr, id.ServicePackageName)
 }
 
 func goFmtAndWriteToFile(filePath, fileContents string) error {

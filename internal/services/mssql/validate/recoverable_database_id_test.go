@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestRecoverableDatabaseID(t *testing.T) {
+func TestValidateRecoverableDatabaseID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
