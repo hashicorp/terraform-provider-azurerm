@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestStreamingJobScheduleID(t *testing.T) {
+func TestValidateStreamingJobScheduleID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

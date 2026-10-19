@@ -75,7 +75,7 @@ The following arguments are supported:
 
 -> **Note:** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.
 
-* `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
+* `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as defined below.
 
 * `encryption` - (Optional) A `encryption` block as defined below.
 
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 -> **Note:** An IP Address Management (IPAM) Pool association that was established outside of Terraform (e.g. for a Virtual Network created with `address_space`) is preserved as long as `address_space` remains unchanged, consistent with the behaviour of ARM templates. Changing `address_space` removes such an association.
 
-* `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
+* `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields defined below.
 
 -> **Note:** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 

@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ServerExtendedAuditingPolicyId{}
 
-func TestServerExtendedAuditingPolicyIDFormatter(t *testing.T) {
+func TestParseServerExtendedAuditingPolicyIDFormatter(t *testing.T) {
 	actual := NewServerExtendedAuditingPolicyID("12345678-1234-9876-4563-123456789012", "group1", "server1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/extendedAuditingSettings/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestServerExtendedAuditingPolicyIDFormatter(t *testing.T) {
 	}
 }
 
-func TestServerExtendedAuditingPolicyID(t *testing.T) {
+func TestParseServerExtendedAuditingPolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
