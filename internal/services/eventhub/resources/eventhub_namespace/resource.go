@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// Default Authorization Rule/Policy created by Azure, used to populate the
-// default connection strings and keys
 var (
 	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
