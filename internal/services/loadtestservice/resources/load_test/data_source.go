@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package loadtestservice
+package load_test
 
 import (
 	"context"
@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type LoadTestDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = LoadTestDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type LoadTestDataSourceModel struct {
 	DataPlaneURI      string                                     `tfschema:"data_plane_uri"`
@@ -34,15 +34,15 @@ type LoadTestDataSourceModel struct {
 	Tags              map[string]string                          `tfschema:"tags"`
 }
 
-func (r LoadTestDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &LoadTestDataSourceModel{}
 }
 
-func (r LoadTestDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_load_test"
 }
 
-func (r LoadTestDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -53,7 +53,7 @@ func (r LoadTestDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LoadTestDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_plane_uri": {
 			Type:     pluginsdk.TypeString,
@@ -102,7 +102,7 @@ func (r LoadTestDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LoadTestDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

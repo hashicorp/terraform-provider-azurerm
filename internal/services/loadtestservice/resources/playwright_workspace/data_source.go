@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package loadtestservice
+package playwright_workspace
 
 import (
 	"context"
@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type PlaywrightWorkspaceDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = PlaywrightWorkspaceDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type PlaywrightWorkspaceDataSourceModel struct {
 	Name              string            `tfschema:"name"`
@@ -32,7 +32,7 @@ type PlaywrightWorkspaceDataSourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-func (PlaywrightWorkspaceDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -46,7 +46,7 @@ func (PlaywrightWorkspaceDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (PlaywrightWorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -64,15 +64,15 @@ func (PlaywrightWorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (PlaywrightWorkspaceDataSource) ModelObject() any {
+func (DataSource) ModelObject() any {
 	return &PlaywrightWorkspaceDataSourceModel{}
 }
 
-func (PlaywrightWorkspaceDataSource) ResourceType() string {
+func (DataSource) ResourceType() string {
 	return "azurerm_playwright_workspace"
 }
 
-func (PlaywrightWorkspaceDataSource) Read() sdk.ResourceFunc {
+func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

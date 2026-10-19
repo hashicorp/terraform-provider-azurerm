@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package loadtestservice
+package playwright_workspace
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PlaywrightWorkspaceListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(PlaywrightWorkspaceListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (PlaywrightWorkspaceListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(PlaywrightWorkspaceResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (PlaywrightWorkspaceListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = PlaywrightWorkspaceResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (PlaywrightWorkspaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.LoadTestService.PlaywrightWorkspacesClient
 
 	var data sdk.DefaultListModel
@@ -45,7 +45,7 @@ func (PlaywrightWorkspaceListResource) List(ctx context.Context, request list.Li
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := PlaywrightWorkspaceResource{}
+	r := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
