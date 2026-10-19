@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package digitaltwins
+package helpers
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func validateEndpointType(validate func(input endpoints.DigitalTwinsEndpointResourceProperties) error) pluginsdk.ImporterFunc {
+func ValidateEndpointType(validate func(input endpoints.DigitalTwinsEndpointResourceProperties) error) pluginsdk.ImporterFunc {
 	return func(ctxIn context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 		id, err := endpoints.ParseEndpointID(d.Id())
 		if err != nil {

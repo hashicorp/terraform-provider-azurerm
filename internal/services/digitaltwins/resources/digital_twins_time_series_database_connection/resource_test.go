@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package digitaltwins_test
+package digital_twins_time_series_database_connection_test
 
 import (
 	"context"
