@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/blobservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-08-01/storageaccountmigrations"
@@ -28,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -1494,6 +1496,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
+	if err := waitForStorageAccountServicesToBecomeAvailable(ctx, storageClient, id, supportLevel); err != nil {
+		return err
+	}
+
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
 			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
@@ -1573,6 +1579,61 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	return resourceStorageAccountRead(d, meta)
+}
+
+func waitForStorageAccountServicesToBecomeAvailable(ctx context.Context, client *storage.Client, id commonids.StorageAccountId, supportLevel storageAccountServiceSupportLevel) error {
+	// After recreation, ARM service APIs can return 404 even once account creation has completed.
+	// Static website is part of Blob Service and does not require a separate probe.
+	services := []struct {
+		name      string
+		supported bool
+		get       func(context.Context) (*http.Response, error)
+	}{
+		{
+			name:      "Blob",
+			supported: supportLevel.supportBlob,
+			get: func(ctx context.Context) (*http.Response, error) {
+				resp, err := client.BlobServices.GetServiceProperties(ctx, id)
+				return resp.HttpResponse, err
+			},
+		},
+		{
+			name:      "File",
+			supported: supportLevel.supportShare,
+			get: func(ctx context.Context) (*http.Response, error) {
+				resp, err := client.FileServices.GetServiceProperties(ctx, id)
+				return resp.HttpResponse, err
+			},
+		},
+		{
+			name:      "Queue",
+			supported: supportLevel.supportQueue,
+			get: func(ctx context.Context) (*http.Response, error) {
+				resp, err := client.QueueServices.GetServiceProperties(ctx, id)
+				return resp.HttpResponse, err
+			},
+		},
+		{
+			name:      "Table",
+			supported: supportLevel.supportTable,
+			get: func(ctx context.Context) (*http.Response, error) {
+				resp, err := client.TableServices.GetServiceProperties(ctx, id)
+				return resp.HttpResponse, err
+			},
+		},
+	}
+
+	for _, service := range services {
+		if !service.supported {
+			continue
+		}
+		poller := custompollers.NewEventualConsistencyPoller(1, service.get, custompollers.DefaultCreationEventualConsistencyPollerOptions())
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for the %s Service for %s to become available: %+v", service.name, id, err)
+		}
+	}
+
+	return nil
 }
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
