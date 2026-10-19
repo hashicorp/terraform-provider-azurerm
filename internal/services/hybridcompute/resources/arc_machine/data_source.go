@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package hybridcompute
+package arc_machine
 
 import (
 	"context"
@@ -106,11 +106,11 @@ type ServiceStatusModel struct {
 	Status      string `tfschema:"status"`
 }
 
-type ArcMachineDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ArcMachineDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (a ArcMachineDataSource) Arguments() map[string]*schema.Schema {
+func (a DataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -122,7 +122,7 @@ func (a ArcMachineDataSource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
+func (a DataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"agent": {
 			Type:     pluginsdk.TypeList,
@@ -466,15 +466,15 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (a ArcMachineDataSource) ModelObject() any {
-	return &ArcMachineDataSource{}
+func (a DataSource) ModelObject() any {
+	return &DataSource{}
 }
 
-func (a ArcMachineDataSource) ResourceType() string {
+func (a DataSource) ResourceType() string {
 	return "azurerm_arc_machine"
 }
 
-func (a ArcMachineDataSource) Read() sdk.ResourceFunc {
+func (a DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
