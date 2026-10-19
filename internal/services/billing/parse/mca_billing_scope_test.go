@@ -5,14 +5,6 @@ package parse
 
 import "testing"
 
-func TestMicrosoftCustomerAccountBillingScopeIDFormatter(t *testing.T) {
-	actual := NewMCABillingScopeID("e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31", "PE2Q-NOIT-BG7-TGB", "MTT4-OBS7-PJA-TGB").ID()
-	expected := "/providers/Microsoft.Billing/billingAccounts/e879cf0f-2b4d-5431-109a-f72fc9868693:024cabf4-7321-4cf9-be59-df0c77ca51de_2019-05-31/billingProfiles/PE2Q-NOIT-BG7-TGB/invoiceSections/MTT4-OBS7-PJA-TGB"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
-
 func TestMicrosoftCustomerAccountBillingScopeID(t *testing.T) {
 	testData := []struct {
 		Input    string

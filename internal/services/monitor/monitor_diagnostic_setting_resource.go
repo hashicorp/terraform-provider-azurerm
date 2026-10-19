@@ -8,18 +8,20 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -73,7 +75,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"eventhub_authorization_rule_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: authRuleParse.ValidateAuthorizationRuleID,
+				ValidateFunc: authorizationrulesnamespaces.ValidateAuthorizationRuleID,
 				AtLeastOneOf: []string{"eventhub_authorization_rule_id", "log_analytics_workspace_id", "storage_account_id", "partner_solution_id"},
 			},
 
@@ -101,8 +103,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"log_analytics_destination_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: false,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice([]string{
 					"Dedicated",
 					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
@@ -149,7 +150,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -237,23 +238,16 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
-	}
-
 	// https://github.com/Azure/azure-rest-api-specs/issues/30249
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to become ready", id.DiagnosticSettingName, id.ResourceUri)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
-		Target:                    []string{"Exists"},
-		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, id),
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:              5 * time.Second,
+		RetryErrorStatusCodes: []int{http.StatusNotFound},
+	})
+	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to become ready: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
@@ -262,7 +256,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -379,7 +373,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
-func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -413,7 +407,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			eventhubAuthorizationRuleId := ""
 			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
 				authRuleId := pointer.From(props.EventHubAuthorizationRuleId)
-				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(authRuleId)
+				parsedId, err := authorizationrulesnamespaces.ParseAuthorizationRuleIDInsensitively(authRuleId)
 				if err != nil {
 					return err
 				}
@@ -451,8 +445,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("log_analytics_destination_type", logAnalyticsDestinationType)
 
-			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
-			if err = d.Set("enabled_log", enabledLogs); err != nil {
+			if err = d.Set("enabled_log", flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 
@@ -465,7 +458,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -482,48 +475,27 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
-	}
-
 	// API appears to be eventually consistent (identified during tainting this resource)
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.DiagnosticSettingName, id.ResourceUri)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, *id),
-		MinTimeout:                15 * time.Second,
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+	poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+		resp, err := client.Get(pollerCtx, *id)
+		return resp.HttpResponse, err
+	}, &custompollers.EventualConsistencyPollerOptions{
+		Interval:         15 * time.Second,
+		TargetStatusCode: pointer.To(http.StatusNotFound),
+	})
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for Monitor Diagnostic Setting %q for Resource %q to disappear: %s", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
 	return nil
 }
 
-func monitorDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnosticsettings.DiagnosticSettingsClient, targetResourceId diagnosticsettings.ScopedDiagnosticSettingId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, targetResourceId)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return "NotFound", "NotFound", nil
-			}
-			return nil, "", fmt.Errorf("issuing read request in monitorDiagnosticSettingRefreshFunc: %s", err)
-		}
-
-		return res, "Exists", nil
-	}
-}
-
-func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {
+func expandMonitorDiagnosticsSettingsEnabledLogs(input []any) (*[]diagnosticsettings.DiagnosticsLogSettings, error) {
 	results := make([]diagnosticsettings.DiagnosticsLogSettings, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		category := v["category"].(string)
 		categoryGroup := v["category_group"].(string)
@@ -547,14 +519,14 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 	return &results, nil
 }
 
-func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.DiagnosticsLogSettings) []interface{} {
-	enabledLogs := make([]interface{}, 0)
+func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.DiagnosticsLogSettings) []any {
+	enabledLogs := make([]any, 0)
 	if input == nil {
 		return enabledLogs
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if !v.Enabled {
 			continue
@@ -569,14 +541,14 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.Diagnostics
 	return enabledLogs
 }
 
-func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.DiagnosticsMetricSettings) []interface{} {
-	enabledLogs := make([]interface{}, 0)
+func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.DiagnosticsMetricSettings) []any {
+	enabledLogs := make([]any, 0)
 	if input == nil {
 		return enabledLogs
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if !v.Enabled {
 			continue
@@ -588,11 +560,11 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.Diagnost
 	return enabledLogs
 }
 
-func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.DiagnosticsMetricSettings {
+func expandMonitorDiagnosticsSettingsEnabledMetrics(input []any) []diagnosticsettings.DiagnosticsMetricSettings {
 	results := make([]diagnosticsettings.DiagnosticsMetricSettings, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 
 		output := diagnosticsettings.DiagnosticsMetricSettings{
 			Category: pointer.To(v["category"].(string)),
@@ -616,9 +588,9 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 	return &identifier, nil
 }
 
-func resourceMonitorDiagnosticLogSettingHash(input interface{}) int {
+func resourceMonitorDiagnosticLogSettingHash(input any) int {
 	var buf bytes.Buffer
-	if rawData, ok := input.(map[string]interface{}); ok {
+	if rawData, ok := input.(map[string]any); ok {
 		if category, ok := rawData["category"]; ok {
 			fmt.Fprintf(&buf, "%s-", category.(string))
 		}

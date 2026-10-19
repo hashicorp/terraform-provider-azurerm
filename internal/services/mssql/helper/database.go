@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
 )
 
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
@@ -82,7 +82,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 		filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", linkDatabase.ServerName)
 		listOptions := resources.ListOperationOptions{
-			Expand: nil,
 			Filter: pointer.To(filter),
 			Top:    pointer.To(int64(100)),
 		}

@@ -39,5 +39,5 @@ data "azurerm_private_dns_resolver_forwarding_rule" "test" {
   name                      = azurerm_private_dns_resolver_forwarding_rule.test.name
   dns_forwarding_ruleset_id = azurerm_private_dns_resolver_dns_forwarding_ruleset.test.id
 }
-`, PrivateDNSResolverForwardingRuleResource{}.basic(data))
+`, PrivateDnsResolverForwardingRuleResource{}.basic(data))
 }

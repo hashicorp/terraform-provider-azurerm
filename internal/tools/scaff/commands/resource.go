@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -220,7 +221,7 @@ func (d *resourceData) exec() error {
 }
 
 func relativePathToRoot() string {
-	here, err := exec.Command("git", "rev-parse", "--show-cdup").Output()
+	here, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-cdup").Output()
 	if err != nil {
 		panic(err)
 	}

@@ -6,14 +6,13 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_watcher"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 )
 
 func TestResourceFile(t *testing.T) {
-	p := automation.WatcherResource{}
-	file := schema.FileForResource(p.Read().Func)
-	t.Log(file)
+	p := automation_watcher.Resource{}
+	t.Log(schema.FileForResource(p.Read().Func))
 
 	// inspect schema
 	r := schema.NewResourceByTyped(p)

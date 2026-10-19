@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestIpGroupCidrID(t *testing.T) {
+func TestValidateIpGroupCidrID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

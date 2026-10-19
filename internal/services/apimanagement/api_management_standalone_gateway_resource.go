@@ -43,7 +43,7 @@ func (r ApiManagementStandaloneGatewayResource) ResourceType() string {
 	return "azurerm_api_management_standalone_gateway"
 }
 
-func (r ApiManagementStandaloneGatewayResource) ModelObject() interface{} {
+func (r ApiManagementStandaloneGatewayResource) ModelObject() any {
 	return &ApiManagementStandaloneGatewayModel{}
 }
 

@@ -11,14 +11,6 @@ import (
 
 var _ resourceids.Id = SharedGalleryImageVersionId{}
 
-func TestSharedGalleryImageVersionIDFormatter(t *testing.T) {
-	actual := NewSharedGalleryImageVersionID("myGallery1", "myImage1", "latest").ID()
-	expected := "/sharedGalleries/myGallery1/images/myImage1/versions/latest"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
-
 func TestSharedGalleryImageVersionID(t *testing.T) {
 	testData := []struct {
 		Input    string

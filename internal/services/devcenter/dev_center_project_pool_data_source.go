@@ -80,7 +80,7 @@ func (DevCenterProjectPoolDataSource) Attributes() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (DevCenterProjectPoolDataSource) ModelObject() interface{} {
+func (DevCenterProjectPoolDataSource) ModelObject() any {
 	return &DevCenterProjectPoolDataSourceModel{}
 }
 

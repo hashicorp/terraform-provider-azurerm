@@ -14,8 +14,8 @@ Use this data source to access information about an existing Microsoft SQL Serve
 
 ```hcl
 data "azurerm_mssql_server" "example" {
-  name                = "existingMsSqlServer"
-  resource_group_name = "existingResGroup"
+  name                = "example-mssql-server"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -77,4 +77,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

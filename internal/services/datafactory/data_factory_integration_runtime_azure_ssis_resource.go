@@ -15,13 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
-	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -122,13 +121,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 			},
 
 			"edition": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.IntegrationRuntimeEditionStandard),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.IntegrationRuntimeEditionStandard),
-					string(integrationruntimes.IntegrationRuntimeEditionEnterprise),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.IntegrationRuntimeEditionStandard),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForIntegrationRuntimeEdition(), false),
 			},
 
 			"copy_compute_scale": {
@@ -171,13 +167,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 			},
 
 			"license_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
-					string(integrationruntimes.IntegrationRuntimeLicenseTypeBasePrice),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.IntegrationRuntimeLicenseTypeLicenseIncluded),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForIntegrationRuntimeLicenseType(), false),
 			},
 
 			"vnet_integration": {
@@ -278,7 +271,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 						"elastic_pool_name": {
 							Type:          pluginsdk.TypeString,
 							Optional:      true,
-							ValidateFunc:  sqlValidate.ValidateMsSqlElasticPoolName,
+							ValidateFunc:  validate.ValidateMsSqlElasticPoolName,
 							ConflictsWith: []string{"catalog_info.0.pricing_tier"},
 						},
 						"dual_standby_pair_name": {
@@ -512,7 +505,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureSsisCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -544,21 +537,21 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreate(d *pluginsdk.ResourceD
 				NodeSize:                               pointer.To(d.Get("node_size").(string)),
 				NumberOfNodes:                          pointer.To(int64(d.Get("number_of_nodes").(int))),
 				MaxParallelExecutionsPerNode:           pointer.To(int64(d.Get("max_parallel_executions_per_node").(int))),
-				VNetProperties:                         expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(d.Get("vnet_integration").([]interface{})),
-				CopyComputeScaleProperties:             expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(d.Get("copy_compute_scale").([]interface{})),
-				PipelineExternalComputeScaleProperties: expandDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScale(d.Get("pipeline_external_compute_scale").([]interface{})),
+				VNetProperties:                         expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(d.Get("vnet_integration").([]any)),
+				CopyComputeScaleProperties:             expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(d.Get("copy_compute_scale").([]any)),
+				PipelineExternalComputeScaleProperties: expandDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScale(d.Get("pipeline_external_compute_scale").([]any)),
 			},
 			SsisProperties: &integrationruntimes.IntegrationRuntimeSsisProperties{
 				LicenseType:                  pointer.ToEnum[integrationruntimes.IntegrationRuntimeLicenseType](d.Get("license_type").(string)),
-				DataProxyProperties:          expandDataFactoryIntegrationRuntimeAzureSsisProxy(d.Get("proxy").([]interface{})),
+				DataProxyProperties:          expandDataFactoryIntegrationRuntimeAzureSsisProxy(d.Get("proxy").([]any)),
 				Edition:                      pointer.ToEnum[integrationruntimes.IntegrationRuntimeEdition](d.Get("edition").(string)),
-				ExpressCustomSetupProperties: expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]interface{})),
-				PackageStores:                expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]interface{})),
+				ExpressCustomSetupProperties: expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]any)),
+				PackageStores:                expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]any)),
 				Credential:                   expandDataFactoryIntegrationRuntimeAzureSsisCredential(d.Get("credential_name").(string)),
-				CatalogInfo:                  expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(d.Get("catalog_info").([]interface{})),
-				CustomSetupScriptProperties:  expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(d.Get("custom_setup_script").([]interface{})),
+				CatalogInfo:                  expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(d.Get("catalog_info").([]any)),
+				CustomSetupScriptProperties:  expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(d.Get("custom_setup_script").([]any)),
 			},
-			CustomerVirtualNetwork: expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(d.Get("express_vnet_integration").([]interface{})),
+			CustomerVirtualNetwork: expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(d.Get("express_vnet_integration").([]any)),
 		},
 	}
 
@@ -576,7 +569,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisCreate(d *pluginsdk.ResourceD
 	return resourceDataFactoryIntegrationRuntimeAzureSsisRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureSsisUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -639,11 +632,11 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.HasChange("copy_compute_scale") {
-		computeProps.CopyComputeScaleProperties = expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(d.Get("copy_compute_scale").([]interface{}))
+		computeProps.CopyComputeScaleProperties = expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(d.Get("copy_compute_scale").([]any))
 	}
 
 	if d.HasChange("express_vnet_integration") {
-		props.TypeProperties.CustomerVirtualNetwork = expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(d.Get("express_vnet_integration").([]interface{}))
+		props.TypeProperties.CustomerVirtualNetwork = expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(d.Get("express_vnet_integration").([]any))
 	}
 
 	if d.HasChange("license_type") {
@@ -651,31 +644,31 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisUpdate(d *pluginsdk.ResourceD
 	}
 
 	if d.HasChange("vnet_integration") {
-		computeProps.VNetProperties = expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(d.Get("vnet_integration").([]interface{}))
+		computeProps.VNetProperties = expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(d.Get("vnet_integration").([]any))
 	}
 
 	if d.HasChange("custom_setup_script") {
-		ssisProps.CustomSetupScriptProperties = expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(d.Get("custom_setup_script").([]interface{}))
+		ssisProps.CustomSetupScriptProperties = expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(d.Get("custom_setup_script").([]any))
 	}
 
 	if d.HasChange("catalog_info") {
-		ssisProps.CatalogInfo = expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(d.Get("catalog_info").([]interface{}))
+		ssisProps.CatalogInfo = expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(d.Get("catalog_info").([]any))
 	}
 
 	if d.HasChange("express_custom_setup") {
-		ssisProps.ExpressCustomSetupProperties = expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]interface{}))
+		ssisProps.ExpressCustomSetupProperties = expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]any))
 	}
 
 	if d.HasChange("package_store") {
-		ssisProps.PackageStores = expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]interface{}))
+		ssisProps.PackageStores = expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]any))
 	}
 
 	if d.HasChange("pipeline_external_compute_scale") {
-		computeProps.PipelineExternalComputeScaleProperties = expandDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScale(d.Get("pipeline_external_compute_scale").([]interface{}))
+		computeProps.PipelineExternalComputeScaleProperties = expandDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScale(d.Get("pipeline_external_compute_scale").([]any))
 	}
 
 	if d.HasChange("proxy") {
-		ssisProps.DataProxyProperties = expandDataFactoryIntegrationRuntimeAzureSsisProxy(d.Get("proxy").([]interface{}))
+		ssisProps.DataProxyProperties = expandDataFactoryIntegrationRuntimeAzureSsisProxy(d.Get("proxy").([]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model, integrationruntimes.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -685,7 +678,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryIntegrationRuntimeAzureSsisRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -738,8 +731,8 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		}
 
 		if ssisProps := runTime.TypeProperties.SsisProperties; ssisProps != nil {
-			d.Set("edition", string(pointer.From(ssisProps.Edition)))
-			d.Set("license_type", string(pointer.From(ssisProps.LicenseType)))
+			d.Set("edition", pointer.FromEnum(ssisProps.Edition))
+			d.Set("license_type", pointer.FromEnum(ssisProps.LicenseType))
 
 			if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
 				return fmt.Errorf("setting `catalog_info`: %+v", err)
@@ -774,7 +767,7 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureSsisDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureSsisDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -794,12 +787,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisDelete(d *pluginsdk.ResourceD
 	return nil
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(input []interface{}) *integrationruntimes.IntegrationRuntimeVNetProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(input []any) *integrationruntimes.IntegrationRuntimeVNetProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := &integrationruntimes.IntegrationRuntimeVNetProperties{}
 
 	if vnetID := v["vnet_id"].(string); vnetID != "" {
@@ -811,19 +804,19 @@ func expandDataFactoryIntegrationRuntimeAzureSsisVirtualNetwork(input []interfac
 		result.SubnetId = pointer.To(subnetID)
 	}
 
-	if publicIPs := v["public_ips"].([]interface{}); len(publicIPs) > 0 {
-		result.PublicIPs = helpers.ExpandStringSlice(publicIPs)
+	if publicIPs := v["public_ips"].([]any); len(publicIPs) > 0 {
+		result.PublicIPs = pluginsdk.ExpandStringSlice(publicIPs)
 	}
 
 	return result
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input []interface{}) *integrationruntimes.CopyComputeScaleProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input []any) *integrationruntimes.CopyComputeScaleProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := &integrationruntimes.CopyComputeScaleProperties{}
 
 	if diUnit := v["data_integration_unit"].(int); diUnit != 0 {
@@ -837,12 +830,12 @@ func expandDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input []interf
 	return result
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScale(input []interface{}) *integrationruntimes.PipelineExternalComputeScaleProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScale(input []any) *integrationruntimes.PipelineExternalComputeScaleProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := &integrationruntimes.PipelineExternalComputeScaleProperties{}
 
 	if numExternalNodes := v["number_of_external_nodes"].(int); numExternalNodes != 0 {
@@ -871,12 +864,12 @@ func expandDataFactoryIntegrationRuntimeAzureSsisCredential(input string) *integ
 	}
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(input []interface{}) *integrationruntimes.IntegrationRuntimeSsisCatalogInfo {
+func expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(input []any) *integrationruntimes.IntegrationRuntimeSsisCatalogInfo {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	result := &integrationruntimes.IntegrationRuntimeSsisCatalogInfo{
 		CatalogServerEndpoint: pointer.To(v["server_endpoint"].(string)),
 		CatalogPricingTier:    pointer.ToEnum[integrationruntimes.IntegrationRuntimeSsisCatalogPricingTier](v["pricing_tier"].(string)),
@@ -904,12 +897,12 @@ func expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(input []interface{}
 	return result
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(input []interface{}) *integrationruntimes.IntegrationRuntimeCustomSetupScriptProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(input []any) *integrationruntimes.IntegrationRuntimeCustomSetupScriptProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &integrationruntimes.IntegrationRuntimeCustomSetupScriptProperties{
 		BlobContainerUri: pointer.To(v["blob_container_uri"].(string)),
 		SasToken: &integrationruntimes.SecureString{
@@ -919,11 +912,11 @@ func expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(input []inter
 	}
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisProxy(input []interface{}) *integrationruntimes.IntegrationRuntimeDataProxyProperties {
+func expandDataFactoryIntegrationRuntimeAzureSsisProxy(input []any) *integrationruntimes.IntegrationRuntimeDataProxyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	result := &integrationruntimes.IntegrationRuntimeDataProxyProperties{
 		ConnectVia: &integrationruntimes.EntityReference{
@@ -941,14 +934,14 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProxy(input []interface{}) *int
 	return result
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []interface{}) *[]integrationruntimes.CustomSetupBase {
+func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any) *[]integrationruntimes.CustomSetupBase {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	result := make([]integrationruntimes.CustomSetupBase, 0)
-	if env := raw["environment"].(map[string]interface{}); len(env) > 0 {
+	if env := raw["environment"].(map[string]any); len(env) > 0 {
 		for k, v := range env {
 			result = append(result, &integrationruntimes.EnvironmentVariableSetup{
 				Type: string(helper.CustomSetupTypeEnvironmentVariableSetup),
@@ -969,9 +962,9 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 		})
 	}
 
-	if components := raw["component"].([]interface{}); len(components) > 0 {
+	if components := raw["component"].([]any); len(components) > 0 {
 		for _, item := range components {
-			raw := item.(map[string]interface{})
+			raw := item.(map[string]any)
 
 			var license integrationruntimes.SecretBase
 			if v := raw["license"].(string); v != "" {
@@ -980,7 +973,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 					Value: v,
 				}
 			} else {
-				license = expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(raw["key_vault_license"].([]interface{}))
+				license = expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(raw["key_vault_license"].([]any))
 			}
 
 			result = append(result, &integrationruntimes.ComponentSetup{
@@ -992,9 +985,9 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 			})
 		}
 	}
-	if cmdKeys := raw["command_key"].([]interface{}); len(cmdKeys) > 0 {
+	if cmdKeys := raw["command_key"].([]any); len(cmdKeys) > 0 {
 		for _, item := range cmdKeys {
-			raw := item.(map[string]interface{})
+			raw := item.(map[string]any)
 
 			var password integrationruntimes.SecretBase
 			if v := raw["password"].(string); v != "" {
@@ -1003,7 +996,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 					Value: v,
 				}
 			} else {
-				password = expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(raw["key_vault_password"].([]interface{}))
+				password = expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(raw["key_vault_password"].([]any))
 			}
 
 			result = append(result, &integrationruntimes.CmdkeySetup{
@@ -1020,14 +1013,14 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []inte
 	return &result
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(input []interface{}) *[]integrationruntimes.PackageStore {
+func expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(input []any) *[]integrationruntimes.PackageStore {
 	if len(input) == 0 {
 		return nil
 	}
 
 	result := make([]integrationruntimes.PackageStore, 0)
 	for _, item := range input {
-		raw := item.(map[string]interface{})
+		raw := item.(map[string]any)
 		result = append(result, integrationruntimes.PackageStore{
 			Name: raw["name"].(string),
 			PackageStoreLinkedService: integrationruntimes.EntityReference{
@@ -1039,12 +1032,12 @@ func expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(input []interface{
 	return &result
 }
 
-func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input []interface{}) *integrationruntimes.AzureKeyVaultSecretReference {
+func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input []any) *integrationruntimes.AzureKeyVaultSecretReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	reference := &integrationruntimes.AzureKeyVaultSecretReference{
 		SecretName: raw["secret_name"].(string),
 		Store: integrationruntimes.LinkedServiceReference{
@@ -1056,48 +1049,48 @@ func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input [
 	if v := raw["secret_version"].(string); v != "" {
 		reference.SecretVersion = pointer.To(raw["secret_version"])
 	}
-	if v := raw["parameters"].(map[string]interface{}); len(v) > 0 {
+	if v := raw["parameters"].(map[string]any); len(v) > 0 {
 		reference.Store.Parameters = &v
 	}
 	return reference
 }
 
-func expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(input []interface{}) *integrationruntimes.IntegrationRuntimeCustomerVirtualNetwork {
+func expandDataFactoryIntegrationRuntimeCustomerVirtualNetwork(input []any) *integrationruntimes.IntegrationRuntimeCustomerVirtualNetwork {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &integrationruntimes.IntegrationRuntimeCustomerVirtualNetwork{
 		SubnetId: pointer.To(raw["subnet_id"].(string)),
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties *integrationruntimes.IntegrationRuntimeVNetProperties) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(vnetProperties *integrationruntimes.IntegrationRuntimeVNetProperties) []any {
 	if vnetProperties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"vnet_id":     pointer.From(vnetProperties.VNetId),
 			"subnet_id":   pointer.From(vnetProperties.SubnetId),
 			"subnet_name": pointer.From(vnetProperties.Subnet),
-			"public_ips":  helpers.FlattenStringSlice(vnetProperties.PublicIPs),
+			"public_ips":  pluginsdk.FlattenSlice(vnetProperties.PublicIPs),
 		},
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *integrationruntimes.IntegrationRuntimeSsisCatalogInfo, d *pluginsdk.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *integrationruntimes.IntegrationRuntimeSsisCatalogInfo, d *pluginsdk.ResourceData) []any {
 	if ssisProperties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var administratorPassword string
 
 	var pricingTier, elasticPoolName string
-	elasticPoolName, elasticPoolNameMatched := parseDataFactoryIntegrationRuntimeElasticPool(string(pointer.From(ssisProperties.CatalogPricingTier)))
+	elasticPoolName, elasticPoolNameMatched := parseDataFactoryIntegrationRuntimeElasticPool(pointer.FromEnum(ssisProperties.CatalogPricingTier))
 	if !elasticPoolNameMatched {
-		pricingTier = string(pointer.From(ssisProperties.CatalogPricingTier))
+		pricingTier = pointer.FromEnum(ssisProperties.CatalogPricingTier)
 	}
 
 	// read back
@@ -1105,8 +1098,8 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *in
 		administratorPassword = adminPassword.(string)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"server_endpoint":        pointer.From(ssisProperties.CatalogServerEndpoint),
 			"pricing_tier":           pricingTier,
 			"elastic_pool_name":      elasticPoolName,
@@ -1117,9 +1110,9 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProperties *in
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisProxy(input *integrationruntimes.IntegrationRuntimeDataProxyProperties) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisProxy(input *integrationruntimes.IntegrationRuntimeDataProxyProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var selfHostedIntegrationRuntimeName, stagingStorageLinkedServiceName string
@@ -1129,8 +1122,8 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisProxy(input *integrationruntim
 	if input.StagingLinkedService != nil {
 		stagingStorageLinkedServiceName = pointer.From(input.StagingLinkedService.ReferenceName)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"path":                                 pointer.From(input.Path),
 			"self_hosted_integration_runtime_name": selfHostedIntegrationRuntimeName,
 			"staging_storage_linked_service_name":  stagingStorageLinkedServiceName,
@@ -1146,9 +1139,9 @@ func flattenDataFactoryIntegrationRuntimeUserAssignedCredential(credentialProper
 	return &credentialProperties.ReferenceName
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupScriptProperties *integrationruntimes.IntegrationRuntimeCustomSetupScriptProperties, d *pluginsdk.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupScriptProperties *integrationruntimes.IntegrationRuntimeCustomSetupScriptProperties, d *pluginsdk.ResourceData) []any {
 	if customSetupScriptProperties == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	customSetupScript := map[string]string{
@@ -1159,17 +1152,17 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupS
 		customSetupScript["sas_token"] = sasToken.(string)
 	}
 
-	return []interface{}{customSetupScript}
+	return []any{customSetupScript}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisPackageStore(input *[]integrationruntimes.PackageStore) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisPackageStore(input *[]integrationruntimes.PackageStore) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, item := range *input {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":                item.Name,
 			"linked_service_name": pointer.From(item.PackageStoreLinkedService.ReferenceName),
 		})
@@ -1177,33 +1170,33 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisPackageStore(input *[]integrat
 	return result
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]integrationruntimes.CustomSetupBase, d *pluginsdk.ResourceData) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]integrationruntimes.CustomSetupBase, d *pluginsdk.ResourceData) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	// retrieve old state
-	oldState := make(map[string]interface{})
-	if arr := d.Get("express_custom_setup").([]interface{}); len(arr) > 0 {
-		oldState = arr[0].(map[string]interface{})
+	oldState := make(map[string]any)
+	if arr := d.Get("express_custom_setup").([]any); len(arr) > 0 {
+		oldState = arr[0].(map[string]any)
 	}
-	oldComponents := make([]interface{}, 0)
+	oldComponents := make([]any, 0)
 	if rawComponent, ok := oldState["component"]; ok {
-		if v := rawComponent.([]interface{}); len(v) > 0 {
+		if v := rawComponent.([]any); len(v) > 0 {
 			oldComponents = v
 		}
 	}
-	oldCmdKey := make([]interface{}, 0)
+	oldCmdKey := make([]any, 0)
 	if rawCmdKey, ok := oldState["command_key"]; ok {
-		if v := rawCmdKey.([]interface{}); len(v) > 0 {
+		if v := rawCmdKey.([]any); len(v) > 0 {
 			oldCmdKey = v
 		}
 	}
 
-	env := make(map[string]interface{})
+	env := make(map[string]any)
 	powershellVersion := ""
-	components := make([]interface{}, 0)
-	cmdkeys := make([]interface{}, 0)
+	components := make([]any, 0)
+	cmdkeys := make([]any, 0)
 	for _, item := range *input {
 		switch v := item.(type) {
 		case integrationruntimes.AzPowerShellSetup:
@@ -1216,7 +1209,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]in
 				keyVaultLicense = &license
 			}
 
-			components = append(components, map[string]interface{}{
+			components = append(components, map[string]any{
 				"name":              name,
 				"key_vault_license": flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(keyVaultLicense),
 				"license": readBackSensitiveValue(oldComponents, "license", map[string]string{
@@ -1243,7 +1236,7 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]in
 					keyVaultPassword = &reference
 				}
 			}
-			cmdkeys = append(cmdkeys, map[string]interface{}{
+			cmdkeys = append(cmdkeys, map[string]any{
 				"target_name": name,
 				"user_name":   userName,
 				"password": readBackSensitiveValue(oldCmdKey, "password", map[string]string{
@@ -1255,8 +1248,8 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]in
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"environment":        env,
 			"powershell_version": powershellVersion,
 			"component":          components,
@@ -1265,9 +1258,9 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input *[]in
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input *integrationruntimes.AzureKeyVaultSecretReference) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input *integrationruntimes.AzureKeyVaultSecretReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	var secretName, secretVersion string
 	if input.SecretName != nil {
@@ -1280,8 +1273,8 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input 
 			secretVersion = v
 		}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"linked_service_name": input.Store.ReferenceName,
 			"parameters":          pointer.From(input.Store.Parameters),
 			"secret_name":         secretName,
@@ -1290,24 +1283,24 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input 
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(input *integrationruntimes.IntegrationRuntimeCustomerVirtualNetwork) []interface{} {
+func flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(input *integrationruntimes.IntegrationRuntimeCustomerVirtualNetwork) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"subnet_id": pointer.From(input.SubnetId),
 		},
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScaleProperties(input *integrationruntimes.PipelineExternalComputeScaleProperties) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScaleProperties(input *integrationruntimes.PipelineExternalComputeScaleProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"number_of_external_nodes": pointer.From(input.NumberOfPipelineNodes),
 			"number_of_pipeline_nodes": pointer.From(input.NumberOfPipelineNodes),
 			"time_to_live":             pointer.From(input.TimeToLive),
@@ -1315,24 +1308,24 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScalePr
 	}
 }
 
-func flattenDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input *integrationruntimes.CopyComputeScaleProperties) []interface{} {
+func flattenDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input *integrationruntimes.CopyComputeScaleProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"data_integration_unit": pointer.From(input.DataIntegrationUnit),
 			"time_to_live":          pointer.From(input.TimeToLive),
 		},
 	}
 }
 
-func readBackSensitiveValue(input []interface{}, propertyName string, filters map[string]string) string {
+func readBackSensitiveValue(input []any, propertyName string, filters map[string]string) string {
 	if len(input) == 0 {
 		return ""
 	}
 	for _, item := range input {
-		raw := item.(map[string]interface{})
+		raw := item.(map[string]any)
 		found := true
 		for k, v := range filters {
 			if raw[k].(string) != v {

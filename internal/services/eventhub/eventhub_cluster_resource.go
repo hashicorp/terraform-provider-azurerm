@@ -73,7 +73,7 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -98,7 +98,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	sku := expandEventHubClusterSkuName(d.Get("sku_name").(string))
 	cluster := eventhubsclusters.Cluster{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Sku:      &sku,
 	}
 
@@ -116,7 +116,7 @@ func resourceEventHubClusterCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceEventHubClusterRead(d, meta)
 }
 
-func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

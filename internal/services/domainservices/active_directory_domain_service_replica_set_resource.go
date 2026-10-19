@@ -78,7 +78,7 @@ func resourceActiveDirectoryDomainServiceReplicaSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceActiveDirectoryDomainServiceReplicaSetCreate(d *pluginsdk.ResourceD
 	return resourceActiveDirectoryDomainServiceReplicaSetRead(d, meta)
 }
 
-func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -282,7 +282,7 @@ func resourceActiveDirectoryDomainServiceReplicaSetRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceActiveDirectoryDomainServiceReplicaSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceActiveDirectoryDomainServiceReplicaSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

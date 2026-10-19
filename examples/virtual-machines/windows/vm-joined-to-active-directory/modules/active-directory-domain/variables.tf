@@ -30,7 +30,7 @@ variable "admin_username" {
 }
 
 variable "admin_password" {
-  description = "Password for the Adminstrator user"
+  description = "Password for the Administrator user"
 }
 
 locals {
