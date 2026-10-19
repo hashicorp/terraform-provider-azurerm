@@ -18,7 +18,7 @@ import (
 
 type StorageAccountStaticWebsiteResource struct{}
 
-func TestStorageAccountStaticWebsiteResource_complete(t *testing.T) {
+func TestAccStorageAccountStaticWebsiteResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := StorageAccountStaticWebsiteResource{}
 
@@ -33,7 +33,7 @@ func TestStorageAccountStaticWebsiteResource_complete(t *testing.T) {
 	})
 }
 
-func TestStorageAccountStaticWebsiteResource_update(t *testing.T) {
+func TestAccStorageAccountStaticWebsiteResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := StorageAccountStaticWebsiteResource{}
 
@@ -69,7 +69,7 @@ func TestStorageAccountStaticWebsiteResource_update(t *testing.T) {
 	})
 }
 
-func TestStorageAccountStaticWebsiteResource_with404(t *testing.T) {
+func TestAccStorageAccountStaticWebsiteResource_with404(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := StorageAccountStaticWebsiteResource{}
 
@@ -84,7 +84,7 @@ func TestStorageAccountStaticWebsiteResource_with404(t *testing.T) {
 	})
 }
 
-func TestStorageAccountStaticWebsiteResource_withIndex(t *testing.T) {
+func TestAccStorageAccountStaticWebsiteResource_withIndex(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := StorageAccountStaticWebsiteResource{}
 
