@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,7 +50,7 @@ func resourceArmLoadBalancerRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -122,7 +122,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }
 
-func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			var (
 				backendAddressPoolId  string
-				backendAddressPoolIds []interface{}
+				backendAddressPoolIds []any
 			)
 			if isGateway {
 				// The gateway LB rule can have up to 2 backend address pools.
@@ -184,7 +184,7 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 			} else {
 				if props.BackendAddressPool != nil && props.BackendAddressPool.Id != nil {
 					backendAddressPoolId = *props.BackendAddressPool.Id
-					backendAddressPoolIds = []interface{}{backendAddressPoolId}
+					backendAddressPoolIds = []any{backendAddressPoolId}
 				}
 			}
 			d.Set("backend_address_pool_ids", backendAddressPoolIds)
@@ -216,7 +216,7 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -298,7 +298,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		isGateway = true
 	}
 
-	if l := d.Get("backend_address_pool_ids").([]interface{}); len(l) != 0 {
+	if l := d.Get("backend_address_pool_ids").([]any); len(l) != 0 {
 		if isGateway {
 			var baps []loadbalancers.SubResource
 			for _, p := range l {
@@ -335,7 +335,7 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: loadBalancerValidate.RuleName,
+			ValidateFunc: validate.RuleName,
 		},
 
 		"loadbalancer_id": {

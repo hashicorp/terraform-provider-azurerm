@@ -109,7 +109,7 @@ func TestParseKubeConfig(t *testing.T) {
 					},
 					CurrentContext: "test-cluster",
 					Kind:           "Config",
-					Preferences: map[string]interface{}{
+					Preferences: map[string]any{
 						"colors": true,
 					},
 				},

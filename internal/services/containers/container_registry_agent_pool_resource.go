@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -59,7 +59,7 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"instance_count": {
@@ -93,7 +93,7 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -123,7 +123,7 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 			Tier:  pointer.To(d.Get("tier").(string)),
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("virtual_network_subnet_id"); ok {
@@ -139,7 +139,7 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 	return resourceContainerRegistryAgentPoolRead(d, meta)
 }
 
-func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceContainerRegistryAgentPoolRead(d, meta)
 }
 
-func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceContainerRegistryAgentPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

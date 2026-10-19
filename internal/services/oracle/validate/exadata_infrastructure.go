@@ -12,14 +12,14 @@ import (
 
 // MaintenanceWindow validation
 
-func DaysOfWeek(i interface{}, k string) ([]string, []error) {
+func DaysOfWeek(i any, k string) ([]string, []error) {
 	return validation.IsDayOfTheWeek(false)(i, k)
 }
 
 // lintignore:V012 // valid values are multiples of 4, error message documents the time slots
 // intentionally not validation.IntInSlice([0,4,8,12,16,20]): its generic error would lose the
 // message below documenting which maintenance-window time slot each value represents
-func HoursOfDay(i interface{}, k string) (warnings []string, errors []error) {
+func HoursOfDay(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(int)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
@@ -39,14 +39,14 @@ func HoursOfDay(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func Month(i interface{}, k string) ([]string, []error) {
+func Month(i any, k string) ([]string, []error) {
 	return validation.IsMonth(false)(i, k)
 }
 
-func Preference(i interface{}, k string) ([]string, []error) {
+func Preference(i any, k string) ([]string, []error) {
 	return validation.StringInSlice(cloudexadatainfrastructures.PossibleValuesForPreference(), false)(i, k)
 }
 
-func PatchingMode(i interface{}, k string) ([]string, []error) {
+func PatchingMode(i any, k string) ([]string, []error) {
 	return validation.StringInSlice(cloudexadatainfrastructures.PossibleValuesForPatchingMode(), false)(i, k)
 }

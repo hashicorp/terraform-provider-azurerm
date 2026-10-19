@@ -58,7 +58,7 @@ func resourceApiManagementIdentityProviderTwitter() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -100,7 +100,7 @@ func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *pluginsdk.Resou
 	return resourceApiManagementIdentityProviderTwitterRead(d, meta)
 }
 
-func resourceApiManagementIdentityProviderTwitterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceApiManagementIdentityProviderTwitterRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceApiManagementIdentityProviderTwitterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

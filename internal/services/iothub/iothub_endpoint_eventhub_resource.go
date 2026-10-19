@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubEndpointEventHub() *pluginsdk.Resource {
@@ -128,7 +128,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -249,7 +249,7 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceIotHubEndpointEventHubRead(d, meta)
 }
 
-func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,7 +316,7 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceIotHubEndpointEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -61,7 +62,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 	}
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -75,8 +76,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 		return err
 	}
 
-	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -127,7 +128,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *plugin
 	return resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +176,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 	return nil
 }
 
-func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,8 +186,8 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 		return err
 	}
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(id.First.ID()))
+	defer locks.UnlockByID(strings.ToLower(id.First.ID()))
 
 	read, err := client.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

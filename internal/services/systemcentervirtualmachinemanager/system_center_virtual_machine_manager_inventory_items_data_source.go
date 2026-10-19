@@ -39,7 +39,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ResourceType(
 	return "azurerm_system_center_virtual_machine_manager_inventory_items"
 }
 
-func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ModelObject() interface{} {
+func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerInventoryItemsDataSourceModel{}
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 )
 
-func ManagedHSMDataPlaneVersionlessKeyID(i interface{}, k string) (warnings []string, errors []error) {
+func ManagedHSMDataPlaneVersionlessKeyID(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return warnings, append(errors, fmt.Errorf("expected type of %s to be string", k))

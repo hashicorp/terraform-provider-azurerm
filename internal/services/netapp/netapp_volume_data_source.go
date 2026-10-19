@@ -206,7 +206,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

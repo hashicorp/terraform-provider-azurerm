@@ -62,7 +62,7 @@ func (r IotCentralOrganizationResource) ResourceType() string {
 	return "azurerm_iotcentral_organization"
 }
 
-func (r IotCentralOrganizationResource) ModelObject() interface{} {
+func (r IotCentralOrganizationResource) ModelObject() any {
 	return &IotCentralOrganizationModel{}
 }
 

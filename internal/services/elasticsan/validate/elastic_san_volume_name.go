@@ -3,6 +3,6 @@
 
 package validate
 
-func ElasticSanVolumeName(i interface{}, k string) ([]string, []error) {
+func ElasticSanVolumeName(i any, k string) ([]string, []error) {
 	return elasticSanResourceName(63)(i, k)
 }

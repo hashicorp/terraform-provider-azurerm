@@ -82,7 +82,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsARecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+func resourcePrivateDnsARecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ any) ([]*pluginsdk.ResourceData, error) {
 	resourceId, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, err
@@ -93,7 +93,7 @@ func resourcePrivateDnsARecordImporter(_ context.Context, d *pluginsdk.ResourceD
 	return []*pluginsdk.ResourceData{d}, nil
 }
 
-func resourcePrivateDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -123,7 +123,7 @@ func resourcePrivateDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata: tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:      pointer.To(int64(d.Get("ttl").(int))),
 			ARecords: expandAzureRmPrivateDnsARecords(d),
 		},
@@ -147,7 +147,7 @@ func resourcePrivateDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourcePrivateDnsARecordRead(d, meta)
 }
 
-func resourcePrivateDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsARecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourcePrivateDnsARecordFlatten(d *pluginsdk.ResourceData, id *privatedns.
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePrivateDnsARecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsARecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

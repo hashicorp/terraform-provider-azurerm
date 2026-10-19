@@ -73,7 +73,7 @@ var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
 
 var _ sdk.ResourceWithStateMigration = LinuxWebAppSlotResource{}
 
-func (r LinuxWebAppSlotResource) ModelObject() interface{} {
+func (r LinuxWebAppSlotResource) ModelObject() any {
 	return &LinuxWebAppSlotModel{}
 }
 

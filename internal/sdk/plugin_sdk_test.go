@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 )
 
 func TestAccPluginSDK_decoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
@@ -67,7 +68,7 @@ func TestAccPluginSDK_decoder(t *testing.T) {
 	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
-			"validator": func() (*schema.Provider, error) { //nolint:unparam
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -154,35 +155,53 @@ func TestAccPluginSDK_decoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, meta interface{}) error {
+							Create: func(d *schema.ResourceData, meta any) error {
 								d.SetId("some-id")
 								d.Set("hello", "world")
 								d.Set("random_number", 42)
 								d.Set("enabled", true)
-								d.Set("list_of_strings", []string{"hello", "there"})
-								d.Set("list_of_numbers", []int{1, 2, 4})
-								d.Set("list_of_bools", []bool{true, false})
-								d.Set("list_of_floats", []float64{-1.234567894321, 2.3456789})
-								d.Set("nested_object", []interface{}{
-									map[string]interface{}{
+								if err := d.Set("list_of_strings", []string{"hello", "there"}); err != nil {
+									return fmt.Errorf("setting `list_of_strings`: %+v", err)
+								}
+								if err := d.Set("list_of_numbers", []int{1, 2, 4}); err != nil {
+									return fmt.Errorf("setting `list_of_numbers`: %+v", err)
+								}
+								if err := d.Set("list_of_bools", []bool{true, false}); err != nil {
+									return fmt.Errorf("setting `list_of_bools`: %+v", err)
+								}
+								if err := d.Set("list_of_floats", []float64{-1.234567894321, 2.3456789}); err != nil {
+									return fmt.Errorf("setting `list_of_floats`: %+v", err)
+								}
+								if err := d.Set("nested_object", []any{
+									map[string]any{
 										"key": "value",
 									},
-								})
-								d.Set("map_of_strings", map[string]string{
+								}); err != nil {
+									return fmt.Errorf("setting `nested_object`: %+v", err)
+								}
+								if err := d.Set("map_of_strings", map[string]string{
 									"bingo": "bango",
-								})
-								d.Set("map_of_numbers", map[string]int{
+								}); err != nil {
+									return fmt.Errorf("setting `map_of_strings`: %+v", err)
+								}
+								if err := d.Set("map_of_numbers", map[string]int{
 									"lucky": 21,
-								})
-								d.Set("map_of_bools", map[string]bool{
+								}); err != nil {
+									return fmt.Errorf("setting `map_of_numbers`: %+v", err)
+								}
+								if err := d.Set("map_of_bools", map[string]bool{
 									"friday": true,
-								})
-								d.Set("map_of_floats", map[string]float64{
+								}); err != nil {
+									return fmt.Errorf("setting `map_of_bools`: %+v", err)
+								}
+								if err := d.Set("map_of_floats", map[string]float64{
 									"pi": 3.14159,
-								})
+								}); err != nil {
+									return fmt.Errorf("setting `map_of_floats`: %+v", err)
+								}
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error { //nolint:staticcheck
+							Read: func(d *schema.ResourceData, _ any) error {
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -200,7 +219,7 @@ func TestAccPluginSDK_decoder(t *testing.T) {
 
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error { //nolint:staticcheck
+							Delete: func(_ *schema.ResourceData, _ any) error {
 								return nil
 							},
 						},
@@ -217,7 +236,7 @@ func TestAccPluginSDK_decoder(t *testing.T) {
 }
 
 func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -246,8 +265,8 @@ func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
 			Computed: true,
 		},
 	}
-	readFunc := func(expected MyType) func(*schema.ResourceData, interface{}) error {
-		return func(d *schema.ResourceData, _ interface{}) error {
+	readFunc := func(expected MyType) func(*schema.ResourceData, any) error {
+		return func(d *schema.ResourceData, _ any) error {
 			wrapper := ResourceMetaData{
 				ResourceData:             d,
 				Logger:                   ConsoleLogger{},
@@ -270,13 +289,13 @@ func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
 	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
-			"validator": func() (*schema.Provider, error) { //nolint:unparam
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
 						"validator_decoder_specified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta any) error {
 								d.SetId("some-id")
 								return nil
 							},
@@ -285,14 +304,14 @@ func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
 								Number:  21,
 								Enabled: true,
 							}),
-							Delete: func(_ *schema.ResourceData, _ interface{}) error {
+							Delete: func(_ *schema.ResourceData, _ any) error {
 								return nil
 							},
 						},
 
 						"validator_decoder_unspecified": {
 							Schema: commonSchema,
-							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta any) error {
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
@@ -304,7 +323,7 @@ func TestAccPluginSDK_decoderOptionalComputed(t *testing.T) {
 								Number:  42,
 								Enabled: false,
 							}),
-							Delete: func(_ *schema.ResourceData, _ interface{}) error {
+							Delete: func(_ *schema.ResourceData, _ any) error {
 								return nil
 							},
 						},
@@ -323,14 +342,14 @@ resource "validator_decoder_specified" "test" {
 resource "validator_decoder_unspecified" "test" {}
 `,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceStateMatches("validator_decoder_specified.test", map[string]interface{}{
+					testCheckResourceStateMatches("validator_decoder_specified.test", map[string]any{
 						"%":       "4",
 						"id":      "some-id",
 						"enabled": "true",
 						"hello":   "value-from-config",
 						"number":  "21",
 					}),
-					testCheckResourceStateMatches("validator_decoder_unspecified.test", map[string]interface{}{
+					testCheckResourceStateMatches("validator_decoder_unspecified.test", map[string]any{
 						"%":       "4",
 						"id":      "some-id",
 						"enabled": "false",
@@ -344,7 +363,7 @@ resource "validator_decoder_unspecified" "test" {}
 }
 
 func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -356,7 +375,7 @@ func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
 	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
-			"validator": func() (*schema.Provider, error) { //nolint:unparam
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -381,14 +400,14 @@ func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
 									Computed: true,
 								},
 							},
-							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta any) error {
 								d.SetId("some-id")
 								d.Set("hello", "value-from-create")
 								d.Set("number", 42)
 								d.Set("enabled", false)
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error {
+							Read: func(d *schema.ResourceData, _ any) error {
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -412,7 +431,7 @@ func TestAccPluginSDK_decoderOptionalComputedOverride(t *testing.T) {
 
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error {
+							Delete: func(_ *schema.ResourceData, _ any) error {
 								return nil
 							},
 						},
@@ -437,7 +456,7 @@ resource "validator_decoder_override" "test" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceStateMatches("validator_decoder_override.test", map[string]interface{}{
+					testCheckResourceStateMatches("validator_decoder_override.test", map[string]any{
 						"id":      "some-id",
 						"enabled": "false",
 						"hello":   "",
@@ -451,7 +470,7 @@ resource "validator_decoder_override" "test" {
 }
 
 func TestAccPluginSDK_decoderSets(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		SetOfStrings []string  `tfschema:"set_of_strings"`
@@ -465,7 +484,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
-			"validator": func() (*schema.Provider, error) { //nolint:unparam
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -500,27 +519,35 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta any) error {
 								d.SetId("some-id")
-								d.Set("set_of_strings", []string{
+								if err := d.Set("set_of_strings", []string{
 									"some",
 									"value",
-								})
-								d.Set("set_of_numbers", []int{
+								}); err != nil {
+									return fmt.Errorf("setting `set_of_strings`: %+v", err)
+								}
+								if err := d.Set("set_of_numbers", []int{
 									1,
 									2,
-								})
-								d.Set("set_of_bools", []bool{
+								}); err != nil {
+									return fmt.Errorf("setting `set_of_numbers`: %+v", err)
+								}
+								if err := d.Set("set_of_bools", []bool{
 									true,
 									false,
-								})
-								d.Set("set_of_floats", []float64{
+								}); err != nil {
+									return fmt.Errorf("setting `set_of_bools`: %+v", err)
+								}
+								if err := d.Set("set_of_floats", []float64{
 									1.1,
 									2.2,
-								})
+								}); err != nil {
+									return fmt.Errorf("setting `set_of_floats`: %+v", err)
+								}
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error {
+							Read: func(d *schema.ResourceData, _ any) error {
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -540,13 +567,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 									return fmt.Errorf("expected %d strings but got %d", len(expectedStrings), len(actual.SetOfStrings))
 								}
 								for _, v := range expectedStrings {
-									exists := false
-									for _, a := range actual.SetOfStrings {
-										if v == a {
-											exists = true
-											break
-										}
-									}
+									exists := slices.Contains(actual.SetOfStrings, v)
 									if !exists {
 										return fmt.Errorf("expected the string %q to exist but it didn't", v)
 									}
@@ -560,13 +581,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 									return fmt.Errorf("expected %d ints but got %d", len(expectedNumbers), len(actual.SetOfNumbers))
 								}
 								for _, v := range expectedNumbers {
-									exists := false
-									for _, a := range actual.SetOfNumbers {
-										if v == a {
-											exists = true
-											break
-										}
-									}
+									exists := slices.Contains(actual.SetOfNumbers, v)
 									if !exists {
 										return fmt.Errorf("expected the number %d to exist but it didn't", v)
 									}
@@ -580,13 +595,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 									return fmt.Errorf("expected %d bools but got %d", len(expectedBools), len(actual.SetOfBools))
 								}
 								for _, v := range expectedBools {
-									exists := false
-									for _, a := range actual.SetOfBools {
-										if v == a {
-											exists = true
-											break
-										}
-									}
+									exists := slices.Contains(actual.SetOfBools, v)
 									if !exists {
 										return fmt.Errorf("expected the bool %t to exist but it didn't", v)
 									}
@@ -600,13 +609,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 									return fmt.Errorf("expected %d floats but got %d", len(expectedFloats), len(actual.SetOfFloats))
 								}
 								for _, v := range expectedFloats {
-									exists := false
-									for _, a := range actual.SetOfFloats {
-										if v == a {
-											exists = true
-											break
-										}
-									}
+									exists := slices.Contains(actual.SetOfFloats, v)
 									if !exists {
 										return fmt.Errorf("expected the float %f to exist but it didn't", v)
 									}
@@ -614,7 +617,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error {
+							Delete: func(_ *schema.ResourceData, _ any) error {
 								return nil
 							},
 						},
@@ -631,7 +634,7 @@ func TestAccPluginSDK_decoderSets(t *testing.T) {
 }
 
 func TestAccPluginSDK_encoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
@@ -658,7 +661,7 @@ func TestAccPluginSDK_encoder(t *testing.T) {
 	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
-			"validator": func() (*schema.Provider, error) { //nolint:unparam
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -773,7 +776,7 @@ func TestAccPluginSDK_encoder(t *testing.T) {
 									},
 								},
 							},
-							Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
+							Create: func(d *schema.ResourceData, meta any) error {
 								wrapper := ResourceMetaData{
 									ResourceData:             d,
 									Logger:                   ConsoleLogger{},
@@ -813,10 +816,10 @@ func TestAccPluginSDK_encoder(t *testing.T) {
 								}
 								return nil
 							},
-							Read: func(d *schema.ResourceData, _ interface{}) error {
+							Read: func(d *schema.ResourceData, _ any) error {
 								return nil
 							},
-							Delete: func(_ *schema.ResourceData, _ interface{}) error {
+							Delete: func(_ *schema.ResourceData, _ any) error {
 								return nil
 							},
 						},
@@ -828,7 +831,7 @@ func TestAccPluginSDK_encoder(t *testing.T) {
 			{
 				Config: `resource "validator_encoder" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceStateMatches("validator_encoder.test", map[string]interface{}{
+					testCheckResourceStateMatches("validator_encoder.test", map[string]any{
 						"%":                    "17",
 						"id":                   "some-id",
 						"hello":                "world",
@@ -870,13 +873,13 @@ func TestAccPluginSDK_encoder(t *testing.T) {
 }
 
 func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin sdk always is
+	os.Setenv("TF_ACC", "1") //nolint:tenv // plugin sdk always is
 
 	resourceName := "validator_computed.test"
 	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
-			"validator": func() (*schema.Provider, error) { //nolint:unparam
+			"validator": func() (*schema.Provider, error) {
 				return &schema.Provider{
 					DataSourcesMap: map[string]*schema.Resource{},
 					ResourcesMap: map[string]*schema.Resource{
@@ -889,7 +892,7 @@ func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
 			{
 				Config: `resource "validator_computed" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceStateMatches(resourceName, map[string]interface{}{
+					testCheckResourceStateMatches(resourceName, map[string]any{
 						"%":                   "10", // the 8 computed fields, id, and the timeouts block
 						"id":                  "does-not-matter",
 						"hello":               "world",
@@ -920,19 +923,29 @@ func TestAccPluginSDK_returnsComputedFields(t *testing.T) {
 }
 
 func computedFieldsResource() *schema.Resource {
-	readFunc := func(d *schema.ResourceData, _ interface{}) error {
+	readFunc := func(d *schema.ResourceData, _ any) error {
 		d.Set("hello", "world")
 		d.Set("random_number", 42)
 		d.Set("enabled", true)
-		d.Set("list_of_strings", []string{"hello", "there"})
-		d.Set("list_of_numbers", []int{1, 2, 4})
-		d.Set("list_of_bools", []bool{true, false})
-		d.Set("list_of_floats", []float64{-1.234567894321, 2.3456789})
-		d.Set("nested_object", []interface{}{
-			map[string]interface{}{
+		if err := d.Set("list_of_strings", []string{"hello", "there"}); err != nil {
+			return fmt.Errorf("setting `list_of_strings`: %+v", err)
+		}
+		if err := d.Set("list_of_numbers", []int{1, 2, 4}); err != nil {
+			return fmt.Errorf("setting `list_of_numbers`: %+v", err)
+		}
+		if err := d.Set("list_of_bools", []bool{true, false}); err != nil {
+			return fmt.Errorf("setting `list_of_bools`: %+v", err)
+		}
+		if err := d.Set("list_of_floats", []float64{-1.234567894321, 2.3456789}); err != nil {
+			return fmt.Errorf("setting `list_of_floats`: %+v", err)
+		}
+		if err := d.Set("nested_object", []any{
+			map[string]any{
 				"key": "value",
 			},
-		})
+		}); err != nil {
+			return fmt.Errorf("setting `nested_object`: %+v", err)
+		}
 		return nil
 	}
 	return &schema.Resource{
@@ -998,18 +1011,18 @@ func computedFieldsResource() *schema.Resource {
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-		Create: func(d *schema.ResourceData, meta interface{}) error { //nolint:staticcheck
+		Create: func(d *schema.ResourceData, meta any) error {
 			d.SetId("does-not-matter")
 			return readFunc(d, meta)
 		},
 		Read: readFunc,
-		Delete: func(_ *schema.ResourceData, _ interface{}) error {
+		Delete: func(_ *schema.ResourceData, _ any) error {
 			return nil
 		},
 	}
 }
 
-func testCheckResourceStateMatches(resourceName string, values map[string]interface{}) resource.TestCheckFunc {
+func testCheckResourceStateMatches(resourceName string, values map[string]any) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resources, ok := s.RootModule().Resources[resourceName]
 		if !ok {

@@ -1,0 +1,64 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package automation_connection_service_principal
+
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).Automation.Connection
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := connection.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("read request on %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.ConnectionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("automation_account_name", id.AutomationAccountName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("description", pointer.From(props.Description))
+
+			if props.FieldDefinitionValues != nil {
+				fieldDefinitionValues := *props.FieldDefinitionValues
+				if v, ok := fieldDefinitionValues["ApplicationId"]; ok {
+					d.Set("application_id", v)
+				}
+				if v, ok := fieldDefinitionValues["CertificateThumbprint"]; ok {
+					d.Set("certificate_thumbprint", v)
+				}
+				if v, ok := fieldDefinitionValues["SubscriptionId"]; ok {
+					d.Set("subscription_id", v)
+				}
+				if v, ok := fieldDefinitionValues["TenantId"]; ok {
+					d.Set("tenant_id", v)
+				}
+			}
+		}
+	}
+
+	return nil
+}

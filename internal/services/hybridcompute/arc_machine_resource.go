@@ -34,7 +34,7 @@ func (r ArcMachineResource) ResourceType() string {
 	return "azurerm_arc_machine"
 }
 
-func (r ArcMachineResource) ModelObject() interface{} {
+func (r ArcMachineResource) ModelObject() any {
 	return &ArcMachineResourceModel{}
 }
 

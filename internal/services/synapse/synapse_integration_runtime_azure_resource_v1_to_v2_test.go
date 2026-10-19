@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-// TestAccSynapseIntegrationRuntimeAzure_V1ToV2_530 tests the state migration path from an `id` with
-// lowercased static segments to their canonicalized format. It uses v5.3.0 as the setup version because it is
-// the last release where the `id` could have been stored in state with lowercased static segments via an import using a non-canonical ID.
-func TestAccSynapseIntegrationRuntimeAzure_V1ToV2_530(t *testing.T) {
+// TestAccSynapseIntegrationRuntimeAzure_V1ToV2_501 tests the state migration path from an `id` with
+// lowercased static segments to their canonicalized format. It uses v5.0.1 as the setup version because it is
+// a release where the `id` could have been stored in state with lowercased static segments via an import using a non-canonical ID.
+func TestAccSynapseIntegrationRuntimeAzure_V1ToV2_501(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
 	r := SynapseIntegrationRuntimeAzureResource{}
 
@@ -48,7 +48,7 @@ func TestAccSynapseIntegrationRuntimeAzure_V1ToV2_530(t *testing.T) {
 				check.That(importedResourceName).Key("id").HasValue(fmt.Sprintf("/subscriptions/%[1]s/resourceGroups/acctestRG-synapse-%[2]d/providers/Microsoft.Synapse/workspaces/acctestdf%[2]d/integrationRuntimes/azure-integration-runtime", data.Subscriptions.Primary, data.RandomInteger)),
 			),
 		},
-	}, "5.3.0")
+	}, "5.0.1")
 }
 
 func (r SynapseIntegrationRuntimeAzureResource) basicV1(data acceptance.TestData) string {

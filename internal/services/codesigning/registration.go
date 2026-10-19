@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/resources/trusted_signing_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/resources/trusted_signing_certificate_profile"
 )
 
 type Registration struct{}
@@ -35,15 +37,15 @@ func (r Registration) WebsiteCategories() []string {
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		TrustedSigningAccountDataSource{},
+		trusted_signing_account.DataSource{},
 	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		TrustedSigningAccountResource{},
-		TrustedSigningCertificateProfileResource{},
+		trusted_signing_account.Resource{},
+		trusted_signing_certificate_profile.Resource{},
 	}
 }
 
@@ -65,6 +67,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		TrustedSigningCertificateProfileListResource{},
+		trusted_signing_certificate_profile.ListResource{},
 	}
 }

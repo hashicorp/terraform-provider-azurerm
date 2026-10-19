@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ResourceAnchorName(i interface{}, k string) ([]string, []error) {
+func ResourceAnchorName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[\p{L}\p{N}-]*$`), "must contain only letters , numbers and hyphens"),
 		validation.StringLenBetween(0, 24),
