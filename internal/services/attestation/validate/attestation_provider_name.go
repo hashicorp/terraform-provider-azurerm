@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func AttestationProviderName(i interface{}, k string) ([]string, []error) {
+func AttestationProviderName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-z\d]{3,24}\z`), "must be between 3 and 24 characters in length and use numbers and lower-case letters only")(i, k)
 }

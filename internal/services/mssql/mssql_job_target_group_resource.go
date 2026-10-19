@@ -120,7 +120,7 @@ func (r MsSqlJobTargetGroupResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlJobTargetGroupResource) ModelObject() interface{} {
+func (r MsSqlJobTargetGroupResource) ModelObject() any {
 	return &MsSqlJobTargetGroupResourceModel{}
 }
 

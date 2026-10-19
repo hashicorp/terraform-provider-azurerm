@@ -178,7 +178,7 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DBServersDataSource) ModelObject() interface{} {
+func (d DBServersDataSource) ModelObject() any {
 	return &DBServersDataModel{}
 }
 

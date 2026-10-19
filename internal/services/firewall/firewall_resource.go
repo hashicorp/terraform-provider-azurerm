@@ -222,7 +222,7 @@ func resourceFirewall() *pluginsdk.Resource {
 	return &resource
 }
 
-func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -243,13 +243,13 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]interface{})); err != nil {
+	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]any)); err != nil {
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-	i := d.Get("ip_configuration").([]interface{})
+	t := d.Get("tags").(map[string]any)
+	i := d.Get("ip_configuration").([]any)
 	ipConfigs, subnetToLock, vnetToLock, err := expandFirewallIPConfigurations(i)
 	if err != nil {
 		return fmt.Errorf("building list of Azure Firewall IP Configurations: %+v", err)
@@ -270,7 +270,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.Zones = &zones
 	}
 
-	m := d.Get("management_ip_configuration").([]interface{})
+	m := d.Get("management_ip_configuration").([]any)
 	if len(m) == 1 {
 		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandFirewallIPConfigurations(m)
 		if err != nil {
@@ -305,7 +305,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.Properties.FirewallPolicy = &azurefirewalls.SubResource{Id: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]interface{}))
+	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any))
 	if ok {
 		parameters.Properties.VirtualHub = vhub
 		parameters.Properties.HubIPAddresses = hubIpAddresses
@@ -393,7 +393,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceFirewallRead(d, meta)
 }
 
-func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -428,7 +428,7 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 			if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
-			managementIPConfigs := make([]interface{}, 0)
+			managementIPConfigs := make([]any, 0)
 			if props.ManagementIPConfiguration != nil {
 				managementIPConfigs = flattenFirewallIPConfigurations(&[]azurefirewalls.AzureFirewallIPConfiguration{
 					*props.ManagementIPConfiguration,
@@ -479,7 +479,7 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFirewallDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.AzureFirewalls
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -580,13 +580,13 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return err
 }
 
-func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
+func expandFirewallIPConfigurations(configs []any) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	ipConfigs := make([]azurefirewalls.AzureFirewallIPConfiguration, 0)
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)
 
 	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
 		pubID := data["public_ip_address_id"].(string)
@@ -625,14 +625,14 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 	return &ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
 }
 
-func flattenFirewallIPConfigurations(input *[]azurefirewalls.AzureFirewallIPConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func flattenFirewallIPConfigurations(input *[]azurefirewalls.AzureFirewallIPConfiguration) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
 
 	for _, v := range *input {
-		afIPConfig := make(map[string]interface{})
+		afIPConfig := make(map[string]any)
 		props := v.Properties
 		if props == nil {
 			continue
@@ -666,7 +666,7 @@ func flattenFirewallIPConfigurations(input *[]azurefirewalls.AzureFirewallIPConf
 func expandFirewallAdditionalProperty(d *pluginsdk.ResourceData) map[string]string {
 	// Swagger issue asking finalize these properties: https://github.com/Azure/azure-rest-api-specs/issues/11278
 	res := map[string]string{}
-	if servers := d.Get("dns_servers").([]interface{}); len(servers) > 0 {
+	if servers := d.Get("dns_servers").([]any); len(servers) > 0 {
 		var servs []string
 		for _, server := range servers {
 			servs = append(servs, server.(string))
@@ -680,9 +680,9 @@ func expandFirewallAdditionalProperty(d *pluginsdk.ResourceData) map[string]stri
 	return res
 }
 
-func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interface{}, servers []interface{}) {
+func flattenFirewallAdditionalProperty(input *map[string]string) (enabled any, servers []any) {
 	if input == nil || len(*input) == 0 {
-		return nil, []interface{}{}
+		return nil, []any{}
 	}
 
 	if enabledPtr, ok := (*input)["Network.DNS.EnableProxy"]; ok {
@@ -697,7 +697,7 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 	return
 }
 
-func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
+func expandFirewallPrivateIpRange(input []any) map[string]string {
 	if len(input) == 0 {
 		return nil
 	}
@@ -713,9 +713,9 @@ func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 	}
 }
 
-func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
+func flattenFirewallPrivateIpRange(input *map[string]string) []any {
 	if input == nil || len(*input) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 
 	attrs := *input
@@ -726,12 +726,12 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []interface{} {
 	return pluginsdk.FlattenSlice(&rangeSlice)
 }
 
-func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []interface{}) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
+func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
 	}
 
-	b := input[0].(map[string]interface{})
+	b := input[0].(map[string]any)
 
 	// The API requires both "Count" and "Addresses" for the "PublicIPs" setting.
 	// The "Count" means how many PIP to provision.
@@ -775,9 +775,9 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 	return vhub, ipAddresses, true
 }
 
-func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropertiesFormat) []interface{} {
+func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropertiesFormat) []any {
 	if props.VirtualHub == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var (
@@ -803,8 +803,8 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"virtual_hub_id":      pointer.From(props.VirtualHub.Id),
 			"public_ip_count":     publicIpCount,
 			"public_ip_addresses": publicIps,
@@ -813,7 +813,7 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 	}
 }
 
-func validateFirewallIPConfigurationSettings(configs []interface{}) error {
+func validateFirewallIPConfigurationSettings(configs []any) error {
 	if len(configs) == 0 {
 		return nil
 	}
@@ -821,7 +821,7 @@ func validateFirewallIPConfigurationSettings(configs []interface{}) error {
 	subnetNumber := 0
 
 	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+		data := configRaw.(map[string]any)
 		if subnet, exist := data["subnet_id"].(string); exist && subnet != "" {
 			subnetNumber++
 		}

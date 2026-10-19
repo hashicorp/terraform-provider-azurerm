@@ -107,7 +107,7 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationWebhookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationWebhookCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.WebhookClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -133,7 +133,7 @@ func resourceAutomationWebhookCreate(d *pluginsdk.ResourceData, meta interface{}
 		Properties: webhook.WebhookCreateOrUpdateProperties{
 			IsEnabled:  pointer.To(d.Get("enabled").(bool)),
 			ExpiryTime: pointer.To(d.Get("expiry_time").(string)),
-			Parameters: pointer.To(expandStringInterfaceMap(d.Get("parameters").(map[string]interface{}))),
+			Parameters: pointer.To(expandStringInterfaceMap(d.Get("parameters").(map[string]any))),
 			Runbook: &webhook.RunbookAssociationProperty{
 				Name: pointer.To(d.Get("runbook_name").(string)),
 			},
@@ -170,7 +170,7 @@ func resourceAutomationWebhookCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceAutomationWebhookRead(d, meta)
 }
 
-func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.WebhookClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +210,7 @@ func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: parameters is a map that is replaced as a whole
 	if d.HasChange("parameters") {
-		parameters.Properties.Parameters = pointer.To(expandStringInterfaceMap(d.Get("parameters").(map[string]interface{})))
+		parameters.Properties.Parameters = pointer.To(expandStringInterfaceMap(d.Get("parameters").(map[string]any)))
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
@@ -220,7 +220,7 @@ func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceAutomationWebhookRead(d, meta)
 }
 
-func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.WebhookClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,7 +262,7 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAutomationWebhookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationWebhookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.WebhookClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

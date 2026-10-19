@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/resources/arc_resource_bridge_appliance"
 )
 
 var (
@@ -26,13 +27,13 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ArcResourceBridgeApplianceDataSource{},
+		arc_resource_bridge_appliance.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ArcResourceBridgeApplianceResource{},
+		arc_resource_bridge_appliance.Resource{},
 	}
 }
 

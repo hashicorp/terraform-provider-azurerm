@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ElasticSanName(i interface{}, k string) ([]string, []error) {
+func ElasticSanName(i any, k string) ([]string, []error) {
 	return elasticSanResourceName(24)(i, k)
 }
 
 // all elastic san resource names must be 3 to maxLength characters
-func elasticSanResourceName(maxLength int) func(interface{}, string) ([]string, []error) {
+func elasticSanResourceName(maxLength int) func(any, string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(
 			regexp.MustCompile(fmt.Sprintf(`^[a-z0-9][a-z0-9_-]{1,%d}[a-z0-9]$`, maxLength-2)),

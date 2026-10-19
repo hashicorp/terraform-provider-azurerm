@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -221,14 +221,14 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: resourceValidate.ResourceDeploymentScriptAzurePowerShellVersion,
+			ValidateFunc: validate.ResourceDeploymentScriptAzurePowerShellVersion,
 		}
 	} else {
 		result["version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: resourceValidate.ResourceDeploymentScriptAzureCliVersion,
+			ValidateFunc: validate.ResourceDeploymentScriptAzureCliVersion,
 		}
 	}
 
@@ -425,9 +425,9 @@ func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAcc
 	return append(outputList, output)
 }
 
-func hashEnvironmentVariables(v interface{}) int {
+func hashEnvironmentVariables(v any) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m := v.(map[string]any)
 	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
 	return pluginsdk.HashString(buf.String())
 }

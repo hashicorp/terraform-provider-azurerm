@@ -6,9 +6,9 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
-	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
-	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" //nolint:staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
@@ -58,8 +58,8 @@ type Client struct {
 	ReplicationNetworksClient                 *replicationnetworks.ReplicationNetworksClient
 	ResourceGuardProxyClient                  *resourceguardproxy.ResourceGuardProxyClient
 	ResourceGuardProxiesClient                *resourceguardproxies.ResourceGuardProxiesClient
-	VMWareMachinesClient                      *vmwaremachines.MachinesClient
-	VMWareRunAsAccountsClient                 *vmwarerunasaccounts.RunAsAccountsClient
+	VMWareMachinesClient                      *machines.MachinesClient
+	VMWareRunAsAccountsClient                 *runasaccounts.RunAsAccountsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -162,13 +162,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourceGuardProxiesClient := resourceguardproxies.NewResourceGuardProxiesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&resourceGuardProxiesClient.Client, o.ResourceManagerAuthorizer)
 
-	vmwareMachinesClient, err := vmwaremachines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	vmwareMachinesClient, err := machines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMWare Machine client: %+v", err)
 	}
 	o.Configure(vmwareMachinesClient.Client, o.Authorizers.ResourceManager)
 
-	vmwareRunAsAccountsClient, err := vmwarerunasaccounts.NewRunAsAccountsClientWithBaseURI(o.Environment.ResourceManager)
+	vmwareRunAsAccountsClient, err := runasaccounts.NewRunAsAccountsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMWare Run As Accounts client: %+v", err)
 	}

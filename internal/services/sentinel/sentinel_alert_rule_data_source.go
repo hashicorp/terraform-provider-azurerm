@@ -39,7 +39,7 @@ func dataSourceSentinelAlertRule() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSentinelAlertRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

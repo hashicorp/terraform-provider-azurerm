@@ -80,7 +80,7 @@ func resourceAutomationConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionType
@@ -103,7 +103,7 @@ func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	connectionTypeName := d.Get("type").(string)
-	values := expandStringInterfaceMap(d.Get("values").(map[string]interface{}))
+	values := expandStringInterfaceMap(d.Get("values").(map[string]any))
 
 	connectionTypeId := connectiontype.NewConnectionTypeID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName, connectionTypeName)
 	// check `type` exists and required fields are passed by users
@@ -143,7 +143,7 @@ func resourceAutomationConnectionCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceAutomationConnectionRead(d, meta)
 }
 
-func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("values") {
-		values := expandStringInterfaceMap(d.Get("values").(map[string]interface{}))
+		values := expandStringInterfaceMap(d.Get("values").(map[string]any))
 		parameters.Properties.FieldDefinitionValues = &values
 	}
 
@@ -174,7 +174,7 @@ func resourceAutomationConnectionUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceAutomationConnectionRead(d, meta)
 }
 
-func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceAutomationConnectionRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

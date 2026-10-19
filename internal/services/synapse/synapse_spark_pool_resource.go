@@ -222,7 +222,7 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -261,8 +261,8 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	payload := bigdatapools.BigDataPoolResourceInfo{
 		Location: workspace.Model.Location,
 		Properties: &bigdatapools.BigDataPoolResourceProperties{
-			AutoPause:                 expandSynapseSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
-			AutoScale:                 expandSynapseSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{})),
+			AutoPause:                 expandSynapseSparkPoolAutoPauseProperties(d.Get("auto_pause").([]any)),
+			AutoScale:                 expandSynapseSparkPoolAutoScaleProperties(d.Get("auto_scale").([]any)),
 			CacheSize:                 pointer.To(int64(d.Get("cache_size").(int))),
 			IsComputeIsolationEnabled: pointer.To(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &bigdatapools.DynamicExecutorAllocation{
@@ -274,11 +274,11 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 			NodeSize:                    pointer.ToEnum[bigdatapools.NodeSize](d.Get("node_size").(string)),
 			NodeSizeFamily:              pointer.ToEnum[bigdatapools.NodeSizeFamily](d.Get("node_size_family").(string)),
 			SessionLevelPackagesEnabled: pointer.To(d.Get("session_level_packages_enabled").(bool)),
-			SparkConfigProperties:       expandSynapseSparkPoolSparkConfig(d.Get("spark_config").([]interface{})),
+			SparkConfigProperties:       expandSynapseSparkPoolSparkConfig(d.Get("spark_config").([]any)),
 			SparkEventsFolder:           pointer.To(d.Get("spark_events_folder").(string)),
 			SparkVersion:                pointer.To(d.Get("spark_version").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if !*payload.Properties.AutoScale.Enabled {
@@ -291,7 +291,7 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	// Library Requirements can't be specified on Create so we'll make an additional request after we've confirmed the Spark Pool has been created.
-	payload.Properties.LibraryRequirements = expandSynapseSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{}))
+	payload.Properties.LibraryRequirements = expandSynapseSparkPoolLibraryRequirements(d.Get("library_requirement").([]any))
 	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, bigdatapools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -299,7 +299,7 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceSynapseSparkPoolRead(d, meta)
 }
 
-func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -363,7 +363,7 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -424,7 +424,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChanges("auto_scale", "node_count") {
 		if d.HasChange("auto_scale") {
-			props.AutoScale = expandSynapseSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
+			props.AutoScale = expandSynapseSparkPoolAutoScaleProperties(d.Get("auto_scale").([]any))
 		}
 
 		if d.HasChange("node_count") {
@@ -436,7 +436,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("auto_pause") {
-		props.AutoPause = expandSynapseSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{}))
+		props.AutoPause = expandSynapseSparkPoolAutoPauseProperties(d.Get("auto_pause").([]any))
 	}
 
 	if d.HasChange("session_level_packages_enabled") {
@@ -444,7 +444,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("spark_config") {
-		props.SparkConfigProperties = expandSynapseSparkPoolSparkConfig(d.Get("spark_config").([]interface{}))
+		props.SparkConfigProperties = expandSynapseSparkPoolSparkConfig(d.Get("spark_config").([]any))
 	}
 
 	if d.HasChange("spark_events_folder") {
@@ -456,7 +456,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("library_requirement") {
-		props.LibraryRequirements = expandSynapseSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{}))
+		props.LibraryRequirements = expandSynapseSparkPoolLibraryRequirements(d.Get("library_requirement").([]any))
 	}
 
 	if d.HasChange("spark_version") {
@@ -464,7 +464,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, bigdatapools.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -474,7 +474,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceSynapseSparkPoolRead(d, meta)
 }
 
-func resourceSynapseSparkPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -491,26 +491,26 @@ func resourceSynapseSparkPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandSynapseSparkPoolAutoPauseProperties(input []interface{}) *bigdatapools.AutoPauseProperties {
+func expandSynapseSparkPoolAutoPauseProperties(input []any) *bigdatapools.AutoPauseProperties {
 	if len(input) == 0 {
 		return &bigdatapools.AutoPauseProperties{
 			Enabled: pointer.To(false),
 		}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &bigdatapools.AutoPauseProperties{
 		DelayInMinutes: pointer.To(int64(v["delay_in_minutes"].(int))),
 		Enabled:        pointer.To(true),
 	}
 }
 
-func expandSynapseSparkPoolAutoScaleProperties(input []interface{}) *bigdatapools.AutoScaleProperties {
+func expandSynapseSparkPoolAutoScaleProperties(input []any) *bigdatapools.AutoScaleProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &bigdatapools.AutoScaleProperties{
 			Enabled: pointer.To(false),
 		}
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &bigdatapools.AutoScaleProperties{
 		MinNodeCount: pointer.To(int64(v["min_node_count"].(int))),
 		Enabled:      pointer.To(true),
@@ -518,81 +518,81 @@ func expandSynapseSparkPoolAutoScaleProperties(input []interface{}) *bigdatapool
 	}
 }
 
-func expandSynapseSparkPoolLibraryRequirements(input []interface{}) *bigdatapools.LibraryRequirements {
+func expandSynapseSparkPoolLibraryRequirements(input []any) *bigdatapools.LibraryRequirements {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &bigdatapools.LibraryRequirements{
 		Content:  pointer.To(v["content"].(string)),
 		Filename: pointer.To(v["filename"].(string)),
 	}
 }
 
-func expandSynapseSparkPoolSparkConfig(input []interface{}) *bigdatapools.SparkConfigProperties {
+func expandSynapseSparkPoolSparkConfig(input []any) *bigdatapools.SparkConfigProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	value := input[0].(map[string]interface{})
+	value := input[0].(map[string]any)
 	return &bigdatapools.SparkConfigProperties{
 		Content:  pointer.To(value["content"].(string)),
 		Filename: pointer.To(value["filename"].(string)),
 	}
 }
 
-func flattenSynapseSparkPoolAutoPauseProperties(input *bigdatapools.AutoPauseProperties) []interface{} {
+func flattenSynapseSparkPoolAutoPauseProperties(input *bigdatapools.AutoPauseProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	if !pointer.From(input.Enabled) {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"delay_in_minutes": pointer.From(input.DelayInMinutes),
 		},
 	}
 }
 
-func flattenSynapseSparkPoolAutoScaleProperties(input *bigdatapools.AutoScaleProperties) []interface{} {
+func flattenSynapseSparkPoolAutoScaleProperties(input *bigdatapools.AutoScaleProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	if !pointer.From(input.Enabled) {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"max_node_count": pointer.From(input.MaxNodeCount),
 			"min_node_count": pointer.From(input.MinNodeCount),
 		},
 	}
 }
 
-func flattenSynapseSparkPoolLibraryRequirements(input *bigdatapools.LibraryRequirements) []interface{} {
+func flattenSynapseSparkPoolLibraryRequirements(input *bigdatapools.LibraryRequirements) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"content":  pointer.From(input.Content),
 			"filename": pointer.From(input.Filename),
 		},
 	}
 }
 
-func flattenSynapseSparkPoolSparkConfig(input *bigdatapools.SparkConfigProperties) []interface{} {
+func flattenSynapseSparkPoolSparkConfig(input *bigdatapools.SparkConfigProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"content":  pointer.From(input.Content),
 			"filename": pointer.From(input.Filename),
 		},

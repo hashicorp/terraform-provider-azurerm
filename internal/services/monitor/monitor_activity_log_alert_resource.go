@@ -406,7 +406,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta any) error {
 				// Validate location constraints for Activity Log Alert resources
 				loc := diff.Get("location").(string)
 				normalizedLocation := location.Normalize(loc)
@@ -430,7 +430,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -456,10 +456,10 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	enabled := d.Get("enabled").(bool)
 	description := d.Get("description").(string)
 	scopesRaw := d.Get("scopes").(*pluginsdk.Set).List()
-	criteriaRaw := d.Get("criteria").([]interface{})
-	actionRaw := d.Get("action").([]interface{})
+	criteriaRaw := d.Get("criteria").([]any)
+	actionRaw := d.Get("action").([]any)
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 	parameters := activitylogalertsapis.ActivityLogAlertResource{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &activitylogalertsapis.AlertRuleProperties{
@@ -485,7 +485,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceMonitorActivityLogAlertRead(d, meta)
 }
 
-func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -518,7 +518,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 			d.Set("enabled", props.Enabled)
 			d.Set("description", props.Description)
 
-			var scopes []interface{}
+			var scopes []any
 			if props.Scopes != nil {
 				scopes = pluginsdk.FlattenSlice(&props.Scopes)
 			}
@@ -541,7 +541,7 @@ func resourceMonitorActivityLogAlertFlatten(d *pluginsdk.ResourceData, id *activ
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMonitorActivityLogAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorActivityLogAlertDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -560,9 +560,9 @@ func resourceMonitorActivityLogAlertDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalertsapis.AlertRuleAllOfCondition {
+func expandMonitorActivityLogAlertCriteria(input []any) activitylogalertsapis.AlertRuleAllOfCondition {
 	conditions := make([]activitylogalertsapis.AlertRuleAnyOfOrLeafCondition, 0)
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	if category := v["category"].(string); category != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
@@ -592,7 +592,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if levels := v["levels"].([]interface{}); len(levels) > 0 {
+	if levels := v["levels"].([]any); len(levels) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(levels, "level"),
 		})
@@ -605,7 +605,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if resourceProviders := v["resource_providers"].([]interface{}); len(resourceProviders) > 0 {
+	if resourceProviders := v["resource_providers"].([]any); len(resourceProviders) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(resourceProviders, "resourceProvider"),
 		})
@@ -618,7 +618,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if resourceTypes := v["resource_types"].([]interface{}); len(resourceTypes) > 0 {
+	if resourceTypes := v["resource_types"].([]any); len(resourceTypes) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(resourceTypes, "resourceType"),
 		})
@@ -631,7 +631,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if resourceGroups := v["resource_groups"].([]interface{}); len(resourceGroups) > 0 {
+	if resourceGroups := v["resource_groups"].([]any); len(resourceGroups) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(resourceGroups, "resourceGroup"),
 		})
@@ -644,7 +644,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if resourceIds := v["resource_ids"].([]interface{}); len(resourceIds) > 0 {
+	if resourceIds := v["resource_ids"].([]any); len(resourceIds) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(resourceIds, "resourceId"),
 		})
@@ -657,7 +657,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if statuses := v["statuses"].([]interface{}); len(statuses) > 0 {
+	if statuses := v["statuses"].([]any); len(statuses) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(statuses, "status"),
 		})
@@ -670,7 +670,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if statuses := v["sub_statuses"].([]interface{}); len(statuses) > 0 {
+	if statuses := v["sub_statuses"].([]any); len(statuses) > 0 {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(statuses, "subStatus"),
 		})
@@ -697,11 +697,11 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		})
 	}
 
-	if resourceHealth := v["resource_health"].([]interface{}); len(resourceHealth) > 0 {
+	if resourceHealth := v["resource_health"].([]any); len(resourceHealth) > 0 {
 		conditions = expandResourceHealth(resourceHealth, conditions)
 	}
 
-	if serviceHealth := v["service_health"].([]interface{}); len(serviceHealth) > 0 {
+	if serviceHealth := v["service_health"].([]any); len(serviceHealth) > 0 {
 		conditions = expandServiceHealth(serviceHealth, conditions)
 	}
 
@@ -710,7 +710,7 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 	}
 }
 
-func expandAnyOfCondition(input []interface{}, field string) *[]activitylogalertsapis.AlertRuleLeafCondition {
+func expandAnyOfCondition(input []any, field string) *[]activitylogalertsapis.AlertRuleLeafCondition {
 	conditions := make([]activitylogalertsapis.AlertRuleLeafCondition, 0)
 	for _, v := range input {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleLeafCondition{
@@ -721,12 +721,12 @@ func expandAnyOfCondition(input []interface{}, field string) *[]activitylogalert
 	return &conditions
 }
 
-func expandResourceHealth(resourceHealth []interface{}, conditions []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition) []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition {
+func expandResourceHealth(resourceHealth []any, conditions []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition) []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition {
 	for _, serviceItem := range resourceHealth {
 		if serviceItem == nil {
 			continue
 		}
-		vs := serviceItem.(map[string]interface{})
+		vs := serviceItem.(map[string]any)
 
 		cv := vs["current"].(*pluginsdk.Set)
 		if len(cv.List()) > 0 {
@@ -776,12 +776,12 @@ func expandResourceHealth(resourceHealth []interface{}, conditions []activitylog
 	return conditions
 }
 
-func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition) []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition {
+func expandServiceHealth(serviceHealth []any, conditions []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition) []activitylogalertsapis.AlertRuleAnyOfOrLeafCondition {
 	for _, serviceItem := range serviceHealth {
 		if serviceItem == nil {
 			continue
 		}
-		vs := serviceItem.(map[string]interface{})
+		vs := serviceItem.(map[string]any)
 		rv := vs["locations"].(*pluginsdk.Set)
 		if len(rv.List()) > 0 {
 			conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
@@ -816,14 +816,14 @@ func expandServiceHealth(serviceHealth []interface{}, conditions []activitylogal
 	return conditions
 }
 
-func expandMonitorActivityLogAlertAction(input []interface{}) activitylogalertsapis.ActionList {
+func expandMonitorActivityLogAlertAction(input []any) activitylogalertsapis.ActionList {
 	actions := make([]activitylogalertsapis.ActionGroup, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		if agID := v["action_group_id"].(string); agID != "" {
 			props := make(map[string]string)
 			if pVal, ok := v["webhook_properties"]; ok {
-				for pk, pv := range pVal.(map[string]interface{}) {
+				for pk, pv := range pVal.(map[string]any) {
 					props[pk] = pv.(string)
 				}
 			}
@@ -839,10 +839,10 @@ func expandMonitorActivityLogAlertAction(input []interface{}) activitylogalertsa
 	}
 }
 
-func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRuleAllOfCondition) []interface{} {
-	result := make(map[string]interface{})
+func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRuleAllOfCondition) []any {
+	result := make(map[string]any)
 	if input.AllOf == nil {
-		return []interface{}{result}
+		return []any{result}
 	}
 	for _, condition := range input.AllOf {
 		if condition.Field != nil && condition.Equals != nil {
@@ -923,11 +923,11 @@ func flattenMonitorActivityLogAlertCriteria(input activitylogalertsapis.AlertRul
 		flattenMonitorActivityLogAlertServiceHealth(input, result)
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenMonitorActivityLogAlertResourceHealth(input activitylogalertsapis.AlertRuleAllOfCondition, result map[string]interface{}) {
-	rhResult := make(map[string]interface{})
+func flattenMonitorActivityLogAlertResourceHealth(input activitylogalertsapis.AlertRuleAllOfCondition, result map[string]any) {
+	rhResult := make(map[string]any)
 
 	for _, condition := range input.AllOf {
 		if condition.Field == nil && condition.AnyOf != nil && len(*condition.AnyOf) > 0 {
@@ -948,11 +948,11 @@ func flattenMonitorActivityLogAlertResourceHealth(input activitylogalertsapis.Al
 		}
 	}
 
-	result["resource_health"] = []interface{}{rhResult}
+	result["resource_health"] = []any{rhResult}
 }
 
-func flattenMonitorActivityLogAlertServiceHealth(input activitylogalertsapis.AlertRuleAllOfCondition, result map[string]interface{}) {
-	shResult := make(map[string]interface{})
+func flattenMonitorActivityLogAlertServiceHealth(input activitylogalertsapis.AlertRuleAllOfCondition, result map[string]any) {
+	shResult := make(map[string]any)
 	for _, condition := range input.AllOf {
 		if condition.Field != nil && condition.ContainsAny != nil && len(*condition.ContainsAny) > 0 {
 			switch strings.ToLower(*condition.Field) {
@@ -973,20 +973,20 @@ func flattenMonitorActivityLogAlertServiceHealth(input activitylogalertsapis.Ale
 		}
 	}
 
-	result["service_health"] = []interface{}{shResult}
+	result["service_health"] = []any{shResult}
 }
 
-func flattenMonitorActivityLogAlertAction(input activitylogalertsapis.ActionList) (result []interface{}) {
-	result = make([]interface{}, 0)
+func flattenMonitorActivityLogAlertAction(input activitylogalertsapis.ActionList) (result []any) {
+	result = make([]any, 0)
 	if input.ActionGroups == nil {
 		return
 	}
 	for _, action := range *input.ActionGroups {
-		v := make(map[string]interface{})
+		v := make(map[string]any)
 
 		v["action_group_id"] = action.ActionGroupId
 
-		props := make(map[string]interface{})
+		props := make(map[string]any)
 		if action.WebhookProperties != nil {
 			for pk, pv := range *action.WebhookProperties {
 				props[pk] = pv

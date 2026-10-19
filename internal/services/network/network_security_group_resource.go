@@ -183,7 +183,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -218,7 +218,7 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 		Properties: &networksecuritygroups.NetworkSecurityGroupPropertiesFormat{
 			SecurityRules: &sgRules,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, sg, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -233,7 +233,7 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNetworkSecurityGroupRead(d, meta)
 }
 
-func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +267,7 @@ func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	locks.ByID(id.ID())
@@ -282,7 +282,7 @@ func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNetworkSecurityGroupRead(d, meta)
 }
 
-func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -327,7 +327,7 @@ func resourceNetworkSecurityGroupFlatten(d *pluginsdk.ResourceData, id *networks
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -352,7 +352,7 @@ func expandSecurityRules(d *pluginsdk.ResourceData) ([]networksecuritygroups.Sec
 	rules := make([]networksecuritygroups.SecurityRule, 0)
 
 	for _, sgRaw := range sgRules {
-		sgRule := sgRaw.(map[string]interface{})
+		sgRule := sgRaw.(map[string]any)
 
 		if err := validateSecurityRule(sgRule); err != nil {
 			return nil, err
@@ -440,8 +440,8 @@ func expandSecurityRules(d *pluginsdk.ResourceData) ([]networksecuritygroups.Sec
 	return rules, nil
 }
 
-func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []map[string]any {
+	result := make([]map[string]any, 0)
 
 	// For fixing the case insensitive issue for the NSR protocol in Azure
 	// See: https://github.com/hashicorp/terraform-provider-azurerm/issues/16092
@@ -452,7 +452,7 @@ func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []
 
 	if rules != nil {
 		for _, rule := range *rules {
-			sgRule := make(map[string]interface{})
+			sgRule := make(map[string]any)
 			sgRule["name"] = *rule.Name
 
 			if props := rule.Properties; props != nil {
@@ -516,7 +516,7 @@ func flattenNetworkSecurityRules(rules *[]networksecuritygroups.SecurityRule) []
 	return result
 }
 
-func validateSecurityRule(sgRule map[string]interface{}) error {
+func validateSecurityRule(sgRule map[string]any) error {
 	var err *multierror.Error
 
 	sourcePortRange := sgRule["source_port_range"].(string)

@@ -664,19 +664,19 @@ func applicationLogSchema() *pluginsdk.Schema {
 			if stateLogs == nil || planLogs == nil {
 				return false
 			}
-			stateAttrs := stateLogs.([]interface{})
-			planAttrs := planLogs.([]interface{})
+			stateAttrs := stateLogs.([]any)
+			planAttrs := planLogs.([]any)
 
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 				newFileSystemLevel, ok := planAttr["file_system_level"].(string)
 				if !ok {
 					return false
 				}
 
 				// if something is in `azure_blob_storage`, then we don't suppress the diff as we don't allow the default values for `azure_blob_storage` to be passed in
-				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]interface{})
+				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]any)
 				if !ok || len(newAzureBlobStorage) != 0 {
 					return false
 				}
@@ -1395,7 +1395,7 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 	}
 
-	for _, v := range unmanagedSettings { //nolint:typecheck
+	for _, v := range unmanagedSettings {
 		delete(input, v)
 	}
 

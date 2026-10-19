@@ -15,7 +15,7 @@ import (
 )
 
 func importCdnFrontDoorCustomDomainAssociation() pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		id, err := parse.FrontDoorCustomDomainAssociationID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, err

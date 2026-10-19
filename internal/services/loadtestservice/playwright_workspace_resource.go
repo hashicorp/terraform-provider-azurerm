@@ -68,7 +68,7 @@ func (PlaywrightWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (PlaywrightWorkspaceResource) ModelObject() interface{} {
+func (PlaywrightWorkspaceResource) ModelObject() any {
 	return &PlaywrightWorkspaceModel{}
 }
 

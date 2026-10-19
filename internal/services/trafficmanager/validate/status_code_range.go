@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func StatusCodeRange(i interface{}, k string) ([]string, []error) {
+func StatusCodeRange(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[0-9]+-[0-9]+$`), "expected an integer range within the format of `XXX-XXX`")(i, k)
 }

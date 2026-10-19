@@ -227,7 +227,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -279,7 +279,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 
 	source := expandMonitorScheduledQueryRulesCommonSource(d)
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := scheduledqueryrules.LogSearchRuleResource{
 		Location: location,
@@ -306,7 +306,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
 
-func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -380,7 +380,7 @@ func resourceMonitorScheduledQueryRulesAlertFlatten(d *pluginsdk.ResourceData, i
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -400,12 +400,12 @@ func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, me
 }
 
 func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *scheduledqueryrules.AlertingAction {
-	alertActionRaw := d.Get("action").([]interface{})
+	alertActionRaw := d.Get("action").([]any)
 	alertAction := expandMonitorScheduledQueryRulesAlertAction(alertActionRaw)
 	severityRaw := d.Get("severity").(int)
 	severity := strconv.Itoa(severityRaw)
 
-	triggerRaw := d.Get("trigger").([]interface{})
+	triggerRaw := d.Get("trigger").([]any)
 	trigger := expandMonitorScheduledQueryRulesAlertTrigger(triggerRaw)
 
 	action := scheduledqueryrules.AlertingAction{
@@ -421,7 +421,7 @@ func expandMonitorScheduledQueryRulesAlertingAction(d *pluginsdk.ResourceData) *
 	return &action
 }
 
-func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *scheduledqueryrules.AzNsActionGroup {
+func expandMonitorScheduledQueryRulesAlertAction(input []any) *scheduledqueryrules.AzNsActionGroup {
 	result := scheduledqueryrules.AzNsActionGroup{}
 
 	if len(input) == 0 {
@@ -432,7 +432,7 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *scheduled
 			continue
 		}
 
-		v, ok := item.(map[string]interface{})
+		v, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -447,7 +447,7 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *scheduled
 	return &result
 }
 
-func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *scheduledqueryrules.LogMetricTrigger {
+func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []any) *scheduledqueryrules.LogMetricTrigger {
 	if len(input) == 0 {
 		return nil
 	}
@@ -457,7 +457,7 @@ func expandMonitorScheduledQueryRulesAlertMetricTrigger(input []interface{}) *sc
 		if item == nil {
 			continue
 		}
-		v, ok := item.(map[string]interface{})
+		v, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -482,7 +482,7 @@ func expandMonitorScheduledQueryRulesAlertSchedule(d *pluginsdk.ResourceData) *s
 	return &schedule
 }
 
-func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) scheduledqueryrules.TriggerCondition {
+func expandMonitorScheduledQueryRulesAlertTrigger(input []any) scheduledqueryrules.TriggerCondition {
 	result := scheduledqueryrules.TriggerCondition{}
 	if len(input) == 0 {
 		return result
@@ -492,11 +492,11 @@ func expandMonitorScheduledQueryRulesAlertTrigger(input []interface{}) scheduled
 		if item == nil {
 			continue
 		}
-		v, ok := item.(map[string]interface{})
+		v, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
-		metricTriggerRaw := v["metric_trigger"].([]interface{})
+		metricTriggerRaw := v["metric_trigger"].([]any)
 
 		result.ThresholdOperator = scheduledqueryrules.ConditionalOperator(v["operator"].(string))
 		result.Threshold = v["threshold"].(float64)

@@ -11,7 +11,7 @@ import (
 func TestNormalizeJson(t *testing.T) {
 	testCases := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected string
 	}{
 		{

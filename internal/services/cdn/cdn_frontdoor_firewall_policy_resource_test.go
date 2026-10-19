@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +18,16 @@ import (
 )
 
 type CdnFrontDoorFirewallPolicyResource struct{}
+
+func TestAccCdnFrontDoorFirewallPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccCdnFrontDoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
@@ -819,7 +829,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingSelectorEqualsAnyError(t *tes
 }
 
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
+	id, err := webapplicationfirewallpolicies.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

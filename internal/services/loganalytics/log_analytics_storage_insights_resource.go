@@ -38,7 +38,7 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := storageinsights.ParseStorageInsightConfigID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := d.GetOk("storage_account_key"); ok && v.(string) != "" {
 				d.Set("storage_account_key", v)
 			}
@@ -50,7 +50,7 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,7 +102,7 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

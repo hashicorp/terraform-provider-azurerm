@@ -31,7 +31,7 @@ var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineInstanceGues
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource struct{}
 
-func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel{}
 }
 

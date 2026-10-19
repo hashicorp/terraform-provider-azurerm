@@ -11,6 +11,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
+func TestAccWindowsVirtualMachineScaleSet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authPassword(data),
+		},
+	}, "")
+}
+
 func TestAccWindowsVirtualMachineScaleSet_authPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}

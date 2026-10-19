@@ -745,7 +745,7 @@ func expandCdnFrontDoorBatchRuleSetRemoteAddressCondition(input CdnFrontDoorRule
 			}
 		}
 	case rulesets.RemoteAddressOperatorIPMatch:
-		values := make([]interface{}, 0, len(input.Values))
+		values := make([]any, 0, len(input.Values))
 		for _, matchValue := range input.Values {
 			values = append(values, matchValue)
 			if _, errs := validate.FrontDoorRuleCidrIsValid(matchValue, "values"); len(errs) > 0 {

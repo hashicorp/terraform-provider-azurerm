@@ -146,7 +146,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -215,7 +215,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
 }
 
-func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +284,7 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

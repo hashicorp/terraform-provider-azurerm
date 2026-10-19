@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -58,7 +58,7 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	opStatusClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -123,7 +123,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	return resourceBackupProtectionContainerStorageAccountRead(d, meta)
 }
 
-func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceBackupProtectionContainerStorageAccountRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -190,7 +190,6 @@ func resourceBackupProtectionContainerStorageAccountDelete(d *pluginsdk.Resource
 	return nil
 }
 
-// nolint unused - linter mistakenly things this function isn't used?
 func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *pluginsdk.ResourceData) error {
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
@@ -215,7 +214,7 @@ func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context
 }
 
 func resourceBackupProtectionContainerStorageAccountCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {
 			return resp, "Error", fmt.Errorf("making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)

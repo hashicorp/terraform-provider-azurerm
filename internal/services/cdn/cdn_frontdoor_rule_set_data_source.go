@@ -49,7 +49,7 @@ func dataSourceCdnFrontDoorRuleSet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

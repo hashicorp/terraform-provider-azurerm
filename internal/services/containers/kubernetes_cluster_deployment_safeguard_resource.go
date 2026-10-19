@@ -28,7 +28,7 @@ type KubernetesClusterDeploymentSafeguardResourceModel struct {
 	PodSecurityStandardsLevel string   `tfschema:"pod_security_standards_level"`
 }
 
-func (r KubernetesClusterDeploymentSafeguardResource) ModelObject() interface{} {
+func (r KubernetesClusterDeploymentSafeguardResource) ModelObject() any {
 	return &KubernetesClusterDeploymentSafeguardResourceModel{}
 }
 

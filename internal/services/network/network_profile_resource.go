@@ -106,7 +106,7 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkProfiles
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -127,7 +127,7 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
+	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]any))
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
@@ -144,7 +144,7 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	payload := networkprofiles.NetworkProfile{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &networkprofiles.NetworkProfilePropertiesFormat{
 			ContainerNetworkInterfaceConfigurations: containerNetworkInterfaceConfigurations,
 		},
@@ -162,7 +162,7 @@ func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetworkProfileRead(d, meta)
 }
 
-func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkProfiles
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	payload := existing.Model
 
-	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
+	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]any))
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
@@ -206,7 +206,7 @@ func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -218,7 +218,7 @@ func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceNetworkProfileRead(d, meta)
 }
 
-func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkProfiles
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +263,7 @@ func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofile
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkProfiles
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,16 +302,16 @@ func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return err
 }
 
-func expandNetworkProfileContainerNetworkInterface(input []interface{}) *[]networkprofiles.ContainerNetworkInterfaceConfiguration {
+func expandNetworkProfileContainerNetworkInterface(input []any) *[]networkprofiles.ContainerNetworkInterfaceConfiguration {
 	retCNIConfigs := make([]networkprofiles.ContainerNetworkInterfaceConfiguration, 0)
 
 	for _, cniConfig := range input {
-		nciData := cniConfig.(map[string]interface{})
-		ipConfigs := nciData["ip_configuration"].([]interface{})
+		nciData := cniConfig.(map[string]any)
+		ipConfigs := nciData["ip_configuration"].([]any)
 
 		retIPConfigs := make([]networkprofiles.IPConfigurationProfile, 0)
 		for _, ipConfig := range ipConfigs {
-			ipData := ipConfig.(map[string]interface{})
+			ipData := ipConfig.(map[string]any)
 
 			retIPConfig := networkprofiles.IPConfigurationProfile{
 				Name: pointer.To(ipData["name"].(string)),
@@ -374,14 +374,14 @@ func expandNetworkProfileVirtualNetworkSubnetNames(input *[]networkprofiles.Cont
 	return &subnetIds, &vnetIds, nil
 }
 
-func flattenNetworkProfileContainerNetworkInterface(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenNetworkProfileContainerNetworkInterface(input *[]networkprofiles.ContainerNetworkInterfaceConfiguration) []any {
+	output := make([]any, 0)
 	if input == nil {
 		return output
 	}
 
 	for _, cniConfig := range *input {
-		ipConfigurations := make([]interface{}, 0)
+		ipConfigurations := make([]any, 0)
 		if props := cniConfig.Properties; props != nil && props.IPConfigurations != nil {
 			for _, ipConfig := range *props.IPConfigurations {
 				subnetId := ""
@@ -389,14 +389,14 @@ func flattenNetworkProfileContainerNetworkInterface(input *[]networkprofiles.Con
 					subnetId = *ipProps.Subnet.Id
 				}
 
-				ipConfigurations = append(ipConfigurations, map[string]interface{}{
+				ipConfigurations = append(ipConfigurations, map[string]any{
 					"name":      pointer.From(ipConfig.Name),
 					"subnet_id": subnetId,
 				})
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":             pointer.From(cniConfig.Name),
 			"ip_configuration": ipConfigurations,
 		})

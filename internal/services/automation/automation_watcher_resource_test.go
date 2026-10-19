@@ -20,6 +20,16 @@ import (
 
 type WatcherResource struct{}
 
+func TestAccWatcher_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
+	r := WatcherResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
 	r := WatcherResource{}

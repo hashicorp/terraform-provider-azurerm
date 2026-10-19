@@ -66,7 +66,7 @@ func resourceResourceGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +88,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	parameters := resourcegroups.ResourceGroup{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("managed_by").(string); v != "" {
@@ -114,7 +114,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceResourceGroupRead(d, meta)
 }
 
-func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,7 +127,7 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	patch := resourcegroups.ResourceGroupPatchable{}
 
 	if d.HasChange("tags") {
-		patch.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		patch.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, *id, patch); err != nil {
@@ -137,7 +137,7 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceResourceGroupRead(d, meta)
 }
 
-func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceResourceGroupFlatten(d *pluginsdk.ResourceData, id *commonids.Resou
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

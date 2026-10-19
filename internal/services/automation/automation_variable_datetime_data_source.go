@@ -21,6 +21,6 @@ func dataSourceAutomationVariableDateTime() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableDateTimeRead(d *pluginsdk.ResourceData, meta any) error {
 	return dataSourceAutomationVariableRead(d, meta, "Datetime")
 }

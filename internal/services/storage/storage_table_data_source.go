@@ -104,7 +104,7 @@ func (k storageTableDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k storageTableDataSource) ModelObject() interface{} {
+func (k storageTableDataSource) ModelObject() any {
 	return &TableDataSourceModel{}
 }
 
