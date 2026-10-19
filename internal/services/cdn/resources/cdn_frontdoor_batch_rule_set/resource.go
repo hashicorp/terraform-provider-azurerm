@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name cdn_frontdoor_batch_rule_set -properties "name" -compare-values "subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id" -test-name "basicAttachedRoute"
+
 var (
 	_ sdk.ResourceWithCustomImporter = Resource{}
 	_ sdk.ResourceWithCustomizeDiff  = Resource{}
