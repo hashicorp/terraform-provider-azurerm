@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestManagedInstanceStartStopScheduleID(t *testing.T) {
+func TestValidateManagedInstanceStartStopScheduleID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
