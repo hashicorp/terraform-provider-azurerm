@@ -6,11 +6,16 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -50,7 +55,46 @@ func TestAccLogicAppActionCustom_requiresImport(t *testing.T) {
 }
 
 func (LogicAppActionCustomResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	return actionExists(ctx, clients, state)
+	id, err := parse.ActionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroup, id.WorkflowName)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, workflowId)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", workflowId, err)
+	}
+
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Definition == nil {
+		return pointer.To(false), nil
+	}
+
+	definition, ok := (*resp.Model.Properties.Definition).(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type for `definition` of %s: %T", workflowId, *resp.Model.Properties.Definition)
+	}
+
+	raw, ok := definition["actions"]
+	if !ok || raw == nil {
+		return pointer.To(false), nil
+	}
+
+	actions, ok := raw.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type for `actions` in definition of %s: %T", workflowId, raw)
+	}
+
+	for k := range actions {
+		if strings.EqualFold(k, id.Name) {
+			return pointer.To(true), nil
+		}
+	}
+
+	return pointer.To(false), nil
 }
 
 func (r LogicAppActionCustomResource) basic(data acceptance.TestData) string {

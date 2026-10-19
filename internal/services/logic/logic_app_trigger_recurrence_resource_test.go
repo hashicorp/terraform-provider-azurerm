@@ -6,8 +6,13 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -258,7 +263,46 @@ func TestAccLogicAppTriggerRecurrence_schedule(t *testing.T) {
 }
 
 func (LogicAppTriggerRecurrenceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	return triggerExists(ctx, clients, state)
+	id, err := workflowtriggers.ParseTriggerID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, workflowId)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", workflowId, err)
+	}
+
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Definition == nil {
+		return pointer.To(false), nil
+	}
+
+	definition, ok := (*resp.Model.Properties.Definition).(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type for `definition` of %s: %T", workflowId, *resp.Model.Properties.Definition)
+	}
+
+	raw, ok := definition["triggers"]
+	if !ok || raw == nil {
+		return pointer.To(false), nil
+	}
+
+	triggers, ok := raw.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type for `triggers` in definition of %s: %T", workflowId, raw)
+	}
+
+	for k := range triggers {
+		if strings.EqualFold(k, id.TriggerName) {
+			return pointer.To(true), nil
+		}
+	}
+
+	return pointer.To(false), nil
 }
 
 func (LogicAppTriggerRecurrenceResource) basic(data acceptance.TestData, frequency string, interval int) string {
