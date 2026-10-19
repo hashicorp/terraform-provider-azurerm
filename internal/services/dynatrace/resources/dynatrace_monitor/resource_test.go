@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package dynatrace_test
+package dynatrace_monitor_test
 
 import (
 	"context"

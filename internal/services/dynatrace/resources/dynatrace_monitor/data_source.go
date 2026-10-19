@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package dynatrace
+package dynatrace_monitor
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type MonitorsDataSource struct{}
+type DataSource struct{}
 
 type MonitorsDataSourceModel struct {
 	Name                          string                         `tfschema:"name"`
@@ -41,9 +41,9 @@ type EnvironmentInfo struct {
 	EnvironmentId string `tfschema:"environment_id"`
 }
 
-var _ sdk.DataSource = MonitorsDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (d MonitorsDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -55,7 +55,7 @@ func (d MonitorsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d MonitorsDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -157,15 +157,15 @@ func (d MonitorsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d MonitorsDataSource) ModelObject() any {
+func (d DataSource) ModelObject() any {
 	return &MonitorsDataSourceModel{}
 }
 
-func (d MonitorsDataSource) ResourceType() string {
+func (d DataSource) ResourceType() string {
 	return "azurerm_dynatrace_monitor"
 }
 
-func (d MonitorsDataSource) Read() sdk.ResourceFunc {
+func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
