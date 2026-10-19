@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestContainerRegistryTaskScheduleID(t *testing.T) {
+func TestValidateContainerRegistryTaskScheduleID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
