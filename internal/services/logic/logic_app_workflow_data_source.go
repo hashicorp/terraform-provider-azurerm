@@ -94,7 +94,7 @@ func dataSourceLogicAppWorkflow() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -123,24 +123,23 @@ func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("identity", identity)
 
 		if props := model.Properties; props != nil {
-			parameters := flattenLogicAppDataSourceWorkflowParameters(props.Parameters)
-			if err := d.Set("parameters", parameters); err != nil {
+			if err := d.Set("parameters", flattenLogicAppDataSourceWorkflowParameters(props.Parameters)); err != nil {
 				return fmt.Errorf("setting `parameters`: %+v", err)
 			}
 
 			d.Set("access_endpoint", props.AccessEndpoint)
 
 			if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
-				d.Set("connector_endpoint_ip_addresses", []interface{}{})
-				d.Set("connector_outbound_ip_addresses", []interface{}{})
+				d.Set("connector_endpoint_ip_addresses", []any{})
+				d.Set("connector_outbound_ip_addresses", []any{})
 			} else {
 				d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
 				d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
 			}
 
 			if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
-				d.Set("workflow_endpoint_ip_addresses", []interface{}{})
-				d.Set("workflow_outbound_ip_addresses", []interface{}{})
+				d.Set("workflow_endpoint_ip_addresses", []any{})
+				d.Set("workflow_outbound_ip_addresses", []any{})
 			} else {
 				d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
 				d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
@@ -148,7 +147,7 @@ func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{})
 
 			if definition := props.Definition; definition != nil {
 				definitionRaw := *props.Definition
-				if v, ok := definitionRaw.(map[string]interface{}); ok {
+				if v, ok := definitionRaw.(map[string]any); ok {
 					d.Set("workflow_schema", v["$schema"].(string))
 					d.Set("workflow_version", v["contentVersion"].(string))
 				}
@@ -165,8 +164,8 @@ func dataSourceLogicAppWorkflowRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenLogicAppDataSourceWorkflowParameters(input *map[string]workflows.WorkflowParameter) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenLogicAppDataSourceWorkflowParameters(input *map[string]workflows.WorkflowParameter) map[string]any {
+	output := make(map[string]any)
 	if input == nil {
 		return output
 	}

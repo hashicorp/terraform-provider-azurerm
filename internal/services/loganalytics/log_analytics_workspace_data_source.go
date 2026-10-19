@@ -84,7 +84,7 @@ func dataSourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.SharedKeyWorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -127,8 +127,8 @@ func dataSourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 				d.Set("daily_quota_gb", pointer.To(-1))
 			}
 
-			d.Set("internet_ingestion_access_type", string(pointer.From(props.PublicNetworkAccessForIngestion)))
-			d.Set("internet_query_access_type", string(pointer.From(props.PublicNetworkAccessForQuery)))
+			d.Set("internet_ingestion_access_type", pointer.FromEnum(props.PublicNetworkAccessForIngestion))
+			d.Set("internet_query_access_type", pointer.FromEnum(props.PublicNetworkAccessForQuery))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

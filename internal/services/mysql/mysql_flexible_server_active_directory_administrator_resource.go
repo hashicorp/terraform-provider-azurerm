@@ -35,7 +35,7 @@ func (r MySQLFlexibleServerAdministratorResource) ResourceType() string {
 	return "azurerm_mysql_flexible_server_active_directory_administrator"
 }
 
-func (r MySQLFlexibleServerAdministratorResource) ModelObject() interface{} {
+func (r MySQLFlexibleServerAdministratorResource) ModelObject() any {
 	return &MySQLFlexibleServerAdministratorModel{}
 }
 
@@ -123,9 +123,7 @@ func (r MySQLFlexibleServerAdministratorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", flexibleServerId, err)
 			}
 
-			id := parse.NewFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory))
-
-			metadata.SetID(id)
+			metadata.SetID(parse.NewFlexibleServerAzureActiveDirectoryAdministratorID(flexibleServerId.SubscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, string(azureadadministrators.AdministratorTypeActiveDirectory)))
 			return nil
 		},
 	}

@@ -53,7 +53,7 @@ func (s SpringCloudAPIPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_api_portal"
 }
 
-func (s SpringCloudAPIPortalResource) ModelObject() interface{} {
+func (s SpringCloudAPIPortalResource) ModelObject() any {
 	return &SpringCloudAPIPortalModel{}
 }
 
@@ -420,7 +420,7 @@ func flattenAPIPortalSsoProperties(input *appplatform.SsoProperties, old []ApiPo
 
 func flattenSpringCloudAPIPortalGatewayIds(ids *[]string) []string {
 	if ids == nil || len(*ids) == 0 {
-		return nil
+		return []string{}
 	}
 	out := make([]string, 0)
 	for _, id := range *ids {

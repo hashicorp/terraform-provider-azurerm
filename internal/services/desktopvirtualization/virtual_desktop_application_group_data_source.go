@@ -35,7 +35,7 @@ type DesktopVirtualizationApplicationGroupModel struct {
 
 var _ sdk.DataSource = DesktopVirtualizationApplicationGroupDataSource{}
 
-func (r DesktopVirtualizationApplicationGroupDataSource) ModelObject() interface{} {
+func (r DesktopVirtualizationApplicationGroupDataSource) ModelObject() any {
 	return &DesktopVirtualizationApplicationGroupModel{}
 }
 

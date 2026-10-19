@@ -237,7 +237,7 @@ func webApplicationFirewallComponentVersionsComputed() *pluginsdk.Schema {
 	}
 }
 
-func (m DeploymentDataSource) ModelObject() interface{} {
+func (m DeploymentDataSource) ModelObject() any {
 	return &DeploymentDataSourceModel{}
 }
 

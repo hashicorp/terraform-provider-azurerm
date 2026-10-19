@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -17,7 +17,7 @@ var _ pluginsdk.StateUpgrade = KubernetesClusterNodePoolV0ToV1{}
 type KubernetesClusterNodePoolV0ToV1 struct{}
 
 func (k KubernetesClusterNodePoolV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
 
 		originClusterId := rawState["kubernetes_cluster_id"].(string)

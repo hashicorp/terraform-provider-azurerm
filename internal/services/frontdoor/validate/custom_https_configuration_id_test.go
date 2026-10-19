@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestCustomHttpsConfigurationID(t *testing.T) {
+func TestValidateCustomHttpsConfigurationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

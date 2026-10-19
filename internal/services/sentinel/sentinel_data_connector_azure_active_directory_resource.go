@@ -50,7 +50,7 @@ func resourceSentinelDataConnectorAzureActiveDirectory() *pluginsdk.Resource {
 			"tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -58,7 +58,7 @@ func resourceSentinelDataConnectorAzureActiveDirectory() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,7 +112,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryCreate(d *pluginsdk.Resour
 	return resourceSentinelDataConnectorAzureActiveDirectoryRead(d, meta)
 }
 
-func resourceSentinelDataConnectorAzureActiveDirectoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureActiveDirectoryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceSentinelDataConnectorAzureActiveDirectoryRead(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceSentinelDataConnectorAzureActiveDirectoryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureActiveDirectoryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
