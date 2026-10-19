@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package dashboard_test
+package dashboard_grafana_test
 
 import (
 	"fmt"
