@@ -2,8 +2,7 @@
 
 This guide covers adding Resource Identity to a new or existing resource. For more information on Resource Identity, see [Resources - Identity](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/identity).
 
-> [!IMPORTANT]
-> **Resource Identity is mandatory for all new resources.** It is also a prerequisite for [List Resources](guide-list-resource.md), which are equally required. If your resource cannot support Resource Identity (see caveats below), please explain why in the PR description.
+Every new resource needs Resource Identity, and [List Resources](guide-list-resource.md) depend on it. If yours cannot support it, see the caveats below and say so in the PR.
 
 > The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
 
@@ -19,7 +18,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     package example
 
     import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-   
+
     type ExampleResource struct{}
 
     var _ sdk.ResourceWithIdentity = ExampleResource{}
@@ -29,14 +28,14 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
 
     ```go
     package example
-    
+
     import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     import "github.com/hashicorp/go-azure-helpers/resourceids"
-    
+
     type ExampleResource struct{}
-    
+
     var _ sdk.ResourceWithIdentity = ExampleResource{}
-    
+
     func (r ExampleResource) Identity() resourceids.ResourceId {
         return &examplepackage.ExampleResourceId{}
     }
@@ -50,16 +49,16 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
             Timeout: 30 * time.Minute,
             Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
                 client := metadata.Client.Service.ExampleClient
-                
+
                 id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
                 ...
-                
+
                 // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
                 if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
                     return fmt.Errorf("creating %s: %+v", &id, err)
                 }
-                
+
                 metadata.SetID(id)
                 return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
             },
@@ -81,13 +80,13 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
                 if err != nil {
                     return err
                 }
-                 
+
                 ...
-                 
+
                 if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
                     return err
                 }
-                
+
                 return metadata.Encode(&model)
             },
         }
@@ -104,28 +103,28 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
     package example
-    
+
     import (
         "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
     )
-    
+
     func resourceExample() *pluginsdk.Resource {
         return &pluginsdk.Resource{
             Create: resourceExampleCreate,
             Read: resourceExampleRead,
             Update: resourceExampleUpdate,
             Delete: resourceExampleDelete,
-    
+
             Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
                 _, err := examplepackage.ParseExampleID(id)
                 return err
             }),
-            
+
             // We will be including the new `Identity` field
             Identity: &schema.ResourceIdentity{
                 SchemaFunc: pluginsdk.GenerateIdentitySchema(&examplepackage.ExampleId{}),
             },
-            
+
             ...
         }
     }
@@ -135,25 +134,25 @@ To add Resource Identity to an untyped resource, follow the steps below.
 
     ```go
         package example
-        
+
         import (
             "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
         )
-        
+
         func resourceExample() *pluginsdk.Resource {
             return &pluginsdk.Resource{
                 Create: resourceExampleCreate,
                 Read: resourceExampleRead,
                 Update: resourceExampleUpdate,
                 Delete: resourceExampleDelete,
-        
+
                 Importer: pluginsdk.ImporterValidatingIdentity(&examplepackage.ExampleId{}),
-                
+
                 // We will be including the new `Identity` field
                 Identity: &schema.ResourceIdentity{
                     SchemaFunc: pluginsdk.GenerateIdentitySchema(&examplepackage.ExampleId{}),
                 },
-                
+
                 ...
             }
         }
@@ -162,29 +161,26 @@ To add Resource Identity to an untyped resource, follow the steps below.
 3. Update the `resourceExampleCreate()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
-    func resourceExampleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-        Timeout: 30 * time.Minute,
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := meta.(*clients.Client).Compute.DedicatedHostsClient
-            ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-            defer cancel()
-            
-            id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+    func resourceExampleCreate(d *pluginsdk.ResourceData, meta any) error {
+        client := meta.(*clients.Client).Service.ExampleClient
+        ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+        defer cancel()
 
-            ...
+        id := examplepackage.NewExampleResourceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-            // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallBack`.
-            if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
-               return fmt.Errorf("creating %s: %+v", &id, err)
-            }
-            
-            d.SetId(id.ID())
-            if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-                return err
-            }
-            
-            return resourceExampleRead(d, meta)
+        ...
+
+        // If the resource uses a `CallbackThenPoll` method, ensure the callback function is updated to `SetIDAndIdentityCallback`.
+        if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+            return fmt.Errorf("creating %s: %+v", id, err)
         }
+
+        d.SetId(id.ID())
+        if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+            return err
+        }
+
+        return resourceExampleRead(d, meta)
     }
     ```
 
@@ -193,18 +189,18 @@ To add Resource Identity to an untyped resource, follow the steps below.
 4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
-        func resourceExampleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+        func resourceExampleRead(d *pluginsdk.ResourceData, meta any) error {
             client := meta.(*clients.Client).Service.ExampleClient
             ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
             defer cancel()
-    
+
             id, err := examplepackage.ParseExampleResourceID(d.Id())
             if err != nil {
                 return err
             }
-            
+
             ...
-            
+
             // Usually we can simply replace the final `return nil` line with the return below.
             return pluginsdk.SetResourceIdentityData(d, id)
         }
@@ -218,7 +214,7 @@ Just like the schema, Resource Identity tests are entirely generated. This is do
 
 The schema is generated for us by taking different parts of the ID and converting them to snake_case. By default, if the last segment ends in `Name`, it will not be converted to snake case in the schema but rather set to `name`.
 
-For the vast majority of resources, the `generator-tests` tool uses Abstract Syntax Tree (AST) inference to automatically inspect the Go file, locate the ID struct, and infer the correct property mappings. This means you can simply provide the base command with zero flags:
+For most resources no flags are needed. The tool reads the ID struct from the file, from `Identity()` on a typed resource or the `GenerateIdentitySchema` call on an untyped one, and maps each field to its snake_case name, with the last segment becoming `name`:
 
 ```go
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -237,7 +233,7 @@ If your resource uses a **Virtual Identity** (a sub-resource that inherits its I
 The generator reduces boilerplate by using Abstract Syntax Tree (AST) inference to automatically map the properties of an ID struct to the resource schema.
 
 - **Typed SDK Wrappers:** It scans the `.go` file for the `Identity()` method to locate the identity struct, and the `IdentityType()` method to determine if it is a Virtual Identity.
-- **Legacy (Untyped) Resources:** It scans for the `pluginsdk.GenerateIdentitySchema(&struct{}, ...)` function call in the schema definition, extracting the identity struct from the first argument and checking if the second argument is `pluginsdk.ResourceTypeForIdentityVirtual` (or scanning for the older `VirtualIdentity()` method).
+- **Legacy (Untyped) Resources:** It scans for the `pluginsdk.GenerateIdentitySchema(&struct{}, ...)` function call in the schema definition, extracting the identity struct from the first argument and checking if the second argument is `pluginsdk.ResourceTypeForIdentityVirtual`.
 - By parsing the returned `commonids` or `resourceids` struct from either pattern, it inherently knows the fields required (e.g., `SubscriptionId`, `ResourceGroupName`, `StorageAccountName`).
 - It converts these properties to `snake_case` (e.g., `resource_group_name`).
 - By convention, the final identifier segment (e.g., `StorageAccountName`) is converted to `name` unless the resource is identified as a **Virtual Identity**.
@@ -250,7 +246,7 @@ The `generator-tests` tool has "self-correcting" capabilities. When you run `mak
 
 - **Flag Stripping:** If you provide explicit `-compare-values`, `-known-values`, or `-resource-name` flags that perfectly match what the AST infers, the generator will automatically strip those flags from your `.go` file to keep the tag clean and concise (Zero-Flags).
 - **Auto-Formatting:** When the generator rewrites the tag, it automatically runs `gofumpt` on the file so that no whitespace formatting issues are introduced.
-- **Virtual Identity Resolution:** If a resource is detected as Virtual (via `IdentityType()` or `VirtualIdentity()`) and you supply `-parent-id "xyz"`, the generator automatically expands the mapping for all the struct's fields (including `subscription_id`) to that `-parent-id`.
+- **Virtual Identity Resolution:** If a resource is detected as Virtual (via `IdentityType()`) and you supply `-parent-id "xyz"`, the generator automatically expands the mapping for all the struct's fields (including `subscription_id`) to that `-parent-id`.
 
 **What the self-correcting logic CANNOT do:**
 
@@ -266,16 +262,16 @@ There are edge cases where the AST inference cannot automatically map the proper
 
 Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
 
- ```go
+```go
 package example
-     
+
 import (
     "time"
-      
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-// A basic example where the AST parser infers everything (Zero-Flags)
+// A basic example where the tool infers everything
 //go:generate go run ../../tools/generator-tests resourceidentity
 
 // An example where the resource is a sub-resource utilizing a Virtual Identity
@@ -285,13 +281,13 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -no-subscription-id
 
 type ExampleResource struct{}
-  
+
 var _ sdk.ResourceWithIdentity = ExampleResource{}
-  
+
 func (r ExampleResource) Identity() resourceids.ResourceId {
     return &examplepackage.ExampleResourceId{}
 }
-  
+
 func (r ExampleResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 5 * time.Minute,
@@ -301,15 +297,15 @@ func (r ExampleResource) Read() sdk.ResourceFunc {
             if err != nil {
                 return err
             }
-             
+
             ...
-              
+
             if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
                 return err
             }
-             
+
             return metadata.Encode(&model)
         },
     }
 }
- ```
+```

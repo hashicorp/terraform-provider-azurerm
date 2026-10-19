@@ -14,7 +14,7 @@ Lists the database nodes for the specified Cloud VM Cluster.
 
 ```hcl
 data "azurerm_oracle_db_nodes" "example" {
-  cloud_vm_cluster_id = "existing"
+  cloud_vm_cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Oracle.Database/cloudVmClusters/example-cloud-vm-cluster"
 }
 
 output "example" {

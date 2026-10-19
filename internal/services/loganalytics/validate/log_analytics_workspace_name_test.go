@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestAccLogAnalyticsWorkspaceName_validation(t *testing.T) {
+func TestLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	str := strings.Repeat("a", 63)
 	cases := []struct {
 		Value    string
