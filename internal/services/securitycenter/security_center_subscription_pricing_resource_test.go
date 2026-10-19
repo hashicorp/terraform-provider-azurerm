@@ -51,6 +51,14 @@ func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.tier("Free", "AppServices"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Free"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
