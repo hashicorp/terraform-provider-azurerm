@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package databricks_test
+package databricks_workspace_root_dbfs_customer_managed_key_test
 
 import (
 	"context"

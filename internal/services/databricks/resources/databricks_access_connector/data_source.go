@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package databricks
+package databricks_access_connector
 
 import (
 	"context"
@@ -19,16 +19,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.DataSource = DatabricksAccessConnectorDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type DatabricksAccessConnectorDataSource struct{}
+type DataSource struct{}
 
 type DatabricksAccessConnectorDataSourceModel struct {
 	Name          string `tfschema:"name"`
 	ResourceGroup string `tfschema:"resource_group_name"`
 }
 
-func (DatabricksAccessConnectorDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -39,7 +39,7 @@ func (DatabricksAccessConnectorDataSource) Arguments() map[string]*pluginsdk.Sch
 	}
 }
 
-func (DatabricksAccessConnectorDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
@@ -47,11 +47,11 @@ func (DatabricksAccessConnectorDataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (DatabricksAccessConnectorDataSource) ModelObject() any {
+func (DataSource) ModelObject() any {
 	return &DatabricksAccessConnectorDataSourceModel{}
 }
 
-func (DatabricksAccessConnectorDataSource) Read() sdk.ResourceFunc {
+func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -89,6 +89,6 @@ func (DatabricksAccessConnectorDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (DatabricksAccessConnectorDataSource) ResourceType() string {
+func (DataSource) ResourceType() string {
 	return "azurerm_databricks_access_connector"
 }
