@@ -97,10 +97,7 @@ func resourceFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) err
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	// api will error if TypeNone is passed in
-	if expandedIdentity.Type != identity.TypeNone {
-		props.Identity = expandedIdentity
-	}
+	props.Identity = expandedIdentity
 
 	if id, ok := d.GetOk("base_policy_id"); ok {
 		props.Properties.BasePolicy = &firewallpolicies.SubResource{Id: pointer.To(id.(string))}
