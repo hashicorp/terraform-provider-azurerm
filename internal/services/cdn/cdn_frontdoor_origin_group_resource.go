@@ -4,11 +4,13 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -43,6 +45,10 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&afdorigingroups.OriginGroupId{}),
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(cdnFrontDoorOriginGroupAuthenticationCustomizeDiff),
+		),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -90,6 +96,33 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"authentication": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(afdorigingroups.PossibleValuesForOriginAuthenticationType(), false),
+						},
+
+						"scope": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"user_assigned_identity_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+						},
+					},
+				},
+			},
+
 			"health_probe": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -180,6 +213,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta any) 
 
 	props := afdorigingroups.AFDOriginGroup{
 		Properties: &afdorigingroups.AFDOriginGroupProperties{
+			Authentication:        expandCdnFrontDoorOriginGroupAuthentication(d.Get("authentication").([]any)),
 			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]any)),
 			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]any)),
 			SessionAffinityState:  pointer.To(sessionAffinity),
@@ -229,6 +263,15 @@ func resourceCdnFrontDoorOriginGroupFlatten(d *pluginsdk.ResourceData, id *afdor
 
 	if model != nil {
 		if props := model.Properties; props != nil {
+			authentication, err := flattenCdnFrontDoorOriginGroupAuthentication(props.Authentication)
+			if err != nil {
+				return fmt.Errorf("flattening 'authentication': %+v", err)
+			}
+
+			if err := d.Set("authentication", authentication); err != nil {
+				return fmt.Errorf("setting 'authentication': %+v", err)
+			}
+
 			if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
 				return fmt.Errorf("setting 'health_probe': %+v", err)
 			}
@@ -269,6 +312,10 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta any) 
 		return fmt.Errorf("retrieving %s: properties was nil", id)
 	}
 	props := existing.Model.Properties
+
+	if d.HasChange("authentication") {
+		props.Authentication = expandCdnFrontDoorOriginGroupAuthentication(d.Get("authentication").([]any))
+	}
 
 	// The API requires that an explicit null be passed as the 'health_probe' value to disable the health probe
 	// e.g. {"properties":{"healthProbeSettings":null}}
@@ -372,4 +419,69 @@ func flattenCdnFrontDoorOriginGroupHealthProbeParameters(input *afdorigingroups.
 			"request_type":        pointer.FromEnum(input.ProbeRequestType),
 		},
 	}
+}
+
+func cdnFrontDoorOriginGroupAuthenticationCustomizeDiff(_ context.Context, diff *pluginsdk.ResourceDiff, _ any) error {
+	authentication := diff.Get("authentication").([]any)
+	if len(authentication) == 0 || authentication[0] == nil {
+		return nil
+	}
+
+	v := authentication[0].(map[string]any)
+	authenticationType := v["type"].(string)
+	userAssignedIdentityId := v["user_assigned_identity_id"].(string)
+
+	if authenticationType == string(afdorigingroups.OriginAuthenticationTypeUserAssignedIdentity) && userAssignedIdentityId == "" {
+		return fmt.Errorf("`authentication.0.user_assigned_identity_id` must be specified when `authentication.0.type` is `%s`", afdorigingroups.OriginAuthenticationTypeUserAssignedIdentity)
+	}
+
+	if authenticationType == string(afdorigingroups.OriginAuthenticationTypeSystemAssignedIdentity) && userAssignedIdentityId != "" {
+		return fmt.Errorf("`authentication.0.user_assigned_identity_id` cannot be specified when `authentication.0.type` is `%s`", afdorigingroups.OriginAuthenticationTypeSystemAssignedIdentity)
+	}
+
+	return nil
+}
+
+func expandCdnFrontDoorOriginGroupAuthentication(input []any) *afdorigingroups.OriginAuthenticationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+
+	result := &afdorigingroups.OriginAuthenticationProperties{
+		Scope: pointer.To(v["scope"].(string)),
+		Type:  pointer.ToEnum[afdorigingroups.OriginAuthenticationType](v["type"].(string)),
+	}
+
+	if userAssignedIdentityId := v["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
+		result.UserAssignedIdentity = &afdorigingroups.ResourceReference{
+			Id: pointer.To(userAssignedIdentityId),
+		}
+	}
+
+	return result
+}
+
+func flattenCdnFrontDoorOriginGroupAuthentication(input *afdorigingroups.OriginAuthenticationProperties) ([]any, error) {
+	if input == nil || input.Type == nil {
+		return []any{}, nil
+	}
+
+	userAssignedIdentityId := ""
+	if input.UserAssignedIdentity != nil && pointer.From(input.UserAssignedIdentity.Id) != "" {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.UserAssignedIdentity.Id)
+		if err != nil {
+			return nil, err
+		}
+		userAssignedIdentityId = id.ID()
+	}
+
+	return []any{
+		map[string]any{
+			"scope":                     pointer.From(input.Scope),
+			"type":                      pointer.FromEnum(input.Type),
+			"user_assigned_identity_id": userAssignedIdentityId,
+		},
+	}, nil
 }

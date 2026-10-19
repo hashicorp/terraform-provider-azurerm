@@ -46,6 +46,29 @@ func dataSourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"authentication": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"scope": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"health_probe": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -132,6 +155,15 @@ func dataSourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta any) 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
+			authentication, err := flattenCdnFrontDoorOriginGroupAuthentication(props.Authentication)
+			if err != nil {
+				return fmt.Errorf("flattening `authentication`: %+v", err)
+			}
+
+			if err := d.Set("authentication", authentication); err != nil {
+				return fmt.Errorf("setting `authentication`: %+v", err)
+			}
+
 			if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
 				return fmt.Errorf("setting `health_probe`: %+v", err)
 			}
