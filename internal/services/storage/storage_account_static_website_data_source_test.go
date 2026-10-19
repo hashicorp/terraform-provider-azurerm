@@ -42,14 +42,13 @@ func TestAccStorageAccountStaticWebsiteDataSource_staticNotEnabled(t *testing.T)
 }
 
 func (d StorageAccountStaticWebsiteDataSource) staticNotEnabled(data acceptance.TestData) string {
-	template := StorageAccountResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_storage_account_static_website" "test" {
   storage_account_id = azurerm_storage_account.test.id
 }
-`, template)
+`, StorageAccountResource{}.basic(data))
 }
 
 func (d StorageAccountStaticWebsiteDataSource) basic(data acceptance.TestData) string {
