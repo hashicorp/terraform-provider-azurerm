@@ -22,7 +22,7 @@ type NetAppAccountEncryptionDataSource struct{}
 
 var _ sdk.DataSource = NetAppAccountEncryptionDataSource{}
 
-func (r NetAppAccountEncryptionDataSource) ModelObject() interface{} {
+func (r NetAppAccountEncryptionDataSource) ModelObject() any {
 	return &models.NetAppAccountEncryptionDataSourceModel{}
 }
 

@@ -83,7 +83,7 @@ func resourceSignalRSharedPrivateLinkResource() *pluginsdk.Resource {
 	}
 }
 
-func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -136,7 +136,7 @@ func resourceSignalRSharedPrivateLinkCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceSignalRSharedPrivateLinkRead(d, meta)
 }
 
-func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceSignalRSharedPrivateLinkRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceSignalrSharedPrivateLinkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSignalrSharedPrivateLinkDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SignalR.SignalRClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -27,7 +27,7 @@ func (r NetAppVolumeQuotaRuleDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_quota_rule"
 }
 
-func (r NetAppVolumeQuotaRuleDataSource) ModelObject() interface{} {
+func (r NetAppVolumeQuotaRuleDataSource) ModelObject() any {
 	return &models.NetAppVolumeQuotaRuleDataSourceModel{}
 }
 

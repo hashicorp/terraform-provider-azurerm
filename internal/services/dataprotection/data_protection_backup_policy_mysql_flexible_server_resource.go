@@ -70,7 +70,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ResourceType() st
 	return "azurerm_data_protection_backup_policy_mysql_flexible_server"
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ModelObject() any {
 	return &BackupPolicyMySQLFlexibleServerModel{}
 }
 

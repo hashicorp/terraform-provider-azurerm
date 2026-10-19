@@ -124,7 +124,7 @@ func FirewallDataSourcePolicy() *pluginsdk.Resource {
 	}
 }
 
-func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func FirewallDataSourcePolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.FirewallPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

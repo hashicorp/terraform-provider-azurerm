@@ -82,7 +82,7 @@ func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspacesClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -148,7 +148,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	return resourceSynapseManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -187,7 +187,7 @@ func resourceSynapseManagedPrivateEndpointRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

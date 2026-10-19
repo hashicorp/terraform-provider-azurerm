@@ -38,7 +38,7 @@ type KubernetesAutomaticClusterModel struct {
 	PrivateCluster         []PrivateClusterModel                      `tfschema:"private_cluster"`
 	ServiceMeshProfile     []ServiceMeshProfileModel                  `tfschema:"service_mesh"`
 	WebAppRoutingIngress   []WebAppRoutingIngressModel                `tfschema:"web_app_routing_ingress"`
-	Tags                   map[string]interface{}                     `tfschema:"tags"`
+	Tags                   map[string]any                             `tfschema:"tags"`
 	// Computed fields
 	CurrentKubernetesVersion string            `tfschema:"current_kubernetes_version"`
 	FQDN                     string            `tfschema:"fully_qualified_domain_name"`
@@ -113,7 +113,7 @@ func (r KubernetesAutomaticClusterResource) ResourceType() string {
 	return "azurerm_kubernetes_automatic_cluster"
 }
 
-func (r KubernetesAutomaticClusterResource) ModelObject() interface{} {
+func (r KubernetesAutomaticClusterResource) ModelObject() any {
 	return &KubernetesAutomaticClusterModel{}
 }
 
@@ -185,8 +185,8 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if rd.Id() == "" {
-				hostedSystem := make([]interface{}, 0)
-				if v, ok := rd.Get("hosted_system").([]interface{}); ok {
+				hostedSystem := make([]any, 0)
+				if v, ok := rd.Get("hosted_system").([]any); ok {
 					hostedSystem = v
 				}
 				if len(hostedSystem) == 0 {
@@ -209,9 +209,9 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			privateCluster := rd.Get("private_cluster").([]interface{})
+			privateCluster := rd.Get("private_cluster").([]any)
 			if len(privateCluster) > 0 && privateCluster[0] != nil {
-				privateClusterConfig := privateCluster[0].(map[string]interface{})
+				privateClusterConfig := privateCluster[0].(map[string]any)
 				privateDNSZoneID := privateClusterConfig["private_dns_zone_id"].(string)
 
 				if privateDNSZoneID != "" {

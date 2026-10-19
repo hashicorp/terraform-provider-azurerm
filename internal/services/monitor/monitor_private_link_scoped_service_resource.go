@@ -74,7 +74,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, me
 	return resourceMonitorPrivateLinkScopedServiceRead(d, meta)
 }
 
-func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +141,7 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

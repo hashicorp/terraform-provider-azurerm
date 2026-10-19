@@ -544,7 +544,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 	}
 }
 
-func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -569,19 +569,19 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	addOnFeaturesRaw := d.Get("add_on_features").(*pluginsdk.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
 
-	azureActiveDirectoryRaw := d.Get("azure_active_directory").([]interface{})
+	azureActiveDirectoryRaw := d.Get("azure_active_directory").([]any)
 	azureActiveDirectory := expandServiceFabricClusterAzureActiveDirectory(azureActiveDirectoryRaw)
 
-	diagnosticsRaw := d.Get("diagnostics_config").([]interface{})
+	diagnosticsRaw := d.Get("diagnostics_config").([]any)
 	diagnostics := expandServiceFabricClusterDiagnosticsConfig(diagnosticsRaw)
 
-	upgradePolicyRaw := d.Get("upgrade_policy").([]interface{})
+	upgradePolicyRaw := d.Get("upgrade_policy").([]any)
 	upgradePolicy := expandServiceFabricClusterUpgradePolicy(upgradePolicyRaw)
 
-	fabricSettingsRaw := d.Get("fabric_settings").([]interface{})
+	fabricSettingsRaw := d.Get("fabric_settings").([]any)
 	fabricSettings := expandServiceFabricClusterFabricSettings(fabricSettingsRaw)
 
-	nodeTypesRaw := d.Get("node_type").([]interface{})
+	nodeTypesRaw := d.Get("node_type").([]any)
 	nodeTypes := expandServiceFabricClusterNodeTypes(nodeTypesRaw)
 
 	location := d.Get("location").(string)
@@ -590,7 +590,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	upgradeMode := cluster.UpgradeMode(d.Get("upgrade_mode").(string))
 	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	clusterModel := cluster.Cluster{
 		Location: location,
@@ -620,19 +620,19 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if certificateRaw, ok := d.GetOk("certificate"); ok {
-		clusterModel.Properties.Certificate = expandServiceFabricClusterCertificate(certificateRaw.([]interface{}))
+		clusterModel.Properties.Certificate = expandServiceFabricClusterCertificate(certificateRaw.([]any))
 	}
 
 	if reverseProxyCertificateRaw, ok := d.GetOk("reverse_proxy_certificate"); ok {
-		clusterModel.Properties.ReverseProxyCertificate = expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]interface{}))
+		clusterModel.Properties.ReverseProxyCertificate = expandServiceFabricClusterReverseProxyCertificate(reverseProxyCertificateRaw.([]any))
 	}
 
 	if clientCertificateThumbprintRaw, ok := d.GetOk("client_certificate_thumbprint"); ok {
-		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]interface{}))
+		clusterModel.Properties.ClientCertificateThumbprints = expandServiceFabricClusterClientCertificateThumbprints(clientCertificateThumbprintRaw.([]any))
 	}
 
 	if clientCertificateCommonNamesRaw, ok := d.GetOk("client_certificate_common_name"); ok {
-		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]interface{}))
+		clusterModel.Properties.ClientCertificateCommonNames = expandServiceFabricClusterClientCertificateCommonNames(clientCertificateCommonNamesRaw.([]any))
 	}
 
 	if clusterCodeVersion != "" {
@@ -652,7 +652,7 @@ func resourceServiceFabricClusterCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceServiceFabricClusterRead(d, meta)
 }
 
-func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -767,7 +767,7 @@ func resourceServiceFabricClusterRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -787,7 +787,7 @@ func resourceServiceFabricClusterDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandServiceFabricClusterAddOnFeatures(input []interface{}) *[]cluster.AddOnFeatures {
+func expandServiceFabricClusterAddOnFeatures(input []any) *[]cluster.AddOnFeatures {
 	output := make([]cluster.AddOnFeatures, 0)
 
 	for _, v := range input {
@@ -797,12 +797,12 @@ func expandServiceFabricClusterAddOnFeatures(input []interface{}) *[]cluster.Add
 	return &output
 }
 
-func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *cluster.AzureActiveDirectory {
+func expandServiceFabricClusterAzureActiveDirectory(input []any) *cluster.AzureActiveDirectory {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	tenantId := v["tenant_id"].(string)
 	clusterApplication := v["cluster_application_id"].(string)
@@ -816,11 +816,11 @@ func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *cluste
 	return &config
 }
 
-func flattenServiceFabricClusterAzureActiveDirectory(input *cluster.AzureActiveDirectory) []interface{} {
-	results := make([]interface{}, 0)
+func flattenServiceFabricClusterAzureActiveDirectory(input *cluster.AzureActiveDirectory) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		if name := v.TenantId; name != nil {
 			output["tenant_id"] = *name
@@ -840,8 +840,8 @@ func flattenServiceFabricClusterAzureActiveDirectory(input *cluster.AzureActiveD
 	return results
 }
 
-func flattenServiceFabricClusterAddOnFeatures(input *[]cluster.AddOnFeatures) []interface{} {
-	output := make([]interface{}, 0)
+func flattenServiceFabricClusterAddOnFeatures(input *[]cluster.AddOnFeatures) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		for _, v := range *input {
@@ -852,12 +852,12 @@ func flattenServiceFabricClusterAddOnFeatures(input *[]cluster.AddOnFeatures) []
 	return output
 }
 
-func expandServiceFabricClusterCertificate(input []interface{}) *cluster.CertificateDescription {
+func expandServiceFabricClusterCertificate(input []any) *cluster.CertificateDescription {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	thumbprint := v["thumbprint"].(string)
 
@@ -873,11 +873,11 @@ func expandServiceFabricClusterCertificate(input []interface{}) *cluster.Certifi
 	return &result
 }
 
-func flattenServiceFabricClusterCertificate(input *cluster.CertificateDescription) []interface{} {
-	results := make([]interface{}, 0)
+func flattenServiceFabricClusterCertificate(input *cluster.CertificateDescription) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["thumbprint"] = input.Thumbprint
 
@@ -893,17 +893,17 @@ func flattenServiceFabricClusterCertificate(input *cluster.CertificateDescriptio
 }
 
 func expandServiceFabricClusterCertificateCommonNames(d *pluginsdk.ResourceData) *cluster.ServerCertificateCommonNames {
-	i := d.Get("certificate_common_names").([]interface{})
+	i := d.Get("certificate_common_names").([]any)
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
-	input := i[0].(map[string]interface{})
+	input := i[0].(map[string]any)
 
 	commonNamesRaw := input["common_names"].(*pluginsdk.Set).List()
 	commonNames := make([]cluster.ServerCertificateCommonName, 0)
 
 	for _, commonName := range commonNamesRaw {
-		commonNameDetails := commonName.(map[string]interface{})
+		commonNameDetails := commonName.(map[string]any)
 
 		commonName := cluster.ServerCertificateCommonName{
 			CertificateCommonName:       commonNameDetails["certificate_common_name"].(string),
@@ -922,17 +922,17 @@ func expandServiceFabricClusterCertificateCommonNames(d *pluginsdk.ResourceData)
 }
 
 func expandServiceFabricClusterReverseProxyCertificateCommonNames(d *pluginsdk.ResourceData) *cluster.ServerCertificateCommonNames {
-	i := d.Get("reverse_proxy_certificate_common_names").([]interface{})
+	i := d.Get("reverse_proxy_certificate_common_names").([]any)
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
-	input := i[0].(map[string]interface{})
+	input := i[0].(map[string]any)
 
 	commonNamesRaw := input["common_names"].(*pluginsdk.Set).List()
 	commonNames := make([]cluster.ServerCertificateCommonName, 0)
 
 	for _, commonName := range commonNamesRaw {
-		commonNameDetails := commonName.(map[string]interface{})
+		commonNameDetails := commonName.(map[string]any)
 
 		commonName := cluster.ServerCertificateCommonName{
 			CertificateCommonName:       commonNameDetails["certificate_common_name"].(string),
@@ -950,17 +950,17 @@ func expandServiceFabricClusterReverseProxyCertificateCommonNames(d *pluginsdk.R
 	return &output
 }
 
-func flattenServiceFabricClusterCertificateCommonNames(in *cluster.ServerCertificateCommonNames) []interface{} {
+func flattenServiceFabricClusterCertificateCommonNames(in *cluster.ServerCertificateCommonNames) []any {
 	if in == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if commonNames := in.CommonNames; commonNames != nil {
-		common_names := make([]map[string]interface{}, 0)
+		common_names := make([]map[string]any, 0)
 		for _, i := range *commonNames {
-			commonName := make(map[string]interface{})
+			commonName := make(map[string]any)
 
 			commonName["certificate_common_name"] = i.CertificateCommonName
 			commonName["certificate_issuer_thumbprint"] = i.CertificateIssuerThumbprint
@@ -973,15 +973,15 @@ func flattenServiceFabricClusterCertificateCommonNames(in *cluster.ServerCertifi
 
 	output["x509_store_name"] = in.X509StoreName
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *cluster.CertificateDescription {
+func expandServiceFabricClusterReverseProxyCertificate(input []any) *cluster.CertificateDescription {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := cluster.CertificateDescription{
 		Thumbprint:    v["thumbprint"].(string),
@@ -995,11 +995,11 @@ func expandServiceFabricClusterReverseProxyCertificate(input []interface{}) *clu
 	return &result
 }
 
-func flattenServiceFabricClusterReverseProxyCertificate(input *cluster.CertificateDescription) []interface{} {
-	results := make([]interface{}, 0)
+func flattenServiceFabricClusterReverseProxyCertificate(input *cluster.CertificateDescription) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["thumbprint"] = input.Thumbprint
 
@@ -1014,11 +1014,11 @@ func flattenServiceFabricClusterReverseProxyCertificate(input *cluster.Certifica
 	return results
 }
 
-func expandServiceFabricClusterClientCertificateThumbprints(input []interface{}) *[]cluster.ClientCertificateThumbprint {
+func expandServiceFabricClusterClientCertificateThumbprints(input []any) *[]cluster.ClientCertificateThumbprint {
 	results := make([]cluster.ClientCertificateThumbprint, 0)
 
 	for _, v := range input {
-		val := v.(map[string]interface{})
+		val := v.(map[string]any)
 
 		result := cluster.ClientCertificateThumbprint{
 			CertificateThumbprint: val["thumbprint"].(string),
@@ -1030,15 +1030,15 @@ func expandServiceFabricClusterClientCertificateThumbprints(input []interface{})
 	return &results
 }
 
-func flattenServiceFabricClusterClientCertificateThumbprints(input *[]cluster.ClientCertificateThumbprint) []interface{} {
+func flattenServiceFabricClusterClientCertificateThumbprints(input *[]cluster.ClientCertificateThumbprint) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 
 		result["thumbprint"] = v.CertificateThumbprint
 		result["is_admin"] = v.IsAdmin
@@ -1049,11 +1049,11 @@ func flattenServiceFabricClusterClientCertificateThumbprints(input *[]cluster.Cl
 	return results
 }
 
-func expandServiceFabricClusterClientCertificateCommonNames(input []interface{}) *[]cluster.ClientCertificateCommonName {
+func expandServiceFabricClusterClientCertificateCommonNames(input []any) *[]cluster.ClientCertificateCommonName {
 	results := make([]cluster.ClientCertificateCommonName, 0)
 
 	for _, v := range input {
-		val := v.(map[string]interface{})
+		val := v.(map[string]any)
 
 		certificateCommonName := val["common_name"].(string)
 		certificateIssuerThumbprint := val["issuer_thumbprint"].(string)
@@ -1070,15 +1070,15 @@ func expandServiceFabricClusterClientCertificateCommonNames(input []interface{})
 	return &results
 }
 
-func flattenServiceFabricClusterClientCertificateCommonNames(input *[]cluster.ClientCertificateCommonName) []interface{} {
+func flattenServiceFabricClusterClientCertificateCommonNames(input *[]cluster.ClientCertificateCommonName) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 
 		result["common_name"] = v.CertificateCommonName
 		result["issuer_thumbprint"] = v.CertificateIssuerThumbprint
@@ -1090,12 +1090,12 @@ func flattenServiceFabricClusterClientCertificateCommonNames(input *[]cluster.Cl
 	return results
 }
 
-func expandServiceFabricClusterDiagnosticsConfig(input []interface{}) *cluster.DiagnosticsStorageAccountConfig {
+func expandServiceFabricClusterDiagnosticsConfig(input []any) *cluster.DiagnosticsStorageAccountConfig {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	config := cluster.DiagnosticsStorageAccountConfig{
 		StorageAccountName:      v["storage_account_name"].(string),
@@ -1107,11 +1107,11 @@ func expandServiceFabricClusterDiagnosticsConfig(input []interface{}) *cluster.D
 	return &config
 }
 
-func flattenServiceFabricClusterDiagnosticsConfig(input *cluster.DiagnosticsStorageAccountConfig) []interface{} {
-	results := make([]interface{}, 0)
+func flattenServiceFabricClusterDiagnosticsConfig(input *cluster.DiagnosticsStorageAccountConfig) []any {
+	results := make([]any, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["storage_account_name"] = v.StorageAccountName
 		output["protected_account_key_name"] = v.ProtectedAccountKeyName
@@ -1125,13 +1125,13 @@ func flattenServiceFabricClusterDiagnosticsConfig(input *cluster.DiagnosticsStor
 	return results
 }
 
-func expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input []interface{}) *cluster.ClusterUpgradeDeltaHealthPolicy {
+func expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input []any) *cluster.ClusterUpgradeDeltaHealthPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	deltaHealthPolicy := &cluster.ClusterUpgradeDeltaHealthPolicy{}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	deltaHealthPolicy.MaxPercentDeltaUnhealthyNodes = int64(v["max_delta_unhealthy_nodes_percent"].(int))
 	deltaHealthPolicy.MaxPercentUpgradeDomainDeltaUnhealthyNodes = int64(v["max_upgrade_domain_delta_unhealthy_nodes_percent"].(int))
 	deltaHealthPolicy.MaxPercentDeltaUnhealthyApplications = int64(v["max_delta_unhealthy_applications_percent"].(int))
@@ -1139,26 +1139,26 @@ func expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input []interface{
 	return deltaHealthPolicy
 }
 
-func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []interface{}) cluster.ClusterHealthPolicy {
+func expandServiceFabricClusterUpgradePolicyHealthPolicy(input []any) cluster.ClusterHealthPolicy {
 	healthPolicy := cluster.ClusterHealthPolicy{}
 	if len(input) == 0 || input[0] == nil {
 		return healthPolicy
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	healthPolicy.MaxPercentUnhealthyApplications = pointer.To(int64(v["max_unhealthy_applications_percent"].(int)))
 	healthPolicy.MaxPercentUnhealthyNodes = pointer.To(int64(v["max_unhealthy_nodes_percent"].(int)))
 
 	return healthPolicy
 }
 
-func expandServiceFabricClusterUpgradePolicy(input []interface{}) *cluster.ClusterUpgradePolicy {
+func expandServiceFabricClusterUpgradePolicy(input []any) *cluster.ClusterUpgradePolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	policy := &cluster.ClusterUpgradePolicy{}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	policy.ForceRestart = pointer.To(v["force_restart_enabled"].(bool))
 	policy.HealthCheckStableDuration = v["health_check_stable_duration"].(string)
@@ -1169,21 +1169,21 @@ func expandServiceFabricClusterUpgradePolicy(input []interface{}) *cluster.Clust
 	policy.HealthCheckWaitDuration = v["health_check_wait_duration"].(string)
 
 	if v["health_policy"] != nil {
-		policy.HealthPolicy = expandServiceFabricClusterUpgradePolicyHealthPolicy(v["health_policy"].([]interface{}))
+		policy.HealthPolicy = expandServiceFabricClusterUpgradePolicyHealthPolicy(v["health_policy"].([]any))
 	}
 	if v["delta_health_policy"] != nil {
-		policy.DeltaHealthPolicy = expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(v["delta_health_policy"].([]interface{}))
+		policy.DeltaHealthPolicy = expandServiceFabricClusterUpgradePolicyDeltaHealthPolicy(v["delta_health_policy"].([]any))
 	}
 
 	return policy
 }
 
-func flattenServiceFabricClusterUpgradePolicy(input *cluster.ClusterUpgradePolicy) []interface{} {
+func flattenServiceFabricClusterUpgradePolicy(input *cluster.ClusterUpgradePolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if forceRestart := input.ForceRestart; forceRestart != nil {
 		output["force_restart_enabled"] = *forceRestart
@@ -1199,11 +1199,11 @@ func flattenServiceFabricClusterUpgradePolicy(input *cluster.ClusterUpgradePolic
 	output["health_policy"] = flattenServiceFabricClusterUpgradePolicyHealthPolicy(input.HealthPolicy)
 	output["delta_health_policy"] = flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input.DeltaHealthPolicy)
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenServiceFabricClusterUpgradePolicyHealthPolicy(input cluster.ClusterHealthPolicy) []interface{} {
-	output := make(map[string]interface{})
+func flattenServiceFabricClusterUpgradePolicyHealthPolicy(input cluster.ClusterHealthPolicy) []any {
+	output := make(map[string]any)
 
 	if input.MaxPercentUnhealthyApplications != nil {
 		output["max_unhealthy_applications_percent"] = *input.MaxPercentUnhealthyApplications
@@ -1213,32 +1213,32 @@ func flattenServiceFabricClusterUpgradePolicyHealthPolicy(input cluster.ClusterH
 		output["max_unhealthy_nodes_percent"] = *input.MaxPercentUnhealthyNodes
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input *cluster.ClusterUpgradeDeltaHealthPolicy) []interface{} {
+func flattenServiceFabricClusterUpgradePolicyDeltaHealthPolicy(input *cluster.ClusterUpgradeDeltaHealthPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	output["max_delta_unhealthy_applications_percent"] = input.MaxPercentDeltaUnhealthyApplications
 	output["max_delta_unhealthy_nodes_percent"] = input.MaxPercentDeltaUnhealthyNodes
 	output["max_upgrade_domain_delta_unhealthy_nodes_percent"] = input.MaxPercentUpgradeDomainDeltaUnhealthyNodes
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func expandServiceFabricClusterFabricSettings(input []interface{}) *[]cluster.SettingsSectionDescription {
+func expandServiceFabricClusterFabricSettings(input []any) *[]cluster.SettingsSectionDescription {
 	results := make([]cluster.SettingsSectionDescription, 0)
 
 	for _, v := range input {
-		val := v.(map[string]interface{})
+		val := v.(map[string]any)
 
 		name := val["name"].(string)
 		params := make([]cluster.SettingsParameterDescription, 0)
-		paramsRaw := val["parameters"].(map[string]interface{})
+		paramsRaw := val["parameters"].(map[string]any)
 		for k, v := range paramsRaw {
 			param := cluster.SettingsParameterDescription{
 				Name:  k,
@@ -1257,19 +1257,19 @@ func expandServiceFabricClusterFabricSettings(input []interface{}) *[]cluster.Se
 	return &results
 }
 
-func flattenServiceFabricClusterFabricSettings(input *[]cluster.SettingsSectionDescription) []interface{} {
+func flattenServiceFabricClusterFabricSettings(input *[]cluster.SettingsSectionDescription) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 
 		result["name"] = v.Name
 
-		parameters := make(map[string]interface{})
+		parameters := make(map[string]any)
 		if paramsRaw := v.Parameters; paramsRaw != nil {
 			for _, p := range paramsRaw {
 				parameters[p.Name] = p.Value
@@ -1282,11 +1282,11 @@ func flattenServiceFabricClusterFabricSettings(input *[]cluster.SettingsSectionD
 	return results
 }
 
-func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeTypeDescription {
+func expandServiceFabricClusterNodeTypes(input []any) []cluster.NodeTypeDescription {
 	results := make([]cluster.NodeTypeDescription, 0)
 
 	for _, v := range input {
-		node := v.(map[string]interface{})
+		node := v.(map[string]any)
 
 		result := cluster.NodeTypeDescription{
 			Name:                         node["name"].(string),
@@ -1307,7 +1307,7 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 
 		if props, ok := node["placement_properties"]; ok {
 			placementProperties := make(map[string]string)
-			for key, value := range props.(map[string]interface{}) {
+			for key, value := range props.(map[string]any) {
 				placementProperties[key] = value.(string)
 			}
 
@@ -1316,7 +1316,7 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 
 		if caps, ok := node["capacities"]; ok {
 			capacities := make(map[string]string)
-			for key, value := range caps.(map[string]interface{}) {
+			for key, value := range caps.(map[string]any) {
 				capacities[key] = value.(string)
 			}
 
@@ -1327,9 +1327,9 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 			result.ReverseProxyEndpointPort = pointer.To(v)
 		}
 
-		applicationPortsRaw := node["application_ports"].([]interface{})
+		applicationPortsRaw := node["application_ports"].([]any)
 		if len(applicationPortsRaw) > 0 {
-			portsRaw := applicationPortsRaw[0].(map[string]interface{})
+			portsRaw := applicationPortsRaw[0].(map[string]any)
 
 			result.ApplicationPorts = &cluster.EndpointRangeDescription{
 				StartPort: int64(portsRaw["start_port"].(int)),
@@ -1337,9 +1337,9 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 			}
 		}
 
-		ephemeralPortsRaw := node["ephemeral_ports"].([]interface{})
+		ephemeralPortsRaw := node["ephemeral_ports"].([]any)
 		if len(ephemeralPortsRaw) > 0 {
-			portsRaw := ephemeralPortsRaw[0].(map[string]interface{})
+			portsRaw := ephemeralPortsRaw[0].(map[string]any)
 
 			result.EphemeralPorts = &cluster.EndpointRangeDescription{
 				StartPort: int64(portsRaw["start_port"].(int)),
@@ -1353,15 +1353,15 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) []cluster.NodeType
 	return results
 }
 
-func flattenServiceFabricClusterNodeTypes(input []cluster.NodeTypeDescription) []interface{} {
+func flattenServiceFabricClusterNodeTypes(input []cluster.NodeTypeDescription) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 
 	for _, v := range input {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		output["name"] = v.Name
 		output["instance_count"] = v.VMInstanceCount
@@ -1393,18 +1393,18 @@ func flattenServiceFabricClusterNodeTypes(input []cluster.NodeTypeDescription) [
 			output["durability_level"] = string(*v.DurabilityLevel)
 		}
 
-		applicationPorts := make([]interface{}, 0)
+		applicationPorts := make([]any, 0)
 		if ports := v.ApplicationPorts; ports != nil {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 			r["start_port"] = int(ports.StartPort)
 			r["end_port"] = int(ports.EndPort)
 			applicationPorts = append(applicationPorts, r)
 		}
 		output["application_ports"] = applicationPorts
 
-		ephemeralPorts := make([]interface{}, 0)
+		ephemeralPorts := make([]any, 0)
 		if ports := v.EphemeralPorts; ports != nil {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 			r["start_port"] = int(ports.StartPort)
 			r["end_port"] = int(ports.EndPort)
 			ephemeralPorts = append(ephemeralPorts, r)

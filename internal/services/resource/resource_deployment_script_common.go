@@ -425,9 +425,9 @@ func flattenStorageAccountConfigurationModel(input *deploymentscripts.StorageAcc
 	return append(outputList, output)
 }
 
-func hashEnvironmentVariables(v interface{}) int {
+func hashEnvironmentVariables(v any) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m := v.(map[string]any)
 	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
 	return pluginsdk.HashString(buf.String())
 }

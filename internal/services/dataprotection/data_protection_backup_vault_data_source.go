@@ -60,7 +60,7 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupVaultClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -105,7 +105,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]interface{}, error) {
+func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]any, error) {
 	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
 		config = &identity.SystemAndUserAssignedMap{

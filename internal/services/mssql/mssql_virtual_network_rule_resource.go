@@ -70,7 +70,7 @@ func resourceMsSqlVirtualNetworkRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,7 +125,7 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceMsSqlVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

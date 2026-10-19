@@ -38,7 +38,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) ResourceType() 
 	return "azurerm_data_protection_backup_instance_mysql_flexible_server"
 }
 
-func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) ModelObject() interface{} {
+func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) ModelObject() any {
 	return &BackupInstanceMySQLFlexibleServerModel{}
 }
 
@@ -310,7 +310,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Delete() sdk.Re
 }
 
 func dataProtectionBackupInstanceMySQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)

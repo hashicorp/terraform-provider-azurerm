@@ -22,7 +22,7 @@ var _ sdk.Resource = PostgresqlFlexibleServerBackupResource{}
 
 type PostgresqlFlexibleServerBackupResource struct{}
 
-func (r PostgresqlFlexibleServerBackupResource) ModelObject() interface{} {
+func (r PostgresqlFlexibleServerBackupResource) ModelObject() any {
 	return &PostgresqlFlexibleServerBackupResourceModel{}
 }
 

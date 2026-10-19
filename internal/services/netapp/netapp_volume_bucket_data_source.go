@@ -25,7 +25,7 @@ func (r NetAppVolumeBucketDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_bucket"
 }
 
-func (r NetAppVolumeBucketDataSource) ModelObject() interface{} {
+func (r NetAppVolumeBucketDataSource) ModelObject() any {
 	return &models.NetAppVolumeBucketDataSourceModel{}
 }
 

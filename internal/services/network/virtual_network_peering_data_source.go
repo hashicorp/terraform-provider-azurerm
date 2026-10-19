@@ -88,7 +88,7 @@ func (VirtualNetworkPeeringDataSource) Attributes() map[string]*pluginsdk.Schema
 	}
 }
 
-func (VirtualNetworkPeeringDataSource) ModelObject() interface{} {
+func (VirtualNetworkPeeringDataSource) ModelObject() any {
 	return &VirtualNetworkPeeringDataSourceModel{}
 }
 

@@ -98,7 +98,7 @@ func (r PolicySetDefinitionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r PolicySetDefinitionResource) ModelObject() interface{} {
+func (r PolicySetDefinitionResource) ModelObject() any {
 	return &PolicySetDefinitionResourceModel{}
 }
 
@@ -147,7 +147,7 @@ func (r PolicySetDefinitionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
 
-				var iMetadata interface{} = expandedMetadata
+				var iMetadata any = expandedMetadata
 
 				props.Metadata = &iMetadata
 			}
@@ -212,7 +212,7 @@ func (r PolicySetDefinitionResource) Read() sdk.ResourceFunc {
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.PolicyType = pointer.FromEnum(props.PolicyType)
 
-					if v, ok := pointer.From(props.Metadata).(map[string]interface{}); ok {
+					if v, ok := pointer.From(props.Metadata).(map[string]any); ok {
 						flattenedMetadata, err := pluginsdk.FlattenJsonToString(v)
 						if err != nil {
 							return fmt.Errorf("flattening `metadata`: %+v", err)
@@ -289,7 +289,7 @@ func (r PolicySetDefinitionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
 
-				var iMetadata interface{} = expandedMetadata
+				var iMetadata any = expandedMetadata
 
 				props.Metadata = &iMetadata
 			}

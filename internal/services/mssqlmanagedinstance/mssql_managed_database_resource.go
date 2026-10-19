@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -57,7 +57,7 @@ func (r MsSqlManagedDatabaseResource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
+func (r MsSqlManagedDatabaseResource) ModelObject() any {
 	return &MsSqlManagedDatabaseModel{}
 }
 
@@ -442,21 +442,21 @@ func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpo
 	return []LongTermRetentionPolicy{ltrModel}
 }
 
-func flattenManagedDatabasePointInTimeRestore(input interface{}) []PointInTimeRestore {
+func flattenManagedDatabasePointInTimeRestore(input any) []PointInTimeRestore {
 	output := make([]PointInTimeRestore, 0)
 
 	if input == nil {
 		return output
 	}
 
-	attrs := input.([]interface{})
+	attrs := input.([]any)
 
 	for _, attr := range attrs {
 		if attr == nil {
 			return output
 		}
 
-		v := attr.(map[string]interface{})
+		v := attr.(map[string]any)
 
 		output = append(output, PointInTimeRestore{
 			RestorePointInTime: v["restore_point_in_time"].(string),

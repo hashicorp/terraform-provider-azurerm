@@ -34,7 +34,7 @@ type LoadTestDataSourceModel struct {
 	Tags              map[string]string                          `tfschema:"tags"`
 }
 
-func (r LoadTestDataSource) ModelObject() interface{} {
+func (r LoadTestDataSource) ModelObject() any {
 	return &LoadTestDataSourceModel{}
 }
 

@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func CostAnomalyAlertName(i interface{}, k string) ([]string, []error) {
+func CostAnomalyAlertName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^([a-z\d-]*)$`), "must contain only lowercase letters, numbers and hyphens")(i, k)
 }

@@ -49,7 +49,7 @@ func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

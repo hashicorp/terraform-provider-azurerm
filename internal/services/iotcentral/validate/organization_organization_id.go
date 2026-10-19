@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func OrganizationOrganizationID(i interface{}, k string) ([]string, []error) {
+func OrganizationOrganizationID(i any, k string) ([]string, []error) {
 	// Ensure the string follows the desired format.
 	// Regex pattern: ^(?!-)[a-z0-9-]{1,48}[a-z0-9]$
 	// The negative lookahead (?!-) is not supported in Go's standard regexp package, so it is

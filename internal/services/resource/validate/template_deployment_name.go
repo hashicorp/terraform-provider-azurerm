@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func TemplateDeploymentName(i interface{}, k string) ([]string, []error) {
+func TemplateDeploymentName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^([a-zA-Z0-9-._\(\)]){1,}?$`), "may only contain alphanumeric characters, dashes, full-stops and underscores")(i, k)
 }

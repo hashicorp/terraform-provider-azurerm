@@ -81,7 +81,7 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 	}
 }
 
-func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerAdministratorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourcePostgresqlFlexibleServerAdministratorCreate(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerAdministratorDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

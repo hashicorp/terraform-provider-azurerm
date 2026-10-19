@@ -126,7 +126,7 @@ func (r ExtendedLocationCustomLocationResource) Attributes() map[string]*plugins
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ExtendedLocationCustomLocationResource) ModelObject() interface{} {
+func (r ExtendedLocationCustomLocationResource) ModelObject() any {
 	return &ExtendedLocationCustomLocationResourceModel{}
 }
 

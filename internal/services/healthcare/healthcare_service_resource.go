@@ -211,7 +211,7 @@ func resourceHealthcareService() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -245,7 +245,7 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	payload := resource.ServicesDescription{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Kind:     resource.Kind(d.Get("kind").(string)),
 		Properties: &resource.ServicesProperties{
 			AccessPolicies:              expandAccessPolicyEntries(d),
@@ -263,7 +263,7 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -283,7 +283,7 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceHealthcareServiceRead(d, meta)
 }
 
-func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -363,7 +363,7 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -392,17 +392,17 @@ func expandAccessPolicyEntries(d *pluginsdk.ResourceData) *[]resource.ServiceAcc
 }
 
 func expandCorsConfiguration(d *pluginsdk.ResourceData) *resource.ServiceCorsConfigurationInfo {
-	corsConfigRaw := d.Get("cors_configuration").([]interface{})
+	corsConfigRaw := d.Get("cors_configuration").([]any)
 
 	if len(corsConfigRaw) == 0 {
 		return &resource.ServiceCorsConfigurationInfo{}
 	}
 
-	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
+	corsConfigAttr := corsConfigRaw[0].(map[string]any)
 
 	allowedOrigins := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*pluginsdk.Set).List())
 	allowedHeaders := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*pluginsdk.Set).List())
-	allowedMethods := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+	allowedMethods := *pluginsdk.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]any))
 
 	return &resource.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
@@ -414,13 +414,13 @@ func expandCorsConfiguration(d *pluginsdk.ResourceData) *resource.ServiceCorsCon
 }
 
 func expandAuthentication(d *pluginsdk.ResourceData) *resource.ServiceAuthenticationConfigurationInfo {
-	authConfigRaw := d.Get("authentication_configuration").([]interface{})
+	authConfigRaw := d.Get("authentication_configuration").([]any)
 
 	if len(authConfigRaw) == 0 {
 		return &resource.ServiceAuthenticationConfigurationInfo{}
 	}
 
-	authConfigAttr := authConfigRaw[0].(map[string]interface{})
+	authConfigAttr := authConfigRaw[0].(map[string]any)
 
 	return &resource.ServiceAuthenticationConfigurationInfo{
 		Authority:         pointer.To(authConfigAttr["authority"].(string)),
@@ -459,13 +459,13 @@ func flattenAccessPolicies(policies *[]resource.ServiceAccessPolicyEntry) []stri
 	return result
 }
 
-func flattenAuthentication(input *resource.ServiceAuthenticationConfigurationInfo) []interface{} {
+func flattenAuthentication(input *resource.ServiceAuthenticationConfigurationInfo) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"audience":            pointer.From(input.Audience),
 			"authority":           pointer.From(input.Authority),
 			"smart_proxy_enabled": pointer.From(input.SmartProxyEnabled),
@@ -473,17 +473,17 @@ func flattenAuthentication(input *resource.ServiceAuthenticationConfigurationInf
 	}
 }
 
-func flattenCorsConfig(input *resource.ServiceCorsConfigurationInfo) []interface{} {
+func flattenCorsConfig(input *resource.ServiceCorsConfigurationInfo) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	maxAge := 0
 	if input.MaxAge != nil {
 		maxAge = int(*input.MaxAge)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"allow_credentials":  pointer.From(input.AllowCredentials),
 			"allowed_headers":    pluginsdk.FlattenSlice(input.Headers),
 			"allowed_methods":    pluginsdk.FlattenSlice(input.Methods),

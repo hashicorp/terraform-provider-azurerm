@@ -35,22 +35,22 @@ type LocalRuleModel struct {
 	RuleStackID string `tfschema:"rulestack_id"`
 	Priority    int64  `tfschema:"priority"`
 
-	Action                  string                 `tfschema:"action"`
-	Applications            []string               `tfschema:"applications"`
-	AuditComment            string                 `tfschema:"audit_comment"`
-	Category                []schema.Category      `tfschema:"category"`
-	DecryptionRuleType      string                 `tfschema:"decryption_rule_type"`
-	Description             string                 `tfschema:"description"`
-	Destination             []schema.Destination   `tfschema:"destination"`
-	LoggingEnabled          bool                   `tfschema:"logging_enabled"`
-	InspectionCertificateID string                 `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRuleStack as this rule
-	NegateDestination       bool                   `tfschema:"negate_destination"`
-	NegateSource            bool                   `tfschema:"negate_source"`
-	Protocol                string                 `tfschema:"protocol"`
-	ProtocolPorts           []string               `tfschema:"protocol_ports"`
-	RuleEnabled             bool                   `tfschema:"enabled"`
-	Source                  []schema.Source        `tfschema:"source"`
-	Tags                    map[string]interface{} `tfschema:"tags"`
+	Action                  string               `tfschema:"action"`
+	Applications            []string             `tfschema:"applications"`
+	AuditComment            string               `tfschema:"audit_comment"`
+	Category                []schema.Category    `tfschema:"category"`
+	DecryptionRuleType      string               `tfschema:"decryption_rule_type"`
+	Description             string               `tfschema:"description"`
+	Destination             []schema.Destination `tfschema:"destination"`
+	LoggingEnabled          bool                 `tfschema:"logging_enabled"`
+	InspectionCertificateID string               `tfschema:"inspection_certificate_id"` // This is the name of a Certificate resource belonging to the SAME LocalRuleStack as this rule
+	NegateDestination       bool                 `tfschema:"negate_destination"`
+	NegateSource            bool                 `tfschema:"negate_source"`
+	Protocol                string               `tfschema:"protocol"`
+	ProtocolPorts           []string             `tfschema:"protocol_ports"`
+	RuleEnabled             bool                 `tfschema:"enabled"`
+	Source                  []schema.Source      `tfschema:"source"`
+	Tags                    map[string]any       `tfschema:"tags"`
 }
 
 func (r LocalRuleStackRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -183,7 +183,7 @@ func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStackRule) ModelObject() interface{} {
+func (r LocalRuleStackRule) ModelObject() any {
 	return &LocalRuleModel{}
 }
 
@@ -546,7 +546,7 @@ func boolEnumAsBoolRule(input *localrulesresources.BooleanEnum) bool {
 	return pointer.From(input) == localrulesresources.BooleanEnumTRUE
 }
 
-func expandTagsForRule(input map[string]interface{}) *[]localrulesresources.TagInfo {
+func expandTagsForRule(input map[string]any) *[]localrulesresources.TagInfo {
 	result := make([]localrulesresources.TagInfo, 0)
 	if len(input) == 0 {
 		return pointer.To(result)
@@ -562,12 +562,12 @@ func expandTagsForRule(input map[string]interface{}) *[]localrulesresources.TagI
 	return pointer.To(result)
 }
 
-func flattenTagsFromRule(input *[]localrulesresources.TagInfo) map[string]interface{} {
+func flattenTagsFromRule(input *[]localrulesresources.TagInfo) map[string]any {
 	if input == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	for _, v := range *input {
 		result[v.Key] = v.Value
 	}

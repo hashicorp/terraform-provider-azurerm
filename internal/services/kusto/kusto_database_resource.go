@@ -86,7 +86,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -129,7 +129,7 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

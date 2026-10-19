@@ -66,7 +66,7 @@ func resourceDataShareAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -86,7 +86,7 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -95,7 +95,7 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name:     pointer.To(id.AccountName),
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Identity: *expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, account, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -110,7 +110,7 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	props := account.AccountUpdateParameters{}
 
 	if d.HasChange("tags") {
-		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		props.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err = client.Update(ctx, *id, props); err != nil {
@@ -167,7 +167,7 @@ func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

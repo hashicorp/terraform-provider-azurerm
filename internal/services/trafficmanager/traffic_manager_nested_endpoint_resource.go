@@ -166,7 +166,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,11 +202,11 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		Name: pointer.To(id.EndpointName),
 		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", trafficmanagers.EndpointTypeNestedEndpoints)),
 		Properties: &trafficmanagers.EndpointProperties{
-			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
+			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]any)),
 			EndpointStatus:    &status,
 			MinChildEndpoints: pointer.To(int64(d.Get("minimum_child_endpoints").(int))),
 			TargetResourceId:  pointer.To(d.Get("target_resource_id").(string)),
-			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
+			Subnets:           expandEndpointSubnetConfig(d.Get("subnet").([]any)),
 		},
 	}
 
@@ -232,7 +232,7 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		params.Properties.EndpointLocation = pointer.To(endpointLocation)
 	}
 
-	inputMappings := d.Get("geo_mappings").([]interface{})
+	inputMappings := d.Get("geo_mappings").([]any)
 	geoMappings := make([]string, 0)
 	for _, v := range inputMappings {
 		geoMappings = append(geoMappings, v.(string))
@@ -252,7 +252,7 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceNestedEndpointRead(d, meta)
 }
 
-func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,7 +302,7 @@ func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceNestedEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNestedEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -118,7 +118,7 @@ func (ExascaleDatabaseStorageVaultResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ExascaleDatabaseStorageVaultResource) ModelObject() interface{} {
+func (ExascaleDatabaseStorageVaultResource) ModelObject() any {
 	return &ExascaleDatabaseStorageVaultResource{}
 }
 

@@ -33,7 +33,7 @@ type NextGenerationFirewallVHubPanoramaResourceModel struct {
 	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
 	MarketplaceOfferId   string                      `tfschema:"marketplace_offer_id"`
 	PlanId               string                      `tfschema:"plan_id"`
-	Tags                 map[string]interface{}      `tfschema:"tags"`
+	Tags                 map[string]any              `tfschema:"tags"`
 
 	// Computed
 	PanoramaConfig []schema.Panorama `tfschema:"panorama"`
@@ -41,7 +41,7 @@ type NextGenerationFirewallVHubPanoramaResourceModel struct {
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubPanoramaResource{}
 
-func (r NextGenerationFirewallVHubPanoramaResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVHubPanoramaResource) ModelObject() any {
 	return &NextGenerationFirewallVHubPanoramaResourceModel{}
 }
 

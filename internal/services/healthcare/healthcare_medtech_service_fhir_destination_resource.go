@@ -91,7 +91,7 @@ func resourceHealthcareApisMedTechServiceFhirDestination() *pluginsdk.Resource {
 	}
 }
 
-func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,7 +138,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationCreate(d *pluginsdk.Reso
 	return resourceHealthcareApisMedTechServiceFhirDestinationRead(d, meta)
 }
 
-func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +194,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationRead(d *pluginsdk.Resour
 	return nil
 }
 
-func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +229,7 @@ func resourceHealthcareApisMedTechServiceFhirDestinationUpdate(d *pluginsdk.Reso
 	return resourceHealthcareApisMedTechServiceFhirDestinationRead(d, meta)
 }
 
-func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareWorkspaceIotConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

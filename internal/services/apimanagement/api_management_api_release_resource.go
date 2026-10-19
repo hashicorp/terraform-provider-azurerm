@@ -63,7 +63,7 @@ func resourceApiManagementApiRelease() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceApiManagementApiReleaseRead(d, meta)
 }
 
-func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -138,7 +138,7 @@ func resourceApiManagementApiReleaseRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementApiReleaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiReleaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -130,7 +130,7 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 	}
 }
 
-func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -152,11 +152,11 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 		}
 	}
 
-	taggingCriteria := expandBackupPolicyDiskTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
+	taggingCriteria := expandBackupPolicyDiskTaggingCriteriaArray(d.Get("retention_rule").([]any))
 	policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
-	policyRules = append(policyRules, expandBackupPolicyDiskAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
+	policyRules = append(policyRules, expandBackupPolicyDiskAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]any), d.Get("time_zone").(string), taggingCriteria)...)
 	policyRules = append(policyRules, expandBackupPolicyDiskDefaultAzureRetentionRule(d.Get("default_retention_duration")))
-	policyRules = append(policyRules, expandBackupPolicyDiskAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
+	policyRules = append(policyRules, expandBackupPolicyDiskAzureRetentionRuleArray(d.Get("retention_rule").([]any))...)
 	parameters := basebackuppolicyresources.BaseBackupPolicyResource{
 		Properties: &basebackuppolicyresources.BackupPolicy{
 			PolicyRules:     policyRules,
@@ -175,7 +175,7 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 	return resourceDataProtectionBackupPolicyDiskRead(d, meta)
 }
 
-func resourceDataProtectionBackupPolicyDiskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupPolicyDiskRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceDataProtectionBackupPolicyDiskRead(d *schema.ResourceData, meta int
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +236,7 @@ func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
+func expandBackupPolicyDiskAzureBackupRuleArray(input []any, timeZone string, taggingCriteria *[]basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
 	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
 
 	results = append(results, basebackuppolicyresources.AzureBackupRule{
@@ -259,10 +259,10 @@ func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, timeZone st
 	return results
 }
 
-func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []basebackuppolicyresources.BasePolicyRule {
+func expandBackupPolicyDiskAzureRetentionRuleArray(input []any) []basebackuppolicyresources.BasePolicyRule {
 	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, basebackuppolicyresources.AzureRetentionRule{
 			Name:      v["name"].(string),
 			IsDefault: pointer.To(false),
@@ -283,7 +283,7 @@ func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []baseba
 	return results
 }
 
-func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) basebackuppolicyresources.BasePolicyRule {
+func expandBackupPolicyDiskDefaultAzureRetentionRule(input any) basebackuppolicyresources.BasePolicyRule {
 	return basebackuppolicyresources.AzureRetentionRule{
 		Name:      "Default",
 		IsDefault: pointer.To(true),
@@ -302,7 +302,7 @@ func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) baseback
 	}
 }
 
-func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]basebackuppolicyresources.TaggingCriteria {
+func expandBackupPolicyDiskTaggingCriteriaArray(input []any) *[]basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
 			IsDefault:       true,
@@ -314,9 +314,9 @@ func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]baseback
 		},
 	}
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, basebackuppolicyresources.TaggingCriteria{
-			Criteria:        expandBackupPolicyDiskCriteriaArray(v["criteria"].([]interface{})),
+			Criteria:        expandBackupPolicyDiskCriteriaArray(v["criteria"].([]any)),
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(v["name"].(string) + "_"),
@@ -327,10 +327,10 @@ func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]baseback
 	return &results
 }
 
-func expandBackupPolicyDiskCriteriaArray(input []interface{}) *[]basebackuppolicyresources.BackupCriteria {
+func expandBackupPolicyDiskCriteriaArray(input []any) *[]basebackuppolicyresources.BackupCriteria {
 	results := make([]basebackuppolicyresources.BackupCriteria, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		var absoluteCriteria []basebackuppolicyresources.AbsoluteMarker
 		if absoluteCriteriaRaw := v["absolute_criteria"].(string); len(absoluteCriteriaRaw) > 0 {
 			absoluteCriteria = []basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarker(absoluteCriteriaRaw)}
@@ -342,9 +342,9 @@ func expandBackupPolicyDiskCriteriaArray(input []interface{}) *[]basebackuppolic
 	return &results
 }
 
-func flattenBackupPolicyDiskBackupRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []interface{} {
+func flattenBackupPolicyDiskBackupRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 	for _, item := range *input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
@@ -355,7 +355,7 @@ func flattenBackupPolicyDiskBackupRuleArray(input *[]basebackuppolicyresources.B
 			}
 		}
 	}
-	return make([]interface{}, 0)
+	return make([]any, 0)
 }
 
 func flattenBackupPolicyDiskBackupTimeZone(input *[]basebackuppolicyresources.BasePolicyRule) string {
@@ -374,7 +374,7 @@ func flattenBackupPolicyDiskBackupTimeZone(input *[]basebackuppolicyresources.Ba
 	return ""
 }
 
-func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]basebackuppolicyresources.BasePolicyRule) interface{} {
+func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]basebackuppolicyresources.BasePolicyRule) any {
 	if input == nil {
 		return nil
 	}
@@ -391,8 +391,8 @@ func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]basebackuppoli
 	return nil
 }
 
-func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -412,7 +412,7 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
 			name := retentionRule.Name
 			var taggingPriority int64
-			var taggingCriteria []interface{}
+			var taggingCriteria []any
 			for _, criteria := range taggingCriteriaList {
 				if strings.EqualFold(criteria.TagInfo.TagName, name) {
 					taggingPriority = criteria.TaggingPriority
@@ -425,7 +425,7 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 					duration = deleteOption.Duration
 				}
 			}
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"name":     name,
 				"priority": taggingPriority,
 				"criteria": taggingCriteria,
@@ -436,8 +436,8 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]basebackuppolicyresource
 	return results
 }
 
-func flattenBackupPolicyDiskBackupCriteriaArray(input *[]basebackuppolicyresources.BackupCriteria) []interface{} {
-	results := make([]interface{}, 0)
+func flattenBackupPolicyDiskBackupCriteriaArray(input *[]basebackuppolicyresources.BackupCriteria) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
@@ -449,7 +449,7 @@ func flattenBackupPolicyDiskBackupCriteriaArray(input *[]basebackuppolicyresourc
 				absoluteCriteria = string((*criteria.AbsoluteCriteria)[0])
 			}
 
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"absolute_criteria": absoluteCriteria,
 			})
 		}

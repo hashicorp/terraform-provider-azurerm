@@ -26,7 +26,7 @@ type NetAppBackupPolicyResource struct{}
 
 var _ sdk.Resource = NetAppBackupPolicyResource{}
 
-func (r NetAppBackupPolicyResource) ModelObject() interface{} {
+func (r NetAppBackupPolicyResource) ModelObject() any {
 	return &models.NetAppBackupPolicyModel{}
 }
 
@@ -290,7 +290,7 @@ func waitForBackupPolicyDeletion(ctx context.Context, client *backuppolicies.Bac
 }
 
 func netappBackupPolicyStateRefreshFunc(ctx context.Context, client *backuppolicies.BackupPoliciesClient, id backuppolicies.BackupPolicyId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {

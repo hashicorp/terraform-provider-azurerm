@@ -106,7 +106,7 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

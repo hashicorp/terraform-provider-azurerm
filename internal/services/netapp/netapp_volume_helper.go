@@ -238,7 +238,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []models.NetAppVolumeGroupOracle
 	return &results, nil
 }
 
-func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
+func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(input []any, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	if len(input) == 0 {
 		return &volumes.VolumePatchPropertiesExportPolicy{}
 	}
@@ -246,7 +246,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(in
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
-			v := item.(map[string]interface{})
+			v := item.(map[string]any)
 
 			ruleIndex := int64(v["rule_index"].(int))
 			allowedClients := v["allowed_clients"].(string)
@@ -314,14 +314,14 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(in
 	}
 }
 
-func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.ReplicationObject {
+func expandNetAppVolumeDataProtectionReplication(input []any) *volumes.ReplicationObject {
 	if len(input) == 0 {
 		return nil
 	}
 
 	replicationObject := volumes.ReplicationObject{}
 
-	replicationRaw := input[0].(map[string]interface{})
+	replicationRaw := input[0].(map[string]any)
 
 	if v, ok := replicationRaw["endpoint_type"]; ok {
 		endpointType := volumes.EndpointType(v.(string))
@@ -341,14 +341,14 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.R
 	return &replicationObject
 }
 
-func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumeSnapshotProperties {
+func expandNetAppVolumeDataProtectionSnapshotPolicy(input []any) *volumes.VolumeSnapshotProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
 	snapshotObject := volumes.VolumeSnapshotProperties{}
 
-	snapshotRaw := input[0].(map[string]interface{})
+	snapshotRaw := input[0].(map[string]any)
 
 	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
 		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
@@ -357,7 +357,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 	return &snapshotObject
 }
 
-func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumeSnapshotProperties {
+func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []any) *volumes.VolumeSnapshotProperties {
 	if len(input) == 0 {
 		return &volumes.VolumeSnapshotProperties{
 			SnapshotPolicyId: pointer.To(""),
@@ -366,7 +366,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 
 	snapshotObject := volumes.VolumeSnapshotProperties{}
 
-	snapshotRaw := input[0].(map[string]interface{})
+	snapshotRaw := input[0].(map[string]any)
 
 	if v, ok := snapshotRaw["snapshot_policy_id"]; ok {
 		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
@@ -375,14 +375,14 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 	return &snapshotObject
 }
 
-func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumeBackupProperties {
+func expandNetAppVolumeDataProtectionBackupPolicy(input []any) *volumes.VolumeBackupProperties {
 	if len(input) == 0 || input == nil {
 		return nil
 	}
 
 	backupPolicyObject := volumes.VolumeBackupProperties{}
 
-	backupRaw := input[0].(map[string]interface{})
+	backupRaw := input[0].(map[string]any)
 
 	if v, ok := backupRaw["backup_policy_id"]; ok {
 		backupPolicyObject.BackupPolicyId = pointer.To(v.(string))
@@ -399,14 +399,14 @@ func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.
 	return &backupPolicyObject
 }
 
-func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumeBackupProperties {
+func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []any) *volumes.VolumeBackupProperties {
 	if len(input) == 0 || input == nil {
 		return nil
 	}
 
 	backupPolicyObject := volumes.VolumeBackupProperties{}
 
-	backupRaw := input[0].(map[string]interface{})
+	backupRaw := input[0].(map[string]any)
 
 	if v, ok := backupRaw["backup_policy_id"]; ok {
 		backupPolicyObject.BackupPolicyId = pointer.To(v.(string))
@@ -423,14 +423,14 @@ func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *vol
 	return &backupPolicyObject
 }
 
-func expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(input []interface{}) *volumes.RansomwareProtectionSettings {
+func expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(input []any) *volumes.RansomwareProtectionSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
 	arpObject := volumes.RansomwareProtectionSettings{}
 
-	arpRaw := input[0].(map[string]interface{})
+	arpRaw := input[0].(map[string]any)
 
 	if v, ok := arpRaw["protection_enabled"]; ok {
 		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
@@ -443,7 +443,7 @@ func expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(input []interf
 	return &arpObject
 }
 
-func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []interface{}) *volumes.RansomwareProtectionPatchSettings {
+func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []any) *volumes.RansomwareProtectionPatchSettings {
 	if len(input) == 0 {
 		return &volumes.RansomwareProtectionPatchSettings{
 			DesiredRansomwareProtectionState: pointer.To(volumes.DesiredRansomwareProtectionStateDisabled),
@@ -452,7 +452,7 @@ func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []i
 
 	arpObject := volumes.RansomwareProtectionPatchSettings{}
 
-	arpRaw := input[0].(map[string]interface{})
+	arpRaw := input[0].(map[string]any)
 
 	if v, ok := arpRaw["protection_enabled"]; ok {
 		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
@@ -999,7 +999,7 @@ func waitForBackupRelationshipStateForDeletion(ctx context.Context, client *volu
 }
 
 func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
@@ -1016,7 +1016,7 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesCl
 }
 
 func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
@@ -1044,12 +1044,12 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		}
 	}
 	if !validState {
-		return func() (interface{}, string, error) {
+		return func() (any, string, error) {
 			return nil, "", fmt.Errorf("invalid desired mirror state: %s", desiredState)
 		}
 	}
 
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
 
@@ -1086,7 +1086,7 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 }
 
 func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.BackupsGetLatestStatus(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
@@ -1105,7 +1105,7 @@ func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Conte
 }
 
 func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.ReplicationStatus(ctx, id)
 		if err != nil {
 			// Special handling for 409 Conflict errors with "VolumeReplicationMissingFor" message

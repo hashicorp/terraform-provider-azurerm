@@ -34,12 +34,12 @@ type NextGenerationFirewallVnetPanoramaModel struct {
 	MarketplaceOfferId   string                      `tfschema:"marketplace_offer_id"`
 	PanoramaConfig       []schema.Panorama           `tfschema:"panorama"`
 	PlanId               string                      `tfschema:"plan_id"`
-	Tags                 map[string]interface{}      `tfschema:"tags"`
+	Tags                 map[string]any              `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetPanoramaResource{}
 
-func (r NextGenerationFirewallVNetPanoramaResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVNetPanoramaResource) ModelObject() any {
 	return &NextGenerationFirewallVnetPanoramaModel{}
 }
 

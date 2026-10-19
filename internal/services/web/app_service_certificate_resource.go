@@ -141,7 +141,7 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
 
@@ -165,7 +165,7 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 			Password: pointer.To(d.Get("password").(string)),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("app_service_plan_id").(string); v != "" {
@@ -211,7 +211,7 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -228,7 +228,7 @@ func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 
 	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %s", id, err)
@@ -237,7 +237,7 @@ func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -293,7 +293,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

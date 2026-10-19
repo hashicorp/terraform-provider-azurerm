@@ -8,7 +8,7 @@ import (
 )
 
 // LinuxAdminUsername validates that admin_username meets the Azure API requirements for Linux Virtual Machines.
-func LinuxAdminUsername(i interface{}, k string) (warnings []string, errors []error) {
+func LinuxAdminUsername(i any, k string) (warnings []string, errors []error) {
 	// adminUsername must not be empty, can be at most 64 characters and cannot match a disallowed name.
 	return validation.All(
 		validation.StringIsNotWhiteSpace,
