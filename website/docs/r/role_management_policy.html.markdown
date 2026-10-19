@@ -164,7 +164,7 @@ One of `expiration_required` or `expire_after` must be provided.
 
 A `notification_rules` block supports the following:
 
-* `active_assignments` - (Optional) A `notification_target` block as defined below to configure notfications on active role assignments.
+* `active_assignments` - (Optional) A `notification_target` block as defined below to configure notifications on active role assignments.
 * `eligible_activations` - (Optional) A `notification_target` block as defined below for configuring notifications on activation of eligible role.
 * `eligible_assignments` - (Optional) A `notification_target` block as defined below to configure notification on eligible role assignments.
 

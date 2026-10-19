@@ -343,7 +343,7 @@ func dataSourceMonitorActionGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ActionGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

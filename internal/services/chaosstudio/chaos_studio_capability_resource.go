@@ -22,7 +22,7 @@ var _ sdk.Resource = ChaosStudioCapabilityResource{}
 
 type ChaosStudioCapabilityResource struct{}
 
-func (r ChaosStudioCapabilityResource) ModelObject() interface{} {
+func (r ChaosStudioCapabilityResource) ModelObject() any {
 	return &ChaosStudioTargetResourceSchema{}
 }
 

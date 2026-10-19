@@ -38,7 +38,7 @@ func (s SpringCloudApplicationLiveViewResource) ResourceType() string {
 	return "azurerm_spring_cloud_application_live_view"
 }
 
-func (s SpringCloudApplicationLiveViewResource) ModelObject() interface{} {
+func (s SpringCloudApplicationLiveViewResource) ModelObject() any {
 	return &SpringCloudApplicationLiveViewModel{}
 }
 

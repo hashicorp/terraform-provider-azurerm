@@ -92,7 +92,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Identity() resourceids.ResourceId {
 	return &scheduledqueryrules.ScheduledQueryRuleId{}
 }
 
-func (r ScheduledQueryRulesAlertV2Resource) ModelObject() interface{} {
+func (r ScheduledQueryRulesAlertV2Resource) ModelObject() any {
 	return &ScheduledQueryRulesAlertV2Model{}
 }
 

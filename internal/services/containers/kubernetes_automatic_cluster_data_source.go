@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-04-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -51,7 +51,7 @@ type KubernetesAutomaticClusterDataSourceModel struct {
 	NodeResourceGroupID      string                                     `tfschema:"node_resource_group_id"`
 	ServiceMeshProfile       []ServiceMeshProfileDataSourceModel        `tfschema:"service_mesh"`
 	WebAppRoutingIngress     []WebAppRoutingIngressDataSourceModel      `tfschema:"web_app_routing_ingress"`
-	Tags                     map[string]interface{}                     `tfschema:"tags"`
+	Tags                     map[string]any                             `tfschema:"tags"`
 }
 
 type APIServerAccessDataSourceModel struct {
@@ -383,7 +383,7 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (KubernetesAutomaticClusterDataSource) ModelObject() interface{} {
+func (KubernetesAutomaticClusterDataSource) ModelObject() any {
 	return &KubernetesAutomaticClusterDataSourceModel{}
 }
 
@@ -395,7 +395,7 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient_v2026_04_01
+			client := metadata.Client.Containers.KubernetesClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state KubernetesAutomaticClusterDataSourceModel
@@ -568,7 +568,7 @@ func flattenKubernetesAutomaticClusterDataSourceKubeConfig(config kubernetes.Kub
 		Host:                 cluster.Server,
 		Username:             name,
 		Password:             user.Token,
-		ClientCertificate:    user.ClientCertificteData,
+		ClientCertificate:    user.ClientCertificateData,
 		ClientKey:            user.ClientKeyData,
 		ClusterCACertificate: cluster.ClusterAuthorityData,
 	}}
@@ -633,7 +633,7 @@ func flattenKubernetesAutomaticClusterDataSourceServiceMeshProfile(profile *mana
 				externalIngressGatewayEnabled = gateway.Enabled
 			}
 		}
-		proxyRedirectMechanism = string(pointer.From(profile.Istio.Components.ProxyRedirectionMechanism))
+		proxyRedirectMechanism = pointer.FromEnum(profile.Istio.Components.ProxyRedirectionMechanism)
 	}
 
 	certificateAuthority := flattenKubernetesAutomaticClusterDataSourceServiceMeshProfileCertificateAuthority(profile.Istio.CertificateAuthority)

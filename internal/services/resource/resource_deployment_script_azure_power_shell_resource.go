@@ -27,7 +27,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) ResourceType() string {
 	return "azurerm_resource_deployment_script_azure_power_shell"
 }
 
-func (r ResourceDeploymentScriptAzurePowerShellResource) ModelObject() interface{} {
+func (r ResourceDeploymentScriptAzurePowerShellResource) ModelObject() any {
 	return &ResourceDeploymentScriptAzurePowerShellModel{}
 }
 
@@ -80,7 +80,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Create() sdk.ResourceFu
 				},
 			}
 
-			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return err
 			}

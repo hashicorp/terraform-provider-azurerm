@@ -44,7 +44,7 @@ func (d TriggerSchedulesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d TriggerSchedulesDataSource) ModelObject() interface{} {
+func (d TriggerSchedulesDataSource) ModelObject() any {
 	return &TriggerSchedulesDataSourceModel{}
 }
 

@@ -21,6 +21,16 @@ import (
 
 type WindowsWebAppResource struct{}
 
+func TestAccWindowsWebApp_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccWindowsWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -34,6 +44,20 @@ func TestAccWindowsWebApp_basic(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
+}
+
+func TestAccWindowsWebApp_regression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	}, "")
 }
 
 func TestAccWindowsWebApp_updateTags(t *testing.T) {
@@ -1868,6 +1892,50 @@ func TestAccWindowsWebApp_tlsSettingUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_e2eEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebApp_e2eEncryptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.endToEndTLSEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func (r WindowsWebAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseWebAppID(state.ID)
 	if err != nil {
@@ -3209,7 +3277,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, true)
 }
 
-//nolint:unparam
 func (r WindowsWebAppResource) java(data acceptance.TestData, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3235,7 +3302,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, javaVersion)
 }
 
-//nolint:unparam
 func (r WindowsWebAppResource) healthCheckUpdate(data acceptance.TestData, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4000,6 +4066,27 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   public_network_access_enabled = false
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) endToEndTLSEncryptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  end_to_end_tls_encryption_enabled = true
 
   site_config {}
 }

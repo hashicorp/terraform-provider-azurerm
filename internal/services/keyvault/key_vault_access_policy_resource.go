@@ -78,7 +78,7 @@ func resourceKeyVaultAccessPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,16 +121,16 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	var accessPolicy vaults.AccessPolicyEntry
-	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissionsRaw := d.Get("certificate_permissions").([]any)
 	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
-	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissionsRaw := d.Get("key_permissions").([]any)
 	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
-	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissionsRaw := d.Get("secret_permissions").([]any)
 	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
-	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissionsRaw := d.Get("storage_permissions").([]any)
 	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
 	accessPolicy = vaults.AccessPolicyEntry{
@@ -181,7 +181,7 @@ func resourceKeyVaultAccessPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,16 +196,16 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(keyVaultId.VaultName, keyVaultResourceName)
 	defer locks.UnlockByName(keyVaultId.VaultName, keyVaultResourceName)
 
-	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissionsRaw := d.Get("certificate_permissions").([]any)
 	certPermissions := expandCertificatePermissions(certPermissionsRaw)
 
-	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissionsRaw := d.Get("key_permissions").([]any)
 	keyPermissions := expandKeyPermissions(keyPermissionsRaw)
 
-	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissionsRaw := d.Get("secret_permissions").([]any)
 	secretPermissions := expandSecretPermissions(secretPermissionsRaw)
 
-	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissionsRaw := d.Get("storage_permissions").([]any)
 	storagePermissions := expandStoragePermissions(storagePermissionsRaw)
 
 	accessPolicy := vaults.AccessPolicyEntry{
@@ -254,7 +254,7 @@ func resourceKeyVaultAccessPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,7 +310,7 @@ func resourceKeyVaultAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultAccessPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -396,7 +396,7 @@ func findKeyVaultAccessPolicy(policies *[]vaults.AccessPolicyEntry, objectId str
 }
 
 func accessPolicyRefreshFunc(ctx context.Context, client *vaults.VaultsClient, keyVaultId commonids.KeyVaultId, objectId string, applicationId string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking for completion of Access Policy create/update")
 
 		read, err := client.Get(ctx, keyVaultId)

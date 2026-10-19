@@ -79,7 +79,7 @@ func (r DataConnectorAwsS3Resource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_aws_s3"
 }
 
-func (r DataConnectorAwsS3Resource) ModelObject() interface{} {
+func (r DataConnectorAwsS3Resource) ModelObject() any {
 	return &DataConnectorAwsS3Model{}
 }
 

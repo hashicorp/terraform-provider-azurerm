@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
@@ -128,7 +128,7 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -166,7 +166,7 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 		ResourceGroup:      pointer.To(endpointRG),
 	}
 
-	// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+	// To align with the previous TF behaviour, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behaviour is different than before and it may block the existing users
 	// From the business perspective, the raw config handling is only meant for the case that the user has an CosmosDB Account whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
 	// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
 	if v := d.GetRawConfig().AsValueMap()["subscription_id"]; v.IsNull() {
@@ -249,7 +249,7 @@ func resourceIotHubEndpointServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData
 	return resourceIotHubEndpointServiceBusQueueRead(d, meta)
 }
 
-func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -317,7 +317,7 @@ func resourceIotHubEndpointServiceBusQueueRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceIotHubEndpointServiceBusQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointServiceBusQueueDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

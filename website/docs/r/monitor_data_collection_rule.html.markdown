@@ -232,7 +232,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
+* `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore`, `WorkspaceTransforms`, and `Direct`. A rule of kind `Linux` does not allow for `windows_event_log` data sources, and a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed. A rule of kind `Direct` must use a `data_collection_endpoint_id` if you're sending data to a Log Analytics workspace configured for private link.
 
 ~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
@@ -386,7 +386,7 @@ An `identity` block supports the following:
 
 A `label_include_filter` block supports the following:
 
-* `label` - (Required) The label of the filter. This label should be unique across all `label_include_fileter` block. Possible value is `microsoft_metrics_include_label`.
+* `label` - (Required) The label of the filter. This label should be unique across all `label_include_filter` block. Possible value is `microsoft_metrics_include_label`.
 
 * `value` - (Required) The value of the filter.
 
@@ -539,6 +539,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Data Collection Rule.
 
 * `immutable_id` - The immutable ID of the Data Collection Rule.
+
+* `logs_ingestion_endpoint` - The endpoint used for ingesting logs.
+
+* `metrics_ingestion_endpoint` - The endpoint used for ingesting metrics.
 
 ---
 

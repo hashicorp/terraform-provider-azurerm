@@ -190,8 +190,8 @@ func patchWantEnums(want []string) string {
 
 // check possible values
 func checkPossibleValues(r *schema.Resource, md *model.ResourceDoc) (res []Checker) {
-	schemModel := r.Schema.Schema
-	_ = schemModel
+	schemaModel := r.Schema.Schema
+	_ = schemaModel
 	if md == nil {
 		log.Printf("%s no match document exists", r.ResourceType)
 		return
@@ -234,7 +234,7 @@ func diffField(r *schema.Resource, mdField *model.Field, xPath []string) (res []
 	}
 	// check if r has such path
 	if !r.HasPathFor(xPath) {
-		log.Printf("%s %s has no path [%s], there must be an error in markdwon", color.YellowString("[WARN]"), r.ResourceType, strings.Join(xPath, "."))
+		log.Printf("%s %s has no path [%s], there must be an error in markdown", color.YellowString("[WARN]"), r.ResourceType, strings.Join(xPath, "."))
 		return
 	}
 	for _, sub := range mdField.Subs {
@@ -250,27 +250,27 @@ func SliceDiff(want, got []string, caseInSensitive bool) (missed, spare []string
 		return
 	}
 	// cross-check
-	wantCpy, gotCpy := want, got
+	wantCopy, gotCopy := want, got
 	if caseInSensitive {
-		wantCpy = make([]string, len(want))
-		gotCpy = make([]string, len(got))
+		wantCopy = make([]string, len(want))
+		gotCopy = make([]string, len(got))
 		for idx := range want {
-			wantCpy[idx] = strings.ToLower(want[idx])
+			wantCopy[idx] = strings.ToLower(want[idx])
 		}
 		for idx := range got {
-			gotCpy[idx] = strings.ToLower(got[idx])
+			gotCopy[idx] = strings.ToLower(got[idx])
 		}
 	}
-	wantMap := util.Slice2Map(wantCpy)
-	gotMap := util.Slice2Map(gotCpy)
+	wantMap := util.Slice2Map(wantCopy)
+	gotMap := util.Slice2Map(gotCopy)
 
-	for idx, k := range wantCpy {
+	for idx, k := range wantCopy {
 		if _, ok := gotMap[k]; !ok {
 			missed = append(missed, want[idx])
 		}
 	}
 
-	for idx, k := range gotCpy {
+	for idx, k := range gotCopy {
 		if _, ok := wantMap[k]; !ok {
 			spare = append(spare, got[idx])
 		}

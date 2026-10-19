@@ -34,7 +34,7 @@ func (r LogAnalyticsQueryPackResource) ResourceType() string {
 	return "azurerm_log_analytics_query_pack"
 }
 
-func (r LogAnalyticsQueryPackResource) ModelObject() interface{} {
+func (r LogAnalyticsQueryPackResource) ModelObject() any {
 	return &LogAnalyticsQueryPackModel{}
 }
 

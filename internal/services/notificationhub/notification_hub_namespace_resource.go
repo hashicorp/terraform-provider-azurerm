@@ -107,7 +107,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 	}
 }
 
-func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -144,7 +144,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 			Enabled:        pointer.To(d.Get("enabled").(bool)),
 			ZoneRedundancy: pointer.To(zoneRedundancy),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("replication_region"); ok {
@@ -172,7 +172,7 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceNotificationHubNamespaceRead(d, meta)
 }
 
-func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +196,7 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
@@ -206,7 +206,7 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceNotificationHubNamespaceRead(d, meta)
 }
 
-func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +251,7 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

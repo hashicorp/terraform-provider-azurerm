@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -55,7 +55,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_failover_group"
 }
 
-func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceFailoverGroupResource) ModelObject() any {
 	return &MsSqlManagedInstanceFailoverGroupModel{}
 }
 
@@ -342,7 +342,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 
 			if result.Model != nil {
 				if props := result.Model.Properties; props != nil {
-					model.Role = string(pointer.From(props.ReplicationRole))
+					model.Role = pointer.FromEnum(props.ReplicationRole)
 
 					if instancePairs := props.ManagedInstancePairs; len(instancePairs) == 1 {
 						if primaryId := instancePairs[0].PrimaryManagedInstanceId; primaryId != nil {
@@ -367,7 +367,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 					for _, partnerRegion := range props.PartnerRegions {
 						model.PartnerRegion = append(model.PartnerRegion, MsSqlManagedInstancePartnerRegionModel{
 							Location: pointer.From(partnerRegion.Location),
-							Role:     string(pointer.From(partnerRegion.ReplicationRole)),
+							Role:     pointer.FromEnum(partnerRegion.ReplicationRole),
 						})
 					}
 
@@ -377,7 +377,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					model.SecondaryType = string(pointer.From(props.SecondaryType))
+					model.SecondaryType = pointer.FromEnum(props.SecondaryType)
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{
