@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FlexibleServerSkuName(i interface{}, k string) ([]string, []error) {
+func FlexibleServerSkuName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^((B_Standard_B((1|2|4|8|12|16|20)ms|2s))|(GP_Standard_D(((2|4|8|16|32|48|64)s_v3)|((2|4|8|16|32|48|64)ds_v4)|((2|4|8|16|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ds_v6)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|32|48|64|96)ads_v5)))|(MO_Standard_E((((2|4|8|16|20|32|48|64)s)_v3)|((2|4|6|8|16|20|32|48|64)ds_v4)|((2|4|8|16|20|32|48|64|96)ds_v5)|((2|4|8|16|32|48|64|96)ds_v6)|((2|4|8|16|32|48|64|96)ads_v5)|(C(2|4|8|16|20|32|48|64|96)(ads|as)_v5))))$`), "is not a valid sku name")(i, k)
 }
 

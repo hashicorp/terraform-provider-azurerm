@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func RegExHelper(i interface{}, k, r string) (match bool, errors []error) {
+func RegExHelper(i any, k, r string) (match bool, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return false, []error{fmt.Errorf("expected type of %q to be string", k)}

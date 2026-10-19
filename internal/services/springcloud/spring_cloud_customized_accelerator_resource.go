@@ -69,7 +69,7 @@ func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_customized_accelerator"
 }
 
-func (s SpringCloudCustomizedAcceleratorResource) ModelObject() interface{} {
+func (s SpringCloudCustomizedAcceleratorResource) ModelObject() any {
 	return &SpringCloudCustomizedAcceleratorModel{}
 }
 

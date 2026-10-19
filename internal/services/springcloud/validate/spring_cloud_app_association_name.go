@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SpringCloudAppAssociationName(i interface{}, k string) ([]string, []error) {
+func SpringCloudAppAssociationName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^([a-z])([a-z\d-]{2,30})([a-z\d])$`), "must begin with a letter, end with a letter or number, contain only lowercase letters, numbers and hyphens. The value must be between 4 and 32 characters long")(i, k)
 }

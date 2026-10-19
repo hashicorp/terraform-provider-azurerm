@@ -110,7 +110,7 @@ func resourceSubscriptionPolicyRemediation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceData
 	return resourceSubscriptionPolicyRemediationRead(d, meta)
 }
 
-func resourceSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +179,7 @@ func resourceSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, meta i
 	return setRemediationProperties(d, resp.Model.Properties)
 }
 
-func resourceSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Policy.RemediationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, meta
 }
 
 func subscriptionPolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.RemediationId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.GetAtSubscription(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)

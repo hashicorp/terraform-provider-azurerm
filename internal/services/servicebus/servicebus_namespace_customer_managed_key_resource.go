@@ -37,7 +37,7 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Identity() resourceids.Re
 	return &namespaces.NamespaceId{}
 }
 
-func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() interface{} {
+func (r ServiceBusNamespaceCustomerManagedKeyResource) ModelObject() any {
 	return &ServiceBusNamespaceCustomerManagedKeyModel{}
 }
 

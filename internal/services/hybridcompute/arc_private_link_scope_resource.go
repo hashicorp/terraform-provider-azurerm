@@ -55,7 +55,7 @@ func (a ArcPrivateLinkScopeResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (a ArcPrivateLinkScopeResource) ModelObject() interface{} {
+func (a ArcPrivateLinkScopeResource) ModelObject() any {
 	return &PrivateLinkScopeModel{}
 }
 

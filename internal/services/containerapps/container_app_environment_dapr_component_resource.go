@@ -34,7 +34,7 @@ type ContainerAppEnvironmentDaprComponentModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentDaprComponentResource{}
 
-func (r ContainerAppEnvironmentDaprComponentResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentDaprComponentResource) ModelObject() any {
 	return &ContainerAppEnvironmentDaprComponentModel{}
 }
 

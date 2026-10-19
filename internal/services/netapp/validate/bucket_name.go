@@ -14,7 +14,7 @@ import (
 // letters/numbers/hyphens/periods, must start and end with a letter or number,
 // must not contain consecutive periods or "."- / "-." sequences, and must not
 // look like an IPv4 address.
-func BucketName(v interface{}, k string) ([]string, []error) {
+func BucketName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(3, 63),
 		validation.StringMatch(regexp.MustCompile(`^[a-z0-9.\-]+$`), "must contain only lowercase letters, numbers, hyphens or periods"),

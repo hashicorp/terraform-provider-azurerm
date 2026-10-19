@@ -71,13 +71,13 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.DdosProtectionPlans
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetIDs(d.Get("virtual_network_ids").([]interface{}))
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetIDs(d.Get("virtual_network_ids").([]any))
 	if err != nil {
 		return fmt.Errorf("extracting IDs of Virtual Network: %+v", err)
 	}
@@ -104,7 +104,7 @@ func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta int
 
 	payload := ddosprotectionplans.DdosProtectionPlan{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -119,12 +119,12 @@ func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta int
 	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.DdosProtectionPlans
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetIDs(d.Get("virtual_network_ids").([]interface{}))
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetIDs(d.Get("virtual_network_ids").([]any))
 	if err != nil {
 		return fmt.Errorf("extracting IDs of Virtual Network: %+v", err)
 	}
@@ -154,7 +154,7 @@ func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta int
 	payload := existing.Model
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -166,7 +166,7 @@ func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.DdosProtectionPlans
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +210,7 @@ func resourceNetworkDDoSProtectionPlanFlatten(d *pluginsdk.ResourceData, id *ddo
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.DdosProtectionPlans
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -250,7 +250,7 @@ func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandNetworkDDoSProtectionPlanVnetIDs(input []interface{}) (*[]string, error) {
+func expandNetworkDDoSProtectionPlanVnetIDs(input []any) (*[]string, error) {
 	vnetIDs := make([]string, 0)
 
 	for _, vnetID := range input {

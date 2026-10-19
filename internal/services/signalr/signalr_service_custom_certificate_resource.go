@@ -75,7 +75,7 @@ func (r CustomCertSignalrServiceResource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (r CustomCertSignalrServiceResource) ModelObject() interface{} {
+func (r CustomCertSignalrServiceResource) ModelObject() any {
 	return &CustomCertSignalrServiceResourceModel{}
 }
 

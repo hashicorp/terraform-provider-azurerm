@@ -33,7 +33,7 @@ func (r KubernetesNodePoolSnapshotDataSource) ResourceType() string {
 	return "azurerm_kubernetes_node_pool_snapshot"
 }
 
-func (r KubernetesNodePoolSnapshotDataSource) ModelObject() interface{} {
+func (r KubernetesNodePoolSnapshotDataSource) ModelObject() any {
 	return &KubernetesNodePoolSnapshotDataSourceModel{}
 }
 

@@ -183,7 +183,7 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -217,7 +217,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 			Protocol:      appplatform.GatewayRouteConfigProtocol(d.Get("protocol").(string)),
 			Routes:        expandGatewayRouteConfigGatewayAPIRouteArray(d.Get("route").(*pluginsdk.Set).List()),
 			SsoEnabled:    pointer.To(d.Get("sso_validation_enabled").(bool)),
-			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]interface{})),
+			OpenAPI:       expandGatewayRouteConfigOpenApi(d.Get("open_api").([]any)),
 		},
 	}
 
@@ -247,7 +247,7 @@ func resourceSpringCloudGatewayRouteConfigCreateUpdate(d *pluginsdk.ResourceData
 	return resourceSpringCloudGatewayRouteConfigRead(d, meta)
 }
 
-func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func resourceSpringCloudGatewayRouteConfigRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.GatewayRouteConfigClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,10 +324,10 @@ func resourceSpringCloudGatewayRouteConfigDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func expandGatewayRouteConfigGatewayAPIRouteArray(input []interface{}) *[]appplatform.GatewayAPIRoute {
+func expandGatewayRouteConfigGatewayAPIRouteArray(input []any) *[]appplatform.GatewayAPIRoute {
 	results := make([]appplatform.GatewayAPIRoute, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, appplatform.GatewayAPIRoute{
 			Title:       pointer.To(v["title"].(string)),
 			Description: pointer.To(v["description"].(string)),
@@ -343,14 +343,14 @@ func expandGatewayRouteConfigGatewayAPIRouteArray(input []interface{}) *[]apppla
 	return &results
 }
 
-func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayAPIRoute) []interface{} {
-	results := make([]interface{}, 0)
+func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayAPIRoute) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"description":            pointer.From(item.Description),
 			"filters":                pluginsdk.FlattenSlice(item.Filters),
 			"order":                  pointer.From(item.Order),
@@ -365,24 +365,24 @@ func flattenGatewayRouteConfigGatewayAPIRouteArray(input *[]appplatform.GatewayA
 	return results
 }
 
-func expandGatewayRouteConfigOpenApi(input []interface{}) *appplatform.GatewayRouteConfigOpenAPIProperties {
+func expandGatewayRouteConfigOpenApi(input []any) *appplatform.GatewayRouteConfigOpenAPIProperties {
 	if len(input) == 0 {
 		return nil
 	}
 
-	config := input[0].(map[string]interface{})
+	config := input[0].(map[string]any)
 	return &appplatform.GatewayRouteConfigOpenAPIProperties{
 		URI: pointer.To(config["uri"].(string)),
 	}
 }
 
-func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenAPIProperties) interface{} {
+func flattenGatewayRouteConfigOpenApi(input *appplatform.GatewayRouteConfigOpenAPIProperties) any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"uri": pointer.From(input.URI),
 		},
 	}

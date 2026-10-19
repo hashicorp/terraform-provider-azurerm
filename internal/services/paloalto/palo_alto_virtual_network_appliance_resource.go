@@ -32,7 +32,7 @@ func (r NetworkVirtualApplianceResource) ResourceType() string {
 	return "azurerm_palo_alto_virtual_network_appliance"
 }
 
-func (r NetworkVirtualApplianceResource) ModelObject() interface{} {
+func (r NetworkVirtualApplianceResource) ModelObject() any {
 	return &NetworkVirtualApplianceResourceModel{}
 }
 

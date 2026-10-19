@@ -52,7 +52,7 @@ func dataSourceSynapseWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

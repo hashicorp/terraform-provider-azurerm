@@ -76,7 +76,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

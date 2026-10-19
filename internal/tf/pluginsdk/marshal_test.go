@@ -12,7 +12,7 @@ import (
 )
 
 func TestExpandStringSlice(t *testing.T) {
-	input := []interface{}{"a", "b", nil, "c"}
+	input := []any{"a", "b", nil, "c"}
 	expected := []string{"a", "b", "", "c"}
 	actual := ExpandStringSlice(input)
 
@@ -22,7 +22,7 @@ func TestExpandStringSlice(t *testing.T) {
 }
 
 func TestExpandFloatSlice(t *testing.T) {
-	input := []interface{}{1.1, nil, 2.2}
+	input := []any{1.1, nil, 2.2}
 	expected := []float64{1.1, 2.2}
 	actual := ExpandFloatSlice(input)
 
@@ -32,10 +32,10 @@ func TestExpandFloatSlice(t *testing.T) {
 }
 
 func TestExpandFloatRangeSlice(t *testing.T) {
-	input := []interface{}{
-		[]interface{}{1.1, 2.2},
+	input := []any{
+		[]any{1.1, 2.2},
 		nil,
-		[]interface{}{3.3, 4.4},
+		[]any{3.3, 4.4},
 	}
 	expected := [][]float64{{1.1, 2.2}, {3.3, 4.4}}
 	actual := ExpandFloatRangeSlice(input)
@@ -46,7 +46,7 @@ func TestExpandFloatRangeSlice(t *testing.T) {
 }
 
 func TestExpandPtrMapStringString(t *testing.T) {
-	input := map[string]interface{}{
+	input := map[string]any{
 		"key1": "val1",
 		"key2": "val2",
 	}
@@ -62,7 +62,7 @@ func TestExpandPtrMapStringString(t *testing.T) {
 }
 
 func TestExpandMapStringPtrString(t *testing.T) {
-	input := map[string]interface{}{
+	input := map[string]any{
 		"key1": "val1",
 		"key2": "val2",
 	}
@@ -78,7 +78,7 @@ func TestExpandMapStringPtrString(t *testing.T) {
 }
 
 func TestExpandInt32Slice(t *testing.T) {
-	input := []interface{}{int(1), int(2)}
+	input := []any{int(1), int(2)}
 	expected := []int32{1, 2}
 	actual := ExpandInt32Slice(input)
 
@@ -88,7 +88,7 @@ func TestExpandInt32Slice(t *testing.T) {
 }
 
 func TestExpandInt64Slice(t *testing.T) {
-	input := []interface{}{int(1), int(2)}
+	input := []any{int(1), int(2)}
 	expected := []int64{1, 2}
 	actual := ExpandInt64Slice(input)
 
@@ -98,7 +98,7 @@ func TestExpandInt64Slice(t *testing.T) {
 }
 
 func TestFlattenFloatRangeSlice(t *testing.T) {
-	expected := [][]interface{}{{1.1, 2.2}, {3.3, 4.4}}
+	expected := [][]any{{1.1, 2.2}, {3.3, 4.4}}
 	actual := FlattenFloatRangeSlice(pointer.To([][]float64{{1.1, 2.2}, {3.3, 4.4}}))
 
 	if !reflect.DeepEqual(actual, expected) {
@@ -106,7 +106,7 @@ func TestFlattenFloatRangeSlice(t *testing.T) {
 	}
 
 	actualNil := FlattenFloatRangeSlice(nil)
-	if !reflect.DeepEqual(actualNil, [][]interface{}{}) {
+	if !reflect.DeepEqual(actualNil, [][]any{}) {
 		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
 	}
 }
@@ -116,7 +116,7 @@ func TestFlattenMapStringPtrString(t *testing.T) {
 		"key1": pointer.To("val1"),
 		"key2": nil,
 	}
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"key1": "val1",
 		"key2": "",
 	}
@@ -132,7 +132,7 @@ func TestFlattenPtrMapStringString(t *testing.T) {
 		"key1": "val1",
 		"key2": "val2",
 	}
-	expected := map[string]interface{}{
+	expected := map[string]any{
 		"key1": "val1",
 		"key2": "val2",
 	}
@@ -143,13 +143,13 @@ func TestFlattenPtrMapStringString(t *testing.T) {
 	}
 
 	actualNil := FlattenPtrMapStringString(nil)
-	if !reflect.DeepEqual(actualNil, map[string]interface{}{}) {
+	if !reflect.DeepEqual(actualNil, map[string]any{}) {
 		t.Fatalf("expected empty map for nil, got: %v", actualNil)
 	}
 }
 
 func TestExpandStringSliceWithDelimiter(t *testing.T) {
-	input := []interface{}{"a", "b", nil, "c"}
+	input := []any{"a", "b", nil, "c"}
 	expected := "a,b,,c"
 	actual := ExpandStringSliceWithDelimiter(input, ",")
 
@@ -159,7 +159,7 @@ func TestExpandStringSliceWithDelimiter(t *testing.T) {
 }
 
 func TestExpandIntSliceWithDelimiter(t *testing.T) {
-	input := []interface{}{int(1), int(2), nil, int(3)}
+	input := []any{int(1), int(2), nil, int(3)}
 	expected := "1,2,,3"
 	actual := ExpandIntSliceWithDelimiter(input, ",")
 
@@ -169,7 +169,7 @@ func TestExpandIntSliceWithDelimiter(t *testing.T) {
 }
 
 func TestFlattenStringSliceWithDelimiter(t *testing.T) {
-	expected := []interface{}{"a", "b", "", "c"}
+	expected := []any{"a", "b", "", "c"}
 	actual := FlattenStringSliceWithDelimiter(pointer.To("a,b,,c"), ",")
 
 	if !reflect.DeepEqual(actual, expected) {
@@ -177,7 +177,7 @@ func TestFlattenStringSliceWithDelimiter(t *testing.T) {
 	}
 
 	actualNil := FlattenStringSliceWithDelimiter(nil, ",")
-	if !reflect.DeepEqual(actualNil, []interface{}{}) {
+	if !reflect.DeepEqual(actualNil, []any{}) {
 		t.Fatalf("expected empty slice for nil, got: %v", actualNil)
 	}
 }
@@ -186,7 +186,7 @@ func TestFlattenStringSliceWithDelimiter(t *testing.T) {
 
 func TestGenericExpandSlice(t *testing.T) {
 	t.Run("booleans", func(t *testing.T) {
-		input := []interface{}{true, false, nil, true}
+		input := []any{true, false, nil, true}
 		expected := []bool{true, false, false, true}
 		actual := ExpandSlice(input, func(i bool) bool { return i }, true)
 		if actual == nil || !reflect.DeepEqual(*actual, expected) {
@@ -197,7 +197,7 @@ func TestGenericExpandSlice(t *testing.T) {
 	t.Run("struct pointers", func(t *testing.T) {
 		type MyStruct struct{ Name string }
 		s1 := &MyStruct{Name: "s1"}
-		input := []interface{}{s1, nil}
+		input := []any{s1, nil}
 		expected := []*MyStruct{s1, nil}
 		actual := ExpandSlice(input, func(i *MyStruct) *MyStruct { return i }, true)
 		if actual == nil || !reflect.DeepEqual(*actual, expected) {
@@ -206,7 +206,7 @@ func TestGenericExpandSlice(t *testing.T) {
 	})
 
 	t.Run("skip nils", func(t *testing.T) {
-		input := []interface{}{1, nil, 3}
+		input := []any{1, nil, 3}
 		expected := []int{1, 3}
 		actual := ExpandSlice(input, func(i int) int { return i }, false)
 		if actual == nil || !reflect.DeepEqual(*actual, expected) {
@@ -217,7 +217,7 @@ func TestGenericExpandSlice(t *testing.T) {
 
 func TestGenericFlattenSlice(t *testing.T) {
 	t.Run("booleans", func(t *testing.T) {
-		expected := []interface{}{true, false}
+		expected := []any{true, false}
 		actual := FlattenSlice(pointer.To([]bool{true, false}))
 		if !reflect.DeepEqual(actual, expected) {
 			t.Fatalf("expected: %v, got: %v", expected, actual)
@@ -226,7 +226,7 @@ func TestGenericFlattenSlice(t *testing.T) {
 
 	t.Run("structs", func(t *testing.T) {
 		type MyStruct struct{ Name string }
-		expected := []interface{}{MyStruct{Name: "s1"}, MyStruct{Name: "s2"}}
+		expected := []any{MyStruct{Name: "s1"}, MyStruct{Name: "s2"}}
 		actual := FlattenSlice(pointer.To([]MyStruct{{Name: "s1"}, {Name: "s2"}}))
 		if !reflect.DeepEqual(actual, expected) {
 			t.Fatalf("expected: %v, got: %v", expected, actual)
@@ -236,7 +236,7 @@ func TestGenericFlattenSlice(t *testing.T) {
 
 func TestGenericExpandMap(t *testing.T) {
 	t.Run("integers", func(t *testing.T) {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"a": 1,
 			"b": 2,
 		}
@@ -251,7 +251,7 @@ func TestGenericExpandMap(t *testing.T) {
 	})
 
 	t.Run("booleans", func(t *testing.T) {
-		input := map[string]interface{}{
+		input := map[string]any{
 			"a": true,
 			"b": false,
 		}
@@ -268,7 +268,7 @@ func TestGenericExpandMap(t *testing.T) {
 
 func TestGenericExpandSliceWithDelimiter(t *testing.T) {
 	t.Run("floats", func(t *testing.T) {
-		input := []interface{}{1.1, 2.2, nil, 3.3}
+		input := []any{1.1, 2.2, nil, 3.3}
 		expected := "1.1|2.2||3.3"
 		actual := ExpandSliceWithDelimiter(input, func(i float64) string {
 			return strconv.FormatFloat(i, 'f', 1, 64)
