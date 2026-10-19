@@ -117,7 +117,7 @@ func (r StreamInputEventHubV2Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r StreamInputEventHubV2Resource) ModelObject() interface{} {
+func (r StreamInputEventHubV2Resource) ModelObject() any {
 	return &StreamInputEventHubV2ResourceModel{}
 }
 

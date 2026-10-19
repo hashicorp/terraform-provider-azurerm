@@ -66,7 +66,7 @@ func dataSourceSubscription() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client)
 	groupClient := client.Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

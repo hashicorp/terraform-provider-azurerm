@@ -98,7 +98,7 @@ func resourceDataFactoryDataFlow() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,16 +127,16 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	mappingDataFlow := dataflows.MappingDataFlow{
 		TypeProperties: &dataflows.MappingDataFlowTypeProperties{
 			Script:          pointer.To(d.Get("script").(string)),
-			Sinks:           expandDataFactoryDataFlowSink(d.Get("sink").([]interface{})),
-			Sources:         expandDataFactoryDataFlowSource(d.Get("source").([]interface{})),
-			Transformations: expandDataFactoryDataFlowTransformation(d.Get("transformation").([]interface{})),
+			Sinks:           expandDataFactoryDataFlowSink(d.Get("sink").([]any)),
+			Sources:         expandDataFactoryDataFlowSource(d.Get("source").([]any)),
+			Transformations: expandDataFactoryDataFlowTransformation(d.Get("transformation").([]any)),
 		},
 		Description: pointer.To(d.Get("description").(string)),
 		Type:        helper.DataFlowTypeMappingDataFlow,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		mappingDataFlow.Annotations = pointer.To(v.([]interface{}))
+		mappingDataFlow.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -146,7 +146,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("script_lines"); ok {
-		mappingDataFlow.TypeProperties.ScriptLines = pluginsdk.ExpandStringSlice(v.([]interface{}))
+		mappingDataFlow.TypeProperties.ScriptLines = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	dataFlow := dataflows.DataFlowResource{
@@ -164,7 +164,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceDataFactoryDataFlowRead(d, meta)
 }
 
-func resourceDataFactoryDataFlowRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDataFlowRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +223,7 @@ func resourceDataFactoryDataFlowRead(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceDataFactoryDataFlowDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDataFlowDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

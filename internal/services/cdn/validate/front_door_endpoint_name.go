@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FrontDoorEndpointName(v interface{}, k string) ([]string, []error) {
+func FrontDoorEndpointName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[\da-zA-Z][-\da-zA-Z]{0,44}[\da-zA-Z]$`), "must be between 2 and 46 characters in length, begin with a letter or number, end with a letter or number and may contain only letters, numbers and hyphens")(v, k)
 }

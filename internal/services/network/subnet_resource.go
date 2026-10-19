@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -120,7 +122,7 @@ func resourceSubnet() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				// Validate `sharing_scope` cannot be set when `default_outbound_access_enabled` is true.
 				if diff.Get("sharing_scope").(string) != "" && diff.Get("default_outbound_access_enabled").(bool) {
 					return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
@@ -194,6 +196,8 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
+				// Temporary solution, see function notes for detail.
+				DiffSuppressFunc: subnetServiceEndpointDiffSuppress,
 			},
 
 			"service_endpoint_policy_ids": {
@@ -352,7 +356,7 @@ func resourceSubnet() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -406,11 +410,11 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &subnets.SubnetPropertiesFormat{
 			AddressPrefixes:                   pluginsdk.ExpandStringSlice(d.Get("address_prefixes").([]any)),
 			DefaultOutboundAccess:             pointer.To(d.Get("default_outbound_access_enabled").(bool)),
-			Delegations:                       expandSubnetDelegation(d.Get("delegation").([]interface{})),
-			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{})),
+			Delegations:                       expandSubnetDelegation(d.Get("delegation").([]any)),
+			IPamPoolPrefixAllocations:         expandSubnetIPAddressPool(d.Get("ip_address_pool").([]any)),
 			PrivateEndpointNetworkPolicies:    pointer.ToEnum[subnets.VirtualNetworkPrivateEndpointNetworkPolicies](d.Get("private_endpoint_network_policies").(string)),
 			PrivateLinkServiceNetworkPolicies: expandSubnetNetworkPolicy(d.Get("private_link_service_network_policies_enabled").(bool)),
-			ServiceEndpoints:                  expandSubnetServiceEndpoint(d.Get("service_endpoint").([]interface{})),
+			ServiceEndpoints:                  expandSubnetServiceEndpoint(d.Get("service_endpoint").([]any)),
 			ServiceEndpointPolicies:           expandSubnetServiceEndpointPolicies(d.Get("service_endpoint_policy_ids").(*pluginsdk.Set).List()),
 			SharingScope:                      pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string)),
 
@@ -459,7 +463,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceSubnetRead(d, meta)
 }
 
-func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 
@@ -553,7 +557,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	props := existing.Model.Properties
 
 	if d.HasChange("address_prefixes") {
-		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
+		addressPrefixesRaw := d.Get("address_prefixes").([]any)
 		switch len(addressPrefixesRaw) {
 		case 0:
 			// this is the case IPAddressPool is used, so we shall clear the `AddressPrefix` and `AddressPrefixes`.
@@ -566,8 +570,8 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("ip_address_pool") {
-		if v := d.Get("ip_address_pool").([]interface{}); len(v) > 0 {
-			expandedIPAddressPool := expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
+		if v := d.Get("ip_address_pool").([]any); len(v) > 0 {
+			expandedIPAddressPool := expandSubnetIPAddressPool(d.Get("ip_address_pool").([]any))
 
 			if props.IPamPoolPrefixAllocations != nil {
 				for _, existingAllocation := range *props.IPamPoolPrefixAllocations {
@@ -599,7 +603,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("delegation") {
-		delegationsRaw := d.Get("delegation").([]interface{})
+		delegationsRaw := d.Get("delegation").([]any)
 		props.Delegations = expandSubnetDelegation(delegationsRaw)
 	}
 
@@ -617,7 +621,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("service_endpoint") {
-		props.ServiceEndpoints = expandSubnetServiceEndpoint(d.Get("service_endpoint").([]interface{}))
+		props.ServiceEndpoints = expandSubnetServiceEndpoint(d.Get("service_endpoint").([]any))
 	}
 
 	if d.HasChange("service_endpoint_policy_ids") {
@@ -677,7 +681,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceSubnetRead(d, meta)
 }
 
-func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -772,7 +776,7 @@ func resourceSubnetFlatten(d *pluginsdk.ResourceData, id commonids.SubnetId, sub
 	return pluginsdk.SetResourceIdentityData(d, &id)
 }
 
-func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -826,11 +830,11 @@ func expandSubnetRouteTableID(d *pluginsdk.ResourceData) (*subnets.RouteTable, e
 	}, nil
 }
 
-func expandSubnetServiceEndpoint(input []interface{}) *[]subnets.ServiceEndpointPropertiesFormat {
+func expandSubnetServiceEndpoint(input []any) *[]subnets.ServiceEndpointPropertiesFormat {
 	endpoints := make([]subnets.ServiceEndpointPropertiesFormat, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		endpoint := subnets.ServiceEndpointPropertiesFormat{
 			Service: pointer.To(v["service"].(string)),
 		}
@@ -845,15 +849,15 @@ func expandSubnetServiceEndpoint(input []interface{}) *[]subnets.ServiceEndpoint
 	return &endpoints
 }
 
-func flattenSubnetServiceEndpoint(serviceEndpoints *[]subnets.ServiceEndpointPropertiesFormat) []interface{} {
-	endpoints := make([]interface{}, 0)
+func flattenSubnetServiceEndpoint(serviceEndpoints *[]subnets.ServiceEndpointPropertiesFormat) []any {
+	endpoints := make([]any, 0)
 
 	if serviceEndpoints == nil {
 		return endpoints
 	}
 
 	for _, endpoint := range *serviceEndpoints {
-		item := map[string]interface{}{
+		item := map[string]any{
 			"service": pointer.From(endpoint.Service),
 		}
 		if endpoint.NetworkIdentifier != nil {
@@ -865,13 +869,13 @@ func flattenSubnetServiceEndpoint(serviceEndpoints *[]subnets.ServiceEndpointPro
 	return endpoints
 }
 
-func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
+func expandSubnetDelegation(input []any) *[]subnets.Delegation {
 	retDelegations := make([]subnets.Delegation, 0)
 
 	for _, deleValue := range input {
-		deleData := deleValue.(map[string]interface{})
-		srvDelegations := deleData["service_delegation"].([]interface{})
-		srvDelegation := srvDelegations[0].(map[string]interface{})
+		deleData := deleValue.(map[string]any)
+		srvDelegations := deleData["service_delegation"].([]any)
+		srvDelegation := srvDelegations[0].(map[string]any)
 		srvActions := srvDelegation["actions"].(*pluginsdk.Set).List()
 
 		retSrvActions := make([]string, 0)
@@ -894,12 +898,12 @@ func expandSubnetDelegation(input []interface{}) *[]subnets.Delegation {
 	return &retDelegations
 }
 
-func flattenSubnetDelegation(delegations *[]subnets.Delegation) []interface{} {
+func flattenSubnetDelegation(delegations *[]subnets.Delegation) []any {
 	if delegations == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	retDeles := make([]interface{}, 0)
+	retDeles := make([]any, 0)
 
 	normalizeServiceName := map[string]string{}
 	for _, normName := range subnetDelegationServiceNames {
@@ -907,13 +911,13 @@ func flattenSubnetDelegation(delegations *[]subnets.Delegation) []interface{} {
 	}
 
 	for _, dele := range *delegations {
-		retDele := make(map[string]interface{})
+		retDele := make(map[string]any)
 		if v := dele.Name; v != nil {
 			retDele["name"] = *v
 		}
 
-		svcDeles := make([]interface{}, 0)
-		svcDele := make(map[string]interface{})
+		svcDeles := make([]any, 0)
+		svcDele := make(map[string]any)
 		if props := dele.Properties; props != nil {
 			if v := props.ServiceName; v != nil {
 				name := *v
@@ -949,7 +953,7 @@ func flattenSubnetNetworkPolicy(input string) bool {
 	return strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
 }
 
-func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.ServiceEndpointPolicy {
+func expandSubnetServiceEndpointPolicies(input []any) *[]subnets.ServiceEndpointPolicy {
 	output := make([]subnets.ServiceEndpointPolicy, 0)
 	for _, policy := range input {
 		output = append(output, subnets.ServiceEndpointPolicy{Id: pointer.To(policy.(string))})
@@ -957,12 +961,12 @@ func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.Service
 	return &output
 }
 
-func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy) []interface{} {
+func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0, len(*input))
+	output := make([]any, 0, len(*input))
 	for _, policy := range *input {
 		id := pointer.From(policy.Id)
 		output = append(output, id)
@@ -970,14 +974,14 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 	return output
 }
 
-func expandSubnetIPAddressPool(input []interface{}) *[]subnets.IPamPoolPrefixAllocation {
+func expandSubnetIPAddressPool(input []any) *[]subnets.IPamPoolPrefixAllocation {
 	if len(input) == 0 {
 		return nil
 	}
 
 	outputs := make([]subnets.IPamPoolPrefixAllocation, 0)
 	for _, v := range input {
-		ipPoolRaw := v.(map[string]interface{})
+		ipPoolRaw := v.(map[string]any)
 		output := subnets.IPamPoolPrefixAllocation{}
 
 		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
@@ -996,14 +1000,14 @@ func expandSubnetIPAddressPool(input []interface{}) *[]subnets.IPamPoolPrefixAll
 	return &outputs
 }
 
-func flattenSubnetIPAddressPool(input *[]subnets.IPamPoolPrefixAllocation) []interface{} {
+func flattenSubnetIPAddressPool(input *[]subnets.IPamPoolPrefixAllocation) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 	for _, v := range *input {
-		output := map[string]interface{}{
+		output := map[string]any{
 			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
 			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
 		}
@@ -1017,7 +1021,7 @@ func flattenSubnetIPAddressPool(input *[]subnets.IPamPoolPrefixAllocation) []int
 }
 
 func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, id commonids.SubnetId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id, subnets.DefaultGetOperationOptions())
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
@@ -1028,4 +1032,68 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 		}
 		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
+}
+
+// subnetServiceEndpointDiffSuppress is a TEMPORARY solution to suppress diffs for a service endpoint list where the
+// individual entries have no change, and only the order of endpoints is different.
+// The Azure API will not persist an order change, which results in an infinite diff loop if order was the only change.
+// This function should be removed when the SDK v2 supports this feature for TypeList natively.
+func subnetServiceEndpointDiffSuppress(_, _, _ string, d *schema.ResourceData) bool {
+	if d == nil {
+		return false
+	}
+
+	listKey := "service_endpoint"
+
+	oldRaw, newRaw := d.GetChange(listKey)
+	if oldRaw == nil || newRaw == nil {
+		return false
+	}
+
+	oldList, okOld := oldRaw.([]any)
+	newList, okNew := newRaw.([]any)
+	if !okOld || !okNew {
+		return false
+	}
+
+	if len(oldList) != len(newList) {
+		return false
+	}
+
+	type endpointItem struct {
+		service           string
+		networkIdentifier string
+	}
+
+	canonicalize := func(rawList []any) []endpointItem {
+		items := make([]endpointItem, 0, len(rawList))
+		for _, raw := range rawList {
+			m, ok := raw.(map[string]any)
+			if !ok {
+				continue
+			}
+			item := endpointItem{}
+			if s, ok := m["service"].(string); ok {
+				item.service = s
+			}
+			if ni, ok := m["network_identifier"].(string); ok {
+				item.networkIdentifier = ni
+			}
+			items = append(items, item)
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			if items[i].service != items[j].service {
+				return items[i].service < items[j].service
+			}
+			return items[i].networkIdentifier < items[j].networkIdentifier
+		})
+
+		return items
+	}
+
+	canonicalOld := canonicalize(oldList)
+	canonicalNew := canonicalize(newList)
+
+	return reflect.DeepEqual(canonicalOld, canonicalNew)
 }

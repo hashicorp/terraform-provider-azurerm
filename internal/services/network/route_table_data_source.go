@@ -83,7 +83,7 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -125,12 +125,12 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenRouteTableDataSourceRoutes(input *[]routetables.Route) []interface{} {
-	results := make([]interface{}, 0)
+func flattenRouteTableDataSourceRoutes(input *[]routetables.Route) []any {
+	results := make([]any, 0)
 
 	if routes := input; routes != nil {
 		for _, route := range *routes {
-			r := make(map[string]interface{})
+			r := make(map[string]any)
 
 			r["name"] = *route.Name
 

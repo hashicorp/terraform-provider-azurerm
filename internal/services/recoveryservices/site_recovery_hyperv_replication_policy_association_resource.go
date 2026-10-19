@@ -64,7 +64,7 @@ func (h HyperVReplicationPolicyAssociationResource) Attributes() map[string]*sch
 	return map[string]*schema.Schema{}
 }
 
-func (h HyperVReplicationPolicyAssociationResource) ModelObject() interface{} {
+func (h HyperVReplicationPolicyAssociationResource) ModelObject() any {
 	return &HyperVReplicationPolicyAssociationModel{}
 }
 

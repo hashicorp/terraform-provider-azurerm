@@ -172,7 +172,7 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 }
 
 func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := http.DefaultClient.Do(r)
 		if err != nil {
 			return nil, "", err
@@ -186,7 +186,7 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 			return nil, "", fmt.Errorf("reading status response body for Zip Deploy")
 		}
 
-		body := make(map[string]interface{})
+		body := make(map[string]any)
 		if err = json.Unmarshal(respBody, &body); err != nil {
 			return nil, "", fmt.Errorf("could not parse status response for Zip Deploy")
 		}

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 )
 
-func TestAccContainerRegistryCacheRuleName_validation(t *testing.T) {
+func TestContainerRegistryCacheRuleName_validation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int

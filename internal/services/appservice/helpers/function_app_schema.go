@@ -1301,7 +1301,7 @@ type ApplicationStackLinuxFunctionApp struct {
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
-	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
+	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`, `25`
 	CustomHandler         bool                     `tfschema:"use_custom_runtime"`          // Supported values `true`
 	Docker                []ApplicationStackDocker `tfschema:"docker"`                      // Needs ElasticPremium or Basic (B1) Standard (S 1-3) or Premium(PxV2 or PxV3) LINUX Service Plan
@@ -1312,7 +1312,7 @@ type ApplicationStackWindowsFunctionApp struct {
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`, `24LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`, `25`
-	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
+	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`, `7.4`, `7.6`
 	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
 }
 
@@ -1425,6 +1425,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"7",   // Deprecated / not available in the portal
 						"7.2", // preview LTS Support
 						"7.4", // current LTS Support
+						"7.6",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",

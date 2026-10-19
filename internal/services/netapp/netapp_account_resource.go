@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,7 +50,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: netAppValidate.AccountName,
+				ValidateFunc: validate.AccountName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -164,7 +164,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -190,12 +190,12 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	accountParameters := netappaccounts.NetAppAccount{
 		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: &netappaccounts.AccountProperties{},
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	activeDirectoryRaw := d.Get("active_directory")
 	if activeDirectoryRaw != nil {
-		activeDirectories := activeDirectoryRaw.([]interface{})
+		activeDirectories := activeDirectoryRaw.([]any)
 		activeDirectoriesExpanded := expandNetAppActiveDirectories(activeDirectories)
 		if len(pointer.From(activeDirectoriesExpanded)) > 0 {
 			accountParameters.Properties.ActiveDirectories = activeDirectoriesExpanded
@@ -204,7 +204,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	anfAccountIdentityRaw := d.Get("identity")
 	if anfAccountIdentityRaw != nil {
-		anfAccountIdentity, ok := anfAccountIdentityRaw.([]interface{})
+		anfAccountIdentity, ok := anfAccountIdentityRaw.([]any)
 
 		if ok && len(anfAccountIdentity) > 0 {
 			anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
@@ -225,7 +225,7 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -262,15 +262,15 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("active_directory") {
-		existing.Model.Properties.ActiveDirectories = expandNetAppActiveDirectories(d.Get("active_directory").([]interface{}))
+		existing.Model.Properties.ActiveDirectories = expandNetAppActiveDirectories(d.Get("active_directory").([]any))
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -284,7 +284,7 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceNetAppAccountRead(d, meta)
 }
 
-func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,7 +337,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -357,15 +357,15 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.ActiveDirectory {
+func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirectory {
 	results := make([]netappaccounts.ActiveDirectory, 0)
 	if input == nil {
 		return &results
 	}
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
-		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
+		v := item.(map[string]any)
+		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]any)), ",")
 
 		result := netappaccounts.ActiveDirectory{
 			Dns:                        pointer.To(dns),
@@ -389,15 +389,15 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 	return &results
 }
 
-func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []interface{} {
+func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []any {
 	if input == nil || len(*input) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 
 	v := (*input)[0]
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"dns_servers":                       pluginsdk.FlattenStringSliceWithDelimiter(v.Dns, ","),
 			"domain":                            v.Domain,
 			"organizational_unit":               v.OrganizationalUnit,

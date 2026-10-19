@@ -50,7 +50,7 @@ func (d AppServiceSourceControlTokenDataSource) Attributes() map[string]*plugins
 	}
 }
 
-func (d AppServiceSourceControlTokenDataSource) ModelObject() interface{} {
+func (d AppServiceSourceControlTokenDataSource) ModelObject() any {
 	return &AppServiceSourceControlTokenModel{}
 }
 

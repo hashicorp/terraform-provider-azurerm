@@ -32,7 +32,7 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := policyfragment.ParsePolicyFragmentID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 
 			id, err := policyfragment.ParsePolicyFragmentID(d.Id())
@@ -89,7 +89,7 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -137,7 +137,7 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta i
 	return resourceApiManagementPolicyFragmentRead(d, meta)
 }
 
-func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceApiManagementPolicyFragmentRead(d, meta)
 }
 
-func resourceApiManagementPolicyFragmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyFragmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,7 +232,7 @@ func resourceApiManagementPolicyFragmentRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceApiManagementPolicyFragmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyFragmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

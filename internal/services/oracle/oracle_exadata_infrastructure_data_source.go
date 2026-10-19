@@ -393,7 +393,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d ExadataInfraDataSource) ModelObject() interface{} {
+func (d ExadataInfraDataSource) ModelObject() any {
 	return &ExadataInfraDataModel{}
 }
 
