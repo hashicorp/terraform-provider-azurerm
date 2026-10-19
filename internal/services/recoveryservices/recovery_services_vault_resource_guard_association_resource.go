@@ -39,7 +39,7 @@ func (r VaultGuardProxyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 	return resourceguardproxy.ValidateBackupResourceGuardProxyID
 }
 
-func (r VaultGuardProxyResource) ModelObject() interface{} {
+func (r VaultGuardProxyResource) ModelObject() any {
 	return &VaultGuardProxyModel{}
 }
 

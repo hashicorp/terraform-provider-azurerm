@@ -44,7 +44,7 @@ func (r CosmosDbMongoRoleDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_role_definition"
 }
 
-func (r CosmosDbMongoRoleDefinitionResource) ModelObject() interface{} {
+func (r CosmosDbMongoRoleDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoRoleDefinitionResourceModel{}
 }
 
@@ -347,7 +347,7 @@ func expandResource(input []Resource) *mongorbacs.PrivilegeResource {
 func flattenResource(input *mongorbacs.PrivilegeResource) []Resource {
 	var result []Resource
 	if input == nil {
-		return result
+		return []Resource{}
 	}
 
 	resource := Resource{

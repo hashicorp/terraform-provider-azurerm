@@ -232,7 +232,7 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 	}
 }
 
-func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	subscrptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -299,8 +299,7 @@ func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta 
 			return fmt.Errorf("setting `security`: %+v", err)
 		}
 
-		replicaSets := flattenDomainServiceReplicaSets(props.ReplicaSets)
-		if err := d.Set("replica_sets", replicaSets); err != nil {
+		if err := d.Set("replica_sets", flattenDomainServiceReplicaSets(props.ReplicaSets)); err != nil {
 			return fmt.Errorf("setting `replica_sets`: %+v", err)
 		}
 	}

@@ -10,8 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -65,7 +64,7 @@ func (MsSqlJobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 		"interval": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601Duration,
+			ValidateFunc: validation.ISO8601Duration,
 		},
 		"start_time": {
 			Type:     pluginsdk.TypeString,
@@ -100,7 +99,7 @@ func (MsSqlJobScheduleResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (MsSqlJobScheduleResource) ModelObject() interface{} {
+func (MsSqlJobScheduleResource) ModelObject() any {
 	return &MsSqlJobScheduleResourceModel{}
 }
 
@@ -211,7 +210,7 @@ func (MsSqlJobScheduleResource) Read() sdk.ResourceFunc {
 						state.EndTime = pointer.From(schedule.EndTime)
 						state.Interval = pointer.From(schedule.Interval)
 						state.StartTime = pointer.From(schedule.StartTime)
-						state.Type = string(pointer.From(schedule.Type))
+						state.Type = pointer.FromEnum(schedule.Type)
 					}
 				}
 			}

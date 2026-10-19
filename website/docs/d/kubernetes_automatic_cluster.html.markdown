@@ -153,7 +153,7 @@ A `private_cluster` block exports the following:
 
 A `service_mesh` block exports the following:
 
-* `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When a canary upgrade is in progress, this can hold two consecutive values. [Learn More](https://learn.microsoft.com/en-us/azure/aks/istio-upgrade).
+* `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When a canary upgrade is in progress, this can hold two consecutive values. [Learn More](https://learn.microsoft.com/azure/aks/istio-upgrade).
 
 * `internal_ingress_gateway_enabled` - If the Istio Internal Ingress Gateway is enabled.
 
@@ -211,4 +211,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2026-04-01
+* `Microsoft.ContainerService` - 2026-05-01

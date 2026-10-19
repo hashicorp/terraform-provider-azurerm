@@ -128,12 +128,12 @@ func (r KubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_kubernetes_flux_configuration"
 }
 
-func (r KubernetesFluxConfigurationResource) ModelObject() interface{} {
+func (r KubernetesFluxConfigurationResource) ModelObject() any {
 	return &KubernetesFluxConfigurationModel{}
 }
 
 func (r KubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(val interface{}, key string) (warns []string, errs []error) {
+	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)
 		if !ok {
 			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
@@ -586,14 +586,11 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(fluxconfiguration.ScopeTypeNamespace),
-				string(fluxconfiguration.ScopeTypeCluster),
-			}, false),
-			Default: string(fluxconfiguration.ScopeTypeNamespace),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForScopeType(), false),
+			Default:      string(fluxconfiguration.ScopeTypeNamespace),
 		},
 
 		"continuous_reconciliation_enabled": {
@@ -824,7 +821,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 					state.GitRepository = gitRepositoryValue
 					state.Kustomizations = flattenKustomizationDefinitionModel(properties.Kustomizations)
 					state.Namespace = pointer.From(properties.Namespace)
-					state.Scope = string(pointer.From(properties.Scope))
+					state.Scope = pointer.FromEnum(properties.Scope)
 					state.ContinuousReconciliationEnabled = !pointer.From(properties.Suspend)
 				}
 			}
@@ -1283,7 +1280,7 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 		HttpsCACert:           pointer.From(input.HTTPSCACert),
 		HttpsUser:             pointer.From(input.HTTPSUser),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
-		Provider:              string(pointer.From(input.Provider)),
+		Provider:              pointer.FromEnum(input.Provider),
 		SshKnownHosts:         pointer.From(input.SshKnownHosts),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),

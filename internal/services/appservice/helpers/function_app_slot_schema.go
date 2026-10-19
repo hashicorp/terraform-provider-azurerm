@@ -65,9 +65,10 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					// Note: O+C because several factors change the default for this, so needs to be computed.
+					Computed:    true,
 					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
 				},
 
@@ -94,7 +95,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"app_scale_limit": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
@@ -128,7 +129,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -138,7 +139,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Windows Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -190,20 +191,18 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ManagedPipelineModeIntegrated),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ManagedPipelineModeClassic),
-						string(webapps.ManagedPipelineModeIntegrated),
-					}, false),
-					Description: "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ManagedPipelineModeIntegrated),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
+					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"pre_warmed_instance_count": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Computed:    true, // Variable defaults depending on plan etc
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Variable defaults depending on plan etc
+					Computed:    true,
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
@@ -217,7 +216,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -251,15 +250,11 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.FtpsStateDisabled),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
-					Description: "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.FtpsStateDisabled),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
+					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
 				},
 
 				"health_check_path": {
@@ -279,7 +274,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Windows Function App.",
 				},
@@ -383,9 +378,10 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Computed:    true, // Note - several factors change the default for this, so needs to be computed.
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					// Note: O+C because several factors change the default for this, so needs to be computed.
+					Computed:    true,
 					Description: "If this Linux Web App is Always On enabled. Defaults to `false`.",
 				},
 
@@ -412,7 +408,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"app_scale_limit": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
@@ -460,7 +456,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"default_documents": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
@@ -470,7 +466,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
-					Computed:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
@@ -522,20 +518,18 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.ManagedPipelineModeIntegrated),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ManagedPipelineModeClassic),
-						string(webapps.ManagedPipelineModeIntegrated),
-					}, false),
-					Description: "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.ManagedPipelineModeIntegrated),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
+					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
 				},
 
 				"pre_warmed_instance_count": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Computed:    true, // Variable defaults depending on plan etc
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// Note: O+C because Variable defaults depending on plan etc
+					Computed:    true,
 					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
@@ -549,7 +543,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"remote_debugging_version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -583,15 +577,11 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(webapps.FtpsStateDisabled),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
-					Description: "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(webapps.FtpsStateDisabled),
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
+					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
 				},
 
 				"health_check_path": {
@@ -611,7 +601,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"worker_count": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
+					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntBetween(1, 100),
 					Description:  "The number of Workers for this Linux Function App.",
 				},
@@ -894,15 +884,15 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		HealthCheckPath:               pointer.From(functionAppSlotSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSlotSiteConfig.HTTP20Enabled),
 		WindowsFxVersion:              pointer.From(functionAppSlotSiteConfig.WindowsFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSlotSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSlotSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSlotSiteConfig.ManagedPipelineMode),
 		NumberOfWorkers:               pointer.From(functionAppSlotSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSlotSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSlotSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSlotSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSlotSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSlotSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSlotSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSlotSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSlotSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
@@ -911,8 +901,8 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		RemoteDebugging:               pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 	}
 
 	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {
@@ -943,13 +933,11 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		}
 	}
 
+	// DotNetIsolated, NodeVersion, and CustomHandler will be set later from app settings
 	result.ApplicationStack = []ApplicationStackWindowsFunctionApp{{
 		DotNetVersion:         pointer.From(functionAppSlotSiteConfig.NetFrameworkVersion),
-		DotNetIsolated:        false, // Note: this is set later from app_settings.FUNCTIONS_WORKER_RUNTIME in unpackWindowsFunctionAppSettings
-		NodeVersion:           "",    // Note: this will be set from app_settings later in unpackWindowsFunctionAppSettings
 		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
-		CustomHandler:         false, // Note: this is set later from app_settings
 	}}
 
 	return result, nil
@@ -1244,15 +1232,15 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		HealthCheckPath:               pointer.From(functionAppSlotSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSlotSiteConfig.HTTP20Enabled),
 		LinuxFxVersion:                pointer.From(functionAppSlotSiteConfig.LinuxFxVersion),
-		LoadBalancing:                 string(pointer.From(functionAppSlotSiteConfig.LoadBalancing)),
-		ManagedPipelineMode:           string(pointer.From(functionAppSlotSiteConfig.ManagedPipelineMode)),
+		LoadBalancing:                 pointer.FromEnum(functionAppSlotSiteConfig.LoadBalancing),
+		ManagedPipelineMode:           pointer.FromEnum(functionAppSlotSiteConfig.ManagedPipelineMode),
 		WorkerCount:                   pointer.From(functionAppSlotSiteConfig.NumberOfWorkers),
-		ScmType:                       string(pointer.From(functionAppSlotSiteConfig.ScmType)),
-		FtpsState:                     string(pointer.From(functionAppSlotSiteConfig.FtpsState)),
+		ScmType:                       pointer.FromEnum(functionAppSlotSiteConfig.ScmType),
+		FtpsState:                     pointer.FromEnum(functionAppSlotSiteConfig.FtpsState),
 		RuntimeScaleMonitoring:        pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:                 string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
-		ScmMinTlsVersion:              string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
-		MinTlsCipherSuite:             string(pointer.From(functionAppSlotSiteConfig.MinTlsCipherSuite)),
+		MinTlsVersion:                 pointer.FromEnum(functionAppSlotSiteConfig.MinTlsVersion),
+		ScmMinTlsVersion:              pointer.FromEnum(functionAppSlotSiteConfig.ScmMinTlsVersion),
+		MinTlsCipherSuite:             pointer.FromEnum(functionAppSlotSiteConfig.MinTlsCipherSuite),
 		PreWarmedInstanceCount:        pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
@@ -1262,8 +1250,8 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		RemoteDebugging:               pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
-		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
+		IpRestrictionDefaultAction:    pointer.FromEnum(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction),
+		ScmIpRestrictionDefaultAction: pointer.FromEnum(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction),
 	}
 
 	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {

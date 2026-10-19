@@ -279,7 +279,7 @@ A `diff_disk_settings` block supports the following:
 
 * `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk`, `ResourceDisk` and `NvmeDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
 
--> **Note:** `NvmeDisk` can only be used for v6 VMs in combination with a supported `source_image_reference`. More information can be found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/ephemeral-os-disks)
+-> **Note:** `NvmeDisk` can only be used for v6 VMs in combination with a supported `source_image_reference`. More information can be found [here](https://learn.microsoft.com/azure/virtual-machines/ephemeral-os-disks)
 
 ---
 
@@ -408,9 +408,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Windows Virtual Machine.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
-* `os_disk` - An `os_disk` block as documented below.
+* `os_disk` - An `os_disk` block as defined below.
 
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 

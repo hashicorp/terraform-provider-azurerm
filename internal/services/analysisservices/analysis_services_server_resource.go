@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
@@ -27,6 +26,8 @@ import (
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
+
+const analysisServicesServerResourceName = "azurerm_analysis_services_server"
 
 func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -104,12 +105,12 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 						"range_start": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"range_end": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 				},
@@ -117,13 +118,10 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"querypool_connection_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(servers.ConnectionModeAll),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.ConnectionModeAll),
-					string(servers.ConnectionModeReadOnly),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(servers.ConnectionModeAll),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForConnectionMode(), false),
 			},
 
 			"backup_blob_container_uri": {
@@ -143,7 +141,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -173,7 +171,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 			AsAdministrators:     expandAnalysisServicesServerAdminUsers(d),
 			IPV4FirewallSettings: expandAnalysisServicesServerFirewallSettings(d),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
@@ -196,7 +194,7 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,10 +214,14 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceAnalysisServicesServerFlatten(d, id, server.Model)
+}
+
+func resourceAnalysisServicesServerFlatten(d *pluginsdk.ResourceData, id *servers.ServerId, model *servers.AnalysisServicesServer) error {
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := server.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("sku", model.Sku.Name)
 
@@ -256,7 +258,7 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -295,7 +297,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku: &servers.ResourceSku{
 			Name: d.Get("sku").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &servers.AnalysisServicesServerMutableProperties{
 			AsAdministrators:        expandAnalysisServicesServerAdminUsers(d),
 			IPV4FirewallSettings:    expandAnalysisServicesServerFirewallSettings(d),
@@ -320,7 +322,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceAnalysisServicesServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AnalysisServices.Servers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -369,7 +371,7 @@ func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *se
 	}
 
 	for _, v := range firewallRules {
-		fwRule := v.(map[string]interface{})
+		fwRule := v.(map[string]any)
 		fwRules = append(fwRules, servers.IPv4FirewallRule{
 			FirewallRuleName: pointer.To(fwRule["name"].(string)),
 			RangeStart:       pointer.To(fwRule["range_start"].(string)),
@@ -383,7 +385,7 @@ func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *se
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.AnalysisServicesServerProperties) (*bool, *pluginsdk.Set) {
 	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
-		return pointer.To(false), pluginsdk.NewSet(hashAnalysisServicesServerIPv4FirewallRule, make([]interface{}, 0))
+		return pointer.To(false), pluginsdk.NewSet(hashAnalysisServicesServerIPv4FirewallRule, make([]any, 0))
 	}
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
@@ -393,10 +395,10 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.Ana
 		enablePowerBi = firewallSettings.EnablePowerBIService
 	}
 
-	fwRules := make([]interface{}, 0)
+	fwRules := make([]any, 0)
 	if firewallSettings.FirewallRules != nil {
 		for _, fwRule := range *firewallSettings.FirewallRules {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 			if fwRule.FirewallRuleName != nil {
 				output["name"] = *fwRule.FirewallRuleName
 			}
@@ -416,9 +418,9 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.Ana
 	return enablePowerBi, pluginsdk.NewSet(hashAnalysisServicesServerIPv4FirewallRule, fwRules)
 }
 
-func hashAnalysisServicesServerIPv4FirewallRule(v interface{}) int {
+func hashAnalysisServicesServerIPv4FirewallRule(v any) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m := v.(map[string]any)
 
 	fmt.Fprintf(&buf, "%s-", strings.ToLower(m["name"].(string)))
 	fmt.Fprintf(&buf, "%s-", m["range_start"].(string))

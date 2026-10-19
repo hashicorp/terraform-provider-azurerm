@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package resource
 
 import (
@@ -10,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,9 +42,9 @@ func (r ResourceGroupListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r ResourceGroupListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"subscription_id": listschema.StringAttribute{
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"subscription_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The ID of the subscription to query. Defaults to the value specified in the Provider Configuration.",
 				Validators: []validator.String{
@@ -51,7 +54,7 @@ func (r ResourceGroupListResource) ListResourceConfigSchema(_ context.Context, _
 				},
 			},
 
-			"filter": listschema.StringAttribute{
+			"filter": schema.StringAttribute{
 				Optional:    true,
 				Description: "A filter expression to filter the results by.",
 				Validators: []validator.String{
