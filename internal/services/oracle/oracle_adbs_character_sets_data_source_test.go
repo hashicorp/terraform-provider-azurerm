@@ -12,7 +12,7 @@ import (
 
 type AdbsCharSetsDataSource struct{}
 
-func TestAdbsCharSetsDataSource_basic(t *testing.T) {
+func TestAccAdbsCharSetsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_adbs_character_sets", "test")
 	r := AdbsCharSetsDataSource{}
 
