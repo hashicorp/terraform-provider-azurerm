@@ -62,7 +62,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"email_address_sender": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// O+C: When using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
+			// Note: O+C because when using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
