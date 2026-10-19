@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package extendedlocation_test
+package extended_location_custom_location_test
 
 import (
 	"context"

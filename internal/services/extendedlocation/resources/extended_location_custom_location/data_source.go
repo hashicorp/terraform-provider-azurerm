@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package extendedlocation
+package extended_location_custom_location
 
 import (
 	"context"
@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.DataSource = ExtendedLocationCustomLocationDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type ExtendedLocationCustomLocationDataSource struct{}
+type DataSource struct{}
 
 type ExtendedLocationCustomLocationDataSourceModel struct {
 	Authentication      []AuthModel `tfschema:"authentication"`
@@ -35,7 +35,7 @@ type ExtendedLocationCustomLocationDataSourceModel struct {
 	ResourceGroupName   string      `tfschema:"resource_group_name"`
 }
 
-func (r ExtendedLocationCustomLocationDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -50,7 +50,7 @@ func (r ExtendedLocationCustomLocationDataSource) Arguments() map[string]*plugin
 	}
 }
 
-func (r ExtendedLocationCustomLocationDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"authentication": {
 			Type:     pluginsdk.TypeList,
@@ -102,15 +102,15 @@ func (r ExtendedLocationCustomLocationDataSource) Attributes() map[string]*plugi
 	}
 }
 
-func (r ExtendedLocationCustomLocationDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ExtendedLocationCustomLocationDataSourceModel{}
 }
 
-func (r ExtendedLocationCustomLocationDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_extended_location_custom_location"
 }
 
-func (r ExtendedLocationCustomLocationDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
