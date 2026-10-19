@@ -30,7 +30,7 @@ func (r StaticWebAppFunctionAppRegistrationResource) ResourceType() string {
 	return "azurerm_static_web_app_function_app_registration"
 }
 
-func (r StaticWebAppFunctionAppRegistrationResource) ModelObject() interface{} {
+func (r StaticWebAppFunctionAppRegistrationResource) ModelObject() any {
 	return &StaticWebAppFunctionAppRegistrationModel{}
 }
 

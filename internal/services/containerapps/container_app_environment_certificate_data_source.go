@@ -25,17 +25,17 @@ type ContainerAppEnvironmentCertificateDataSourceModel struct {
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
 	// Read Only
-	SubjectName    string                 `tfschema:"subject_name"`
-	Issuer         string                 `tfschema:"issuer"`
-	IssueDate      string                 `tfschema:"issue_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Thumbprint     string                 `tfschema:"thumbprint"`
-	Tags           map[string]interface{} `tfschema:"tags"`
+	SubjectName    string         `tfschema:"subject_name"`
+	Issuer         string         `tfschema:"issuer"`
+	IssueDate      string         `tfschema:"issue_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Thumbprint     string         `tfschema:"thumbprint"`
+	Tags           map[string]any `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = ContainerAppEnvironmentCertificateDataSource{}
 
-func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentCertificateDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentCertificateDataSourceModel{}
 }
 

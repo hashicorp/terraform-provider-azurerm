@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -348,7 +348,7 @@ func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
 
 	instanceCount := 5
 	var checks []pluginsdk.TestCheckFunc
-	for i := 0; i < instanceCount; i++ {
+	for i := range instanceCount {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
@@ -367,7 +367,7 @@ func TestAccPrivateEndpoint_multipleInstancesWithLinkAlias(t *testing.T) {
 
 	instanceCount := 5
 	var checks []pluginsdk.TestCheckFunc
-	for i := 0; i < instanceCount; i++ {
+	for i := range instanceCount {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
@@ -520,7 +520,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
+func (PrivateEndpointResource) template(data acceptance.TestData, serviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -578,7 +578,7 @@ resource "azurerm_lb" "test" {
 }
 
 %s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, seviceCfg)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, serviceCfg)
 }
 
 func (PrivateEndpointResource) serviceAutoApprove(data acceptance.TestData) string {

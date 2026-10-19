@@ -70,7 +70,7 @@ func (EncryptedValueDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (EncryptedValueDataSource) ModelObject() interface{} {
+func (EncryptedValueDataSource) ModelObject() any {
 	return &EncryptedValueDataSourceModel{}
 }
 

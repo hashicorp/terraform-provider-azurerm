@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package firewall_test
 
 import (
@@ -14,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccfirewallPolicy_listBySuscriptionAndRG(t *testing.T) {
+func TestAccfirewallPolicy_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "testlist1")
 	r := FirewallPolicyResource{}
 

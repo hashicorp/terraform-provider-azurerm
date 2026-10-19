@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azvalidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -111,7 +110,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      "Etc/UTC",
-				ValidateFunc: azvalidate.AzureTimeZoneString(),
+				ValidateFunc: validate.AzureTimeZoneString(),
 			},
 
 			"week_days": {
@@ -164,7 +163,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
@@ -196,7 +195,7 @@ func resourceAutomationSchedule() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Schedule
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -253,7 +252,7 @@ func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
 	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
-		var interval interface{}
+		var interval any
 		interval = 1
 		if v, ok := d.GetOk("interval"); ok {
 			interval = v
@@ -275,7 +274,7 @@ func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceAutomationScheduleRead(d, meta)
 }
 
-func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Schedule
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -358,7 +357,7 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceAutomationScheduleRead(d, meta)
 }
 
-func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Schedule
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -384,7 +383,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("frequency", string(pointer.From(props.Frequency)))
+			d.Set("frequency", pointer.FromEnum(props.Frequency))
 
 			startTime, err := props.GetStartTimeAsTime()
 			if err != nil {
@@ -419,7 +418,7 @@ func resourceAutomationScheduleRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAutomationScheduleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationScheduleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Schedule
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -467,10 +466,10 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 		expandedAdvancedSchedule.MonthDays = &[]int64{}
 	}
 
-	monthlyOccurrences := d.Get("monthly_occurrence").([]interface{})
+	monthlyOccurrences := d.Get("monthly_occurrence").([]any)
 	expandedMonthlyOccurrences := make([]schedule.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
 	for i := range monthlyOccurrences {
-		m := monthlyOccurrences[i].(map[string]interface{})
+		m := monthlyOccurrences[i].(map[string]any)
 
 		expandedMonthlyOccurrences[i] = schedule.AdvancedScheduleMonthlyOccurrence{
 			Occurrence: pointer.To(int64(m["occurrence"].(int))),
@@ -483,7 +482,7 @@ func expandArmAutomationScheduleAdvanced(d *pluginsdk.ResourceData, isUpdate boo
 }
 
 func flattenArmAutomationScheduleAdvancedWeekDays(s *schedule.AdvancedSchedule) *pluginsdk.Set {
-	flattenedWeekDays := pluginsdk.NewSet(set.HashStringIgnoreCase, []interface{}{})
+	flattenedWeekDays := pluginsdk.NewSet(set.HashStringIgnoreCase, []any{})
 	if weekDays := s.WeekDays; weekDays != nil {
 		for _, v := range *weekDays {
 			flattenedWeekDays.Add(v)
@@ -493,7 +492,7 @@ func flattenArmAutomationScheduleAdvancedWeekDays(s *schedule.AdvancedSchedule) 
 }
 
 func flattenArmAutomationScheduleAdvancedMonthDays(s *schedule.AdvancedSchedule) *pluginsdk.Set {
-	flattenedMonthDays := pluginsdk.NewSet(set.HashInt, []interface{}{})
+	flattenedMonthDays := pluginsdk.NewSet(set.HashInt, []any{})
 	if monthDays := s.MonthDays; monthDays != nil {
 		for _, v := range *monthDays {
 			flattenedMonthDays.Add(int(v))
@@ -502,11 +501,11 @@ func flattenArmAutomationScheduleAdvancedMonthDays(s *schedule.AdvancedSchedule)
 	return flattenedMonthDays
 }
 
-func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *schedule.AdvancedSchedule) []map[string]interface{} {
-	flattenedMonthlyOccurrences := make([]map[string]interface{}, 0)
+func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *schedule.AdvancedSchedule) []map[string]any {
+	flattenedMonthlyOccurrences := make([]map[string]any, 0)
 	if monthlyOccurrences := s.MonthlyOccurrences; monthlyOccurrences != nil {
 		for _, v := range *monthlyOccurrences {
-			f := make(map[string]interface{})
+			f := make(map[string]any)
 			f["day"] = v.Day
 			f["occurrence"] = int(*v.Occurrence)
 			flattenedMonthlyOccurrences = append(flattenedMonthlyOccurrences, f)

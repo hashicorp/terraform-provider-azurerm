@@ -18,6 +18,16 @@ import (
 
 type VirtualMachineRestorePointCollectionResource struct{}
 
+func TestAccVirtualMachineRestorePointCollection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_restore_point_collection", "test")
+	r := VirtualMachineRestorePointCollectionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineRestorePointCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_restore_point_collection", "test")
 	r := VirtualMachineRestorePointCollectionResource{}

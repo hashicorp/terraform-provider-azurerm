@@ -23,7 +23,7 @@ func TestContainerV0ToV1(t *testing.T) {
 	for _, cloud := range clouds {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
-		input := map[string]interface{}{
+		input := map[string]any{
 			"id":                   "old-id",
 			"name":                 "some-name",
 			"storage_account_name": "some-account",
@@ -40,7 +40,7 @@ func TestContainerV0ToV1(t *testing.T) {
 			t.Fatalf("could not determine Storage domain suffix for environment %q", meta.Account.Environment.Name)
 		}
 
-		expected := map[string]interface{}{
+		expected := map[string]any{
 			"id":                   fmt.Sprintf("https://some-account.blob.%s/some-name", *suffix),
 			"name":                 "some-name",
 			"storage_account_name": "some-account",

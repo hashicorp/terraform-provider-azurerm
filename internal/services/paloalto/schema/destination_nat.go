@@ -8,8 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -48,7 +47,7 @@ func DestinationNATSchema() *pluginsdk.Schema {
 				"protocol": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringInSlice(firewalls.PossibleValuesForProtocolType(), false),
+					ValidateFunc: validation.StringInSlice(firewallresources.PossibleValuesForProtocolType(), false),
 				},
 
 				"backend_config": BackendEndpointSchema(),
@@ -92,7 +91,7 @@ func BackendEndpointSchema() *pluginsdk.Schema {
 				"public_ip_address": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: helpersValidate.IPv4Address,
+					ValidateFunc: validation.IsIPv4Address,
 				},
 
 				"port": {
@@ -105,20 +104,20 @@ func BackendEndpointSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandDestinationNAT(input []DestinationNAT) *[]firewalls.FrontendSetting {
-	fes := make([]firewalls.FrontendSetting, 0)
+func ExpandDestinationNAT(input []DestinationNAT) *[]firewallresources.FrontendSetting {
+	fes := make([]firewallresources.FrontendSetting, 0)
 	for _, v := range input {
-		fe := firewalls.FrontendSetting{
+		fe := firewallresources.FrontendSetting{
 			Name:                  v.Name,
-			Protocol:              firewalls.ProtocolType(v.Protocol),
-			BackendConfiguration:  firewalls.EndpointConfiguration{},
-			FrontendConfiguration: firewalls.EndpointConfiguration{},
+			Protocol:              firewallresources.ProtocolType(v.Protocol),
+			BackendConfiguration:  firewallresources.EndpointConfiguration{},
+			FrontendConfiguration: firewallresources.EndpointConfiguration{},
 		}
 
 		if len(v.FrontendConfiguration) > 0 {
 			fec := v.FrontendConfiguration[0]
-			fe.FrontendConfiguration = firewalls.EndpointConfiguration{
-				Address: firewalls.IPAddress{
+			fe.FrontendConfiguration = firewallresources.EndpointConfiguration{
+				Address: firewallresources.IPAddress{
 					ResourceId: pointer.To(fec.PublicIPID),
 				},
 				Port: strconv.FormatInt(fec.Port, 10),
@@ -127,8 +126,8 @@ func ExpandDestinationNAT(input []DestinationNAT) *[]firewalls.FrontendSetting {
 
 		if len(v.BackendConfiguration) > 0 {
 			bec := v.BackendConfiguration[0]
-			fe.BackendConfiguration = firewalls.EndpointConfiguration{
-				Address: firewalls.IPAddress{
+			fe.BackendConfiguration = firewallresources.EndpointConfiguration{
+				Address: firewallresources.IPAddress{
 					Address: pointer.To(bec.PublicIP),
 				},
 				Port: strconv.FormatInt(bec.Port, 10),
@@ -141,7 +140,7 @@ func ExpandDestinationNAT(input []DestinationNAT) *[]firewalls.FrontendSetting {
 	return &fes
 }
 
-func FlattenDestinationNAT(input *[]firewalls.FrontendSetting) []DestinationNAT {
+func FlattenDestinationNAT(input *[]firewallresources.FrontendSetting) []DestinationNAT {
 	result := make([]DestinationNAT, 0)
 	if feSettings := pointer.From(input); len(feSettings) > 0 {
 		for _, v := range feSettings {

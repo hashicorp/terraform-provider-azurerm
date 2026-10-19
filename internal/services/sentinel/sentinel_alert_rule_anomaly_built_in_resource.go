@@ -43,7 +43,7 @@ type AlertRuleAnomalyBuiltInResource struct{}
 
 var _ sdk.ResourceWithUpdate = AlertRuleAnomalyBuiltInResource{}
 
-func (r AlertRuleAnomalyBuiltInResource) ModelObject() interface{} {
+func (r AlertRuleAnomalyBuiltInResource) ModelObject() any {
 	return &AlertRuleAnomalyBuiltInModel{}
 }
 
@@ -406,7 +406,6 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 					IsDefaultSettings:        props.IsDefaultSettings,
 					AnomalySettingsVersion:   props.AnomalySettingsVersion,
 					SettingsDefinitionId:     props.SettingsDefinitionId,
-					Enabled:                  false,
 					SettingsStatus:           props.SettingsStatus,
 					CustomizableObservations: props.CustomizableObservations,
 				},

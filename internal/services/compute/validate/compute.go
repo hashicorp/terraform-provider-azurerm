@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors []error) {
+func SharedImageGalleryName(v any, k string) (warnings []string, errors []error) {
 	// Image gallery name accepts only alphanumeric, dots and underscores in the name (no dashes)
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._]+$`), "can only contain alphanumeric, full stops and underscores"),
@@ -18,7 +18,7 @@ func SharedImageGalleryName(v interface{}, k string) (warnings []string, errors 
 	)(v, k)
 }
 
-func SharedImageName(v interface{}, k string) (warnings []string, errors []error) {
+func SharedImageName(v any, k string) (warnings []string, errors []error) {
 	// different from the shared image gallery name
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._-]+$`), "can only contain alphanumeric, full stops, dashes and underscores"),
@@ -26,7 +26,7 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 	)(v, k)
 }
 
-func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]string, []error) {
+func SharedImageIdentifierAttribute(maxLength int) func(any, string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._-]+$`), "can only contain alphanumeric, full stops, dashes and underscores"),
 		validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "cannot end with a full stop"),
@@ -34,7 +34,7 @@ func SharedImageIdentifierAttribute(maxLength int) func(interface{}, string) ([]
 	)
 }
 
-func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {
+func SharedImageVersionName(v any, k string) (warnings []string, errors []error) {
 	// "latest" and "recent" are valid in addition to the version number format
 	return validation.Any(
 		validation.StringInSlice([]string{"latest", "recent"}, false),
@@ -42,14 +42,14 @@ func SharedImageVersionName(v interface{}, k string) (warnings []string, errors 
 	)(v, k)
 }
 
-func GalleryApplicationName(v interface{}, k string) (warnings []string, errors []error) {
+func GalleryApplicationName(v any, k string) (warnings []string, errors []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9._-]+$`), "can only contain alphanumeric, full stops, dashes and underscores"),
 		validation.StringLenBetween(1, 80),
 	)(v, k)
 }
 
-func GalleryApplicationVersionName(v interface{}, k string) (warnings []string, errors []error) {
+func GalleryApplicationVersionName(v any, k string) (warnings []string, errors []error) {
 	// "latest" and "recent" are valid in addition to the version number format
 	return validation.Any(
 		validation.StringInSlice([]string{"latest", "recent"}, false),

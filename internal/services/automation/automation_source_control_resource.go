@@ -140,7 +140,7 @@ func (m SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m SourceControlResource) ModelObject() interface{} {
+func (m SourceControlResource) ModelObject() any {
 	return &SourceControlModel{}
 }
 
@@ -313,7 +313,6 @@ func (m SourceControlResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", *id)
 			client := meta.Client.Automation.SourceControl
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", *id, err)

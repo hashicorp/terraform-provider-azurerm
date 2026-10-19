@@ -35,7 +35,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) ResourceType() string {
 	return "azurerm_network_function_azure_traffic_collector"
 }
 
-func (r NetworkFunctionAzureTrafficCollectorResource) ModelObject() interface{} {
+func (r NetworkFunctionAzureTrafficCollectorResource) ModelObject() any {
 	return &NetworkFunctionAzureTrafficCollectorModel{}
 }
 

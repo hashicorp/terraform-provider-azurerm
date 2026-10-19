@@ -20,8 +20,6 @@ const (
 	CustomSetupTypeEnvironmentVariableSetup CustomSetupType = "EnvironmentVariableSetup"
 )
 
-type DataFlowType string
-
 const (
 	DataFlowTypeFlowlet           = "Flowlet"
 	DataFlowTypeMappingDataFlow   = "MappingDataFlow"

@@ -19,14 +19,6 @@ type CommunityGalleryImageVersionId struct {
 	Version     string
 }
 
-func NewCommunityGalleryImageVersionID(galleryName, imageName, version string) CommunityGalleryImageVersionId {
-	return CommunityGalleryImageVersionId{
-		GalleryName: galleryName,
-		ImageName:   imageName,
-		Version:     version,
-	}
-}
-
 func (id CommunityGalleryImageVersionId) String() string {
 	segments := []string{
 		fmt.Sprintf("Gallery Name %q", id.GalleryName),

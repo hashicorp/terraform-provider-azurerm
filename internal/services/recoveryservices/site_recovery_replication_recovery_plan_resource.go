@@ -44,13 +44,6 @@ type BootRecoveryGroupModel struct {
 	ReplicatedProtectedItems []string      `tfschema:"replicated_protected_items"`
 }
 
-type RecoveryGroupModel struct {
-	GroupType                string        `tfschema:"type"`
-	PostAction               []ActionModel `tfschema:"post_action"`
-	PreAction                []ActionModel `tfschema:"pre_action"`
-	ReplicatedProtectedItems []string      `tfschema:"replicated_protected_items"`
-}
-
 type ActionModel struct {
 	ActionDetailType        string   `tfschema:"type"`
 	FabricLocation          string   `tfschema:"fabric_location"`
@@ -77,7 +70,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) ResourceType() string {
 	return "azurerm_site_recovery_replication_recovery_plan"
 }
 
-func (r SiteRecoveryReplicationRecoveryPlanResource) ModelObject() interface{} {
+func (r SiteRecoveryReplicationRecoveryPlanResource) ModelObject() any {
 	return &SiteRecoveryReplicationRecoveryPlanModel{}
 }
 

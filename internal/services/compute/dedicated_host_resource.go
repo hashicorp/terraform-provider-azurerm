@@ -146,7 +146,7 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 	}
 }
 
-func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +179,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Sku: dedicatedhosts.Sku{
 			Name: pointer.To(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v := d.Get("license_type").(string); v != "" {
@@ -198,7 +198,7 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta any) error {
 	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -249,7 +249,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,7 +276,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -286,7 +286,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceDedicatedHostRead(d, meta)
 }
 
-func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

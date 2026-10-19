@@ -45,7 +45,7 @@ func dataSourceCdnProfile() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

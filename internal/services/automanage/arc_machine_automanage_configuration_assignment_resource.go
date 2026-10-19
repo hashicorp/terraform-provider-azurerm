@@ -44,7 +44,7 @@ func (v ArcMachineConfigurationAssignment) Attributes() map[string]*schema.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (v ArcMachineConfigurationAssignment) ModelObject() interface{} {
+func (v ArcMachineConfigurationAssignment) ModelObject() any {
 	return &ArcMachineConfigurationAssignment{}
 }
 

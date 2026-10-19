@@ -45,7 +45,7 @@ type ResourceGroupAssignmentModel struct {
 	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
 }
 
-func (r ResourceGroupAssignmentResource) ModelObject() interface{} {
+func (r ResourceGroupAssignmentResource) ModelObject() any {
 	return &ResourceGroupAssignmentModel{}
 }
 

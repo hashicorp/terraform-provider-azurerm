@@ -19,9 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -33,14 +31,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 // TODO: outside of this pr make this private
 
 var IothubResourceName = "azurerm_iothub"
 
-// nolint unparam
+//nolint:unparam
 func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		path := strings.Split(k, ".")
@@ -49,24 +47,11 @@ func suppressIfTypeIsNot(t string) pluginsdk.SchemaDiffSuppressFunc {
 	}
 }
 
-// nolint unparam
 func suppressIfTypeIs(t string) pluginsdk.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
 		path := strings.Split(k, ".")
 		path[len(path)-1] = "type"
 		return d.Get(strings.Join(path, ".")).(string) == t
-	}
-}
-
-// nolint unparam
-func suppressWhenAny(fs ...pluginsdk.SchemaDiffSuppressFunc) pluginsdk.SchemaDiffSuppressFunc {
-	return func(k, old, new string, d *pluginsdk.ResourceData) bool {
-		for _, f := range fs {
-			if f(k, old, new, d) {
-				return true
-			}
-		}
-		return false
 	}
 }
 
@@ -208,19 +193,19 @@ func resourceIotHub() *pluginsdk.Resource {
 						"sas_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1H",
 						},
 						"default_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1H",
 						},
 						"lock_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.ISO8601Duration,
+							ValidateFunc: validation.ISO8601Duration,
 							Default:      "PT1M",
 						},
 					},
@@ -370,7 +355,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 						"condition": {
 							// The condition is a string value representing device-to-cloud message routes query expression
-							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "true",
@@ -446,7 +431,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 						"condition": {
 							// The condition is a string value representing device-to-cloud message routes query expression
-							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "true",
@@ -498,7 +483,7 @@ func resourceIotHub() *pluginsdk.Resource {
 									"ip_mask": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 									"action": {
 										Type:         pluginsdk.TypeString,
@@ -530,7 +515,7 @@ func resourceIotHub() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "PT1H",
-							ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+							ValidateFunc: validation.ISO8601DurationBetween("PT15M", "P2D"),
 						},
 						"feedback": {
 							Type:     pluginsdk.TypeList,
@@ -541,7 +526,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT1H",
-										ValidateFunc: validate.ISO8601DurationBetween("PT15M", "P2D"),
+										ValidateFunc: validation.ISO8601DurationBetween("PT15M", "P2D"),
 									},
 									"max_delivery_count": {
 										Type:         pluginsdk.TypeInt,
@@ -553,7 +538,7 @@ func resourceIotHub() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										Default:      "PT60S",
-										ValidateFunc: validate.ISO8601DurationBetween("PT5S", "PT300S"),
+										ValidateFunc: validation.ISO8601DurationBetween("PT5S", "PT300S"),
 									},
 								},
 							},
@@ -622,7 +607,7 @@ func resourceIotHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -696,7 +681,7 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		cloudToDeviceProperties = expandIoTHubCloudToDevice(d)
 	}
 
-	identity, err := expandIotHubIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIotHubIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -713,14 +698,14 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			CloudToDevice:                 cloudToDeviceProperties,
 		},
 		Identity: identity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, ok := d.GetOk("network_rule_set"); ok {
 		props.Properties.NetworkRuleSets = expandNetworkRuleSetProperties(d)
 	}
 
-	// nolint staticcheck
+	//nolint:staticcheck
 	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 		enabled := devices.PublicNetworkAccessDisabled
 		if v.(bool) {
@@ -765,7 +750,7 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceIotHubRead(d, meta)
 }
 
-func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -795,7 +780,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandIotHubIdentity(d.Get("identity").([]interface{}))
+		identity, err := expandIotHubIdentity(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -803,7 +788,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("tags") {
-		iothub.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		iothub.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("route") {
@@ -873,7 +858,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		// nolint staticcheck
+		//nolint:staticcheck
 		if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 			enabled := devices.PublicNetworkAccessDisabled
 			if v.(bool) {
@@ -938,7 +923,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"404"},
 		Target:  []string{"200"},
-		Refresh: func() (result interface{}, state string, err error) {
+		Refresh: func() (result any, state string, err error) {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				if response.WasNotFound(resp.Response.Response) {
@@ -962,7 +947,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceIotHubRead(d, meta)
 }
 
-func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1079,7 +1064,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, hub.Tags)
 }
 
-func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := parse.IotHubID(d.Id())
 	if err != nil {
 		return err
@@ -1104,22 +1089,22 @@ func resourceIotHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
-	routeList := d.Get("route").([]interface{})
+	routeList := d.Get("route").([]any)
 
 	routeProperties := make([]devices.RouteProperties, 0)
 
 	for _, routeRaw := range routeList {
-		route := routeRaw.(map[string]interface{})
+		route := routeRaw.(map[string]any)
 
 		source := devices.RoutingSource(route["source"].(string))
 
-		endpointNamesRaw := route["endpoint_names"].([]interface{})
+		endpointNamesRaw := route["endpoint_names"].([]any)
 
 		routeProperties = append(routeProperties, devices.RouteProperties{
 			Name:          pointer.To(route["name"].(string)),
 			Source:        source,
 			Condition:     pointer.To(route["condition"].(string)),
-			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 			IsEnabled:     pointer.To(route["enabled"].(bool)),
 		})
 	}
@@ -1128,19 +1113,19 @@ func expandIoTHubRoutes(d *pluginsdk.ResourceData) *[]devices.RouteProperties {
 }
 
 func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentProperties {
-	enrichmentList := d.Get("enrichment").([]interface{})
+	enrichmentList := d.Get("enrichment").([]any)
 
 	enrichmentProperties := make([]devices.EnrichmentProperties, 0)
 
 	for _, enrichmentRaw := range enrichmentList {
-		enrichment := enrichmentRaw.(map[string]interface{})
+		enrichment := enrichmentRaw.(map[string]any)
 
-		endpointNamesRaw := enrichment["endpoint_names"].([]interface{})
+		endpointNamesRaw := enrichment["endpoint_names"].([]any)
 
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
 			Key:           pointer.To(enrichment["key"].(string)),
 			Value:         pointer.To(enrichment["value"].(string)),
-			EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+			EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
 
@@ -1148,14 +1133,14 @@ func expandIoTHubEnrichments(d *pluginsdk.ResourceData) *[]devices.EnrichmentPro
 }
 
 func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool, error) {
-	fileUploadList := d.Get("file_upload").([]interface{})
+	fileUploadList := d.Get("file_upload").([]any)
 
 	storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
 	messagingEndpointProperties := make(map[string]*devices.MessagingEndpointProperties)
 	notifications := false
 
 	if len(fileUploadList) > 0 {
-		fileUploadMap := fileUploadList[0].(map[string]interface{})
+		fileUploadMap := fileUploadList[0].(map[string]any)
 
 		authenticationType := devices.AuthenticationType(fileUploadMap["authentication_type"].(string))
 		identityId := fileUploadMap["identity_id"].(string)
@@ -1192,7 +1177,7 @@ func expandIoTHubFileUpload(d *pluginsdk.ResourceData) (map[string]*devices.Stor
 }
 
 func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
-	routeEndpointList := d.Get("endpoint").([]interface{})
+	routeEndpointList := d.Get("endpoint").([]any)
 
 	serviceBusQueueEndpointProperties := make([]devices.RoutingServiceBusQueueEndpointProperties, 0)
 	serviceBusTopicEndpointProperties := make([]devices.RoutingServiceBusTopicEndpointProperties, 0)
@@ -1200,7 +1185,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 	storageContainerProperties := make([]devices.RoutingStorageContainerProperties, 0)
 
 	for k, endpointRaw := range routeEndpointList {
-		endpoint := endpointRaw.(map[string]interface{})
+		endpoint := endpointRaw.(map[string]any)
 
 		t := endpoint["type"]
 		name := endpoint["name"].(string)
@@ -1208,7 +1193,7 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 		authenticationType := devices.AuthenticationType(endpoint["authentication_type"].(string))
 
 		var subscriptionID string
-		// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+		// To align with the previous TF behaviour, `subscription_id` needs to be set with the provider's subscription Id when it isn't specified in the tf config, otherwise TF behaviour is different than before and it may block the existing users
 		// From the business perspective, the raw config handling is only meant for the case that the user has an EventHub whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
 		// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
 		if v := d.GetRawConfig().AsValueMap()["endpoint"].AsValueSlice()[k].AsValueMap()["subscription_id"]; v.IsNull() {
@@ -1332,24 +1317,24 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 }
 
 func expandIoTHubFallbackRoute(d *pluginsdk.ResourceData) *devices.FallbackRouteProperties {
-	fallbackRouteList := d.Get("fallback_route").([]interface{})
+	fallbackRouteList := d.Get("fallback_route").([]any)
 	if len(fallbackRouteList) == 0 {
 		return nil
 	}
 
-	fallbackRouteMap := fallbackRouteList[0].(map[string]interface{})
+	fallbackRouteMap := fallbackRouteList[0].(map[string]any)
 
 	return &devices.FallbackRouteProperties{
 		Source:        pointer.To(fallbackRouteMap["source"].(string)),
 		Condition:     pointer.To(fallbackRouteMap["condition"].(string)),
-		EndpointNames: helpers.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]interface{})),
+		EndpointNames: pluginsdk.ExpandStringSlice(fallbackRouteMap["endpoint_names"].([]any)),
 		IsEnabled:     pointer.To(fallbackRouteMap["enabled"].(bool)),
 	}
 }
 
 func expandIoTHubSku(d *pluginsdk.ResourceData) *devices.IotHubSkuInfo {
-	skuList := d.Get("sku").([]interface{})
-	skuMap := skuList[0].(map[string]interface{})
+	skuList := d.Get("sku").([]any)
+	skuMap := skuList[0].(map[string]any)
 
 	return &devices.IotHubSkuInfo{
 		Name:     devices.IotHubSku(skuMap["name"].(string)),
@@ -1358,20 +1343,20 @@ func expandIoTHubSku(d *pluginsdk.ResourceData) *devices.IotHubSkuInfo {
 }
 
 func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDeviceProperties {
-	ctdList := d.Get("cloud_to_device").([]interface{})
+	ctdList := d.Get("cloud_to_device").([]any)
 	if len(ctdList) == 0 {
 		return nil
 	}
 	cloudToDevice := devices.CloudToDeviceProperties{}
-	ctdMap := ctdList[0].(map[string]interface{})
+	ctdMap := ctdList[0].(map[string]any)
 
 	cloudToDevice.DefaultTTLAsIso8601 = pointer.To(ctdMap["default_ttl"].(string))
 	cloudToDevice.MaxDeliveryCount = pointer.To(int32(ctdMap["max_delivery_count"].(int)))
-	feedback := ctdMap["feedback"].([]interface{})
+	feedback := ctdMap["feedback"].([]any)
 
 	cloudToDeviceFeedback := devices.FeedbackProperties{}
 	if len(feedback) > 0 {
-		feedbackMap := feedback[0].(map[string]interface{})
+		feedbackMap := feedback[0].(map[string]any)
 
 		cloudToDeviceFeedback.TTLAsIso8601 = pointer.To(feedbackMap["time_to_live"].(string))
 		cloudToDeviceFeedback.LockDurationAsIso8601 = pointer.To(feedbackMap["lock_duration"].(string))
@@ -1383,23 +1368,23 @@ func expandIoTHubCloudToDevice(d *pluginsdk.ResourceData) *devices.CloudToDevice
 	return &cloudToDevice
 }
 
-func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
-	output := make(map[string]interface{})
+func flattenIoTHubSku(input *devices.IotHubSkuInfo) []any {
+	output := make(map[string]any)
 
 	output["name"] = string(input.Name)
 	if capacity := input.Capacity; capacity != nil {
 		output["capacity"] = int(*capacity)
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenIoTHubSharedAccessPolicy(input *[]devices.SharedAccessSignatureAuthorizationRule) []interface{} {
-	results := make([]interface{}, 0)
+func flattenIoTHubSharedAccessPolicy(input *[]devices.SharedAccessSignatureAuthorizationRule) []any {
+	results := make([]any, 0)
 
 	if keys := input; keys != nil {
 		for _, key := range *keys {
-			keyMap := make(map[string]interface{})
+			keyMap := make(map[string]any)
 
 			if keyName := key.KeyName; keyName != nil {
 				keyMap["key_name"] = *keyName
@@ -1421,9 +1406,9 @@ func flattenIoTHubSharedAccessPolicy(input *[]devices.SharedAccessSignatureAutho
 	return results
 }
 
-func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpointProperties, messagingEndpoints map[string]*devices.MessagingEndpointProperties, enableFileUploadNotifications *bool) []interface{} {
-	results := make([]interface{}, 0)
-	output := make(map[string]interface{})
+func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpointProperties, messagingEndpoints map[string]*devices.MessagingEndpointProperties, enableFileUploadNotifications *bool) []any {
+	results := make([]any, 0)
+	output := make(map[string]any)
 
 	if storageEndpointProperties, ok := storageEndpoints["$default"]; ok {
 		if connString := storageEndpointProperties.ConnectionString; connString != nil {
@@ -1470,13 +1455,13 @@ func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpoin
 	return results
 }
 
-func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenIoTHubEndpoint(input *devices.RoutingProperties) []any {
+	results := make([]any, 0)
 
 	if input != nil && input.Endpoints != nil {
 		if containers := input.Endpoints.StorageContainers; containers != nil {
 			for _, container := range *containers {
-				output := make(map[string]interface{})
+				output := make(map[string]any)
 
 				authenticationType := string(devices.AuthenticationTypeKeyBased)
 				if string(container.AuthenticationType) != "" {
@@ -1523,7 +1508,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if queues := input.Endpoints.ServiceBusQueues; queues != nil {
 			for _, queue := range *queues {
-				output := make(map[string]interface{})
+				output := make(map[string]any)
 
 				authenticationType := string(devices.AuthenticationTypeKeyBased)
 				if string(queue.AuthenticationType) != "" {
@@ -1559,7 +1544,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if topics := input.Endpoints.ServiceBusTopics; topics != nil {
 			for _, topic := range *topics {
-				output := make(map[string]interface{})
+				output := make(map[string]any)
 
 				authenticationType := string(devices.AuthenticationTypeKeyBased)
 				if string(topic.AuthenticationType) != "" {
@@ -1595,7 +1580,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if eventHubs := input.Endpoints.EventHubs; eventHubs != nil {
 			for _, eventHub := range *eventHubs {
-				output := make(map[string]interface{})
+				output := make(map[string]any)
 
 				authenticationType := string(devices.AuthenticationTypeKeyBased)
 				if string(eventHub.AuthenticationType) != "" {
@@ -1633,12 +1618,12 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenIoTHubRoute(input *devices.RoutingProperties) []any {
+	results := make([]any, 0)
 
 	if input != nil && input.Routes != nil {
 		for _, route := range *input.Routes {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 
 			if name := route.Name; name != nil {
 				output["name"] = *name
@@ -1661,12 +1646,12 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func flattenIoTHubEnrichment(input *devices.RoutingProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenIoTHubEnrichment(input *devices.RoutingProperties) []any {
+	results := make([]any, 0)
 
 	if input != nil && input.Enrichments != nil {
 		for _, enrichment := range *input.Enrichments {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 
 			if key := enrichment.Key; key != nil {
 				output["key"] = *key
@@ -1685,12 +1670,12 @@ func flattenIoTHubEnrichment(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} {
+func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []any {
 	if input.FallbackRoute == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	route := input.FallbackRoute
 
 	if condition := route.Condition; condition != nil {
@@ -1703,17 +1688,17 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 		output["source"] = *source
 	}
 
-	output["endpoint_names"] = helpers.FlattenStringSlice(route.EndpointNames)
+	output["endpoint_names"] = pluginsdk.FlattenSlice(route.EndpointNames)
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenIoTHubCloudToDevice(input *devices.CloudToDeviceProperties) []interface{} {
+func flattenIoTHubCloudToDevice(input *devices.CloudToDeviceProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if maxDeliveryCount := input.MaxDeliveryCount; maxDeliveryCount != nil {
 		output["max_delivery_count"] = *maxDeliveryCount
@@ -1724,15 +1709,15 @@ func flattenIoTHubCloudToDevice(input *devices.CloudToDeviceProperties) []interf
 
 	output["feedback"] = flattenIoTHubCloudToDeviceFeedback(input.Feedback)
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenIoTHubCloudToDeviceFeedback(input *devices.FeedbackProperties) []interface{} {
+func flattenIoTHubCloudToDeviceFeedback(input *devices.FeedbackProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	feedback := make(map[string]interface{})
+	feedback := make(map[string]any)
 	if feedbackMaxDeliveryCount := input.MaxDeliveryCount; feedbackMaxDeliveryCount != nil {
 		feedback["max_delivery_count"] = *feedbackMaxDeliveryCount
 	}
@@ -1743,23 +1728,23 @@ func flattenIoTHubCloudToDeviceFeedback(input *devices.FeedbackProperties) []int
 		feedback["lock_duration"] = *feedbackLockDuration
 	}
 
-	return []interface{}{feedback}
+	return []any{feedback}
 }
 
 func expandNetworkRuleSetProperties(d *pluginsdk.ResourceData) *devices.NetworkRuleSetProperties {
-	networkRuleSet := d.Get("network_rule_set").([]interface{})
+	networkRuleSet := d.Get("network_rule_set").([]any)
 	networkRuleSetProps := devices.NetworkRuleSetProperties{}
-	nrsMap := networkRuleSet[0].(map[string]interface{})
+	nrsMap := networkRuleSet[0].(map[string]any)
 
 	networkRuleSetProps.DefaultAction = devices.DefaultAction(nrsMap["default_action"].(string))
 	networkRuleSetProps.ApplyToBuiltInEventHubEndpoint = pointer.To(nrsMap["apply_to_builtin_eventhub_endpoint"].(bool))
-	ipRules := nrsMap["ip_rule"].([]interface{})
+	ipRules := nrsMap["ip_rule"].([]any)
 
 	if len(ipRules) != 0 {
 		rules := make([]devices.NetworkRuleSetIPRule, 0)
 
 		for _, r := range ipRules {
-			rawRule := r.(map[string]interface{})
+			rawRule := r.(map[string]any)
 			rule := &devices.NetworkRuleSetIPRule{
 				FilterName: pointer.To(rawRule["name"].(string)),
 				Action:     devices.NetworkRuleIPAction(rawRule["action"].(string)),
@@ -1772,18 +1757,18 @@ func expandNetworkRuleSetProperties(d *pluginsdk.ResourceData) *devices.NetworkR
 	return &networkRuleSetProps
 }
 
-func flattenNetworkRuleSetProperties(input *devices.NetworkRuleSetProperties) []interface{} {
+func flattenNetworkRuleSetProperties(input *devices.NetworkRuleSetProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	output["default_action"] = input.DefaultAction
 	output["apply_to_builtin_eventhub_endpoint"] = input.ApplyToBuiltInEventHubEndpoint
-	rules := make([]interface{}, 0)
+	rules := make([]any, 0)
 
 	for _, r := range *input.IPRules {
-		rawRule := make(map[string]interface{})
+		rawRule := make(map[string]any)
 
 		if r.FilterName != nil {
 			rawRule["name"] = *r.FilterName
@@ -1798,10 +1783,10 @@ func flattenNetworkRuleSetProperties(input *devices.NetworkRuleSetProperties) []
 	}
 
 	output["ip_rule"] = rules
-	return []interface{}{output}
+	return []any{output}
 }
 
-func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
+func expandIotHubIdentity(input []any) (*devices.ArmIdentity, error) {
 	config, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -1822,7 +1807,7 @@ func expandIotHubIdentity(input []interface{}) (*devices.ArmIdentity, error) {
 	return &identity, nil
 }
 
-func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]interface{}, error) {
+func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]any, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
@@ -1907,8 +1892,8 @@ func IothubConnectionStringSuppress(k, old, new string, d *pluginsdk.ResourceDat
 
 func connectionStringToMap(connectionStr string) map[string]string {
 	m := make(map[string]string)
-	split := strings.Split(connectionStr, ";")
-	for _, v := range split {
+	split := strings.SplitSeq(connectionStr, ";")
+	for v := range split {
 		// The connection string might contain `=`
 		kv := strings.SplitN(v, "=", 2)
 		if len(kv) != 2 {

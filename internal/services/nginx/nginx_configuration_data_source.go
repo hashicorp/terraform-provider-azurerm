@@ -93,7 +93,7 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m ConfigurationDataSource) ModelObject() interface{} {
+func (m ConfigurationDataSource) ModelObject() any {
 	return &ConfigurationDataSourceModel{}
 }
 

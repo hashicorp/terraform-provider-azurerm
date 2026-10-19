@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"strings"
 
@@ -12,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -291,13 +292,13 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 			if stateCors == nil || planCors == nil {
 				return false
 			}
-			stateAttrs := stateCors.([]interface{})
-			planAttrs := planCors.([]interface{})
+			stateAttrs := stateCors.([]any)
+			planAttrs := planCors.([]any)
 
 			// Fixes https://github.com/hashicorp/terraform-provider-azurerm/issues/22879
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 
 				newAllowedOrigins, ok := planAttr["allowed_origins"].(*schema.Set)
 				if !ok {
@@ -390,14 +391,6 @@ func ExpandCorsSettings(input []CorsSetting) *webapps.CorsSettings {
 		AllowedOrigins:     pointer.To(cors.AllowedOrigins),
 		SupportCredentials: pointer.To(cors.SupportCredentials),
 	}
-}
-
-type SourceControl struct {
-	RepoURL           string `tfschema:"repo_url"`
-	Branch            string `tfschema:"branch"`
-	ManualIntegration bool   `tfschema:"manual_integration"`
-	UseMercurial      bool   `tfschema:"use_mercurial"`
-	RollbackEnabled   bool   `tfschema:"rollback_enabled"`
 }
 
 type SiteCredential struct {
@@ -541,7 +534,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						// If `auth_settings` is not defined in config, the Create request doesn't send an `auth_settings` request.
 						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
 						// This then causes a diff on subsequent plans where Terraform wants to change from `0` to the default of `72`. So we'll suppress it.
-						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(sdk.ConstructCtyPath("auth_settings"))
+						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath("auth_settings"))
 						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() {
 							return authSettingsVal.LengthInt() == 0 && o == "0" && n == "72"
 						}
@@ -1381,8 +1374,8 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 	props := *auth.Properties
 
 	result := AuthSettings{
-		DefaultProvider:             string(pointer.From(props.DefaultProvider)),
-		UnauthenticatedClientAction: string(pointer.From(props.UnauthenticatedClientAction)),
+		DefaultProvider:             pointer.FromEnum(props.DefaultProvider),
+		UnauthenticatedClientAction: pointer.FromEnum(props.UnauthenticatedClientAction),
 	}
 
 	if props.Enabled != nil {
@@ -1608,9 +1601,7 @@ func flattenIpRestrictionHeaders(headers map[string][]string) []IpRestrictionHea
 func FlattenWebStringDictionary(input *webapps.StringDictionary) map[string]string {
 	result := make(map[string]string)
 	if input != nil && input.Properties != nil {
-		for k, v := range *input.Properties {
-			result[k] = v
-		}
+		maps.Copy(result, *input.Properties)
 	}
 	return result
 }

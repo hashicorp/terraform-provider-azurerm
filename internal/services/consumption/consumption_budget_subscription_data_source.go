@@ -221,7 +221,7 @@ func resourceArmConsumptionBudgetSubscriptionDataSource() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmConsumptionBudgetSubscriptionDataSourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Consumption.BudgetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

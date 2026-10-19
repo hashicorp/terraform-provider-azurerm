@@ -33,7 +33,7 @@ type DevCenterProjectDataSourceModel struct {
 	MaximumDevBoxesPerUser int64                                      `tfschema:"maximum_dev_boxes_per_user"`
 	Name                   string                                     `tfschema:"name"`
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
-	Tags                   map[string]interface{}                     `tfschema:"tags"`
+	Tags                   map[string]any                             `tfschema:"tags"`
 }
 
 func (DevCenterProjectDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -78,7 +78,7 @@ func (DevCenterProjectDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (DevCenterProjectDataSource) ModelObject() interface{} {
+func (DevCenterProjectDataSource) ModelObject() any {
 	return &DevCenterProjectDataSourceModel{}
 }
 
