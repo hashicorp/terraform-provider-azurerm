@@ -109,7 +109,7 @@ func resourceDnsSrvRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsSrvRecordCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -135,7 +135,7 @@ func resourceDnsSrvRecordCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := recordsets.RecordSet{
 		Name: &name,
@@ -155,7 +155,7 @@ func resourceDnsSrvRecordCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceDnsSrvRecordRead(d, meta)
 }
 
-func resourceDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +196,7 @@ func resourceDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceDnsSrvRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,7 +230,7 @@ func resourceDnsSrvRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("tags") {
-		payload.Properties.Metadata = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Properties.Metadata = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, payload, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -242,7 +242,7 @@ func resourceDnsSrvRecordUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceDnsSrvRecordRead(d, meta)
 }
 
-func resourceDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,36 +259,16 @@ func resourceDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func flattenAzureRmDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmDnsSrvRecords(records *[]recordsets.SrvRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
-			port := int64(0)
-			if record.Port != nil {
-				port = *record.Port
-			}
-
-			priority := int64(0)
-			if record.Priority != nil {
-				priority = *record.Priority
-			}
-
-			target := ""
-			if record.Target != nil {
-				target = *record.Target
-			}
-
-			weight := int64(0)
-			if record.Weight != nil {
-				weight = *record.Weight
-			}
-
-			results = append(results, map[string]interface{}{
-				"port":     port,
-				"priority": priority,
-				"target":   target,
-				"weight":   weight,
+			results = append(results, map[string]any{
+				"port":     pointer.From(record.Port),
+				"priority": pointer.From(record.Priority),
+				"target":   pointer.From(record.Target),
+				"weight":   pointer.From(record.Weight),
 			})
 		}
 	}
@@ -301,27 +281,23 @@ func expandAzureRmDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.SrvReco
 	records := make([]recordsets.SrvRecord, 0)
 
 	for _, v := range recordStrings {
-		record := v.(map[string]interface{})
-		priority := int64(record["priority"].(int))
-		weight := int64(record["weight"].(int))
-		port := int64(record["port"].(int))
-		target := record["target"].(string)
+		record := v.(map[string]any)
 
 		records = append(records, recordsets.SrvRecord{
-			Priority: &priority,
-			Weight:   &weight,
-			Port:     &port,
-			Target:   &target,
+			Priority: pointer.To(int64(record["priority"].(int))),
+			Weight:   pointer.To(int64(record["weight"].(int))),
+			Port:     pointer.To(int64(record["port"].(int))),
+			Target:   pointer.To(record["target"].(string)),
 		})
 	}
 
 	return &records
 }
 
-func resourceDnsSrvRecordHash(v interface{}) int {
+func resourceDnsSrvRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%d-", m["priority"].(int))
 		fmt.Fprintf(&buf, "%d-", m["weight"].(int))
 		fmt.Fprintf(&buf, "%d-", m["port"].(int))

@@ -34,7 +34,7 @@ func (r PrivateDNSResolverDnsResolverResource) ResourceType() string {
 	return "azurerm_private_dns_resolver"
 }
 
-func (r PrivateDNSResolverDnsResolverResource) ModelObject() interface{} {
+func (r PrivateDNSResolverDnsResolverResource) ModelObject() any {
 	return &PrivateDNSResolverDnsResolverModel{}
 }
 
@@ -184,10 +184,7 @@ func (r PrivateDNSResolverDnsResolverResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			properties := &model.Properties
-			if properties != nil {
-				state.VirtualNetworkId = properties.VirtualNetwork.Id
-			}
+			state.VirtualNetworkId = model.Properties.VirtualNetwork.Id
 			if model.Tags != nil {
 				state.Tags = *model.Tags
 			}

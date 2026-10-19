@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceWeb() *pluginsdk.Resource {
@@ -118,7 +118,7 @@ func resourceDataFactoryLinkedServiceWeb() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -135,12 +135,12 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing Data Factory Web Anonymous %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_web", id.ID())
 			}
 		}
@@ -157,11 +157,10 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	authenticationType := d.Get("authentication_type").(string)
 
 	if authenticationType == "Anonymous" {
-		anonAuthProperties := &datafactory.WebAnonymousAuthentication{
+		webLinkedService.TypeProperties = &datafactory.WebAnonymousAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
 			URL:                pointer.To(url),
 		}
-		webLinkedService.TypeProperties = anonAuthProperties
 	}
 
 	if authenticationType == "Basic" {
@@ -171,17 +170,16 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 			Value: &password,
 			Type:  datafactory.TypeSecureString,
 		}
-		basicAuthProperties := &datafactory.WebBasicAuthentication{
+		webLinkedService.TypeProperties = &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
 			URL:                pointer.To(url),
 			Username:           username,
 			Password:           passwordSecureString,
 		}
-		webLinkedService.TypeProperties = basicAuthProperties
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		webLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		webLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -189,12 +187,11 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		webLinkedService.AdditionalProperties = v.(map[string]interface{})
+		webLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		webLinkedService.Annotations = &annotations
+		webLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -210,7 +207,7 @@ func resourceDataFactoryLinkedServiceWebCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataFactoryLinkedServiceWebRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,7 +221,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -262,13 +259,11 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 	d.Set("additional_properties", web.AdditionalProperties)
 	d.Set("description", web.Description)
 
-	annotations := flattenDataFactoryAnnotations(web.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(web.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(web.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(web.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -281,7 +276,7 @@ func resourceDataFactoryLinkedServiceWebRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceWebDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceWebDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,9 +286,9 @@ func resourceDataFactoryLinkedServiceWebDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Web %s: %+v", *id, err)
 		}
 	}

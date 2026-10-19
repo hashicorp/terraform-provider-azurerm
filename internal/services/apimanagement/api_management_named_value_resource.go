@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApiManagementNamedValue() *pluginsdk.Resource {
@@ -103,7 +102,7 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -130,7 +129,7 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		Properties: &namedvalue.NamedValueCreateContractProperties{
 			DisplayName: d.Get("display_name").(string),
 			Secret:      pointer.To(d.Get("secret").(bool)),
-			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
+			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]any)),
 		},
 	}
 
@@ -143,7 +142,7 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
-		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+		parameters.Properties.Tags = pluginsdk.ExpandStringSlice(tags.([]any))
 	}
 
 	if d.IsNewResource() {
@@ -160,7 +159,7 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceApiManagementNamedValueRead(d, meta)
 }
 
-func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +202,7 @@ func resourceApiManagementNamedValueRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,11 +221,11 @@ func resourceApiManagementNamedValueDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandApiManagementNamedValueKeyVault(inputs []interface{}) *namedvalue.KeyVaultContractCreateProperties {
+func expandApiManagementNamedValueKeyVault(inputs []any) *namedvalue.KeyVaultContractCreateProperties {
 	if len(inputs) == 0 {
 		return nil
 	}
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 
 	result := namedvalue.KeyVaultContractCreateProperties{
 		SecretIdentifier: pointer.To(input["secret_id"].(string)),
@@ -239,13 +238,13 @@ func expandApiManagementNamedValueKeyVault(inputs []interface{}) *namedvalue.Key
 	return &result
 }
 
-func flattenApiManagementNamedValueKeyVault(input *namedvalue.KeyVaultContractProperties) []interface{} {
+func flattenApiManagementNamedValueKeyVault(input *namedvalue.KeyVaultContractProperties) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"secret_id":          pointer.From(input.SecretIdentifier),
 			"identity_client_id": pointer.From(input.IdentityClientId),
 		},

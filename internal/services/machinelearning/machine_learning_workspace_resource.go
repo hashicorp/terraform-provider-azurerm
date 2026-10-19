@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -69,7 +69,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: components.ValidateComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 				// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -185,14 +185,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 						"provision_on_creation_enabled": {
@@ -282,7 +282,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -302,14 +302,14 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
+	expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
+	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]any))
 
-	managedNetwork, provisionNetworkNow := expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
+	managedNetwork, provisionNetworkNow := expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]any))
 
 	networkAccessBehindVnetEnabled := workspaces.PublicNetworkAccessDisabled
 
@@ -320,10 +320,10 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 	workspace := workspaces.Workspace{
 		Name:     pointer.To(id.WorkspaceName),
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Sku: &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		},
 		Kind:     pointer.To(d.Get("kind").(string)),
 		Identity: expandedIdentity,
@@ -341,7 +341,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
+	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]any))
 	if serverlessCompute != nil {
 		if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && networkAccessBehindVnetEnabled == workspaces.PublicNetworkAccessDisabled {
 			return fmt.Errorf("`public_ip_enabled` must be set to  `true` if `subnet_id` is not set and `public_network_access_enabled` is `false`")
@@ -374,7 +374,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		workspace.Properties.PrimaryUserAssignedIdentity = pointer.To(v.(string))
 	}
 
-	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
+	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]any))
 	if strings.EqualFold(*workspace.Kind, "Default") {
 		if featureStore != nil {
 			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
@@ -394,7 +394,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceMachineLearningWorkspaceRead(d, meta)
 }
 
-func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -419,7 +419,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	payload := existing.Model
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]interface{}))
+		expandedIdentity, err := expandMachineLearningWorkspaceIdentity(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -432,7 +432,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("feature_store") {
-		featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
+		featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]any))
 		if strings.EqualFold(*payload.Kind, "Default") {
 			if featureStore != nil {
 				return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
@@ -470,13 +470,13 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("managed_network") {
-		payload.Properties.ManagedNetwork, _ = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
+		payload.Properties.ManagedNetwork, _ = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]any))
 	}
 
 	if d.HasChange("sku_name") {
 		payload.Sku = &workspaces.Sku{
 			Name: d.Get("sku_name").(string),
-			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
+			Tier: pointer.ToEnum[workspaces.SkuTier](d.Get("sku_name").(string)),
 		}
 	}
 
@@ -489,7 +489,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("serverless_compute") {
-		serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
+		serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]any))
 		if serverlessCompute != nil {
 			networkAccessBehindVnetEnabled := false
 			if v := payload.Properties.PublicNetworkAccess; v != nil && *v == workspaces.PublicNetworkAccessEnabled {
@@ -510,7 +510,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -521,7 +521,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceMachineLearningWorkspaceRead(d, meta)
 }
 
-func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -562,7 +562,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			appInsightsId := ""
 			if props.ApplicationInsights != nil {
-				applicationInsightsId, err := components.ParseComponentIDInsensitively(*props.ApplicationInsights)
+				applicationInsightsId, err := componentsapis.ParseComponentIDInsensitively(*props.ApplicationInsights)
 				if err != nil {
 					return err
 				}
@@ -591,8 +591,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("key_vault_id", kvId.ID())
 
-			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
-			if err := d.Set("feature_store", featureStoreSettings); err != nil {
+			if err := d.Set("feature_store", flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)); err != nil {
 				return fmt.Errorf("setting `feature_store`: %+v", err)
 			}
 
@@ -611,7 +610,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.Workspaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -640,7 +639,7 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandMachineLearningWorkspaceIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
+func expandMachineLearningWorkspaceIdentity(input []any) (*identity.LegacySystemAndUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
 	if err != nil {
 		return nil, err
@@ -660,7 +659,7 @@ func expandMachineLearningWorkspaceIdentity(input []interface{}) (*identity.Lega
 	return &out, nil
 }
 
-func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interface{}, error) {
+func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]any, error) {
 	var transform *identity.SystemAndUserAssignedMap
 
 	if input != nil {
@@ -681,7 +680,7 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 			transform.TenantId = input.TenantId
 		}
 
-		if input != nil && input.IdentityIds != nil {
+		if input.IdentityIds != nil {
 			for k, v := range input.IdentityIds {
 				transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
 					ClientId:    v.ClientId,
@@ -694,16 +693,14 @@ func flattenMachineLearningWorkspaceIdentity(input *identity.LegacySystemAndUser
 	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
-func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.EncryptionProperty {
+func expandMachineLearningWorkspaceEncryption(input []any) *workspaces.EncryptionProperty {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	out := workspaces.EncryptionProperty{
-		Identity: &workspaces.IdentityForCmk{
-			UserAssignedIdentity: nil,
-		},
+		Identity: &workspaces.IdentityForCmk{},
 		KeyVaultProperties: workspaces.EncryptionKeyVaultProperties{
 			KeyVaultArmId: raw["key_vault_id"].(string),
 			KeyIdentifier: raw["key_id"].(string),
@@ -718,9 +715,9 @@ func expandMachineLearningWorkspaceEncryption(input []interface{}) *workspaces.E
 	return &out
 }
 
-func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionProperty) (*[]interface{}, error) {
+func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionProperty) (*[]any, error) {
 	if input == nil || input.Status != workspaces.EncryptionStatusEnabled {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
 	keyVaultId := ""
@@ -743,8 +740,8 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 		userAssignedIdentityId = id.ID()
 	}
 
-	return &[]interface{}{
-		map[string]interface{}{
+	return &[]any{
+		map[string]any{
 			"user_assigned_identity_id": userAssignedIdentityId,
 			"key_vault_id":              keyVaultId,
 			"key_id":                    keyVaultKeyId,
@@ -752,12 +749,12 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 	}, nil
 }
 
-func expandMachineLearningWorkspaceFeatureStore(input []interface{}) *workspaces.FeatureStoreSettings {
+func expandMachineLearningWorkspaceFeatureStore(input []any) *workspaces.FeatureStoreSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	out := workspaces.FeatureStoreSettings{}
 
 	if raw["computer_spark_runtime_version"].(string) != "" {
@@ -776,9 +773,9 @@ func expandMachineLearningWorkspaceFeatureStore(input []interface{}) *workspaces
 	return &out
 }
 
-func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreSettings) *[]interface{} {
+func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreSettings) *[]any {
 	if input == nil {
-		return &[]interface{}{}
+		return &[]any{}
 	}
 
 	computerSparkRunTimeVersion := ""
@@ -796,8 +793,8 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 		onlineConnectionName = *input.OnlineStoreConnectionName
 	}
 
-	return &[]interface{}{
-		map[string]interface{}{
+	return &[]any{
+		map[string]any{
 			"computer_spark_runtime_version": computerSparkRunTimeVersion,
 			"offline_connection_name":        offlineConnectionName,
 			"online_connection_name":         onlineConnectionName,
@@ -805,39 +802,39 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 	}
 }
 
-func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.ManagedNetworkSettings, bool) {
+func expandMachineLearningWorkspaceManagedNetwork(i []any) (*workspaces.ManagedNetworkSettings, bool) {
 	if len(i) == 0 || i[0] == nil {
 		return nil, false
 	}
 
-	v := i[0].(map[string]interface{})
+	v := i[0].(map[string]any)
 
 	return &workspaces.ManagedNetworkSettings{
-		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+		IsolationMode: pointer.ToEnum[workspaces.IsolationMode](v["isolation_mode"].(string)),
 	}, v["provision_on_creation_enabled"].(bool)
 }
 
-func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings, provisionNetworkNow *bool) *[]interface{} {
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings, provisionNetworkNow *bool) *[]any {
 	if i == nil {
-		return &[]interface{}{}
+		return &[]any{}
 	}
 
-	out := map[string]interface{}{}
+	out := map[string]any{}
 
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
 	}
 	out["provision_on_creation_enabled"] = pointer.From(provisionNetworkNow)
 
-	return &[]interface{}{out}
+	return &[]any{out}
 }
 
-func expandMachineLearningWorkspaceServerlessCompute(i []interface{}) *workspaces.ServerlessComputeSettings {
+func expandMachineLearningWorkspaceServerlessCompute(i []any) *workspaces.ServerlessComputeSettings {
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
-	v := i[0].(map[string]interface{})
+	v := i[0].(map[string]any)
 
 	serverlessCompute := workspaces.ServerlessComputeSettings{
 		ServerlessComputeNoPublicIP: pointer.To(!v["public_ip_enabled"].(bool)),
@@ -850,12 +847,12 @@ func expandMachineLearningWorkspaceServerlessCompute(i []interface{}) *workspace
 	return &serverlessCompute
 }
 
-func flattenMachineLearningWorkspaceServerlessCompute(i *workspaces.ServerlessComputeSettings) *[]interface{} {
+func flattenMachineLearningWorkspaceServerlessCompute(i *workspaces.ServerlessComputeSettings) *[]any {
 	if i == nil {
-		return &[]interface{}{}
+		return &[]any{}
 	}
 
-	out := map[string]interface{}{}
+	out := map[string]any{}
 
 	if i.ServerlessComputeCustomSubnet != nil {
 		out["subnet_id"] = *i.ServerlessComputeCustomSubnet
@@ -865,5 +862,5 @@ func flattenMachineLearningWorkspaceServerlessCompute(i *workspaces.ServerlessCo
 		out["public_ip_enabled"] = !*i.ServerlessComputeNoPublicIP
 	}
 
-	return &[]interface{}{out}
+	return &[]any{out}
 }

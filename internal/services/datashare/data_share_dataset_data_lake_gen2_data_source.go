@@ -65,7 +65,7 @@ func dataSourceDataShareDatasetDataLakeGen2() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataShareDatasetDataLakeGen2Read(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetDataLakeGen2Read(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

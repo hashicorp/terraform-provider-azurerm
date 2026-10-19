@@ -72,13 +72,10 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"marketplace_subscription": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(monitors.MarketplaceSubscriptionStatusActive),
-				string(monitors.MarketplaceSubscriptionStatusSuspended),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForMarketplaceSubscriptionStatus(), false),
 		},
 
 		"identity": commonschema.SystemAssignedIdentityRequired(),
@@ -196,7 +193,7 @@ func (r MonitorsResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r MonitorsResource) ModelObject() interface{} {
+func (r MonitorsResource) ModelObject() any {
 	return &MonitorsResourceModel{}
 }
 
@@ -233,7 +230,7 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				monitoringStatus = monitors.MonitoringStatusDisabled
 			}
 			monitorsProps := monitors.MonitorProperties{
-				MarketplaceSubscriptionStatus:  pointer.To(monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)),
+				MarketplaceSubscriptionStatus:  pointer.ToEnum[monitors.MarketplaceSubscriptionStatus](model.MarketplaceSubscriptionStatus),
 				MonitoringStatus:               pointer.To(monitoringStatus),
 				PlanData:                       ExpandDynatracePlanData(model.PlanData),
 				UserInfo:                       ExpandDynatraceUserInfo(model.UserInfo),
@@ -304,7 +301,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
 				}
 
-				if environmentProps := metadata.ResourceData.Get("environment_properties"); environmentProps != nil && len(environmentProps.([]interface{})) > 0 {
+				if environmentProps := metadata.ResourceData.Get("environment_properties"); environmentProps != nil && len(environmentProps.([]any)) > 0 {
 					state.EnvironmentProperties = FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties)
 				}
 

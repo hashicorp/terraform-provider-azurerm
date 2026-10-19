@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -53,7 +53,7 @@ func (d MsSqlManagedInstanceDataSource) ResourceType() string {
 	return "azurerm_mssql_managed_instance"
 }
 
-func (d MsSqlManagedInstanceDataSource) ModelObject() interface{} {
+func (d MsSqlManagedInstanceDataSource) ModelObject() any {
 	return &MsSqlManagedInstanceDataSourceModel{}
 }
 
@@ -206,8 +206,8 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.Model.Properties; props != nil {
-				model.LicenseType = string(pointer.From(props.LicenseType))
-				model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+				model.LicenseType = pointer.FromEnum(props.LicenseType)
+				model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 				model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 				model.AdministratorLogin = pointer.From(props.AdministratorLogin)
 				model.Collation = pointer.From(props.Collation)
@@ -231,7 +231,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 
 func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) []identity.SystemOrUserAssignedList {
 	if input == nil {
-		return nil
+		return []identity.SystemOrUserAssignedList{}
 	}
 
 	identityIds := make([]string, 0)

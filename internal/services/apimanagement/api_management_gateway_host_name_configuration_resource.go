@@ -10,12 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayhostnameconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,7 +55,7 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 			"certificate_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validate.CertificateID,
+				ValidateFunc: validation.AsGeneratedID(certificate.ParseCertificateIDInsensitively),
 			},
 
 			"host_name": {
@@ -88,7 +88,7 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +135,7 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 	return resourceApiManagementGatewayHostNameConfigurationRead(d, meta)
 }
 
-func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

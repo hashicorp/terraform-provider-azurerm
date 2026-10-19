@@ -60,30 +60,21 @@ func resourceCosmosDbSQLTrigger() *pluginsdk.Resource {
 			},
 
 			"operation": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.TriggerOperationAll),
-					string(cosmosdb.TriggerOperationCreate),
-					string(cosmosdb.TriggerOperationUpdate),
-					string(cosmosdb.TriggerOperationDelete),
-					string(cosmosdb.TriggerOperationReplace),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerOperation(), false),
 			},
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.TriggerTypePre),
-					string(cosmosdb.TriggerTypePost),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForTriggerType(), false),
 			},
 		},
 	}
 }
 
-func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,7 +125,7 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceCosmosDbSQLTriggerRead(d, meta)
 }
 
-func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -170,7 +161,7 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLTriggerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

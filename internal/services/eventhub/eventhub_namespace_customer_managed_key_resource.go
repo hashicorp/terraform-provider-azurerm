@@ -40,7 +40,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Eventhub.NamespacesClient
 
 			var cancel context.CancelFunc
@@ -96,7 +96,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,9 +126,8 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	namespace := resp.Model
-	keySource := namespaces.KeySourceMicrosoftPointKeyVault
 	namespace.Properties.Encryption = &namespaces.Encryption{
-		KeySource: &keySource,
+		KeySource: pointer.To(namespaces.KeySourceMicrosoftPointKeyVault),
 	}
 
 	keyVaultProps, err := expandEventHubNamespaceKeyVaultKeyIds(d.Get("key_vault_key_ids").(*pluginsdk.Set).List())
@@ -188,7 +187,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	return resourceEventHubNamespaceCustomerManagedKeyRead(d, meta)
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,12 +245,12 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace`)
 	return nil
 }
 
-func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.KeyVaultProperties, error) {
+func expandEventHubNamespaceKeyVaultKeyIds(input []any) (*[]namespaces.KeyVaultProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -281,22 +280,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]str
 	}
 
 	for _, item := range *input.KeyVaultProperties {
-		var keyName string
-		if item.KeyName != nil {
-			keyName = *item.KeyName
-		}
-
-		var keyVaultUri string
-		if item.KeyVaultUri != nil {
-			keyVaultUri = *item.KeyVaultUri
-		}
-
-		var keyVersion string
-		if item.KeyVersion != nil {
-			keyVersion = *item.KeyVersion
-		}
-
-		keyVaultKeyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(item.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(item.KeyName), pointer.From(item.KeyVersion))
 		if err != nil {
 			return nil, err
 		}

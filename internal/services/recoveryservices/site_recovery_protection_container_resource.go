@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -61,7 +60,7 @@ func resourceSiteRecoveryProtectionContainer() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -99,7 +98,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, me
 	return resourceSiteRecoveryProtectionContainerRead(d, meta)
 }
 
-func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(d.Id())
 	if err != nil {
 		return err
@@ -125,7 +124,7 @@ func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(d.Id())
 	if err != nil {
 		return err
@@ -135,8 +134,7 @@ func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting site recovery protection container %s : %+v", id.String(), err)
 	}
 

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
@@ -79,7 +78,7 @@ func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -102,7 +101,7 @@ func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta int
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
-			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
+			d.Set("assignable_scopes", pluginsdk.FlattenSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
 			d.Set("type", pointer.FromEnum(props.Type))
 

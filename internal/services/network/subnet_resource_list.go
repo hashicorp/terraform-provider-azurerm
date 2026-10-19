@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,9 +37,9 @@ func (r SubnetListResource) Metadata(_ context.Context, _ resource.MetadataReque
 }
 
 func (r SubnetListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = listschema.Schema{
-		Attributes: map[string]listschema.Attribute{
-			"virtual_network_id": listschema.StringAttribute{
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"virtual_network_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -90,8 +90,7 @@ func (r SubnetListResource) List(ctx context.Context, request list.ListRequest, 
 
 			rd.SetId(id.ID())
 
-			err = resourceSubnetFlatten(rd, *id, &subnet)
-			if err != nil {
+			if err = resourceSubnetFlatten(rd, *id, &subnet); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding resource data", err)
 				return
 			}

@@ -128,6 +128,13 @@ func doPBMAC1(algorithm pkix.AlgorithmIdentifier, message, password []byte) ([]b
 	if kdfParams.KeyLength < 20 {
 		return nil, fmt.Errorf("pkcs12: PBMAC1 key length %d is too short to be secure (minimum 20 octets)", kdfParams.KeyLength)
 	}
+	// RFC 9879 RECOMMENDS that the key length match the HMAC output size, which
+	// is at most 64 octets (SHA-512).  Reject anything larger so that a huge
+	// KeyLength can't cause a huge PBKDF2 allocation (matching OpenSSL's EVP_MAX_MD_SIZE cap)
+	const maxKeyLength = 64
+	if kdfParams.KeyLength > maxKeyLength {
+		return nil, fmt.Errorf("pkcs12: PBMAC1 key length %d is too large (maximum %d octets)", kdfParams.KeyLength, maxKeyLength)
+	}
 	keyLen := kdfParams.KeyLength
 
 	// Derive key using PBKDF2

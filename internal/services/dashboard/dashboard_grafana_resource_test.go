@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -74,30 +73,21 @@ func TestAccDashboardGrafana_update(t *testing.T) {
 		},
 		data.ImportStep("smtp.0.password"),
 		{
-			Config: r.update(data),
+			Config: r.update(data, "value2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("smtp.0.password"),
-	})
-}
-
-func TestAccDashboardGrafana_withSku(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("the `Essential` SKU is no longer supported in v5.0 of the AzureRM provider")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
-	r := DashboardGrafanaResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.essential(data),
+			// regression test step for https://github.com/hashicorp/terraform-provider-azurerm/issues/30527
+			// changing only `tags` to confirm `smtp` config is resubmitted with its password intact
+			Config: r.update(data, "value3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("smtp.0.password"),
 	})
 }
 
@@ -178,22 +168,6 @@ resource "azurerm_dashboard_grafana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DashboardGrafanaResource) essential(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-				%s
-
-resource "azurerm_dashboard_grafana" "test" {
-  name                  = "a-dg-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  grafana_major_version = "12"
-
-  sku = "Essential"
-}
-`, template, data.RandomInteger)
-}
-
 func (r DashboardGrafanaResource) withSize(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -269,7 +243,7 @@ resource "azurerm_dashboard_grafana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
+func (r DashboardGrafanaResource) update(data acceptance.TestData, tagValue string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -309,10 +283,10 @@ resource "azurerm_dashboard_grafana" "test" {
   }
 
   tags = {
-    key2 = "value2"
+    key2 = %q
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, tagValue)
 }
 
 func (r DashboardGrafanaResource) preflightPlan(data acceptance.TestData) string {

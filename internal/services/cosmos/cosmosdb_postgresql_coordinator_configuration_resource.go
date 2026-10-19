@@ -36,7 +36,7 @@ func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ResourceType() strin
 	return "azurerm_cosmosdb_postgresql_coordinator_configuration"
 }
 
-func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLCoordinatorConfigurationResource) ModelObject() any {
 	return &CosmosDbPostgreSQLCoordinatorConfigurationResource{}
 }
 

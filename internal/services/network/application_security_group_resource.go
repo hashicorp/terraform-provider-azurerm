@@ -8,17 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -60,7 +59,7 @@ func resourceApplicationSecurityGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -83,7 +82,7 @@ func resourceApplicationSecurityGroupCreate(d *pluginsdk.ResourceData, meta inte
 
 	securityGroup := applicationsecuritygroups.ApplicationSecurityGroup{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, securityGroup, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -97,7 +96,7 @@ func resourceApplicationSecurityGroupCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
-func resourceApplicationSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +116,7 @@ func resourceApplicationSecurityGroupUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -127,7 +126,7 @@ func resourceApplicationSecurityGroupUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
-func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +162,7 @@ func resourceApplicationSecurityGroupFlatten(d *pluginsdk.ResourceData, id *appl
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationSecurityGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

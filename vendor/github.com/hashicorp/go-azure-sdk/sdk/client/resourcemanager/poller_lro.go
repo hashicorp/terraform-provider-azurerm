@@ -41,9 +41,9 @@ func pollingUriForLongRunningOperation(resp *client.Response) string {
 	return pollingUrl
 }
 
-func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
+func longRunningOperationPollerFromResponse(resp *client.Response, c *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
-		client:                client,
+		client:                c,
 		initialRetryDuration:  10 * time.Second,
 		maxDroppedConnections: 3,
 	}
@@ -70,6 +70,10 @@ func longRunningOperationPollerFromResponse(resp *client.Response, client *clien
 		if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 			poller.initialRetryDuration = time.Second * time.Duration(sleep)
 		}
+	}
+
+	if s, ok := resp.Header[client.SkipPollingDelayHeader]; ok && s[0] == "true" {
+		poller.initialRetryDuration = 0
 	}
 
 	return &poller, nil
@@ -157,6 +161,16 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			return
 		}
 
+		// While returning a success on a response with a `204 No Content` status may seem odd, Microsoft explicitly documents this:
+		// https://learn.microsoft.com/azure/azure-resource-manager/management/async-operations
+		// "When the operation successfully completes, it returns either:
+		//  - 200 (OK)
+		//  - 204 (No Content)"
+		if result.HttpResponse.StatusCode == http.StatusNoContent {
+			result.Status = pollers.PollingStatusSucceeded
+			return
+		}
+
 		// Automation@2022-08-08 - Runbooks - returns a 200 OK with no Body
 		if result.HttpResponse.StatusCode == http.StatusOK && result.HttpResponse.ContentLength == 0 {
 			result.Status = pollers.PollingStatusSucceeded
@@ -212,13 +226,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	}
 
 	return result, nil
-}
-
-func (p *longRunningOperationPoller) SkipDelay() bool {
-	if p.client != nil {
-		return client.IsVcrReplaying(p.client.Transport)
-	}
-	return false
 }
 
 type operationResult struct {

@@ -9,14 +9,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apischema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -86,7 +85,7 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -121,7 +120,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("components"); ok {
-		var value interface{}
+		var value any
 		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
 			return fmt.Errorf("failed to unmarshal components %v: %+v", v.(string), err)
 		}
@@ -130,7 +129,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("definitions"); ok {
-		var value interface{}
+		var value any
 		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
 			return fmt.Errorf("failed to unmarshal definitions %v: %+v", v.(string), err)
 		}
@@ -152,7 +151,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceApiManagementApiSchemaRead(d, meta)
 }
 
-func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +205,7 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +224,7 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func convert2Str(rawVal interface{}) (string, error) {
+func convert2Str(rawVal any) (string, error) {
 	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val

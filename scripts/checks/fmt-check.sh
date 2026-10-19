@@ -10,11 +10,11 @@ fi
 
 # The checks here should match the fixers in the GNUmakefile `fmt` and `goimports` targets.
 
-# Check gofmt, gofumpt and goimports via `golangci-lint fmt`, configured in ../../.golangci.yml
-echo "==> Checking that code complies with formatting requirements (gofmt, gofumpt, goimports)..."
+# Check gofmt, gofumpt, goimports and gci via `golangci-lint fmt`, configured in ../../.golangci.yml
+echo "==> Checking that code complies with formatting requirements (gofmt, gofumpt, goimports, gci)..."
 
 if ! golangci-lint fmt --diff; then
-    echo "You can use the commands: \`make fmt\` and \`make goimports\` to reformat code."
+    echo "You can use the command: \`make lint-fix\` to reformat code."
     exit 1
 fi
 
@@ -22,7 +22,7 @@ fi
 echo "==> Checking that code complies with the whitespace linter..."
 
 if ! golangci-lint run ./... --no-config --enable-only=whitespace; then
-    echo "You can use the command: \`make fmt\` to reformat code."
+    echo "You can use the command: \`make lint-fix\` to reformat code."
     exit 1
 fi
 

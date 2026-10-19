@@ -80,7 +80,7 @@ func (SavedSearchV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (SavedSearchV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 
 		id, err := savedsearches.ParseSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(oldId, "/")))

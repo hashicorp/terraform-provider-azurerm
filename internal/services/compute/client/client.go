@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
@@ -35,10 +36,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetrollingupgrades"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -49,6 +50,7 @@ type Client struct {
 	// TODO: @tombuildsstuff: investigate _if_ that's possible given Compute uses a myriad of API Versions
 	AvailabilitySetsClient                      *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient                  *capacityreservations.CapacityReservationsClient
+	CapacityReservationClient                   *capacityreservation.CapacityReservationClient
 	CapacityReservationGroupsClient             *capacityreservationgroups.CapacityReservationGroupsClient
 	DedicatedHostsClient                        *dedicatedhosts.DedicatedHostsClient
 	DedicatedHostGroupsClient                   *dedicatedhostgroups.DedicatedHostGroupsClient
@@ -86,6 +88,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building AvailabilitySets client: %+v", err)
 	}
 	o.Configure(availabilitySetsClient.Client, o.Authorizers.ResourceManager)
+
+	capacityReservationClient, err := capacityreservation.NewCapacityReservationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building CapacityReservations client: %+v", err)
+	}
+	o.Configure(capacityReservationClient.Client, o.Authorizers.ResourceManager)
 
 	capacityReservationsClient, err := capacityreservations.NewCapacityReservationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -269,6 +277,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AvailabilitySetsClient:                      availabilitySetsClient,
+		CapacityReservationClient:                   capacityReservationClient,
 		CapacityReservationsClient:                  capacityReservationsClient,
 		CapacityReservationGroupsClient:             capacityReservationGroupsClient,
 		DedicatedHostsClient:                        dedicatedHostsClient,
@@ -304,9 +313,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id virtualmachinescalesets.VirtualMachineScaleSetId) error {
 	// TODO replace with commonid once https://github.com/hashicorp/pandora/issues/4017 has been merged
-	virtualMachineScaleSetId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	rollingUpgradeId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 
-	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, virtualMachineScaleSetId)
+	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, rollingUpgradeId)
 	if err != nil {
 		// No rolling upgrades are running so skipping attempt to cancel them before deletion
 		if response.WasNotFound(resp.HttpResponse) {
@@ -322,23 +331,14 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 		}
 	}
 
-	// If lastest rolling upgrade is marked as completed, skip cancellation
+	// If latest rolling upgrade is marked as completed, skip cancellation
 	if upgradeStatus == virtualmachinescalesetrollingupgrades.RollingUpgradeStatusCodeCompleted {
 		return nil
 	}
 
-	future, err := c.VirtualMachineScaleSetRollingUpgradesClient.Cancel(ctx, virtualMachineScaleSetId)
-	if err != nil {
-		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
-		// we don't error out in this case
-		if response.WasConflict(future.HttpResponse) {
-			return nil
-		}
+	rollingId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	if err := c.VirtualMachineScaleSetRollingUpgradesClient.CancelThenPoll(ctx, rollingId); err != nil {
 		return fmt.Errorf("cancelling rolling upgrades for %s: %+v", id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for cancelling of rolling upgrades for %s: %+v", id, err)
 	}
 
 	log.Printf("[DEBUG] cancelled Virtual Machine Scale Set Rolling Upgrades for %s.", id)

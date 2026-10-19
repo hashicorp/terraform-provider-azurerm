@@ -312,7 +312,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ManagedDevOpsPoolDataSource) ModelObject() interface{} {
+func (ManagedDevOpsPoolDataSource) ModelObject() any {
 	return &ManagedDevOpsPoolDataSourceModel{}
 }
 

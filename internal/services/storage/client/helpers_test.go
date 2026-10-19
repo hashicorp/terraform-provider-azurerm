@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package client
 
 import (
@@ -7,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
-func TestAccountDetails_DataPlaneEndpoint(t *testing.T) {
+func TestDataPlaneEndpoint_accountDetails(t *testing.T) {
 	StorageDomainSuffix = pointer.To("core.windows.net")
 	ad := AccountDetails{
 		StorageAccountId: commonids.StorageAccountId{

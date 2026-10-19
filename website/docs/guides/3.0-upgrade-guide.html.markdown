@@ -72,7 +72,7 @@ At a high level, version 3.0 includes the following changes:
 * [New Data Sources and Resources for App Service and Function Apps](#new-resources-and-data-sources-for-app-service)
 * [Soft Delete Recovery/Purging for Certificates, Keys, and Secrets](#soft-delete-for-key-vault)
 * [Switching to Microsoft Authentication Library (MSAL)](#switching-to-msal)
-* [Updates to existing behaviors for Application Gateway, API Management, Resource Groups, Storage, among others](#behavioural-updates)
+* [Updates to existing behaviours for Application Gateway, API Management, Resource Groups, Storage, among others](#behavioural-updates)
 * [Removal of Deprecated Fields, Data Sources, and Resources](#removal-of-deprecated-fields-data-sources-and-resources)
 
 Each of these topics is covered in more detail below.
@@ -163,7 +163,7 @@ The default value is `true` for each of the above feature flags, and they can be
 
 ## Switching to MSAL
 
-Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioral differences.
+Authentication to APIs such as Resource Manager was previously performed using the ADAL library which yielded legacy v1 authentication tokens. In version 3.0 of the provider we've moved to use [v2 tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#v10-and-v20). In practice this change will not yield any noticeable behavioural differences.
 
 ## Behavioural updates
 
@@ -187,15 +187,15 @@ When the resource can be provisioned across multiple Zones, the following behavi
 
 **Resources with a (Managed) `identity` block:** The presence of an `identity` block means a Managed Identity should be assigned to this Resource - and the omission of an `identity` block (or a null value) means that no Managed Identity should be assigned to this Resource.
 
-**Application Gateway:** The behavior of the nested items will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+**Application Gateway:** The behaviour of the nested items will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
-**API Management:** Terraform will now remove the Default API and Products for API Management when creating a new API Management instance, which is consistent with the behavior for other Terraform Providers.
+**API Management:** Terraform will now remove the Default API and Products for API Management when creating a new API Management instance, which is consistent with the behaviour for other Terraform Providers.
 
-**Firewall:** The behavior of the nested items will be changed to List instead of Sets where required, meaning that the order of these items now matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+**Firewall:** The behaviour of the nested items will be changed to List instead of Sets where required, meaning that the order of these items now matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
 **Log Analytics:** The `tags` field has been removed from various resources.
 
-**Resource Groups:** Terraform will now check for Resources nested within a Resource Group prior to deletion of the resource group. If any items are found, an error will be raised. This behavior is configurable in the `features` block, but was previously disabled by default. In 3.0, this behavior will be enabled by default.
+**Resource Groups:** Terraform will now check for Resources nested within a Resource Group prior to deletion of the resource group. If any items are found, an error will be raised. This behaviour is configurable in the `features` block, but was previously disabled by default. In 3.0, this behaviour will be enabled by default.
 
 **Recovery Services:** The `tags` field has been removed from various resources.
 
@@ -712,7 +712,7 @@ The deprecated block `hybrid_connection_endpoint` will be removed in favour of t
 
 ### Resource: `azurerm_eventhub_namespace`
 
-The behavior of `network_rulesets.x.virtual_network_rule` will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+The behaviour of `network_rulesets.x.virtual_network_rule` will be changed to Sets instead of Lists where required, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
 ### Resource: `azurerm_eventhub_namespace_customer_managed_key`
 
@@ -1471,7 +1471,6 @@ The deprecated field `radius_server` will be removed in favour of the `radius` p
 The deprecated field `data_disk.disk_iops_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_iops_read_write` property.
 
 The deprecated field `data_disk.disk_mbps_read_write` will be removed in favour of the `data_disk.ultra_ssd_disk_mbps_read_write` property.
-
 
 ## Case Sensitivity Changes
 

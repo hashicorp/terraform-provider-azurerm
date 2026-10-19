@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
@@ -99,7 +98,7 @@ func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,17 +127,16 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	flowLet := dataflows.Flowlet{
 		TypeProperties: &dataflows.FlowletTypeProperties{
 			Script:          pointer.To(d.Get("script").(string)),
-			Sinks:           expandDataFactoryDataFlowSink(d.Get("sink").([]interface{})),
-			Sources:         expandDataFactoryDataFlowSource(d.Get("source").([]interface{})),
-			Transformations: expandDataFactoryDataFlowTransformation(d.Get("transformation").([]interface{})),
+			Sinks:           expandDataFactoryDataFlowSink(d.Get("sink").([]any)),
+			Sources:         expandDataFactoryDataFlowSource(d.Get("source").([]any)),
+			Transformations: expandDataFactoryDataFlowTransformation(d.Get("transformation").([]any)),
 		},
 		Description: pointer.To(d.Get("description").(string)),
 		Type:        helper.DataFlowTypeFlowlet,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		flowLet.Annotations = &annotations
+		flowLet.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -148,7 +146,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("script_lines"); ok {
-		flowLet.TypeProperties.ScriptLines = utils.ExpandStringSlice(v.([]interface{}))
+		flowLet.TypeProperties.ScriptLines = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	dataFlow := dataflows.DataFlowResource{
@@ -166,7 +164,7 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceDataFactoryFlowletDataFlowRead(d, meta)
 }
 
-func resourceDataFactoryFlowletDataFlowRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryFlowletDataFlowRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +223,7 @@ func resourceDataFactoryFlowletDataFlowRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceDataFactoryFlowletDataFlowDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryFlowletDataFlowDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

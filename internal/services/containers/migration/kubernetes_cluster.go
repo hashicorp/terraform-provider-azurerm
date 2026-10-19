@@ -7,8 +7,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -21,11 +21,11 @@ type KubernetesClusterV0ToV1 struct{}
 type KubernetesClusterV1ToV2 struct{}
 
 func (k KubernetesClusterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
 		rawId := rawState["id"].(string)
 
-		id, err := parse.ClusterID(rawId)
+		id, err := commonids.ParseKubernetesClusterIDInsensitively(rawId)
 		if err != nil {
 			return nil, err
 		}
@@ -1228,16 +1228,16 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (k KubernetesClusterV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// since `server_app_secret` isn't returned from the AKS API we need to populate that value in the new `azure_active_directory_role_based_access_control` block
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		secretRaw := ""
 		if rbac, ok := rawState["role_based_access_control"]; ok {
-			rbacRaw := rbac.([]interface{})[0].(map[string]interface{})
+			rbacRaw := rbac.([]any)[0].(map[string]any)
 			if aad, ok := rbacRaw["azure_active_directory"]; ok {
-				aadRaw := aad.([]interface{})
+				aadRaw := aad.([]any)
 				if len(aadRaw) == 0 {
 					return rawState, nil
 				}
-				aadMap := aadRaw[0].(map[string]interface{})
+				aadMap := aadRaw[0].(map[string]any)
 				if secret, ok := aadMap["server_app_secret"]; ok {
 					log.Printf("[DEBUG] found value for `role_based_access_control.0.azure_active_directory.0.server_app_secret`")
 					secretRaw = secret.(string)
@@ -1247,8 +1247,8 @@ func (k KubernetesClusterV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		if secretRaw != "" {
 			log.Printf("[DEBUG] copying value to `azure_active_directory_role_based_access_control.0.server_app_secret`")
-			rawState["azure_active_directory_role_based_access_control"] = []interface{}{
-				map[string]interface{}{
+			rawState["azure_active_directory_role_based_access_control"] = []any{
+				map[string]any{
 					"server_app_secret": secretRaw,
 				},
 			}

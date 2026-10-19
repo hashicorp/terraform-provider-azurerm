@@ -131,7 +131,7 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 				"minimum_process_execution_time": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Computed: true,
+					Computed: true, // azignore:AZS007 - pre-existing violation
 					// ValidateFunc: // TODO - Time in hh:mm:ss, because why not...
 				},
 			},
@@ -530,7 +530,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
+		result.Actions.ActionType = pointer.ToEnum[webapps.AutoHealActionType](action.ActionType)
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 		if len(action.CustomAction) != 0 {
 			customAction := action.CustomAction[0]
@@ -647,7 +647,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 		}
 
 		resultActions := AutoHealActionWindows{
-			ActionType:         string(pointer.From(actions.ActionType)),
+			ActionType:         pointer.FromEnum(actions.ActionType),
 			CustomAction:       customActions,
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}
@@ -658,5 +658,5 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 		return []AutoHealSettingWindows{result}
 	}
 
-	return nil
+	return []AutoHealSettingWindows{}
 }

@@ -163,7 +163,7 @@ func gatherFiles(targets []string) ([]string, error) {
 			add(t)
 			continue
 		}
-		err = filepath.WalkDir(t, func(path string, d fs.DirEntry, err error) error {
+		if err = filepath.WalkDir(t, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
@@ -172,8 +172,7 @@ func gatherFiles(targets []string) ([]string, error) {
 			}
 			add(path)
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			return nil, err
 		}
 	}

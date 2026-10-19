@@ -63,9 +63,9 @@ func (ExascaleDatabaseStorageVaultResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		"description": {
-			Type: pluginsdk.TypeString,
-			// Note: O+C API use display_name value if omitted
+			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// Note: O+C API use `display_name` value if omitted
 			Computed: true,
 			ForceNew: true,
 		},
@@ -118,7 +118,7 @@ func (ExascaleDatabaseStorageVaultResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ExascaleDatabaseStorageVaultResource) ModelObject() interface{} {
+func (ExascaleDatabaseStorageVaultResource) ModelObject() any {
 	return &ExascaleDatabaseStorageVaultResource{}
 }
 
@@ -204,8 +204,7 @@ func (r ExascaleDatabaseStorageVaultResource) Update() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, *update)
-			if err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, *update); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 

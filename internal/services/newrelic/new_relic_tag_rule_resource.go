@@ -41,7 +41,7 @@ func (r NewRelicTagRuleResource) ResourceType() string {
 	return "azurerm_new_relic_tag_rule"
 }
 
-func (r NewRelicTagRuleResource) ModelObject() interface{} {
+func (r NewRelicTagRuleResource) ModelObject() any {
 	return &NewRelicTagRuleModel{}
 }
 
@@ -82,12 +82,9 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tagrules.TagActionExclude),
-							string(tagrules.TagActionInclude),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 					},
 
 					"value": {
@@ -116,12 +113,9 @@ func (r NewRelicTagRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"action": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(tagrules.TagActionExclude),
-							string(tagrules.TagActionInclude),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 					},
 
 					"value": {

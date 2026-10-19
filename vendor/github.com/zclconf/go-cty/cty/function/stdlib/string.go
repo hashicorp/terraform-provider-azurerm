@@ -6,11 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/apparentlymart/go-textseg/v15/textseg"
-
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/function"
 	"github.com/zclconf/go-cty/cty/gocty"
+	"github.com/zclconf/go-cty/cty/internal/graphemes"
 )
 
 var UpperFunc = function.New(&function.Spec{
@@ -67,7 +66,7 @@ var ReverseFunc = function.New(&function.Spec{
 
 		inB := []byte(in)
 		for i := 0; i < len(in); {
-			d, _, _ := textseg.ScanGraphemeClusters(inB[i:], true)
+			d, _, _ := graphemes.ScanGraphemeClusters(inB[i:], true)
 			cluster := in[i : i+d]
 			pos -= len(cluster)
 			copy(out[pos:], cluster)
@@ -117,7 +116,7 @@ func graphemeClusterCount(in string) int {
 	l := 0
 	inB := []byte(in)
 	for i := 0; i < len(in); {
-		d, _, _ := textseg.ScanGraphemeClusters(inB[i:], true)
+		d, _, _ := graphemes.ScanGraphemeClusters(inB[i:], true)
 		l++
 		i += d
 	}
@@ -191,7 +190,7 @@ var SubstrFunc = function.New(&function.Spec{
 		// First we'll seek forward to our offset
 		if offset > 0 {
 			for i = 0; i < len(sub); {
-				d, _, _ := textseg.ScanGraphemeClusters(sub[i:], true)
+				d, _, _ := graphemes.ScanGraphemeClusters(sub[i:], true)
 				i += d
 				pos++
 				if pos == offset {
@@ -215,7 +214,7 @@ var SubstrFunc = function.New(&function.Spec{
 		// reach the length we want.
 		pos = 0
 		for i = 0; i < len(sub); {
-			d, _, _ := textseg.ScanGraphemeClusters(sub[i:], true)
+			d, _, _ := graphemes.ScanGraphemeClusters(sub[i:], true)
 			i += d
 			pos++
 			if pos == length {

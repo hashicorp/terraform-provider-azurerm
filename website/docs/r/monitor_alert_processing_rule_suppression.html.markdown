@@ -189,7 +189,7 @@ A `schedule` block supports the following:
 
 * `recurrence` - (Optional) A `recurrence` block as defined above.
 
-* `time_zone` - (Optional) The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
+* `time_zone` - (Optional) The time zone (e.g. Pacific Standard time, Eastern Standard Time). Defaults to `UTC`. [possible values are defined here](https://docs.microsoft.com/previous-versions/windows/embedded/ms912391(v=winembedded.11)).
 
 ---
 

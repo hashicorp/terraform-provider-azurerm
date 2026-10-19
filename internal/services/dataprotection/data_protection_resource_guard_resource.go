@@ -16,11 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity
@@ -49,7 +47,7 @@ func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ResourceGuardName,
+				ValidateFunc: validation.StringLenBetween(1, 260),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -70,7 +68,7 @@ func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.ResourceGuardClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -95,9 +93,9 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	parameters := resourceguardresources.ResourceGuardResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &resourceguardresources.ResourceGuard{
-			VaultCriticalOperationExclusionList: utils.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]interface{})),
+			VaultCriticalOperationExclusionList: pluginsdk.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.ResourceGuardsPut(ctx, id, parameters); err != nil {
@@ -114,7 +112,7 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataProtectionResourceGuardRead(d, meta)
 }
 
-func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.ResourceGuardClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +139,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
-		d.Set("vault_critical_operation_exclusion_list", utils.FlattenStringSlice(props.VaultCriticalOperationExclusionList))
+		d.Set("vault_critical_operation_exclusion_list", pluginsdk.FlattenSlice(props.VaultCriticalOperationExclusionList))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -151,7 +149,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataProtection.ResourceGuardClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

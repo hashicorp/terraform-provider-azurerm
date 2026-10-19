@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -120,7 +119,7 @@ func (r ManagedLustreFileSystemResource) ResourceType() string {
 	return "azurerm_managed_lustre_file_system"
 }
 
-func (r ManagedLustreFileSystemResource) ModelObject() interface{} {
+func (r ManagedLustreFileSystemResource) ModelObject() any {
 	return &ManagedLustreFileSystemModel{}
 }
 
@@ -129,7 +128,7 @@ func (r ManagedLustreFileSystemResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
-	args := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -275,12 +274,6 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		args["encryption_key"].Elem.(*pluginsdk.Resource).Schema["key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
-	}
-
-	return args
 }
 
 func (r ManagedLustreFileSystemResource) Attributes() map[string]*pluginsdk.Schema {
@@ -296,7 +289,7 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if oldVal, newVal := metadata.ResourceDiff.GetChange("encryption_key"); len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0 {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("encryption_key"); len(oldVal.([]any)) > 0 && len(newVal.([]any)) == 0 {
 				if err := metadata.ResourceDiff.ForceNew("encryption_key"); err != nil {
 					return err
 				}
@@ -564,7 +557,7 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 	rootSquashSetting := &input[0]
 
 	return &amlfilesystems.AmlFilesystemRootSquashSettings{
-		Mode:             pointer.To(amlfilesystems.AmlFilesystemSquashMode(rootSquashSetting.Mode)),
+		Mode:             pointer.ToEnum[amlfilesystems.AmlFilesystemSquashMode](rootSquashSetting.Mode),
 		NoSquashNidLists: pointer.To(rootSquashSetting.NoSquashNidList),
 		SquashGID:        pointer.To(rootSquashSetting.SquashGID),
 		SquashUID:        pointer.To(rootSquashSetting.SquashUID),
@@ -574,7 +567,7 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 func flattenRootSquashSettings(input *amlfilesystems.AmlFilesystemRootSquashSettings) []RootSquashSetting {
 	result := make([]RootSquashSetting, 0)
 	if input == nil || pointer.From(input.Mode) == amlfilesystems.AmlFilesystemSquashModeNone {
-		return nil
+		return []RootSquashSetting{}
 	}
 
 	rootSquashSetting := RootSquashSetting{

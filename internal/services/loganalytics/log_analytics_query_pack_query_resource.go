@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsQueryPackQueryModel struct {
@@ -42,7 +41,7 @@ func (r LogAnalyticsQueryPackQueryResource) ResourceType() string {
 	return "azurerm_log_analytics_query_pack_query"
 }
 
-func (r LogAnalyticsQueryPackQueryResource) ModelObject() interface{} {
+func (r LogAnalyticsQueryPackQueryResource) ModelObject() any {
 	return &LogAnalyticsQueryPackQueryModel{}
 }
 
@@ -55,7 +54,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -111,7 +110,7 @@ func (r LogAnalyticsQueryPackQueryResource) Arguments() map[string]*pluginsdk.Sc
 		"additional_settings_json": {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
-			StateFunc: utils.NormalizeJson,
+			StateFunc: pluginsdk.NormalizeJson,
 		},
 
 		"resource_types": {
@@ -385,7 +384,7 @@ func (r LogAnalyticsQueryPackQueryResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.AdditionalSettingsJson != "" {
-				var additionalSettingsJson interface{}
+				var additionalSettingsJson any
 				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}
@@ -447,7 +446,7 @@ func (r LogAnalyticsQueryPackQueryResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("additional_settings_json") {
-				var additionalSettingsJson interface{}
+				var additionalSettingsJson any
 				if err := json.Unmarshal([]byte(model.AdditionalSettingsJson), &additionalSettingsJson); err != nil {
 					return fmt.Errorf("parsing JSON: %+v", err)
 				}
@@ -586,7 +585,7 @@ func expandLogAnalyticsQueryPackQueryTags(input map[string]string) *map[string][
 
 func flattenLogAnalyticsQueryPackQueryTags(input map[string][]string) map[string]string {
 	if input == nil {
-		return nil
+		return map[string]string{}
 	}
 
 	results := make(map[string]string)
