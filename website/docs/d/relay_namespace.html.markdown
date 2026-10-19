@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 
-* `sku_name` - The name of the SKU to use.
+* `sku_name` - The name of the SKU used by this Relay Namespace.
 
 * `tags` - A mapping of tags assigned to the Relay Namespace.
 
