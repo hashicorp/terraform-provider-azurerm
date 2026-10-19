@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package frontdoor
+package helpers
 
 import (
 	"time"
@@ -15,7 +15,7 @@ var (
 // isAPIFieldDeprecated checks if an API field has been deprecated based on the deprecation date
 // compared to the current time in the client's timezone versus Los Angeles timezone.
 // deprecationDate should be in "2006-01-02" format (YYYY-MM-DD)
-func isAPIFieldDeprecated(deprecationDate string) bool {
+func IsAPIFieldDeprecated(deprecationDate string) bool {
 	// Parse the deprecation date
 	deprecationTime, err := time.Parse("2006-01-02", deprecationDate)
 	if err != nil {
@@ -59,11 +59,11 @@ func isAPIFieldDeprecated(deprecationDate string) bool {
 // IsFrontDoorDeprecatedForCreation checks if Front Door creation is deprecated
 func IsFrontDoorDeprecatedForCreation() bool {
 	// Front Door was deprecated for new resource creation on April 1, 2025
-	return isAPIFieldDeprecated("2025-04-01")
+	return IsAPIFieldDeprecated("2025-04-01")
 }
 
 // IsFrontDoorFullyRetired checks if Front Door API is fully retired
 func IsFrontDoorFullyRetired() bool {
 	// Front Door API will be fully retired on March 31, 2027
-	return isAPIFieldDeprecated("2027-03-31")
+	return IsAPIFieldDeprecated("2027-03-31")
 }

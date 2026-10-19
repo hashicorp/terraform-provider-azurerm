@@ -1,12 +1,11 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package frontdoor
+package frontdoor_custom_https_configuration
 
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 )
 
@@ -26,30 +25,4 @@ func isFrontDoorFrontendEndpointConfigurable(currentState frontdoors.CustomHTTPS
 
 func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoors.CustomHTTPSProvisioningState) bool {
 	return provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoors.CustomHTTPSProvisioningStateEnabling
-}
-
-func FlattenTransformSlice(input *[]webapplicationfirewallpolicies.TransformType) []any {
-	result := make([]any, 0)
-
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, string(item))
-		}
-	}
-	return result
-}
-
-func FlattenFrontendEndpointLinkSlice(input *[]webapplicationfirewallpolicies.FrontendEndpointLink) []any {
-	result := make([]any, 0)
-
-	if input != nil {
-		for _, item := range *input {
-			if item.Id == nil {
-				continue
-			}
-
-			result = append(result, *item.Id)
-		}
-	}
-	return result
 }

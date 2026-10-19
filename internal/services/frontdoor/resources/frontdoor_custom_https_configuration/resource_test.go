@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package frontdoor_test
+package frontdoor_custom_https_configuration_test
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -24,9 +24,9 @@ func TestAccFrontDoorCustomHttpsConfiguration_createShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
 	r := FrontDoorCustomHttpsConfigurationResource{}
 
-	expectedError := frontdoor.CreateDeprecationMessage
-	if frontdoor.IsFrontDoorFullyRetired() {
-		expectedError = frontdoor.FullyRetiredMessage
+	expectedError := helpers.CreateDeprecationMessage
+	if helpers.IsFrontDoorFullyRetired() {
+		expectedError = helpers.FullyRetiredMessage
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

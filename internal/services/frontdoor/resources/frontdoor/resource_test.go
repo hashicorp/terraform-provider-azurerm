@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,9 +22,9 @@ type FrontDoorResource struct{}
 func TestAccFrontDoor_createShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	r := FrontDoorResource{}
-	expectedError := frontdoor.CreateDeprecationMessage
-	if frontdoor.IsFrontDoorFullyRetired() {
-		expectedError = frontdoor.FullyRetiredMessage
+	expectedError := helpers.CreateDeprecationMessage
+	if helpers.IsFrontDoorFullyRetired() {
+		expectedError = helpers.FullyRetiredMessage
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
