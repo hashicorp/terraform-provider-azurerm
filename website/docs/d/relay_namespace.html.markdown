@@ -41,6 +41,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `metric_id` - The Identifier for Azure Insights metrics.
 
+-> **Note:** The `primary_connection_string`, `primary_key`, `secondary_connection_string` and `secondary_key` attributes are only populated when the `RootManageSharedAccessKey` authorization rule exists and the credentials used by Terraform are allowed to list its keys.
+
 * `primary_connection_string` - The primary connection string for the authorization rule `RootManageSharedAccessKey`.
 
 * `primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.

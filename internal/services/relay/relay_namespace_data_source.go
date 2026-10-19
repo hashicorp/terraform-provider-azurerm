@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package relay
@@ -6,6 +6,7 @@ package relay
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -105,7 +106,7 @@ func (d RelayNamespaceDataSource) Read() sdk.ResourceFunc {
 
 			var state RelayNamespaceDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := namespaces.NewNamespaceID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
@@ -118,12 +119,6 @@ func (d RelayNamespaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, "RootManageSharedAccessKey")
-			keysResp, err := client.ListKeys(ctx, authRuleId)
-			if err != nil {
-				return fmt.Errorf("listing keys for %s: %+v", id, err)
-			}
-
 			model := resp.Model
 			if model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", id)
@@ -134,20 +129,23 @@ func (d RelayNamespaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties were nil", id)
 			}
 
-			if keysResp.Model == nil {
-				return fmt.Errorf("retrieving %s: keys model was nil", authRuleId)
-			}
-
 			state.Location = location.Normalize(model.Location)
 			state.MetricID = pointer.From(props.MetricId)
-			state.PrimaryConnectionString = pointer.From(keysResp.Model.PrimaryConnectionString)
-			state.SecondaryConnectionString = pointer.From(keysResp.Model.SecondaryConnectionString)
-			state.PrimaryKey = pointer.From(keysResp.Model.PrimaryKey)
-			state.SecondaryKey = pointer.From(keysResp.Model.SecondaryKey)
 			state.Tags = pointer.From(model.Tags)
-
 			if model.Sku != nil {
 				state.SkuName = string(model.Sku.Name)
+			}
+
+			authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, "RootManageSharedAccessKey")
+
+			keysResp, err := client.ListKeys(ctx, authRuleId)
+			if err != nil {
+				log.Printf("[ERROR] Unable to List Write keys for %s: %s", id, err)
+			} else if keysModel := keysResp.Model; keysModel != nil {
+				state.PrimaryConnectionString = pointer.From(keysModel.PrimaryConnectionString)
+				state.SecondaryConnectionString = pointer.From(keysModel.SecondaryConnectionString)
+				state.PrimaryKey = pointer.From(keysModel.PrimaryKey)
+				state.SecondaryKey = pointer.From(keysModel.SecondaryKey)
 			}
 
 			metadata.SetID(id)

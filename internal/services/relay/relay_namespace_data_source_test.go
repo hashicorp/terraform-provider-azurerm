@@ -28,7 +28,8 @@ func TestAccRelayNamespaceDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+				check.That(data.ResourceName).Key("location").MatchesOtherKey(check.That("azurerm_relay_namespace.test").Key("location")),
 			),
 		},
 	})
