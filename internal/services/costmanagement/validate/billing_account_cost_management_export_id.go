@@ -3,7 +3,7 @@
 
 package validate
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+// NOTE: this file is written by hand, as the ID generator cannot handle IDs without a subscription
 
 import (
 	"fmt"
