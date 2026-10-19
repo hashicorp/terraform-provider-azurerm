@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package elasticsan
+package elastic_san_volume_snapshot
 
 import (
 	"context"
@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticSANVolumeSnapshotDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ElasticSANVolumeSnapshotDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type ElasticSANVolumeSnapshotDataSourceModel struct {
 	Name                  string `tfschema:"name"`
@@ -29,15 +29,15 @@ type ElasticSANVolumeSnapshotDataSourceModel struct {
 	VolumeName            string `tfschema:"volume_name"`
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_elastic_san_volume_snapshot"
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ElasticSANVolumeSnapshotDataSourceModel{}
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -54,7 +54,7 @@ func (r ElasticSANVolumeSnapshotDataSource) Arguments() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"source_id": {
 			Type:     pluginsdk.TypeString,
@@ -73,7 +73,7 @@ func (r ElasticSANVolumeSnapshotDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (r ElasticSANVolumeSnapshotDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

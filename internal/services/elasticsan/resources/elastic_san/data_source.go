@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package elasticsan
+package elastic_san
 
 import (
 	"context"
@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticSANDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ElasticSANDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type ElasticSANDataSourceModel struct {
 	BaseSizeInTiB        int64                        `tfschema:"base_size_in_tib"`
@@ -40,15 +40,15 @@ type ElasticSANDataSourceModel struct {
 	Zones                []string                     `tfschema:"zones"`
 }
 
-func (r ElasticSANDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_elastic_san"
 }
 
-func (r ElasticSANDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ElasticSANDataSourceModel{}
 }
 
-func (r ElasticSANDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -60,7 +60,7 @@ func (r ElasticSANDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ElasticSANDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -123,7 +123,7 @@ func (r ElasticSANDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ElasticSANDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

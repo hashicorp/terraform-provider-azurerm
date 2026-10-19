@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package elasticsan
+package elastic_san_volume_group
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticSANVolumeGroupDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = ElasticSANVolumeGroupDataSource{}
+var _ sdk.DataSource = DataSource{}
 
 type ElasticSANVolumeGroupDataSourceModel struct {
 	SanId          string                                          `tfschema:"elastic_san_id"`
@@ -32,15 +32,15 @@ type ElasticSANVolumeGroupDataSourceModel struct {
 	ProtocolType   string                                          `tfschema:"protocol_type"`
 }
 
-func (r ElasticSANVolumeGroupDataSource) ResourceType() string {
+func (r DataSource) ResourceType() string {
 	return "azurerm_elastic_san_volume_group"
 }
 
-func (r ElasticSANVolumeGroupDataSource) ModelObject() any {
+func (r DataSource) ModelObject() any {
 	return &ElasticSANVolumeGroupDataSourceModel{}
 }
 
-func (r ElasticSANVolumeGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -52,7 +52,7 @@ func (r ElasticSANVolumeGroupDataSource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r ElasticSANVolumeGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"encryption_type": {
 			Type:     pluginsdk.TypeString,
@@ -114,7 +114,7 @@ func (r ElasticSANVolumeGroupDataSource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r ElasticSANVolumeGroupDataSource) Read() sdk.ResourceFunc {
+func (r DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
