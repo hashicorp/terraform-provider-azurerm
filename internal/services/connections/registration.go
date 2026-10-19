@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/resources/api_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/resources/managed_api"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,7 +39,7 @@ func (r Registration) WebsiteCategories() []string {
 // DataSources returns the typed Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ApiConnectionDataSource{},
+		api_connection.DataSource{},
 	}
 }
 
@@ -51,14 +53,14 @@ func (r Registration) Resources() []sdk.Resource {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_managed_api": dataSourceManagedApi(),
+		"azurerm_managed_api": managed_api.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_api_connection": resourceApiConnection(),
+		"azurerm_api_connection": api_connection.RegisterResource(),
 	}
 }
 

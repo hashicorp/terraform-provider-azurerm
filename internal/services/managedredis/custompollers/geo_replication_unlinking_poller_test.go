@@ -25,7 +25,7 @@ func TestGeoReplicationUnlinkingPoller_Success(t *testing.T) {
 					GeoReplication: &databases.DatabasePropertiesGeoReplication{
 						LinkedDatabases: &[]databases.LinkedDatabase{
 							{
-								Id:    pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default"),
+								Id:    new("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default"),
 								State: pointer.To(databases.LinkStateLinked),
 							},
 						},
@@ -66,11 +66,11 @@ func TestGeoReplicationUnlinkingPoller_InProgress(t *testing.T) {
 					GeoReplication: &databases.DatabasePropertiesGeoReplication{
 						LinkedDatabases: &[]databases.LinkedDatabase{
 							{
-								Id:    pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default"),
+								Id:    new("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default"),
 								State: pointer.To(databases.LinkStateLinked),
 							},
 							{
-								Id:    pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2/databases/default"),
+								Id:    new("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2/databases/default"),
 								State: pointer.To(databases.LinkStateLinked),
 							},
 						},
