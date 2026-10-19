@@ -18,6 +18,16 @@ import (
 
 type RaiPolicyTestResource struct{}
 
+func TestAccCognitiveAccountRaiPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
+	r := RaiPolicyTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccCognitiveAccountRaiPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
 	r := RaiPolicyTestResource{}
