@@ -52,6 +52,21 @@ func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 	})
 }
 
+func TestAccPolicyDefinition_basicWithParameterSchema(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithParameterSchema(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPolicyDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
@@ -177,29 +192,31 @@ func TestAccPolicyDefinition_removeParameter(t *testing.T) {
 
 func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	definitionsClient := client.Policy.PolicyDefinitionsClient
-	subscriptionId := client.Account.SubscriptionId
 
 	resourceId, err := parse.PolicyDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if scopeId, ok := resourceId.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
+	switch scopeId := resourceId.PolicyScopeId.(type) {
+	case parse.ScopeAtManagementGroup:
 		id := policydefinitions.NewProviders2PolicyDefinitionID(scopeId.ManagementGroupName, resourceId.Name)
 		resp, err := definitionsClient.GetAtManagementGroup(ctx, id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 		return pointer.To(resp.Model != nil), nil
-	}
+	case parse.ScopeAtSubscription:
+		id := policydefinitions.NewProviderPolicyDefinitionID(scopeId.SubscriptionId, resourceId.Name)
+		resp, err := definitionsClient.Get(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		}
 
-	id := policydefinitions.NewProviderPolicyDefinitionID(subscriptionId, resourceId.Name)
-	resp, err := definitionsClient.Get(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return pointer.To(resp.Model != nil), nil
+	default:
+		return nil, fmt.Errorf("unsupported scope for policy definition ID `%s`: expected a subscription or management group scope", state.ID)
 	}
-
-	return pointer.To(resp.Model != nil), nil
 }
 
 func (r PolicyDefinitionResource) basic(data acceptance.TestData) string {
@@ -285,6 +302,50 @@ resource "azurerm_policy_definition" "test" {
   }
 }
 POLICY_RULE
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) basicWithParameterSchema(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "acctestpol-%d"
+
+  policy_rule = jsonencode({
+    if = {
+      field     = "tags['environment']"
+      notEquals = "[parameters('tagSettings').environment]"
+    }
+    then = {
+      effect = "audit"
+    }
+  })
+
+  parameters = jsonencode({
+    tagSettings = {
+      type = "Object"
+      defaultValue = {
+        environment = "production"
+      }
+      schema = {
+        type = "object"
+        properties = {
+          environment = {
+            type = "string"
+          }
+        }
+        required             = ["environment"]
+        additionalProperties = false
+      }
+    }
+  })
 }
 `, data.RandomInteger, data.RandomInteger)
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 )
@@ -73,13 +74,13 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 	return res, err
 }
 
-func getPolicyDefinitionByID(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id any) (*http.Response, *policydefinitions.PolicyDefinition, error) {
+func getPolicyDefinitionByID(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id resourceids.ResourceId) (*http.Response, *policydefinitions.PolicyDefinition, error) {
 	switch id := id.(type) {
-	case policydefinitions.ProviderPolicyDefinitionId:
-		resp, err := client.Get(ctx, id)
+	case *policydefinitions.ProviderPolicyDefinitionId:
+		resp, err := client.Get(ctx, *id)
 		return resp.HttpResponse, resp.Model, err
-	case policydefinitions.Providers2PolicyDefinitionId:
-		resp, err := client.GetAtManagementGroup(ctx, id)
+	case *policydefinitions.Providers2PolicyDefinitionId:
+		resp, err := client.GetAtManagementGroup(ctx, *id)
 		return resp.HttpResponse, resp.Model, err
 	default:
 		return nil, nil, fmt.Errorf("`id` was not one of the expected types: %T", id)

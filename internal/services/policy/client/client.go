@@ -17,8 +17,8 @@ import (
 
 type Client struct {
 	AssignmentsClient                   *policyassignments.PolicyAssignmentsClient
-	PolicyDefinitionsClient             *policydefinitions.PolicyDefinitionsClient
 	GuestConfigurationAssignmentsClient *guestconfigurationassignments.GuestConfigurationAssignmentsClient
+	PolicyDefinitionsClient             *policydefinitions.PolicyDefinitionsClient
 	PolicySetDefinitionsClient          *policysetdefinitions.PolicySetDefinitionsClient
 	RemediationsClient                  *remediations.RemediationsClient
 
@@ -72,9 +72,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AssignmentsClient:                   assignmentsClient,
 		GuestConfigurationAssignmentsClient: guestConfigurationAssignmentsClient,
+		PolicyDefinitionsClient:             policyDefinitionsClient,
 		PolicySetDefinitionsClient:          policySetDefinitionsClient,
 		RemediationsClient:                  remediationsClient,
-		PolicyDefinitionsClient:             policyDefinitionsClient,
 
 		// Track 1
 		DefinitionsClient:    &definitionsClient,

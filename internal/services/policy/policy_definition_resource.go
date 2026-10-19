@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -83,8 +84,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 
 	name := d.Get("name").(string)
 
-	var id any
-	var idString string
+	var id resourceids.ResourceId
 	if v, ok := d.GetOk("management_group_id"); ok {
 		managementGroupId, err := mgmtGrpParse.ManagementGroupID(v.(string))
 		if err != nil {
@@ -92,22 +92,20 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 		}
 		managementGroupName := managementGroupId.Name
 		scopedId := policydefinitions.NewProviders2PolicyDefinitionID(managementGroupName, name)
-		id = scopedId
-		idString = scopedId.ID()
+		id = &scopedId
 	} else {
 		scopedId := policydefinitions.NewProviderPolicyDefinitionID(subscriptionId, name)
-		id = scopedId
-		idString = scopedId.ID()
+		id = &scopedId
 	}
 
 	if d.IsNewResource() && !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		resp, _, err := getPolicyDefinitionByID(ctx, client, id)
 		if err != nil && !response.WasNotFound(resp) {
-			return fmt.Errorf("checking for presence of existing policy definition `%s`: %+v", idString, err)
+			return fmt.Errorf("checking for presence of existing policy definition `%s`: %+v", id.ID(), err)
 		}
 
 		if !response.WasNotFound(resp) {
-			return tf.ImportAsExistsError("azurerm_policy_definition", idString)
+			return tf.ImportAsExistsError("azurerm_policy_definition", id.ID())
 		}
 	}
 
@@ -150,12 +148,12 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 	}
 
 	switch typedId := id.(type) {
-	case policydefinitions.ProviderPolicyDefinitionId:
-		if _, err := client.CreateOrUpdate(ctx, typedId, parameters); err != nil {
+	case *policydefinitions.ProviderPolicyDefinitionId:
+		if _, err := client.CreateOrUpdate(ctx, *typedId, parameters); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", typedId, err)
 		}
-	case policydefinitions.Providers2PolicyDefinitionId:
-		if _, err := client.CreateOrUpdateAtManagementGroup(ctx, typedId, parameters); err != nil {
+	case *policydefinitions.Providers2PolicyDefinitionId:
+		if _, err := client.CreateOrUpdateAtManagementGroup(ctx, *typedId, parameters); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", typedId, err)
 		}
 	default:
@@ -179,7 +177,7 @@ func resourcePolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta any) e
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
-	resourceId, err := parse.PolicyDefinitionID(idString)
+	resourceId, err := parse.PolicyDefinitionID(id.ID())
 	if err != nil {
 		return err
 	}
@@ -199,16 +197,20 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	var id any
+	var id resourceids.ResourceId
 	managementGroupName := ""
 	var managementGroupId mgmtGrpParse.ManagementGroupId
 	switch scopeId := oldId.PolicyScopeId.(type) {
 	case parse.ScopeAtManagementGroup:
 		managementGroupId = mgmtGrpParse.NewManagementGroupId(scopeId.ManagementGroupName)
 		managementGroupName = managementGroupId.Name
-		id = policydefinitions.NewProviders2PolicyDefinitionID(managementGroupName, oldId.Name)
+		scopedId := policydefinitions.NewProviders2PolicyDefinitionID(managementGroupName, oldId.Name)
+		id = &scopedId
+	case parse.ScopeAtSubscription:
+		scopedId := policydefinitions.NewProviderPolicyDefinitionID(scopeId.SubscriptionId, oldId.Name)
+		id = &scopedId
 	default:
-		id = policydefinitions.NewProviderPolicyDefinitionID(meta.(*clients.Client).Account.SubscriptionId, oldId.Name)
+		return fmt.Errorf("unsupported scope for policy definition ID `%s`: expected a subscription or management group scope", d.Id())
 	}
 
 	resp, model, err := getPolicyDefinitionByID(ctx, client, id)
@@ -235,13 +237,13 @@ func resourcePolicyDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("display_name", props.DisplayName)
 			d.Set("description", props.Description)
 
-			if policyRuleStr := flattenJSON(props.PolicyRule); policyRuleStr != "" {
+			if policyRuleStr := flattenJSON(pointer.From(props.PolicyRule)); policyRuleStr != "" {
 				d.Set("policy_rule", policyRuleStr)
 				roleIDs, _ := getPolicyRoleDefinitionIDs(policyRuleStr)
 				d.Set("role_definition_ids", roleIDs)
 			}
 
-			if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
+			if metadataStr := flattenJSON(pointer.From(props.Metadata)); metadataStr != "" {
 				d.Set("metadata", metadataStr)
 			}
 
@@ -275,14 +277,16 @@ func resourcePolicyDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 			}
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
-	default:
-		id := policydefinitions.NewProviderPolicyDefinitionID(meta.(*clients.Client).Account.SubscriptionId, oldId.Name)
+	case parse.ScopeAtSubscription:
+		id := policydefinitions.NewProviderPolicyDefinitionID(scopeId.SubscriptionId, oldId.Name)
 		if resp, err := client.Delete(ctx, id); err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return nil
 			}
 			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
+	default:
+		return fmt.Errorf("unsupported scope for policy definition ID `%s`: expected a subscription or management group scope", d.Id())
 	}
 
 	return nil
