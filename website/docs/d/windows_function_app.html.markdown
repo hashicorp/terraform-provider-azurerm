@@ -14,8 +14,8 @@ Use this data source to access information about an existing Windows Function Ap
 
 ```hcl
 data "azurerm_windows_function_app" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-function-app"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
