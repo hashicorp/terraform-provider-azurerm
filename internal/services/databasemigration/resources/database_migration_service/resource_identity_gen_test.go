@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package databasemigration_test
+package database_migration_service_test
 
 import (
 	"testing"
