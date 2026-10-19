@@ -93,7 +93,7 @@ func TestAccSynapseWorkspaceExtendedAuditingPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccSynapseWorkspaceExtendedAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
+func TestAccSynapseWorkspaceExtendedAuditingPolicy_storageAccountBehindFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_extended_auditing_policy", "test")
 	r := SynapseWorkspaceExtendedAuditingPolicyResource{}
 
@@ -198,7 +198,6 @@ resource "azurerm_storage_account" "sw" {
   name                     = "acctestsw%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }

@@ -22,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name eventhub -properties "name" -compare-values "subscription_id:namespace_id,resource_group_name:namespace_id,namespace_name:namespace_id" -test-name standard
+
 var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
@@ -31,10 +33,11 @@ func resourceEventHub() *pluginsdk.Resource {
 		Update: resourceEventHubUpdate,
 		Delete: resourceEventHubDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := eventhubs.ParseEventhubID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&eventhubs.EventhubId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&eventhubs.EventhubId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -212,11 +215,13 @@ func resourceEventHub() *pluginsdk.Resource {
 				return fmt.Errorf("`status` cannot be set to `%s` when creating an Event Hub, it can only be set on an existing Event Hub", string(eventhubs.EntityStatusSendDisabled))
 			}
 
-			capture := d.GetRawConfig().AsValueMap()["capture_description"]
-			if !capture.IsNull() && len(capture.AsValueSlice()) > 0 {
-				destination := capture.AsValueSlice()[0].AsValueMap()["destination"].AsValueSlice()[0].AsValueMap()
-				if !destination["storage_authentication_type"].IsNull() && destination["storage_authentication_type"].AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destination["storage_authentication_id"].IsNull() {
-					return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+			if capture := d.GetRawConfig().AsValueMap()["capture_description"]; capture.IsKnown() && !capture.IsNull() && capture.LengthInt() > 0 {
+				if destination := capture.AsValueSlice()[0].AsValueMap()["destination"]; destination.IsKnown() && !destination.IsNull() && destination.LengthInt() > 0 {
+					destinationMap := destination.AsValueSlice()[0].AsValueMap()
+					authType := destinationMap["storage_authentication_type"]
+					if authType.IsKnown() && !authType.IsNull() && authType.AsString() == string(eventhubs.CaptureIdentityTypeUserAssigned) && destinationMap["storage_authentication_id"].IsNull() {
+						return fmt.Errorf("`storage_authentication_id` must be specified when `storage_authentication_type` is set to `UserAssigned`")
+					}
 				}
 			}
 			return nil
@@ -281,6 +286,9 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceEventHubRead(d, meta)
 }
@@ -361,12 +369,16 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
 
+	return resourceEventHubFlatten(d, id, resp.Model)
+}
+
+func resourceEventHubFlatten(d *pluginsdk.ResourceData, id *eventhubs.EventhubId, model *eventhubs.Eventhub) error {
 	d.Set("name", id.EventhubName)
 
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	d.Set("namespace_id", namespaceId.ID())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("partition_count", props.PartitionCount)
 			d.Set("partition_ids", props.PartitionIds)
@@ -386,7 +398,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
