@@ -22,7 +22,7 @@ type CertificateCreateOptions struct {
 }
 
 func (c CertificateCreateOptions) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
+	objectMap := make(map[string]any)
 
 	objectMap["validityInHours"] = c.ValidityInHours
 	return json.Marshal(objectMap)

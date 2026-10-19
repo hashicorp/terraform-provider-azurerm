@@ -32,7 +32,7 @@ type DesktopVirtualizationWorkspaceModel struct {
 
 var _ sdk.DataSource = DesktopVirtualizationWorkspaceDataSource{}
 
-func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() interface{} {
+func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() any {
 	return &DesktopVirtualizationWorkspaceModel{}
 }
 

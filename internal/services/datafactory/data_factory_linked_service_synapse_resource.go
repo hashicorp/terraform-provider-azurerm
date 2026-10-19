@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceSynapse() *pluginsdk.Resource {
@@ -125,7 +125,7 @@ func resourceDataFactoryLinkedServiceSynapse() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -153,7 +153,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 		}
 	}
 
-	password := d.Get("key_vault_password").([]interface{})
+	password := d.Get("key_vault_password").([]any)
 
 	sqlDWLinkedService := &datafactory.AzureSQLDWLinkedService{
 		Description: pointer.To(d.Get("description").(string)),
@@ -165,7 +165,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sqlDWLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		sqlDWLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -173,11 +173,11 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sqlDWLinkedService.AdditionalProperties = v.(map[string]interface{})
+		sqlDWLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sqlDWLinkedService.Annotations = pointer.To(v.([]interface{}))
+		sqlDWLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -193,7 +193,7 @@ func resourceDataFactoryLinkedServiceSynapseCreateUpdate(d *pluginsdk.ResourceDa
 	return resourceDataFactoryLinkedServiceSynapseRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,7 +258,7 @@ func resourceDataFactoryLinkedServiceSynapseRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceSynapseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceSynapseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

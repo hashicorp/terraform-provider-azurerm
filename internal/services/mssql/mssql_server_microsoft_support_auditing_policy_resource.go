@@ -81,7 +81,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerDevOpsAuditSettingsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -144,7 +144,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 	return resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerDevOpsAuditSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +182,7 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerDevOpsAuditSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

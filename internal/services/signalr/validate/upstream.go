@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func UrlTemplate(v interface{}, k string) ([]string, []error) {
+func UrlTemplate(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^https?://[^\s]+$`), "must start with http:// or https:// and must not contain whitespaces")(v, k)
 }

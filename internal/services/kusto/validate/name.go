@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DataConnectionName(v interface{}, k string) ([]string, []error) {
+func DataConnectionName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespaces only"),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`), "may only contain letters, digits, whitespaces, dashes and dots"),
@@ -17,7 +17,7 @@ func DataConnectionName(v interface{}, k string) ([]string, []error) {
 	)(v, k)
 }
 
-func EntityName(v interface{}, k string) ([]string, []error) {
+func EntityName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespaces only"),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_\s.-]+$`), "may only contain letters, digits, underscores, spaces, dashes and dots"),
@@ -25,14 +25,14 @@ func EntityName(v interface{}, k string) ([]string, []error) {
 	)(v, k)
 }
 
-func ClusterName(v interface{}, k string) ([]string, []error) {
+func ClusterName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^[a-z][a-z0-9\-]+$`), "must begin with a letter and may only contain alphanumeric characters"),
 		validation.StringLenBetween(4, 22),
 	)(v, k)
 }
 
-func DatabaseName(v interface{}, k string) ([]string, []error) {
+func DatabaseName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespaces only"),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\s._-]+$`), "may only contain alphanumeric characters, whitespaces, dashes, underscores and dots"),
@@ -40,7 +40,7 @@ func DatabaseName(v interface{}, k string) ([]string, []error) {
 	)(v, k)
 }
 
-func DatabasePrincipalAssignmentName(v interface{}, k string) ([]string, []error) {
+func DatabasePrincipalAssignmentName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^[\s]+$`), "must not consist of whitespaces only"),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`), "may only contain alphanumeric characters, whitespaces, dashes and dots"),

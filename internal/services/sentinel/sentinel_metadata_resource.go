@@ -15,7 +15,6 @@ import (
 	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -238,13 +237,13 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 		"first_publish_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 
 		"last_publish_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ISO8601DateTime,
+			ValidateFunc: validation.ISO8601DateTime,
 		},
 
 		"content_schema_version": {
@@ -333,7 +332,7 @@ func (a MetadataResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (a MetadataResource) ModelObject() interface{} {
+func (a MetadataResource) ModelObject() any {
 	return &MetadataModel{}
 }
 
@@ -793,8 +792,8 @@ func flattenMetadataCategoryModel(input *sentinelmetadata.MetadataCategories) []
 	return []MetadataCategoryModel{output}
 }
 
-func expandMetadataDependencies(input interface{}) (dependencies *sentinelmetadata.MetadataDependencies, err error) {
-	if j, ok := input.(map[string]interface{}); ok {
+func expandMetadataDependencies(input any) (dependencies *sentinelmetadata.MetadataDependencies, err error) {
+	if j, ok := input.(map[string]any); ok {
 		dependencies = &sentinelmetadata.MetadataDependencies{}
 		// "name" is not returned in response, so it's not supported for now.
 		if v, ok := j["contentId"]; ok {
@@ -810,10 +809,10 @@ func expandMetadataDependencies(input interface{}) (dependencies *sentinelmetada
 			dependencies.Operator = pointer.ToEnum[sentinelmetadata.Operator](v.(string))
 		}
 		if v, ok := j["criteria"]; ok {
-			if array, ok := v.([]interface{}); ok {
+			if array, ok := v.([]any); ok {
 				var deps []sentinelmetadata.MetadataDependencies
 				for _, item := range array {
-					i, ok := item.(map[string]interface{})
+					i, ok := item.(map[string]any)
 					if !ok {
 						continue
 					}

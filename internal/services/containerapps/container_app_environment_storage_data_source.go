@@ -30,7 +30,7 @@ type ContainerAppEnvironmentStorageDataSourceModel struct {
 
 var _ sdk.DataSource = ContainerAppEnvironmentStorageDataSource{}
 
-func (r ContainerAppEnvironmentStorageDataSource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentStorageDataSource) ModelObject() any {
 	return &ContainerAppEnvironmentStorageDataSourceModel{}
 }
 

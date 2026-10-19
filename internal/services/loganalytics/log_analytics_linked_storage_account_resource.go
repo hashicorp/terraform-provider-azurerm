@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/linkedstorageaccounts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
@@ -76,7 +75,7 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -104,7 +103,7 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 
 	parameters := linkedstorageaccounts.LinkedStorageAccountsResource{
 		Properties: linkedstorageaccounts.LinkedStorageAccountsProperties{
-			StorageAccountIds: helpers.ExpandStringSlice(d.Get("storage_account_ids").(*pluginsdk.Set).List()),
+			StorageAccountIds: pluginsdk.ExpandStringSlice(d.Get("storage_account_ids").(*pluginsdk.Set).List()),
 		},
 	}
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
@@ -118,7 +117,7 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 	return resourceLogAnalyticsLinkedStorageAccountRead(d, meta)
 }
 
-func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +149,7 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceLogAnalyticsLinkedStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

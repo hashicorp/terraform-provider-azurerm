@@ -35,7 +35,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 		Importer: helpers.ImporterValidatingStorageResourceIdThen(func(id, storageDomainSuffix string) error {
 			_, err := paths.ParsePathID(id, storageDomainSuffix)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
 			defer cancel()
@@ -155,7 +155,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -262,7 +262,7 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceStorageDataLakeGen2PathRead(d, meta)
 }
 
-func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -324,7 +324,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceStorageDataLakeGen2PathRead(d, meta)
 }
 
-func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -388,7 +388,7 @@ func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceStorageDataLakeGen2PathDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

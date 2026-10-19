@@ -51,7 +51,7 @@ type KubernetesAutomaticClusterDataSourceModel struct {
 	NodeResourceGroupID      string                                     `tfschema:"node_resource_group_id"`
 	ServiceMeshProfile       []ServiceMeshProfileDataSourceModel        `tfschema:"service_mesh"`
 	WebAppRoutingIngress     []WebAppRoutingIngressDataSourceModel      `tfschema:"web_app_routing_ingress"`
-	Tags                     map[string]interface{}                     `tfschema:"tags"`
+	Tags                     map[string]any                             `tfschema:"tags"`
 }
 
 type APIServerAccessDataSourceModel struct {
@@ -383,7 +383,7 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (KubernetesAutomaticClusterDataSource) ModelObject() interface{} {
+func (KubernetesAutomaticClusterDataSource) ModelObject() any {
 	return &KubernetesAutomaticClusterDataSourceModel{}
 }
 
@@ -633,7 +633,7 @@ func flattenKubernetesAutomaticClusterDataSourceServiceMeshProfile(profile *mana
 				externalIngressGatewayEnabled = gateway.Enabled
 			}
 		}
-		proxyRedirectMechanism = string(pointer.From(profile.Istio.Components.ProxyRedirectionMechanism))
+		proxyRedirectMechanism = pointer.FromEnum(profile.Istio.Components.ProxyRedirectionMechanism)
 	}
 
 	certificateAuthority := flattenKubernetesAutomaticClusterDataSourceServiceMeshProfileCertificateAuthority(profile.Istio.CertificateAuthority)

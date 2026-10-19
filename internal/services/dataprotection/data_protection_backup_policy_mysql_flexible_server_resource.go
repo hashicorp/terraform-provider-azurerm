@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -71,7 +70,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ResourceType() st
 	return "azurerm_data_protection_backup_policy_mysql_flexible_server"
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ModelObject() any {
 	return &BackupPolicyMySQLFlexibleServerModel{}
 }
 
@@ -97,7 +96,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: azValidate.ISO8601RepeatingTime,
+				ValidateFunc: validation.ISO8601RepeatingTime,
 			},
 		},
 
@@ -129,7 +128,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -233,7 +232,7 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Arguments() map[s
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},

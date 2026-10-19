@@ -31,7 +31,7 @@ var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineInstanceGues
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource struct{}
 
-func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel{}
 }
 
@@ -156,7 +156,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 						state.Password = metadata.ResourceData.Get("password").(string)
 					}
 
-					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
+					state.ProvisioningAction = pointer.FromEnum(props.ProvisioningAction)
 				}
 			}
 

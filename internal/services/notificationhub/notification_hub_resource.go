@@ -58,7 +58,7 @@ func resourceNotificationHub() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 			// NOTE: the ForceNew is to workaround a bug in the Azure SDK where nil-values aren't sent to the API.
 			// Bug: https://github.com/Azure/azure-sdk-for-go/issues/2246
 
@@ -182,7 +182,7 @@ func resourceNotificationHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -208,11 +208,11 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	parameters := hubs.NotificationHubResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &hubs.NotificationHubProperties{
-			ApnsCredential:    expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]interface{})),
-			BrowserCredential: expandNotificationHubsBrowserCredentials(d.Get("browser_credential").([]interface{})),
-			GcmCredential:     expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]interface{})),
+			ApnsCredential:    expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]any)),
+			BrowserCredential: expandNotificationHubsBrowserCredentials(d.Get("browser_credential").([]any)),
+			GcmCredential:     expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.NotificationHubsCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -237,7 +237,7 @@ func resourceNotificationHubCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceNotificationHubRead(d, meta)
 }
 
-func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -290,7 +290,7 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceNotificationHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNotificationHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,12 +310,12 @@ func resourceNotificationHubDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCredential {
+func expandNotificationHubsAPNSCredentials(inputs []any) *hubs.ApnsCredential {
 	if len(inputs) == 0 {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	applicationMode := input["application_mode"].(string)
 	bundleId := input["bundle_id"].(string)
 	keyId := input["key_id"].(string)
@@ -340,12 +340,12 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) *hubs.ApnsCrede
 	return &credentials
 }
 
-func expandNotificationHubsBrowserCredentials(inputs []interface{}) *hubs.BrowserCredential {
+func expandNotificationHubsBrowserCredentials(inputs []any) *hubs.BrowserCredential {
 	if len(inputs) == 0 {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	credentials := hubs.BrowserCredential{
 		Properties: hubs.BrowserCredentialProperties{
 			Subject:         input["subject"].(string),
@@ -356,12 +356,12 @@ func expandNotificationHubsBrowserCredentials(inputs []interface{}) *hubs.Browse
 	return &credentials
 }
 
-func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interface{} {
+func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if bundleId := input.Properties.AppName; bundleId != nil {
 		output["bundle_id"] = *bundleId
@@ -385,29 +385,29 @@ func flattenNotificationHubsAPNSCredentials(input *hubs.ApnsCredential) []interf
 		output["token"] = *token
 	}
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func flattenNotificationHubsBrowserCredentials(input *hubs.BrowserCredential) []interface{} {
+func flattenNotificationHubsBrowserCredentials(input *hubs.BrowserCredential) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	output["subject"] = input.Properties.Subject
 	output["vapid_private_key"] = input.Properties.VapidPrivateKey
 	output["vapid_public_key"] = input.Properties.VapidPublicKey
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func expandNotificationHubsGCMCredentials(inputs []interface{}) *hubs.GcmCredential {
+func expandNotificationHubsGCMCredentials(inputs []any) *hubs.GcmCredential {
 	if len(inputs) == 0 {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	apiKey := input["api_key"].(string)
 	credentials := hubs.GcmCredential{
 		Properties: hubs.GcmCredentialProperties{
@@ -417,13 +417,13 @@ func expandNotificationHubsGCMCredentials(inputs []interface{}) *hubs.GcmCredent
 	return &credentials
 }
 
-func flattenNotificationHubsGCMCredentials(input *hubs.GcmCredential) []interface{} {
+func flattenNotificationHubsGCMCredentials(input *hubs.GcmCredential) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 	output["api_key"] = input.Properties.GoogleApiKey
 
-	return []interface{}{output}
+	return []any{output}
 }

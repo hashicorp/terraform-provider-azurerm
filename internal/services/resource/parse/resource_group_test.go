@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ResourceGroupId{}
 
-func TestResourceGroupIDFormatter(t *testing.T) {
+func TestParseResourceGroupIDFormatter(t *testing.T) {
 	actual := NewResourceGroupID("12345678-1234-9876-4563-123456789012", "group1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestResourceGroupIDFormatter(t *testing.T) {
 	}
 }
 
-func TestResourceGroupID(t *testing.T) {
+func TestParseResourceGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -97,7 +97,7 @@ func TestResourceGroupID(t *testing.T) {
 	}
 }
 
-func TestResourceGroupIDInsensitively(t *testing.T) {
+func TestParseResourceGroupIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

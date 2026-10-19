@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -270,6 +270,22 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_ipAddressPool_sequential(t *testing.T) {
+	testCases := map[string]func(t *testing.T){
+		"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+		"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+		"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+		"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+		"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			tc(t)
+		})
+	}
+}
+
 func testAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -458,7 +474,7 @@ func TestAccVirtualNetwork_subnetRouteTable(t *testing.T) {
 	})
 }
 
-func TestVirtualNetworkResource_tagCount(t *testing.T) {
+func TestAccVirtualNetwork_tagCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 

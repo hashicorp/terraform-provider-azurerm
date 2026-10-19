@@ -13,6 +13,16 @@ import (
 
 type ServicePlanDataSource struct{}
 
+func TestAccServicePlanDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_service_plan", "test")
+	r := ServicePlanDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccServicePlanDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_service_plan", "test")
 	d := ServicePlanDataSource{}
@@ -37,4 +47,29 @@ data azurerm_service_plan test {
   resource_group_name = azurerm_service_plan.test.resource_group_name
 }
 `, ServicePlanResource{}.complete(data))
+}
+
+func TestAccServicePlanDataSource_premiumPlanAutoScale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_service_plan", "test")
+	d := ServicePlanDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.premiumPlanAutoScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("premium_plan_auto_scale_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func (ServicePlanDataSource) premiumPlanAutoScale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_service_plan" "test" {
+  name                = azurerm_service_plan.test.name
+  resource_group_name = azurerm_service_plan.test.resource_group_name
+}
+`, ServicePlanResource{}.linuxPremiumAutoScaleFeature(data))
 }
