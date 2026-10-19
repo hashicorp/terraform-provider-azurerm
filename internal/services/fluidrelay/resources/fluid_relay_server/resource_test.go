@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package fluidrelay_test
+package fluid_relay_server_test
 
 import (
 	"context"
