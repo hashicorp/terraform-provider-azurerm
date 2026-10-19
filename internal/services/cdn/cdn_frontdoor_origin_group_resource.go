@@ -431,7 +431,19 @@ func cdnFrontDoorOriginGroupAuthenticationCustomizeDiff(_ context.Context, diff 
 	authenticationType := v["type"].(string)
 	userAssignedIdentityId := v["user_assigned_identity_id"].(string)
 
-	if authenticationType == string(afdorigingroups.OriginAuthenticationTypeUserAssignedIdentity) && userAssignedIdentityId == "" {
+	// Skip the check when `user_assigned_identity_id` is `(known after apply)`, e.g. the identity is created in the same apply
+	userAssignedIdentityIdKnown := true
+	if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+		authenticationConfig := rawConfig.GetAttr("authentication")
+		if authenticationConfig.IsKnown() && !authenticationConfig.IsNull() && authenticationConfig.LengthInt() > 0 {
+			authenticationBlock := authenticationConfig.AsValueSlice()[0]
+			if !authenticationBlock.IsNull() {
+				userAssignedIdentityIdKnown = authenticationBlock.GetAttr("user_assigned_identity_id").IsKnown()
+			}
+		}
+	}
+
+	if authenticationType == string(afdorigingroups.OriginAuthenticationTypeUserAssignedIdentity) && userAssignedIdentityId == "" && userAssignedIdentityIdKnown {
 		return fmt.Errorf("`authentication.0.user_assigned_identity_id` must be specified when `authentication.0.type` is `%s`", afdorigingroups.OriginAuthenticationTypeUserAssignedIdentity)
 	}
 
