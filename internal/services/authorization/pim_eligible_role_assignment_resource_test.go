@@ -21,6 +21,16 @@ import (
 
 type PimEligibleRoleAssignmentResource struct{}
 
+func TestAccPimEligibleRoleAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noExpiration(data),
+		},
+	}, "")
+}
+
 func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
 	r := PimEligibleRoleAssignmentResource{}
