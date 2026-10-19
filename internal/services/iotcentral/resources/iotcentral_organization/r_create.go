@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
-	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	"github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -40,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating organization client: %+v", err)
 			}
 
-			model := dataplane.Organization{
+			model := iotcentral.Organization{
 				DisplayName: &state.DisplayName,
 			}
 
