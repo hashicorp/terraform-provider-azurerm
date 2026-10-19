@@ -89,27 +89,25 @@ import (
 	"golang.org/x/tools/internal/versions"
 )
 
-type opaqueType struct{ name string }
-
-func (t *opaqueType) String() string         { return t.name }
-func (t *opaqueType) Underlying() types.Type { return t }
-
 var (
 	varOk    = newVar("ok", tBool)
 	varIndex = newVar("index", tInt)
 
 	// Type constants.
-	tBool       = types.Typ[types.Bool]
-	tByte       = types.Typ[types.Byte]
-	tRune       = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
-	tInt        = types.Typ[types.Int]
-	tInvalid    = types.Typ[types.Invalid]
-	tString     = types.Typ[types.String]
-	tUntypedNil = types.Typ[types.UntypedNil]
+	tBool          = types.Typ[types.Bool]
+	tByte          = types.Typ[types.Byte]
+	tRune          = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
+	tInt           = types.Typ[types.Int]
+	tInvalid       = types.Typ[types.Invalid]
+	tString        = types.Typ[types.String]
+	tUntypedNil    = types.Typ[types.UntypedNil]
+	tUnsafePointer = types.Typ[types.UnsafePointer]
+	tRangeIter     = ssaNamedType("rangeIter", tUnsafePointer)  // the type of all "range" iterators
+	tDeferStack    = ssaNamedType("deferStack", tUnsafePointer) // the type of a "deferStack" from ssa:deferstack()
+	tEface         = types.NewInterfaceType(nil, nil).Complete()
 
-	tRangeIter  = &opaqueType{"iter"}                         // the type of all "range" iterators
-	tDeferStack = types.NewPointer(&opaqueType{"deferStack"}) // the type of a "deferStack" from ssa:deferstack()
-	tEface      = types.NewInterfaceType(nil, nil).Complete()
+	// Fake package for fake ssa types.
+	ssaFakeTypesPackage = types.NewPackage("$ssa", "ssa")
 
 	// SSA Value constants.
 	vZero     = intConst(0)
@@ -128,6 +126,11 @@ var (
 		sig:  types.NewSignatureType(nil, nil, nil, nil, typesinternal.TupleOf(tDeferStack), false),
 	}
 )
+
+func ssaNamedType(name string, underlying types.Type) *types.Named {
+	obj := types.NewTypeName(token.NoPos, ssaFakeTypesPackage, name, nil)
+	return types.NewNamed(obj, underlying, nil)
+}
 
 // builder holds state associated with the package currently being built.
 // Its methods contain all the logic for AST-to-SSA conversion.
@@ -641,11 +644,13 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			info:           fn.info,
 			goversion:      fn.goversion,
 			build:          (*builder).buildFromSyntax,
-			topLevelOrigin: nil,           // use anonIdx to lookup an anon instance's origin.
-			typeparams:     fn.typeparams, // share the parent's type parameters.
-			typeargs:       fn.typeargs,   // share the parent's type arguments.
-			subst:          fn.subst,      // share the parent's type substitutions.
-			uniq:           fn.uniq,       // start from parent's unique values
+			topLevelOrigin: nil,               // use anonIdx to lookup an anon instance's origin.
+			recvtypeparams: fn.recvtypeparams, // share the parent's receiver type parameters.
+			recvtypeargs:   fn.recvtypeargs,   // share the parent's receiver type arguments.
+			typeparams:     fn.typeparams,     // share the parent's type parameters.
+			typeargs:       fn.typeargs,       // share the parent's type arguments.
+			subst:          fn.subst,          // share the parent's type substitutions.
+			uniq:           fn.uniq,           // start from parent's unique values
 		}
 		fn.AnonFuncs = append(fn.AnonFuncs, anon)
 		// Build anon immediately, as it may cause fn's locals to escape.
@@ -1135,8 +1140,8 @@ func (b *builder) setCall(fn *Function, e *ast.CallExpr, c *CallCommon) {
 	b.setCallFunc(fn, e, c)
 
 	// Then append the other actual parameters.
-	sig, _ := typeparams.CoreType(fn.typeOf(e.Fun)).(*types.Signature)
-	if sig == nil {
+	sig, ok := typeparams.CoreType(fn.typeOf(e.Fun)).(*types.Signature)
+	if !ok {
 		panic(fmt.Sprintf("no signature for call of %s", e.Fun))
 	}
 	c.Args = b.emitCallArgs(fn, sig, e, c.Args)
@@ -2535,6 +2540,8 @@ func (b *builder) rangeFunc(fn *Function, x Value, rng *ast.RangeStmt, label *lb
 		goversion:      fn.goversion,
 		build:          (*builder).buildYieldFunc,
 		topLevelOrigin: nil,
+		recvtypeparams: fn.recvtypeparams,
+		recvtypeargs:   fn.recvtypeargs,
 		typeparams:     fn.typeparams,
 		typeargs:       fn.typeargs,
 		subst:          fn.subst,
@@ -3014,9 +3021,9 @@ func (b *builder) buildYieldFunc(fn *Function) {
 		fn.lblocks[label] = &lblock{
 			label:     label,
 			resolved:  true,
-			_goto:     ycont,
 			_continue: ycont,
-			// `break label` statement targets fn.parent.targets._break
+			// `goto label` searches the parent lblock, and
+			// `break label` targets fn.parent.targets._break.
 		}
 	}
 	fn.targets = &targets{

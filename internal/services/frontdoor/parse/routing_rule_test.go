@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = RoutingRuleId{}
 
-func TestRoutingRuleIDFormatter(t *testing.T) {
+func TestParseRoutingRuleIDFormatter(t *testing.T) {
 	actual := NewRoutingRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "rule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestRoutingRuleIDFormatter(t *testing.T) {
 	}
 }
 
-func TestRoutingRuleID(t *testing.T) {
+func TestParseRoutingRuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestRoutingRuleID(t *testing.T) {
 	}
 }
 
-func TestRoutingRuleIDInsensitively(t *testing.T) {
+func TestParseRoutingRuleIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
