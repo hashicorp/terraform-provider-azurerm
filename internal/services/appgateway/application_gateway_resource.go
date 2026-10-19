@@ -1,0 +1,5430 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package appgateway
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"log"
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+func base64EncodedStateFunc(v any) string {
+	switch s := v.(type) {
+	case string:
+		return base64.EncodeIfNot(s)
+	default:
+		return ""
+	}
+}
+
+func sslProfileSchema(computed bool) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Computed: computed,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"disabled_protocols": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslProtocol(), false),
+					},
+				},
+
+				"policy_type": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslPolicyType(), false),
+				},
+
+				"policy_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"cipher_suites": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslCipherSuite(), false),
+					},
+				},
+
+				"min_protocol_version": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySslProtocol(), false),
+				},
+			},
+		},
+	}
+}
+
+func resourceApplicationGateway() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create:   resourceApplicationGatewayCreate,
+		Read:     resourceApplicationGatewayRead,
+		Update:   resourceApplicationGatewayUpdate,
+		Delete:   resourceApplicationGatewayDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&applicationgateways.ApplicationGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&applicationgateways.ApplicationGatewayId{}),
+		},
+
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+		},
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"location": commonschema.Location(),
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			// lintignore:S016,S023
+			"backend_address_pool": {
+				Type:     pluginsdk.TypeSet,
+				Required: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"fqdns": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+						},
+
+						"ip_addresses": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.IsIPv4Address,
+							},
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: applicationGatewayBackendAddressPool,
+			},
+
+			// lintignore:S016,S017,S023
+			"backend_http_settings": {
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"backend_http_settings", "backend"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"cookie_based_affinity": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCookieBasedAffinity(), false),
+						},
+
+						"port": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayProtocolHTTP),
+								string(applicationgateways.ApplicationGatewayProtocolHTTPS),
+							}, false),
+						},
+
+						"affinity_cookie_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"certificate_chain_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"connection_draining": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+
+									"drain_timeout_sec": {
+										Type:         pluginsdk.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 3600),
+									},
+								},
+							},
+						},
+
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"host_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringStartsWithOneOf("/"),
+						},
+
+						"pick_host_name_from_backend_address": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"probe_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"request_timeout": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(1, 86400),
+						},
+
+						"sni_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"sni_validation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"probe_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: applicationGatewayBackendSettingsHash,
+			},
+
+			"backend": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"backend_http_settings", "backend"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"port": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayProtocolTcp),
+								string(applicationgateways.ApplicationGatewayProtocolTls),
+							}, false),
+						},
+
+						"client_ip_preservation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"host_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"probe_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"timeout_in_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(1, 86400),
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.ApplicationGatewayName,
+							},
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"probe_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"frontend_ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"private_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// Note: O+C because Azure assigns a private IP from the subnet when not specified
+							Computed: true,
+						},
+
+						"public_ip_address_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"private_ip_address_allocation": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(applicationgateways.IPAllocationMethodDynamic),
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForIPAllocationMethod(), false),
+						},
+
+						"private_link_configuration_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"private_link_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"frontend_port": {
+				Type:     pluginsdk.TypeSet,
+				Required: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"port": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"gateway_ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 2,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"global": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"request_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+						"response_buffering_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			// lintignore:S016,S023
+			"http_listener": {
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"http_listener", "listener"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"frontend_ip_configuration_name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"frontend_port_name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayProtocolHTTP),
+								string(applicationgateways.ApplicationGatewayProtocolHTTPS),
+							}, false),
+						},
+
+						"host_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"host_names": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"ssl_certificate_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"require_sni": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"frontend_ip_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"frontend_port_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_certificate_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_profile_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"custom_error_configuration": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"status_code": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCustomErrorStatusCode(), false),
+									},
+
+									"custom_error_page_url": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+
+									"id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"firewall_policy_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
+						},
+
+						"ssl_profile_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+				Set: applicationGatewayHttpListnerHash,
+			},
+
+			"listener": {
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"http_listener", "listener"},
+				Set:          applicationGatewayListenerHash,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"frontend_ip_configuration_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"frontend_port_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayProtocolTcp),
+								string(applicationgateways.ApplicationGatewayProtocolTls),
+							}, false),
+						},
+
+						"host_names": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"ssl_certificate_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"ssl_profile_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"frontend_ip_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"frontend_port_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_certificate_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"ssl_profile_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"fips_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"private_endpoint_connection": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"private_link_configuration": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"ip_configuration": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"subnet_id": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: commonids.ValidateSubnetID,
+									},
+
+									"private_ip_address": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										// Note: O+C because Azure assigns a private IP from the subnet when not specified
+										Computed: true,
+									},
+
+									"private_ip_address_allocation": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForIPAllocationMethod(), false),
+									},
+
+									"primary": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"request_routing_rule": {
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"rule_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayRequestRoutingRuleType(), false),
+						},
+
+						"http_listener_name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"backend_address_pool_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"backend_http_settings_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"url_path_map_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"redirect_configuration_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"rewrite_rule_set_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"priority": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 20000),
+						},
+
+						"backend_address_pool_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"backend_http_settings_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"http_listener_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"url_path_map_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"redirect_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"rewrite_rule_set_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"routing_rule": {
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
+				Set:          applicationGatewayRoutingRuleHash,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"backend_address_pool_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"backend_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"listener_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"priority": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20000),
+						},
+
+						"backend_address_pool_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"backend_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"listener_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"redirect_configuration": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"redirect_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayRedirectType(), false),
+						},
+
+						"target_listener_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"target_url": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"include_path": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"include_query_string": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"target_listener_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 100),
+						},
+						"max_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(2, 125),
+						},
+					},
+				},
+			},
+			"sku": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewaySkuName(), false),
+						},
+
+						"tier": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayTier(), false),
+						},
+
+						"capacity": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"trusted_root_certificate": {
+				Type:     pluginsdk.TypeList, // todo this should probably be a map
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"data": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							Sensitive:    true,
+						},
+
+						"key_vault_secret_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			// lintignore:XS003
+			"ssl_policy": sslProfileSchema(true),
+
+			"http2_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"force_firewall_policy_association": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			// lintignore:S016,S023
+			"probe": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"interval": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 86400),
+						},
+
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApplicationGatewayName,
+						},
+
+						"protocol": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayProtocol(), false),
+						},
+
+						"timeout": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 86400),
+						},
+
+						"unhealthy_threshold": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20),
+						},
+
+						"host": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						// lintignore:XS003
+						"match": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"body": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+									},
+
+									"status_code": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+								},
+							},
+						},
+
+						"minimum_servers": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringStartsWithOneOf("/"),
+						},
+
+						"pick_host_name_from_backend_http_settings": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"port": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IsPortNumber,
+						},
+
+						"proxy_protocol_header_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: applicationGatewayProbeHash,
+			},
+
+			"rewrite_rule_set": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"rewrite_rule": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"rule_sequence": {
+										Type:         pluginsdk.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 1000),
+									},
+
+									"condition": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"variable": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+												},
+												"pattern": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+												},
+												"ignore_case": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"negate": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+											},
+										},
+									},
+
+									"request_header_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"header_name": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+												},
+												"header_value": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
+
+									"response_header_configuration": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"header_name": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+												},
+												"header_value": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
+
+									"url": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"path": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+												"query_string": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+
+												"components": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														"path_only",
+														"query_string_only",
+													}, false),
+												},
+
+												"reroute": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			// lintignore:S016,S023
+			"ssl_certificate": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"data": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							StateFunc:    base64EncodedStateFunc,
+							ValidateFunc: validation.StringIsBase64,
+						},
+
+						"password": {
+							Type:      pluginsdk.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"key_vault_secret_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"public_cert_data": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+				Set: applicationGatewaySSLCertificate,
+			},
+
+			"trusted_client_certificate": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"data": {
+							Type:      pluginsdk.TypeString,
+							Required:  true,
+							Sensitive: true,
+							StateFunc: base64EncodedStateFunc,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"ssl_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"client_authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(applicationgateways.ApplicationGatewayClientAuthVerificationModesStrict),
+							ValidateFunc: validation.StringInSlice(
+								applicationgateways.PossibleValuesForApplicationGatewayClientAuthVerificationModes(),
+								false,
+							),
+						},
+
+						"trusted_client_certificate_names": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
+						"verify_client_certificate_issuer_dn": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"verify_client_certificate_revocation": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayClientRevocationOptionsOCSP),
+							}, false),
+						},
+
+						// lintignore:XS003
+						"ssl_policy": sslProfileSchema(false),
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"url_path_map": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"default_backend_address_pool_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"default_backend_http_settings_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"default_redirect_configuration_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"default_rewrite_rule_set_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"path_rule": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+									},
+
+									"paths": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+
+									"backend_address_pool_name": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+									},
+
+									"backend_http_settings_name": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+									},
+
+									"redirect_configuration_name": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"rewrite_rule_set_name": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"backend_address_pool_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"backend_http_settings_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"redirect_configuration_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"rewrite_rule_set_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"firewall_policy_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
+									},
+								},
+							},
+						},
+
+						"default_backend_address_pool_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"default_backend_http_settings_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"default_redirect_configuration_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"default_rewrite_rule_set_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"waf_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
+						"firewall_mode": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayFirewallMode(), false),
+						},
+
+						"rule_set_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      "OWASP",
+							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
+						},
+
+						"rule_set_version": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
+						},
+						"file_upload_limit_mb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 750),
+							Default:      100,
+						},
+						"request_body_check": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"max_request_body_size_kb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 128),
+							Default:      128,
+						},
+						"disabled_rule_group": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"rule_group_name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+									},
+
+									"rules": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeInt,
+											ValidateFunc: validation.IntAtLeast(1),
+										},
+									},
+								},
+							},
+						},
+						"exclusion": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"match_variable": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntryMatchVariable(), false),
+									},
+
+									"selector_match_operator": {
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForOwaspCrsExclusionEntrySelectorMatchOperator(), false),
+										Optional:     true,
+									},
+									"selector": {
+										ValidateFunc: validation.StringIsNotEmpty,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"firewall_policy_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: webapplicationfirewallpolicies.ValidateApplicationGatewayWebApplicationFirewallPolicyID,
+			},
+
+			"custom_error_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"status_code": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCustomErrorStatusCode(), false),
+						},
+
+						"custom_error_page_url": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"tags": commonschema.Tags(),
+		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
+	}
+}
+
+func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).AppGateway.ApplicationGateways
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := applicationgateways.NewApplicationGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_application_gateway", id.ID())
+		}
+	}
+
+	http2Enabled := d.Get("http2_enabled").(bool)
+	t := d.Get("tags").(map[string]any)
+
+	// Gateway ID is needed to link sub-resources together in expand functions
+	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]any))
+	if err != nil {
+		return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
+	}
+
+	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
+	if err != nil {
+		return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
+	}
+
+	urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, id.ID())
+	if err != nil {
+		return fmt.Errorf("expanding `url_path_map`: %+v", err)
+	}
+
+	redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, id.ID())
+	if err != nil {
+		return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
+	}
+
+	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+	if err != nil {
+		return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
+	}
+
+	trustedClientCertificates, err := expandApplicationGatewayTrustedClientCertificates(d)
+	if err != nil {
+		return fmt.Errorf("expanding `trusted_client_certificate`: %+v", err)
+	}
+
+	sslProfiles := expandApplicationGatewaySslProfiles(d, id.ID())
+
+	gatewayIPConfigurations, _ := expandApplicationGatewayIPConfigurations(d)
+
+	globalConfiguration := expandApplicationGatewayGlobalConfiguration(d.Get("global").([]any))
+
+	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
+	if err != nil {
+		return fmt.Errorf("expanding `http_listener`: %+v", err)
+	}
+
+	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
+	if err != nil {
+		return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
+	}
+
+	gateway := applicationgateways.ApplicationGateway{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(t),
+		Properties: &applicationgateways.ApplicationGatewayPropertiesFormat{
+			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
+			TrustedRootCertificates:       trustedRootCertificates,
+			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]any)),
+			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
+			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d.Get("backend_http_settings").(*schema.Set).List(), id.ID()),
+			BackendSettingsCollection:     expandApplicationGatewayBackendSettings(d.Get("backend").([]any), id),
+			EnableHTTP2:                   pointer.To(http2Enabled),
+			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
+			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
+			GatewayIPConfigurations:       gatewayIPConfigurations,
+			GlobalConfiguration:           globalConfiguration,
+			HTTPListeners:                 httpListeners,
+			Listeners:                     expandApplicationGatewayListeners(d.Get("listener").(*schema.Set).List(), id),
+			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
+			Probes:                        expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List()),
+			RequestRoutingRules:           requestRoutingRules,
+			RoutingRules:                  expandApplicationGatewayRoutingRules(d.Get("routing_rule").(*pluginsdk.Set).List(), id),
+			RedirectConfigurations:        redirectConfigurations,
+			Sku:                           expandApplicationGatewaySku(d),
+			SslCertificates:               sslCertificates,
+			TrustedClientCertificates:     trustedClientCertificates,
+			SslProfiles:                   sslProfiles,
+			SslPolicy:                     expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]any)),
+
+			RewriteRuleSets: rewriteRuleSets,
+			UrlPathMaps:     urlPathMaps,
+		},
+	}
+
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		gateway.Zones = &zones
+	}
+
+	if v, ok := d.GetOk("fips_enabled"); ok {
+		gateway.Properties.EnableFips = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("force_firewall_policy_association"); ok {
+		gateway.Properties.ForceFirewallPolicyAssociation = pointer.To(v.(bool))
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		gateway.Identity = expandedIdentity
+	}
+
+	if _, ok := d.GetOk("waf_configuration"); ok {
+		gateway.Properties.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(applicationgateways.ApplicationGatewayTierWAFVTwo) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", applicationgateways.ApplicationGatewayTierWAFVTwo)
+	}
+
+	if v, ok := d.GetOk("firewall_policy_id"); ok {
+		gateway.Properties.FirewallPolicy = &applicationgateways.SubResource{
+			Id: pointer.To(v.(string)),
+		}
+	}
+
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, gateway, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
+	return resourceApplicationGatewayRead(d, meta)
+}
+
+func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).AppGateway.ApplicationGateways
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := applicationgateways.ParseApplicationGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
+	}
+
+	if payload.Properties == nil {
+		payload.Properties = &applicationgateways.ApplicationGatewayPropertiesFormat{}
+	}
+
+	if d.HasChange("http2_enabled") {
+		payload.Properties.EnableHTTP2 = pointer.To(d.Get("http2_enabled").(bool))
+	}
+
+	if d.HasChange("trusted_root_certificate") {
+		trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `trusted_root_certificate`: %+v", err)
+		}
+		payload.Properties.TrustedRootCertificates = trustedRootCertificates
+	}
+
+	if d.HasChange("request_routing_rule") {
+		requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
+		}
+		payload.Properties.RequestRoutingRules = requestRoutingRules
+	}
+
+	if d.HasChange("routing_rule") {
+		payload.Properties.RoutingRules = expandApplicationGatewayRoutingRules(d.Get("routing_rule").(*pluginsdk.Set).List(), *id)
+	}
+
+	if d.HasChange("url_path_map") {
+		urlPathMaps, err := expandApplicationGatewayURLPathMaps(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `url_path_map`: %+v", err)
+		}
+
+		payload.Properties.UrlPathMaps = urlPathMaps
+	}
+
+	if d.HasChange("redirect_configuration") {
+		redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `redirect_configuration`: %+v", err)
+		}
+
+		payload.Properties.RedirectConfigurations = redirectConfigurations
+	}
+
+	if d.HasChange("ssl_certificate") {
+		sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+		if err != nil {
+			return fmt.Errorf("expanding `ssl_certificate`: %+v", err)
+		}
+
+		payload.Properties.SslCertificates = sslCertificates
+	}
+
+	if d.HasChange("trusted_client_certificate") {
+		trustedClientCertificates, err := expandApplicationGatewayTrustedClientCertificates(d)
+		if err != nil {
+			return fmt.Errorf("expanding `trusted_client_certificate`: %+v", err)
+		}
+
+		payload.Properties.TrustedClientCertificates = trustedClientCertificates
+	}
+
+	if d.HasChange("ssl_profile") {
+		payload.Properties.SslProfiles = expandApplicationGatewaySslProfiles(d, id.ID())
+	}
+
+	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
+	if d.HasChange("gateway_ip_configuration") {
+		payload.Properties.GatewayIPConfigurations = gatewayIPConfigurations
+	}
+
+	if d.HasChange("global") {
+		payload.Properties.GlobalConfiguration = expandApplicationGatewayGlobalConfiguration(d.Get("global").([]any))
+	}
+
+	if d.HasChange("http_listener") {
+		httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `http_listener`: %+v", err)
+		}
+
+		payload.Properties.HTTPListeners = httpListeners
+	}
+
+	if d.HasChange("listener") {
+		payload.Properties.Listeners = expandApplicationGatewayListeners(d.Get("listener").(*schema.Set).List(), *id)
+	}
+
+	if d.HasChange("rewrite_rule_set") {
+		rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
+		if err != nil {
+			return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
+		}
+
+		payload.Properties.RewriteRuleSets = rewriteRuleSets
+	}
+
+	if d.HasChange("autoscale_configuration") {
+		payload.Properties.AutoscaleConfiguration = expandApplicationGatewayAutoscaleConfiguration(d)
+	}
+
+	if d.HasChange("custom_error_configuration") {
+		payload.Properties.CustomErrorConfigurations = expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]any))
+	}
+
+	if d.HasChange("backend_address_pool") {
+		payload.Properties.BackendAddressPools = expandApplicationGatewayBackendAddressPools(d)
+	}
+
+	if d.HasChange("backend_http_settings") {
+		payload.Properties.BackendHTTPSettingsCollection = expandApplicationGatewayBackendHTTPSettings(d.Get("backend_http_settings").(*schema.Set).List(), id.ID())
+	}
+
+	if d.HasChange("backend") {
+		payload.Properties.BackendSettingsCollection = expandApplicationGatewayBackendSettings(d.Get("backend").([]any), *id)
+	}
+
+	if d.HasChange("frontend_ip_configuration") {
+		payload.Properties.FrontendIPConfigurations = expandApplicationGatewayFrontendIPConfigurations(d, id.ID())
+	}
+
+	if d.HasChange("frontend_port") {
+		payload.Properties.FrontendPorts = expandApplicationGatewayFrontendPorts(d)
+	}
+
+	if d.HasChange("private_link_configuration") {
+		payload.Properties.PrivateLinkConfigurations = expandApplicationGatewayPrivateLinkConfigurations(d)
+	}
+
+	if d.HasChange("probe") {
+		payload.Properties.Probes = expandApplicationGatewayProbes(d.Get("probe").(*schema.Set).List())
+	}
+
+	if d.HasChange("sku") {
+		payload.Properties.Sku = expandApplicationGatewaySku(d)
+	}
+
+	if d.HasChange("ssl_policy") {
+		payload.Properties.SslPolicy = expandApplicationGatewaySslPolicy(d.Get("ssl_policy").([]any))
+	}
+
+	if d.HasChange("zones") {
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			payload.Zones = &zones
+		}
+	}
+
+	if d.HasChange("fips_enabled") {
+		payload.Properties.EnableFips = pointer.To(d.Get("fips_enabled").(bool))
+	}
+
+	if d.HasChange("force_firewall_policy_association") {
+		payload.Properties.ForceFirewallPolicyAssociation = pointer.To(d.Get("force_firewall_policy_association").(bool))
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("waf_configuration") {
+		payload.Properties.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(applicationgateways.ApplicationGatewayTierWAFVTwo) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", applicationgateways.ApplicationGatewayTierWAFVTwo)
+	}
+
+	if d.HasChange("firewall_policy_id") {
+		if d.Get("firewall_policy_id").(string) != "" {
+			payload.Properties.FirewallPolicy = &applicationgateways.SubResource{
+				Id: pointer.To(d.Get("firewall_policy_id").(string)),
+			}
+		} else {
+			payload.Properties.FirewallPolicy = nil
+		}
+	}
+
+	if stopApplicationGateway {
+		if err := client.StopThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("stopping %s: %+v", id, err)
+		}
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if stopApplicationGateway {
+		if err := client.StartThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("starting %s: %+v", id, err)
+		}
+	}
+
+	d.SetId(id.ID())
+	return resourceApplicationGatewayRead(d, meta)
+}
+
+func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).AppGateway.ApplicationGateways
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := applicationgateways.ParseApplicationGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	return resourceApplicationGatewaySetFlatten(d, id, resp.Model)
+}
+
+func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applicationgateways.ApplicationGatewayId, model *applicationgateways.ApplicationGateway) error {
+	d.Set("name", id.ApplicationGatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("identity", identity); err != nil {
+			return err
+		}
+
+		if props := model.Properties; props != nil {
+			if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
+				return fmt.Errorf("setting `trusted_root_certificate`: %+v", err)
+			}
+
+			if setErr := d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools)); setErr != nil {
+				return fmt.Errorf("setting `backend_address_pool`: %+v", setErr)
+			}
+
+			backendHttpSettings, err := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
+			if err != nil {
+				return fmt.Errorf("flattening `backend_http_settings`: %+v", err)
+			}
+			if setErr := d.Set("backend_http_settings", backendHttpSettings); setErr != nil {
+				return fmt.Errorf("setting `backend_http_settings`: %+v", setErr)
+			}
+
+			backendSettings, err := flattenApplicationGatewayBackendSettings(props.BackendSettingsCollection)
+			if err != nil {
+				return fmt.Errorf("flattening `backend`: %+v", err)
+			}
+			if setErr := d.Set("backend", backendSettings); setErr != nil {
+				return fmt.Errorf("setting `backend`: %+v", setErr)
+			}
+
+			if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
+				return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
+			}
+
+			d.Set("http2_enabled", props.EnableHTTP2)
+			d.Set("fips_enabled", props.EnableFips)
+			d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
+
+			httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
+			if err != nil {
+				return fmt.Errorf("flattening `http_listener`: %+v", err)
+			}
+			if setErr := d.Set("http_listener", httpListeners); setErr != nil {
+				return fmt.Errorf("setting `http_listener`: %+v", setErr)
+			}
+
+			listeners, err := flattenApplicationGatewayListeners(props.Listeners)
+			if err != nil {
+				return fmt.Errorf("flattening `listener`: %+v", err)
+			}
+			if setErr := d.Set("listener", listeners); setErr != nil {
+				return fmt.Errorf("setting `listener`: %+v", setErr)
+			}
+
+			if setErr := d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts)); setErr != nil {
+				return fmt.Errorf("setting `frontend_port`: %+v", setErr)
+			}
+
+			frontendIPConfigurations, err := flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)
+			if err != nil {
+				return fmt.Errorf("flattening `frontend IP configuration`: %+v", err)
+			}
+			if setErr := d.Set("frontend_ip_configuration", frontendIPConfigurations); setErr != nil {
+				return fmt.Errorf("setting `frontend_ip_configuration`: %+v", setErr)
+			}
+
+			if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
+				return fmt.Errorf("setting `gateway_ip_configuration`: %+v", setErr)
+			}
+
+			if setErr := d.Set("global", flattenApplicationGatewayGlobalConfiguration(props.GlobalConfiguration)); setErr != nil {
+				return fmt.Errorf("setting `global`: %+v", setErr)
+			}
+
+			if setErr := d.Set("private_endpoint_connection", flattenApplicationGatewayPrivateEndpoints(props.PrivateEndpointConnections)); setErr != nil {
+				return fmt.Errorf("setting `private_endpoint_connection`: %+v", setErr)
+			}
+
+			if setErr := d.Set("private_link_configuration", flattenApplicationGatewayPrivateLinkConfigurations(props.PrivateLinkConfigurations)); setErr != nil {
+				return fmt.Errorf("setting `private_link_configuration`: %+v", setErr)
+			}
+
+			if setErr := d.Set("probe", flattenApplicationGatewayProbes(props.Probes)); setErr != nil {
+				return fmt.Errorf("setting `probe`: %+v", setErr)
+			}
+
+			requestRoutingRules, err := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
+			if err != nil {
+				return fmt.Errorf("flattening `request_routing_rule`: %+v", err)
+			}
+			if setErr := d.Set("request_routing_rule", requestRoutingRules); setErr != nil {
+				return fmt.Errorf("setting `request_routing_rule`: %+v", setErr)
+			}
+
+			routingRules, err := flattenApplicationGatewayRoutingRules(props.RoutingRules)
+			if err != nil {
+				return fmt.Errorf("flattening `routing_rule`: %+v", err)
+			}
+			if setErr := d.Set("routing_rule", routingRules); setErr != nil {
+				return fmt.Errorf("setting `routing_rule`: %+v", setErr)
+			}
+
+			redirectConfigurations, err := flattenApplicationGatewayRedirectConfigurations(props.RedirectConfigurations)
+			if err != nil {
+				return fmt.Errorf("flattening `redirect configuration`: %+v", err)
+			}
+			if setErr := d.Set("redirect_configuration", redirectConfigurations); setErr != nil {
+				return fmt.Errorf("setting `redirect_configuration`: %+v", setErr)
+			}
+
+			if setErr := d.Set("rewrite_rule_set", flattenApplicationGatewayRewriteRuleSets(props.RewriteRuleSets)); setErr != nil {
+				return fmt.Errorf("setting `rewrite_rule_set`: %+v", setErr)
+			}
+
+			if setErr := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); setErr != nil {
+				return fmt.Errorf("setting `sku`: %+v", setErr)
+			}
+
+			if setErr := d.Set("autoscale_configuration", flattenApplicationGatewayAutoscaleConfiguration(props.AutoscaleConfiguration)); setErr != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", setErr)
+			}
+
+			if setErr := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates, d)); setErr != nil {
+				return fmt.Errorf("setting `ssl_certificate`: %+v", setErr)
+			}
+
+			if setErr := d.Set("trusted_client_certificate", flattenApplicationGatewayTrustedClientCertificates(props.TrustedClientCertificates)); setErr != nil {
+				return fmt.Errorf("setting `trusted_client_certificate`: %+v", setErr)
+			}
+
+			sslProfiles, err := flattenApplicationGatewaySslProfiles(props.SslProfiles)
+			if err != nil {
+				return fmt.Errorf("flattening `ssl_profile`: %+v", err)
+			}
+			if setErr := d.Set("ssl_profile", sslProfiles); setErr != nil {
+				return fmt.Errorf("setting `ssl_profile`: %+v", setErr)
+			}
+
+			if setErr := d.Set("custom_error_configuration", flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)); setErr != nil {
+				return fmt.Errorf("setting `custom_error_configuration`: %+v", setErr)
+			}
+
+			urlPathMaps, err := flattenApplicationGatewayURLPathMaps(props.UrlPathMaps)
+			if err != nil {
+				return fmt.Errorf("flattening `url_path_map`: %+v", err)
+			}
+			if setErr := d.Set("url_path_map", urlPathMaps); setErr != nil {
+				return fmt.Errorf("setting `url_path_map`: %+v", setErr)
+			}
+
+			if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
+				return fmt.Errorf("setting `waf_configuration`: %+v", setErr)
+			}
+
+			firewallPolicyId := ""
+			if props.FirewallPolicy != nil && props.FirewallPolicy.Id != nil {
+				firewallPolicyId = *props.FirewallPolicy.Id
+				policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(firewallPolicyId)
+				if err == nil {
+					firewallPolicyId = policyId.ID()
+				}
+			}
+			d.Set("firewall_policy_id", firewallPolicyId)
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).AppGateway.ApplicationGateways
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := applicationgateways.ParseApplicationGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func expandApplicationGatewayTrustedRootCertificates(certs []any) (*[]applicationgateways.ApplicationGatewayTrustedRootCertificate, error) {
+	results := make([]applicationgateways.ApplicationGatewayTrustedRootCertificate, 0)
+
+	for _, raw := range certs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+		kvsid := v["key_vault_secret_id"].(string)
+
+		output := applicationgateways.ApplicationGatewayTrustedRootCertificate{
+			Name:       pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
+		}
+
+		switch {
+		case data != "" && kvsid != "":
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+		case data != "":
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
+		case kvsid != "":
+			output.Properties.KeyVaultSecretId = pointer.To(kvsid)
+		default:
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+		}
+
+		results = append(results, output)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgateways.ApplicationGatewayTrustedRootCertificate, d *pluginsdk.ResourceData) []any {
+	results := make([]any, 0)
+	if certs == nil {
+		return results
+	}
+
+	// since the certificate data isn't returned lets load any existing data
+	nameToDataMap := map[string]string{}
+	if existing, ok := d.GetOk("trusted_root_certificate"); ok && existing != nil {
+		for _, c := range existing.([]any) {
+			b := c.(map[string]any)
+			nameToDataMap[b["name"].(string)] = b["data"].(string)
+		}
+	}
+
+	for _, cert := range *certs {
+		output := map[string]any{}
+
+		if v := cert.Id; v != nil {
+			output["id"] = *v
+		}
+
+		kvsid := ""
+		if props := cert.Properties; props != nil {
+			if v := props.KeyVaultSecretId; v != nil {
+				kvsid = *v
+			}
+		}
+		output["key_vault_secret_id"] = kvsid
+
+		if v := cert.Name; v != nil {
+			output["name"] = *v
+
+			// if there's no key vauld ID and we have a name, so try and look up the old data to pass it along
+			if data, ok := nameToDataMap[*v]; ok && data != "" {
+				output["data"] = data
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayBackendAddressPools(d *pluginsdk.ResourceData) *[]applicationgateways.ApplicationGatewayBackendAddressPool {
+	vs := d.Get("backend_address_pool").(*schema.Set).List()
+	results := make([]applicationgateways.ApplicationGatewayBackendAddressPool, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+		backendAddresses := make([]applicationgateways.ApplicationGatewayBackendAddress, 0)
+
+		if fqdnsConfig, ok := v["fqdns"]; ok {
+			fqdns := fqdnsConfig.(*schema.Set).List()
+			for _, ip := range fqdns {
+				backendAddresses = append(backendAddresses, applicationgateways.ApplicationGatewayBackendAddress{
+					Fqdn: pointer.To(ip.(string)),
+				})
+			}
+		}
+
+		if ipAddressesConfig, ok := v["ip_addresses"]; ok {
+			ipAddresses := ipAddressesConfig.(*schema.Set).List()
+
+			for _, ip := range ipAddresses {
+				backendAddresses = append(backendAddresses, applicationgateways.ApplicationGatewayBackendAddress{
+					IPAddress: pointer.To(ip.(string)),
+				})
+			}
+		}
+
+		name := v["name"].(string)
+		output := applicationgateways.ApplicationGatewayBackendAddressPool{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+				BackendAddresses: &backendAddresses,
+			},
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayBackendAddressPools(input *[]applicationgateways.ApplicationGatewayBackendAddressPool) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, config := range *input {
+		ipAddressList := make([]any, 0)
+		fqdnList := make([]any, 0)
+
+		if props := config.Properties; props != nil {
+			if props.BackendAddresses != nil {
+				for _, address := range *props.BackendAddresses {
+					if address.IPAddress != nil {
+						ipAddressList = append(ipAddressList, *address.IPAddress)
+					} else if address.Fqdn != nil {
+						fqdnList = append(fqdnList, *address.Fqdn)
+					}
+				}
+			}
+		}
+
+		output := map[string]any{
+			"fqdns":        fqdnList,
+			"ip_addresses": ipAddressList,
+		}
+
+		if config.Id != nil {
+			output["id"] = *config.Id
+		}
+
+		if config.Name != nil {
+			output["name"] = *config.Name
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayBackendHTTPSettings(input []any, gatewayID string) *[]applicationgateways.ApplicationGatewayBackendHTTPSettings {
+	results := make([]applicationgateways.ApplicationGatewayBackendHTTPSettings, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]any)
+
+		path := v["path"].(string)
+		port := int64(v["port"].(int))
+		protocol := v["protocol"].(string)
+		cookieBasedAffinity := v["cookie_based_affinity"].(string)
+		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
+		requestTimeout := int64(v["request_timeout"].(int))
+
+		setting := applicationgateways.ApplicationGatewayBackendHTTPSettings{
+			Name: pointer.To(v["name"].(string)),
+			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+				ConnectionDraining:             expandApplicationGatewayConnectionDraining(v),
+				CookieBasedAffinity:            pointer.ToEnum[applicationgateways.ApplicationGatewayCookieBasedAffinity](cookieBasedAffinity),
+				DedicatedBackendConnection:     pointer.To(v["dedicated_backend_connection_enabled"].(bool)),
+				Path:                           pointer.To(path),
+				PickHostNameFromBackendAddress: pointer.To(pickHostNameFromBackendAddress),
+				Port:                           pointer.To(port),
+				Protocol:                       pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](protocol),
+				RequestTimeout:                 pointer.To(requestTimeout),
+				SniName:                        pointer.To(v["sni_name"].(string)),
+				ValidateCertChainAndExpiry:     pointer.To(v["certificate_chain_validation_enabled"].(bool)),
+				ValidateSNI:                    pointer.To(v["sni_validation_enabled"].(bool)),
+			},
+		}
+
+		hostName := v["host_name"].(string)
+		if hostName != "" {
+			setting.Properties.HostName = pointer.To(hostName)
+		}
+
+		affinityCookieName := v["affinity_cookie_name"].(string)
+		if affinityCookieName != "" {
+			setting.Properties.AffinityCookieName = pointer.To(affinityCookieName)
+		}
+
+		if v["trusted_root_certificate_names"] != nil {
+			trustedRootCertNames := v["trusted_root_certificate_names"].([]any)
+			trustedRootCertSubResources := make([]applicationgateways.SubResource, 0)
+
+			for _, rawTrustedRootCertName := range trustedRootCertNames {
+				trustedRootCertName := rawTrustedRootCertName.(string)
+				trustedRootCertID := fmt.Sprintf("%s/trustedRootCertificates/%s", gatewayID, trustedRootCertName)
+				trustedRootCertSubResource := applicationgateways.SubResource{
+					Id: pointer.To(trustedRootCertID),
+				}
+
+				trustedRootCertSubResources = append(trustedRootCertSubResources, trustedRootCertSubResource)
+			}
+
+			setting.Properties.TrustedRootCertificates = &trustedRootCertSubResources
+		}
+
+		probeName := v["probe_name"].(string)
+		if probeName != "" {
+			probeID := fmt.Sprintf("%s/probes/%s", gatewayID, probeName)
+			setting.Properties.Probe = &applicationgateways.SubResource{
+				Id: pointer.To(probeID),
+			}
+		}
+
+		results = append(results, setting)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.ApplicationGatewayBackendHTTPSettings) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.Properties; props != nil {
+			output["cookie_based_affinity"] = props.CookieBasedAffinity
+			output["dedicated_backend_connection_enabled"] = pointer.From(props.DedicatedBackendConnection)
+
+			if affinityCookieName := props.AffinityCookieName; affinityCookieName != nil {
+				output["affinity_cookie_name"] = affinityCookieName
+			}
+
+			if path := props.Path; path != nil {
+				output["path"] = *path
+			}
+
+			certificateChainValidationEnabled := true
+			if props.ValidateCertChainAndExpiry != nil {
+				certificateChainValidationEnabled = *props.ValidateCertChainAndExpiry
+			}
+			output["certificate_chain_validation_enabled"] = certificateChainValidationEnabled
+
+			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props.ConnectionDraining)
+
+			if port := props.Port; port != nil {
+				output["port"] = int(*port)
+			}
+
+			if hostName := props.HostName; hostName != nil {
+				output["host_name"] = *hostName
+			}
+
+			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
+				output["pick_host_name_from_backend_address"] = *pickHostNameFromBackendAddress
+			}
+
+			output["protocol"] = props.Protocol
+
+			if timeout := props.RequestTimeout; timeout != nil {
+				output["request_timeout"] = int(*timeout)
+			}
+
+			output["sni_name"] = pointer.From(props.SniName)
+
+			sniValidationEnabled := true
+			if props.ValidateSNI != nil {
+				sniValidationEnabled = *props.ValidateSNI
+			}
+			output["sni_validation_enabled"] = sniValidationEnabled
+
+			trustedRootCertificateNames := make([]any, 0)
+			if certs := props.TrustedRootCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.Id == nil {
+						continue
+					}
+
+					certId, err := parse.TrustedRootCertificateIDInsensitively(*cert.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					trustedRootCertificateNames = append(trustedRootCertificateNames, certId.Name)
+				}
+			}
+			output["trusted_root_certificate_names"] = trustedRootCertificateNames
+
+			if probe := props.Probe; probe != nil {
+				if probe.Id != nil {
+					id, err := parse.ProbeIDInsensitively(*probe.Id)
+					if err != nil {
+						return results, err
+					}
+
+					output["probe_name"] = id.Name
+					output["probe_id"] = id.ID()
+				}
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayConnectionDraining(d map[string]any) *applicationgateways.ApplicationGatewayConnectionDraining {
+	connectionsRaw := d["connection_draining"].([]any)
+
+	if len(connectionsRaw) == 0 {
+		return nil
+	}
+
+	connectionRaw := connectionsRaw[0].(map[string]any)
+
+	return &applicationgateways.ApplicationGatewayConnectionDraining{
+		Enabled:           connectionRaw["enabled"].(bool),
+		DrainTimeoutInSec: int64(connectionRaw["drain_timeout_sec"].(int)),
+	}
+}
+
+func flattenApplicationGatewayConnectionDraining(input *applicationgateways.ApplicationGatewayConnectionDraining) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{map[string]any{
+		"enabled":           input.Enabled,
+		"drain_timeout_sec": input.DrainTimeoutInSec,
+	}}
+}
+
+func expandApplicationGatewayBackendSettings(input []any, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayBackendSettings {
+	results := make([]applicationgateways.ApplicationGatewayBackendSettings, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]any)
+
+		setting := applicationgateways.ApplicationGatewayBackendSettings{
+			Name: pointer.To(v["name"].(string)),
+			Properties: &applicationgateways.ApplicationGatewayBackendSettingsPropertiesFormat{
+				Port:                         pointer.To(int64(v["port"].(int))),
+				Protocol:                     pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](v["protocol"].(string)),
+				Timeout:                      pointer.To(int64(v["timeout_in_seconds"].(int))),
+				EnableL4ClientIPPreservation: pointer.To(v["client_ip_preservation_enabled"].(bool)),
+			},
+		}
+
+		if hostName := v["host_name"].(string); hostName != "" {
+			setting.Properties.HostName = pointer.To(hostName)
+		}
+
+		if trustedRootCertNames := v["trusted_root_certificate_names"].([]any); len(trustedRootCertNames) != 0 {
+			trustedRootCertSubResources := make([]applicationgateways.SubResource, 0)
+
+			for _, rawTrustedRootCertName := range trustedRootCertNames {
+				trustedRootCertSubResource := applicationgateways.SubResource{
+					Id: pointer.To(parse.NewTrustedRootCertificateID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, rawTrustedRootCertName.(string)).ID()),
+				}
+
+				trustedRootCertSubResources = append(trustedRootCertSubResources, trustedRootCertSubResource)
+			}
+
+			setting.Properties.TrustedRootCertificates = &trustedRootCertSubResources
+		}
+
+		if probeName := v["probe_name"].(string); probeName != "" {
+			setting.Properties.Probe = &applicationgateways.SubResource{
+				Id: pointer.To(parse.NewProbeID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, probeName).ID()),
+			}
+		}
+
+		results = append(results, setting)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayBackendSettings(input *[]applicationgateways.ApplicationGatewayBackendSettings) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]any{
+			"id":   pointer.From(v.Id),
+			"name": pointer.From(v.Name),
+		}
+
+		if props := v.Properties; props != nil {
+			output["port"] = int(pointer.From(props.Port))
+			output["host_name"] = pointer.From(props.HostName)
+			output["protocol"] = pointer.FromEnum(props.Protocol)
+			output["timeout_in_seconds"] = int(pointer.From(props.Timeout))
+			output["client_ip_preservation_enabled"] = pointer.From(props.EnableL4ClientIPPreservation)
+
+			trustedRootCertificateNames := make([]any, 0)
+			if certs := props.TrustedRootCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.Id == nil {
+						continue
+					}
+
+					certId, err := parse.TrustedRootCertificateIDInsensitively(pointer.From(cert.Id))
+					if err != nil {
+						return nil, err
+					}
+
+					trustedRootCertificateNames = append(trustedRootCertificateNames, certId.Name)
+				}
+			}
+			output["trusted_root_certificate_names"] = trustedRootCertificateNames
+
+			if probe := props.Probe; probe != nil {
+				if probe.Id == nil {
+					continue
+				}
+
+				id, err := parse.ProbeIDInsensitively(*probe.Id)
+				if err != nil {
+					return results, err
+				}
+
+				output["probe_name"] = id.Name
+				output["probe_id"] = id.ID()
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewaySslPolicy(vs []any) *applicationgateways.ApplicationGatewaySslPolicy {
+	policy := applicationgateways.ApplicationGatewaySslPolicy{}
+	disabledSSLProtocols := make([]applicationgateways.ApplicationGatewaySslProtocol, 0)
+
+	if len(vs) > 0 && vs[0] != nil {
+		v := vs[0].(map[string]any)
+		policyType := applicationgateways.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
+
+		for _, policy := range v["disabled_protocols"].([]any) {
+			disabledSSLProtocols = append(disabledSSLProtocols, applicationgateways.ApplicationGatewaySslProtocol(policy.(string)))
+		}
+
+		switch policyType {
+		case applicationgateways.ApplicationGatewaySslPolicyTypePredefined:
+			policyName := applicationgateways.ApplicationGatewaySslPolicyName(v["policy_name"].(string))
+			policy = applicationgateways.ApplicationGatewaySslPolicy{
+				PolicyType: pointer.To(policyType),
+				PolicyName: pointer.To(policyName),
+			}
+		case applicationgateways.ApplicationGatewaySslPolicyTypeCustom, applicationgateways.ApplicationGatewaySslPolicyTypeCustomVTwo:
+			minProtocolVersion := applicationgateways.ApplicationGatewaySslProtocol(v["min_protocol_version"].(string))
+			cipherSuites := make([]applicationgateways.ApplicationGatewaySslCipherSuite, 0)
+
+			for _, cipherSuite := range v["cipher_suites"].([]any) {
+				cipherSuites = append(cipherSuites, applicationgateways.ApplicationGatewaySslCipherSuite(cipherSuite.(string)))
+			}
+
+			policy = applicationgateways.ApplicationGatewaySslPolicy{
+				PolicyType:         pointer.To(policyType),
+				MinProtocolVersion: pointer.To(minProtocolVersion),
+				CipherSuites:       &cipherSuites,
+			}
+		}
+	}
+
+	if len(disabledSSLProtocols) > 0 {
+		policy = applicationgateways.ApplicationGatewaySslPolicy{
+			DisabledSslProtocols: &disabledSSLProtocols,
+		}
+	}
+
+	return &policy
+}
+
+func flattenApplicationGatewaySslPolicy(input *applicationgateways.ApplicationGatewaySslPolicy) []any {
+	results := make([]any, 0)
+
+	if input == nil {
+		return results
+	}
+
+	output := map[string]any{}
+	output["policy_name"] = input.PolicyName
+	output["policy_type"] = input.PolicyType
+	output["min_protocol_version"] = input.MinProtocolVersion
+
+	cipherSuites := make([]any, 0)
+	if input.CipherSuites != nil {
+		for _, v := range *input.CipherSuites {
+			cipherSuites = append(cipherSuites, string(v))
+		}
+	}
+	output["cipher_suites"] = cipherSuites
+
+	disabledSslProtocols := make([]any, 0)
+	if input.DisabledSslProtocols != nil {
+		for _, v := range *input.DisabledSslProtocols {
+			disabledSslProtocols = append(disabledSslProtocols, string(v))
+		}
+	}
+	output["disabled_protocols"] = disabledSslProtocols
+
+	results = append(results, output)
+	return results
+}
+
+func expandApplicationGatewayHTTPListeners(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayHTTPListener, error) {
+	vs := d.Get("http_listener").(*schema.Set).List()
+
+	results := make([]applicationgateways.ApplicationGatewayHTTPListener, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		frontendIPConfigName := v["frontend_ip_configuration_name"].(string)
+		frontendPortName := v["frontend_port_name"].(string)
+		protocol := v["protocol"].(string)
+		requireSNI := v["require_sni"].(bool)
+		sslProfileName := v["ssl_profile_name"].(string)
+
+		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
+		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
+		firewallPolicyID := v["firewall_policy_id"].(string)
+
+		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]any))
+
+		listener := applicationgateways.ApplicationGatewayHTTPListener{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayHTTPListenerPropertiesFormat{
+				FrontendIPConfiguration: &applicationgateways.SubResource{
+					Id: pointer.To(frontendIPConfigID),
+				},
+				FrontendPort: &applicationgateways.SubResource{
+					Id: pointer.To(frontendPortID),
+				},
+				Protocol:                    pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](protocol),
+				RequireServerNameIndication: pointer.To(requireSNI),
+				CustomErrorConfigurations:   customErrorConfigurations,
+			},
+		}
+
+		host := v["host_name"].(string)
+		hosts := v["host_names"].(*pluginsdk.Set).List()
+
+		if host != "" && len(hosts) > 0 {
+			return nil, fmt.Errorf("`host_name` and `host_names` cannot be specified together")
+		}
+
+		if host != "" {
+			listener.Properties.HostName = &host
+		}
+
+		if len(hosts) > 0 {
+			listener.Properties.HostNames = pluginsdk.ExpandStringSlice(hosts)
+		}
+
+		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
+			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
+			listener.Properties.SslCertificate = &applicationgateways.SubResource{
+				Id: pointer.To(certID),
+			}
+		}
+
+		if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+			listener.Properties.FirewallPolicy = &applicationgateways.SubResource{
+				Id: pointer.To(firewallPolicyID),
+			}
+		}
+
+		if sslProfileName != "" && len(sslProfileName) > 0 {
+			sslProfileID := fmt.Sprintf("%s/sslProfiles/%s", gatewayID, sslProfileName)
+			listener.Properties.SslProfile = &applicationgateways.SubResource{
+				Id: pointer.To(sslProfileID),
+			}
+		}
+
+		results = append(results, listener)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayHTTPListeners(input *[]applicationgateways.ApplicationGatewayHTTPListener) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.Properties; props != nil {
+			if port := props.FrontendPort; port != nil {
+				if port.Id != nil {
+					portId, err := parse.FrontendPortIDInsensitively(*port.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["frontend_port_name"] = portId.Name
+					output["frontend_port_id"] = portId.ID()
+				}
+			}
+
+			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
+				if feConfig.Id != nil {
+					feConfigId, err := parse.FrontendIPConfigurationIDInsensitively(*feConfig.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["frontend_ip_configuration_name"] = feConfigId.Name
+					output["frontend_ip_configuration_id"] = feConfigId.ID()
+				}
+			}
+
+			if hostname := props.HostName; hostname != nil {
+				output["host_name"] = *hostname
+			}
+
+			if hostnames := props.HostNames; hostnames != nil {
+				output["host_names"] = pluginsdk.FlattenSlice(hostnames)
+			}
+
+			output["protocol"] = props.Protocol
+
+			if cert := props.SslCertificate; cert != nil {
+				if cert.Id != nil {
+					certId, err := parse.SslCertificateIDInsensitively(*cert.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					output["ssl_certificate_name"] = certId.Name
+					output["ssl_certificate_id"] = certId.ID()
+				}
+			}
+
+			if sni := props.RequireServerNameIndication; sni != nil {
+				output["require_sni"] = *sni
+			}
+
+			if fwp := props.FirewallPolicy; fwp != nil && fwp.Id != nil {
+				policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(*fwp.Id)
+				if err != nil {
+					return nil, err
+				}
+				output["firewall_policy_id"] = policyId.ID()
+			}
+
+			if sslp := props.SslProfile; sslp != nil {
+				if sslp.Id != nil {
+					sslProfileId, err := parse.SslProfileIDInsensitively(*sslp.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					output["ssl_profile_name"] = sslProfileId.Name
+					output["ssl_profile_id"] = sslProfileId.ID()
+				}
+			}
+
+			output["custom_error_configuration"] = flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayListeners(input []any, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayListener {
+	results := make([]applicationgateways.ApplicationGatewayListener, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]any)
+
+		listener := applicationgateways.ApplicationGatewayListener{
+			Name: pointer.To(v["name"].(string)),
+			Properties: &applicationgateways.ApplicationGatewayListenerPropertiesFormat{
+				FrontendIPConfiguration: &applicationgateways.SubResource{
+					Id: pointer.To(parse.NewFrontendIPConfigurationID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, v["frontend_ip_configuration_name"].(string)).ID()),
+				},
+				FrontendPort: &applicationgateways.SubResource{
+					Id: pointer.To(parse.NewFrontendPortID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, v["frontend_port_name"].(string)).ID()),
+				},
+				Protocol: pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](v["protocol"].(string)),
+			},
+		}
+
+		if hosts := v["host_names"].(*pluginsdk.Set).List(); len(hosts) > 0 {
+			listener.Properties.HostNames = pluginsdk.ExpandStringSlice(hosts)
+		}
+
+		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
+			listener.Properties.SslCertificate = &applicationgateways.SubResource{
+				Id: pointer.To(parse.NewSslCertificateID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, sslCertName).ID()),
+			}
+		}
+
+		if sslProfileName := v["ssl_profile_name"].(string); sslProfileName != "" {
+			listener.Properties.SslProfile = &applicationgateways.SubResource{
+				Id: pointer.To(parse.NewSslProfileID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, sslProfileName).ID()),
+			}
+		}
+
+		results = append(results, listener)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayListeners(input *[]applicationgateways.ApplicationGatewayListener) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]any{
+			"id":   pointer.From(v.Id),
+			"name": pointer.From(v.Name),
+		}
+
+		if props := v.Properties; props != nil {
+			output["protocol"] = pointer.From(props.Protocol)
+			output["host_names"] = pointer.From(props.HostNames)
+
+			if port := props.FrontendPort; port != nil {
+				if port.Id != nil {
+					portId, err := parse.FrontendPortIDInsensitively(*port.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["frontend_port_name"] = portId.Name
+					output["frontend_port_id"] = portId.ID()
+				}
+			}
+
+			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
+				if feConfig.Id != nil {
+					feConfigId, err := parse.FrontendIPConfigurationIDInsensitively(*feConfig.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["frontend_ip_configuration_name"] = feConfigId.Name
+					output["frontend_ip_configuration_id"] = feConfigId.ID()
+				}
+			}
+
+			if cert := props.SslCertificate; cert != nil {
+				if cert.Id != nil {
+					certId, err := parse.SslCertificateIDInsensitively(*cert.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					output["ssl_certificate_name"] = certId.Name
+					output["ssl_certificate_id"] = certId.ID()
+				}
+			}
+
+			if sslp := props.SslProfile; sslp != nil {
+				if sslp.Id != nil {
+					sslProfileId, err := parse.SslProfileIDInsensitively(*sslp.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					output["ssl_profile_name"] = sslProfileId.Name
+					output["ssl_profile_id"] = sslProfileId.ID()
+				}
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayIPConfigurations(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayIPConfiguration, bool) {
+	vs := d.Get("gateway_ip_configuration").([]any)
+	results := make([]applicationgateways.ApplicationGatewayIPConfiguration, 0)
+	stopApplicationGateway := false
+
+	for _, configRaw := range vs {
+		data := configRaw.(map[string]any)
+
+		name := data["name"].(string)
+		subnetID := data["subnet_id"].(string)
+
+		output := applicationgateways.ApplicationGatewayIPConfiguration{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayIPConfigurationPropertiesFormat{
+				Subnet: &applicationgateways.SubResource{
+					Id: pointer.To(subnetID),
+				},
+			},
+		}
+		results = append(results, output)
+	}
+
+	if d.HasChange("gateway_ip_configuration") {
+		oldRaw, newRaw := d.GetChange("gateway_ip_configuration")
+		oldVS := oldRaw.([]any)
+		newVS := newRaw.([]any)
+
+		// If we're creating the application gateway return the current gateway ip configuration.
+		if len(oldVS) == 0 {
+			return &results, false
+		}
+
+		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
+		if len(oldVS) != len(newVS) {
+			return &results, true
+		}
+
+		for i, configRaw := range newVS {
+			newData := configRaw.(map[string]any)
+			oldData := oldVS[i].(map[string]any)
+
+			newSubnetID := newData["subnet_id"].(string)
+			oldSubnetID := oldData["subnet_id"].(string)
+			// The application gateway needs to be shutdown if the subnet ids don't match
+			if newSubnetID != oldSubnetID {
+				stopApplicationGateway = true
+			}
+		}
+	}
+
+	return &results, stopApplicationGateway
+}
+
+func flattenApplicationGatewayIPConfigurations(input *[]applicationgateways.ApplicationGatewayIPConfiguration) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.Properties; props != nil {
+			if subnet := props.Subnet; subnet != nil {
+				if subnet.Id != nil {
+					output["subnet_id"] = *subnet.Id
+				}
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayGlobalConfiguration(input []any) *applicationgateways.ApplicationGatewayGlobalConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+	return &applicationgateways.ApplicationGatewayGlobalConfiguration{
+		EnableRequestBuffering:  pointer.To(v["request_buffering_enabled"].(bool)),
+		EnableResponseBuffering: pointer.To(v["response_buffering_enabled"].(bool)),
+	}
+}
+
+func flattenApplicationGatewayGlobalConfiguration(input *applicationgateways.ApplicationGatewayGlobalConfiguration) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	output := make(map[string]any)
+
+	if input.EnableRequestBuffering != nil {
+		output["request_buffering_enabled"] = *input.EnableRequestBuffering
+	}
+
+	if input.EnableResponseBuffering != nil {
+		output["response_buffering_enabled"] = *input.EnableResponseBuffering
+	}
+
+	return []any{output}
+}
+
+func expandApplicationGatewayFrontendPorts(d *pluginsdk.ResourceData) *[]applicationgateways.ApplicationGatewayFrontendPort {
+	vs := d.Get("frontend_port").(*pluginsdk.Set).List()
+	results := make([]applicationgateways.ApplicationGatewayFrontendPort, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		port := int64(v["port"].(int))
+
+		output := applicationgateways.ApplicationGatewayFrontendPort{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayFrontendPortPropertiesFormat{
+				Port: pointer.To(port),
+			},
+		}
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayFrontendPorts(input *[]applicationgateways.ApplicationGatewayFrontendPort) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.Properties; props != nil {
+			if props.Port != nil {
+				output["port"] = int(*props.Port)
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayFrontendIPConfigurations(d *pluginsdk.ResourceData, gatewayID string) *[]applicationgateways.ApplicationGatewayFrontendIPConfiguration {
+	vs := d.Get("frontend_ip_configuration").([]any)
+	results := make([]applicationgateways.ApplicationGatewayFrontendIPConfiguration, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		properties := applicationgateways.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{}
+
+		if val := v["subnet_id"].(string); val != "" {
+			properties.Subnet = &applicationgateways.SubResource{
+				Id: pointer.To(val),
+			}
+		}
+
+		if val := v["private_ip_address_allocation"].(string); val != "" {
+			properties.PrivateIPAllocationMethod = pointer.ToEnum[applicationgateways.IPAllocationMethod](val)
+		}
+
+		if val := v["private_ip_address"].(string); val != "" {
+			properties.PrivateIPAddress = pointer.To(val)
+		}
+
+		if val := v["public_ip_address_id"].(string); val != "" {
+			properties.PublicIPAddress = &applicationgateways.SubResource{
+				Id: pointer.To(val),
+			}
+		}
+
+		if val := v["private_link_configuration_name"].(string); val != "" {
+			privateLinkConfigurationID := fmt.Sprintf("%s/privateLinkConfigurations/%s", gatewayID, val)
+			properties.PrivateLinkConfiguration = &applicationgateways.SubResource{
+				Id: pointer.To(privateLinkConfigurationID),
+			}
+		}
+
+		name := v["name"].(string)
+		output := applicationgateways.ApplicationGatewayFrontendIPConfiguration{
+			Name:       pointer.To(name),
+			Properties: &properties,
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgateways.ApplicationGatewayFrontendIPConfiguration) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, config := range *input {
+		output := make(map[string]any)
+		if config.Id != nil {
+			output["id"] = *config.Id
+		}
+
+		if config.Name != nil {
+			output["name"] = *config.Name
+		}
+
+		if props := config.Properties; props != nil {
+			output["private_ip_address_allocation"] = pointer.FromEnum(props.PrivateIPAllocationMethod)
+
+			if props.Subnet != nil && props.Subnet.Id != nil {
+				output["subnet_id"] = *props.Subnet.Id
+			}
+
+			if props.PrivateIPAddress != nil {
+				output["private_ip_address"] = *props.PrivateIPAddress
+			}
+
+			if props.PublicIPAddress != nil && props.PublicIPAddress.Id != nil {
+				output["public_ip_address_id"] = *props.PublicIPAddress.Id
+			}
+
+			if props.PrivateLinkConfiguration != nil && props.PrivateLinkConfiguration.Id != nil {
+				configurationID, err := parse.ApplicationGatewayPrivateLinkConfigurationIDInsensitively(*props.PrivateLinkConfiguration.Id)
+				if err != nil {
+					return nil, err
+				}
+				output["private_link_configuration_name"] = configurationID.PrivateLinkConfigurationName
+				output["private_link_configuration_id"] = *props.PrivateLinkConfiguration.Id
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayProbes(input []any) *[]applicationgateways.ApplicationGatewayProbe {
+	results := make([]applicationgateways.ApplicationGatewayProbe, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]any)
+
+		host := v["host"].(string)
+		interval := int64(v["interval"].(int))
+		minServers := int64(v["minimum_servers"].(int))
+		name := v["name"].(string)
+		probePath := v["path"].(string)
+		protocol := v["protocol"].(string)
+		port := int64(v["port"].(int))
+		timeout := int64(v["timeout"].(int))
+		unhealthyThreshold := int64(v["unhealthy_threshold"].(int))
+		pickHostNameFromBackendHTTPSettings := v["pick_host_name_from_backend_http_settings"].(bool)
+
+		output := applicationgateways.ApplicationGatewayProbe{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayProbePropertiesFormat{
+				Host:                                pointer.To(host),
+				Interval:                            pointer.To(interval),
+				MinServers:                          pointer.To(minServers),
+				Path:                                pointer.To(probePath),
+				Protocol:                            pointer.ToEnum[applicationgateways.ApplicationGatewayProtocol](protocol),
+				Timeout:                             pointer.To(timeout),
+				UnhealthyThreshold:                  pointer.To(unhealthyThreshold),
+				PickHostNameFromBackendHTTPSettings: pointer.To(pickHostNameFromBackendHTTPSettings),
+				EnableProbeProxyProtocolHeader:      pointer.To(v["proxy_protocol_header_enabled"].(bool)),
+			},
+		}
+
+		matchConfigs := v["match"].([]any)
+		if len(matchConfigs) > 0 {
+			matchBody := ""
+			outputMatch := &applicationgateways.ApplicationGatewayProbeHealthResponseMatch{}
+			if matchConfigs[0] != nil {
+				match := matchConfigs[0].(map[string]any)
+				matchBody = match["body"].(string)
+
+				statusCodes := make([]string, 0)
+				for _, statusCode := range match["status_code"].([]any) {
+					statusCodes = append(statusCodes, statusCode.(string))
+				}
+				outputMatch.StatusCodes = &statusCodes
+			}
+			outputMatch.Body = pointer.To(matchBody)
+			output.Properties.Match = outputMatch
+		}
+
+		if port != 0 {
+			output.Properties.Port = pointer.To(port)
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGatewayProbe) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.Properties; props != nil {
+			output["protocol"] = pointer.FromEnum(props.Protocol)
+
+			if host := props.Host; host != nil {
+				output["host"] = *host
+			}
+
+			if path := props.Path; path != nil {
+				output["path"] = *path
+			}
+
+			if interval := props.Interval; interval != nil {
+				output["interval"] = int(*interval)
+			}
+
+			if timeout := props.Timeout; timeout != nil {
+				output["timeout"] = int(*timeout)
+			}
+
+			if threshold := props.UnhealthyThreshold; threshold != nil {
+				output["unhealthy_threshold"] = int(*threshold)
+			}
+
+			port := 0
+			if props.Port != nil {
+				port = int(*props.Port)
+			}
+			output["port"] = port
+
+			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
+				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings
+			}
+
+			output["proxy_protocol_header_enabled"] = pointer.From(props.EnableProbeProxyProtocolHeader)
+
+			if minServers := props.MinServers; minServers != nil {
+				output["minimum_servers"] = int(*minServers)
+			}
+
+			matches := make([]any, 0)
+			if match := props.Match; match != nil {
+				matchConfig := map[string]any{}
+				if body := match.Body; body != nil {
+					matchConfig["body"] = *body
+				}
+
+				statusCodes := make([]any, 0)
+				if match.StatusCodes != nil {
+					for _, status := range *match.StatusCodes {
+						statusCodes = append(statusCodes, status)
+					}
+				}
+				matchConfig["status_code"] = statusCodes
+				matches = append(matches, matchConfig)
+			}
+			output["match"] = matches
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayPrivateLinkConfigurations(d *pluginsdk.ResourceData) *[]applicationgateways.ApplicationGatewayPrivateLinkConfiguration {
+	vs := d.Get("private_link_configuration").(*pluginsdk.Set).List()
+	plConfigResults := make([]applicationgateways.ApplicationGatewayPrivateLinkConfiguration, 0)
+
+	for _, rawPl := range vs {
+		v := rawPl.(map[string]any)
+		name := v["name"].(string)
+		ipConfigurations := v["ip_configuration"].([]any)
+		ipConfigurationResults := make([]applicationgateways.ApplicationGatewayPrivateLinkIPConfiguration, 0)
+		for _, rawIp := range ipConfigurations {
+			v := rawIp.(map[string]any)
+			name := v["name"].(string)
+			subnetId := v["subnet_id"].(string)
+			ipConfiguration := applicationgateways.ApplicationGatewayPrivateLinkIPConfiguration{
+				Name: pointer.To(name),
+				Properties: &applicationgateways.ApplicationGatewayPrivateLinkIPConfigurationProperties{
+					Primary: pointer.To(v["primary"].(bool)),
+					Subnet: &applicationgateways.SubResource{
+						Id: pointer.To(subnetId),
+					},
+				},
+			}
+			if privateIpAddress := v["private_ip_address"].(string); privateIpAddress != "" {
+				ipConfiguration.Properties.PrivateIPAddress = pointer.To(privateIpAddress)
+			}
+			if privateIpAddressAllocation := v["private_ip_address_allocation"].(string); privateIpAddressAllocation != "" {
+				ipConfiguration.Properties.PrivateIPAllocationMethod = pointer.ToEnum[applicationgateways.IPAllocationMethod](privateIpAddressAllocation)
+			}
+			ipConfigurationResults = append(ipConfigurationResults, ipConfiguration)
+		}
+
+		configuration := applicationgateways.ApplicationGatewayPrivateLinkConfiguration{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayPrivateLinkConfigurationProperties{
+				IPConfigurations: &ipConfigurationResults,
+			},
+		}
+		plConfigResults = append(plConfigResults, configuration)
+	}
+
+	return &plConfigResults
+}
+
+func flattenApplicationGatewayPrivateEndpoints(input *[]applicationgateways.ApplicationGatewayPrivateEndpointConnection) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, endpoint := range *input {
+		result := map[string]any{}
+		if endpoint.Name != nil {
+			result["name"] = *endpoint.Name
+		}
+		if endpoint.Id != nil {
+			result["id"] = *endpoint.Id
+		}
+	}
+	return results
+}
+
+func flattenApplicationGatewayPrivateLinkConfigurations(input *[]applicationgateways.ApplicationGatewayPrivateLinkConfiguration) []any {
+	plConfigResults := make([]any, 0)
+	if input == nil {
+		return plConfigResults
+	}
+
+	for _, plConfig := range *input {
+		plConfigResult := map[string]any{}
+		if plConfig.Name != nil {
+			plConfigResult["name"] = *plConfig.Name
+		}
+		if plConfig.Id != nil {
+			plConfigResult["id"] = *plConfig.Id
+		}
+		ipConfigResults := make([]any, 0)
+		if props := plConfig.Properties; props != nil {
+			for _, ipConfig := range *props.IPConfigurations {
+				ipConfigResult := map[string]any{}
+				if ipConfig.Name != nil {
+					ipConfigResult["name"] = *ipConfig.Name
+				}
+				if ipConfigProps := ipConfig.Properties; ipConfigProps != nil {
+					if ipConfigProps.Subnet != nil {
+						ipConfigResult["subnet_id"] = *ipConfigProps.Subnet.Id
+					}
+					if ipConfigProps.PrivateIPAddress != nil {
+						ipConfigResult["private_ip_address"] = *ipConfigProps.PrivateIPAddress
+					}
+					ipConfigResult["private_ip_address_allocation"] = pointer.FromEnum(ipConfigProps.PrivateIPAllocationMethod)
+					if ipConfigProps.Primary != nil {
+						ipConfigResult["primary"] = *ipConfigProps.Primary
+					}
+					ipConfigResults = append(ipConfigResults, ipConfigResult)
+				}
+			}
+		}
+		plConfigResult["ip_configuration"] = ipConfigResults
+		plConfigResults = append(plConfigResults, plConfigResult)
+	}
+	return plConfigResults
+}
+
+func expandApplicationGatewayRequestRoutingRules(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayRequestRoutingRule, error) {
+	vs := d.Get("request_routing_rule").(*pluginsdk.Set).List()
+	results := make([]applicationgateways.ApplicationGatewayRequestRoutingRule, 0)
+	priorityset := false
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		ruleType := v["rule_type"].(string)
+		httpListenerName := v["http_listener_name"].(string)
+		httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
+		backendAddressPoolName := v["backend_address_pool_name"].(string)
+		backendHTTPSettingsName := v["backend_http_settings_name"].(string)
+		redirectConfigName := v["redirect_configuration_name"].(string)
+		priority := int64(v["priority"].(int))
+
+		rule := applicationgateways.ApplicationGatewayRequestRoutingRule{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayRequestRoutingRulePropertiesFormat{
+				RuleType: pointer.ToEnum[applicationgateways.ApplicationGatewayRequestRoutingRuleType](ruleType),
+				HTTPListener: &applicationgateways.SubResource{
+					Id: pointer.To(httpListenerID),
+				},
+			},
+		}
+
+		if backendAddressPoolName != "" && redirectConfigName != "" {
+			return nil, errors.New("conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+		}
+
+		if backendHTTPSettingsName != "" && redirectConfigName != "" {
+			return nil, errors.New("conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+		}
+
+		if backendAddressPoolName != "" {
+			backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
+			rule.Properties.BackendAddressPool = &applicationgateways.SubResource{
+				Id: pointer.To(backendAddressPoolID),
+			}
+		}
+
+		if backendHTTPSettingsName != "" {
+			backendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, backendHTTPSettingsName)
+			rule.Properties.BackendHTTPSettings = &applicationgateways.SubResource{
+				Id: pointer.To(backendHTTPSettingsID),
+			}
+		}
+
+		if redirectConfigName != "" {
+			redirectConfigID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigName)
+			rule.Properties.RedirectConfiguration = &applicationgateways.SubResource{
+				Id: pointer.To(redirectConfigID),
+			}
+		}
+
+		if urlPathMapName := v["url_path_map_name"].(string); urlPathMapName != "" {
+			urlPathMapID := fmt.Sprintf("%s/urlPathMaps/%s", gatewayID, urlPathMapName)
+			rule.Properties.UrlPathMap = &applicationgateways.SubResource{
+				Id: pointer.To(urlPathMapID),
+			}
+		}
+
+		if rewriteRuleSetName := v["rewrite_rule_set_name"].(string); rewriteRuleSetName != "" {
+			rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
+			rule.Properties.RewriteRuleSet = &applicationgateways.SubResource{
+				Id: pointer.To(rewriteRuleSetID),
+			}
+		}
+
+		if priority != 0 {
+			rule.Properties.Priority = &priority
+			priorityset = true
+		}
+
+		results = append(results, rule)
+	}
+
+	if priorityset {
+		for _, rule := range results {
+			if rule.Properties.Priority == nil {
+				return nil, errors.New("if you wish to use rule priority, you will have to specify rule-priority field values for all the existing request routing rules")
+			}
+		}
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.ApplicationGatewayRequestRoutingRule) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, config := range *input {
+		if props := config.Properties; props != nil {
+			output := map[string]any{
+				"rule_type": pointer.FromEnum(props.RuleType),
+			}
+
+			if config.Id != nil {
+				output["id"] = *config.Id
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if props.Priority != nil {
+				output["priority"] = *props.Priority
+			}
+
+			if pool := props.BackendAddressPool; pool != nil {
+				if pool.Id != nil {
+					poolId, err := parse.BackendAddressPoolIDInsensitively(*pool.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["backend_address_pool_name"] = poolId.Name
+					output["backend_address_pool_id"] = poolId.ID()
+				}
+			}
+
+			if settings := props.BackendHTTPSettings; settings != nil {
+				if settings.Id != nil {
+					settingsId, err := parse.BackendHttpSettingsCollectionIDInsensitively(*settings.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					output["backend_http_settings_name"] = settingsId.BackendHttpSettingsCollectionName
+					output["backend_http_settings_id"] = *settings.Id
+				}
+			}
+
+			if listener := props.HTTPListener; listener != nil {
+				if listener.Id != nil {
+					listenerId, err := parse.HttpListenerIDInsensitively(*listener.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["http_listener_id"] = listenerId.ID()
+					output["http_listener_name"] = listenerId.Name
+				}
+			}
+
+			if pathMap := props.UrlPathMap; pathMap != nil {
+				if pathMap.Id != nil {
+					pathMapId, err := parse.UrlPathMapIDInsensitively(*pathMap.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["url_path_map_name"] = pathMapId.Name
+					output["url_path_map_id"] = pathMapId.ID()
+				}
+			}
+
+			if redirect := props.RedirectConfiguration; redirect != nil {
+				if redirect.Id != nil {
+					redirectId, err := parse.RedirectConfigurationsIDInsensitively(*redirect.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["redirect_configuration_name"] = redirectId.RedirectConfigurationName
+					output["redirect_configuration_id"] = redirectId.ID()
+				}
+			}
+
+			if rewrite := props.RewriteRuleSet; rewrite != nil {
+				if rewrite.Id != nil {
+					rewriteId, err := parse.RewriteRuleSetIDInsensitively(*rewrite.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["rewrite_rule_set_name"] = rewriteId.Name
+					output["rewrite_rule_set_id"] = rewriteId.ID()
+				}
+			}
+
+			results = append(results, output)
+		}
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayRoutingRules(input []any, appGwID applicationgateways.ApplicationGatewayId) *[]applicationgateways.ApplicationGatewayRoutingRule {
+	results := make([]applicationgateways.ApplicationGatewayRoutingRule, 0)
+
+	for _, raw := range input {
+		v := raw.(map[string]any)
+
+		rule := applicationgateways.ApplicationGatewayRoutingRule{
+			Name: pointer.To(v["name"].(string)),
+			Properties: &applicationgateways.ApplicationGatewayRoutingRulePropertiesFormat{
+				RuleType: pointer.To(applicationgateways.ApplicationGatewayRequestRoutingRuleTypeBasic),
+				Listener: &applicationgateways.SubResource{
+					Id: pointer.To(parse.NewListenerID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, v["listener_name"].(string)).ID()),
+				},
+				BackendAddressPool: &applicationgateways.SubResource{
+					Id: pointer.To(parse.NewBackendAddressPoolID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, v["backend_address_pool_name"].(string)).ID()),
+				},
+				BackendSettings: &applicationgateways.SubResource{
+					Id: pointer.To(parse.NewBackendSettingsCollectionID(appGwID.SubscriptionId, appGwID.ResourceGroupName, appGwID.ApplicationGatewayName, v["backend_name"].(string)).ID()),
+				},
+				Priority: int64(v["priority"].(int)),
+			},
+		}
+
+		results = append(results, rule)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.ApplicationGatewayRoutingRule) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, config := range *input {
+		if props := config.Properties; props != nil {
+			output := map[string]any{
+				"id":       pointer.From(config.Id),
+				"name":     pointer.From(config.Name),
+				"priority": props.Priority,
+			}
+
+			if pool := props.BackendAddressPool; pool != nil && pool.Id != nil {
+				poolId, err := parse.BackendAddressPoolIDInsensitively(pointer.From(pool.Id))
+				if err != nil {
+					return nil, err
+				}
+				output["backend_address_pool_name"] = poolId.Name
+				output["backend_address_pool_id"] = poolId.ID()
+			}
+
+			if settings := props.BackendSettings; settings != nil && settings.Id != nil {
+				settingsId, err := parse.BackendSettingsCollectionIDInsensitively(pointer.From(settings.Id))
+				if err != nil {
+					return nil, err
+				}
+				output["backend_name"] = settingsId.BackendSettingsCollectionName
+				output["backend_id"] = settingsId.ID()
+			}
+
+			if listener := props.Listener; listener != nil && listener.Id != nil {
+				listenerId, err := parse.ListenerIDInsensitively(pointer.From(listener.Id))
+				if err != nil {
+					return nil, err
+				}
+				output["listener_name"] = listenerId.Name
+				output["listener_id"] = listenerId.ID()
+			}
+
+			results = append(results, output)
+		}
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayRewriteRuleSet, error) {
+	vs := d.Get("rewrite_rule_set").([]any)
+	ruleSets := make([]applicationgateways.ApplicationGatewayRewriteRuleSet, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+		rules := make([]applicationgateways.ApplicationGatewayRewriteRule, 0)
+
+		name := v["name"].(string)
+
+		for _, ruleConfig := range v["rewrite_rule"].([]any) {
+			r := ruleConfig.(map[string]any)
+			conditions := make([]applicationgateways.ApplicationGatewayRewriteRuleCondition, 0)
+			requestConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
+			responseConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
+			urlConfiguration := applicationgateways.ApplicationGatewayURLConfiguration{}
+
+			rule := applicationgateways.ApplicationGatewayRewriteRule{
+				Name:         pointer.To(r["name"].(string)),
+				RuleSequence: pointer.To(int64(r["rule_sequence"].(int))),
+			}
+
+			for _, rawCondition := range r["condition"].([]any) {
+				c := rawCondition.(map[string]any)
+				condition := applicationgateways.ApplicationGatewayRewriteRuleCondition{
+					Variable:   pointer.To(c["variable"].(string)),
+					Pattern:    pointer.To(c["pattern"].(string)),
+					IgnoreCase: pointer.To(c["ignore_case"].(bool)),
+					Negate:     pointer.To(c["negate"].(bool)),
+				}
+				conditions = append(conditions, condition)
+			}
+			rule.Conditions = &conditions
+
+			for _, rawConfig := range r["request_header_configuration"].([]any) {
+				c := rawConfig.(map[string]any)
+				config := applicationgateways.ApplicationGatewayHeaderConfiguration{
+					HeaderName:  pointer.To(c["header_name"].(string)),
+					HeaderValue: pointer.To(c["header_value"].(string)),
+				}
+				requestConfigurations = append(requestConfigurations, config)
+			}
+
+			for _, rawConfig := range r["response_header_configuration"].([]any) {
+				c := rawConfig.(map[string]any)
+				config := applicationgateways.ApplicationGatewayHeaderConfiguration{
+					HeaderName:  pointer.To(c["header_name"].(string)),
+					HeaderValue: pointer.To(c["header_value"].(string)),
+				}
+				responseConfigurations = append(responseConfigurations, config)
+			}
+
+			for _, rawConfig := range r["url"].([]any) {
+				c := rawConfig.(map[string]any)
+				if c["path"] == nil && c["query_string"] == nil {
+					return nil, errors.New("at least one of `path` or `query_string` must be set")
+				}
+				components := ""
+				if c["components"] != nil {
+					components = c["components"].(string)
+				}
+				if c["path"] != nil && components != "query_string_only" {
+					urlConfiguration.ModifiedPath = pointer.To(c["path"].(string))
+				}
+				if c["query_string"] != nil && components != "path_only" {
+					urlConfiguration.ModifiedQueryString = pointer.To(c["query_string"].(string))
+				}
+				if c["reroute"] != nil {
+					urlConfiguration.Reroute = pointer.To(c["reroute"].(bool))
+				}
+			}
+
+			rule.ActionSet = &applicationgateways.ApplicationGatewayRewriteRuleActionSet{
+				RequestHeaderConfigurations:  &requestConfigurations,
+				ResponseHeaderConfigurations: &responseConfigurations,
+			}
+
+			if len(r["url"].([]any)) > 0 {
+				rule.ActionSet.UrlConfiguration = &urlConfiguration
+			}
+
+			rules = append(rules, rule)
+		}
+
+		ruleSet := applicationgateways.ApplicationGatewayRewriteRuleSet{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayRewriteRuleSetPropertiesFormat{
+				RewriteRules: &rules,
+			},
+		}
+
+		ruleSets = append(ruleSets, ruleSet)
+	}
+
+	return &ruleSets, nil
+}
+
+func flattenApplicationGatewayRewriteRuleSets(input *[]applicationgateways.ApplicationGatewayRewriteRuleSet) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, config := range *input {
+		if props := config.Properties; props != nil {
+			output := map[string]any{}
+
+			if config.Id != nil {
+				output["id"] = *config.Id
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if rulesConfig := props.RewriteRules; rulesConfig != nil {
+				rules := make([]any, 0)
+				for _, rule := range *rulesConfig {
+					ruleOutput := map[string]any{}
+
+					if rule.Name != nil {
+						ruleOutput["name"] = *rule.Name
+					}
+
+					if rule.RuleSequence != nil {
+						ruleOutput["rule_sequence"] = *rule.RuleSequence
+					}
+
+					conditions := make([]any, 0)
+					if rule.Conditions != nil {
+						for _, config := range *rule.Conditions {
+							condition := map[string]any{}
+
+							if config.Variable != nil {
+								condition["variable"] = *config.Variable
+							}
+
+							if config.Pattern != nil {
+								condition["pattern"] = *config.Pattern
+							}
+
+							if config.IgnoreCase != nil {
+								condition["ignore_case"] = *config.IgnoreCase
+							}
+
+							if config.Negate != nil {
+								condition["negate"] = *config.Negate
+							}
+
+							conditions = append(conditions, condition)
+						}
+					}
+					ruleOutput["condition"] = conditions
+
+					requestConfigs := make([]any, 0)
+					responseConfigs := make([]any, 0)
+					urlConfigs := make([]any, 0)
+
+					if rule.ActionSet != nil {
+						actionSet := *rule.ActionSet
+
+						if actionSet.RequestHeaderConfigurations != nil {
+							for _, config := range *actionSet.RequestHeaderConfigurations {
+								requestConfig := map[string]any{}
+
+								if config.HeaderName != nil {
+									requestConfig["header_name"] = *config.HeaderName
+								}
+
+								if config.HeaderValue != nil {
+									requestConfig["header_value"] = *config.HeaderValue
+								}
+
+								requestConfigs = append(requestConfigs, requestConfig)
+							}
+						}
+
+						if actionSet.ResponseHeaderConfigurations != nil {
+							for _, config := range *actionSet.ResponseHeaderConfigurations {
+								responseConfig := map[string]any{}
+
+								if config.HeaderName != nil {
+									responseConfig["header_name"] = *config.HeaderName
+								}
+
+								if config.HeaderValue != nil {
+									responseConfig["header_value"] = *config.HeaderValue
+								}
+
+								responseConfigs = append(responseConfigs, responseConfig)
+							}
+						}
+
+						if actionSet.UrlConfiguration != nil {
+							config := *actionSet.UrlConfiguration
+							components := ""
+
+							path := pointer.From(config.ModifiedPath)
+
+							queryString := pointer.From(config.ModifiedQueryString)
+
+							// `components` doesn't exist in the API - it appears to be purely a UI state in the Portal
+							// as such we should consider removing this field in the future.
+							if path == queryString {
+								// used to represent `both`
+								components = ""
+							}
+							if config.ModifiedQueryString != nil && config.ModifiedPath == nil {
+								components = "query_string_only"
+							}
+							if config.ModifiedQueryString == nil && config.ModifiedPath != nil {
+								components = "path_only"
+							}
+
+							urlConfigs = append(urlConfigs, map[string]any{
+								"components":   components,
+								"query_string": queryString,
+								"path":         path,
+								"reroute":      pointer.From(config.Reroute),
+							})
+						}
+					}
+					ruleOutput["request_header_configuration"] = requestConfigs
+					ruleOutput["response_header_configuration"] = responseConfigs
+					ruleOutput["url"] = urlConfigs
+
+					rules = append(rules, ruleOutput)
+				}
+				output["rewrite_rule"] = rules
+			}
+			results = append(results, output)
+		}
+	}
+
+	return results
+}
+
+func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayRedirectConfiguration, error) {
+	vs := d.Get("redirect_configuration").(*pluginsdk.Set).List()
+	results := make([]applicationgateways.ApplicationGatewayRedirectConfiguration, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		redirectType := v["redirect_type"].(string)
+		targetListenerName := v["target_listener_name"].(string)
+		targetUrl := v["target_url"].(string)
+		includePath := v["include_path"].(bool)
+		includeQueryString := v["include_query_string"].(bool)
+
+		output := applicationgateways.ApplicationGatewayRedirectConfiguration{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayRedirectConfigurationPropertiesFormat{
+				RedirectType:       pointer.ToEnum[applicationgateways.ApplicationGatewayRedirectType](redirectType),
+				IncludeQueryString: pointer.To(includeQueryString),
+				IncludePath:        pointer.To(includePath),
+			},
+		}
+
+		if targetListenerName == "" && targetUrl == "" {
+			return nil, errors.New("set either `target_listener_name` or `target_url`")
+		}
+
+		if targetListenerName != "" && targetUrl != "" {
+			return nil, errors.New("conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
+		}
+
+		if targetListenerName != "" {
+			targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
+			output.Properties.TargetListener = &applicationgateways.SubResource{
+				Id: pointer.To(targetListenerID),
+			}
+		}
+
+		if targetUrl != "" {
+			output.Properties.TargetURL = pointer.To(targetUrl)
+		}
+
+		results = append(results, output)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateways.ApplicationGatewayRedirectConfiguration) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, config := range *input {
+		if props := config.Properties; props != nil {
+			output := map[string]any{
+				"redirect_type": pointer.FromEnum(props.RedirectType),
+			}
+
+			if config.Id != nil {
+				output["id"] = *config.Id
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if listener := props.TargetListener; listener != nil {
+				if listener.Id != nil {
+					listenerId, err := parse.HttpListenerIDInsensitively(*listener.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["target_listener_name"] = listenerId.Name
+					output["target_listener_id"] = listenerId.ID()
+				}
+			}
+
+			if props.TargetURL != nil {
+				output["target_url"] = *props.TargetURL
+			}
+
+			if props.IncludePath != nil {
+				output["include_path"] = *props.IncludePath
+			}
+
+			if props.IncludeQueryString != nil {
+				output["include_query_string"] = *props.IncludeQueryString
+			}
+
+			results = append(results, output)
+		}
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayAutoscaleConfiguration(d *pluginsdk.ResourceData) *applicationgateways.ApplicationGatewayAutoscaleConfiguration {
+	vs := d.Get("autoscale_configuration").([]any)
+	if len(vs) == 0 {
+		return nil
+	}
+	v := vs[0].(map[string]any)
+
+	minCapacity := int64(v["min_capacity"].(int))
+	maxCapacity := int64(v["max_capacity"].(int))
+
+	configuration := applicationgateways.ApplicationGatewayAutoscaleConfiguration{
+		MinCapacity: minCapacity,
+	}
+
+	if maxCapacity != 0 {
+		configuration.MaxCapacity = pointer.To(maxCapacity)
+	}
+
+	return &configuration
+}
+
+func flattenApplicationGatewayAutoscaleConfiguration(input *applicationgateways.ApplicationGatewayAutoscaleConfiguration) []any {
+	result := make(map[string]any)
+	if input == nil {
+		return []any{}
+	}
+
+	result["min_capacity"] = input.MinCapacity
+	if input.MaxCapacity != nil {
+		result["max_capacity"] = *input.MaxCapacity
+	}
+
+	return []any{result}
+}
+
+func expandApplicationGatewaySku(d *pluginsdk.ResourceData) *applicationgateways.ApplicationGatewaySku {
+	vs := d.Get("sku").([]any)
+	v := vs[0].(map[string]any)
+
+	name := v["name"].(string)
+	tier := v["tier"].(string)
+	capacity := int64(v["capacity"].(int))
+
+	sku := applicationgateways.ApplicationGatewaySku{
+		Name: pointer.ToEnum[applicationgateways.ApplicationGatewaySkuName](name),
+		Tier: pointer.ToEnum[applicationgateways.ApplicationGatewayTier](tier),
+	}
+
+	if capacity != 0 {
+		sku.Capacity = pointer.To(capacity)
+	}
+
+	return &sku
+}
+
+func flattenApplicationGatewaySku(input *applicationgateways.ApplicationGatewaySku) []any {
+	result := make(map[string]any)
+
+	result["name"] = pointer.FromEnum(input.Name)
+	result["tier"] = pointer.FromEnum(input.Tier)
+	if input.Capacity != nil {
+		result["capacity"] = int(*input.Capacity)
+	}
+
+	return []any{result}
+}
+
+func expandApplicationGatewaySslCertificates(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewaySslCertificate, error) {
+	vs := d.Get("ssl_certificate").(*schema.Set).List()
+	results := make([]applicationgateways.ApplicationGatewaySslCertificate, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+		password := v["password"].(string)
+		kvsid := v["key_vault_secret_id"].(string)
+		cert := v["public_cert_data"].(string)
+
+		output := applicationgateways.ApplicationGatewaySslCertificate{
+			Name:       pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewaySslCertificatePropertiesFormat{},
+		}
+
+		//nolint:gocritic
+		if data != "" && kvsid != "" {
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+		} else if data != "" {
+			// data must be base64 encoded
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
+
+			output.Properties.Password = pointer.To(password)
+		} else if kvsid != "" {
+			if password != "" {
+				return nil, fmt.Errorf("only one of `key_vault_secret_id` or `password` must be specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.Properties.KeyVaultSecretId = pointer.To(kvsid)
+		} else if cert != "" {
+			output.Properties.PublicCertData = pointer.To(cert)
+		} else {
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+		}
+
+		results = append(results, output)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewaySslCertificates(input *[]applicationgateways.ApplicationGatewaySslCertificate, d *pluginsdk.ResourceData) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+		if v.Name == nil {
+			continue
+		}
+
+		name := *v.Name
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		output["name"] = name
+
+		if props := v.Properties; props != nil {
+			if data := props.PublicCertData; data != nil {
+				output["public_cert_data"] = *data
+			}
+
+			if kvsid := props.KeyVaultSecretId; kvsid != nil {
+				output["key_vault_secret_id"] = *kvsid
+			}
+		}
+
+		// since the certificate data isn't returned we have to load it from the same index
+		if existing, ok := d.GetOk("ssl_certificate"); ok && existing != nil {
+			existingVals := existing.(*schema.Set).List()
+
+			for _, existingVal := range existingVals {
+				existingCerts := existingVal.(map[string]any)
+				existingName := existingCerts["name"].(string)
+
+				if name == existingName {
+					if data := existingCerts["data"]; data != nil {
+						output["data"] = base64.EncodeIfNot(data.(string))
+					}
+
+					if password := existingCerts["password"]; password != nil {
+						output["password"] = password.(string)
+					}
+				}
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayTrustedClientCertificates(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayTrustedClientCertificate, error) {
+	vs := d.Get("trusted_client_certificate").([]any)
+	results := make([]applicationgateways.ApplicationGatewayTrustedClientCertificate, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+
+		output := applicationgateways.ApplicationGatewayTrustedClientCertificate{
+			Name:       pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayTrustedClientCertificatePropertiesFormat{},
+		}
+
+		if data != "" {
+			// data must be base64 encoded
+			output.Properties.Data = pointer.To(base64.EncodeIfNot(data))
+		} else {
+			return nil, fmt.Errorf("`data` must be specified for the `trusted_client_certificate` block %q", name)
+		}
+
+		results = append(results, output)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayTrustedClientCertificates(input *[]applicationgateways.ApplicationGatewayTrustedClientCertificate) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+		if v.Name == nil {
+			continue
+		}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		output["name"] = *v.Name
+
+		if props := v.Properties; props != nil {
+			if data := props.Data; data != nil {
+				output["data"] = *data
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID string) *[]applicationgateways.ApplicationGatewaySslProfile {
+	vs := d.Get("ssl_profile").([]any)
+	results := make([]applicationgateways.ApplicationGatewaySslProfile, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+
+		verifyClientCertificateRevocation := applicationgateways.ApplicationGatewayClientRevocationOptionsNone
+		if v["verify_client_certificate_revocation"].(string) != "" {
+			verifyClientCertificateRevocation = applicationgateways.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
+		}
+
+		output := applicationgateways.ApplicationGatewaySslProfile{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewaySslProfilePropertiesFormat{
+				ClientAuthConfiguration: &applicationgateways.ApplicationGatewayClientAuthConfiguration{
+					VerifyClientCertIssuerDN: pointer.To(v["verify_client_certificate_issuer_dn"].(bool)),
+					VerifyClientAuthMode:     pointer.ToEnum[applicationgateways.ApplicationGatewayClientAuthVerificationModes](v["client_authentication_mode"].(string)),
+					VerifyClientRevocation:   pointer.To(verifyClientCertificateRevocation),
+				},
+			},
+		}
+
+		if v["trusted_client_certificate_names"] != nil {
+			clientCerts := v["trusted_client_certificate_names"].([]any)
+			clientCertSubResources := make([]applicationgateways.SubResource, 0)
+
+			for _, rawClientCert := range clientCerts {
+				clientCertName := rawClientCert
+				clientCertID := fmt.Sprintf("%s/trustedClientCertificates/%s", gatewayID, clientCertName)
+				clientCertSubResource := applicationgateways.SubResource{
+					Id: pointer.To(clientCertID),
+				}
+				clientCertSubResources = append(clientCertSubResources, clientCertSubResource)
+			}
+			output.Properties.TrustedClientCertificates = &clientCertSubResources
+		}
+
+		sslPolicy := v["ssl_policy"].([]any)
+		if len(sslPolicy) > 0 {
+			output.Properties.SslPolicy = expandApplicationGatewaySslPolicy(sslPolicy)
+		} else {
+			output.Properties.SslPolicy = nil
+		}
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.ApplicationGatewaySslProfile) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+		if v.Name == nil {
+			continue
+		}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		output["name"] = *v.Name
+		output["ssl_policy"] = flattenApplicationGatewaySslPolicy(v.Properties.SslPolicy)
+
+		clientAuthenticationMode := string(applicationgateways.ApplicationGatewayClientAuthVerificationModesStrict)
+		verifyClientCertIssuerDn := false
+		verifyClientCertificateRevocation := ""
+
+		if props := v.Properties; props != nil {
+			if props.ClientAuthConfiguration != nil {
+				verifyClientCertIssuerDn = pointer.From(props.ClientAuthConfiguration.VerifyClientCertIssuerDN)
+				if *props.ClientAuthConfiguration.VerifyClientRevocation != applicationgateways.ApplicationGatewayClientRevocationOptionsNone {
+					verifyClientCertificateRevocation = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientRevocation)
+				}
+				if props.ClientAuthConfiguration.VerifyClientAuthMode != nil {
+					clientAuthenticationMode = pointer.FromEnum(props.ClientAuthConfiguration.VerifyClientAuthMode)
+				}
+			}
+
+			trustedClientCertificateNames := make([]any, 0)
+			if certs := props.TrustedClientCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.Id == nil {
+						continue
+					}
+
+					certId, err := parse.TrustedClientCertificateIDInsensitively(*cert.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					trustedClientCertificateNames = append(trustedClientCertificateNames, certId.Name)
+				}
+			}
+			output["trusted_client_certificate_names"] = trustedClientCertificateNames
+			output["client_authentication_mode"] = clientAuthenticationMode
+			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
+			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayURLPathMap, error) {
+	vs := d.Get("url_path_map").([]any)
+	results := make([]applicationgateways.ApplicationGatewayURLPathMap, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+
+		name := v["name"].(string)
+
+		pathRules := make([]applicationgateways.ApplicationGatewayPathRule, 0)
+		for _, ruleConfig := range v["path_rule"].([]any) {
+			ruleConfigMap := ruleConfig.(map[string]any)
+
+			ruleName := ruleConfigMap["name"].(string)
+			backendAddressPoolName := ruleConfigMap["backend_address_pool_name"].(string)
+			backendHTTPSettingsName := ruleConfigMap["backend_http_settings_name"].(string)
+			redirectConfigurationName := ruleConfigMap["redirect_configuration_name"].(string)
+			firewallPolicyID := ruleConfigMap["firewall_policy_id"].(string)
+
+			rulePaths := make([]string, 0)
+			for _, rulePath := range ruleConfigMap["paths"].([]any) {
+				p, ok := rulePath.(string)
+				if ok {
+					rulePaths = append(rulePaths, p)
+				}
+			}
+
+			rule := applicationgateways.ApplicationGatewayPathRule{
+				Name: pointer.To(ruleName),
+				Properties: &applicationgateways.ApplicationGatewayPathRulePropertiesFormat{
+					Paths: &rulePaths,
+				},
+			}
+
+			if backendAddressPoolName != "" && redirectConfigurationName != "" {
+				return nil, errors.New("conflict between `backend_address_pool_name` and `redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+			}
+
+			if backendHTTPSettingsName != "" && redirectConfigurationName != "" {
+				return nil, errors.New("conflict between `backend_http_settings_name` and `redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+			}
+
+			if backendAddressPoolName != "" {
+				backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
+				rule.Properties.BackendAddressPool = &applicationgateways.SubResource{
+					Id: pointer.To(backendAddressPoolID),
+				}
+			}
+
+			if backendHTTPSettingsName != "" {
+				backendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, backendHTTPSettingsName)
+				rule.Properties.BackendHTTPSettings = &applicationgateways.SubResource{
+					Id: pointer.To(backendHTTPSettingsID),
+				}
+			}
+
+			if redirectConfigurationName != "" {
+				redirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, redirectConfigurationName)
+				rule.Properties.RedirectConfiguration = &applicationgateways.SubResource{
+					Id: pointer.To(redirectConfigurationID),
+				}
+			}
+
+			if rewriteRuleSetName := ruleConfigMap["rewrite_rule_set_name"].(string); rewriteRuleSetName != "" {
+				rewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, rewriteRuleSetName)
+				rule.Properties.RewriteRuleSet = &applicationgateways.SubResource{
+					Id: pointer.To(rewriteRuleSetID),
+				}
+			}
+
+			if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+				rule.Properties.FirewallPolicy = &applicationgateways.SubResource{
+					Id: pointer.To(firewallPolicyID),
+				}
+			}
+
+			pathRules = append(pathRules, rule)
+		}
+
+		output := applicationgateways.ApplicationGatewayURLPathMap{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayURLPathMapPropertiesFormat{
+				PathRules: &pathRules,
+			},
+		}
+
+		defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string)
+		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
+		defaultRedirectConfigurationName := v["default_redirect_configuration_name"].(string)
+
+		if defaultBackendAddressPoolName == "" && defaultBackendHTTPSettingsName == "" && defaultRedirectConfigurationName == "" {
+			return nil, fmt.Errorf("both the `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` must be specified")
+		}
+
+		if defaultBackendAddressPoolName != "" && defaultRedirectConfigurationName != "" {
+			return nil, errors.New("conflict between `default_backend_address_pool_name` and `default_redirect_configuration_name` (back-end pool not applicable when redirection specified)")
+		}
+
+		if defaultBackendHTTPSettingsName != "" && defaultRedirectConfigurationName != "" {
+			return nil, errors.New("conflict between `default_backend_http_settings_name` and `default_redirect_configuration_name` (back-end settings not applicable when redirection specified)")
+		}
+
+		if defaultBackendAddressPoolName != "" {
+			defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
+			output.Properties.DefaultBackendAddressPool = &applicationgateways.SubResource{
+				Id: pointer.To(defaultBackendAddressPoolID),
+			}
+		}
+
+		if defaultBackendHTTPSettingsName != "" {
+			defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
+			output.Properties.DefaultBackendHTTPSettings = &applicationgateways.SubResource{
+				Id: pointer.To(defaultBackendHTTPSettingsID),
+			}
+		}
+
+		if defaultRedirectConfigurationName != "" {
+			defaultRedirectConfigurationID := fmt.Sprintf("%s/redirectConfigurations/%s", gatewayID, defaultRedirectConfigurationName)
+			output.Properties.DefaultRedirectConfiguration = &applicationgateways.SubResource{
+				Id: pointer.To(defaultRedirectConfigurationID),
+			}
+		}
+
+		if defaultRewriteRuleSetName := v["default_rewrite_rule_set_name"].(string); defaultRewriteRuleSetName != "" {
+			defaultRewriteRuleSetID := fmt.Sprintf("%s/rewriteRuleSets/%s", gatewayID, defaultRewriteRuleSetName)
+			output.Properties.DefaultRewriteRuleSet = &applicationgateways.SubResource{
+				Id: pointer.To(defaultRewriteRuleSetID),
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayURLPathMap) ([]any, error) {
+	results := make([]any, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		if v.Id != nil {
+			output["id"] = *v.Id
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.Properties; props != nil {
+			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.Id != nil {
+				poolId, err := parse.BackendAddressPoolIDInsensitively(*backendPool.Id)
+				if err != nil {
+					return nil, err
+				}
+				output["default_backend_address_pool_name"] = poolId.Name
+				output["default_backend_address_pool_id"] = poolId.ID()
+			}
+
+			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.Id != nil {
+				settingsId, err := parse.BackendHttpSettingsCollectionIDInsensitively(*settings.Id)
+				if err != nil {
+					return nil, err
+				}
+				output["default_backend_http_settings_name"] = settingsId.BackendHttpSettingsCollectionName
+				output["default_backend_http_settings_id"] = settingsId.ID()
+			}
+
+			if redirect := props.DefaultRedirectConfiguration; redirect != nil && redirect.Id != nil {
+				redirectId, err := parse.RedirectConfigurationsIDInsensitively(*redirect.Id)
+				if err != nil {
+					return nil, err
+				}
+				output["default_redirect_configuration_name"] = redirectId.RedirectConfigurationName
+				output["default_redirect_configuration_id"] = redirectId.ID()
+			}
+
+			if rewrite := props.DefaultRewriteRuleSet; rewrite != nil && rewrite.Id != nil {
+				rewriteId, err := parse.RewriteRuleSetIDInsensitively(*rewrite.Id)
+				if err != nil {
+					return nil, err
+				}
+				output["default_rewrite_rule_set_name"] = rewriteId.Name
+				output["default_rewrite_rule_set_id"] = rewriteId.ID()
+			}
+
+			pathRules := make([]any, 0)
+			if rules := props.PathRules; rules != nil {
+				for _, rule := range *rules {
+					ruleOutput := map[string]any{}
+
+					if rule.Id != nil {
+						ruleOutput["id"] = *rule.Id
+					}
+
+					if rule.Name != nil {
+						ruleOutput["name"] = *rule.Name
+					}
+
+					if ruleProps := rule.Properties; ruleProps != nil {
+						if pool := ruleProps.BackendAddressPool; pool != nil && pool.Id != nil {
+							poolId, err := parse.BackendAddressPoolIDInsensitively(*pool.Id)
+							if err != nil {
+								return nil, err
+							}
+							ruleOutput["backend_address_pool_name"] = poolId.Name
+							ruleOutput["backend_address_pool_id"] = poolId.ID()
+						}
+
+						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.Id != nil {
+							backendId, err := parse.BackendHttpSettingsCollectionIDInsensitively(*backend.Id)
+							if err != nil {
+								return nil, err
+							}
+							ruleOutput["backend_http_settings_name"] = backendId.BackendHttpSettingsCollectionName
+							ruleOutput["backend_http_settings_id"] = backendId.ID()
+						}
+
+						if redirect := ruleProps.RedirectConfiguration; redirect != nil && redirect.Id != nil {
+							redirectId, err := parse.RedirectConfigurationsIDInsensitively(*redirect.Id)
+							if err != nil {
+								return nil, err
+							}
+							ruleOutput["redirect_configuration_name"] = redirectId.RedirectConfigurationName
+							ruleOutput["redirect_configuration_id"] = redirectId.ID()
+						}
+
+						if rewrite := ruleProps.RewriteRuleSet; rewrite != nil && rewrite.Id != nil {
+							rewriteId, err := parse.RewriteRuleSetIDInsensitively(*rewrite.Id)
+							if err != nil {
+								return nil, err
+							}
+							ruleOutput["rewrite_rule_set_name"] = rewriteId.Name
+							ruleOutput["rewrite_rule_set_id"] = rewriteId.ID()
+						}
+
+						if fwp := ruleProps.FirewallPolicy; fwp != nil && fwp.Id != nil {
+							policyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(*fwp.Id)
+							if err != nil {
+								return nil, err
+							}
+							ruleOutput["firewall_policy_id"] = policyId.ID()
+						}
+
+						pathOutputs := make([]any, 0)
+						if paths := ruleProps.Paths; paths != nil {
+							for _, rulePath := range *paths {
+								pathOutputs = append(pathOutputs, rulePath)
+							}
+						}
+						ruleOutput["paths"] = pathOutputs
+					}
+
+					pathRules = append(pathRules, ruleOutput)
+				}
+			}
+			output["path_rule"] = pathRules
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayWafConfig(d *pluginsdk.ResourceData) *applicationgateways.ApplicationGatewayWebApplicationFirewallConfiguration {
+	vs := d.Get("waf_configuration").([]any)
+	if len(vs) == 0 || vs[0] == nil {
+		return nil
+	}
+	v := vs[0].(map[string]any)
+
+	enabled := v["enabled"].(bool)
+	mode := v["firewall_mode"].(string)
+	ruleSetType := v["rule_set_type"].(string)
+	ruleSetVersion := v["rule_set_version"].(string)
+	fileUploadLimitInMb := v["file_upload_limit_mb"].(int)
+	requestBodyCheck := v["request_body_check"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_kb"].(int)
+
+	return &applicationgateways.ApplicationGatewayWebApplicationFirewallConfiguration{
+		Enabled:                enabled,
+		FirewallMode:           applicationgateways.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:            ruleSetType,
+		RuleSetVersion:         ruleSetVersion,
+		FileUploadLimitInMb:    pointer.To(int64(fileUploadLimitInMb)),
+		RequestBodyCheck:       pointer.To(requestBodyCheck),
+		MaxRequestBodySizeInKb: pointer.To(int64(maxRequestBodySizeInKb)),
+		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]any)),
+		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].([]any)),
+	}
+}
+
+func flattenApplicationGatewayWafConfig(input *applicationgateways.ApplicationGatewayWebApplicationFirewallConfiguration) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	output := make(map[string]any)
+
+	output["enabled"] = input.Enabled
+	output["firewall_mode"] = string(input.FirewallMode)
+	output["rule_set_type"] = input.RuleSetType
+	output["rule_set_version"] = input.RuleSetVersion
+
+	if input.DisabledRuleGroups != nil {
+		output["disabled_rule_group"] = flattenApplicationGateWayDisabledRuleGroups(input.DisabledRuleGroups)
+	}
+
+	if input.FileUploadLimitInMb != nil {
+		output["file_upload_limit_mb"] = int(*input.FileUploadLimitInMb)
+	}
+
+	if input.RequestBodyCheck != nil {
+		output["request_body_check"] = *input.RequestBodyCheck
+	}
+
+	if input.MaxRequestBodySizeInKb != nil {
+		output["max_request_body_size_kb"] = int(*input.MaxRequestBodySizeInKb)
+	}
+
+	if input.Exclusions != nil {
+		output["exclusion"] = flattenApplicationGatewayFirewallExclusion(input.Exclusions)
+	}
+	results = append(results, output)
+
+	return results
+}
+
+func expandApplicationGatewayFirewallDisabledRuleGroup(d []any) *[]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup {
+	if len(d) == 0 {
+		return nil
+	}
+
+	disabledRuleGroups := make([]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup, 0)
+	for _, disabledRuleGroup := range d {
+		disabledRuleGroupMap := disabledRuleGroup.(map[string]any)
+
+		ruleGroupName := disabledRuleGroupMap["rule_group_name"].(string)
+
+		ruleGroup := applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup{
+			RuleGroupName: ruleGroupName,
+		}
+
+		rules := make([]int64, 0)
+		for _, rule := range disabledRuleGroupMap["rules"].([]any) {
+			rules = append(rules, int64(rule.(int)))
+		}
+
+		if len(rules) > 0 {
+			ruleGroup.Rules = &rules
+		}
+
+		disabledRuleGroups = append(disabledRuleGroups, ruleGroup)
+	}
+	return &disabledRuleGroups
+}
+
+func flattenApplicationGateWayDisabledRuleGroups(input *[]applicationgateways.ApplicationGatewayFirewallDisabledRuleGroup) []any {
+	ruleGroups := make([]any, 0)
+	for _, ruleGroup := range *input {
+		ruleGroupOutput := map[string]any{}
+
+		ruleGroupOutput["rule_group_name"] = ruleGroup.RuleGroupName
+
+		ruleOutputs := make([]any, 0)
+		if rules := ruleGroup.Rules; rules != nil {
+			for _, rule := range *rules {
+				ruleOutputs = append(ruleOutputs, rule)
+			}
+		}
+		ruleGroupOutput["rules"] = ruleOutputs
+
+		ruleGroups = append(ruleGroups, ruleGroupOutput)
+	}
+	return ruleGroups
+}
+
+func expandApplicationGatewayFirewallExclusion(d []any) *[]applicationgateways.ApplicationGatewayFirewallExclusion {
+	if len(d) == 0 {
+		return nil
+	}
+
+	exclusions := make([]applicationgateways.ApplicationGatewayFirewallExclusion, 0)
+	for _, exclusion := range d {
+		exclusionMap := exclusion.(map[string]any)
+
+		matchVariable := exclusionMap["match_variable"].(string)
+		selectorMatchOperator := exclusionMap["selector_match_operator"].(string)
+		selector := exclusionMap["selector"].(string)
+
+		exclusionList := applicationgateways.ApplicationGatewayFirewallExclusion{
+			MatchVariable:         matchVariable,
+			SelectorMatchOperator: selectorMatchOperator,
+			Selector:              selector,
+		}
+
+		exclusions = append(exclusions, exclusionList)
+	}
+
+	return &exclusions
+}
+
+func flattenApplicationGatewayFirewallExclusion(input *[]applicationgateways.ApplicationGatewayFirewallExclusion) []any {
+	exclusionLists := make([]any, 0)
+	for _, exclusionList := range *input {
+		exclusionListOutput := map[string]any{}
+		exclusionListOutput["match_variable"] = exclusionList.MatchVariable
+		exclusionListOutput["selector_match_operator"] = exclusionList.SelectorMatchOperator
+		exclusionListOutput["selector"] = exclusionList.Selector
+		exclusionLists = append(exclusionLists, exclusionListOutput)
+	}
+	return exclusionLists
+}
+
+func expandApplicationGatewayCustomErrorConfigurations(vs []any) *[]applicationgateways.ApplicationGatewayCustomError {
+	results := make([]applicationgateways.ApplicationGatewayCustomError, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]any)
+		statusCode := v["status_code"].(string)
+		customErrorPageUrl := v["custom_error_page_url"].(string)
+
+		output := applicationgateways.ApplicationGatewayCustomError{
+			StatusCode:         pointer.ToEnum[applicationgateways.ApplicationGatewayCustomErrorStatusCode](statusCode),
+			CustomErrorPageURL: pointer.To(customErrorPageUrl),
+		}
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgateways.ApplicationGatewayCustomError) []any {
+	results := make([]any, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]any{}
+
+		output["status_code"] = v.StatusCode
+
+		if v.CustomErrorPageURL != nil {
+			output["custom_error_page_url"] = *v.CustomErrorPageURL
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func checkSslPolicy(sslPolicy []any) error {
+	if len(sslPolicy) > 0 && sslPolicy[0] != nil {
+		v := sslPolicy[0].(map[string]any)
+		disabledProtocols := v["disabled_protocols"].([]any)
+		policyType := v["policy_type"].(string)
+		if len(disabledProtocols) > 0 && policyType != "" {
+			return fmt.Errorf("setting disabled_protocols is not allowed when policy_type is defined")
+		}
+	}
+	return nil
+}
+
+func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
+	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
+	if hasAutoscaleConfig {
+		return fmt.Errorf("the Application Gateway does not support `autoscale_configuration` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	capacity, hasCapacityConfig := d.GetOk("sku.0.capacity")
+	if hasCapacityConfig {
+		if capacity.(int) > 2 || capacity.(int) < 1 {
+			return fmt.Errorf("`capacity` value %q for the selected SKU tier %q is invalid. Value must be between [1-2]", capacity, applicationgateways.ApplicationGatewaySkuNameBasic)
+		}
+	} else {
+		return fmt.Errorf("the Application Gateway must specify a `capacity` value between [1-2] for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	_, hasMtlsConfig := d.GetOk("trusted_client_certificate")
+	if hasMtlsConfig {
+		return fmt.Errorf("the Application Gateway does not support `trusted_client_certificate` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	rewriteRuleSet, hasRewriteRuleSetConfig := d.GetOk("rewrite_rule_set")
+	if hasRewriteRuleSetConfig {
+		for _, ruleSet := range rewriteRuleSet.([]any) {
+			rs := ruleSet.(map[string]any)
+			for _, rule := range rs["rewrite_rule"].([]any) {
+				r := rule.(map[string]any)
+				if len(r["url"].([]any)) > 0 {
+					return fmt.Errorf("the Application Gateway does not support `url` inside the `rewrite_rule` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
+	capacity, hasCapacity := d.GetOk("sku.0.capacity")
+	tier := d.Get("sku.0.tier").(string)
+
+	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
+		if err := checkBasicSkuFeatures(d); err != nil {
+			return err
+		}
+	} else if !hasAutoscaleConfig && !hasCapacity {
+		return fmt.Errorf("the Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
+	}
+
+	if err := checkSslPolicy(d.Get("ssl_policy").([]any)); err != nil {
+		return err
+	}
+
+	sslProfiles := d.Get("ssl_profile").([]any)
+	if len(sslProfiles) > 0 {
+		for _, profile := range sslProfiles {
+			if profile == nil {
+				continue
+			}
+			v := profile.(map[string]any)
+			if policy, ok := v["ssl_policy"]; ok && policy != nil {
+				if err := checkSslPolicy(policy.([]any)); err != nil {
+					return err
+				}
+			}
+
+			if v["client_authentication_mode"].(string) == string(applicationgateways.ApplicationGatewayClientAuthVerificationModesPassthrough) {
+				if v["verify_client_certificate_issuer_dn"].(bool) {
+					return fmt.Errorf("`verify_client_certificate_issuer_dn` cannot be set to `true` when `client_authentication_mode` is `Passthrough` for `ssl_profile` %q", v["name"].(string))
+				}
+				if v["verify_client_certificate_revocation"].(string) == string(applicationgateways.ApplicationGatewayClientRevocationOptionsOCSP) {
+					return fmt.Errorf("`verify_client_certificate_revocation` cannot be set to `OCSP` when `client_authentication_mode` is `Passthrough` for `ssl_profile` %q", v["name"].(string))
+				}
+			}
+		}
+	}
+
+	if hasCapacity {
+		if (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
+			return fmt.Errorf("the value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)
+		}
+
+		if (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierStandardVTwo)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierWAFVTwo))) && (capacity.(int) < 1 || capacity.(int) > 125) {
+			return fmt.Errorf("the value '%d' exceeds the maximum capacity allowed for a %q V2 SKU, the %q SKU must have a capacity value between 1 and 125", capacity, tier, tier)
+		}
+	}
+
+	backendHttpSettings := d.Get("backend_http_settings").(*schema.Set).List()
+	for _, rawSettings := range backendHttpSettings {
+		settings := rawSettings.(map[string]any)
+
+		if settings["sni_name"].(string) != "" && !settings["sni_validation_enabled"].(bool) {
+			return fmt.Errorf("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in `backend_http_settings` block `%s`", settings["name"].(string))
+		}
+	}
+
+	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(validate.DeprecatedV1SkuTiers, tier) {
+		return fmt.Errorf("new creation / update to `%s` SKU tier is no longer supported, please use supported SKU tiers: `Basic`, `Standard_v2`, `WAF_v2`, refer to https://aka.ms/V1retirement", tier)
+	}
+
+	if d.HasChange("sku.0.name") {
+		skuName := d.Get("sku.0.name").(string)
+
+		if skuName != "" && slices.Contains(validate.DeprecatedV1SkuNames, skuName) {
+			return fmt.Errorf("new creation / update to `%s` SKU name is no longer supported, please use supported SKU names: `Basic`, `Standard_v2`, `WAF_v2`, refer to https://aka.ms/V1retirement", skuName)
+		}
+	}
+
+	for _, raw := range d.Get("backend").([]any) {
+		v := raw.(map[string]any)
+		if v["host_name"].(string) != "" && strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTcp)) {
+			return fmt.Errorf("`host_name` cannot be set when `protocol` is `Tcp` for `backend` %q", v["name"].(string))
+		}
+	}
+
+	for _, raw := range d.Get("backend_http_settings").(*pluginsdk.Set).List() {
+		v := raw.(map[string]any)
+		if v["host_name"].(string) != "" && v["pick_host_name_from_backend_address"].(bool) {
+			return fmt.Errorf("only one of `host_name` or `pick_host_name_from_backend_address` can be set for `backend_http_settings` %q", v["name"].(string))
+		}
+	}
+
+	for _, raw := range d.Get("listener").(*pluginsdk.Set).List() {
+		v := raw.(map[string]any)
+		if v["host_names"].(*pluginsdk.Set).Len() > 0 && strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTcp)) {
+			return fmt.Errorf("`host_names` cannot be set when `protocol` is `Tcp` for `listener` %q", v["name"].(string))
+		}
+		if strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTls)) && v["ssl_certificate_name"].(string) == "" {
+			return fmt.Errorf("`ssl_certificate_name` must be set when `protocol` is `Tls` for `listener` %q", v["name"].(string))
+		}
+	}
+
+	for _, raw := range d.Get("probe").(*schema.Set).List() {
+		v := raw.(map[string]any)
+		protocol := v["protocol"].(string)
+		isHTTPProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolHTTP)) || strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolHTTPS))
+		isTcpTlsProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTcp)) || strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTls))
+
+		hasHost := v["host"].(string) != ""
+		hasPickHost := v["pick_host_name_from_backend_http_settings"].(bool)
+		if isHTTPProtocol && (hasHost == hasPickHost) {
+			return fmt.Errorf("exactly one of `host` or `pick_host_name_from_backend_http_settings` must be set when `protocol` is `Http` or `Https` for `probe` %q", v["name"].(string))
+		}
+
+		if isHTTPProtocol && v["path"].(string) == "" {
+			return fmt.Errorf("`path` must be specified when `protocol` is `Http` or `Https` for `probe` %q", v["name"].(string))
+		}
+
+		if isTcpTlsProtocol {
+			hasPath := v["path"].(string) != ""
+			matchConfigs := v["match"].([]any)
+			hasMatch := len(matchConfigs) > 0 && matchConfigs[0] != nil
+			if hasHost || hasPickHost || hasPath || hasMatch {
+				return fmt.Errorf("`host`, `pick_host_name_from_backend_http_settings`, `path`, and `match` cannot be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
+			}
+		}
+
+		if v["proxy_protocol_header_enabled"].(bool) && !isTcpTlsProtocol {
+			return fmt.Errorf("`proxy_protocol_header_enabled` can only be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
+		}
+
+		timeout := v["timeout"].(int)
+		interval := v["interval"].(int)
+		if timeout > interval {
+			return fmt.Errorf("`timeout` must not be greater than `interval` for `probe` %q", v["name"].(string))
+		}
+	}
+
+	return nil
+}
+
+func applicationGatewayHttpListnerHash(v any) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["frontend_ip_configuration_name"].(string))
+		buf.WriteString(m["frontend_port_name"].(string))
+		buf.WriteString(m["protocol"].(string))
+		if v, ok := m["host_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if hostNames, ok := m["host_names"]; ok {
+			fmt.Fprintf(&buf, "%s-", hostNames.(*pluginsdk.Set).List())
+		}
+		if v, ok := m["ssl_certificate_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["require_sni"]; ok {
+			fmt.Fprintf(&buf, "%t", v.(bool))
+		}
+		if v, ok := m["firewall_policy_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+		if v, ok := m["ssl_profile_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if customErrorConfiguration, ok := m["custom_error_configuration"].([]any); ok {
+			for _, customErrorAttrs := range customErrorConfiguration {
+				if customErrorAttrs == nil {
+					continue
+				}
+				customError := customErrorAttrs.(map[string]any)
+				if statusCode, ok := customError["status_code"]; ok {
+					buf.WriteString(statusCode.(string))
+				}
+				if pageUrl, ok := customError["custom_error_page_url"]; ok {
+					buf.WriteString(pageUrl.(string))
+				}
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayBackendSettingsHash(v any) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		fmt.Fprintf(&buf, "%d", m["port"].(int))
+		buf.WriteString(m["protocol"].(string))
+		buf.WriteString(m["cookie_based_affinity"].(string))
+		fmt.Fprintf(&buf, "%t", m["dedicated_backend_connection_enabled"].(bool))
+
+		if v, ok := m["path"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["affinity_cookie_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["host_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["probe_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["pick_host_name_from_backend_address"]; ok {
+			fmt.Fprintf(&buf, "%t", v.(bool))
+		}
+		if v, ok := m["request_timeout"]; ok {
+			fmt.Fprintf(&buf, "%d", v.(int))
+		}
+		if connectionDraining, ok := m["connection_draining"].([]any); ok {
+			for _, ac := range connectionDraining {
+				if ac == nil {
+					continue
+				}
+				config := ac.(map[string]any)
+				fmt.Fprintf(&buf, "%t", config["enabled"].(bool))
+				fmt.Fprintf(&buf, "%d", config["drain_timeout_sec"].(int))
+			}
+		}
+		if trustedRootCertificateNames, ok := m["trusted_root_certificate_names"]; ok {
+			fmt.Fprintf(&buf, "%s", trustedRootCertificateNames.([]any))
+		}
+		if v, ok := m["certificate_chain_validation_enabled"]; ok {
+			fmt.Fprintf(&buf, "%t", v.(bool))
+		}
+		if v, ok := m["sni_validation_enabled"]; ok {
+			fmt.Fprintf(&buf, "%t", v.(bool))
+		}
+		if v, ok := m["sni_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewaySSLCertificate(v any) int {
+	var buf bytes.Buffer
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+
+		if v, ok := m["data"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["password"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["key_vault_secret_id"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayBackendAddressPool(v any) int {
+	var buf bytes.Buffer
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+
+		if fqdns, ok := m["fqdns"]; ok {
+			fmt.Fprintf(&buf, "%s", fqdns.(*pluginsdk.Set).List())
+		}
+		if ips, ok := m["ip_addresses"]; ok {
+			fmt.Fprintf(&buf, "%s", ips.(*pluginsdk.Set).List())
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayProbeHash(v any) int {
+	var buf bytes.Buffer
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["protocol"].(string))
+		buf.WriteString(m["path"].(string))
+		fmt.Fprintf(&buf, "%d", m["interval"].(int))
+		fmt.Fprintf(&buf, "%d", m["timeout"].(int))
+		fmt.Fprintf(&buf, "%d", m["unhealthy_threshold"].(int))
+
+		if v, ok := m["host"]; ok {
+			buf.WriteString(v.(string))
+		}
+		if v, ok := m["port"]; ok {
+			fmt.Fprintf(&buf, "%d", v.(int))
+		}
+		if v, ok := m["pick_host_name_from_backend_http_settings"]; ok {
+			fmt.Fprintf(&buf, "%t", v.(bool))
+		}
+		if v, ok := m["minimum_servers"]; ok {
+			fmt.Fprintf(&buf, "%d", v.(int))
+		}
+		if v, ok := m["proxy_protocol_header_enabled"]; ok {
+			fmt.Fprintf(&buf, "%t", v.(bool))
+		}
+		if match, ok := m["match"]; ok {
+			if attrs := match.([]any); len(attrs) == 1 && attrs[0] != nil {
+				attr := attrs[0].(map[string]any)
+				body := attr["body"].(string)
+				statusCodes := attr["status_code"].([]any)
+
+				// Only include in hash if it's not the default
+				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
+				if !defaultMatch {
+					fmt.Fprintf(&buf, "%s-%+v", body, statusCodes)
+				}
+			}
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayListenerHash(v any) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["frontend_ip_configuration_name"].(string))
+		buf.WriteString(m["frontend_port_name"].(string))
+		buf.WriteString(m["protocol"].(string))
+
+		if v, ok := m["ssl_certificate_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+
+		if v, ok := m["ssl_profile_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+
+		if hostNames, ok := m["host_names"]; ok {
+			fmt.Fprintf(&buf, "%s-", hostNames.(*pluginsdk.Set).List())
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayRoutingRuleHash(v any) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["backend_address_pool_name"].(string))
+		buf.WriteString(m["backend_name"].(string))
+		buf.WriteString(m["listener_name"].(string))
+		fmt.Fprintf(&buf, "%d", m["priority"].(int))
+	}
+
+	return pluginsdk.HashString(buf.String())
+}

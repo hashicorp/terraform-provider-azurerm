@@ -13,6 +13,16 @@ import (
 
 type ServicePlanDataSource struct{}
 
+func TestAccServicePlanDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_service_plan", "test")
+	r := ServicePlanDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccServicePlanDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_service_plan", "test")
 	d := ServicePlanDataSource{}

@@ -14,8 +14,8 @@ Use this data source to access information about an existing Application Group.
 
 ```hcl
 data "azurerm_virtual_desktop_application_group" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-application-group"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
