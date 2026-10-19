@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSparkPoolID(t *testing.T) {
+func TestValidateSparkPoolID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
