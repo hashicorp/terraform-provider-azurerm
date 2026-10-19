@@ -19,7 +19,7 @@ data "azurerm_storage_account" "example" {
 }
 
 data "azurerm_storage_share" "example" {
-  name               = "existing"
+  name               = "example-share"
   storage_account_id = data.azurerm_storage_account.example.id
 }
 
