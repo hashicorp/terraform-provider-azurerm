@@ -13,6 +13,16 @@ import (
 
 type LinuxWebAppDataSource struct{}
 
+func TestAccLinuxWebAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_linux_web_app", "test")
+	r := LinuxWebAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccLinuxWebAppDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_linux_web_app", "test")
 	d := LinuxWebAppDataSource{}
@@ -22,6 +32,7 @@ func TestAccLinuxWebAppDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("virtual_network_image_pull_enabled").HasValue("true"),
 			),
 		},
 	})

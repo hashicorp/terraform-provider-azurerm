@@ -75,8 +75,8 @@ func TestParseKubeConfig(t *testing.T) {
 					{
 						Name: "test-user",
 						User: user{
-							ClientCertificteData: "test-client-certificate-data",
-							ClientKeyData:        "test-client-key-data",
+							ClientCertificateData: "test-client-certificate-data",
+							ClientKeyData:         "test-client-key-data",
 						},
 					},
 				},
@@ -109,7 +109,7 @@ func TestParseKubeConfig(t *testing.T) {
 					},
 					CurrentContext: "test-cluster",
 					Kind:           "Config",
-					Preferences: map[string]interface{}{
+					Preferences: map[string]any{
 						"colors": true,
 					},
 				},
@@ -117,9 +117,9 @@ func TestParseKubeConfig(t *testing.T) {
 					{
 						Name: "test-user",
 						User: user{
-							ClientCertificteData: "test-client-certificate-data",
-							ClientKeyData:        "test-client-key-data",
-							Token:                "test-token",
+							ClientCertificateData: "test-client-certificate-data",
+							ClientKeyData:         "test-client-key-data",
+							Token:                 "test-token",
 						},
 					},
 				},

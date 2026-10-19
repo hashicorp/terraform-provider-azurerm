@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
-	prefixlistlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -33,14 +33,14 @@ type LocalRuleStackPrefixListModel struct {
 }
 
 func (r LocalRuleStackPrefixList) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return prefixlistlocalrulestack.ValidateLocalRulestackPrefixListID
+	return prefixlistresources.ValidateLocalRulestackPrefixListID
 }
 
 func (r LocalRuleStackPrefixList) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack_prefix_list"
 }
 
-func (r LocalRuleStackPrefixList) ModelObject() interface{} {
+func (r LocalRuleStackPrefixList) ModelObject() any {
 	return &LocalRuleStackPrefixListModel{}
 }
 
@@ -56,7 +56,7 @@ func (r LocalRuleStackPrefixList) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: prefixlistlocalrulestack.ValidateLocalRulestackID,
+			ValidateFunc: prefixlistresources.ValidateLocalRulestackID,
 		},
 
 		"prefix_list": {
@@ -97,14 +97,14 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			rulestackId, err := localrulestacks.ParseLocalRulestackID(model.RuleStackID)
+			rulestackId, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackID)
 			if err != nil {
 				return err
 			}
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			id := prefixlistlocalrulestack.NewLocalRulestackPrefixListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
+			id := prefixlistresources.NewLocalRulestackPrefixListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.PrefixListLocalRulestackGet(ctx, id)
@@ -119,7 +119,7 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 				}
 			}
 
-			props := prefixlistlocalrulestack.PrefixObject{
+			props := prefixlistresources.PrefixObject{
 				PrefixList: model.PrefixList,
 			}
 
@@ -131,7 +131,7 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 				props.Description = pointer.To(model.Description)
 			}
 
-			prefixList := prefixlistlocalrulestack.PrefixListResource{
+			prefixList := prefixlistresources.PrefixListResource{
 				Properties: props,
 			}
 
@@ -156,7 +156,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PrefixListResources
 
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -172,7 +172,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 			}
 
 			state.Name = id.PrefixListName
-			state.RuleStackID = prefixlistlocalrulestack.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
+			state.RuleStackID = prefixlistresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
 			if model := existing.Model; model != nil {
 				props := model.Properties
 
@@ -193,12 +193,12 @@ func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 			client := metadata.Client.PaloAlto.PrefixListResources
 			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
@@ -222,7 +222,7 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 			client := metadata.Client.PaloAlto.PrefixListResources
 			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
-			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
+			id, err := prefixlistresources.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -233,7 +233,7 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			rulestackId := localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
+			rulestackId := localrulestackresources.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName)
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 

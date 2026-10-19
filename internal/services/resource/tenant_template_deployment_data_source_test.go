@@ -13,6 +13,16 @@ import (
 
 type TenantTemplateDeploymentDataSource struct{}
 
+func TestAccDataSourceTenantTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_tenant_template_deployment", "test")
+	r := TenantTemplateDeploymentDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.withDataSource(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceTenantTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_tenant_template_deployment", "test")
 	if data.Client().IsServicePrincipal {

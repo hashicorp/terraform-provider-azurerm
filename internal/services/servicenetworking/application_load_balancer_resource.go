@@ -59,7 +59,7 @@ func (t ApplicationLoadBalancerResource) Attributes() map[string]*schema.Schema 
 	}
 }
 
-func (t ApplicationLoadBalancerResource) ModelObject() interface{} {
+func (t ApplicationLoadBalancerResource) ModelObject() any {
 	return &ApplicationLoadBalancerModel{}
 }
 
@@ -204,7 +204,7 @@ func (t ApplicationLoadBalancerResource) Delete() sdk.ResourceFunc {
 				Delay:   5 * time.Minute,
 				Pending: []string{"409"},
 				Target:  []string{"200", "202"},
-				Refresh: func() (result interface{}, state string, err error) {
+				Refresh: func() (result any, state string, err error) {
 					resp, err := client.Delete(ctx, *id)
 					if err != nil {
 						if resp.HttpResponse.StatusCode == http.StatusConflict {

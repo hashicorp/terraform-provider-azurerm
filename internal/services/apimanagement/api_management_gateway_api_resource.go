@@ -60,7 +60,7 @@ func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayApisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -94,8 +94,7 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	params := gatewayapi.AssociationContract{}
-	if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, gatewayapi.AssociationContract{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
@@ -103,7 +102,7 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceApiManagementGatewayApiRead(d, meta)
 }
 
-func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayApisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +142,7 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayApisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

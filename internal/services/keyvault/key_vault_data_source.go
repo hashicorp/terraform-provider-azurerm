@@ -169,7 +169,7 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -218,8 +218,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("sku_name", skuName)
 
-		flattenedPolicies := flattenAccessPolicies(props.AccessPolicies)
-		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+		if err := d.Set("access_policy", flattenAccessPolicies(props.AccessPolicies)); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 
@@ -234,8 +233,8 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenKeyVaultDataSourceNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
-	output := make([]interface{}, 0)
+func flattenKeyVaultDataSourceNetworkAcls(input *vaults.NetworkRuleSet) []any {
+	output := make([]any, 0)
 
 	if input != nil {
 		bypass := ""
@@ -248,21 +247,21 @@ func flattenKeyVaultDataSourceNetworkAcls(input *vaults.NetworkRuleSet) []interf
 			defaultAction = string(*input.DefaultAction)
 		}
 
-		ipRules := make([]interface{}, 0)
+		ipRules := make([]any, 0)
 		if input.IPRules != nil {
 			for _, v := range *input.IPRules {
 				ipRules = append(ipRules, v.Value)
 			}
 		}
 
-		virtualNetworkRules := make([]interface{}, 0)
+		virtualNetworkRules := make([]any, 0)
 		if input.VirtualNetworkRules != nil {
 			for _, v := range *input.VirtualNetworkRules {
 				virtualNetworkRules = append(virtualNetworkRules, v.Id)
 			}
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"bypass":                     bypass,
 			"default_action":             defaultAction,
 			"ip_rules":                   ipRules,

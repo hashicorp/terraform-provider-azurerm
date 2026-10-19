@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceencryptionprotectors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancekeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceencryptionprotectors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancekeys"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -49,7 +49,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedInstanceID,
+				ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 			},
 
 			"key_vault_key_id": {
@@ -68,7 +68,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryption() *pluginsdk.Resource
 	}
 }
 
-func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
 	managedInstanceKeysClient := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceKeysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -147,7 +147,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 	return resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d, meta)
 }
 
-func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQLManagedInstance.ManagedInstanceEncryptionProtectorClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -198,7 +198,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.Reso
 	return nil
 }
 
-func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	// Note that encryption protector cannot be deleted. It can only be updated between AzureKeyVault
 	// and SystemManaged. For safety, when this resource is deleted, we're resetting the key type
 	// to service managed to prevent accidental lockout if someone were to delete the keys from key vault
@@ -261,7 +261,7 @@ func diffSuppressKeyVaultVersionedKey(_, oldValue, newValue string, d *schema.Re
 	return strings.EqualFold(oldId.KeyVaultBaseURL, newId.KeyVaultBaseURL) && strings.EqualFold(oldId.Name, newId.Name)
 }
 
-func resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx context.Context, id *keyvault.NestedItemID, fieldName string, autoRotationEnabled bool, meta interface{}) (*keyvault.NestedItemID, error) {
+func resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx context.Context, id *keyvault.NestedItemID, fieldName string, autoRotationEnabled bool, meta any) (*keyvault.NestedItemID, error) {
 	if id.Version != "" {
 		return id, nil
 	}

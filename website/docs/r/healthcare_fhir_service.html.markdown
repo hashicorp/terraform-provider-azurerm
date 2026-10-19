@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `container_registry_login_server_url` - (Optional) A list of azure container registry settings used for convert data operation of the service instance.
 
-* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `oci_artifact` objects as defined below to describe [OCI artifacts for export](https://learn.microsoft.com/en-gb/azure/healthcare-apis/fhir/de-identified-export).
+* `oci_artifact` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `oci_artifact` objects as defined below to describe [OCI artifacts for export](https://learn.microsoft.com/azure/healthcare-apis/fhir/de-identified-export).
 
 * `authentication` - (Required) An `authentication` block as defined below.
 

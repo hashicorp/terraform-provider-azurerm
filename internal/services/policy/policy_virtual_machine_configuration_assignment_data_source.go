@@ -71,7 +71,7 @@ func dataSourcePolicyVirtualMachineConfigurationAssignment() *pluginsdk.Resource
 	}
 }
 
-func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -100,7 +100,7 @@ func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Reso
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("assignment_hash", pointer.From(props.AssignmentHash))
-			d.Set("compliance_status", string(pointer.From(props.ComplianceStatus)))
+			d.Set("compliance_status", pointer.FromEnum(props.ComplianceStatus))
 			d.Set("latest_report_id", pointer.From(props.LatestReportId))
 			d.Set("last_compliance_status_checked", pointer.From(props.LastComplianceStatusChecked))
 

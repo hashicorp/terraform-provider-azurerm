@@ -59,7 +59,7 @@ func (r NetappFileVolumeAttachmentResource) ResourceType() string {
 	return "azurerm_vmware_netapp_volume_attachment"
 }
 
-func (r NetappFileVolumeAttachmentResource) ModelObject() interface{} {
+func (r NetappFileVolumeAttachmentResource) ModelObject() any {
 	return &NetappFileVolumeAttachment{}
 }
 

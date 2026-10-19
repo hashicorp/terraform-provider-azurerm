@@ -73,7 +73,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Arguments() map[string]*plug
 		"metadata": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
-			Computed:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc:     validation.StringIsJSON,
 			DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
 		},
@@ -95,7 +95,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Attributes() map[string]*plu
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagementGroupPolicySetDefinitionResource) ModelObject() interface{} {
+func (r ManagementGroupPolicySetDefinitionResource) ModelObject() any {
 	return &ManagementGroupPolicySetDefinitionResourceModel{}
 }
 
@@ -148,7 +148,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
 
-				var iMetadata interface{} = expandedMetadata
+				var iMetadata any = expandedMetadata
 
 				props.Metadata = &iMetadata
 			}
@@ -212,9 +212,9 @@ func (r ManagementGroupPolicySetDefinitionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 					state.DisplayName = pointer.From(props.DisplayName)
-					state.PolicyType = string(pointer.From(props.PolicyType))
+					state.PolicyType = pointer.FromEnum(props.PolicyType)
 
-					if v, ok := pointer.From(props.Metadata).(map[string]interface{}); ok {
+					if v, ok := pointer.From(props.Metadata).(map[string]any); ok {
 						flattenedMetadata, err := pluginsdk.FlattenJsonToString(v)
 						if err != nil {
 							return fmt.Errorf("flattening `metadata`: %+v", err)
@@ -291,7 +291,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `metadata`: %+v", err)
 				}
 
-				var iMetadata interface{} = expandedMetadata
+				var iMetadata any = expandedMetadata
 
 				props.Metadata = &iMetadata
 			}

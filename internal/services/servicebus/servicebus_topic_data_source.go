@@ -8,16 +8,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceServiceBusTopic() *pluginsdk.Resource {
-	d := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceServiceBusTopicRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -28,7 +28,7 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azValidate.TopicName(),
+				ValidateFunc: validate.TopicName(),
 			},
 
 			"namespace_id": {
@@ -67,6 +67,11 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"maximum_message_size_in_kb": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"max_size_in_megabytes": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -88,11 +93,9 @@ func dataSourceServiceBusTopic() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return d
 }
 
-func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,6 +134,7 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)
 			d.Set("partitioning_enabled", props.EnablePartitioning)
+			d.Set("maximum_message_size_in_kb", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("support_ordering", props.SupportOrdering)
 

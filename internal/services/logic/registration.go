@@ -47,15 +47,15 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
 		"azurerm_logic_app_integration_account": dataSourceLogicAppIntegrationAccount(),
 		"azurerm_logic_app_standard":            dataSourceLogicAppStandard(),
+		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_logic_app_action_custom":                           resourceLogicAppActionCustom(),
 		"azurerm_logic_app_action_http":                             resourceLogicAppActionHTTP(),
 		"azurerm_logic_app_integration_account":                     resourceLogicAppIntegrationAccount(),
@@ -72,8 +72,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
 	}
-
-	return resources
 }
 
 func (r Registration) Actions() []func() action.Action {

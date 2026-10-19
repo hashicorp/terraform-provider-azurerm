@@ -359,7 +359,7 @@ A `dapr` block exports the following:
 
 A `registry` block exports the following:
 
-* `server` - The hostname for the Container Registry.
+* `server` - The FQDN for the Container Registry.
 
 * `identity` - Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
 

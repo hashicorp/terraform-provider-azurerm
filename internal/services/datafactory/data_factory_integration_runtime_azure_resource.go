@@ -88,14 +88,10 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 
 			"compute_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(integrationruntimes.DataFlowComputeTypeGeneral),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(integrationruntimes.DataFlowComputeTypeGeneral),
-					string(integrationruntimes.DataFlowComputeTypeComputeOptimized),
-					string(integrationruntimes.DataFlowComputeTypeMemoryOptimized),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(integrationruntimes.DataFlowComputeTypeGeneral),
+				ValidateFunc: validation.StringInSlice(integrationruntimes.PossibleValuesForDataFlowComputeType(), false),
 			},
 
 			"core_count": {
@@ -131,7 +127,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 		},
 
-		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 			if d.Get("interactive_authoring_time_to_live_in_minutes").(int) > 0 {
 				if !d.Get("virtual_network_enabled").(bool) {
 					return errors.New("when `interactive_authoring_time_to_live_in_minutes` is set, `virtual_network_enabled` must be set to `true`")
@@ -143,7 +139,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	enableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeEnableInteractiveQueryClient
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
@@ -229,7 +225,7 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	disableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeDisableInteractiveQueryClient
 	enableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeEnableInteractiveQueryClient
@@ -317,7 +313,7 @@ func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData,
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -355,7 +351,7 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 			d.Set("location", location.NormalizeNilable(computeProps.Location))
 
 			if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
-				d.Set("compute_type", string(pointer.From(dataFlowProps.ComputeType)))
+				d.Set("compute_type", pointer.FromEnum(dataFlowProps.ComputeType))
 				d.Set("core_count", dataFlowProps.CoreCount)
 				d.Set("time_to_live_min", dataFlowProps.TimeToLive)
 				d.Set("cleanup_enabled", dataFlowProps.Cleanup)
@@ -393,7 +389,7 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

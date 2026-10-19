@@ -3,6 +3,11 @@
 
 package features
 
+import (
+	"os"
+	"strings"
+)
+
 // DeprecatedInSixPointOh returns the deprecation message if the provider
 // is running in 6.0 mode - otherwise returns an empty string (such that
 // this deprecation should be ignored).
@@ -29,6 +34,5 @@ func DeprecatedInSixPointOh(deprecationMessage string) string {
 // Setting `ARM_SIXPOINTZERO_BETA` will cause irreversible changes
 // to your state.
 func SixPointOh() bool {
-	return false // TODO - remove and uncomment after the release of 5.0
-	// return strings.EqualFold(os.Getenv("ARM_SIXPOINTZERO_BETA"), "true")
+	return strings.EqualFold(os.Getenv("ARM_SIXPOINTZERO_BETA"), "true")
 }

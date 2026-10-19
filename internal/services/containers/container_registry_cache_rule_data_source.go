@@ -76,7 +76,7 @@ type ContainerRegistryCacheRuleDataSourceModel struct {
 	TargetRepo          string `tfschema:"target_repo"`
 }
 
-func (ContainerRegistryCacheRuleDataSource) ModelObject() interface{} {
+func (ContainerRegistryCacheRuleDataSource) ModelObject() any {
 	return &ContainerRegistryCacheRuleDataSourceModel{}
 }
 
