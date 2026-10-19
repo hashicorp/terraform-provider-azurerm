@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = DomainServiceReplicaSetId{}
 
-func TestDomainServiceReplicaSetIDFormatter(t *testing.T) {
+func TestParseDomainServiceReplicaSetIDFormatter(t *testing.T) {
 	actual := NewDomainServiceReplicaSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "DomainService1", "replicaSetID").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AAD/domainServices/DomainService1/replicaSets/replicaSetID"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestDomainServiceReplicaSetIDFormatter(t *testing.T) {
 	}
 }
 
-func TestDomainServiceReplicaSetID(t *testing.T) {
+func TestParseDomainServiceReplicaSetID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
