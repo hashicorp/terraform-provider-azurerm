@@ -19,6 +19,17 @@ import (
 
 type IntegrationRuntimeManagedSsisResource struct{}
 
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Basic"),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
 	r := IntegrationRuntimeManagedSsisResource{}

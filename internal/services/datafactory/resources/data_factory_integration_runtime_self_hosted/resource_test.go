@@ -18,6 +18,17 @@ import (
 
 type IntegrationRuntimeSelfHostedResource struct{}
 
+func TestAccDataFactoryIntegrationRuntimeSelfHosted_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
+	r := IntegrationRuntimeSelfHostedResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
 	r := IntegrationRuntimeSelfHostedResource{}

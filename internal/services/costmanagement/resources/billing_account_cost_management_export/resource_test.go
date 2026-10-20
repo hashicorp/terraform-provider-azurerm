@@ -20,6 +20,21 @@ import (
 
 type BillingAccountCostManagementExport struct{}
 
+func TestAccBillingAccountCostManagementExport_regressionTest(t *testing.T) {
+	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
+		t.Skip("skipping tests - no billing account data provided")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_billing_account_cost_management_export", "test")
+	r := BillingAccountCostManagementExport{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccBillingAccountCostManagementExport_basic(t *testing.T) {
 	if os.Getenv("ARM_BILLING_ACCOUNT") == "" {
 		t.Skip("skipping tests - no billing account data provided")

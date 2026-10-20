@@ -13,6 +13,17 @@ import (
 
 type ContainerRegistryDataSource struct{}
 
+func TestAccDataSourceAzureRMContainerRegistry_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")
+	r := ContainerRegistryDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")
 	r := ContainerRegistryDataSource{}

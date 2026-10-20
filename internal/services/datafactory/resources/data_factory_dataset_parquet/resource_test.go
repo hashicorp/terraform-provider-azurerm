@@ -18,6 +18,17 @@ import (
 
 type DatasetParquetResource struct{}
 
+func TestAccDataFactoryDatasetParquet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
+	r := DatasetParquetResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.http(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetParquet_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
 	r := DatasetParquetResource{}

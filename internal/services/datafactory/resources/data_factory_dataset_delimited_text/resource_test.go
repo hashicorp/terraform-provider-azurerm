@@ -77,6 +77,17 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetDelimitedText_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob_basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetDelimitedText_blob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
 	r := DatasetDelimitedTextResource{}

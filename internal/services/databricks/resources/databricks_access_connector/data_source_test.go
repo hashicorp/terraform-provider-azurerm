@@ -13,6 +13,17 @@ import (
 
 type DatabricksAccessConnectorDataSource struct{}
 
+func TestAccDatabricksAccessConnectorDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+	r := DatabricksAccessConnectorDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDatabricksAccessConnectorDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
 	r := DatabricksAccessConnectorDataSource{}

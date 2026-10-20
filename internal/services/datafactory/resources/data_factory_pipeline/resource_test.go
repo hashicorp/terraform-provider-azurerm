@@ -18,6 +18,17 @@ import (
 
 type PipelineResource struct{}
 
+func TestAccDataFactoryPipeline_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
+	r := PipelineResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryPipeline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 	r := PipelineResource{}

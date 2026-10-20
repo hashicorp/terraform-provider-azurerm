@@ -13,6 +13,17 @@ import (
 
 type KubernetesAutomaticClusterDataSource struct{}
 
+func TestAccDataSourceKubernetesAutomaticCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterDataSource{}

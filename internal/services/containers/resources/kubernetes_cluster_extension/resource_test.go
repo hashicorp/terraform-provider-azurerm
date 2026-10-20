@@ -19,6 +19,16 @@ import (
 
 type KubernetesClusterExtensionResource struct{}
 
+func TestAccKubernetesClusterExtension_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_extension", "test")
+	r := KubernetesClusterExtensionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesClusterExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_extension", "test")
 	r := KubernetesClusterExtensionResource{}

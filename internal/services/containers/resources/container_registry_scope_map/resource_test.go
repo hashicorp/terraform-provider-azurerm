@@ -18,6 +18,17 @@ import (
 
 type ContainerRegistryScopeMapResource struct{}
 
+func TestAccContainerRegistryScopeMap_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_scope_map", "test")
+	r := ContainerRegistryScopeMapResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerRegistryScopeMap_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_scope_map", "test")
 	r := ContainerRegistryScopeMapResource{}

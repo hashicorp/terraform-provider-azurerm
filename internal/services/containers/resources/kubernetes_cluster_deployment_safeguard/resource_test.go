@@ -18,6 +18,17 @@ import (
 
 type KubernetesClusterDeploymentSafeguardResource struct{}
 
+func TestAccKubernetesClusterDeploymentSafeguard_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_deployment_safeguard", "test")
+	r := KubernetesClusterDeploymentSafeguardResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesClusterDeploymentSafeguard_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_deployment_safeguard", "test")
 	r := KubernetesClusterDeploymentSafeguardResource{}

@@ -20,6 +20,17 @@ import (
 
 type DataFactoryResource struct{}
 
+func TestAccDataFactory_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+	r := DataFactoryResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactory_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 	r := DataFactoryResource{}

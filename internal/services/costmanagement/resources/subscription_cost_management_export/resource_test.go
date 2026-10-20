@@ -19,6 +19,17 @@ import (
 
 type SubscriptionCostManagementExport struct{}
 
+func TestAccSubscriptionCostManagementExport_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
+	r := SubscriptionCostManagementExport{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccSubscriptionCostManagementExport_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
 	r := SubscriptionCostManagementExport{}

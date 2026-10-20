@@ -18,6 +18,17 @@ import (
 
 type ManagedPrivateEndpointResource struct{}
 
+func TestAccDataFactoryManagedPrivateEndpoint_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_managed_private_endpoint", "test")
+	r := ManagedPrivateEndpointResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_managed_private_endpoint", "test")
 	r := ManagedPrivateEndpointResource{}

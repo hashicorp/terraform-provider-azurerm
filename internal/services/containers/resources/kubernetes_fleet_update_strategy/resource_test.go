@@ -18,6 +18,17 @@ import (
 
 type KubernetesFleetUpdateStrategyTestResource struct{}
 
+func TestAccKubernetesFleetUpdateStrategy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_strategy", "test")
+	r := KubernetesFleetUpdateStrategyTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesFleetUpdateStrategy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_strategy", "test")
 	r := KubernetesFleetUpdateStrategyTestResource{}

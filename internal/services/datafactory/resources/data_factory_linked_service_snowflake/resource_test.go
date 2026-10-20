@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceSnowflakeResource struct{}
 
+func TestAccDataFactoryLinkedServiceSnowflake_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
+	r := LinkedServiceSnowflakeResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_snowflake", "test")
 	r := LinkedServiceSnowflakeResource{}

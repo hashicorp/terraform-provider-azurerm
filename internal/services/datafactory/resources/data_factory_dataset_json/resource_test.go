@@ -18,6 +18,17 @@ import (
 
 type DatasetJSONResource struct{}
 
+func TestAccDataFactoryDatasetJSON_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
+	r := DatasetJSONResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetJSON_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
 	r := DatasetJSONResource{}

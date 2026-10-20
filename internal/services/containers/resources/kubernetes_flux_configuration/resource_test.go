@@ -22,6 +22,16 @@ import (
 
 type KubernetesFluxConfigurationResource struct{}
 
+func TestAccKubernetesFluxConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateGitRepositoryWithHttpKey(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesFluxConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
 	r := KubernetesFluxConfigurationResource{}

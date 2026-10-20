@@ -13,6 +13,17 @@ import (
 
 type ContainerRegistryCacheRuleDataSource struct{}
 
+func TestAccDataSourceAzureRMContainerRegistryCacheRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_cache_rule", "test")
+	r := ContainerRegistryCacheRuleDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMContainerRegistryCacheRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_cache_rule", "test")
 	r := ContainerRegistryCacheRuleDataSource{}

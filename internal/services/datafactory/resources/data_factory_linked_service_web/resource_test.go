@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceWebResource struct{}
 
+func TestAccDataFactoryLinkedServiceWeb_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
+	r := LinkedServiceWebResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.anon_auth(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
 	r := LinkedServiceWebResource{}

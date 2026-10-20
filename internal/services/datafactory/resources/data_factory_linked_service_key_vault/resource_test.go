@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceKeyVaultResource struct{}
 
+func TestAccDataFactoryLinkedServiceKeyVault_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
+	r := LinkedServiceKeyVaultResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
 	r := LinkedServiceKeyVaultResource{}

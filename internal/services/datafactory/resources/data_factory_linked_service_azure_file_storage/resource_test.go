@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceAzureFileStorageResource struct{}
 
+func TestAccDataFactoryLinkedServiceAzureFileStorage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
+	r := LinkedServiceAzureFileStorageResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceAzureFileStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
 	r := LinkedServiceAzureFileStorageResource{}

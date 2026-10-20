@@ -18,6 +18,17 @@ import (
 
 type DatasetPostgreSQLResource struct{}
 
+func TestAccDataFactoryDatasetPostgreSQL_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
+	r := DatasetPostgreSQLResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
 	r := DatasetPostgreSQLResource{}

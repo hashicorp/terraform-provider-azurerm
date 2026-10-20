@@ -13,6 +13,17 @@ import (
 
 type DataFactoryTriggerScheduleDataSource struct{}
 
+func TestAccDataFactoryTriggerScheduleDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_factory_trigger_schedule", "test")
+	r := DataFactoryTriggerScheduleDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryTriggerScheduleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_factory_trigger_schedule", "test")
 	r := DataFactoryTriggerScheduleDataSource{}

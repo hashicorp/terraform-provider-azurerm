@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceSFTPResource struct{}
 
+func TestAccDataFactoryLinkedServiceSFTP_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}

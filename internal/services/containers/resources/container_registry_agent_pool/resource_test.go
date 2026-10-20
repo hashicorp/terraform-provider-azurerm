@@ -18,6 +18,17 @@ import (
 
 type ContainerRegistryAgentPoolResource struct{}
 
+func TestAccContainerRegistryAgentPool_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_agent_pool", "test")
+	r := ContainerRegistryAgentPoolResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerRegistryAgentPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_agent_pool", "test")
 	r := ContainerRegistryAgentPoolResource{}

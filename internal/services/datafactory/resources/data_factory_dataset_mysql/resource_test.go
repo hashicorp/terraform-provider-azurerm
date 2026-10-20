@@ -18,6 +18,17 @@ import (
 
 type DatasetMySQLResource struct{}
 
+func TestAccDataFactoryDatasetMySQL_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
+	r := DatasetMySQLResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetMySQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
 	r := DatasetMySQLResource{}
