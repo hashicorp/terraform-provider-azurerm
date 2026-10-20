@@ -19,7 +19,17 @@ import (
 
 type WebAppActiveSlotResource struct{}
 
-func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
+func TestAccWebAppActiveSlot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
+	r := WebAppActiveSlotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWindows(data),
+		},
+	}, "")
+}
+
+func TestAccWebAppActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -34,7 +44,7 @@ func TestWebAppAccActiveSlot_basicWindows(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_basicLinux(t *testing.T) {
+func TestAccWebAppActiveSlot_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -49,7 +59,7 @@ func TestWebAppAccActiveSlot_basicLinux(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_windowsUpdate(t *testing.T) {
+func TestAccWebAppActiveSlot_windowsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -71,7 +81,7 @@ func TestWebAppAccActiveSlot_windowsUpdate(t *testing.T) {
 	})
 }
 
-func TestWebAppAccActiveSlot_linuxUpdate(t *testing.T) {
+func TestAccWebAppActiveSlot_linuxUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_app_active_slot", "test")
 	r := WebAppActiveSlotResource{}
 
@@ -105,7 +115,7 @@ func (r WebAppActiveSlotResource) Exists(ctx context.Context, client *clients.Cl
 
 	app, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retreiving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
+		return nil, fmt.Errorf("retrieving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
 	}
 	if app.Model.Properties == nil || app.Model.Properties.SlotSwapStatus == nil || app.Model.Properties.SlotSwapStatus.SourceSlotName == nil {
 		return nil, fmt.Errorf("missing App Slot Properties for %s", id)

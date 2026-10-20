@@ -20,6 +20,16 @@ import (
 
 type AadB2cDirectoryResource struct{}
 
+func TestAccAadB2cDirectoryResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_aadb2c_directory", "test")
+	r := AadB2cDirectoryResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAadB2cDirectoryResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_aadb2c_directory", "test")
 	r := AadB2cDirectoryResource{}

@@ -18,6 +18,16 @@ import (
 
 type ApiManagementWorkspacePolicyFragmentTestResource struct{}
 
+func TestAccApiManagementWorkspacePolicyFragment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
+	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementWorkspacePolicyFragment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
 	r := ApiManagementWorkspacePolicyFragmentTestResource{}
@@ -59,7 +69,7 @@ func TestAccApiManagementWorkspacePolicyFragment_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Because of API behavior, Workspace Policy Fragments are always imported as `xml`.
+		// Because of API behaviour, Workspace Policy Fragments are always imported as `xml`.
 		// As a result, the `xml_format` and `xml_content`properties should be ignored when set to `rawxml`.
 		data.ImportStep("xml_format", "xml_content"),
 	})
@@ -76,7 +86,7 @@ func TestAccApiManagementWorkspacePolicyFragment_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Because of API behavior, Workspace Policy Fragments are always imported as `xml`.
+		// Because of API behaviour, Workspace Policy Fragments are always imported as `xml`.
 		// As a result, the `xml_format` and `xml_content`properties should be ignored when set to `rawxml`.
 		data.ImportStep("xml_format", "xml_content"),
 		{
@@ -99,7 +109,7 @@ func TestAccApiManagementWorkspacePolicyFragment_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// Because of API behavior, Workspace Policy Fragments are always imported as `xml`.
+		// Because of API behaviour, Workspace Policy Fragments are always imported as `xml`.
 		// As a result, the `xml_format` and `xml_content`properties should be ignored when set to `rawxml`.
 		data.ImportStep("xml_format", "xml_content"),
 	})

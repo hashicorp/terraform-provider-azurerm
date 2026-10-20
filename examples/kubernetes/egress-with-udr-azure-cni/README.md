@@ -6,4 +6,4 @@ Setting outboundType requires AKS clusters with a vm-set-type of VirtualMachineS
 
 Setting outboundType to a value of UDR requires a user-defined route with valid outbound connectivity for the cluster.
 
-For further information, refer to Azure AKS [documentation](https://docs.microsoft.com/en-us/azure/aks/egress-outboundtype).
+For further information, refer to Azure AKS [documentation](https://docs.microsoft.com/azure/aks/egress-outboundtype).

@@ -88,7 +88,7 @@ func (r FunctionAppConnectorResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r FunctionAppConnectorResource) ModelObject() interface{} {
+func (r FunctionAppConnectorResource) ModelObject() any {
 	return &FunctionAppConnectorResourceModel{}
 }
 
@@ -130,9 +130,8 @@ func (r FunctionAppConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err := commonids.ParseStorageAccountID(model.TargetResourceId); err == nil {
-				targetResourceId := model.TargetResourceId + "/blobServices/default"
 				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
-					Id: &targetResourceId,
+					Id: pointer.To(model.TargetResourceId + "/blobServices/default"),
 				}
 			} else {
 				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
@@ -145,14 +144,12 @@ func (r FunctionAppConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ClientType != "" {
-				clientType := servicelinker.ClientType(model.ClientType)
-				serviceConnectorProperties.ClientType = &clientType
+				serviceConnectorProperties.ClientType = pointer.ToEnum[servicelinker.ClientType](model.ClientType)
 			}
 
 			if model.VnetSolution != "" {
-				vNetSolutionType := servicelinker.VNetSolutionType(model.VnetSolution)
 				vNetSolution := servicelinker.VNetSolution{
-					Type: &vNetSolutionType,
+					Type: pointer.ToEnum[servicelinker.VNetSolutionType](model.VnetSolution),
 				}
 				serviceConnectorProperties.VNetSolution = &vNetSolution
 			}
@@ -262,14 +259,12 @@ func (r FunctionAppConnectorResource) Update() sdk.ResourceFunc {
 			d := metadata.ResourceData
 
 			if d.HasChange("client_type") {
-				clientType := links.ClientType(state.ClientType)
-				linkerProps.ClientType = &clientType
+				linkerProps.ClientType = pointer.ToEnum[links.ClientType](state.ClientType)
 			}
 
 			if d.HasChange("vnet_solution") {
-				vnetSolutionType := links.VNetSolutionType(state.VnetSolution)
 				vnetSolution := links.VNetSolution{
-					Type: &vnetSolutionType,
+					Type: pointer.ToEnum[links.VNetSolutionType](state.VnetSolution),
 				}
 				linkerProps.VNetSolution = &vnetSolution
 			}

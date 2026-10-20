@@ -11,10 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,7 +37,9 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudDeploymentID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseDeploymentIDInsensitively(id)
 			return err
 		}),
 
@@ -52,22 +54,24 @@ func resourceSpringCloudJavaDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appId, err := parse.SpringCloudAppID(d.Get("spring_cloud_app_id").(string))
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	appId, err := appplatform_rm.ParseAppIDInsensitively(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewSpringCloudDeploymentID(subscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
+	id := appplatform_rm.NewDeploymentID(subscriptionId, appId.ResourceGroupName, appId.SpringName, appId.AppName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+		existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 		if err != nil {
 			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -78,12 +82,12 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	service, err := servicesClient.Get(ctx, appId.ResourceGroup, appId.SpringName)
+	service, err := servicesClient.Get(ctx, appId.ResourceGroupName, appId.SpringName)
 	if err != nil {
-		return fmt.Errorf("checking for presence of existing Spring Cloud Service %q (Resource Group %q): %+v", appId.SpringName, appId.ResourceGroup, err)
+		return fmt.Errorf("checking for presence of existing Spring Cloud Service %q (Resource Group %q): %+v", appId.SpringName, appId.ResourceGroupName, err)
 	}
 	if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
-		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
+		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroupName)
 	}
 
 	deployment := appplatform.DeploymentResource{
@@ -100,13 +104,13 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 				Type:           appplatform.TypeBasicUserSourceInfoTypeJar,
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
-				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]interface{})),
+				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any)),
+				ResourceRequests:     expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]any)),
 			},
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -120,17 +124,19 @@ func resourceSpringCloudJavaDeploymentCreate(d *pluginsdk.ResourceData, meta int
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("reading existing %s: %+v", id, err)
 	}
@@ -149,7 +155,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("environment_variables") {
-		existing.Properties.DeploymentSettings.EnvironmentVariables = expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{}))
+		existing.Properties.DeploymentSettings.EnvironmentVariables = expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any))
 	}
 
 	if d.HasChange("jvm_options") {
@@ -170,7 +176,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("nil `properties.deploymentSettings.resourceRequests` for %s: %+v", id, err)
 		}
 
-		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]interface{}))
+		existing.Properties.DeploymentSettings.ResourceRequests = expandSpringCloudDeploymentResourceRequests(d.Get("quota").([]any))
 	}
 
 	if d.HasChange("runtime_version") {
@@ -180,7 +186,7 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, existing)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName, existing)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -192,28 +198,30 @@ func resourceSpringCloudJavaDeploymentUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceSpringCloudJavaDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud deployment %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroupName, err)
 	}
 
 	d.Set("name", id.DeploymentName)
-	d.Set("spring_cloud_app_id", parse.NewSpringCloudAppID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName).ID())
+	d.Set("spring_cloud_app_id", appplatform_rm.NewAppID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.AppName).ID())
 	if resp.Sku != nil {
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
@@ -233,19 +241,21 @@ func resourceSpringCloudJavaDeploymentRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("deleting Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Spring Cloud Deployment %q (Spring Cloud Service %q / App %q / resource Group %q): %+v", id.DeploymentName, id.SpringName, id.AppName, id.ResourceGroupName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deletion of %q: %+v", id, err)
@@ -254,7 +264,7 @@ func resourceSpringCloudJavaDeploymentDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]interface{}) map[string]*string {
+func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]any) map[string]*string {
 	output := make(map[string]*string, len(envMap))
 
 	for k, v := range envMap {
@@ -264,8 +274,8 @@ func expandSpringCloudDeploymentEnvironmentVariables(envMap map[string]interface
 	return output
 }
 
-func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string) map[string]interface{} {
-	output := make(map[string]interface{}, len(envMap))
+func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string) map[string]any {
+	output := make(map[string]any, len(envMap))
 	for i, v := range envMap {
 		if v == nil {
 			continue
@@ -275,12 +285,12 @@ func flattenSpringCloudDeploymentEnvironmentVariables(envMap map[string]*string)
 	return output
 }
 
-func expandSpringCloudDeploymentResourceRequests(input []interface{}) *appplatform.ResourceRequests {
+func expandSpringCloudDeploymentResourceRequests(input []any) *appplatform.ResourceRequests {
 	cpuResult := "1"   // default value that's aligned with previous behavior used to be defined in schema.
 	memResult := "1Gi" // default value that's aligned with previous behavior used to be defined in schema.
 
 	if len(input) > 0 && input[0] != nil {
-		v := input[0].(map[string]interface{})
+		v := input[0].(map[string]any)
 		if v != nil {
 			if cpuNew := v["cpu"].(string); cpuNew != "" {
 				cpuResult = cpuNew
@@ -300,13 +310,13 @@ func expandSpringCloudDeploymentResourceRequests(input []interface{}) *appplatfo
 	return &result
 }
 
-func flattenSpringCloudDeploymentResourceRequests(input *appplatform.ResourceRequests) []interface{} {
+func flattenSpringCloudDeploymentResourceRequests(input *appplatform.ResourceRequests) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"cpu":    pointer.From(input.CPU),
 			"memory": pointer.From(input.Memory),
 		},
@@ -326,7 +336,7 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudAppID,
+			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
 		},
 
 		"environment_variables": {
@@ -352,23 +362,23 @@ func resourceSprintCloudJavaDeploymentSchema() map[string]*pluginsdk.Schema {
 		"quota": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// The value returned in GET will be recalculated by the service if the deprecated "cpu" is honored, so make this property as Computed.
 					"cpu": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "cpu" is honoured, so make this property as Computed.
 						Computed: true,
 						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					// The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honored, so make this property as Computed.
 					"memory": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// Note: O+C The value returned in GET will be recalculated by the service if the deprecated "memory_in_gb" is honoured, so make this property as Computed.
 						Computed: true,
 						// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 						ValidateFunc: validation.StringIsNotEmpty,

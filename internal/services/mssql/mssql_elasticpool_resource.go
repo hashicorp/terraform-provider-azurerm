@@ -160,16 +160,18 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// Note: O+C because this value is computed based on `max_size_gb` if not set
 				Computed:      true,
 				ConflictsWith: []string{"max_size_gb"},
 				ValidateFunc:  validation.IntAtLeast(0),
 			},
 
 			"max_size_gb": {
-				Type:          pluginsdk.TypeFloat,
-				Optional:      true,
+				Type:     pluginsdk.TypeFloat,
+				Optional: true,
+				// Note: O+C because this value is computed based on `max_size_bytes` if not set
 				Computed:      true,
 				ConflictsWith: []string{"max_size_bytes"},
 				ValidateFunc:  validation.FloatAtLeast(0),
@@ -193,14 +195,14 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"license_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringInSlice(elasticpools.PossibleValuesForElasticPoolLicenseType(), false),
 			},
 
 			"high_availability_replica_count": {
-				Type: pluginsdk.TypeInt,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
 				// NOTE: O+C can only be set for Hyperscale skus, which have a default value of 1
-				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
@@ -209,15 +211,15 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
 				if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
 					return err
 				}
 
 				if v, ok := diff.GetOk("high_availability_replica_count"); ok && v.(int) > 0 {
-					skuRaw := diff.Get("sku").([]interface{})
+					skuRaw := diff.Get("sku").([]any)
 					if len(skuRaw) > 0 {
-						sku := skuRaw[0].(map[string]interface{})
+						sku := skuRaw[0].(map[string]any)
 						tier := sku["tier"].(string)
 						if !strings.EqualFold(tier, "Hyperscale") {
 							return fmt.Errorf("`high_availability_replica_count` can only be set when `sku.tier` is `Hyperscale`, got %q", tier)
@@ -228,7 +230,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				return nil
 			},
 
-			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
+			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ any) bool {
 				// enclave_type cannot be removed once it has been set
 				// but can be changed between VBS and Default
 				if old.(string) != "" && new.(string) == "" {
@@ -241,7 +243,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -272,13 +274,12 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Name:     pointer.To(id.ElasticPoolName),
 		Location: location,
 		Sku:      sku,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: &elasticpools.ElasticPoolProperties{
 			LicenseType:                pointer.ToEnum[elasticpools.ElasticPoolLicenseType](d.Get("license_type").(string)),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
-			PreferredEnclaveType:       nil,
 		},
 	}
 
@@ -317,7 +318,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceMsSqlElasticPoolRead(d, meta)
 }
 
-func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -352,7 +353,7 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 		if props := model.Properties; props != nil {
 			enclaveType := ""
 			if v := props.PreferredEnclaveType; v != nil {
-				enclaveType = string(pointer.From(v))
+				enclaveType = pointer.FromEnum(v)
 			}
 			d.Set("enclave_type", enclaveType)
 			d.Set("max_size_gb", pointer.To(float64(*props.MaxSizeBytes)/1073741824))
@@ -385,7 +386,7 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -403,8 +404,8 @@ func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func expandMsSqlElasticPoolPerDatabaseSettings(d *pluginsdk.ResourceData) *elasticpools.ElasticPoolPerDatabaseSettings {
-	perDatabaseSettings := d.Get("per_database_settings").([]interface{})
-	perDatabaseSetting := perDatabaseSettings[0].(map[string]interface{})
+	perDatabaseSettings := d.Get("per_database_settings").([]any)
+	perDatabaseSetting := perDatabaseSettings[0].(map[string]any)
 
 	minCapacity := perDatabaseSetting["min_capacity"].(float64)
 	maxCapacity := perDatabaseSetting["max_capacity"].(float64)
@@ -416,8 +417,8 @@ func expandMsSqlElasticPoolPerDatabaseSettings(d *pluginsdk.ResourceData) *elast
 }
 
 func expandMsSqlElasticPoolSku(d *pluginsdk.ResourceData) *elasticpools.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
+	skus := d.Get("sku").([]any)
+	sku := skus[0].(map[string]any)
 
 	name := sku["name"].(string)
 	tier := sku["tier"].(string)
@@ -432,12 +433,12 @@ func expandMsSqlElasticPoolSku(d *pluginsdk.ResourceData) *elasticpools.Sku {
 	}
 }
 
-func flattenMsSqlElasticPoolSku(input *elasticpools.Sku) []interface{} {
+func flattenMsSqlElasticPoolSku(input *elasticpools.Sku) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := map[string]interface{}{}
+	values := map[string]any{}
 
 	if name := input.Name; name != "" {
 		values["name"] = name
@@ -455,11 +456,11 @@ func flattenMsSqlElasticPoolSku(input *elasticpools.Sku) []interface{} {
 		values["capacity"] = *capacity
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenMsSqlElasticPoolPerDatabaseSettings(resp *elasticpools.ElasticPoolPerDatabaseSettings) []interface{} {
-	perDatabaseSettings := map[string]interface{}{}
+func flattenMsSqlElasticPoolPerDatabaseSettings(resp *elasticpools.ElasticPoolPerDatabaseSettings) []any {
+	perDatabaseSettings := map[string]any{}
 
 	if minCapacity := resp.MinCapacity; minCapacity != nil {
 		perDatabaseSettings["min_capacity"] = *minCapacity
@@ -469,5 +470,5 @@ func flattenMsSqlElasticPoolPerDatabaseSettings(resp *elasticpools.ElasticPoolPe
 		perDatabaseSettings["max_capacity"] = *maxCapacity
 	}
 
-	return []interface{}{perDatabaseSettings}
+	return []any{perDatabaseSettings}
 }

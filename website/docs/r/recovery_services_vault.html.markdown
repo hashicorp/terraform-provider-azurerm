@@ -84,7 +84,7 @@ An `encryption` block supports the following:
 
 * `use_system_assigned_identity` - (Optional) Indicate that system assigned identity should be used or not. Defaults to `true`. Must be set to `false` when `user_assigned_identity_id` is set.
 
-!> **Note:** `use_system_assigned_identity` only be able to set to `false` for **new** vaults. Any vaults containing existing items registered or attempted to be registered to it are not supported. Details can be found in [the document](https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#before-you-start)
+!> **Note:** `use_system_assigned_identity` only be able to set to `false` for **new** vaults. Any vaults containing existing items registered or attempted to be registered to it are not supported. Details can be found in [the document](https://learn.microsoft.com/azure/backup/encryption-at-rest-with-cmk?tabs=portal#before-you-start)
 
 !> **Note:** Once `infrastructure_encryption_enabled` has been set it's not possible to change it.
 
@@ -98,7 +98,7 @@ A `monitoring` block supports the following:
 
 * `alerts_for_all_replication_issues_enabled` - (Optional) Enabling/Disabling built-in Azure Monitor alerts for all replication issues. Defaults to `true`.
 
-* `alerts_for_critical_operation_failures_enabled` - (Optional) Enabling/Disabling alerts from the older (classic alerts) solution. Defaults to `true`. More details could be found [here](https://learn.microsoft.com/en-us/azure/backup/monitoring-and-alerts-overview).
+* `alerts_for_critical_operation_failures_enabled` - (Optional) Enabling/Disabling alerts from the older (classic alerts) solution. Defaults to `true`. More details could be found [here](https://learn.microsoft.com/azure/backup/monitoring-and-alerts-overview).
 
 * `email_notifications_for_site_recovery_enabled` - (Optional) Enabling/Disabling email notifications for site recovery (classic alerts) solution. Defaults to `true`.
 

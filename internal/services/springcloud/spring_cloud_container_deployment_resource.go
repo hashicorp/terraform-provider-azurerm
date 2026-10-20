@@ -10,12 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,7 +36,9 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudDeploymentID(id)
+			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+			_, err := appplatform_rm.ParseDeploymentIDInsensitively(id)
 			return err
 		}),
 
@@ -61,7 +61,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudAppID,
+				ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
 			},
 
 			"image": {
@@ -79,7 +79,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 			"addon_json": {
 				Type:             pluginsdk.TypeString,
 				Optional:         true,
-				Computed:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
@@ -90,7 +90,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: appplatform2.ValidateApmID,
+					ValidateFunc: appplatform_rm.ValidateApmID,
 				},
 			},
 
@@ -139,14 +139,14 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 			"quota": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cpu": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -154,7 +154,7 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 						"memory": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Computed: true,
+							Computed: true, // azignore:AZS007 - pre-existing violation
 							// NOTE: we're intentionally not validating this field since additional values are possible when enabled by the service team
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -165,23 +165,25 @@ func resourceSpringCloudContainerDeployment() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appId, err := parse.SpringCloudAppID(d.Get("spring_cloud_app_id").(string))
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	appId, err := appplatform_rm.ParseAppIDInsensitively(d.Get("spring_cloud_app_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewSpringCloudDeploymentID(subscriptionId, appId.ResourceGroup, appId.SpringName, appId.AppName, d.Get("name").(string))
+	id := appplatform_rm.NewDeploymentID(subscriptionId, appId.ResourceGroupName, appId.SpringName, appId.AppName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 			if err != nil {
 				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -193,12 +195,12 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 		}
 	}
 
-	service, err := servicesClient.Get(ctx, appId.ResourceGroup, appId.SpringName)
+	service, err := servicesClient.Get(ctx, appId.ResourceGroupName, appId.SpringName)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing %s: %+v", appId, err)
 	}
 	if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
-		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroup)
+		return fmt.Errorf("invalid `sku` for Spring Cloud Service %q (Resource Group %q)", appId.SpringName, appId.ResourceGroupName)
 	}
 
 	addonConfig, err := expandSpringCloudAppAddon(d.Get("addon_json").(string))
@@ -217,21 +219,21 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 				CustomContainer: &appplatform.CustomContainer{
 					Server:            pointer.To(d.Get("server").(string)),
 					ContainerImage:    pointer.To(d.Get("image").(string)),
-					Command:           helpers.ExpandStringSlice(d.Get("commands").([]interface{})),
-					Args:              helpers.ExpandStringSlice(d.Get("arguments").([]interface{})),
+					Command:           pluginsdk.ExpandStringSlice(d.Get("commands").([]any)),
+					Args:              pluginsdk.ExpandStringSlice(d.Get("arguments").([]any)),
 					LanguageFramework: pointer.To(d.Get("language_framework").(string)),
 				},
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
-				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]interface{})),
-				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
-				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]interface{})),
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]any)),
+				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]any)),
+				ResourceRequests:     expandSpringCloudContainerDeploymentResourceRequests(d.Get("quota").([]any)),
 			},
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName, deployment)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -247,17 +249,19 @@ func resourceSpringCloudContainerDeploymentCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSpringCloudContainerDeploymentRead(d, meta)
 }
 
-func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[INFO] Spring Cloud deployment %q does not exist - removing from state", d.Id())
@@ -268,7 +272,7 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.Set("name", id.DeploymentName)
-	d.Set("spring_cloud_app_id", parse.NewSpringCloudAppID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName).ID())
+	d.Set("spring_cloud_app_id", appplatform_rm.NewAppID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.AppName).ID())
 	if resp.Sku != nil {
 		d.Set("instance_count", resp.Sku.Capacity)
 	}
@@ -291,8 +295,8 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 			if container := source.CustomContainer; container != nil {
 				d.Set("server", container.Server)
 				d.Set("image", container.ContainerImage)
-				d.Set("arguments", helpers.FlattenStringSlice(container.Args))
-				d.Set("commands", helpers.FlattenStringSlice(container.Command))
+				d.Set("arguments", pluginsdk.FlattenSlice(container.Args))
+				d.Set("commands", pluginsdk.FlattenSlice(container.Command))
 				d.Set("language_framework", container.LanguageFramework)
 			}
 		}
@@ -301,17 +305,19 @@ func resourceSpringCloudContainerDeploymentRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SpringCloudDeploymentID(d.Id())
+	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
+	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
+	id, err := appplatform_rm.ParseDeploymentIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName, id.DeploymentName)
+	future, err := client.Delete(ctx, id.ResourceGroupName, id.SpringName, id.AppName, id.DeploymentName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
@@ -322,14 +328,14 @@ func resourceSpringCloudContainerDeploymentDelete(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *appplatform.ResourceRequests {
+func expandSpringCloudContainerDeploymentResourceRequests(input []any) *appplatform.ResourceRequests {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	cpuResult := "1"
 	memResult := "1Gi"
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	if cpuNew := v["cpu"].(string); cpuNew != "" {
 		cpuResult = cpuNew
 	}
@@ -346,7 +352,7 @@ func expandSpringCloudContainerDeploymentResourceRequests(input []interface{}) *
 	return &result
 }
 
-func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmReference {
+func expandSpringCloudDeploymentApms(input []any) *[]appplatform.ApmReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -359,13 +365,13 @@ func expandSpringCloudDeploymentApms(input []interface{}) *[]appplatform.ApmRefe
 	return pointer.To(result)
 }
 
-func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]interface{}, error) {
+func flattenSpringCloudDeploymentApms(input *[]appplatform.ApmReference) ([]any, error) {
 	if input == nil {
-		return nil, nil
+		return []any{}, nil
 	}
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, v := range *input {
-		id, err := appplatform2.ParseApmIDInsensitively(*v.ResourceID)
+		id, err := appplatform_rm.ParseApmIDInsensitively(*v.ResourceID)
 		if err != nil {
 			return nil, err
 		}

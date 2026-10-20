@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	administratorsmicrosoftentra "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -64,7 +64,7 @@ func TestAccPostgresqlFlexibleServerAdministrator_disappears(t *testing.T) {
 }
 
 func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := administratorsmicrosoftentra.ParseAdministratorID(state.ID)
+	id, err := administratormicrosoftentras.ParseAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Contex
 }
 
 func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := administratorsmicrosoftentra.ParseAdministratorID(state.ID)
+	id, err := administratormicrosoftentras.ParseAdministratorID(state.ID)
 	if err != nil {
 		return nil, err
 	}

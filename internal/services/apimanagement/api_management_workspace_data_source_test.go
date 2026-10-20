@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package apimanagement_test
 
 import (
@@ -9,6 +12,16 @@ import (
 )
 
 type ApiManagementWorkspaceDataSource struct{}
+
+func TestAccDataSourceApiManagementWorkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_workspace", "test")
+	r := ApiManagementWorkspaceDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceApiManagementWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_workspace", "test")

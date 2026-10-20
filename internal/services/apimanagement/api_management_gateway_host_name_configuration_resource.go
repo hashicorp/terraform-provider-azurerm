@@ -88,7 +88,7 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +135,7 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 	return resourceApiManagementGatewayHostNameConfigurationRead(d, meta)
 }
 
-func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceApiManagementGatewayHostNameConfigurationRead(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
