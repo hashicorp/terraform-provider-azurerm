@@ -74,9 +74,17 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
+* `auto_protection_enabled` - (Optional) Whether all present and future containers of the source Storage Account should be backed up. Defaults to `false`.
+
+!> **Note:** Enabling `auto_protection_enabled` is irreversible. Once enabled it cannot be disabled again, and `storage_account_container_names` can only be specified again by recreating the Backup Instance, which deletes its vaulted recovery points.
+
+~> **Note:** Azure only protects new containers until the number of protected containers reaches `1000`. If the Storage Account contains more than `1000` containers, `excluded_container_name_prefixes` must be used to reduce the number of protected containers to `1000` or fewer.
+
+* `excluded_container_name_prefixes` - (Optional) A list of container name prefixes to exclude from auto protection. Containers whose names start with one of these prefixes are not backed up. Can only be specified when `auto_protection_enabled` is set to `true`.
+
 * `storage_account_container_names` - (Optional) The list of the container names of the source Storage Account.
 
--> **Note:** The `storage_account_container_names` should be specified in the vaulted backup policy/operational and vaulted hybrid backup policy. Removing the `storage_account_container_names` will force a new resource to be created since it can't be removed once specified.
+-> **Note:** For a vaulted backup policy or an operational and vaulted hybrid backup policy, either `storage_account_container_names` or `auto_protection_enabled` should be specified. Removing `storage_account_container_names` forces a new resource to be created, unless `auto_protection_enabled` is set to `true` at the same time.
 
 ## Attributes Reference
 
@@ -107,4 +115,4 @@ terraform import azurerm_data_protection_backup_instance_blob_storage.example /s
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection` - 2025-07-01
+* `Microsoft.DataProtection` - 2026-03-01
