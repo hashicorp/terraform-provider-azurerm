@@ -121,17 +121,6 @@ func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
 					data.CheckWithClient(r.checkDefaultNodePoolSecurity(false, false)),
 				),
 			},
-			{
-				Config:                   config,
-				ProtoV5ProviderFactories: current,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
-				},
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					data.CheckWithClient(r.checkDefaultNodePoolSecurity(false, false)),
-				),
-			},
 			newImport,
 			{Config: config, PlanOnly: true, ProtoV5ProviderFactories: current},
 		},

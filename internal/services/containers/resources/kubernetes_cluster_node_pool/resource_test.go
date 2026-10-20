@@ -965,17 +965,6 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 					data.CheckWithClient(r.checkSecurity(false, false)),
 				),
 			},
-			{
-				Config:                   config,
-				ProtoV5ProviderFactories: current,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
-				},
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					data.CheckWithClient(r.checkSecurity(false, false)),
-				),
-			},
 			newImport,
 			{Config: config, PlanOnly: true, ProtoV5ProviderFactories: current},
 		},
