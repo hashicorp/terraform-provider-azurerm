@@ -146,7 +146,7 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d NetworkAnchorDataSource) ModelObject() interface{} {
+func (d NetworkAnchorDataSource) ModelObject() any {
 	return &NetworkAnchorDataSource{}
 }
 

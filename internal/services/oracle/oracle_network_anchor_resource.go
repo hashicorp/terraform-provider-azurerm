@@ -168,7 +168,7 @@ func (NetworkAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (NetworkAnchorResource) ModelObject() interface{} {
+func (NetworkAnchorResource) ModelObject() any {
 	return &NetworkAnchorResource{}
 }
 
@@ -331,7 +331,7 @@ func (NetworkAnchorResource) Read() sdk.ResourceFunc {
 					} else if v, ok := metadata.ResourceData.GetOk("dns_forwarding_rule"); ok {
 						// The service may omit these inputs from GET responses even when they were configured.
 						// Preserve the prior state value when omitted to avoid a perpetual ForceNew diff.
-						state.DnsForwardingRule = expandDnsForwardingRulesModel(v.([]interface{}))
+						state.DnsForwardingRule = expandDnsForwardingRulesModel(v.([]any))
 					}
 					if props.DnsListeningEndpointAllowedCidrs != nil {
 						state.DnsListeningEndpointAllowedCidrs = pointer.From(props.DnsListeningEndpointAllowedCidrs)
@@ -394,10 +394,10 @@ func flattenDnsForwardingRules(dnsForwardingRules *[]networkanchors.DnsForwardin
 	return results
 }
 
-func expandDnsForwardingRulesModel(input []interface{}) []DnsForwardingRuleModel {
+func expandDnsForwardingRulesModel(input []any) []DnsForwardingRuleModel {
 	results := make([]DnsForwardingRuleModel, 0, len(input))
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		results = append(results, DnsForwardingRuleModel{
 			DomainNames:         v["domain_names"].(string),
 			ForwardingIPAddress: v["forwarding_ip_address"].(string),

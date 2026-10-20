@@ -11,14 +11,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func IsCommaSeparatedCIDRs(i interface{}, k string) (warnings []string, errors []error) {
+func IsCommaSeparatedCIDRs(i any, k string) (warnings []string, errors []error) {
 	s, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", k))
 		return
 	}
-	parts := strings.Split(s, ",")
-	for _, p := range parts {
+	for p := range strings.SplitSeq(s, ",") {
 		p = strings.TrimSpace(p)
 		if p == "" {
 			errors = append(errors, fmt.Errorf("%q: contains an empty CIDR entry", k))
@@ -32,7 +31,7 @@ func IsCommaSeparatedCIDRs(i interface{}, k string) (warnings []string, errors [
 	return
 }
 
-func DomainName(i interface{}, k string) (warnings []string, errors []error) {
+func DomainName(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -45,14 +44,13 @@ func DomainName(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func DomainNames(i interface{}, k string) (warnings []string, errors []error) {
+func DomainNames(i any, k string) (warnings []string, errors []error) {
 	s, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", k))
 		return
 	}
-	parts := strings.Split(s, ",")
-	for _, p := range parts {
+	for p := range strings.SplitSeq(s, ",") {
 		p = strings.TrimSpace(p)
 		if p == "" {
 			errors = append(errors, fmt.Errorf("%q: contains an empty Domain Name", k))
