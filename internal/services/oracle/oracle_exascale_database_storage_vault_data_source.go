@@ -49,7 +49,7 @@ func (d ExascaleDatabaseStorageVaultDataSource) Arguments() map[string]*pluginsd
 			Required: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 255),
-				validate.ExascaleDatabaseStorageVaultName,
+				validate.ExascaleDatabaseResourceName,
 			),
 		},
 	}
