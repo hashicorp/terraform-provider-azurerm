@@ -28,11 +28,11 @@ func TestProtocolWithPort(t *testing.T) {
 		},
 		{
 			Input:    "any",
-			Expected: true,
+			Expected: false,
 		},
 		{
 			Input:    "application-default",
-			Expected: true,
+			Expected: false,
 		},
 		{
 			Input:    "TCP:1024-1206",
@@ -97,5 +97,46 @@ func TestProtocolWithPort(t *testing.T) {
 		if result != v.Expected {
 			t.Fatalf("Expected the result for %q to be %t but got %t (and %d errors)", v.Input, v.Expected, result, len(errors))
 		}
+	}
+}
+
+func TestProtocol(t *testing.T) {
+	testCases := []struct {
+		Input    string
+		Expected bool
+	}{
+		{Input: "any", Expected: true},
+		{Input: "application-default", Expected: true},
+		{Input: "TCP:80", Expected: true},
+		{Input: "UDP:53", Expected: true},
+		{Input: "TCP:1024-1206", Expected: true},
+		{Input: "UDP:5000-5100", Expected: true},
+		{Input: "TCP:80-80", Expected: true},
+		{Input: "Any", Expected: false},
+		{Input: "Application-Default", Expected: false},
+		{Input: "TCP:0", Expected: false},
+		{Input: "TCP:65536", Expected: false},
+		{Input: "TCP:1206-1024", Expected: false},
+		{Input: "TCP:1024-", Expected: false},
+		{Input: "ICMP:80", Expected: false},
+		{Input: "TCP", Expected: false},
+		{Input: "TCP:80:90", Expected: false},
+		{Input: "", Expected: false},
+	}
+	for _, v := range testCases {
+		_, errors := Protocol(v.Input, "protocol")
+		result := len(errors) == 0
+		if result != v.Expected {
+			t.Fatalf("Expected the result for %q to be %t but got %t (and %d errors)", v.Input, v.Expected, result, len(errors))
+		}
+	}
+}
+
+func TestProtocol_nonString(t *testing.T) {
+	if _, errors := Protocol(80, "protocol"); len(errors) == 0 {
+		t.Fatal("Expected an error for a non-string input to Protocol")
+	}
+	if _, errors := ProtocolWithPort(80, "protocol_ports"); len(errors) == 0 {
+		t.Fatal("Expected an error for a non-string input to ProtocolWithPort")
 	}
 }

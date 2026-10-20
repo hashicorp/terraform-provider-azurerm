@@ -10,10 +10,27 @@ import (
 	"strings"
 )
 
-// protocolWithPortStandaloneValues are values that `ProtocolWithPort` accepts on their
-// own, without a `TCP:`/`UDP:` prefix.
-var protocolWithPortStandaloneValues = []string{"any", "application-default"}
+// protocolStandaloneValues are values that `Protocol` accepts on their own, without a `TCP:`/`UDP:` prefix.
+var protocolStandaloneValues = []string{"any", "application-default"}
 
+// Protocol validates the `protocol` property, which accepts either one of `protocolStandaloneValues`
+// or a `TCP:`/`UDP:` prefixed port or port range (see `ProtocolWithPort`).
+func Protocol(input any, k string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
+		return
+	}
+
+	if slices.Contains(protocolStandaloneValues, v) {
+		return
+	}
+
+	return ProtocolWithPort(input, k)
+}
+
+// ProtocolWithPort validates a `TCP:`/`UDP:` prefixed port (`TCP:80`) or port range (`TCP:1024-1206`).
+// The API does not accept `any` or `application-default` here, see `Protocol` for the `protocol` property.
 func ProtocolWithPort(input any, k string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -21,13 +38,9 @@ func ProtocolWithPort(input any, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if slices.Contains(protocolWithPortStandaloneValues, v) {
-		return
-	}
-
 	parts := strings.SplitN(v, ":", 2)
 	if len(parts) != 2 {
-		errors = append(errors, fmt.Errorf("expected %s to be `any`, `application-default`, or a two part string separated by a `:`, e.g. `TCP:80` or `TCP:1024-1206`, got %q", k, v))
+		errors = append(errors, fmt.Errorf("expected %s to be a two part string separated by a `:`, e.g. `TCP:80` or `TCP:1024-1206`, got %q", k, v))
 		return
 	}
 

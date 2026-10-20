@@ -88,7 +88,7 @@ The following arguments are supported:
 
 ~> **Note:** In 4.0 or later versions, the default of `protocol` will no longer be set by provider, exactly one of `protocol` and `protocol_ports` must be specified. You need to explicitly specify `protocol="application-default"` to keep the the current default of the `protocol`.
 
-* `protocol_ports` - (Optional) Specifies a list of Protocol:Port entries. E.g. `[ "TCP:80", "UDP:5431" ]`. Each entry may also be a port range in the form `[protocol]:[start_port]-[end_port]` e.g. `TCP:1024-1206`, or one of `any` and `application-default`. Conflicts with `protocol`.
+* `protocol_ports` - (Optional) Specifies a list of Protocol:Port entries. E.g. `[ "TCP:80", "UDP:5431" ]`. Each entry may also be a port range in the form `[protocol]:[start_port]-[end_port]` e.g. `TCP:1024-1206`. Conflicts with `protocol`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Local Rulestack Rule.
 
