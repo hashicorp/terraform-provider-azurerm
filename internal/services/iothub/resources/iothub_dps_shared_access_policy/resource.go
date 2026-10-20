@@ -14,13 +14,6 @@ import (
 
 var IothubResourceName = "azurerm_iothub"
 
-type accessRights struct {
-	registryRead   bool
-	registryWrite  bool
-	serviceConnect bool
-	deviceConnect  bool
-}
-
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceIotHubDPSSharedAccessPolicyCreateUpdate,
