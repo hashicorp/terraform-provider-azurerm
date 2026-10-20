@@ -1002,14 +1002,14 @@ func (r HDInsightKafkaClusterResource) virtualNetwork(data acceptance.TestData) 
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[2]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                              = "acctestsubnet%d"
+  name                              = "acctestsubnet%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   virtual_network_name              = azurerm_virtual_network.test.name
   address_prefixes                  = ["10.0.2.0/24"]
@@ -1017,7 +1017,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
+  name                = "acctestpip%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -1026,7 +1026,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_nat_gateway" "test" {
-  name                    = "acctestnat%d"
+  name                    = "acctestnat%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   sku_name                = "Standard"
@@ -1050,7 +1050,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_network_security_group" "test" {
-  name                = "acctestnsg-%d"
+  name                = "acctestnsg-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1081,7 +1081,7 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctesthdi-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
@@ -1131,7 +1131,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r HDInsightKafkaClusterResource) complete(data acceptance.TestData) string {
@@ -1139,14 +1139,14 @@ func (r HDInsightKafkaClusterResource) complete(data acceptance.TestData) string
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[2]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                              = "acctestsubnet%d"
+  name                              = "acctestsubnet%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   virtual_network_name              = azurerm_virtual_network.test.name
   address_prefixes                  = ["10.0.2.0/24"]
@@ -1154,7 +1154,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpip%d"
+  name                = "acctestpip%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -1163,7 +1163,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_nat_gateway" "test" {
-  name                    = "acctestnat%d"
+  name                    = "acctestnat%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   sku_name                = "Standard"
@@ -1187,7 +1187,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_network_security_group" "test" {
-  name                = "acctestnsg-%d"
+  name                = "acctestnsg-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1218,7 +1218,7 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_hdinsight_kafka_cluster" "test" {
-  name                = "acctesthdi-%d"
+  name                = "acctesthdi-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "5.1"
@@ -1277,7 +1277,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     Hello = "World"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (HDInsightKafkaClusterResource) nsgTemplate(data acceptance.TestData) string {
