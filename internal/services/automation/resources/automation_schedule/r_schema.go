@@ -41,6 +41,7 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(schedule.ScheduleFrequencyDay),
 				string(schedule.ScheduleFrequencyHour),
+				string(schedule.ScheduleFrequencyMinute),
 				string(schedule.ScheduleFrequencyMonth),
 				string(schedule.ScheduleFrequencyOneTime),
 				string(schedule.ScheduleFrequencyWeek),

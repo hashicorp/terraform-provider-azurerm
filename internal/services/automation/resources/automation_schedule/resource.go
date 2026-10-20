@@ -50,6 +50,13 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 			}
 
+			if frequency == "minute" && interval.(int) < 15 {
+				intervalVal := diff.GetRawConfig().GetAttr("interval")
+				if intervalVal.IsKnown() {
+					return fmt.Errorf("`interval` must be set to at least `15` when frequency is `Minute`")
+				}
+			}
+
 			_, hasWeekDays := diff.GetOk("week_days")
 			if hasWeekDays && frequency != "week" {
 				return fmt.Errorf("`week_days` can only be set when frequency is `Week`")
