@@ -15,21 +15,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.CertificatePolicy, error) {
+func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.CertificatePolicy, error) {
 	policies := d.Get("certificate_policy").([]any)
 	if len(policies) == 0 || policies[0] == nil {
 		return nil, nil
 	}
 
 	policyRaw := policies[0].(map[string]any)
-	policy := kv.CertificatePolicy{}
+	policy := keyvault.CertificatePolicy{}
 
 	issuers := policyRaw["issuer_parameters"].([]any)
 	issuer := issuers[0].(map[string]any)
-	policy.IssuerParameters = &kv.IssuerParameters{
+	policy.IssuerParameters = &keyvault.IssuerParameters{
 		Name: pointer.To(issuer["name"].(string)),
 	}
 
@@ -40,32 +40,32 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 	keyType := props["key_type"].(string)
 	keySize := props["key_size"].(int)
 
-	if keyType == string(kv.JSONWebKeyTypeEC) || keyType == string(kv.JSONWebKeyTypeECHSM) {
+	if keyType == string(keyvault.JSONWebKeyTypeEC) || keyType == string(keyvault.JSONWebKeyTypeECHSM) {
 		if curve == "" {
 			return nil, fmt.Errorf("`curve` is required when creating an EC key")
 		}
 		// determine key_size if not specified
 		if keySize == 0 {
 			switch curve {
-			case string(kv.JSONWebKeyCurveNameP256), string(kv.JSONWebKeyCurveNameP256K):
+			case string(keyvault.JSONWebKeyCurveNameP256), string(keyvault.JSONWebKeyCurveNameP256K):
 				keySize = 256
-			case string(kv.JSONWebKeyCurveNameP384):
+			case string(keyvault.JSONWebKeyCurveNameP384):
 				keySize = 384
-			case string(kv.JSONWebKeyCurveNameP521):
+			case string(keyvault.JSONWebKeyCurveNameP521):
 				keySize = 521
 			}
 		}
-	} else if keyType == string(kv.JSONWebKeyTypeRSA) || keyType == string(kv.JSONWebKeyTypeRSAHSM) {
+	} else if keyType == string(keyvault.JSONWebKeyTypeRSA) || keyType == string(keyvault.JSONWebKeyTypeRSAHSM) {
 		if keySize == 0 {
 			return nil, fmt.Errorf("`key_size` is required when creating an RSA key")
 		}
 	}
 
-	policy.KeyProperties = &kv.KeyProperties{
-		Curve:      kv.JSONWebKeyCurveName(curve),
+	policy.KeyProperties = &keyvault.KeyProperties{
+		Curve:      keyvault.JSONWebKeyCurveName(curve),
 		Exportable: pointer.To(props["exportable"].(bool)),
 		KeySize:    pointer.To(int32(keySize)),
-		KeyType:    kv.JSONWebKeyType(keyType),
+		KeyType:    keyvault.JSONWebKeyType(keyType),
 		ReuseKey:   pointer.To(props["reuse_key"].(bool)),
 	}
 
@@ -73,7 +73,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 
 	secrets := policyRaw["secret_properties"].([]any)
 	secret := secrets[0].(map[string]any)
-	policy.SecretProperties = &kv.SecretProperties{
+	policy.SecretProperties = &keyvault.SecretProperties{
 		ContentType: pointer.To(secret["content_type"].(string)),
 	}
 
@@ -84,13 +84,13 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 		ekus := cert["extended_key_usage"].([]any)
 		extendedKeyUsage := pluginsdk.ExpandStringSlice(ekus)
 
-		keyUsage := make([]kv.KeyUsageType, 0)
+		keyUsage := make([]keyvault.KeyUsageType, 0)
 		keys := cert["key_usage"].(*pluginsdk.Set).List()
 		for _, key := range keys {
-			keyUsage = append(keyUsage, kv.KeyUsageType(key.(string)))
+			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}
 
-		subjectAlternativeNames := &kv.SubjectAlternativeNames{}
+		subjectAlternativeNames := &keyvault.SubjectAlternativeNames{}
 		if v, ok := cert["subject_alternative_names"]; ok {
 			if sans := v.([]any); len(sans) > 0 {
 				if sans[0] != nil {
@@ -114,7 +114,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 			}
 		}
 
-		policy.X509CertificateProperties = &kv.X509CertificateProperties{
+		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
 			ValidityInMonths:        pointer.To(int32(cert["validity_in_months"].(int))),
 			Subject:                 pointer.To(cert["subject"].(string)),
 			KeyUsage:                &keyUsage,
@@ -126,21 +126,21 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*kv.Certificate
 	return &policy, nil
 }
 
-func expandKeyVaultCertificatePolicyLifetimeAction(actions any) *[]kv.LifetimeAction {
-	lifetimeActions := make([]kv.LifetimeAction, 0)
+func expandKeyVaultCertificatePolicyLifetimeAction(actions any) *[]keyvault.LifetimeAction {
+	lifetimeActions := make([]keyvault.LifetimeAction, 0)
 	if actions == nil {
 		return &lifetimeActions
 	}
 
 	for _, v := range actions.([]any) {
 		action := v.(map[string]any)
-		lifetimeAction := kv.LifetimeAction{}
+		lifetimeAction := keyvault.LifetimeAction{}
 
 		if v, ok := action["action"]; ok {
 			as := v.([]any)
 			a := as[0].(map[string]any)
-			lifetimeAction.Action = &kv.Action{
-				ActionType: kv.CertificatePolicyAction(a["action_type"].(string)),
+			lifetimeAction.Action = &keyvault.Action{
+				ActionType: keyvault.CertificatePolicyAction(a["action_type"].(string)),
 			}
 		}
 
@@ -148,7 +148,7 @@ func expandKeyVaultCertificatePolicyLifetimeAction(actions any) *[]kv.LifetimeAc
 			triggers := v.([]any)
 			if triggers[0] != nil {
 				trigger := triggers[0].(map[string]any)
-				lifetimeAction.Trigger = &kv.Trigger{}
+				lifetimeAction.Trigger = &keyvault.Trigger{}
 
 				d := trigger["days_before_expiry"].(int)
 				if d > 0 {
@@ -177,7 +177,7 @@ func expandKeyVaultCertificate(v any) KeyVaultCertificateImportParameters {
 	}
 }
 
-func createCertificate(d *pluginsdk.ResourceData, meta any) (kv.CertificateBundle, error) {
+func createCertificate(d *pluginsdk.ResourceData, meta any) (keyvault.CertificateBundle, error) {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -186,29 +186,29 @@ func createCertificate(d *pluginsdk.ResourceData, meta any) (kv.CertificateBundl
 	name := d.Get("name").(string)
 	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 	if err != nil {
-		return kv.CertificateBundle{}, err
+		return keyvault.CertificateBundle{}, err
 	}
 
 	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
 	if err != nil {
-		return kv.CertificateBundle{}, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
+		return keyvault.CertificateBundle{}, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
 	}
 
 	t := d.Get("tags").(map[string]any)
 
 	policy, err := expandKeyVaultCertificatePolicy(d)
 	if err != nil {
-		return kv.CertificateBundle{}, fmt.Errorf("expanding certificate policy: %s", err)
+		return keyvault.CertificateBundle{}, fmt.Errorf("expanding certificate policy: %s", err)
 	}
 
-	parameters := kv.CertificateCreateParameters{
+	parameters := keyvault.CertificateCreateParameters{
 		CertificatePolicy: policy,
 		Tags:              tags.Expand(t),
 	}
 
 	result, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters)
 	if err != nil {
-		return kv.CertificateBundle{
+		return keyvault.CertificateBundle{
 			Response: result.Response,
 		}, err
 	}
@@ -230,7 +230,7 @@ func createCertificate(d *pluginsdk.ResourceData, meta any) (kv.CertificateBundl
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return kv.CertificateBundle{}, fmt.Errorf("waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
+		return keyvault.CertificateBundle{}, fmt.Errorf("waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
 	}
 	return client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
 }
