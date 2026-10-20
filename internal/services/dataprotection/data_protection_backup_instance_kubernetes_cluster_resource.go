@@ -6,6 +6,7 @@ package dataprotection
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_kubernetes_cluster -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
@@ -30,6 +32,7 @@ type BackupInstanceKubernatesClusterModel struct {
 	VaultId                    string                       `tfschema:"vault_id"`
 	BackupPolicyId             string                       `tfschema:"backup_policy_id"`
 	KubernetesClusterId        string                       `tfschema:"kubernetes_cluster_id"`
+	SnapshotSubscriptionId     string                       `tfschema:"snapshot_subscription_id"`
 	SnapshotResourceGroupName  string                       `tfschema:"snapshot_resource_group_name"`
 	BackupDatasourceParameters []BackupDatasourceParameters `tfschema:"backup_datasource_parameters"`
 	ProtectionState            string                       `tfschema:"protection_state"`
@@ -99,12 +102,37 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 			ValidateFunc: commonids.ValidateKubernetesClusterID,
 		},
 
+		"snapshot_subscription_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
+				// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
+				planVaultId := d.Get("vault_id")
+				vaultId, err := backupvaultresources.ParseBackupVaultID(planVaultId.(string))
+				if err != nil {
+					return false
+				}
+
+				// oldValue represents the value in the state.
+				// newValue represents the value in the config, in case it is "", it means the user doesn't specify it in the config.
+				if strings.EqualFold(oldValue, vaultId.SubscriptionId) && newValue == "" {
+					return true
+				}
+
+				return false
+			},
+		},
+
 		"snapshot_resource_group_name": commonschema.ResourceGroupName(),
 
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
+			MinItems: 1,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -216,7 +244,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 				return err
 			}
 
-			snapshotResourceGroupId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
+			snapshotSubscriptionId := vaultId.SubscriptionId
+			if model.SnapshotSubscriptionId != "" {
+				snapshotSubscriptionId = model.SnapshotSubscriptionId
+			}
+			snapshotResourceGroupId := commonids.NewResourceGroupID(snapshotSubscriptionId, model.SnapshotResourceGroupName)
+
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
 					DataSourceInfo: backupinstanceresources.Datasource{
@@ -309,6 +342,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 									if err != nil {
 										return err
 									}
+									state.SnapshotSubscriptionId = resourceGroupId.SubscriptionId
 									state.SnapshotResourceGroupName = resourceGroupId.ResourceGroupName
 								}
 							}
