@@ -158,10 +158,17 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
 
   weekly_retention_rule {
     name = "First successful full backup taken every week"
+	duration = "P1W"
   }
 
   monthly_retention_rule {
-	name = "First successful full backup taken every month"
+    name = "First successful full backup taken every month"
+    duration = "P1M"
+  }
+
+  yearly_retention_rule {
+    name = "First successful full backup taken every month"
+    duration = "P1Y"
   }
 }
 `, r.template(data), data.RandomInteger)
