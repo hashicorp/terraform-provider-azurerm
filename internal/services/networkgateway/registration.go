@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/resources/local_network_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/resources/virtual_network_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/resources/virtual_network_gateway_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/resources/virtual_network_gateway_nat_rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -45,19 +49,19 @@ func (r Registration) Resources() []sdk.Resource {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_local_network_gateway":              dataSourceLocalNetworkGateway(),
-		"azurerm_virtual_network_gateway":            dataSourceVirtualNetworkGateway(),
-		"azurerm_virtual_network_gateway_connection": dataSourceVirtualNetworkGatewayConnection(),
+		"azurerm_local_network_gateway":              local_network_gateway.RegisterDataSource(),
+		"azurerm_virtual_network_gateway":            virtual_network_gateway.RegisterDataSource(),
+		"azurerm_virtual_network_gateway_connection": virtual_network_gateway_connection.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_local_network_gateway":              resourceLocalNetworkGateway(),
-		"azurerm_virtual_network_gateway":            resourceVirtualNetworkGateway(),
-		"azurerm_virtual_network_gateway_connection": resourceVirtualNetworkGatewayConnection(),
-		"azurerm_virtual_network_gateway_nat_rule":   resourceVirtualNetworkGatewayNatRule(),
+		"azurerm_local_network_gateway":              local_network_gateway.RegisterResource(),
+		"azurerm_virtual_network_gateway":            virtual_network_gateway.RegisterResource(),
+		"azurerm_virtual_network_gateway_connection": virtual_network_gateway_connection.RegisterResource(),
+		"azurerm_virtual_network_gateway_nat_rule":   virtual_network_gateway_nat_rule.RegisterResource(),
 	}
 }
 
