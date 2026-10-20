@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+    Tags: tags.Expand(d.Get("tags").(map[string]any)),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -46,7 +46,7 @@ if existing.Model == nil {
 }
 
 if d.HasChanges("tags") {
-  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+  existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 }
 
 if err := client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
@@ -70,7 +70,7 @@ A PATCH-based Update would look similar to below:
 payload := resources.GroupUpdate{}
 if d.HasChanges("tags") {
   // all fields in a PATCH model are pointers so only the fields that are set are sent
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -95,7 +95,7 @@ Data Sources and Resources built using the Typed SDK have a number of benefits o
     2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus not able to be referenced in user configs.
 * Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
 * Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
-  
+
 To facilitate the migration across to Typed Resources, we ask that any new Data Source or Resource which is added to the Provider is added as a Typed Data Source/Resource. Enhancements to existing Data Sources/Resources which are Untyped Resources can remain as Untyped Resources, however these will need to be migrated across in the future.
 
 Here is an example of an Untyped Resource:
@@ -130,19 +130,19 @@ func someResource() *pluginsdk.Resource {
 	}
 }
 
-func someResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	// create logic is defined here
 }
 
-func someResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// update logic is defined here
 }
 
-func someResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	// read logic is defined here
 }
 
-func someResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func someResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	// delete logic is defined here
 }
 
@@ -171,7 +171,7 @@ func (r SomeResource) ResourceType() string {
 	return "azurerm_some_resource"
 }
 
-func (r SomeResource) ModelObject() interface{} {
+func (r SomeResource) ModelObject() any {
 	return &SomeResourceModel{}
 }
 
@@ -195,7 +195,7 @@ func (r SomeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func:    func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// create logic is defined here 
+			// create logic is defined here
 		},
 	}
 }
@@ -246,9 +246,18 @@ Whilst this works, there are some side effects, for example:
 Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
 
 1. Specifying a `Default` if Azure consistently sets the same value
-2. Setting the property `Required` and force user to specify a value at creation
+2. Setting the property to `Required` and requiring the user to specify a value at creation time
+3. Having the user explicitly opt out from managing the property by using `ignore_changes`
 
-However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
+Examples of invalid uses of O+C:
+
+1. Preventing users from seeing a plan diff when upgrading to an AzureRM version that adds support for a new property in a low impact / less-frequently-used resource. In this situation, users are expected to either adjust their HCL configuration to match Azure or explicitly opt out from managing the property using `ignore_changes`.
+
+Examples of valid uses of O+C:
+
+1. (Hypothetical) Temporarily adding an O+C property with `ForceNew: true` to `azurerm_public_ip` (a high-impact or foundational resource) where Azure sets a non-static default value. There have been cases where CD pipelines were not appropriately set up to check plan diffs, resulting in accidental, catastrophic resource replacements. Using O+C means the default behaviour is to opt-out from tracking the property and prevent such replacements. This O+C should be replaced by a `Required` in the next major version. Follow the behaviour switching pattern described in [the breaking changes guide](./guide-breaking-changes.md).
+2. Allowing Azure to set a location-specific default value that is preferable to a hardcoded default. For example, `PremiumSSDv2` for `mongo_cluster.storage_type` is [preferred for its performance and cost benefits](https://github.com/hashicorp/terraform-provider-azurerm/pull/33361#discussion_r4167778143), but is not yet available in all locations.
+3. Renaming properties according to the [breaking change guide](./guide-breaking-changes.md).
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
 
@@ -294,7 +303,7 @@ The following CustomizeDiff validation that asserts `customize_managed_key_ident
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff == nil {
 				return nil
@@ -323,7 +332,7 @@ Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig(
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if metadata.ResourceDiff == nil {
 				return nil
@@ -361,15 +370,11 @@ Every source file (Go, Terraform, shell, YAML, etc.) starts with the licensing h
 
 - `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
 
-:white_check_mark: **DO**
-
 ```go
 output.Name = pointer.From(input.Name)
 ```
 
 - Use `pointer.To` to take the address of a value without declaring temporary variables.
-
-:white_check_mark: **DO**
 
 ```go
 if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
@@ -378,8 +383,6 @@ if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch
 ```
 
 - Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
-
-:white_check_mark: **DO**
 
 ```go
 return &managedclusters.ManagedClusterBootstrapProfile{
