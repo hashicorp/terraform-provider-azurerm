@@ -10,7 +10,7 @@ description: |-
 
 Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.
 
-~> **Note:** All arguments including the connection_string will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the `connection_string` will be stored in the raw state as plain-text. Use `key_vault_connection_string` to avoid storing credentials in state. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
 
@@ -41,7 +41,9 @@ The following arguments are supported:
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `connection_string` - (Required) The connection string in which to authenticate with PostgreSQL.
+* `connection_string` - (Optional) The connection string in which to authenticate with PostgreSQL. Exactly one of either `connection_string` or `key_vault_connection_string` is required.
+
+* `key_vault_connection_string` - (Optional) A `key_vault_connection_string` block as defined below. Exactly one of either `connection_string` or `key_vault_connection_string` is required.
 
 * `description` - (Optional) The description for the Data Factory Linked Service PostgreSQL.
 

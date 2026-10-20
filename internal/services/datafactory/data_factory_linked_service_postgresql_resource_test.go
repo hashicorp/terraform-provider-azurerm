@@ -62,6 +62,23 @@ func TestAccDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServicePostgreSQL_ConnectionStringKeyVaultReference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
+	r := LinkedServicePostgreSQLResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.connection_string_key_vault_reference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_connection_string.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("key_vault_connection_string.0.secret_name").HasValue("connection_string"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t LinkedServicePostgreSQLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
@@ -136,6 +153,52 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServicePostgreSQLResource) connection_string_key_vault_reference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
+  name            = "linkpostgresql"
+  data_factory_id = azurerm_data_factory.test.id
+
+  key_vault_connection_string {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "connection_string"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func (LinkedServicePostgreSQLResource) update2(data acceptance.TestData) string {
