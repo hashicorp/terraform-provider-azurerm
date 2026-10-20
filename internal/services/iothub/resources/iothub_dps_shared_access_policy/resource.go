@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// TODO: outside of this pr make this private
-
 var IothubResourceName = "azurerm_iothub"
 
 func RegisterResource() *pluginsdk.Resource {
