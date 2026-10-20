@@ -74,10 +74,38 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestSubnet-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.10.1.0/24"]
+  name                              = "acctestSubnet-%[1]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  address_prefixes                  = ["10.10.1.0/24"]
+  private_endpoint_network_policies = "NetworkSecurityGroupEnabled"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestPIP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctestNAT-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -130,6 +158,18 @@ resource "azurerm_network_security_group" "test" {
     source_port_range          = "*"
     destination_port_range     = "636"
     source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowHDISvc"
+    priority                   = 501
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "HDInsight"
     destination_address_prefix = "*"
   }
 }

@@ -747,10 +747,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.16.11.0/26"]
+  name                              = "acctestsubnet%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  address_prefixes                  = ["172.16.11.0/26"]
+  private_endpoint_network_policies = "NetworkSecurityGroupEnabled"
 }
 
 resource "azurerm_public_ip" "test" {
@@ -791,26 +792,42 @@ resource "azurerm_network_security_group" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  security_rule = [
-    {
-      access                                     = "Allow"
-      description                                = "Rule can be deleted but do not change source ips."
-      destination_address_prefix                 = "*"
-      destination_address_prefixes               = []
-      destination_application_security_group_ids = []
-      destination_port_range                     = "443"
-      destination_port_ranges                    = []
-      direction                                  = "Inbound"
-      name                                       = "Rule-101"
-      priority                                   = 101
-      protocol                                   = "Tcp"
-      source_address_prefix                      = "*"
-      source_address_prefixes                    = []
-      source_application_security_group_ids      = []
-      source_port_range                          = "*"
-      source_port_ranges                         = []
-    }
-  ]
+  security_rule {
+    access                                     = "Allow"
+    description                                = "Rule can be deleted but do not change source ips."
+    destination_address_prefix                 = "*"
+    destination_address_prefixes               = []
+    destination_application_security_group_ids = []
+    destination_port_range                     = "443"
+    destination_port_ranges                    = []
+    direction                                  = "Inbound"
+    name                                       = "Rule-101"
+    priority                                   = 101
+    protocol                                   = "Tcp"
+    source_address_prefix                      = "*"
+    source_address_prefixes                    = []
+    source_application_security_group_ids      = []
+    source_port_range                          = "*"
+    source_port_ranges                         = []
+  }
+  security_rule {
+    access                                     = "Allow"
+    description                                = "Global HDInsight Azure services."
+    destination_address_prefix                 = "*"
+    destination_address_prefixes               = []
+    destination_application_security_group_ids = []
+    destination_port_range                     = "*"
+    destination_port_ranges                    = []
+    direction                                  = "Inbound"
+    name                                       = "Rule-HDI-In"
+    priority                                   = 201
+    protocol                                   = "*"
+    source_address_prefix                      = "HDInsight"
+    source_address_prefixes                    = []
+    source_application_security_group_ids      = []
+    source_port_range                          = "*"
+    source_port_ranges                         = []
+  }
 }
 
 resource "azurerm_hdinsight_spark_cluster" "test" {
@@ -1016,11 +1033,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["172.16.11.0/26"]
-
+  name                                          = "acctestsubnet%d"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["172.16.11.0/26"]
+  private_endpoint_network_policies             = "NetworkSecurityGroupEnabled"
   private_link_service_network_policies_enabled = false
 }
 
@@ -1324,10 +1341,75 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                              = "acctestsubnet%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  address_prefixes                  = ["10.0.2.0/24"]
+  private_endpoint_network_policies = "NetworkSecurityGroupEnabled"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                    = "acctestnat%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
+  zones                   = ["1"]
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    access                     = "Allow"
+    description                = "Rule can be deleted but do not change source ips."
+    destination_address_prefix = "*"
+    destination_port_range     = "443"
+    direction                  = "Inbound"
+    name                       = "Rule-101"
+    priority                   = 101
+    protocol                   = "Tcp"
+    source_address_prefix      = "*"
+    source_port_range          = "*"
+  }
+  security_rule {
+    access                     = "Allow"
+    description                = "Global HDInsight Azure services."
+    destination_address_prefix = "*"
+    destination_port_range     = "*"
+    direction                  = "Inbound"
+    name                       = "Rule-HDI-In"
+    priority                   = 201
+    protocol                   = "*"
+    source_address_prefix      = "HDInsight"
+    source_port_range          = "*"
+  }
 }
 
 resource "azurerm_hdinsight_spark_cluster" "test" {
@@ -1514,6 +1596,24 @@ resource "azurerm_network_security_group" "test" {
       priority                                   = 104
       protocol                                   = "*"
       source_address_prefix                      = "CorpNetSaw"
+      source_address_prefixes                    = []
+      source_application_security_group_ids      = []
+      source_port_range                          = "*"
+      source_port_ranges                         = []
+    },
+    {
+      access                                     = "Allow"
+      description                                = "Allow internal HDI services."
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = "*"
+      destination_port_ranges                    = []
+      direction                                  = "Inbound"
+      name                                       = "Rule-105"
+      priority                                   = 105
+      protocol                                   = "*"
+      source_address_prefix                      = "HDInsight"
       source_address_prefixes                    = []
       source_application_security_group_ids      = []
       source_port_range                          = "*"
