@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -52,7 +51,7 @@ func resourceDataFactoryDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta any
 			Transformations: helpers.ExpandDataFactoryDataFlowTransformation(d.Get("transformation").([]any)),
 		},
 		Description: pointer.To(d.Get("description").(string)),
-		Type:        helper.DataFlowTypeMappingDataFlow,
+		Type:        helpers.DataFlowTypeMappingDataFlow,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {

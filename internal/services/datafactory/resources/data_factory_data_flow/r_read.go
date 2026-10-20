@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,7 +39,7 @@ func resourceDataFactoryDataFlowRead(d *pluginsdk.ResourceData, meta any) error 
 	if model := resp.Model; model != nil {
 		mappingDataFlow, ok := model.Properties.(dataflows.MappingDataFlow)
 		if !ok {
-			return fmt.Errorf("classifying type of %s: Expected: %q", id, helper.DataFlowTypeMappingDataFlow)
+			return fmt.Errorf("classifying type of %s: Expected: %q", id, helpers.DataFlowTypeMappingDataFlow)
 		}
 
 		d.Set("name", id.DataflowName)

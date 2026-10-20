@@ -6,7 +6,7 @@ package data_factory_integration_runtime_azure_ssis
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -109,7 +109,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(input []any) *integ
 	if adminPassword := v["administrator_password"].(string); adminPassword != "" {
 		result.CatalogAdminPassword = &integrationruntimes.SecureString{
 			Value: adminPassword,
-			Type:  string(helper.SecretTypeSecureString),
+			Type:  string(helpers.SecretTypeSecureString),
 		}
 	}
 
@@ -130,7 +130,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(input []any) 
 		BlobContainerUri: pointer.To(v["blob_container_uri"].(string)),
 		SasToken: &integrationruntimes.SecureString{
 			Value: v["sas_token"].(string),
-			Type:  string(helper.SecretTypeSecureString),
+			Type:  string(helpers.SecretTypeSecureString),
 		},
 	}
 }
@@ -167,7 +167,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any)
 	if env := raw["environment"].(map[string]any); len(env) > 0 {
 		for k, v := range env {
 			result = append(result, &integrationruntimes.EnvironmentVariableSetup{
-				Type: string(helper.CustomSetupTypeEnvironmentVariableSetup),
+				Type: string(helpers.CustomSetupTypeEnvironmentVariableSetup),
 				TypeProperties: integrationruntimes.EnvironmentVariableSetupTypeProperties{
 					VariableName:  k,
 					VariableValue: v.(string),
@@ -178,7 +178,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any)
 
 	if powershellVersion := raw["powershell_version"].(string); powershellVersion != "" {
 		result = append(result, &integrationruntimes.AzPowerShellSetup{
-			Type: string(helper.CustomSetupTypeAzPowerShellSetup),
+			Type: string(helpers.CustomSetupTypeAzPowerShellSetup),
 			TypeProperties: integrationruntimes.AzPowerShellSetupTypeProperties{
 				Version: powershellVersion,
 			},
@@ -192,7 +192,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any)
 			var license integrationruntimes.SecretBase
 			if v := raw["license"].(string); v != "" {
 				license = &integrationruntimes.SecureString{
-					Type:  string(helper.SecretTypeSecureString),
+					Type:  string(helpers.SecretTypeSecureString),
 					Value: v,
 				}
 			} else {
@@ -200,7 +200,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any)
 			}
 
 			result = append(result, &integrationruntimes.ComponentSetup{
-				Type: string(helper.CustomSetupTypeComponentSetup),
+				Type: string(helpers.CustomSetupTypeComponentSetup),
 				TypeProperties: integrationruntimes.LicensedComponentSetupTypeProperties{
 					ComponentName: raw["name"].(string),
 					LicenseKey:    license,
@@ -215,7 +215,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any)
 			var password integrationruntimes.SecretBase
 			if v := raw["password"].(string); v != "" {
 				password = &integrationruntimes.SecureString{
-					Type:  string(helper.SecretTypeSecureString),
+					Type:  string(helpers.SecretTypeSecureString),
 					Value: v,
 				}
 			} else {
@@ -223,7 +223,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(input []any)
 			}
 
 			result = append(result, &integrationruntimes.CmdkeySetup{
-				Type: string(helper.CustomSetupTypeCmdkeySetup),
+				Type: string(helpers.CustomSetupTypeCmdkeySetup),
 				TypeProperties: integrationruntimes.CmdkeySetupTypeProperties{
 					TargetName: pointer.To(raw["target_name"].(string)),
 					UserName:   pointer.To(raw["user_name"].(string)),
@@ -267,7 +267,7 @@ func expandDataFactoryIntegrationRuntimeAzureSsisKeyVaultSecretReference(input [
 			Type:          integrationruntimes.TypeLinkedServiceReference,
 			ReferenceName: raw["linked_service_name"].(string),
 		},
-		Type: string(helper.SecretTypeAzureKeyVaultSecret),
+		Type: string(helpers.SecretTypeAzureKeyVaultSecret),
 	}
 	if v := raw["secret_version"].(string); v != "" {
 		reference.SecretVersion = pointer.To(raw["secret_version"])

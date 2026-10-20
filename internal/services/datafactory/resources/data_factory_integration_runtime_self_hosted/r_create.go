@@ -5,7 +5,7 @@ package data_factory_integration_runtime_self_hosted
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 )
 
 func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInfo(input []any) *integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization {
@@ -17,6 +17,6 @@ func expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypePropertiesLinkedInf
 	rbac := rbacConfig["resource_id"].(string)
 	return &integrationruntimes.LinkedIntegrationRuntimeRbacAuthorization{
 		ResourceId:        rbac,
-		AuthorizationType: string(helper.AuthorizationTypeRBAC),
+		AuthorizationType: string(helpers.AuthorizationTypeRBAC),
 	}
 }
