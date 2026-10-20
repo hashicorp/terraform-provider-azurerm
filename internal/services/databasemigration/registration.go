@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/resources/database_migration_project"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/resources/database_migration_service"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,16 +38,16 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_database_migration_project": dataSourceDatabaseMigrationProject(),
-		"azurerm_database_migration_service": dataSourceDatabaseMigrationService(),
+		"azurerm_database_migration_project": database_migration_project.RegisterDataSource(),
+		"azurerm_database_migration_service": database_migration_service.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_database_migration_project": resourceDatabaseMigrationProject(),
-		"azurerm_database_migration_service": resourceDatabaseMigrationService(),
+		"azurerm_database_migration_project": database_migration_project.RegisterResource(),
+		"azurerm_database_migration_service": database_migration_service.RegisterResource(),
 	}
 }
 
