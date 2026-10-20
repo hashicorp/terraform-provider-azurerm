@@ -19,6 +19,17 @@ import (
 
 type DataShareResource struct{}
 
+func TestAccDataShare_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
+	r := DataShareResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 	r := DataShareResource{}

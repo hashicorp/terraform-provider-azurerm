@@ -18,6 +18,17 @@ import (
 
 type DataProtectionResourceGuardResource struct{}
 
+func TestAccDataProtectionResourceGuard_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_resource_guard", "test")
+	r := DataProtectionResourceGuardResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionResourceGuard_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_resource_guard", "test")
 	r := DataProtectionResourceGuardResource{}

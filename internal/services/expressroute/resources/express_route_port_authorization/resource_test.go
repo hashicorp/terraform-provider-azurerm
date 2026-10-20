@@ -18,6 +18,17 @@ import (
 
 type ExpressRoutePortAuthorizationResource struct{}
 
+func TestAccExpressRoutePortAuthorization_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_port_authorization", "test")
+	r := ExpressRoutePortAuthorizationResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccExpressRoutePortAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port_authorization", "test")
 	r := ExpressRoutePortAuthorizationResource{}

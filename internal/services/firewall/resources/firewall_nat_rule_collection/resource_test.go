@@ -21,6 +21,17 @@ import (
 
 type FirewallNatRuleCollectionResource struct{}
 
+func TestAccFirewallNatRuleCollection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccFirewallNatRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
 	r := FirewallNatRuleCollectionResource{}

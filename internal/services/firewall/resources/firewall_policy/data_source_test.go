@@ -15,6 +15,17 @@ import (
 
 type FirewallPolicyDataSource struct{}
 
+func TestAccFirewallPolicyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")
+	r := FirewallPolicyDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")
 	r := FirewallPolicyDataSource{}

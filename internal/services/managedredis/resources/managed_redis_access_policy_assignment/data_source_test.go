@@ -13,6 +13,17 @@ import (
 
 type ManagedRedisAccessPolicyAssignmentDataSource struct{}
 
+func TestAccManagedRedisAccessPolicyAssignmentDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis_access_policy_assignment", "test")
+	r := ManagedRedisAccessPolicyAssignmentDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccManagedRedisAccessPolicyAssignmentDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis_access_policy_assignment", "test")
 	r := ManagedRedisAccessPolicyAssignmentDataSource{}

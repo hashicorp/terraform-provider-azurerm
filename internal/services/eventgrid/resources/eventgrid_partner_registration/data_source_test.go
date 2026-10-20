@@ -13,6 +13,17 @@ import (
 
 type EventGridPartnerRegistrationDataSource struct{}
 
+func TestAccDataSourceEventGridPartnerRegistration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_partner_registration", "test")
+	r := EventGridPartnerRegistrationDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceEventGridPartnerRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_partner_registration", "test")
 	r := EventGridPartnerRegistrationDataSource{}

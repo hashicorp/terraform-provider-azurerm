@@ -13,6 +13,17 @@ import (
 
 type ElasticsearchDataSource struct{}
 
+func TestAccElasticsearchDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
+	r := ElasticsearchDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccElasticsearchDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
 	r := ElasticsearchDataSource{}

@@ -13,6 +13,17 @@ import (
 
 type EventGridPartnerNamespaceDataSource struct{}
 
+func TestAccEventGridPartnerNamespaceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_partner_namespace", "test")
+	r := EventGridPartnerNamespaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridPartnerNamespaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_partner_namespace", "test")
 	r := EventGridPartnerNamespaceDataSource{}

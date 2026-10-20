@@ -18,6 +18,17 @@ import (
 
 type EventHubNamespaceDisasterRecoveryConfigResource struct{}
 
+func TestAccEventHubNamespaceDisasterRecoveryConfig_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
+	r := EventHubNamespaceDisasterRecoveryConfigResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
 	r := EventHubNamespaceDisasterRecoveryConfigResource{}

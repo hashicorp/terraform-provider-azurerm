@@ -177,6 +177,17 @@ func TestEventHub_archiveNameFormatValidation(t *testing.T) {
 	}
 }
 
+func TestAccEventHub_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventhubResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, 2),
+		},
+	}, "")
+}
+
 func TestAccEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventhubResource{}

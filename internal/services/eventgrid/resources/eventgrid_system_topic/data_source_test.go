@@ -13,6 +13,17 @@ import (
 
 type EventGridSystemTopicDataSource struct{}
 
+func TestAccEventGridSystemTopicDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_system_topic", "test")
+	r := EventGridSystemTopicDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridSystemTopicDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_system_topic", "test")
 	r := EventGridSystemTopicDataSource{}

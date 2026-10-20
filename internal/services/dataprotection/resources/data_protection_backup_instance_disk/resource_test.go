@@ -20,6 +20,16 @@ import (
 
 type DataProtectionBackupInstanceDiskResource struct{}
 
+func TestAccDataProtectionBackupInstanceDisk_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")
+	r := DataProtectionBackupInstanceDiskResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupInstanceDisk_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")
 	r := DataProtectionBackupInstanceDiskResource{}

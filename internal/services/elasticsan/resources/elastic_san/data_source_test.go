@@ -13,6 +13,17 @@ import (
 
 type ElasticSANDataSource struct{}
 
+func TestAccElasticSANDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_elastic_san", "test")
+	d := ElasticSANDataSource{}
+
+	data.DataSourceSequentialRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data),
+		},
+	}, "")
+}
+
 func TestAccElasticSANDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_elastic_san", "test")
 	d := ElasticSANDataSource{}

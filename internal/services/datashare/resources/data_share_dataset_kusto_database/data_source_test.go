@@ -13,6 +13,17 @@ import (
 
 type DataShareDatasetKustoDatabaseDataSource struct{}
 
+func TestAccDataShareDatasetKustoDatabaseDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_kusto_database", "test")
+	r := DataShareDatasetKustoDatabaseDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataShareDatasetKustoDatabaseDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_kusto_database", "test")
 	r := DataShareDatasetKustoDatabaseDataSource{}

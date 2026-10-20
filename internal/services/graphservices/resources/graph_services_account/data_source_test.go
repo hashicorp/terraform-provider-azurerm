@@ -13,6 +13,17 @@ import (
 
 type AccountDataSourceTestResource struct{}
 
+func TestAccGraphServicesAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_graph_services_account", "test")
+	r := AccountDataSourceTestResource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccGraphServicesAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_graph_services_account", "test")
 	r := AccountDataSourceTestResource{}

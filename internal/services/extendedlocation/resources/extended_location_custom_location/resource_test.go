@@ -41,6 +41,18 @@ func (r ExtendedLocationCustomLocationResource) Exists(ctx context.Context, clie
 	return pointer.To(true), nil
 }
 
+func TestAccExtendedLocationCustomLocation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
+	r := ExtendedLocationCustomLocationResource{}
+	credential, privateKey, publicKey := r.getCredentials(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, credential, privateKey, publicKey),
+		},
+	}, "")
+}
+
 func TestAccExtendedLocationCustomLocation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := ExtendedLocationCustomLocationResource{}

@@ -18,6 +18,17 @@ import (
 
 type EventGridPartnerRegistrationTestResource struct{}
 
+func TestAccEventGridPartnerRegistration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_registration", "test")
+	r := EventGridPartnerRegistrationTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridPartnerRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_registration", "test")
 	r := EventGridPartnerRegistrationTestResource{}

@@ -18,6 +18,17 @@ import (
 
 type EventGridDomainTopicResource struct{}
 
+func TestAccEventGridDomainTopic_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
+	r := EventGridDomainTopicResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridDomainTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
 	r := EventGridDomainTopicResource{}

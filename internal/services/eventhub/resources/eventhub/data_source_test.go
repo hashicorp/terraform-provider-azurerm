@@ -13,6 +13,17 @@ import (
 
 type EventHubDataSource struct{}
 
+func TestAccEventHubDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub", "test")
+	r := EventHubDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub", "test")
 	r := EventHubDataSource{}

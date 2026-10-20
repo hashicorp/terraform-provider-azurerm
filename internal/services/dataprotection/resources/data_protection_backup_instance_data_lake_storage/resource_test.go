@@ -18,6 +18,17 @@ import (
 
 type DataProtectionBackupInstanceDataLakeStorageResource struct{}
 
+func TestAccDataProtectionBackupInstanceDataLakeStorage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_data_lake_storage", "test")
+	r := DataProtectionBackupInstanceDataLakeStorageResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupInstanceDataLakeStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_data_lake_storage", "test")
 	r := DataProtectionBackupInstanceDataLakeStorageResource{}

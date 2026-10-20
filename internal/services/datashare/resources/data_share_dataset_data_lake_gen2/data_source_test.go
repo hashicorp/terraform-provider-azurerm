@@ -13,6 +13,17 @@ import (
 
 type DataShareDatasetDataLakeGen2DataSource struct{}
 
+func TestAccDataShareDatasetDataLakeGen2DataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen2", "test")
+	r := DataShareDatasetDataLakeGen2DataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataShareDatasetDataLakeGen2DataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen2", "test")
 	r := DataShareDatasetDataLakeGen2DataSource{}

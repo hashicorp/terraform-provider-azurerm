@@ -18,6 +18,17 @@ import (
 
 type EventHubClusterResource struct{}
 
+func TestAccEventHubCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
+	r := EventHubClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 	r := EventHubClusterResource{}

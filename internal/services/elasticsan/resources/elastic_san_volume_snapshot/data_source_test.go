@@ -19,6 +19,17 @@ import (
 
 type ElasticSANVolumeSnapshotDataSource struct{}
 
+func TestAccElasticSANVolumeSnapshotDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_elastic_san_volume_snapshot", "test")
+	d := ElasticSANVolumeSnapshotDataSource{}
+
+	data.DataSourceSequentialRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.snapshotSource(data),
+		},
+	}, "")
+}
+
 // https://github.com/hashicorp/terraform-provider-azurerm/pull/25372#issuecomment-2022105240
 // Elastic SAN Volume Snapshot is context-based and should not be regarded as the infrastructure managed by Terraform
 // so we only onboard this as a data source instead of a resource. The acctest creates the snapshot as a test step

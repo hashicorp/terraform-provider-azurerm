@@ -20,6 +20,16 @@ import (
 
 type DataProtectionBackupVaultCustomerManagedKeyResource struct{}
 
+func TestAccDataProtectionBackupVaultCustomerManagedKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault_customer_managed_key", "test")
+	r := DataProtectionBackupVaultCustomerManagedKeyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupVaultCustomerManagedKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault_customer_managed_key", "test")
 	r := DataProtectionBackupVaultCustomerManagedKeyResource{}

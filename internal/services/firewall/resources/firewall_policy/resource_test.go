@@ -19,6 +19,17 @@ import (
 
 type FirewallPolicyResource struct{}
 
+func TestAccFirewallPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 	r := FirewallPolicyResource{}

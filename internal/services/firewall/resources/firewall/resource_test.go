@@ -25,6 +25,17 @@ const (
 	standard = "Standard"
 )
 
+func TestAccFirewall_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}

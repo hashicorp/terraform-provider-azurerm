@@ -13,6 +13,17 @@ import (
 
 type EventGridDomainDataSource struct{}
 
+func TestAccEventGridDomainDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_domain", "test")
+	r := EventGridDomainDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridDomainDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_domain", "test")
 	r := EventGridDomainDataSource{}

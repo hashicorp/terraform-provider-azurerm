@@ -25,8 +25,19 @@ func TestAccExpressRouteCircuitConnection_sequential(t *testing.T) {
 			"requiresImport": testAccExpressRouteCircuitConnection_requiresImport,
 			"complete":       testAccExpressRouteCircuitConnection_complete,
 			"update":         testAccExpressRouteCircuitConnection_update,
+			"regression":     testAccExpressRouteCircuitConnection_regressionTest,
 		},
 	})
+}
+
+func testAccExpressRouteCircuitConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_connection", "test")
+	r := ExpressRouteCircuitConnectionResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "846a1918-b7a2-4917-b43c-8c4cdaee006a"),
+		},
+	}, "")
 }
 
 func testAccExpressRouteCircuitConnection_basic(t *testing.T) {

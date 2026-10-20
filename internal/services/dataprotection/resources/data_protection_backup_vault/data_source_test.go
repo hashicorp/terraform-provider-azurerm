@@ -19,6 +19,16 @@ import (
 
 type DataProtectionBackupVaultDataSource struct{}
 
+func TestAccDataProtectionBackupVaultDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupVaultDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultDataSource{}
