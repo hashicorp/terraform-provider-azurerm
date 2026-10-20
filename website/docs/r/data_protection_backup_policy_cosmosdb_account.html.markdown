@@ -33,19 +33,16 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
   default_retention_duration      = "P10Y"
 
   weekly_retention_rule {
-    name     = "weekly"
     duration = "P4W"
   }
 
   monthly_retention_rule {
-    name           = "monthly"
     duration       = "P6M"
     days_of_week   = ["Sunday"]
     weeks_of_month = ["First"]
   }
 
   yearly_retention_rule {
-    name     = "yearly"
     duration = "P10Y"
   }
 }
@@ -85,8 +82,6 @@ The following arguments are supported:
 
 A `monthly_retention_rule` block supports the following:
 
-* `name` - (Required) The name of the monthly retention rule. Changing this forces a new resource to be created.
-
 * `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
 
 -> **Note:** The duration must use the ISO 8601 duration format.
@@ -103,8 +98,6 @@ A `monthly_retention_rule` block supports the following:
 
 A `weekly_retention_rule` block supports the following:
 
-* `name` - (Required) The name of the weekly retention rule. Changing this forces a new resource to be created.
-
 * `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
 
 -> **Note:** The duration must use the ISO 8601 duration format.
@@ -118,8 +111,6 @@ A `weekly_retention_rule` block supports the following:
 ---
 
 A `yearly_retention_rule` block supports the following:
-
-* `name` - (Required) The name of the yearly retention rule. Changing this forces a new resource to be created.
 
 * `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
 

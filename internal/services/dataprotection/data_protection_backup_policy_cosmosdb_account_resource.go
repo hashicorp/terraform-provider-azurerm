@@ -42,20 +42,17 @@ type BackupPolicyCosmosdbAccountModel struct {
 }
 
 type BackupPolicyCosmosdbAccountWeeklyRetentionRule struct {
-	Name       string   `tfschema:"name"`
 	Duration   string   `tfschema:"duration"`
 	DaysOfWeek []string `tfschema:"days_of_week"`
 }
 
 type BackupPolicyCosmosdbAccountMonthlyRetentionRule struct {
-	Name         string   `tfschema:"name"`
 	Duration     string   `tfschema:"duration"`
 	DaysOfWeek   []string `tfschema:"days_of_week"`
 	WeeksOfMonth []string `tfschema:"weeks_of_month"`
 }
 
 type BackupPolicyCosmosdbAccountYearlyRetentionRule struct {
-	Name         string   `tfschema:"name"`
 	Duration     string   `tfschema:"duration"`
 	DaysOfWeek   []string `tfschema:"days_of_week"`
 	WeeksOfMonth []string `tfschema:"weeks_of_month"`
@@ -143,13 +140,6 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"duration": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -199,13 +189,6 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"duration": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -235,13 +218,6 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"duration": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -467,7 +443,7 @@ func expandBackupPolicyCosmosdbAccountRetentionRuleModels(input BackupPolicyCosm
 	results := make([]BackupPolicyCosmosdbAccountRetentionRule, 0)
 	for _, rule := range input.YearlyRetentionRule {
 		result := BackupPolicyCosmosdbAccountRetentionRule{
-			Name:         rule.Name,
+			Name:         "Yearly",
 			Duration:     rule.Duration,
 			DaysOfWeek:   rule.DaysOfWeek,
 			WeeksOfMonth: rule.WeeksOfMonth,
@@ -480,7 +456,7 @@ func expandBackupPolicyCosmosdbAccountRetentionRuleModels(input BackupPolicyCosm
 	}
 	for _, rule := range input.MonthlyRetentionRule {
 		result := BackupPolicyCosmosdbAccountRetentionRule{
-			Name:         rule.Name,
+			Name:         "Monthly",
 			Duration:     rule.Duration,
 			DaysOfWeek:   rule.DaysOfWeek,
 			WeeksOfMonth: rule.WeeksOfMonth,
@@ -492,7 +468,7 @@ func expandBackupPolicyCosmosdbAccountRetentionRuleModels(input BackupPolicyCosm
 	}
 	for _, rule := range input.WeeklyRetentionRule {
 		result := BackupPolicyCosmosdbAccountRetentionRule{
-			Name:       rule.Name,
+			Name:       "Weekly",
 			Duration:   rule.Duration,
 			DaysOfWeek: rule.DaysOfWeek,
 		}
@@ -512,7 +488,6 @@ func flattenBackupPolicyCosmosdbAccountRetentionRules(input []BackupPolicyCosmos
 				return errors.New("multiple yearly retention rules cannot be represented by `yearly_retention_rule`")
 			}
 			state.YearlyRetentionRule = []BackupPolicyCosmosdbAccountYearlyRetentionRule{{
-				Name:         rule.Name,
 				Duration:     rule.Duration,
 				DaysOfWeek:   rule.DaysOfWeek,
 				WeeksOfMonth: rule.WeeksOfMonth,
@@ -523,7 +498,6 @@ func flattenBackupPolicyCosmosdbAccountRetentionRules(input []BackupPolicyCosmos
 				return errors.New("multiple monthly retention rules cannot be represented by `monthly_retention_rule`")
 			}
 			state.MonthlyRetentionRule = []BackupPolicyCosmosdbAccountMonthlyRetentionRule{{
-				Name:         rule.Name,
 				Duration:     rule.Duration,
 				DaysOfWeek:   rule.DaysOfWeek,
 				WeeksOfMonth: rule.WeeksOfMonth,
@@ -533,7 +507,6 @@ func flattenBackupPolicyCosmosdbAccountRetentionRules(input []BackupPolicyCosmos
 				return errors.New("multiple weekly retention rules cannot be represented by `weekly_retention_rule`")
 			}
 			state.WeeklyRetentionRule = []BackupPolicyCosmosdbAccountWeeklyRetentionRule{{
-				Name:       rule.Name,
 				Duration:   rule.Duration,
 				DaysOfWeek: rule.DaysOfWeek,
 			}}

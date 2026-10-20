@@ -157,17 +157,14 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 
   weekly_retention_rule {
-    name     = "First successful full backup taken every week"
     duration = "P1W"
   }
 
   monthly_retention_rule {
-    name     = "First successful full backup taken every month"
     duration = "P1M"
   }
 
   yearly_retention_rule {
-    name     = "First successful full backup taken every month"
     duration = "P1Y"
   }
 }
@@ -187,20 +184,17 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   backup_frequency = "Weekly"
 
   weekly_retention_rule {
-    name         = "weekly"
     duration     = "P4M"
     days_of_week = ["Sunday"]
   }
 
   monthly_retention_rule {
-    name           = "monthly"
     duration       = "P1Y"
     days_of_week   = ["Sunday"]
     weeks_of_month = ["First"]
   }
 
   yearly_retention_rule {
-    name           = "yearly"
     duration       = "P10Y"
     days_of_week   = ["Sunday"]
     months_of_year = ["January"]
