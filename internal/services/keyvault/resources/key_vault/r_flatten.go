@@ -16,10 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-func resourceKeyVaultFlatten(ctx context.Context, managementClient *dataplane.BaseClient, d *pluginsdk.ResourceData, id *commonids.KeyVaultId, model *vaults.Vault, includeResource bool) error {
+func resourceKeyVaultFlatten(ctx context.Context, managementClient *keyvault.BaseClient, d *pluginsdk.ResourceData, id *commonids.KeyVaultId, model *vaults.Vault, includeResource bool) error {
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
