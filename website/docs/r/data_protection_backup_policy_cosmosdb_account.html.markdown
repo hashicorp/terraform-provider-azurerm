@@ -31,6 +31,23 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
   backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
   default_retention_duration      = "P10Y"
+
+  weekly_retention_rule {
+    name     = "weekly"
+    duration = "P4W"
+  }
+
+  monthly_retention_rule {
+    name           = "monthly"
+    duration       = "P6M"
+    days_of_week   = ["Sunday"]
+    weeks_of_month = ["First"]
+  }
+
+  yearly_retention_rule {
+    name     = "yearly"
+    duration = "P10Y"
+  }
 }
 ```
 
@@ -52,33 +69,71 @@ The following arguments are supported:
 
 -> **Note:** The duration must use the ISO 8601 duration format.
 
-* `daily_backup_enabled` - (Optional) Whether daily backups are enabled by scheduling Incremental backups between weekly Full backups. Defaults to `true`. Changing this forces a new resource to be created.
+* `backup_frequency` - (Optional) The frequency at which backups are performed. Possible values are `Daily` and `Weekly`. Defaults to `Daily`. Changing this forces a new resource to be created.
 
-~> **Note:** When `daily_backup_enabled` is `true`, the weekly Full backup runs on the weekday and at the time represented by `backup_schedule`. Incremental backups then run at 24-hour intervals on the remaining six days of the week. Each Incremental backup captures only the changes since the previous backup, and together these backups provide a 1-day recovery point objective.
+~> **Note:** If `backup_frequency` is set to `Daily`, Azure Backup performs a Full backup once every week, while Incremental backups are attempted on other days. If set to `Weekly`, only the weekly Full backup is scheduled. The weekly Full backup runs on the weekday and at the time specified by `backup_schedule`.
 
-* `retention_rule` - (Optional) One or more `retention_rule` blocks that select backups and specify how long they are retained, as defined below. Changing this forces a new resource to be created.
+* `monthly_retention_rule` - (Optional) A `monthly_retention_rule` block as defined below. Changing this forces a new resource to be created.
+
+* `weekly_retention_rule` - (Optional) A `weekly_retention_rule` block as defined below. Changing this forces a new resource to be created.
+
+* `yearly_retention_rule` - (Optional) A `yearly_retention_rule` block as defined below. Changing this forces a new resource to be created.
+
+-> **Note:** At most one rule of each category can be configured. Rules select Full backups and are evaluated in yearly, monthly, then weekly priority order.
 
 ---
 
-A `retention_rule` block supports the following:
+A `monthly_retention_rule` block supports the following:
+
+* `name` - (Required) The name of the monthly retention rule. Changing this forces a new resource to be created.
 
 * `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
 
 -> **Note:** The duration must use the ISO 8601 duration format.
 
-* `name` - (Required) The name of the retention rule. Changing this forces a new resource to be created.
+* `days_of_week` - (Optional) A set containing exactly one day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
 
-* `backup_occurrence` - (Optional) Specifies whether this rule retains the first backup of each week, month, or year. Possible values are `FirstOfWeek`, `FirstOfMonth`, and `FirstOfYear`. Changing this forces a new resource to be created.
+~> **Note:** The value specified for `days_of_week` must match the day of the week in `backup_schedule`.
 
-~> **Note:** Exactly one of `backup_occurrence` or `days_of_week` must be specified for each retention rule.
+* `weeks_of_month` - (Optional) A set of ordinal weeks within each month in which backups matching this rule are retained. Possible values are `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
 
-* `days_of_week` - (Optional) A set containing the day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+~> **Note:** Specify `days_of_week` and `weeks_of_month` together to select backups by day and week. When both fields are omitted, this rule retains the first successful full backup of the month.
+
+---
+
+A `weekly_retention_rule` block supports the following:
+
+* `name` - (Required) The name of the weekly retention rule. Changing this forces a new resource to be created.
+
+* `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
+
+-> **Note:** The duration must use the ISO 8601 duration format.
+
+* `days_of_week` - (Optional) A set containing exactly one day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+
+~> **Note:** The value specified for `days_of_week` must match the day of the week in `backup_schedule`.
+
+-> **Note:** When `days_of_week` is omitted, this rule retains the first successful full backup of the week.
+
+---
+
+A `yearly_retention_rule` block supports the following:
+
+* `name` - (Required) The name of the yearly retention rule. Changing this forces a new resource to be created.
+
+* `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
+
+-> **Note:** The duration must use the ISO 8601 duration format.
+
+* `days_of_week` - (Optional) A set containing exactly one day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
 
 ~> **Note:** The value specified for `days_of_week` must match the day of the week in `backup_schedule`.
 
 * `months_of_year` - (Optional) A set of calendar months in which backups matching this rule are retained. Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, and `December`. Changing this forces a new resource to be created.
 
 * `weeks_of_month` - (Optional) A set of ordinal weeks within each month in which backups matching this rule are retained. Possible values are `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
+
+~> **Note:** Specify `days_of_week`, `weeks_of_month`, and `months_of_year` together to select backups by day, week, and month. When all three fields are omitted, this rule retains first successful full backup of the year.
 
 ## Attributes Reference
 

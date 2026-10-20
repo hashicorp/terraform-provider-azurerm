@@ -5,9 +5,9 @@ package dataprotection
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -24,31 +24,58 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_cosmosdb_account -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
+const (
+	backupPolicyCosmosdbAccountFrequencyDaily  = "Daily"
+	backupPolicyCosmosdbAccountFrequencyWeekly = "Weekly"
+)
+
 type BackupPolicyCosmosdbAccountModel struct {
-	Name                        string                                     `tfschema:"name"`
-	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
-	DailyBackupEnabled          bool                                       `tfschema:"daily_backup_enabled"`
-	IncrementalBackupSchedules  []string                                   `tfschema:"incremental_backup_schedules"`
-	DefaultRetentionDuration    string                                     `tfschema:"default_retention_duration"`
-	BackupSchedule              string                                     `tfschema:"backup_schedule"`
-	RetentionRules              []BackupPolicyCosmosdbAccountRetentionRule `tfschema:"retention_rule"`
+	Name                        string                                            `tfschema:"name"`
+	DataProtectionBackupVaultId string                                            `tfschema:"data_protection_backup_vault_id"`
+	BackupFrequency             string                                            `tfschema:"backup_frequency"`
+	IncrementalBackupSchedules  []string                                          `tfschema:"incremental_backup_schedules"`
+	DefaultRetentionDuration    string                                            `tfschema:"default_retention_duration"`
+	BackupSchedule              string                                            `tfschema:"backup_schedule"`
+	WeeklyRetentionRule         []BackupPolicyCosmosdbAccountWeeklyRetentionRule  `tfschema:"weekly_retention_rule"`
+	MonthlyRetentionRule        []BackupPolicyCosmosdbAccountMonthlyRetentionRule `tfschema:"monthly_retention_rule"`
+	YearlyRetentionRule         []BackupPolicyCosmosdbAccountYearlyRetentionRule  `tfschema:"yearly_retention_rule"`
+}
+
+type BackupPolicyCosmosdbAccountWeeklyRetentionRule struct {
+	Name       string   `tfschema:"name"`
+	Duration   string   `tfschema:"duration"`
+	DaysOfWeek []string `tfschema:"days_of_week"`
+}
+
+type BackupPolicyCosmosdbAccountMonthlyRetentionRule struct {
+	Name         string   `tfschema:"name"`
+	Duration     string   `tfschema:"duration"`
+	DaysOfWeek   []string `tfschema:"days_of_week"`
+	WeeksOfMonth []string `tfschema:"weeks_of_month"`
+}
+
+type BackupPolicyCosmosdbAccountYearlyRetentionRule struct {
+	Name         string   `tfschema:"name"`
+	Duration     string   `tfschema:"duration"`
+	DaysOfWeek   []string `tfschema:"days_of_week"`
+	WeeksOfMonth []string `tfschema:"weeks_of_month"`
+	MonthsOfYear []string `tfschema:"months_of_year"`
 }
 
 type BackupPolicyCosmosdbAccountRetentionRule struct {
-	Name             string   `tfschema:"name"`
-	Duration         string   `tfschema:"duration"`
-	BackupOccurrence string   `tfschema:"backup_occurrence"`
-	DaysOfWeek       []string `tfschema:"days_of_week"`
-	MonthsOfYear     []string `tfschema:"months_of_year"`
-	WeeksOfMonth     []string `tfschema:"weeks_of_month"`
+	Name             string
+	Duration         string
+	BackupOccurrence string
+	DaysOfWeek       []string
+	MonthsOfYear     []string
+	WeeksOfMonth     []string
 }
 
 type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
 
 var (
-	_ sdk.Resource                  = DataProtectionBackupPolicyCosmosdbAccountResource{}
-	_ sdk.ResourceWithCustomizeDiff = DataProtectionBackupPolicyCosmosdbAccountResource{}
-	_ sdk.ResourceWithIdentity      = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.Resource             = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyCosmosdbAccountResource{}
 )
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) Identity() resourceids.ResourceId {
@@ -98,26 +125,24 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 			ValidateFunc: validation.ISO8601Duration,
 		},
 
-		"daily_backup_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"backup_frequency": {
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  true,
+			Default:  backupPolicyCosmosdbAccountFrequencyDaily,
 			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				backupPolicyCosmosdbAccountFrequencyDaily,
+				backupPolicyCosmosdbAccountFrequencyWeekly,
+			}, false),
 		},
 
-		"retention_rule": {
+		"monthly_retention_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"duration": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.ISO8601Duration,
-					},
-
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -125,16 +150,67 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
-					// Only Week, Month and Year are supported for cosmosdb account backup policies
-					"backup_occurrence": {
-						Type:     pluginsdk.TypeString,
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.ISO8601Duration,
+					},
+
+					"days_of_week": {
+						Type:     pluginsdk.TypeSet,
 						Optional: true,
 						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth),
-							string(basebackuppolicyresources.AbsoluteMarkerFirstOfWeek),
-							string(basebackuppolicyresources.AbsoluteMarkerFirstOfYear),
-						}, false),
+						MinItems: 1,
+						MaxItems: 1,
+						RequiredWith: []string{
+							"monthly_retention_rule.0.days_of_week",
+							"monthly_retention_rule.0.weeks_of_month",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForDayOfWeek(), false),
+						},
+					},
+
+					"weeks_of_month": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						MinItems: 1,
+						MaxItems: 5,
+						RequiredWith: []string{
+							"monthly_retention_rule.0.days_of_week",
+							"monthly_retention_rule.0.weeks_of_month",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForWeekNumber(), false),
+						},
+					},
+				},
+			},
+		},
+
+		"weekly_retention_rule": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.ISO8601Duration,
 					},
 
 					"days_of_week": {
@@ -148,6 +224,47 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForDayOfWeek(), false),
 						},
 					},
+				},
+			},
+		},
+
+		"yearly_retention_rule": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.ISO8601Duration,
+					},
+
+					"days_of_week": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						ForceNew: true,
+						MinItems: 1,
+						MaxItems: 1,
+						RequiredWith: []string{
+							"yearly_retention_rule.0.days_of_week",
+							"yearly_retention_rule.0.weeks_of_month",
+							"yearly_retention_rule.0.months_of_year",
+						},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForDayOfWeek(), false),
+						},
+					},
 
 					"months_of_year": {
 						Type:     pluginsdk.TypeSet,
@@ -155,6 +272,11 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 						ForceNew: true,
 						MinItems: 1,
 						MaxItems: 12,
+						RequiredWith: []string{
+							"yearly_retention_rule.0.days_of_week",
+							"yearly_retention_rule.0.weeks_of_month",
+							"yearly_retention_rule.0.months_of_year",
+						},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForMonth(), false),
@@ -167,6 +289,11 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[strin
 						ForceNew: true,
 						MinItems: 1,
 						MaxItems: 5,
+						RequiredWith: []string{
+							"yearly_retention_rule.0.days_of_week",
+							"yearly_retention_rule.0.weeks_of_month",
+							"yearly_retention_rule.0.months_of_year",
+						},
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForWeekNumber(), false),
@@ -186,42 +313,6 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Attributes() map[stri
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-		},
-	}
-}
-
-func (r DataProtectionBackupPolicyCosmosdbAccountResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			config := metadata.ResourceDiff.GetRawConfig()
-			if !config.IsKnown() || config.IsNull() {
-				return nil
-			}
-
-			rules := config.GetAttr("retention_rule")
-			if !rules.IsKnown() || rules.IsNull() {
-				return nil
-			}
-
-			for i, rule := range rules.AsValueSlice() {
-				if !rule.IsKnown() || rule.IsNull() {
-					continue
-				}
-
-				backupOccurrence := rule.GetAttr("backup_occurrence")
-				daysOfWeek := rule.GetAttr("days_of_week")
-				if !backupOccurrence.IsKnown() || !daysOfWeek.IsKnown() {
-					continue
-				}
-
-				hasBackupOccurrence := !backupOccurrence.IsNull() && backupOccurrence.AsString() != ""
-				hasDaysOfWeek := !daysOfWeek.IsNull() && daysOfWeek.LengthInt() > 0
-				if hasBackupOccurrence == hasDaysOfWeek {
-					return fmt.Errorf("`retention_rule.%d` requires exactly one of `backup_occurrence` and `days_of_week` to be specified", i)
-				}
-			}
-
-			return nil
 		},
 	}
 }
@@ -257,10 +348,11 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Create() sdk.Resource
 				}
 			}
 
+			retentionRules := expandBackupPolicyCosmosdbAccountRetentionRuleModels(model)
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
-			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountRetentionRules(model.RetentionRules)...)
+			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountRetentionRules(retentionRules)...)
 			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountDefaultRetentionRule(model.DefaultRetentionDuration))
-			backupRules, err := expandBackupPolicyCosmosdbAccountBackupRules(model.BackupSchedule, model.DailyBackupEnabled, expandBackupPolicyCosmosdbAccountTaggingCriteria(model.RetentionRules))
+			backupRules, err := expandBackupPolicyCosmosdbAccountBackupRules(model.BackupSchedule, model.BackupFrequency == backupPolicyCosmosdbAccountFrequencyDaily, expandBackupPolicyCosmosdbAccountTaggingCriteria(retentionRules))
 			if err != nil {
 				return fmt.Errorf("expanding backup schedule: %+v", err)
 			}
@@ -323,7 +415,12 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) flatten(metadata sdk.
 
 	if model != nil {
 		if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
-			state.DefaultRetentionDuration, state.RetentionRules, state.BackupSchedule, state.IncrementalBackupSchedules, state.DailyBackupEnabled = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
+			var retentionRules []BackupPolicyCosmosdbAccountRetentionRule
+			state.DefaultRetentionDuration, retentionRules, state.BackupSchedule, state.IncrementalBackupSchedules, state.BackupFrequency = flattenBackupPolicyCosmosdbAccountPolicyRules(properties.PolicyRules)
+
+			if err := flattenBackupPolicyCosmosdbAccountRetentionRules(retentionRules, &state); err != nil {
+				return fmt.Errorf("flattening retention rules for %s: %+v", *id, err)
+			}
 		}
 	}
 
@@ -364,6 +461,85 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Delete() sdk.Resource
 			return nil
 		},
 	}
+}
+
+func expandBackupPolicyCosmosdbAccountRetentionRuleModels(input BackupPolicyCosmosdbAccountModel) []BackupPolicyCosmosdbAccountRetentionRule {
+	results := make([]BackupPolicyCosmosdbAccountRetentionRule, 0)
+	for _, rule := range input.YearlyRetentionRule {
+		result := BackupPolicyCosmosdbAccountRetentionRule{
+			Name:         rule.Name,
+			Duration:     rule.Duration,
+			DaysOfWeek:   rule.DaysOfWeek,
+			WeeksOfMonth: rule.WeeksOfMonth,
+			MonthsOfYear: rule.MonthsOfYear,
+		}
+		if len(rule.DaysOfWeek) == 0 {
+			result.BackupOccurrence = string(basebackuppolicyresources.AbsoluteMarkerFirstOfYear)
+		}
+		results = append(results, result)
+	}
+	for _, rule := range input.MonthlyRetentionRule {
+		result := BackupPolicyCosmosdbAccountRetentionRule{
+			Name:         rule.Name,
+			Duration:     rule.Duration,
+			DaysOfWeek:   rule.DaysOfWeek,
+			WeeksOfMonth: rule.WeeksOfMonth,
+		}
+		if len(rule.DaysOfWeek) == 0 {
+			result.BackupOccurrence = string(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth)
+		}
+		results = append(results, result)
+	}
+	for _, rule := range input.WeeklyRetentionRule {
+		result := BackupPolicyCosmosdbAccountRetentionRule{
+			Name:       rule.Name,
+			Duration:   rule.Duration,
+			DaysOfWeek: rule.DaysOfWeek,
+		}
+		if len(rule.DaysOfWeek) == 0 {
+			result.BackupOccurrence = string(basebackuppolicyresources.AbsoluteMarkerFirstOfWeek)
+		}
+		results = append(results, result)
+	}
+	return results
+}
+
+func flattenBackupPolicyCosmosdbAccountRetentionRules(input []BackupPolicyCosmosdbAccountRetentionRule, state *BackupPolicyCosmosdbAccountModel) error {
+	for _, rule := range input {
+		switch {
+		case rule.BackupOccurrence == string(basebackuppolicyresources.AbsoluteMarkerFirstOfYear) || len(rule.MonthsOfYear) > 0:
+			if len(state.YearlyRetentionRule) > 0 {
+				return errors.New("multiple yearly retention rules cannot be represented by `yearly_retention_rule`")
+			}
+			state.YearlyRetentionRule = []BackupPolicyCosmosdbAccountYearlyRetentionRule{{
+				Name:         rule.Name,
+				Duration:     rule.Duration,
+				DaysOfWeek:   rule.DaysOfWeek,
+				WeeksOfMonth: rule.WeeksOfMonth,
+				MonthsOfYear: rule.MonthsOfYear,
+			}}
+		case rule.BackupOccurrence == string(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth) || len(rule.WeeksOfMonth) > 0:
+			if len(state.MonthlyRetentionRule) > 0 {
+				return errors.New("multiple monthly retention rules cannot be represented by `monthly_retention_rule`")
+			}
+			state.MonthlyRetentionRule = []BackupPolicyCosmosdbAccountMonthlyRetentionRule{{
+				Name:         rule.Name,
+				Duration:     rule.Duration,
+				DaysOfWeek:   rule.DaysOfWeek,
+				WeeksOfMonth: rule.WeeksOfMonth,
+			}}
+		default:
+			if len(state.WeeklyRetentionRule) > 0 {
+				return errors.New("multiple weekly retention rules cannot be represented by `weekly_retention_rule`")
+			}
+			state.WeeklyRetentionRule = []BackupPolicyCosmosdbAccountWeeklyRetentionRule{{
+				Name:       rule.Name,
+				Duration:   rule.Duration,
+				DaysOfWeek: rule.DaysOfWeek,
+			}}
+		}
+	}
+	return nil
 }
 
 func expandBackupPolicyCosmosdbAccountRetentionRules(input []BackupPolicyCosmosdbAccountRetentionRule) []basebackuppolicyresources.BasePolicyRule {
@@ -483,12 +659,7 @@ func expandBackupPolicyCosmosdbAccountTaggingCriteria(input []BackupPolicyCosmos
 		expandBackupPolicyCosmosdbAccountDefaultTaggingCriteria(),
 	}
 
-	retentionRules := append([]BackupPolicyCosmosdbAccountRetentionRule(nil), input...)
-	sort.SliceStable(retentionRules, func(i, j int) bool {
-		return backupPolicyCosmosdbAccountRetentionRuleOrder(retentionRules[i]) < backupPolicyCosmosdbAccountRetentionRuleOrder(retentionRules[j])
-	})
-
-	for i, item := range retentionRules {
+	for i, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
 			Criteria:        expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(item),
 			TaggingPriority: int64(i + 1),
@@ -502,16 +673,6 @@ func expandBackupPolicyCosmosdbAccountTaggingCriteria(input []BackupPolicyCosmos
 	}
 
 	return results
-}
-
-func backupPolicyCosmosdbAccountRetentionRuleOrder(input BackupPolicyCosmosdbAccountRetentionRule) int {
-	if input.BackupOccurrence == string(basebackuppolicyresources.AbsoluteMarkerFirstOfYear) || len(input.MonthsOfYear) > 0 {
-		return 1
-	}
-	if input.BackupOccurrence == string(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth) || len(input.WeeksOfMonth) > 0 {
-		return 2
-	}
-	return 3
 }
 
 func expandBackupPolicyCosmosdbAccountDefaultTaggingCriteria() basebackuppolicyresources.TaggingCriteria {
@@ -569,10 +730,10 @@ func expandBackupPolicyCosmosdbAccountRetentionRuleCriteria(input BackupPolicyCo
 	}
 }
 
-func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyCosmosdbAccountRetentionRule, string, []string, bool) {
+func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyCosmosdbAccountRetentionRule, string, []string, string) {
 	var taggingCriteria []basebackuppolicyresources.TaggingCriteria
 	var nonDefaultRetentionRules []basebackuppolicyresources.AzureRetentionRule
-	var incrementalBackupEnabled bool
+	backupFrequency := backupPolicyCosmosdbAccountFrequencyWeekly
 	var fullBackupSchedule string
 	var defaultRetentionDuration string
 
@@ -591,7 +752,7 @@ func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresou
 						}
 						taggingCriteria = trigger.TaggingCriteria
 					case strings.EqualFold(parameters.BackupType, "Incremental"):
-						incrementalBackupEnabled = true
+						backupFrequency = backupPolicyCosmosdbAccountFrequencyDaily
 						incrementalBackupSchedule = append(incrementalBackupSchedule, trigger.Schedule.RepeatingTimeIntervals...)
 					}
 				}
@@ -630,7 +791,7 @@ func flattenBackupPolicyCosmosdbAccountPolicyRules(input []basebackuppolicyresou
 		retentionRules = append(retentionRules, result)
 	}
 
-	return defaultRetentionDuration, retentionRules, fullBackupSchedule, incrementalBackupSchedule, incrementalBackupEnabled
+	return defaultRetentionDuration, retentionRules, fullBackupSchedule, incrementalBackupSchedule, backupFrequency
 }
 
 func flattenBackupPolicyCosmosdbAccountCriteriaIntoRule(input *[]basebackuppolicyresources.BackupCriteria, rule *BackupPolicyCosmosdbAccountRetentionRule) {

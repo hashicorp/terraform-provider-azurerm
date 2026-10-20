@@ -35,6 +35,20 @@ func TestAccDataProtectionBackupPolicyCosmosdbAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupPolicyCosmosdbAccount_basicWithRetentionRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
+	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithRetentionRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataProtectionBackupPolicyCosmosdbAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_cosmosdb_account", "test")
 	r := DataProtectionBackupPolicyCosmosdbAccountResource{}
@@ -125,11 +139,32 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) requiresImport(data a
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "import" {
   name                            = azurerm_data_protection_backup_policy_cosmosdb_account.test.name
   data_protection_backup_vault_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.data_protection_backup_vault_id
-  daily_backup_enabled            = azurerm_data_protection_backup_policy_cosmosdb_account.test.daily_backup_enabled
+  backup_frequency                = azurerm_data_protection_backup_policy_cosmosdb_account.test.backup_frequency
   default_retention_duration      = azurerm_data_protection_backup_policy_cosmosdb_account.test.default_retention_duration
   backup_schedule                 = azurerm_data_protection_backup_policy_cosmosdb_account.test.backup_schedule
 }
 `, r.basic(data))
+}
+
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) basicWithRetentionRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
+  name                            = "acctest-dbp-cosmos-%d"
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
+  default_retention_duration      = "P10Y"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
+
+  weekly_retention_rule {
+    name = "First successful full backup taken every week"
+  }
+
+  monthly_retention_rule {
+	name = "First successful full backup taken every month"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) complete(data acceptance.TestData) string {
@@ -142,23 +177,24 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
   default_retention_duration      = "P10Y"
   backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 
-  daily_backup_enabled = false
+  backup_frequency = "Weekly"
 
-  retention_rule {
-    name              = "Monthly"
-    duration          = "P10Y"
-    backup_occurrence = "FirstOfMonth"
-  }
-
-  retention_rule {
-    name         = "Weekly"
+  weekly_retention_rule {
+    name         = "weekly"
     duration     = "P4M"
     days_of_week = ["Sunday"]
   }
 
-  retention_rule {
-    name           = "Yearly"
+  monthly_retention_rule {
+    name           = "monthly"
     duration       = "P1Y"
+    days_of_week   = ["Sunday"]
+    weeks_of_month = ["First"]
+  }
+
+  yearly_retention_rule {
+    name           = "yearly"
+    duration       = "P10Y"
     days_of_week   = ["Sunday"]
     months_of_year = ["January"]
     weeks_of_month = ["First"]
