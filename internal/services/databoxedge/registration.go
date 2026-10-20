@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/resources/databox_edge_device"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,13 +37,13 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		EdgeDeviceDataSource{},
+		databox_edge_device.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		EdgeDeviceResource{},
+		databox_edge_device.Resource{},
 	}
 }
 

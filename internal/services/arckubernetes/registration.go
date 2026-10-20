@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/resources/arc_kubernetes_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/resources/arc_kubernetes_cluster_extension"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/resources/arc_kubernetes_flux_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/resources/arc_kubernetes_provisioned_cluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -42,7 +46,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_arc_kubernetes_cluster": resourceArcKubernetesCluster(),
+		"azurerm_arc_kubernetes_cluster": arc_kubernetes_cluster.RegisterResource(),
 	}
 }
 
@@ -52,9 +56,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ArcKubernetesClusterExtensionResource{},
-		ArcKubernetesFluxConfigurationResource{},
-		ArcKubernetesProvisionedClusterResource{},
+		arc_kubernetes_cluster_extension.Resource{},
+		arc_kubernetes_flux_configuration.Resource{},
+		arc_kubernetes_provisioned_cluster.Resource{},
 	}
 }
 
@@ -76,6 +80,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		ArcKubernetesProvisionedClusterListResource{},
+		arc_kubernetes_provisioned_cluster.ListResource{},
 	}
 }
