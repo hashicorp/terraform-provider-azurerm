@@ -18,6 +18,16 @@ import (
 
 type ApiManagementAuthorizationServerResource struct{}
 
+func TestAccApiManagementAuthorizationServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
+	r := ApiManagementAuthorizationServerResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementAuthorizationServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 	r := ApiManagementAuthorizationServerResource{}

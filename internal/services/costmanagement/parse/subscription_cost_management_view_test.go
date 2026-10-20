@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SubscriptionCostManagementViewId{}
 
-func TestSubscriptionCostManagementViewIDFormatter(t *testing.T) {
+func TestParseSubscriptionCostManagementViewIDFormatter(t *testing.T) {
 	actual := NewSubscriptionCostManagementViewID("12345678-1234-9876-4563-123456789012", "view1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.CostManagement/views/view1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSubscriptionCostManagementViewIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSubscriptionCostManagementViewID(t *testing.T) {
+func TestParseSubscriptionCostManagementViewID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

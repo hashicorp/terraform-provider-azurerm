@@ -18,6 +18,16 @@ import (
 
 type ApiManagementApiDiagnosticResource struct{}
 
+func TestAccApiManagementApiDiagnostic_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+	r := ApiManagementApiDiagnosticResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementApiDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
 	r := ApiManagementApiDiagnosticResource{}
@@ -238,6 +248,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   api_management_name      = azurerm_api_management.test.name
   api_name                 = azurerm_api_management_api.test.name
   api_management_logger_id = azurerm_api_management_logger.test2.id
+  metrics_enabled          = true
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -269,6 +280,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   sampling_percentage       = 1.0
   always_log_errors         = true
   log_client_ip             = true
+  metrics_enabled           = true
   http_correlation_protocol = "W3C"
   verbosity                 = "verbose"
   operation_name_format     = "Name"
@@ -359,6 +371,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   sampling_percentage       = 1.0
   always_log_errors         = true
   log_client_ip             = true
+  metrics_enabled           = false
   http_correlation_protocol = "W3C"
   verbosity                 = "verbose"
   operation_name_format     = "Url"

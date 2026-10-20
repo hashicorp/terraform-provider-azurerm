@@ -83,6 +83,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(credentialSetsClient.Client, o.Authorizers.ResourceManager)
 
+	// AKS
 	deploymentSafeguardsClient, err := deploymentsafeguards.NewDeploymentSafeguardsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Deployment Safeguards Client: %+v", err)
