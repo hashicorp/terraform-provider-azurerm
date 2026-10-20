@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -223,7 +224,7 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta any) error {
 	if loc := model.Location; loc != nil {
 		d.Set("location", location.Normalize(*loc))
 	}
-	d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+	d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 
 	if props := model.Properties; props != nil {
 		d.Set("mac_address", props.MacAddress)
