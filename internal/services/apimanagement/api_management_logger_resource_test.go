@@ -20,6 +20,16 @@ import (
 
 type ApiManagementLoggerResource struct{}
 
+func TestAccApiManagementLogger_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Logger from Terraform test", "false"),
+		},
+	}, "")
+}
+
 func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
