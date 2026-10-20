@@ -21,6 +21,16 @@ import (
 
 type AnalysisServicesServerResource struct{}
 
+func TestAccAnalysisServicesServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	r := AnalysisServicesServerResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
@@ -480,7 +490,6 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestass%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
-  account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }

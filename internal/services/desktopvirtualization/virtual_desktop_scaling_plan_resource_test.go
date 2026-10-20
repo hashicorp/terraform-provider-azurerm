@@ -130,7 +130,7 @@ resource "azurerm_resource_group" "test" {
 
 
 data "azuread_service_principal" "test" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -199,7 +199,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 data "azuread_service_principal" "test" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
 
 resource "azurerm_role_assignment" "test" {

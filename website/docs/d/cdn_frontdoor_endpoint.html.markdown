@@ -14,9 +14,9 @@ Use this data source to access information about an existing Front Door (standar
 
 ```hcl
 data "azurerm_cdn_frontdoor_endpoint" "example" {
-  name                = "existing-endpoint"
-  profile_name        = "existing-cdn-profile"
-  resource_group_name = "existing-resources"
+  name                = "example-endpoint"
+  profile_name        = "example-cdn-profile"
+  resource_group_name = "example-resources"
 }
 ```
 
