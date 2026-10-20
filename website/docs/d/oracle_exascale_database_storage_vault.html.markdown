@@ -39,9 +39,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `additional_flash_cache_percentage` - The size of additional Flash Cache in percentage of High Capacity database storage.
 
+* `attached_shape_attributes` - The ShapeAttribute of the Exadata VM cluster(s) associated with the Exadata Database Storage Vault.
+
 * `description` - Exadata Database Storage Vault description.
 
 * `display_name` - The user-friendly name for the Exadata Database Storage Vault.
+
+* `exadata_infrastructure_id` - Identifier of the Cloud Exadata Infrastructure in Azure.
 
 * `high_capacity_database_storage` - A `high_capacity_database_storage` block as defined below.
 
