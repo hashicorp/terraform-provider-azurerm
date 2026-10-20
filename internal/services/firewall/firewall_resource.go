@@ -197,8 +197,8 @@ func resourceFirewall() *pluginsdk.Resource {
 						"public_ip_count": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1),
-							Default:      1,
 						},
 						"public_ip_addresses": {
 							Type:     pluginsdk.TypeList,
@@ -243,7 +243,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]any)); err != nil {
+	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]any), d.Get("virtual_hub").([]any)); err != nil {
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
@@ -305,7 +305,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.FirewallPolicy = &azurefirewalls.SubResource{Id: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any))
+	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing.Model, d.Get("virtual_hub").([]any), firewallVirtualHubPublicIPCount(d))
 	if ok {
 		parameters.Properties.VirtualHub = vhub
 		parameters.Properties.HubIPAddresses = hubIpAddresses
@@ -726,12 +726,37 @@ func flattenFirewallPrivateIpRange(input *map[string]string) []any {
 	return pluginsdk.FlattenSlice(&rangeSlice)
 }
 
-func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
+func firewallVirtualHubPublicIPCount(d *pluginsdk.ResourceData) *int64 {
+	rawVirtualHub := d.GetRawConfig().AsValueMap()["virtual_hub"]
+	if rawVirtualHub.IsNull() || !rawVirtualHub.IsKnown() {
+		return nil
+	}
+
+	rawVirtualHubConfig := rawVirtualHub.AsValueSlice()
+	if len(rawVirtualHubConfig) == 0 {
+		return nil
+	}
+
+	rawPublicIPCount := rawVirtualHubConfig[0].AsValueMap()["public_ip_count"]
+	if rawPublicIPCount.IsNull() || !rawPublicIPCount.IsKnown() {
+		return nil
+	}
+
+	publicIPCount := int64(d.Get("virtual_hub.0.public_ip_count").(int))
+	return &publicIPCount
+}
+
+func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, input []any, publicIPCount *int64) (vhub *azurefirewalls.SubResource, ipAddresses *azurefirewalls.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
 	}
 
 	b := input[0].(map[string]any)
+	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
+
+	if publicIPCount == nil {
+		return vhub, nil, true
+	}
 
 	// The API requires both "Count" and "Addresses" for the "PublicIPs" setting.
 	// The "Count" means how many PIP to provision.
@@ -740,7 +765,7 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 	// - Update: both "Count" and "Addresses" are needed:
 	//   Scale up: "Addresses" should remain same as before scaling up
 	//   Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
-	newCount := b["public_ip_count"].(int)
+	newCount := int(*publicIPCount)
 	var addresses *[]azurefirewalls.AzureFirewallPublicIPAddress
 	if existing != nil {
 		if prop := existing.Properties; prop != nil {
@@ -764,10 +789,9 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 		}
 	}
 
-	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
 	ipAddresses = &azurefirewalls.HubIPAddresses{
 		PublicIPs: &azurefirewalls.HubPublicIPAddresses{
-			Count:     pointer.To(int64(b["public_ip_count"].(int))),
+			Count:     publicIPCount,
 			Addresses: addresses,
 		},
 	}
@@ -780,10 +804,13 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		return []any{}
 	}
 
+	vhubSetting := map[string]any{}
+
+	vhubSetting["virtual_hub_id"] = pointer.From(props.VirtualHub.Id)
+
 	var (
-		publicIpCount int
-		publicIps     []string
-		privateIp     string
+		publicIps []string
+		privateIp string
 	)
 	if hubIP := props.HubIPAddresses; hubIP != nil {
 		if hubIP.PrivateIPAddress != nil {
@@ -791,7 +818,7 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 		}
 		if pubIPs := hubIP.PublicIPs; pubIPs != nil {
 			if pubIPs.Count != nil {
-				publicIpCount = int(*pubIPs.Count)
+				vhubSetting["public_ip_count"] = int(*pubIPs.Count)
 			}
 			if pubIPs.Addresses != nil {
 				for _, addr := range *pubIPs.Addresses {
@@ -802,18 +829,15 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 			}
 		}
 	}
+	vhubSetting["public_ip_addresses"] = publicIps
+	vhubSetting["private_ip_address"] = privateIp
 
 	return []any{
-		map[string]any{
-			"virtual_hub_id":      pointer.From(props.VirtualHub.Id),
-			"public_ip_count":     publicIpCount,
-			"public_ip_addresses": publicIps,
-			"private_ip_address":  privateIp,
-		},
+		vhubSetting,
 	}
 }
 
-func validateFirewallIPConfigurationSettings(configs []any) error {
+func validateFirewallIPConfigurationSettings(configs []any, virtualHub []any) error {
 	if len(configs) == 0 {
 		return nil
 	}
@@ -825,6 +849,10 @@ func validateFirewallIPConfigurationSettings(configs []any) error {
 		if subnet, exist := data["subnet_id"].(string); exist && subnet != "" {
 			subnetNumber++
 		}
+	}
+
+	if subnetNumber == 0 && len(virtualHub) > 0 {
+		return nil
 	}
 
 	if subnetNumber != 1 {
