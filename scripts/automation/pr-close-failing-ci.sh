@@ -7,31 +7,45 @@
 # Warns and closes PRs that have had failing CI for an extended period.
 # Checks CI status directly via the GitHub API (does not depend on labels).
 #
-# - After 7 days of failing CI: leaves a warning comment
-# - After 14 days of failing CI: closes the PR with a polite message
+# - After 53 days of failing CI: leaves a warning comment
+# - After 60 days of failing CI: closes the PR with a polite message
 # - PRs with "ci-ignore-failure" label are skipped
 
 set -euo pipefail
 
 DRY_RUN=true
-WARN_DAYS=7
-CLOSE_DAYS=14
+WARN_DAYS=53
+CLOSE_DAYS=60
 IGNORE_LABEL="ci-ignore-failure"
 WARNING_MARKER="<!-- ci-failure-warning -->"
 
 # Only these CI checks are considered when deciding whether to warn/close.
 # Process workflows (label bots, triage, comment actions, etc.) are excluded
 # so they cannot accidentally trigger PR closures.
+# Job ids (not display names) of the PR checks that count as failing CI. Keep in step with the
+# jobs in .github/workflows/pr-checks-combined.yaml and the standalone pr-check-*.yaml workflows.
+# The changelog check is deliberately left out: entries are added by maintainers, so a missing one
+# is not something the contributor can fix.
 MONITORED_CHECKS=(
-  "detect"                     # breaking-change-detection job name
+  # pr-checks-combined.yaml
+  "build"                      # Build
+  "copyright"                  # Copyright Headers
   "depscheck"                  # Vendor Dependencies Check
+  "document-validate"          # Document Validation
   "gencheck"                   # Generation Check
-  "golint"                     # GoLangCI Linting
-  "test"                       # Unit Tests + gradually-deprecated job name
-  "preview-api-version-linter" # Preview ARM API Version Linter
+  "golangci-lint"              # GoLangCI Linting
+  "quick-checks"               # Quick Checks (gofmt/gofumpt/terrafmt)
   "shellcheck"                 # ShellCheck Scripts
-  "website-lint"               # Website Linting + Validate Examples job name
+  "typos"                      # Spelling
+  "unit-tests"                 # Unit Tests
+  "validate-examples"          # Validate Examples
+  "website-lint"               # Website Linting
+  # standalone pr-check-*.yaml workflows
+  "check"                      # Enforce List Resource for New Resources
+  "detect"                     # Breaking Schema Changes
+  "preview-api-version-linter" # Preview ARM API Version Linter
   "provider-tests"             # Provider Tests
+  "test"                       # Check for new usages of deprecated functionality
 )
 
 # Returns 0 (true) if the check name is in MONITORED_CHECKS, 1 otherwise.
@@ -211,23 +225,47 @@ get_check_guidance() {
     gencheck|"Generation Check")
       echo "Run \`make generate\` to regenerate any auto-generated code, then commit the changes."
       ;;
-    golint|"GoLangCI Linting")
-      echo "Run the Go linter locally with \`make lint\` and fix any reported issues."
+    golangci-lint|"GoLangCI Linting")
+      echo "Run the Go linter locally with \`make lint\` and fix any reported issues (\`make lint-fix\` fixes most of them)."
       ;;
     detect|"Breaking Schema Changes")
       echo "Your changes contain breaking schema changes. Please review the [breaking changes guide](contributing/topics/guide-breaking-changes.md) and ensure any breaking changes are behind the appropriate feature flag."
       ;;
-    test|"Unit Tests")
+    unit-tests|"Unit Tests")
       echo "Run \`make test\` locally to reproduce and fix the failing unit tests."
+      ;;
+    test|"Check for new usages of deprecated functionality")
+      echo "Your changes introduce new usages of deprecated functions or patterns. Check the job output for which ones and use the recommended replacement instead."
       ;;
     shellcheck|"ShellCheck Scripts")
       echo "Run \`make shellcheck\` to check shell scripts for issues."
       ;;
-    "Validate Examples")
+    validate-examples|"Validate Examples")
       echo "Run \`make validate-examples\` to check that your example configurations are valid."
       ;;
-    "Preview API Version Linter")
+    preview-api-version-linter|"Preview API Version Linter")
       echo "Check that any API version references are not using preview versions unless explicitly required."
+      ;;
+    build|"Build")
+      echo "Run \`make build\` locally to find and fix the compilation errors."
+      ;;
+    copyright|"Copyright Headers")
+      echo "Run \`make copyright-fix\` locally to add the missing copyright headers, then commit the result."
+      ;;
+    document-validate|"Document Validation")
+      echo "Run \`make document-validate\` locally to check the website documentation against the resource schemas (\`make document-fix\` fixes most issues)."
+      ;;
+    quick-checks|"Quick Checks")
+      echo "Run \`make quick-checks\` locally to check formatting (gofmt/gofumpt) and terraform blocks (terrafmt). \`make lint-fix\` fixes formatting issues automatically."
+      ;;
+    typos|"Spelling")
+      echo "Run \`make typos\` locally to reproduce and \`make typos-fix\` to fix the spelling errors."
+      ;;
+    check|"Enforce List Resource for New Resources")
+      echo "New resources must include a list implementation (\`*_resource_list.go\`). See the [list resource guide](contributing/topics/guide-list-resource.md), or explain in the PR why listing is not possible so a maintainer can apply the \`allow-without-list\` label."
+      ;;
+    provider-tests|"Provider Tests")
+      echo "The provider-level acceptance tests failed. Run \`make testacc TEST=./internal/provider TESTARGS=\"-run '^TestAcc'\"\` locally to reproduce."
       ;;
     *)
       echo "Check the CI logs for details on this failure."
@@ -343,7 +381,7 @@ for pr in "${all_prs[@]}"; do
 
     if [[ "$DRY_RUN" == "false" ]]; then
       comment_body="${WARNING_MARKER}
-Thank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than 14 days.
+Thank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than ${CLOSE_DAYS} days.
 
 Please feel free to reopen this PR once the CI issues have been resolved.${guidance}
 
@@ -384,9 +422,9 @@ Thank you for your understanding!"
 
     if [[ "$DRY_RUN" == "false" ]]; then
       comment_body="${WARNING_MARKER}
-Hi @${pr_author}, we have noticed that the CI on this pull request has been failing for 7 days.
+Hi @${pr_author}, we have noticed that the CI on this pull request has been failing for ${WARN_DAYS} days.
 
-If the CI failures are not resolved within the next 7 days, we will close this pull request.${guidance}
+If the CI failures are not resolved within the next $((CLOSE_DAYS - WARN_DAYS)) days, we will close this pull request.${guidance}
 
 If you need help, please leave a comment and we will do our best to assist. Thank you!"
 
