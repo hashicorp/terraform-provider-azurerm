@@ -5,6 +5,7 @@ package kubernetes_cluster_node_pool_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -1610,7 +1611,7 @@ func checkWindowsProfileState(profile *agentpools.AgentPoolWindowsProfile, attri
 			return fmt.Errorf("Azure returned no outbound NAT setting for the never-configured windows_profile after the tag update (profile present=%t)", profile != nil)
 		}
 		if attributes["windows_profile.#"] != "0" || attributes["windows_profile.0.outbound_nat_enabled"] != "" {
-			return fmt.Errorf("state contains a Windows profile without an API outbound NAT setting")
+			return errors.New("state contains a Windows profile without an API outbound NAT setting")
 		}
 		return nil
 	}
