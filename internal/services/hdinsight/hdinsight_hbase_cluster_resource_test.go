@@ -1234,7 +1234,9 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 func (HDInsightHBaseClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    persist_id_on_create_before_polling_for_completion = true
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1262,7 +1264,9 @@ resource "azurerm_storage_container" "test" {
 func (HDInsightHBaseClusterResource) gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    persist_id_on_create_before_polling_for_completion = true
+  }
 }
 
 resource "azurerm_resource_group" "test" {

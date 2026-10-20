@@ -35,7 +35,9 @@ func TestAccHDInsightCluster_securityProfileSequential(t *testing.T) {
 func hdInsightsecurityProfileCommonTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    persist_id_on_create_before_polling_for_completion = true
+  }
 }
 
 provider "azuread" {}

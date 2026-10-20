@@ -1858,7 +1858,9 @@ resource "azurerm_network_security_group" "test" {
 func (HDInsightHadoopClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    persist_id_on_create_before_polling_for_completion = true
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1885,7 +1887,9 @@ resource "azurerm_storage_container" "test" {
 func (HDInsightHadoopClusterResource) gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    persist_id_on_create_before_polling_for_completion = true
+  }
 }
 
 resource "azurerm_resource_group" "test" {
