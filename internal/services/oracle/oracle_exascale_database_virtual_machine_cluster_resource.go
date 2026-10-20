@@ -24,6 +24,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity
+
 var (
 	_ sdk.ResourceWithUpdate        = ExascaleDatabaseVirtualMachineClusterResource{}
 	_ sdk.ResourceWithIdentity      = ExascaleDatabaseVirtualMachineClusterResource{}
@@ -316,7 +318,7 @@ func (ExascaleDatabaseVirtualMachineClusterResource) Arguments() map[string]*plu
 		"system_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// O+C if not specified, the default value will be provided by API
+			// NOTE: O+C if not specified, the default value will be provided by API
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.SystemVersion,

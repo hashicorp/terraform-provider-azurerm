@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ExascaleDatabaseVirtualMachineClusterResource struct{}
+type OracleExascaleDatabaseVirtualMachineClusterResource struct{}
 
 func getExascaleGridImageOcid() string {
 	const envName = "ARM_TEST_ORACLE_EXASCALE_GRID_IMAGE_OCID"
@@ -28,7 +28,7 @@ func getExascaleGridImageOcid() string {
 	return os.Getenv(envName)
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := exadbvmclusters.ParseExadbVMClusterID(state.ID)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (a ExascaleDatabaseVirtualMachineClusterResource) Exists(ctx context.Contex
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExascaleDatabaseVirtualMachineClusterResource{}
+	r := OracleExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -58,7 +58,7 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_basic(t *testing
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExascaleDatabaseVirtualMachineClusterResource{}
+	r := OracleExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -73,7 +73,7 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_complete(t *test
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExascaleDatabaseVirtualMachineClusterResource{}
+	r := OracleExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -87,7 +87,7 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_requiresImport(t
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseVirtualMachineClusterResource{}.ResourceType(), "test")
-	r := ExascaleDatabaseVirtualMachineClusterResource{}
+	r := OracleExascaleDatabaseVirtualMachineClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -106,7 +106,7 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_update(t *testin
 	})
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) basic(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
@@ -129,7 +129,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) complete(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
@@ -181,7 +181,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) update(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
@@ -207,7 +207,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test" {
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) requiresImport(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -233,7 +233,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "import" {
 `, a.basic(data))
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) template(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

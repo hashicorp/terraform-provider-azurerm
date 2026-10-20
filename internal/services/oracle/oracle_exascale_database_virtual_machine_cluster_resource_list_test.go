@@ -16,7 +16,7 @@ import (
 )
 
 func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_list_basic(t *testing.T) {
-	r := ExascaleDatabaseVirtualMachineClusterResource{}
+	r := OracleExascaleDatabaseVirtualMachineClusterResource{}
 	listResourceAddress := "azurerm_oracle_exascale_database_virtual_machine_cluster.list"
 
 	data := acceptance.BuildTestData(t, "azurerm_oracle_exascale_database_virtual_machine_cluster", "test")
@@ -48,7 +48,7 @@ func TestAccOracleExascaleDatabaseVirtualMachineClusterResource_list_basic(t *te
 	})
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) basicList(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 
@@ -117,7 +117,7 @@ resource "azurerm_oracle_exascale_database_virtual_machine_cluster" "test2" {
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) basicListQuery() string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) basicListQuery() string {
 	return `
 list "azurerm_oracle_exascale_database_virtual_machine_cluster" "list" {
   provider = azurerm
@@ -126,7 +126,7 @@ list "azurerm_oracle_exascale_database_virtual_machine_cluster" "list" {
 `
 }
 
-func (a ExascaleDatabaseVirtualMachineClusterResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (a OracleExascaleDatabaseVirtualMachineClusterResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_oracle_exascale_database_virtual_machine_cluster" "list" {
   provider = azurerm

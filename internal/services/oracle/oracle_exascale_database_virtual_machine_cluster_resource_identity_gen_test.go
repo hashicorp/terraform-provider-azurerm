@@ -15,7 +15,7 @@ import (
 
 func TestAccOracleExascaleDatabaseVirtualMachineCluster_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_oracle_exascale_database_virtual_machine_cluster", "test")
-	r := ExascaleDatabaseVirtualMachineClusterResource{}
+	r := OracleExascaleDatabaseVirtualMachineClusterResource{}
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},
