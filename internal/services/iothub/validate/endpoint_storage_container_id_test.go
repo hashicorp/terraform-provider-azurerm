@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestEndpointStorageContainerID(t *testing.T) {
+func TestValidateEndpointStorageContainerID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

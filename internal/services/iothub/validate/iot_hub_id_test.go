@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestIotHubID(t *testing.T) {
+func TestValidateIotHubID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
