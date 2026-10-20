@@ -7,6 +7,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/ai_foundry"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/ai_foundry_project"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_compute_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_compute_instance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_datastore_blobstorage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_datastore_datalake_gen2"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_datastore_fileshare"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_inference_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_synapse_spark"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_workspace_network_outbound_rule_fqdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_workspace_network_outbound_rule_private_endpoint"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/resources/machine_learning_workspace_network_outbound_rule_service_tag"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,18 +49,18 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_machine_learning_workspace": dataSourceMachineLearningWorkspace(),
+		"azurerm_machine_learning_workspace": machine_learning_workspace.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_machine_learning_compute_cluster":   resourceComputeCluster(),
-		"azurerm_machine_learning_compute_instance":  resourceComputeInstance(),
-		"azurerm_machine_learning_inference_cluster": resourceAksInferenceCluster(),
-		"azurerm_machine_learning_synapse_spark":     resourceSynapseSpark(),
-		"azurerm_machine_learning_workspace":         resourceMachineLearningWorkspace(),
+		"azurerm_machine_learning_compute_cluster":   machine_learning_compute_cluster.RegisterResource(),
+		"azurerm_machine_learning_compute_instance":  machine_learning_compute_instance.RegisterResource(),
+		"azurerm_machine_learning_inference_cluster": machine_learning_inference_cluster.RegisterResource(),
+		"azurerm_machine_learning_synapse_spark":     machine_learning_synapse_spark.RegisterResource(),
+		"azurerm_machine_learning_workspace":         machine_learning_workspace.RegisterResource(),
 	}
 }
 
@@ -59,14 +72,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AIFoundry{},
-		AIFoundryProject{},
-		MachineLearningDataStoreBlobStorage{},
-		MachineLearningDataStoreDataLakeGen2{},
-		MachineLearningDataStoreFileShare{},
-		WorkspaceNetworkOutboundRuleFqdn{},
-		WorkspaceNetworkOutboundRulePrivateEndpoint{},
-		WorkspaceNetworkOutboundRuleServiceTag{},
+		ai_foundry.Resource{},
+		ai_foundry_project.Resource{},
+		machine_learning_datastore_blobstorage.Resource{},
+		machine_learning_datastore_datalake_gen2.Resource{},
+		machine_learning_datastore_fileshare.Resource{},
+		machine_learning_workspace_network_outbound_rule_fqdn.Resource{},
+		machine_learning_workspace_network_outbound_rule_private_endpoint.Resource{},
+		machine_learning_workspace_network_outbound_rule_service_tag.Resource{},
 	}
 }
 
