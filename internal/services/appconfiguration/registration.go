@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/resources/app_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/resources/app_configuration_feature"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/resources/app_configuration_key"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/resources/app_configuration_keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,15 +28,15 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		KeyDataSource{},
-		KeysDataSource{},
+		app_configuration_key.DataSource{},
+		app_configuration_keys.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		FeatureResource{},
-		KeyResource{},
+		app_configuration_feature.Resource{},
+		app_configuration_key.Resource{},
 	}
 }
 
@@ -51,14 +55,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_app_configuration": dataSourceAppConfiguration(),
+		"azurerm_app_configuration": app_configuration.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_app_configuration": resourceAppConfiguration(),
+		"azurerm_app_configuration": app_configuration.RegisterResource(),
 	}
 }
 

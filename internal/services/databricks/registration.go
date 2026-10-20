@@ -7,6 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/resources/databricks_access_connector"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/resources/databricks_virtual_network_peering"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/resources/databricks_workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/resources/databricks_workspace_private_endpoint_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/resources/databricks_workspace_root_dbfs_customer_managed_key"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,31 +42,31 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_databricks_workspace":                             dataSourceDatabricksWorkspace(),
-		"azurerm_databricks_workspace_private_endpoint_connection": dataSourceDatabricksWorkspacePrivateEndpointConnection(),
+		"azurerm_databricks_workspace":                             databricks_workspace.RegisterDataSource(),
+		"azurerm_databricks_workspace_private_endpoint_connection": databricks_workspace_private_endpoint_connection.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_databricks_virtual_network_peering":                  resourceDatabricksVirtualNetworkPeering(),
-		"azurerm_databricks_workspace":                                resourceDatabricksWorkspace(),
-		"azurerm_databricks_workspace_root_dbfs_customer_managed_key": resourceDatabricksWorkspaceRootDbfsCustomerManagedKey(),
+		"azurerm_databricks_virtual_network_peering":                  databricks_virtual_network_peering.RegisterResource(),
+		"azurerm_databricks_workspace":                                databricks_workspace.RegisterResource(),
+		"azurerm_databricks_workspace_root_dbfs_customer_managed_key": databricks_workspace_root_dbfs_customer_managed_key.RegisterResource(),
 	}
 }
 
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		DatabricksAccessConnectorDataSource{},
+		databricks_access_connector.DataSource{},
 	}
 }
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AccessConnectorResource{},
+		databricks_access_connector.Resource{},
 	}
 }
 
