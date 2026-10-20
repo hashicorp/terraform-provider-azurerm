@@ -362,6 +362,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleDownMode(), false),
 		},
 
+		"security": schemaNodePoolSecurity("security"),
+
 		"temporary_name_for_rotation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -421,8 +423,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
-
-		"security": schemaNodePoolSecurity("security"),
 	}
 }
 
@@ -973,11 +973,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 
 	// if the node pool name has changed, it means the initial attempt at resizing failed
 	cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
-	oldSecurity, newSecurity := d.GetChange("security")
-	if nodePoolSecurityFlagsChanged(oldSecurity.([]any), newSecurity.([]any)) {
-		cycleNodePool = true
-		cycleNodePoolProperties = append(cycleNodePoolProperties, "security")
-	}
 	// os_sku can only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 	if d.HasChange("os_sku") {
 		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")

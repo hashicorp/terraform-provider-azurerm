@@ -225,6 +225,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForScaleDownMode(), false),
 					},
 
+					"security": schemaNodePoolSecurity("default_node_pool.0.security"),
+
 					"snapshot_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -266,8 +268,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-
-					"security": schemaNodePoolSecurity("default_node_pool.0.security"),
 				}
 			}(),
 		},
@@ -300,21 +300,6 @@ func schemaNodePoolSecurity(path string) *pluginsdk.Schema {
 			},
 		},
 	}
-}
-
-func nodePoolSecurityFlagsChanged(oldRaw, newRaw []any) bool {
-	old := expandManagedClusterAgentPoolSecurityProfile(oldRaw)
-	new := expandManagedClusterAgentPoolSecurityProfile(newRaw)
-
-	oldSecureBoot, oldVTPM := false, false
-	if old != nil {
-		oldSecureBoot, oldVTPM = pointer.From(old.EnableSecureBoot), pointer.From(old.EnableVTPM)
-	}
-	newSecureBoot, newVTPM := false, false
-	if new != nil {
-		newSecureBoot, newVTPM = pointer.From(new.EnableSecureBoot), pointer.From(new.EnableVTPM)
-	}
-	return oldSecureBoot != newSecureBoot || oldVTPM != newVTPM
 }
 
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {

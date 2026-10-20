@@ -2645,11 +2645,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
 		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
-		oldSecurity, newSecurity := d.GetChange("default_node_pool.0.security")
-		if nodePoolSecurityFlagsChanged(oldSecurity.([]any), newSecurity.([]any)) {
-			cycleNodePool = true
-			cycleNodePoolProperties = append(cycleNodePoolProperties, "default_node_pool.0.security")
-		}
 		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 		if d.HasChange("default_node_pool.0.os_sku") {
 			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")

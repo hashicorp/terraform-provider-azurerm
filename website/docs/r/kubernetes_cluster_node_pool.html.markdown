@@ -14,7 +14,7 @@ Manages a Node Pool within a Kubernetes Cluster
 
 ~> **Note:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
--> **Note:** Changing certain properties is done by cycling the node pool. When cycling it, it doesn’t perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous node pool. `temporary_name_for_rotation` must be specified when changing any of the following properties: `fips_enabled`, `host_encryption_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `node_public_ip_enabled`, `os_disk_size_gb`, `os_disk_type`, `pod_subnet_id`, `security` (when either flag changes), `snapshot_id`, `ultra_ssd_enabled`, `vm_size`, `vnet_subnet_id`, `zones`.
+-> **Note:** Changing certain properties is done by cycling the node pool. When cycling it, it doesn’t perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous node pool. `temporary_name_for_rotation` must be specified when changing any of the following properties: `fips_enabled`, `host_encryption_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `node_public_ip_enabled`, `os_disk_size_gb`, `os_disk_type`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vm_size`, `vnet_subnet_id`, `zones`.
 
 ## Example Usage
 
@@ -108,8 +108,6 @@ The following arguments are supported:
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
-* `security` - (Optional) A `security` block as documented below. Changing the effective value of either flag requires specifying `temporary_name_for_rotation`.
-
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
@@ -149,6 +147,8 @@ The following arguments are supported:
 ~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) until this is fixed in the AKS API.
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `security` - (Optional) A `security` block as documented below. Changing either flag reimages the nodes in this pool and can disrupt workloads.
 
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated.
 
@@ -236,18 +236,6 @@ A `node_network_profile` block supports the following:
 
 ---
 
-A `security` block supports the following:
-
-~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
-
--> **Note:** Omitting this block leaves Secure Boot and vTPM disabled. Removing a configured block disables both settings; if either was enabled, `temporary_name_for_rotation` is required. When the block is present, at least one flag must be specified; the other defaults to `false`.
-
-* `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Node Pool. Defaults to `false`.
-
-* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Node Pool. Defaults to `false`.
-
----
-
 An `allowed_host_ports` block supports the following:
 
 * `port_start` - (Optional) Specifies the start of the port range.
@@ -255,6 +243,18 @@ An `allowed_host_ports` block supports the following:
 * `port_end` - (Optional) Specifies the end of the port range.
 
 * `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
+
+---
+
+A `security` block supports the following:
+
+~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
+
+-> **Note:** On creation, omitting this block uses Azure's security defaults. Removing a configured block disables both settings. For an existing pool with either setting enabled, configure this block to match those settings; omitting it plans to disable them. When the block is present, at least one flag must be specified; the other defaults to `false`.
+
+* `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Node Pool. Defaults to `false`.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Node Pool. Defaults to `false`.
 
 ---
 
