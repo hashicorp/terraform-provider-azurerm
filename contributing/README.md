@@ -44,6 +44,7 @@ This contribution guide assumes you have at least a basic understanding of both 
 * [Best Practices](topics/best-practices.md)
 * [Glossary](topics/reference-glossary.md)
 * [Naming](topics/reference-naming.md)
+* [Package and Folder Structure](topics/reference-package-structure.md)
 * [Resource IDs](topics/guide-resource-ids.md)
 * [Schema Design](topics/schema-design-considerations.md)
 * [Provider Documentation Standards](topics/reference-documentation-standards.md)

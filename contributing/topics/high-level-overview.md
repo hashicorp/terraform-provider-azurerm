@@ -45,29 +45,30 @@ Each Service Package consists of (to take `appconfiguration` as an example):
 | `./client` | A Client struct, with a reference to any SDK Clients used to access the Azure APIs within this Service Package. |
 | `./parse` | Resource ID Formatters and Parsers. |
 | `./validate` | Validation functions for this Service Package, including Resource ID Validators. |
-| `./app_configuration_data_source.go` | The Data Source `azurerm_app_configuration`. |
-| `./app_configuration_data_source_test.go` | Acceptance tests for the Data Source `azurerm_app_configuration`. |
-| `./app_configuration_key_resource.go` | The Resource `azurerm_app_configuration_key`. |
-| `./app_configuration_key_resource_test.go` | Acceptance Tests for the Resource `azurerm_app_configuration_key`. |
-| `./app_configuration_resource.go` | The Resource `azurerm_app_configuration`. |
-| `./app_configuration_resource_test.go` | Acceptance tests for the Resource `azurerm_app_configuration`. |
 | `./registration.go` | The Service Registration for this Service Package. |
+| `./resourceids.go` | Used to generate Resource ID Formatters, Parsers and Validators. |
+| `./resources/app_configuration` | The Resource `azurerm_app_configuration`, its Data Source and Acceptance Tests. |
+| `./resources/app_configuration_key` | The Resource `azurerm_app_configuration_key`. |
 
-Some Service Packages may also contain:
+Each Data Source and Resource has its own sub-package under `./resources` (and each Action under `./actions`), which contains:
 
-| File/Directory         | Description                                                                                  |
-|------------------------|----------------------------------------------------------------------------------------------|
-| `./migration`          | Any State Migrations used in Resources.                                                      |
-| `./resourceids.go`     | Used to generate Resource ID Formatters, Parsers and Validators.                             |
+| File/Directory | Description |
+| ---------------- | ------------- |
+| `./resource.go` | The Resource `azurerm_app_configuration`. |
+| `./r_*.go` | The schema and each stage of the lifecycle (create, read, update and delete) for the Resource. |
+| `./data_source.go` | The Data Source `azurerm_app_configuration`. |
+| `./resource_test.go` | Acceptance tests for the Resource `azurerm_app_configuration`. |
+| `./data_source_test.go` | Acceptance tests for the Data Source `azurerm_app_configuration`. |
+| `./migration` | Any State Migrations used by the Resource. |
 
 ---
 
-* Data Sources use the filename format: `{name}_data_source.go`
-* Acceptance Tests for Data Sources use the filename format: `{name}_data_source_test.go` (note: Golang requires that Tests are contained within a `test.go` file)
-* Resources use the filename format: `{name}_resource.go`
-* Acceptance Tests for Resources use the filename format: `{name}_resource_test.go` (note: Golang requires that Tests are contained within a `test.go` file)
+* Resources use the filename format: `resource.go`
+* Acceptance Tests for Resources use the filename format: `resource_test.go` (note: Golang requires that Tests are contained within a `test.go` file)
+* Data Sources use the filename format: `data_source.go`
+* Acceptance Tests for Data Sources use the filename format: `data_source_test.go`
 
-> **Note:** there are a handful of exceptions to these to reduce stuttering (e.g. Resource Provider Registration Resource)
+See [Package and Folder Structure](reference-package-structure.md) for more detail.
 
 ## Types of Data Sources/Resources within the Provider
 

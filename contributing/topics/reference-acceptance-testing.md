@@ -64,15 +64,42 @@ Next to the tests that call it, after the `TestAcc...` functions and before `Exi
 
 ### Test Package
 
-While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aadb2c/aadb2c_directory_data_source_test.go` the package should be:
+Tests live in the same folder as the resource and data source `.go` files, but need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/network/resources/subnet/resource_test.go` the package should be:
 
 ```go
-package aadb2c_test
+package subnet_test
 
 import ...
 ```
 
 This is checked by `make test` during CI.
+
+### Sequential Acceptance Tests
+
+Some Azure resources can only exist once per region or subscription (for example, Network Watcher), so tests for them can't run at the same time as each other.
+
+The tests for these resources, and for anything that depends on them, stay together in the sub-package of the top-level resource. A single `TestAcc<Resource>_sequential` function runs each test one after another:
+
+```go
+func TestAccNetworkWatcher_sequential(t *testing.T) {
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":    testAccNetworkWatcher_basic,
+			"complete": testAccNetworkWatcher_complete,
+		},
+	}
+
+	for group, m := range testCases {
+		for name, tc := range m {
+			t.Run(group+"_"+name, func(t *testing.T) {
+				tc(t)
+			})
+		}
+	}
+}
+```
+
+The functions it calls start with a lowercase `testAcc` rather than `TestAcc`, otherwise they would also run on their own.
 
 ### Import Step
 
