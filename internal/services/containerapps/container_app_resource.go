@@ -450,11 +450,10 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
-				// Ingress sticky session validations
-				if len(ingress.StickySessions) != 0 &&
-					ingress.StickySessions[0].Affinity == string(containerapps.AffinitySticky) &&
+				// Ingress session affinity validations
+				if ingress.IsSessionAffinity &&
 					app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) {
-					return fmt.Errorf("`sticky` session affinity can only be used in conjunction with `Single` `revision_mode`")
+					return fmt.Errorf("session affinity can only be used in conjunction with `Single` `revision_mode`")
 				}
 				// Ingress traffic weight validations
 
