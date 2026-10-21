@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_fleet_manager_test
@@ -13,6 +13,23 @@ import (
 )
 
 type KubernetesFleetManagerDataSource struct{}
+
+func TestAccKubernetesFleetManagerDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_fleet_manager", "test")
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_fleet_manager" "test" {
+  name                = azurerm_kubernetes_fleet_manager.test.name
+  resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
+}
+`, KubernetesFleetManagerTestResource{}.updated(data)),
+		},
+	}, "")
+}
 
 func TestAccKubernetesFleetManagerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_fleet_manager", "test")

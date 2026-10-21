@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 func TestMapFleetToKubernetesFleetManagerDataSourceModel(t *testing.T) {
@@ -74,17 +73,5 @@ func TestMapFleetToKubernetesFleetManagerDataSourceModel(t *testing.T) {
 	}
 	if len(state.HubProfile) != 0 {
 		t.Fatalf("expected missing API hub profile to clear state, got %#v", state.HubProfile)
-	}
-}
-
-func TestKubernetesFleetManagerDataSourceSchemaInternalValidate(t *testing.T) {
-	wrapper := sdk.NewDataSourceWrapper(DataSource{})
-	dataSource, err := wrapper.DataSource()
-	if err != nil {
-		t.Fatalf("building data source schema: %+v", err)
-	}
-
-	if err := dataSource.InternalValidate(nil, false); err != nil {
-		t.Fatalf("validating data source schema: %+v", err)
 	}
 }

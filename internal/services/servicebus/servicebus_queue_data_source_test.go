@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus_test
@@ -49,5 +49,5 @@ data "azurerm_servicebus_queue" "test" {
   name         = azurerm_servicebus_queue.test.name
   namespace_id = azurerm_servicebus_namespace.test.id
 }
-`, ServiceBusQueueResource{}.basic(data))
+`, ServicebusQueueResource{}.basic(data))
 }

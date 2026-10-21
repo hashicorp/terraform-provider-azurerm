@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_circuit_test
@@ -12,6 +12,17 @@ import (
 )
 
 type ExpressRouteCircuitDataSource struct{}
+
+func testAccDataSourceExpressRoute_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func testAccDataSourceExpressRoute_basicMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
