@@ -18,7 +18,7 @@ const (
 
 func (p PosType) String() string {
 	return [...]string{
-		"Defaul",
+		"Default",
 		"Example",
 		"Args",
 		"Attr",

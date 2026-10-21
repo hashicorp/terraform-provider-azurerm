@@ -40,7 +40,7 @@ func (r StorageContainerImmutabilityPolicyResource) IDValidationFunc() pluginsdk
 	return validate.StorageContainerImmutabilityPolicyID
 }
 
-func (r StorageContainerImmutabilityPolicyResource) ModelObject() interface{} {
+func (r StorageContainerImmutabilityPolicyResource) ModelObject() any {
 	return &ContainerImmutabilityPolicyModel{}
 }
 

@@ -84,6 +84,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Windows Web App Slot be enabled? Defaults to `true`.
 
+* `end_to_end_tls_encryption_enabled` - (Optional) Whether to enable end-to-end TLS encryption. Defaults to `false`.
+
 * `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
 * `https_only` - (Optional) Should the Windows Web App Slot require HTTPS connections. Defaults to `false`.

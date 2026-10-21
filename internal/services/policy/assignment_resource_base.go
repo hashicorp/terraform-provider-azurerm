@@ -133,7 +133,7 @@ func (br assignmentBaseResource) createFunc(resourceName, scopeFieldName string)
 					return fmt.Errorf("unable to parse metadata: %s", err)
 				}
 				if metaData != nil {
-					var d interface{} = metaData
+					var d any = metaData
 					assignment.Properties.Metadata = &d
 				}
 			}
@@ -325,14 +325,14 @@ func (br assignmentBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("metadata") {
-				m := map[string]interface{}{}
+				m := map[string]any{}
 				if config.Metadata != "" {
 					m, err = pluginsdk.ExpandJsonFromString(config.Metadata)
 					if err != nil {
 						return fmt.Errorf("parsing metadata: %+v", err)
 					}
 				}
-				var i interface{} = m
+				var i any = m
 				update.Properties.Metadata = &i
 			}
 
@@ -682,7 +682,7 @@ func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments
 		item := assignmentOverrideSelectorModel{
 			In:    pointer.From(s.In),
 			NotIn: pointer.From(s.NotIn),
-			Kind:  string(pointer.From(s.Kind)),
+			Kind:  pointer.FromEnum(s.Kind),
 		}
 		res = append(res, item)
 	}

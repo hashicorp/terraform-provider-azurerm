@@ -157,7 +157,7 @@ func resourceArmDevTestLinuxVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -192,7 +192,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 	storageType := d.Get("storage_type").(string)
 	username := d.Get("username").(string)
 
-	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]interface{})
+	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]any)
 	galleryImageReference := expandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, "Linux")
 
 	natRulesRaw := d.Get("inbound_nat_rule").(*pluginsdk.Set)
@@ -228,7 +228,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 			StorageType:                pointer.To(storageType),
 			UserName:                   pointer.To(username),
 		},
-		Tags: expandTags(d.Get("tags").(map[string]interface{})),
+		Tags: expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -245,7 +245,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *pluginsdk.ResourceData
 	return resourceArmDevTestLinuxVirtualMachineRead(d, meta)
 }
 
-func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -298,7 +298,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceArmDevTestLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmDevTestLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

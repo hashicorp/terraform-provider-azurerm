@@ -7,6 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/resources/data_share"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/resources/data_share_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/resources/data_share_dataset_blob_storage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/resources/data_share_dataset_data_lake_gen2"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/resources/data_share_dataset_kusto_cluster"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/resources/data_share_dataset_kusto_database"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,24 +42,24 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_data_share":                        dataSourceDataShare(),
-		"azurerm_data_share_account":                dataSourceDataShareAccount(),
-		"azurerm_data_share_dataset_blob_storage":   dataSourceDataShareDatasetBlobStorage(),
-		"azurerm_data_share_dataset_data_lake_gen2": dataSourceDataShareDatasetDataLakeGen2(),
-		"azurerm_data_share_dataset_kusto_cluster":  dataSourceDataShareDatasetKustoCluster(),
-		"azurerm_data_share_dataset_kusto_database": dataSourceDataShareDatasetKustoDatabase(),
+		"azurerm_data_share":                        data_share.RegisterDataSource(),
+		"azurerm_data_share_account":                data_share_account.RegisterDataSource(),
+		"azurerm_data_share_dataset_blob_storage":   data_share_dataset_blob_storage.RegisterDataSource(),
+		"azurerm_data_share_dataset_data_lake_gen2": data_share_dataset_data_lake_gen2.RegisterDataSource(),
+		"azurerm_data_share_dataset_kusto_cluster":  data_share_dataset_kusto_cluster.RegisterDataSource(),
+		"azurerm_data_share_dataset_kusto_database": data_share_dataset_kusto_database.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_data_share":                        resourceDataShare(),
-		"azurerm_data_share_account":                resourceDataShareAccount(),
-		"azurerm_data_share_dataset_blob_storage":   resourceDataShareDataSetBlobStorage(),
-		"azurerm_data_share_dataset_data_lake_gen2": resourceDataShareDataSetDataLakeGen2(),
-		"azurerm_data_share_dataset_kusto_cluster":  resourceDataShareDataSetKustoCluster(),
-		"azurerm_data_share_dataset_kusto_database": resourceDataShareDataSetKustoDatabase(),
+		"azurerm_data_share":                        data_share.RegisterResource(),
+		"azurerm_data_share_account":                data_share_account.RegisterResource(),
+		"azurerm_data_share_dataset_blob_storage":   data_share_dataset_blob_storage.RegisterResource(),
+		"azurerm_data_share_dataset_data_lake_gen2": data_share_dataset_data_lake_gen2.RegisterResource(),
+		"azurerm_data_share_dataset_kusto_cluster":  data_share_dataset_kusto_cluster.RegisterResource(),
+		"azurerm_data_share_dataset_kusto_database": data_share_dataset_kusto_database.RegisterResource(),
 	}
 }
 

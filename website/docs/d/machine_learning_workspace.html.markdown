@@ -17,13 +17,13 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_machine_learning_workspace" "existing" {
+data "azurerm_machine_learning_workspace" "example" {
   name                = "example-workspace"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = data.azurerm_machine_learning_workspace.existing.id
+  value = data.azurerm_machine_learning_workspace.example.id
 }
 ```
 

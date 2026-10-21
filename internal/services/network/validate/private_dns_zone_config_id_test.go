@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestPrivateDnsZoneConfigID(t *testing.T) {
+func TestValidatePrivateDnsZoneConfigID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

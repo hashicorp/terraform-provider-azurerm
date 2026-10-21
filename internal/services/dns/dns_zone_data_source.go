@@ -21,7 +21,7 @@ var _ sdk.DataSource = DnsZoneDataResource{}
 
 type DnsZoneDataResource struct{}
 
-func (DnsZoneDataResource) ModelObject() interface{} {
+func (DnsZoneDataResource) ModelObject() any {
 	return &DnsZoneDataResourceModel{}
 }
 

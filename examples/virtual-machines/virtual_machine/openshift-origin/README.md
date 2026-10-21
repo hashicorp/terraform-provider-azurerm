@@ -77,7 +77,7 @@ This template deploys a bastion host, merely for the connection provisioner and 
 
 The OpenShift Ansible playbook does take a while to run when using VMs backed by Standard Storage. VMs backed by Premium Storage are faster. If you want Premimum Storage, select a DS or GS series VM.
 <hr />
-Be sure to follow the OpenShift instructions to create the ncessary DNS entry for the OpenShift Router for access to applications.
+Be sure to follow the OpenShift instructions to create the necessary DNS entry for the OpenShift Router for access to applications.
 
 ## Post-Deployment Operations
 

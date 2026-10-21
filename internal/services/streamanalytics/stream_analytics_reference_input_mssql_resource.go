@@ -124,7 +124,7 @@ func resourceStreamAnalyticsReferenceMsSql() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -196,7 +196,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlCreateUpdate(d *pluginsdk.Resourc
 	return resourceStreamAnalyticsReferenceInputMsSqlRead(d, meta)
 }
 
-func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,7 +261,7 @@ func resourceStreamAnalyticsReferenceInputMsSqlRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceStreamAnalyticsReferenceInputMsSqlDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsReferenceInputMsSqlDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -25,7 +25,7 @@ func GetThroughputFromResult(throughputResponse cosmosdb.ThroughputSettingsGetRe
 	return res.Throughput
 }
 
-func ConvertThroughputFromResourceData(throughput interface{}) *int64 {
+func ConvertThroughputFromResourceData(throughput any) *int64 {
 	return pointer.To(int64(throughput.(int)))
 }
 

@@ -74,14 +74,14 @@ func resourceStorageQueue() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta any) error {
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	queueName := d.Get("name").(string)
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	metaData := ExpandMetaData(metaDataRaw)
 
 	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -118,7 +118,7 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageQueueRead(d, meta)
 }
 
-func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta any) error {
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("metadata") {
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaDataRaw := d.Get("metadata").(map[string]any)
 		payload.Properties.Metadata = pointer.To(ExpandMetaData(metaDataRaw))
 	}
 
@@ -153,7 +153,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageQueueRead(d, meta)
 }
 
-func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,7 +205,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta any) error {
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
