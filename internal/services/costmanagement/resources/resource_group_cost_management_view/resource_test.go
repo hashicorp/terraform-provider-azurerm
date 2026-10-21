@@ -18,6 +18,17 @@ import (
 
 type ResourceGroupCostManagementView struct{}
 
+func TestAccResourceGroupCostManagementView_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
+	r := ResourceGroupCostManagementView{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccResourceGroupCostManagementView_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
 	r := ResourceGroupCostManagementView{}

@@ -34,6 +34,16 @@ func (r *DatadogMonitorResource) populateFromEnvironment(t *testing.T) {
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
 }
 
+func TestAccDatadogMonitor_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
+	r := DatadogMonitorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDatadogMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
 	r := DatadogMonitorResource{}

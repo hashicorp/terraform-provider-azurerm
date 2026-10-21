@@ -13,6 +13,17 @@ import (
 
 type DataShareDatasetBlobStorageDataSource struct{}
 
+func TestAccDataShareDatasetBlobStorageDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")
+	r := DataShareDatasetBlobStorageDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataShareDatasetBlobStorageDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")
 	r := DataShareDatasetBlobStorageDataSource{}

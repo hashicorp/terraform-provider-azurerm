@@ -36,6 +36,17 @@ func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicVMSSConfig(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesCluster_basicVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}

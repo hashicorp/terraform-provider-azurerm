@@ -13,6 +13,17 @@ import (
 
 type DataFactoryDataSource struct{}
 
+func TestAccDataFactoryDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_factory", "test")
+	r := DataFactoryDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_factory", "test")
 	r := DataFactoryDataSource{}

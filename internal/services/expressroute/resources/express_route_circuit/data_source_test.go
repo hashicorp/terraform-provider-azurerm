@@ -13,6 +13,17 @@ import (
 
 type ExpressRouteCircuitDataSource struct{}
 
+func testAccDataSourceExpressRoute_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func testAccDataSourceExpressRoute_basicMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitDataSource{}

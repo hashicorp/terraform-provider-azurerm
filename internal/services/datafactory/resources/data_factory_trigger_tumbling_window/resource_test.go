@@ -18,6 +18,17 @@ import (
 
 type TriggerTumblingWindowResource struct{}
 
+func TestAccDataFactoryTriggerTumblingWindow_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
+	r := TriggerTumblingWindowResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryTriggerTumblingWindow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
 	r := TriggerTumblingWindowResource{}

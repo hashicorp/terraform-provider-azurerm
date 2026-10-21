@@ -13,6 +13,17 @@ import (
 
 type EventHubNamespaceDataSource struct{}
 
+func TestAccEventHubNamespaceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubNamespaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceDataSource{}
