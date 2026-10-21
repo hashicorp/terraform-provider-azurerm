@@ -18,6 +18,16 @@ import (
 
 type ApiManagementIdentityProviderMicrosoftResource struct{}
 
+func TestAccApiManagementIdentityProviderMicrosoft_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
+	r := ApiManagementIdentityProviderMicrosoftResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementIdentityProviderMicrosoft_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
 	r := ApiManagementIdentityProviderMicrosoftResource{}

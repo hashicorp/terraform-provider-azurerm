@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSubnetID(t *testing.T) {
+func TestValidateSubnetID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

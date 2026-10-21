@@ -18,6 +18,16 @@ import (
 
 type ApiManagementUserResource struct{}
 
+func TestAccApiManagementUser_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
 	r := ApiManagementUserResource{}
