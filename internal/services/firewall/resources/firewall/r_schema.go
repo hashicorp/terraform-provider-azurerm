@@ -174,6 +174,26 @@ func firewallSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"autoscale": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"minimum_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(2),
+					},
+					"maximum_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(2, 50),
+					},
+				},
+			},
+		},
+
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"tags": commonschema.Tags(),
