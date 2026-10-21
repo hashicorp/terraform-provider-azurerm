@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package manageddevopspools
+package managed_devops_pool
 
 import (
 	"context"
@@ -17,30 +17,31 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.DataSource = ManagedDevOpsPoolDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-type ManagedDevOpsPoolDataSource struct{}
+type DataSource struct{}
 
 type ManagedDevOpsPoolDataSourceModel struct {
-	DevCenterProjectId           string                              `tfschema:"dev_center_project_id"`
-	VirtualMachineScaleSetFabric []VirtualMachineScaleSetFabricModel `tfschema:"virtual_machine_scale_set_fabric"`
-	Identity                     []identity.ModelUserAssigned        `tfschema:"identity"`
-	Location                     string                              `tfschema:"location"`
-	MaximumConcurrency           int64                               `tfschema:"maximum_concurrency"`
-	Name                         string                              `tfschema:"name"`
-	AzureDevOpsOrganization      []AzureDevOpsOrganizationModel      `tfschema:"azure_devops_organization"`
-	ResourceGroupName            string                              `tfschema:"resource_group_name"`
-	WorkFolder                   string                              `tfschema:"work_folder"`
-	Tags                         map[string]string                   `tfschema:"tags"`
-	StatefulAgent                []StatefulAgentModel                `tfschema:"stateful_agent"`
-	StatelessAgent               []StatelessAgentModel               `tfschema:"stateless_agent"`
+	DevCenterProjectId           string                                      `tfschema:"dev_center_project_id"`
+	VirtualMachineScaleSetFabric []helpers.VirtualMachineScaleSetFabricModel `tfschema:"virtual_machine_scale_set_fabric"`
+	Identity                     []identity.ModelUserAssigned                `tfschema:"identity"`
+	Location                     string                                      `tfschema:"location"`
+	MaximumConcurrency           int64                                       `tfschema:"maximum_concurrency"`
+	Name                         string                                      `tfschema:"name"`
+	AzureDevOpsOrganization      []helpers.AzureDevOpsOrganizationModel      `tfschema:"azure_devops_organization"`
+	ResourceGroupName            string                                      `tfschema:"resource_group_name"`
+	WorkFolder                   string                                      `tfschema:"work_folder"`
+	Tags                         map[string]string                           `tfschema:"tags"`
+	StatefulAgent                []helpers.StatefulAgentModel                `tfschema:"stateful_agent"`
+	StatelessAgent               []helpers.StatelessAgentModel               `tfschema:"stateless_agent"`
 }
 
-func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -56,7 +57,7 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -312,15 +313,15 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ManagedDevOpsPoolDataSource) ModelObject() any {
+func (DataSource) ModelObject() any {
 	return &ManagedDevOpsPoolDataSourceModel{}
 }
 
-func (ManagedDevOpsPoolDataSource) ResourceType() string {
+func (DataSource) ResourceType() string {
 	return "azurerm_managed_devops_pool"
 }
 
-func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
+func (DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -5,6 +5,7 @@ package manageddevopspools
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/resources/managed_devops_pool"
 )
 
 type Registration struct{}
@@ -13,13 +14,13 @@ var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ManagedDevOpsPoolDataSource{},
+		managed_devops_pool.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagedDevOpsPoolResource{},
+		managed_devops_pool.Resource{},
 	}
 }
 
