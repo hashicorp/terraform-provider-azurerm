@@ -600,7 +600,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(ctx context.Context, clie
 
 		// get shared key from a separate API call as it is not returned in the list call
 		sharedKey := ""
-		linkId, err := virtualwans.ParseVpnLinkConnectionID(pointer.From(item.Id))
+		linkId, err := virtualwans.ParseVpnLinkConnectionIDInsensitively(pointer.From(item.Id))
 		if err != nil {
 			return nil, fmt.Errorf("parsing vpn link connection id %q: %+v", pointer.From(item.Id), err)
 		}
