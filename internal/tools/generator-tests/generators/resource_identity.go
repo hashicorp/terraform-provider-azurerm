@@ -426,8 +426,8 @@ func (d *resourceIdentityData) exec() error {
 			parentSubpkg := strings.TrimPrefix(d.ParentResource, "azurerm_")
 			outputDir = filepath.Join(filepath.Dir(cwd), parentSubpkg)
 			shortName := d.ResourceName
-			if strings.HasPrefix(shortName, parentSubpkg+"_") {
-				shortName = strings.TrimPrefix(shortName, parentSubpkg+"_")
+			if after, ok := strings.CutPrefix(shortName, parentSubpkg+"_"); ok {
+				shortName = after
 			} else {
 				providerRoot, err := findProviderRoot(cwd)
 				if err == nil {
@@ -436,8 +436,8 @@ func (d *resourceIdentityData) exec() error {
 						parts := strings.Split(filepath.ToSlash(rel), "/")
 						if len(parts) >= 1 && parts[0] != ".." && parts[0] != "." {
 							serviceName := parts[0]
-							if strings.HasPrefix(shortName, serviceName+"_") {
-								shortName = strings.TrimPrefix(shortName, serviceName+"_")
+							if after, ok := strings.CutPrefix(shortName, serviceName+"_"); ok {
+								shortName = after
 							}
 						}
 					}
