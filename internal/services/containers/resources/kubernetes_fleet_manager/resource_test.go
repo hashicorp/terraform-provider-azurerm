@@ -9,11 +9,9 @@ package kubernetes_fleet_manager_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -117,13 +115,14 @@ func TestAccKubernetesFleetManager_hubProfileDefaults(t *testing.T) {
 func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
 	r := KubernetesFleetManagerTestResource{}
-	subnetId := r.preCheckPrivateHub(t)
 
 	checks := []acceptance.TestCheckFunc{
 		check.That(data.ResourceName).ExistsInAzure(r),
 		check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
 		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.#").HasValue("1"),
-		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").HasValue(subnetId),
+		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").MatchesOtherKey(
+			check.That("azurerm_subnet.test").Key("id"),
+		),
 		check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.virtual_machine_size").HasValue("Standard_D2as_v7"),
 		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.#").HasValue("1"),
 		check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.0.private_cluster_enabled").HasValue("true"),
@@ -153,7 +152,7 @@ func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privateHub(data, subnetId, true, "initial"),
+			Config: r.privateHub(data, true, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				hubCheck,
 				check.That(data.ResourceName).Key("tags.phase").HasValue("initial"),
@@ -161,11 +160,11 @@ func TestAccKubernetesFleetManager_privateHub(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:   r.privateHub(data, subnetId, false, "initial"),
+			Config:   r.privateHub(data, false, "initial"),
 			PlanOnly: true,
 		},
 		{
-			Config: r.privateHub(data, subnetId, false, "updated"),
+			Config: r.privateHub(data, false, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				hubCheck,
 				check.That(data.ResourceName).Key("tags.phase").HasValue("updated"),
@@ -202,20 +201,6 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func (KubernetesFleetManagerTestResource) preCheckPrivateHub(t *testing.T) string {
-	t.Helper()
-	subnetId := os.Getenv("ARM_TEST_FLEET_SUBNET_ID")
-	if subnetId == "" {
-		t.Skip("ARM_TEST_FLEET_SUBNET_ID must reference a dedicated subnet with Network Contributor assigned to the Fleet resource provider")
-	}
-
-	id, err := commonids.ParseSubnetIDInsensitively(subnetId)
-	if err != nil {
-		t.Fatalf("parsing ARM_TEST_FLEET_SUBNET_ID: %+v", err)
-	}
-	return id.ID()
 }
 
 func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -331,12 +316,36 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
 `, r.template(data), phase)
 }
 
-func (r KubernetesFleetManagerTestResource) privateHub(data acceptance.TestData, subnetId string, configureProfiles bool, phase string) string {
+func (r KubernetesFleetManagerTestResource) privateHub(data acceptance.TestData, configureProfiles bool, phase string) string {
 	return fmt.Sprintf(`
 %s
 
 provider "azurerm" {
   features {}
+}
+
+data "azuread_service_principal" "fleet" {
+  display_name = "Azure Kubernetes Service - Fleet RP"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-${var.random_integer}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-${var.random_integer}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["192.168.0.0/24"]
+}
+
+resource "azurerm_role_assignment" "fleet_network" {
+  scope                = azurerm_subnet.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.fleet.object_id
 }
 
 variable "configure_profiles" {
@@ -359,7 +368,7 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
     dynamic "agent_profile" {
       for_each = var.configure_profiles ? [1] : []
       content {
-        subnet_id            = %q
+        subnet_id            = azurerm_subnet.test.id
         virtual_machine_size = "Standard_D2as_v7"
       }
     }
@@ -370,8 +379,10 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
       }
     }
   }
+
+  depends_on = [azurerm_role_assignment.fleet_network]
 }
-`, r.template(data), configureProfiles, phase, subnetId)
+`, r.template(data), configureProfiles, phase)
 }
 
 func (r KubernetesFleetManagerTestResource) template(data acceptance.TestData) string {
