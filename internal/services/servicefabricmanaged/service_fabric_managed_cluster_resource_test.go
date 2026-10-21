@@ -134,6 +134,30 @@ func TestAccServiceFabricManagedCluster_authentication(t *testing.T) {
 	})
 }
 
+func TestAccServiceFabricManagedCluster_multipleLBRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_managed_cluster", "test")
+	r := ClusterResource{}
+	nodeTypeData1 := r.nodeType("test1", true, 130)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("lb_rule.#").HasValue("1"),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.multipleLBRules(data, nodeTypeData1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("lb_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func (r ClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedcluster.ParseManagedClusterID(state.ID)
 	if err != nil {
@@ -179,6 +203,53 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
     probe_protocol     = "http"
     protocol           = "tcp"
     probe_request_path = "/"
+  }
+
+  %[4]s
+
+  tags = {
+    Test = "value"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
+}
+
+func (r ClusterResource) multipleLBRules(data acceptance.TestData, nodeTypeData string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfmc-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_fabric_managed_cluster" "test" {
+  name                = "testacc-sfmc-%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+  username            = "testUser"
+  password            = "NotV3ryS3cur3P@$$w0rd"
+  dns_service_enabled = true
+
+  client_connection_port = 12345
+  http_gateway_port      = 23456
+
+  lb_rule {
+    backend_port       = 8000
+    frontend_port      = 443
+    probe_protocol     = "http"
+    protocol           = "tcp"
+    probe_request_path = "/"
+  }
+
+  lb_rule {
+    backend_port   = 8001
+    frontend_port  = 8080
+    probe_protocol = "tcp"
+    protocol       = "tcp"
   }
 
   %[4]s
