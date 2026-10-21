@@ -71,8 +71,9 @@ type BackupPolicyCosmosdbAccountRetentionRule struct {
 type DataProtectionBackupPolicyCosmosdbAccountResource struct{}
 
 var (
-	_ sdk.Resource             = DataProtectionBackupPolicyCosmosdbAccountResource{}
-	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.Resource                   = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.ResourceWithIdentity       = DataProtectionBackupPolicyCosmosdbAccountResource{}
+	_ sdk.ResourceWithCustomImporter = DataProtectionBackupPolicyCosmosdbAccountResource{}
 )
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) Identity() resourceids.ResourceId {
@@ -89,6 +90,31 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) ModelObject() any {
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return basebackuppolicyresources.ValidateBackupPolicyID
+}
+
+func (r DataProtectionBackupPolicyCosmosdbAccountResource) CustomImporter() sdk.ResourceRunFunc {
+	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+		id, err := basebackuppolicyresources.ParseBackupPolicyID(metadata.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		client := metadata.Client.DataProtection.BackupPolicyClient20260601
+		resp, err := client.BackupPoliciesGet(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: model was nil", *id)
+		}
+
+		properties, ok := resp.Model.Properties.(basebackuppolicyresources.BackupPolicy)
+		if !ok || !backupPolicySupportsCosmosdbAccounts(properties) {
+			return fmt.Errorf("%s is not a backup policy for `Microsoft.DocumentDB/databaseAccounts`", *id)
+		}
+
+		return nil
+	}
 }
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) Arguments() map[string]*pluginsdk.Schema {
@@ -330,7 +356,7 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Create() sdk.Resource
 			policyRules = append(policyRules, expandBackupPolicyCosmosdbAccountDefaultRetentionRule(model.DefaultRetentionDuration))
 			backupRules, err := expandBackupPolicyCosmosdbAccountBackupRules(model.BackupSchedule, model.BackupFrequency == backupPolicyCosmosdbAccountFrequencyDaily, expandBackupPolicyCosmosdbAccountTaggingCriteria(retentionRules))
 			if err != nil {
-				return fmt.Errorf("expanding backup schedule: %+v", err)
+				return fmt.Errorf("parsing `backup schedule`: %+v", err)
 			}
 			policyRules = append(policyRules, backupRules...)
 
