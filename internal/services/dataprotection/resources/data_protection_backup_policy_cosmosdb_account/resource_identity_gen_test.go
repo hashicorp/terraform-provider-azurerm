@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package dataprotection_test
+package data_protection_backup_policy_cosmosdb_account_test
 
 import (
 	"testing"
