@@ -1,0 +1,19 @@
+<!--
+ Copyright IBM Corp. 2014, 2026
+ SPDX-License-Identifier: MPL-2.0
+-->
+<policies>
+	<inbound>
+		<base />
+		<set-backend-service base-url="${base-url}" />
+	</inbound>
+	<backend>
+		<base />
+	</backend>
+	<outbound>
+		<base />
+	</outbound>
+	<on-error>
+		<base />
+	</on-error>
+</policies>
