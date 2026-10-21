@@ -47,6 +47,7 @@ type resourceIdentityData struct {
 	TestEnvVars            []string
 	TestExpectNonEmptyPlan bool
 	TestSequential         bool
+	ParentResource         string
 	RewriteTag             bool
 }
 
@@ -83,6 +84,8 @@ Optional args:
 	- test-sequential [bool]
 		'test-sequential' generates a lowercase test function name (testAcc... instead of TestAcc...) and uses resource.Test instead of resource.ParallelTest.
 		This is used for resources that need to run in a sequential test suite.
+	- parent-resource [string]
+		'parent-resource' specifies the parent resource that hosts the sequential test suite. When running in a resource subpackage, the generated test will be placed into the parent resource's folder under the parent test package.
 
 Example:
 generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
@@ -118,6 +121,9 @@ func (c *ResourceIdentityCommand) Run(args []string) int {
 }
 
 func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
+	if currentDir, err := os.Getwd(); err == nil && currentDir != "" {
+		cwd = currentDir
+	}
 	argSet := flag.NewFlagSet("ri", flag.ExitOnError)
 
 	argSet.StringVar(&d.ResourceName, "resource-name", "", "(Optional) the name of the resource to generate the resource identity test for. Defaults to parsing $GOFILE.")
@@ -133,11 +139,14 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
 	argSet.BoolVar(&d.TestSequential, "test-sequential", false, "(Optional) generates a lowercase test function name for use in sequential test suites. Defaults to `false`.")
+	argSet.StringVar(&d.ParentResource, "parent-resource", "", "(Optional) the parent resource that hosts the sequential test suite for this resource.")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
 		return
 	}
+
+	d.ParentResource = strings.TrimPrefix(d.ParentResource, "azurerm_")
 
 	if d.ResourceName == "" || d.ResourceName == "resource.go" || d.ResourceName == "resource" {
 		if goFile := os.Getenv("GOFILE"); goFile != "" && goFile != "resource.go" {
@@ -405,11 +414,45 @@ func isRefactoredSubpackage(dir string) bool {
 }
 
 func (d *resourceIdentityData) exec() error {
+	if currentDir, err := os.Getwd(); err == nil && currentDir != "" {
+		cwd = currentDir
+	}
 	tpl := template.Must(template.New("identity_test.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
 
 	var outputFilename string
+	outputDir := cwd
 	if isRefactoredSubpackage(cwd) {
-		outputFilename = "resource_identity_gen_test.go"
+		if d.ParentResource != "" {
+			parentSubpkg := strings.TrimPrefix(d.ParentResource, "azurerm_")
+			outputDir = filepath.Join(filepath.Dir(cwd), parentSubpkg)
+			shortName := d.ResourceName
+			if strings.HasPrefix(shortName, parentSubpkg+"_") {
+				shortName = strings.TrimPrefix(shortName, parentSubpkg+"_")
+			} else {
+				providerRoot, err := findProviderRoot(cwd)
+				if err == nil {
+					servicesDir := filepath.Join(providerRoot, "internal", "services")
+					if rel, err := filepath.Rel(servicesDir, cwd); err == nil {
+						parts := strings.Split(filepath.ToSlash(rel), "/")
+						if len(parts) >= 1 && parts[0] != ".." && parts[0] != "." {
+							serviceName := parts[0]
+							if strings.HasPrefix(shortName, serviceName+"_") {
+								shortName = strings.TrimPrefix(shortName, serviceName+"_")
+							}
+						}
+					}
+				}
+			}
+			outputFilename = fmt.Sprintf("%s_resource_identity_gen_test.go", shortName)
+			d.ServicePackageName = parentSubpkg
+
+			localStale := filepath.Join(cwd, "resource_identity_gen_test.go")
+			if _, err := os.Stat(localStale); err == nil {
+				_ = os.Remove(localStale)
+			}
+		} else {
+			outputFilename = "resource_identity_gen_test.go"
+		}
 		legacyPath := filepath.Join(cwd, fmt.Sprintf(riOutputFileFmt, d.ResourceName))
 		if _, err := os.Stat(legacyPath); err == nil {
 			_ = os.Remove(legacyPath)
@@ -417,15 +460,21 @@ func (d *resourceIdentityData) exec() error {
 	} else {
 		outputFilename = fmt.Sprintf(riOutputFileFmt, d.ResourceName)
 	}
-	outputPath := filepath.Join(cwd, outputFilename)
+	outputPath := filepath.Join(outputDir, outputFilename)
 
 	// Allow service package name override if needed, otherwise infer from GOPACKAGE or cwd
-	if pkg := os.Getenv("GOPACKAGE"); pkg != "" {
+	if d.ParentResource != "" && isRefactoredSubpackage(cwd) {
+		// d.ServicePackageName already set to parentSubpkg
+	} else if pkg := os.Getenv("GOPACKAGE"); pkg != "" {
 		d.ServicePackageName = pkg
 	} else if d.ServicePackageName == "" {
 		d.ServicePackageName = filepath.Base(cwd)
 	} else if strings.Contains(d.ServicePackageName, string(os.PathSeparator)) || strings.Contains(d.ServicePackageName, "/") {
 		d.ServicePackageName = filepath.Base(d.ServicePackageName)
+	}
+
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		return fmt.Errorf("failed creating output directory %s: %w", outputDir, err)
 	}
 
 	f, err := os.Create(outputPath)
