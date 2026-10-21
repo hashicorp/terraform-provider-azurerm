@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedapplications_test
+package managed_application_definition_test
 
 import (
 	"context"

@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/resources/managed_application"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/resources/managed_application_definition"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,15 +38,15 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_managed_application_definition": dataSourceManagedApplicationDefinition(),
+		"azurerm_managed_application_definition": managed_application_definition.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_managed_application":            resourceManagedApplication(),
-		"azurerm_managed_application_definition": resourceManagedApplicationDefinition(),
+		"azurerm_managed_application":            managed_application.RegisterResource(),
+		"azurerm_managed_application_definition": managed_application_definition.RegisterResource(),
 	}
 }
 
