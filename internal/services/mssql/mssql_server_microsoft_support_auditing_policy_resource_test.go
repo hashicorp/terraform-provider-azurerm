@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -101,7 +101,7 @@ func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
+func TestAccMsSqlServerMicrosoftSupportAuditingPolicy_storageAccountBehindFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_microsoft_support_auditing_policy", "test")
 	r := MsSqlServerMicrosoftSupportAuditingPolicyResource{}
 
