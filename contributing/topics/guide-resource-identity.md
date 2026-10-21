@@ -228,6 +228,14 @@ If your resource uses a **Virtual Identity** (a sub-resource that inherits its I
 
 > **Note:** If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
 
+If your resource tests are collocated in a parent resource package to run in a sequential test suite (e.g. `network_watcher`), specify `-test-sequential` and `-parent-resource`:
+
+```go
+//go:generate go run ../../../../tools/generator-tests resourceidentity -test-sequential -parent-resource network_watcher
+```
+
+The generator automatically places the generated test file into the parent subpackage directory with the parent test package name (e.g. `package network_watcher_test`).
+
 ### How the Generator Works (AST Inference)
 
 The generator reduces boilerplate by using Abstract Syntax Tree (AST) inference to automatically map the properties of an ID struct to the resource schema.
@@ -279,6 +287,9 @@ import (
 
 // An example of a resource ID that doesn't contain the `subscription_id` segment, e.g. management groups
 //go:generate go run ../../tools/generator-tests resourceidentity -no-subscription-id
+
+// An example of a resource running in a parent sequential suite
+//go:generate go run ../../../../tools/generator-tests resourceidentity -test-sequential -parent-resource parent_resource
 
 type ExampleResource struct{}
 
