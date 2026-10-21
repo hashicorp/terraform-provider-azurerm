@@ -19,6 +19,17 @@ import (
 
 type EventHubNamespaceAuthorizationRuleResource struct{}
 
+func TestAccEventHubNamespaceAuthorizationRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
+	r := EventHubNamespaceAuthorizationRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.base(data, true, true, true),
+		},
+	}, "")
+}
+
 func TestAccEventHubNamespaceAuthorizationRule_listen(t *testing.T) {
 	testAccEventHubNamespaceAuthorizationRule(t, true, false, false)
 }

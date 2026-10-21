@@ -26,11 +26,23 @@ func TestAccGraphServicesAccount_sequential(t *testing.T) {
 			"update":         testAccGraphServicesAccount_update,
 			"complete":       testAccGraphServicesAccount_complete,
 			"requiresImport": testAccGraphServicesAccount_requiresImport,
+			"regression":     testAccGraphServicesAccount_regressionTest,
 		},
 	})
 }
 
 type AccountTestResource struct{}
+
+func testAccGraphServicesAccount_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")
+	r := AccountTestResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func testAccGraphServicesAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_graph_services_account", "test")

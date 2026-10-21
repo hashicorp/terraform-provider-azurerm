@@ -13,6 +13,17 @@ import (
 
 type RouteFilterDataSource struct{}
 
+func TestAccDataSourceRouteFilter_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_route_filter", "test")
+	r := RouteFilterDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceRouteFilter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_filter", "test")
 	r := RouteFilterDataSource{}

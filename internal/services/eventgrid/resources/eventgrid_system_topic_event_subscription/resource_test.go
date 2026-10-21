@@ -18,6 +18,17 @@ import (
 
 type EventGridSystemTopicEventSubscriptionResource struct{}
 
+func TestAccEventGridSystemTopicEventSubscription_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridSystemTopicEventSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}

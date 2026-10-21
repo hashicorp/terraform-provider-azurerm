@@ -19,6 +19,17 @@ import (
 
 type EventHubAuthorizationRuleResource struct{}
 
+func TestAccEventHubAuthorizationRule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
+	r := EventHubAuthorizationRuleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.base(data, true, true, true),
+		},
+	}, "")
+}
+
 func TestAccEventHubAuthorizationRule_listen(t *testing.T) {
 	testAccEventHubAuthorizationRule(t, true, false, false)
 }
