@@ -1,0 +1,64 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package network_watcher_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+)
+
+type NetworkWatcherDataSource struct{}
+
+func testAccDataSourceNetworkWatcher_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_network_watcher", "test")
+	r := NetworkWatcherDataSource{}
+
+	name := fmt.Sprintf("acctestnw-%d", data.RandomInteger)
+
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("name").HasValue(name),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
+		},
+	})
+}
+
+func (NetworkWatcherDataSource) basicConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_watcher" "test" {
+  name                = "acctestnw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    env = "test"
+  }
+}
+
+data "azurerm_network_watcher" "test" {
+  name                = azurerm_network_watcher.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
