@@ -409,7 +409,7 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
-* `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
+* `node_network_profile` - (Optional) A `node_network_profile` block as defined below.
 
 * `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
@@ -449,7 +449,7 @@ A `default_node_pool` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as defined below.
 
 * `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist.
 
@@ -780,7 +780,7 @@ A `bootstrap_profile` block supports the following:
 
 -> **Note:** To migrate an existing cluster to `outbound_type = "none"`, first apply `artifact_source = "Cache"` while retaining the current outbound type. Reimage all node pools and wait for the upgrade to finish before applying `outbound_type = "none"`. See the [AKS migration steps](https://learn.microsoft.com/azure/aks/network-isolated#update-an-existing-aks-cluster-to-network-isolated-type).
 
-~> **Note:** If the `artifact_source` is set to `Cache` and the `outbound_type` has been specified, the managed ACR and related resources will **not** be automatically deleted and must be removed manually. Please see the product [documentation](https://learn.microsoft.com/azure/aks/concepts-network-isolated#how-a-network-isolated-cluster-works) for more information.
+~> **Note:** When `outbound_type` changes to a value other than `none` or `block` while `artifact_source` remains `Cache`, AKS retains its managed ACR and related resources. Azure deletes these resources when the cluster is deleted. Please see the product [documentation](https://learn.microsoft.com/azure/aks/concepts-network-isolated#how-a-network-isolated-cluster-works) for more information.
 
 * `container_registry_id` - (Optional) The resource Id of Azure Container Registry.
 

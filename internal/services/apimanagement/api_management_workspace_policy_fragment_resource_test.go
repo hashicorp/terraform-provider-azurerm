@@ -18,6 +18,16 @@ import (
 
 type ApiManagementWorkspacePolicyFragmentTestResource struct{}
 
+func TestAccApiManagementWorkspacePolicyFragment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
+	r := ApiManagementWorkspacePolicyFragmentTestResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementWorkspacePolicyFragment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_policy_fragment", "test")
 	r := ApiManagementWorkspacePolicyFragmentTestResource{}
