@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package maintenance
+package public_maintenance_configurations
 
 import (
 	"encoding/base64"
@@ -24,7 +24,7 @@ const (
 	recurFridayToSunday   = "Friday-Sunday"
 )
 
-func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
+func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourcePublicMaintenanceConfigurationsRead,
 

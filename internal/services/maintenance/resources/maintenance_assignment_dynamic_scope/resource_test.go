@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package maintenance_test
+package maintenance_assignment_dynamic_scope_test
 
 import (
 	"context"

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package maintenance_test
+package public_maintenance_configurations_test
 
 import (
 	"testing"

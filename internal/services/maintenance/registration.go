@@ -7,6 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/resources/maintenance_assignment_dedicated_host"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/resources/maintenance_assignment_dynamic_scope"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/resources/maintenance_assignment_virtual_machine"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/resources/maintenance_assignment_virtual_machine_scale_set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/resources/maintenance_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/resources/public_maintenance_configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -38,23 +44,23 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		MaintenanceDynamicScopeResource{},
+		maintenance_assignment_dynamic_scope.Resource{},
 	}
 }
 
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_maintenance_configuration":         dataSourceMaintenanceConfiguration(),
-		"azurerm_public_maintenance_configurations": dataSourcePublicMaintenanceConfigurations(),
+		"azurerm_maintenance_configuration":         maintenance_configuration.RegisterDataSource(),
+		"azurerm_public_maintenance_configurations": public_maintenance_configurations.RegisterDataSource(),
 	}
 }
 
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_maintenance_assignment_dedicated_host":            resourceArmMaintenanceAssignmentDedicatedHost(),
-		"azurerm_maintenance_assignment_virtual_machine":           resourceArmMaintenanceAssignmentVirtualMachine(),
-		"azurerm_maintenance_assignment_virtual_machine_scale_set": resourceArmMaintenanceAssignmentVirtualMachineScaleSet(),
-		"azurerm_maintenance_configuration":                        resourceMaintenanceConfiguration(),
+		"azurerm_maintenance_assignment_dedicated_host":            maintenance_assignment_dedicated_host.RegisterResource(),
+		"azurerm_maintenance_assignment_virtual_machine":           maintenance_assignment_virtual_machine.RegisterResource(),
+		"azurerm_maintenance_assignment_virtual_machine_scale_set": maintenance_assignment_virtual_machine_scale_set.RegisterResource(),
+		"azurerm_maintenance_configuration":                        maintenance_configuration.RegisterResource(),
 	}
 }
 
