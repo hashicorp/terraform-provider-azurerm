@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -446,7 +446,7 @@ resource "azurerm_api_management_api_operation" "test" {
       <group id="abc123" name="First Group" />
       <group id="bcd234" name="Second Group" />
     </groups>
-  </user> 
+  </user>
 </response>
 SAMPLE
 
@@ -497,7 +497,7 @@ resource "azurerm_api_management_api_operation" "test" {
       <group id="abc123" name="First Group" />
       <group id="bcd234" name="Second Group" />
     </groups>
-  </user> 
+  </user>
 </response>
 SAMPLE
 
@@ -547,7 +547,7 @@ resource "azurerm_api_management_api_operation" "test" {
       <group id="abc123" name="First Group" />
       <group id="bcd234" name="Second Group" />
     </groups>
-  </user> 
+  </user>
 </response>
 SAMPLE
 
