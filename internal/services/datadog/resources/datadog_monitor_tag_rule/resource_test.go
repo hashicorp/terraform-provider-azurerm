@@ -33,6 +33,16 @@ func (r *TagRulesDatadogMonitorResource) populateFromEnvironment(t *testing.T) {
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
 }
 
+func TestAccDatadogMonitorTagRules_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
+	r := TagRulesDatadogMonitorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDatadogMonitorTagRules_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_tag_rule", "test")
 	r := TagRulesDatadogMonitorResource{}

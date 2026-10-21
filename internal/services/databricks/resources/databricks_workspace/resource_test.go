@@ -28,6 +28,17 @@ type DatabricksWorkspaceAlternateSubscription struct {
 	subscriptionID string
 }
 
+func TestAccDatabricksWorkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}

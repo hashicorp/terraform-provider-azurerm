@@ -16,6 +16,17 @@ type KubernetesServiceVersionDataSource struct{}
 
 const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
 
+func TestAccDataSourceAzureRMKubernetesServiceVersions_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")
+	r := KubernetesServiceVersionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")
 	r := KubernetesServiceVersionDataSource{}

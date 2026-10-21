@@ -18,6 +18,17 @@ import (
 
 type DatasetAzureBlobResource struct{}
 
+func TestAccDataFactoryDatasetAzureBlob_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
+	r := DatasetAzureBlobResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetAzureBlob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_azure_blob", "test")
 	r := DatasetAzureBlobResource{}

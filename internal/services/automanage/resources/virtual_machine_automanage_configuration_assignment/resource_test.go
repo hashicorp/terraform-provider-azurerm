@@ -19,6 +19,16 @@ import (
 
 type VirtualMachineAutomanageConfigurationAssignmentResource struct{}
 
+func TestAccVirtualMachineConfigurationAssignment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_automanage_configuration_assignment", "test")
+	r := VirtualMachineAutomanageConfigurationAssignmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccVirtualMachineConfigurationAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_automanage_configuration_assignment", "test")
 	r := VirtualMachineAutomanageConfigurationAssignmentResource{}

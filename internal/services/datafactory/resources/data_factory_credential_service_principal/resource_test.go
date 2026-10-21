@@ -18,6 +18,17 @@ import (
 
 type CredentialServicePrincipalResource struct{}
 
+func TestAccDataFactoryCredentialServicePrincipal_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
+	r := CredentialServicePrincipalResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryCredentialServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_service_principal", "test")
 	r := CredentialServicePrincipalResource{}

@@ -19,6 +19,17 @@ import (
 
 type CostManagementScheduledAction struct{}
 
+func TestAccCostManagementScheduledAction_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.daily(data),
+		},
+	}, "")
+}
+
 func TestAccCostManagementScheduledAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
 	r := CostManagementScheduledAction{}

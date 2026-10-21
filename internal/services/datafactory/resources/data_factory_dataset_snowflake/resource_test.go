@@ -18,6 +18,17 @@ import (
 
 type DatasetSnowflakeResource struct{}
 
+func TestAccDataFactoryDatasetSnowflake_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_snowflake", "test")
+	r := DatasetSnowflakeResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetSnowflake_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_snowflake", "test")
 	r := DatasetSnowflakeResource{}

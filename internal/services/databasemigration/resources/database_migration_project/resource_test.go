@@ -82,6 +82,17 @@ func TestAccDatabaseMigrationProject_basicMongoDbToMongoDb(t *testing.T) {
 	})
 }
 
+func TestAccDatabaseMigrationProject_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDatabaseMigrationProject_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
 	r := DatabaseMigrationProjectResource{}

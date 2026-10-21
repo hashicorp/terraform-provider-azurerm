@@ -20,6 +20,17 @@ import (
 
 type DatabricksVirtualNetworkPeeringResource struct{}
 
+func TestAccDatabricksVirtualNetworkPeering_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
+	r := DatabricksVirtualNetworkPeeringResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDatabricksVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
 	r := DatabricksVirtualNetworkPeeringResource{}

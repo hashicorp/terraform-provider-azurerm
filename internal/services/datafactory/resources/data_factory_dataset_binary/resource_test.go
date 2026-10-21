@@ -18,6 +18,17 @@ import (
 
 type DatasetBinaryResource struct{}
 
+func TestAccDataFactoryDatasetBinary_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
+	r := DatasetBinaryResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sftp_complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetBinary_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_binary", "test")
 	r := DatasetBinaryResource{}

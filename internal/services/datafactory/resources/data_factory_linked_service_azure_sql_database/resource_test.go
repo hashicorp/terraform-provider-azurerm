@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceAzureSQLDatabaseResource struct{}
 
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
+	r := LinkedServiceAzureSQLDatabaseResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceAzureSQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
 	r := LinkedServiceAzureSQLDatabaseResource{}
