@@ -62,9 +62,20 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksCreateOrUpdate(ctx con
 
 // AttachedNetworksCreateOrUpdateThenPoll performs AttachedNetworksCreateOrUpdate then polls until it's completed
 func (c AttachedNetworkConnectionsClient) AttachedNetworksCreateOrUpdateThenPoll(ctx context.Context, id DevCenterAttachedNetworkId, input AttachedNetworkConnection) error {
+	return c.AttachedNetworksCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AttachedNetworksCreateOrUpdateCallbackThenPoll performs AttachedNetworksCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AttachedNetworkConnectionsClient) AttachedNetworksCreateOrUpdateCallbackThenPoll(ctx context.Context, id DevCenterAttachedNetworkId, input AttachedNetworkConnection, callback func() error) error {
 	result, err := c.AttachedNetworksCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AttachedNetworksCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -65,7 +65,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Managed Identity assigned to this Static Web App resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The Type of Managed Identity assigned to this Static Web App resource. Possible values are `SystemAssigned` and `UserAssigned`.
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Web App resource.
 

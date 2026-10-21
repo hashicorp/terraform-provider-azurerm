@@ -62,9 +62,20 @@ func (c ClustersClient) Update(ctx context.Context, id ServerGroupsv2Id, input C
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c ClustersClient) UpdateThenPoll(ctx context.Context, id ServerGroupsv2Id, input ClusterForUpdate) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c ClustersClient) UpdateCallbackThenPoll(ctx context.Context, id ServerGroupsv2Id, input ClusterForUpdate, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

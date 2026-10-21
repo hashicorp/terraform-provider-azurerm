@@ -10,15 +10,42 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+var _ resourceids.ResourceId = CompositeResourceID[resourceids.ResourceId, resourceids.ResourceId]{}
+
 // CompositeResourceID is a struct representing the Resource ID for a Composite Resource Id
 type CompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId] struct {
 	// First specifies the first component of this Resource ID.
 	// This is in the format `{first}|{second}`.
-	First T1
+	First            T1
+	firstParseResult *resourceids.ParseResult
 
 	// Second specifies the second component of this Resource ID
 	// This is in the format `{first}|{second}`.
-	Second T2
+	Second            T2
+	secondParseResult *resourceids.ParseResult
+}
+
+func (id CompositeResourceID[T1, T2]) FromParseResult(_ resourceids.ParseResult) error {
+	if id.firstParseResult != nil {
+		if err := id.First.FromParseResult(*id.firstParseResult); err != nil {
+			return fmt.Errorf("populating first ID (%s) of CompositeResourceID: %v", id.First.ID(), err)
+		}
+	}
+
+	if id.secondParseResult != nil {
+		if err := id.Second.FromParseResult(*id.secondParseResult); err != nil {
+			return fmt.Errorf("populating second ID (%s) of CompositeResourceID: %v", id.Second.ID(), err)
+		}
+	}
+
+	return nil
+}
+
+func (id CompositeResourceID[T1, T2]) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.ResourceIDSegment("resourceID1", resourceids.BuildExpectedResourceId(id.First.Segments())),
+		resourceids.ResourceIDSegment("resourceID2", resourceids.BuildExpectedResourceId(id.Second.Segments())),
+	}
 }
 
 // NewCompositeResourceID returns a new CompositeResourceID struct
@@ -78,10 +105,7 @@ func parseCompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.Resource
 	if err != nil {
 		return nil, fmt.Errorf("parsing first id part %q of CompositeResourceID: %v", components[0], err)
 	}
-	err = output.First.FromParseResult(*firstParseResult)
-	if err != nil {
-		return nil, fmt.Errorf("populating first id part %q of CompositeResourceID: %v", components[0], err)
-	}
+	output.firstParseResult = firstParseResult
 
 	// Parse the second of the two Resource IDs from the components
 	secondParser := resourceids.NewParserFromResourceIdType(output.Second)
@@ -89,9 +113,12 @@ func parseCompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.Resource
 	if err != nil {
 		return nil, fmt.Errorf("parsing second id part %q of CompositeResourceID: %v", components[1], err)
 	}
-	err = output.Second.FromParseResult(*secondParseResult)
-	if err != nil {
-		return nil, fmt.Errorf("populating second id part %q of CompositeResourceID: %v", components[1], err)
+	output.secondParseResult = secondParseResult
+
+	// Pass the `firstParseResult` as the parameter is required to satisfy the `resourceId` interface
+	// internally, this function discards the input and uses the previously stored results.
+	if err := output.FromParseResult(*firstParseResult); err != nil {
+		return nil, err
 	}
 
 	return &output, nil

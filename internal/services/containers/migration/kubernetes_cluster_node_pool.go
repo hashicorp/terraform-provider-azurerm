@@ -7,7 +7,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -16,18 +17,18 @@ var _ pluginsdk.StateUpgrade = KubernetesClusterNodePoolV0ToV1{}
 type KubernetesClusterNodePoolV0ToV1 struct{}
 
 func (k KubernetesClusterNodePoolV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Printf("[DEBUG] Migrating ID to correct casing for Kubernetes Cluster")
 
 		originClusterId := rawState["kubernetes_cluster_id"].(string)
-		clusterId, err := parse.ClusterID(originClusterId)
+		clusterId, err := commonids.ParseKubernetesClusterIDInsensitively(originClusterId)
 		if err != nil {
 			return nil, err
 		}
 		rawState["kubernetes_cluster_id"] = clusterId.ID()
 
 		id := rawState["id"].(string)
-		poolId, err := parse.NodePoolID(id)
+		poolId, err := agentpools.ParseAgentPoolIDInsensitively(id)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +145,6 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 
-					// TODO 4.0: change this to `container_log_max_files`
 					"container_log_max_line": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,

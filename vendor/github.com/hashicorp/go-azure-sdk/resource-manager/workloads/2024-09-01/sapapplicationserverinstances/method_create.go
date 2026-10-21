@@ -62,9 +62,20 @@ func (c SAPApplicationServerInstancesClient) Create(ctx context.Context, id Appl
 
 // CreateThenPoll performs Create then polls until it's completed
 func (c SAPApplicationServerInstancesClient) CreateThenPoll(ctx context.Context, id ApplicationInstanceId, input SAPApplicationServerInstance) error {
+	return c.CreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCallbackThenPoll performs Create, runs the optional callback function, then polls until it's completed
+func (c SAPApplicationServerInstancesClient) CreateCallbackThenPoll(ctx context.Context, id ApplicationInstanceId, input SAPApplicationServerInstance, callback func() error) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

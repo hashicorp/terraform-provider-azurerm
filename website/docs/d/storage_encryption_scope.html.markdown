@@ -19,7 +19,7 @@ data "azurerm_storage_account" "example" {
 }
 
 data "azurerm_storage_encryption_scope" "example" {
-  name               = "existingStorageES"
+  name               = "exampleencryptionscope"
   storage_account_id = data.azurerm_storage_account.example.id
 }
 
@@ -56,4 +56,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2025-06-01
+* `Microsoft.Storage` - 2025-08-01

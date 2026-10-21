@@ -11,10 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -22,8 +22,8 @@ type NetAppAccountEncryptionDataSource struct{}
 
 var _ sdk.DataSource = NetAppAccountEncryptionDataSource{}
 
-func (r NetAppAccountEncryptionDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppAccountEncryptionDataSourceModel{}
+func (r NetAppAccountEncryptionDataSource) ModelObject() any {
+	return &models.NetAppAccountEncryptionDataSourceModel{}
 }
 
 func (r NetAppAccountEncryptionDataSource) ResourceType() string {
@@ -40,7 +40,7 @@ func (r NetAppAccountEncryptionDataSource) Arguments() map[string]*pluginsdk.Sch
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Description:  "The ID of the NetApp Account where encryption will be set.",
-			ValidateFunc: netAppValidate.ValidateNetAppAccountID,
+			ValidateFunc: validate.ValidateNetAppAccountID,
 		},
 	}
 }
@@ -80,7 +80,7 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.AccountClient
 
-			var state netAppModels.NetAppAccountEncryptionDataSourceModel
+			var state models.NetAppAccountEncryptionDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

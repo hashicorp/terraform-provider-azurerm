@@ -59,7 +59,7 @@ func (r SiteRecoveryReplicationRecoveryPlanDataSource) ResourceType() string {
 	return "azurerm_site_recovery_replication_recovery_plan"
 }
 
-func (r SiteRecoveryReplicationRecoveryPlanDataSource) ModelObject() interface{} {
+func (r SiteRecoveryReplicationRecoveryPlanDataSource) ModelObject() any {
 	return &SiteRecoveryReplicationRecoveryPlanModel{}
 }
 

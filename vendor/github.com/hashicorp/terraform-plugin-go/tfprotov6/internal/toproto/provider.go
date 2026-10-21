@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package toproto
@@ -21,6 +21,7 @@ func GetMetadata_Response(in *tfprotov6.GetMetadataResponse) *tfplugin6.GetMetad
 		ListResources:      make([]*tfplugin6.GetMetadata_ListResourceMetadata, 0, len(in.ListResources)),
 		Functions:          make([]*tfplugin6.GetMetadata_FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]*tfplugin6.GetMetadata_ResourceMetadata, 0, len(in.Resources)),
+		StateStores:        make([]*tfplugin6.GetMetadata_StateStoreMetadata, 0, len(in.StateStores)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
 	}
 
@@ -48,6 +49,10 @@ func GetMetadata_Response(in *tfprotov6.GetMetadataResponse) *tfplugin6.GetMetad
 		resp.Actions = append(resp.Actions, GetMetadata_ActionMetadata(&action))
 	}
 
+	for _, stateStore := range in.StateStores {
+		resp.StateStores = append(resp.StateStores, GetMetadata_StateStoreMetadata(&stateStore))
+	}
+
 	return resp
 }
 
@@ -62,6 +67,7 @@ func GetProviderSchema_Response(in *tfprotov6.GetProviderSchemaResponse) *tfplug
 		Diagnostics:              Diagnostics(in.Diagnostics),
 		EphemeralResourceSchemas: make(map[string]*tfplugin6.Schema, len(in.EphemeralResourceSchemas)),
 		ListResourceSchemas:      make(map[string]*tfplugin6.Schema, len(in.ListResourceSchemas)),
+		StateStoreSchemas:        make(map[string]*tfplugin6.Schema, len(in.StateStoreSchemas)),
 		Functions:                make(map[string]*tfplugin6.Function, len(in.Functions)),
 		Provider:                 Schema(in.Provider),
 		ProviderMeta:             Schema(in.ProviderMeta),
@@ -75,6 +81,10 @@ func GetProviderSchema_Response(in *tfprotov6.GetProviderSchemaResponse) *tfplug
 
 	for name, schema := range in.ListResourceSchemas {
 		resp.ListResourceSchemas[name] = Schema(schema)
+	}
+
+	for name, schema := range in.StateStoreSchemas {
+		resp.StateStoreSchemas[name] = Schema(schema)
 	}
 
 	for name, schema := range in.ResourceSchemas {

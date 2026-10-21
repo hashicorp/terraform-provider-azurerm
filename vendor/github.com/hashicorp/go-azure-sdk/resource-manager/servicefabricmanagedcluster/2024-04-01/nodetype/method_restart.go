@@ -61,9 +61,20 @@ func (c NodeTypeClient) Restart(ctx context.Context, id NodeTypeId, input NodeTy
 
 // RestartThenPoll performs Restart then polls until it's completed
 func (c NodeTypeClient) RestartThenPoll(ctx context.Context, id NodeTypeId, input NodeTypeActionParameters) error {
+	return c.RestartCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestartCallbackThenPoll performs Restart, runs the optional callback function, then polls until it's completed
+func (c NodeTypeClient) RestartCallbackThenPoll(ctx context.Context, id NodeTypeId, input NodeTypeActionParameters, callback func() error) error {
 	result, err := c.Restart(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Restart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

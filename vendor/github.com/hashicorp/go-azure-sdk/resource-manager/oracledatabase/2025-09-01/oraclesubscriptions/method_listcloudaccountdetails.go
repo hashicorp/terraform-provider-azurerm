@@ -59,9 +59,20 @@ func (c OracleSubscriptionsClient) ListCloudAccountDetails(ctx context.Context, 
 
 // ListCloudAccountDetailsThenPoll performs ListCloudAccountDetails then polls until it's completed
 func (c OracleSubscriptionsClient) ListCloudAccountDetailsThenPoll(ctx context.Context, id commonids.SubscriptionId) error {
+	return c.ListCloudAccountDetailsCallbackThenPoll(ctx, id, nil)
+}
+
+// ListCloudAccountDetailsCallbackThenPoll performs ListCloudAccountDetails, runs the optional callback function, then polls until it's completed
+func (c OracleSubscriptionsClient) ListCloudAccountDetailsCallbackThenPoll(ctx context.Context, id commonids.SubscriptionId, callback func() error) error {
 	result, err := c.ListCloudAccountDetails(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing ListCloudAccountDetails: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

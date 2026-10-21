@@ -10,13 +10,13 @@ import (
 	"net/url"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 )
 
 // workaround for https://github.com/hashicorp/go-azure-sdk/issues/492
-// TODO4.0: check if this could be removed.
+// TODO 6.0: check if this could be removed.
 // the method has been re-written to read `nextLink`
 
 type MachinesClient struct {
@@ -24,11 +24,11 @@ type MachinesClient struct {
 }
 
 type Values struct {
-	Values   *[]vmwaremachines.VMwareMachine `json:"value"`
-	NextLink *string                         `json:"nextLink"`
+	Values   *[]machines.VMwareMachine `json:"value"`
+	NextLink *string                   `json:"nextLink"`
 }
 
-func (c MachinesClient) GetAllVMWareMachinesInSite(ctx context.Context, id vmwaremachines.VMwareSiteId, options vmwaremachines.GetAllMachinesInSiteOperationOptions) (result vmwaremachines.GetAllMachinesInSiteOperationResponse, err error) {
+func (c MachinesClient) GetAllVMWareMachinesInSite(ctx context.Context, id machines.VMwareSiteId, options machines.GetAllMachinesInSiteOperationOptions) (result machines.GetAllMachinesInSiteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
@@ -47,7 +47,7 @@ func (c MachinesClient) GetAllVMWareMachinesInSite(ctx context.Context, id vmwar
 	return wrapExecutePaged(ctx, req)
 }
 
-func wrapExecutePaged(ctx context.Context, req *client.Request) (result vmwaremachines.GetAllMachinesInSiteOperationResponse, err error) {
+func wrapExecutePaged(ctx context.Context, req *client.Request) (result machines.GetAllMachinesInSiteOperationResponse, err error) {
 	resp, err := req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData

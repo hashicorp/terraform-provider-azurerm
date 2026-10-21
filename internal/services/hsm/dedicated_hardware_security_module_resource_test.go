@@ -163,14 +163,6 @@ resource "azurerm_subnet" "test3" {
   address_prefixes     = ["10.2.255.0/26"]
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
-
 resource "azurerm_virtual_network_gateway" "test" {
   name                = "acctest-vnetgateway-%d"
   location            = azurerm_resource_group.test.location
@@ -181,12 +173,11 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "Standard"
 
   ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test3.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (DedicatedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {

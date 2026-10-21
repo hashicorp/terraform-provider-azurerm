@@ -32,7 +32,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) ResourceType() string 
 	return "azurerm_private_dns_resolver_dns_forwarding_ruleset"
 }
 
-func (r PrivateDNSResolverDnsForwardingRulesetDataSource) ModelObject() interface{} {
+func (r PrivateDNSResolverDnsForwardingRulesetDataSource) ModelObject() any {
 	return &PrivateDNSResolverDnsForwardingRulesetDataSourceModel{}
 }
 
@@ -80,7 +80,8 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) Read() sdk.ResourceFun
 			}
 
 			id := dnsforwardingrulesets.NewDnsForwardingRulesetID(
-				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+				metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name,
+			)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)

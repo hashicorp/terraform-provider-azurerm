@@ -90,7 +90,7 @@ func TestAccPrivateDnsPtrRecord_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsPtrRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsPtrRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -111,33 +111,31 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "%d.0.10.in-addr.arpa"
+  name                = "%[1]d.0.10.in-addr.arpa"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["test.contoso.com", "test2.contoso.com"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r PrivateDnsPtrRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_private_dns_ptr_record" "import" {
   name                = azurerm_private_dns_ptr_record.test.name
-  resource_group_name = azurerm_private_dns_ptr_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_ptr_record.test.zone_name
+  private_dns_zone_id = azurerm_private_dns_ptr_record.test.private_dns_zone_id
   ttl                 = 300
   records             = ["test.contoso.com", "test2.contoso.com"]
 }
@@ -151,23 +149,22 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "%d.0.10.in-addr.arpa"
+  name                = "%[1]d.0.10.in-addr.arpa"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["test.contoso.com", "test2.contoso.com", "test3.contoso.com"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsPtrRecordResource) withTags(data acceptance.TestData) string {
@@ -177,19 +174,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "%d.0.10.in-addr.arpa"
+  name                = "%[1]d.0.10.in-addr.arpa"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["test.contoso.com", "test2.contoso.com"]
 
@@ -198,7 +194,7 @@ resource "azurerm_private_dns_ptr_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PrivateDnsPtrRecordResource) withTagsUpdate(data acceptance.TestData) string {
@@ -208,19 +204,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-  name                = "%d.0.10.in-addr.arpa"
+  name                = "%[1]d.0.10.in-addr.arpa"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  name                = "%[1]d"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["test.contoso.com", "test2.contoso.com"]
 
@@ -228,5 +223,5 @@ resource "azurerm_private_dns_ptr_record" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

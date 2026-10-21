@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
@@ -56,6 +57,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
@@ -79,6 +81,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
@@ -92,11 +95,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/portal"
@@ -109,7 +113,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
@@ -131,8 +134,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads"
 )
@@ -143,6 +146,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	services := []sdk.TypedServiceRegistration{
 		aadb2c.Registration{},
 		apimanagement.Registration{},
+		appgateway.Registration{},
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
@@ -155,6 +159,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		cdn.Registration{},
 		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
@@ -178,6 +183,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		expressroute.Registration{},
 		fabric.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
@@ -192,6 +198,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
+		manageddevopspools.Registration{},
 		managedhsm.Registration{},
 		managedredis.Registration{},
 		mongocluster.Registration{},
@@ -202,10 +209,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		netapp.Registration{},
 		network.Registration{},
 		networkfunction.Registration{},
+		networkgateway.Registration{},
+		networkmanager.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
 		oracle.Registration{},
-		orbital.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		postgres.Registration{},
@@ -231,8 +239,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		subscription.Registration{},
 		systemcentervirtualmachinemanager.Registration{},
 		videoindexer.Registration{},
+		virtualwan.Registration{},
 		vmware.Registration{},
-		voiceservices.Registration{},
 		web.Registration{},
 		workloads.Registration{},
 	}
@@ -242,10 +250,11 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 	return func() []sdk.UntypedServiceRegistration {
-		out := []sdk.UntypedServiceRegistration{
+		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
 			apimanagement.Registration{},
+			appgateway.Registration{},
 			appconfiguration.Registration{},
 			applicationinsights.Registration{},
 			arckubernetes.Registration{},
@@ -282,6 +291,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			elastic.Registration{},
 			eventgrid.Registration{},
 			eventhub.Registration{},
+			expressroute.Registration{},
 			firewall.Registration{},
 			frontdoor.Registration{},
 			hdinsight.Registration{},
@@ -309,6 +319,8 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			mysql.Registration{},
 			netapp.Registration{},
 			network.Registration{},
+			networkgateway.Registration{},
+			networkmanager.Registration{},
 			notificationhub.Registration{},
 			policy.Registration{},
 			portal.Registration{},
@@ -318,7 +330,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			purview.Registration{},
 			recoveryservices.Registration{},
 			redis.Registration{},
-			redisenterprise.Registration{},
 			relay.Registration{},
 			resource.Registration{},
 			search.Registration{},
@@ -334,15 +345,15 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			subscription.Registration{},
 			synapse.Registration{},
 			trafficmanager.Registration{},
+			virtualwan.Registration{},
 			vmware.Registration{},
 			web.Registration{},
 		}
-		return out
 	}()
 }
 
 func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
-	services := []sdk.FrameworkServiceRegistration{
+	return []sdk.FrameworkServiceRegistration{
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
@@ -350,6 +361,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		advisor.Registration{},
 		analysisservices.Registration{},
 		apimanagement.Registration{},
+		appgateway.Registration{},
 		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		appservice.Registration{},
@@ -409,6 +421,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		expressroute.Registration{},
 		keyvault.Registration{},
 		legacy.Registration{},
 		lighthouse.Registration{},
@@ -432,11 +445,12 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		netapp.Registration{},
 		network.Registration{},
 		networkfunction.Registration{},
+		networkgateway.Registration{},
+		networkmanager.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
 		notificationhub.Registration{},
 		oracle.Registration{},
-		orbital.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
 		portal.Registration{},
@@ -449,7 +463,6 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
-		redisenterprise.Registration{},
 		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
@@ -471,11 +484,9 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		systemcentervirtualmachinemanager.Registration{},
 		trafficmanager.Registration{},
 		videoindexer.Registration{},
+		virtualwan.Registration{},
 		vmware.Registration{},
-		voiceservices.Registration{},
 		web.Registration{},
 		workloads.Registration{},
 	}
-
-	return services
 }

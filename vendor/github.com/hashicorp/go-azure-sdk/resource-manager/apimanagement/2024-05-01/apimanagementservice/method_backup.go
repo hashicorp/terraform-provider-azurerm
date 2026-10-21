@@ -62,9 +62,20 @@ func (c ApiManagementServiceClient) Backup(ctx context.Context, id ServiceId, in
 
 // BackupThenPoll performs Backup then polls until it's completed
 func (c ApiManagementServiceClient) BackupThenPoll(ctx context.Context, id ServiceId, input ApiManagementServiceBackupRestoreParameters) error {
+	return c.BackupCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BackupCallbackThenPoll performs Backup, runs the optional callback function, then polls until it's completed
+func (c ApiManagementServiceClient) BackupCallbackThenPoll(ctx context.Context, id ServiceId, input ApiManagementServiceBackupRestoreParameters, callback func() error) error {
 	result, err := c.Backup(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Backup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -4,26 +4,30 @@
 package features
 
 type UserFeatures struct {
+	PersistIDOnCreateBeforePollingForCompletion                 bool
+	SkipImportCheckOnCreateAndAllowOverwritingExistingResources bool
+
 	ApiManagement            ApiManagementFeatures
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
 	CognitiveAccount         CognitiveAccountFeatures
+	DatabricksWorkspace      DatabricksWorkspaceFeatures
 	EnhancedValidation       EnhancedValidationFeatures
-	VirtualMachine           VirtualMachineFeatures
-	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
 	KeyVault                 KeyVaultFeatures
-	TemplateDeployment       TemplateDeploymentFeatures
 	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
-	ResourceGroup            ResourceGroupFeatures
-	RecoveryServicesVault    RecoveryServicesVault
+	MachineLearning          MachineLearningFeatures
 	ManagedDisk              ManagedDiskFeatures
+	NetApp                   NetAppFeatures
+	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	RecoveryService          RecoveryServiceFeatures
+	RecoveryServicesVault    RecoveryServicesVault
+	ResourceGroup            ResourceGroupFeatures
 	Storage                  StorageFeatures
 	Subscription             SubscriptionFeatures
-	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
-	MachineLearning          MachineLearningFeatures
-	RecoveryService          RecoveryServiceFeatures
-	NetApp                   NetAppFeatures
-	DatabricksWorkspace      DatabricksWorkspaceFeatures
+	TemplateDeployment       TemplateDeploymentFeatures
+	VirtualMachine           VirtualMachineFeatures
+	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
+	ServiceBus               ServiceBusFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -33,12 +37,13 @@ type CognitiveAccountFeatures struct {
 type EnhancedValidationFeatures struct {
 	Locations         bool
 	ResourceProviders bool
+	PreflightEnabled  bool
+	LocationFallback  *string
 }
 
 type VirtualMachineFeatures struct {
 	DetachImplicitDataDiskOnDeletion bool
 	DeleteOSDiskOnDeletion           bool
-	GracefulShutdown                 bool // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       bool
 }
 
@@ -126,4 +131,8 @@ type NetAppFeatures struct {
 
 type DatabricksWorkspaceFeatures struct {
 	ForceDelete bool
+}
+
+type ServiceBusFeatures struct {
+	AutoDeleteSubscriptionDefaultRule bool
 }

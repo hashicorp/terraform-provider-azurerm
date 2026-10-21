@@ -19,6 +19,16 @@ import (
 
 type ResourceDeploymentScriptAzureCLIResource struct{}
 
+func TestAccResourceDeploymentScriptAzureCLI_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_deployment_script_azure_cli", "test")
+	r := ResourceDeploymentScriptAzureCLIResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccResourceDeploymentScriptAzureCLI_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_deployment_script_azure_cli", "test")
 	r := ResourceDeploymentScriptAzureCLIResource{}

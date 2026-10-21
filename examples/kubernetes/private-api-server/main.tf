@@ -22,6 +22,10 @@ resource "azurerm_kubernetes_cluster" "example" {
     vm_size    = "Standard_DS2_v2"
   }
 
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"

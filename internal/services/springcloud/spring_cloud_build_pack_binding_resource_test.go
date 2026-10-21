@@ -9,12 +9,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudBuildPackBindingResource struct{}
@@ -90,13 +90,13 @@ func TestAccSpringCloudBuildPackBinding_update(t *testing.T) {
 }
 
 func (r SpringCloudBuildPackBindingResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudBuildPackBindingID(state.ID)
+	id, err := appplatform.ParseBuildPackBindingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.AppPlatform.BuildPackBindingClient.Get(ctx, id.ResourceGroup, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
+	resp, err := client.AppPlatform.BuildPackBindingClient.Get(ctx, id.ResourceGroupName, id.SpringName, id.BuildServiceName, id.BuilderName, id.BuildPackBindingName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -135,7 +135,7 @@ resource "azurerm_spring_cloud_builder" "test" {
     version = "base"
   }
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomStringOfLength(5))
+`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r SpringCloudBuildPackBindingResource) basic(data acceptance.TestData) string {
@@ -185,5 +185,5 @@ resource "azurerm_spring_cloud_build_pack_binding" "test" {
     }
   }
 }
-`, template, data.RandomStringOfLength(5))
+`, template, data.RandomString)
 }

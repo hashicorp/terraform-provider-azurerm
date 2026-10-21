@@ -31,7 +31,7 @@ const (
 )
 
 const (
-	BlcokNotDefined        = "block is not defined in the documentation"
+	BlockNotDefined        = "block is not defined in the documentation"
 	IncorrectlyBlockMarked = "The document incorrectly implies this field is a block"
 )
 
@@ -53,12 +53,11 @@ func (m *MarkItem) addLine(num int, line string) {
 }
 
 func NewMarkItem(fromLine int, content string, typ ItemType) *MarkItem {
-	m := &MarkItem{
+	return &MarkItem{
 		FromLine: fromLine,
 		lines:    []string{content},
 		Type:     typ,
 	}
-	return m
 }
 
 type Block struct {
@@ -127,8 +126,7 @@ func MustNewMarkFromFile(file string) *Mark {
 	if err != nil {
 		panic(err)
 	}
-	m := newMarkFromString(string(bs), file)
-	return m
+	return newMarkFromString(string(bs), file)
 }
 
 func newMarkFromString(content string, filepath string) *Mark {
@@ -373,7 +371,7 @@ func (m *Mark) buildStruct() {
 				if b2, _ := m.blockOfName(f.Name, parent, f.Pos); b2 != nil {
 					f.FormatErr = fmt.Sprintf("misspell of name from `%s` to `%s`", f.Name, f.BlockTypeName)
 				} else {
-					f.FormatErr = fmt.Sprintf("`%s` %s", util.ItalicCode(f.Name), BlcokNotDefined)
+					f.FormatErr = fmt.Sprintf("`%s` %s", util.ItalicCode(f.Name), BlockNotDefined)
 				}
 			}
 		}

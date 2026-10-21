@@ -63,7 +63,7 @@ func resourceLogicAppTriggerCustom() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	bodyRaw := d.Get("body").(string)
 
-	var body map[string]interface{}
+	var body map[string]any
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
 		return fmt.Errorf("unmarshalling JSON for %s: %+v", id.ID(), err)
 	}
@@ -87,7 +87,7 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceLogicAppTriggerCustomRead(d, meta)
 }
 
-func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
@@ -135,8 +135,7 @@ func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interfa
 
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName)
-	if err != nil {
+	if err = resourceLogicAppTriggerRemove(d, meta, workflowId, id.TriggerName); err != nil {
 		return fmt.Errorf("removing Trigger %s: %+v", id, err)
 	}
 

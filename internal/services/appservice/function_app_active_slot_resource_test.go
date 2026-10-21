@@ -19,6 +19,16 @@ import (
 
 type FunctionApActiveSlotResource struct{}
 
+func TestAccFunctionAppActiveSlot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
+	r := FunctionApActiveSlotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWindows(data),
+		},
+	}, "")
+}
+
 func TestAccFunctionAppActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
 	r := FunctionApActiveSlotResource{}
@@ -106,7 +116,7 @@ func (r FunctionApActiveSlotResource) Exists(ctx context.Context, client *client
 
 	app, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retreiving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
+		return nil, fmt.Errorf("retrieving Function App %s for slot %s: %+v", id, slotId.SlotName, err)
 	}
 	if app.Model == nil || app.Model.Properties == nil || app.Model.Properties.SlotSwapStatus == nil || app.Model.Properties.SlotSwapStatus.SourceSlotName == nil {
 		return nil, fmt.Errorf("missing App Slot Properties for %s", id)
@@ -252,7 +262,6 @@ resource "azurerm_storage_account" "test" {
   location                        = azurerm_resource_group.test.location
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
-  account_kind                    = "Storage"
   allow_nested_items_to_be_public = true
 }
 

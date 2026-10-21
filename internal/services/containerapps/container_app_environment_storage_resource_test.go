@@ -19,6 +19,16 @@ import (
 
 type ContainerAppEnvironmentStorageResource struct{}
 
+func TestAccContainerAppEnvironmentStorage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
+	r := ContainerAppEnvironmentStorageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
 	r := ContainerAppEnvironmentStorageResource{}
@@ -206,9 +216,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%[3]s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%[3]s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_container_app_environment" "test" {
@@ -216,7 +226,9 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -111,7 +111,7 @@ func resourceDataShareDataSetBlobStorage() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,14 +122,16 @@ func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta i
 	}
 	id := dataset.NewDataSetID(shareId.SubscriptionId, shareId.ResourceGroupName, shareId.AccountName, shareId.ShareName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of %s: %+v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_data_share_dataset_blob_storage", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_data_share_dataset_blob_storage", id.ID())
+		}
 	}
 
 	var dataSet dataset.DataSet
@@ -172,7 +174,7 @@ func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta i
 	return resourceDataShareDataSetBlobStorageRead(d, meta)
 }
 
-func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +231,7 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,9 +248,9 @@ func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func flattenAzureRmDataShareDataSetBlobStorageAccount(name, rg, subs string) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenAzureRmDataShareDataSetBlobStorageAccount(name, rg, subs string) []any {
+	return []any{
+		map[string]any{
 			"name":                name,
 			"resource_group_name": rg,
 			"subscription_id":     subs,

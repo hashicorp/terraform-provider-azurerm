@@ -62,9 +62,20 @@ func (c DeploymentsClient) ValidateAtScope(ctx context.Context, id ScopedDeploym
 
 // ValidateAtScopeThenPoll performs ValidateAtScope then polls until it's completed
 func (c DeploymentsClient) ValidateAtScopeThenPoll(ctx context.Context, id ScopedDeploymentId, input Deployment) error {
+	return c.ValidateAtScopeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ValidateAtScopeCallbackThenPoll performs ValidateAtScope, runs the optional callback function, then polls until it's completed
+func (c DeploymentsClient) ValidateAtScopeCallbackThenPoll(ctx context.Context, id ScopedDeploymentId, input Deployment, callback func() error) error {
 	result, err := c.ValidateAtScope(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ValidateAtScope: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

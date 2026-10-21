@@ -62,9 +62,20 @@ func (c ContainerInstanceClient) NGroupsUpdate(ctx context.Context, id NgroupId,
 
 // NGroupsUpdateThenPoll performs NGroupsUpdate then polls until it's completed
 func (c ContainerInstanceClient) NGroupsUpdateThenPoll(ctx context.Context, id NgroupId, input NGroupPatch) error {
+	return c.NGroupsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// NGroupsUpdateCallbackThenPoll performs NGroupsUpdate, runs the optional callback function, then polls until it's completed
+func (c ContainerInstanceClient) NGroupsUpdateCallbackThenPoll(ctx context.Context, id NgroupId, input NGroupPatch, callback func() error) error {
 	result, err := c.NGroupsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing NGroupsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

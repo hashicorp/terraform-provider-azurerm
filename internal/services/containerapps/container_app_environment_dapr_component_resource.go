@@ -34,7 +34,7 @@ type ContainerAppEnvironmentDaprComponentModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentDaprComponentResource{}
 
-func (r ContainerAppEnvironmentDaprComponentResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentDaprComponentResource) ModelObject() any {
 	return &ContainerAppEnvironmentDaprComponentModel{}
 }
 
@@ -134,15 +134,17 @@ func (r ContainerAppEnvironmentDaprComponentResource) Create() sdk.ResourceFunc 
 
 			id := daprcomponents.NewDaprComponentID(subscriptionId, managedEnvironmentId.ResourceGroupName, managedEnvironmentId.ManagedEnvironmentName, daprComponent.Name)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			daprComponentRequest := daprcomponents.DaprComponent{

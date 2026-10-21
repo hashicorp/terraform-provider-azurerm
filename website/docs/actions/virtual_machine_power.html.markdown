@@ -54,6 +54,6 @@ This action supports the following arguments:
 
 * `virtual_machine_id` - (Required) The ID of the virtual machine on which to perform the action.
 
-* `power_action` - (Required) The power state action to take on this virtual machine. Possible values include `restart`, `power_on`, and `power_off`.
+* `power_action` - (Required) The power state action to take on this virtual machine. Possible values include `restart`, `deallocate`, `power_on`, and `power_off`.
 
 * `timeout` - (Optional) Timeout duration to wait for the Virtual Machine Power action to complete. Defaults to `30m`.

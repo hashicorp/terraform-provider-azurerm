@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +26,7 @@ import (
 )
 
 func resourceIotCentralApplication() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceIotCentralAppCreate,
 		Read:   resourceIotCentralAppRead,
 		Update: resourceIotCentralAppUpdate,
@@ -70,7 +71,7 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.ApplicationDisplayName,
 			},
 
@@ -83,14 +84,10 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			},
 
 			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apps.AppSkuSTOne),
-					string(apps.AppSkuSTTwo),
-					string(apps.AppSkuSTZero),
-				}, false),
-				Default: string(apps.AppSkuSTOne),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apps.PossibleValuesForAppSku(), false),
+				Default:      string(apps.AppSkuSTOne),
 			},
 			"template": {
 				Type:         pluginsdk.TypeString,
@@ -103,26 +100,27 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	return resource
 }
 
-func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := apps.NewIotAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_iotcentral_application", id.ID())
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_iotcentral_application", id.ID())
+		}
 	}
 
 	inputs := apps.OperationInputs{
@@ -144,18 +142,17 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		displayName = id.IotAppName
 	}
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
-	publicNetworkAccess := apps.PublicNetworkAccessEnabled
 	app := apps.App{
 		Properties: &apps.AppProperties{
 			DisplayName:         &displayName,
-			PublicNetworkAccess: &publicNetworkAccess,
+			PublicNetworkAccess: pointer.To(apps.PublicNetworkAccessEnabled),
 			Subdomain:           &subdomain,
 			Template:            &template,
 		},
@@ -164,27 +161,26 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		},
 		Identity: identity,
 		Location: d.Get("location").(string),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
+	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, app, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
+	d.SetId(id.ID())
 
 	// Public Network Access can only be disabled after creation
 	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess := apps.PublicNetworkAccessDisabled
-		app.Properties.PublicNetworkAccess = &publicNetworkAccess
+		app.Properties.PublicNetworkAccess = pointer.To(apps.PublicNetworkAccessDisabled)
 		if err := client.CreateOrUpdateThenPoll(ctx, id, app); err != nil {
 			return fmt.Errorf("updating `public_network_access_enabled` to false for %s: %+v", id, err)
 		}
 	}
 
-	d.SetId(id.ID())
 	return resourceIotCentralAppRead(d, meta)
 }
 
-func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,11 +218,11 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("tags") {
-		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -248,7 +244,7 @@ func resourceIotCentralAppUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceIotCentralAppRead(d, meta)
 }
 
-func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -299,7 +295,7 @@ func resourceIotCentralAppRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotCentralAppDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

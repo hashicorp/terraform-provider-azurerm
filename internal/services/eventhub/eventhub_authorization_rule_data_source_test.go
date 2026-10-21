@@ -13,7 +13,7 @@ import (
 
 type EventHubAuthorizationRuleDataSource struct{}
 
-func TestAccEventHubAuthorizationRuleDataSource(t *testing.T) {
+func TestAccEventHubAuthorizationRuleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 	r := EventHubAuthorizationRuleDataSource{}
 

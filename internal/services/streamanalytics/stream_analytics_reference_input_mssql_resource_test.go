@@ -102,7 +102,6 @@ func (r StreamAnalyticsReferenceInputMsSqlResource) Exists(ctx context.Context, 
 }
 
 func (r StreamAnalyticsReferenceInputMsSqlResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -123,11 +122,10 @@ resource "azurerm_stream_analytics_reference_input_mssql" "test" {
 QUERY
 
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputMsSqlResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -153,11 +151,10 @@ QUERY
 QUERY
 
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsReferenceInputMsSqlResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -173,7 +170,7 @@ resource "azurerm_stream_analytics_reference_input_mssql" "import" {
   full_snapshot_query       = azurerm_stream_analytics_reference_input_mssql.test.full_snapshot_query
 
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsReferenceInputMsSqlResource) template(data acceptance.TestData) string {

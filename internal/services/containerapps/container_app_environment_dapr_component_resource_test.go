@@ -19,6 +19,16 @@ import (
 
 type ContainerAppEnvironmentDaprComponentResource struct{}
 
+func TestAccContainerAppEnvironmentDaprComponent_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_dapr_component", "test")
+	r := ContainerAppEnvironmentDaprComponentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentDaprComponent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_dapr_component", "test")
 	r := ContainerAppEnvironmentDaprComponentResource{}
@@ -159,7 +169,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "container-app-storage"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -199,8 +209,6 @@ resource "azurerm_container_app_environment_dapr_component" "test" {
 
   scopes = ["testapp"]
 }
-
-
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
@@ -227,7 +235,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "container-app-storage"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -285,6 +293,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -62,9 +62,20 @@ func (c ExtensionsClient) EnableAzureMonitor(ctx context.Context, id commonids.H
 
 // EnableAzureMonitorThenPoll performs EnableAzureMonitor then polls until it's completed
 func (c ExtensionsClient) EnableAzureMonitorThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input AzureMonitorRequest) error {
+	return c.EnableAzureMonitorCallbackThenPoll(ctx, id, input, nil)
+}
+
+// EnableAzureMonitorCallbackThenPoll performs EnableAzureMonitor, runs the optional callback function, then polls until it's completed
+func (c ExtensionsClient) EnableAzureMonitorCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, input AzureMonitorRequest, callback func() error) error {
 	result, err := c.EnableAzureMonitor(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing EnableAzureMonitor: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -58,7 +59,7 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"instance_count": {
@@ -92,16 +93,15 @@ func resourceContainerRegistryAgentPool() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Container Registry Agent Pool creation.")
 
 	id := agentpools.NewAgentPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("container_registry_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -123,14 +123,14 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 			Tier:  pointer.To(d.Get("tier").(string)),
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("virtual_network_subnet_id"); ok {
 		parameters.Properties.VirtualNetworkSubnetResourceId = pointer.To(v.(string))
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -139,11 +139,10 @@ func resourceContainerRegistryAgentPoolCreate(d *pluginsdk.ResourceData, meta in
 	return resourceContainerRegistryAgentPoolRead(d, meta)
 }
 
-func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Container Registry Agent Pool creation.")
 
 	id, err := agentpools.ParseAgentPoolID(d.Id())
 	if err != nil {
@@ -165,7 +164,7 @@ func resourceContainerRegistryAgentPoolUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceContainerRegistryAgentPoolRead(d, meta)
 }
 
-func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,23 +193,9 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			count := int64(0)
-			if v := props.Count; v != nil {
-				count = *v
-			}
-			d.Set("instance_count", count)
-
-			tier := ""
-			if v := props.Tier; v != nil {
-				tier = *v
-			}
-			d.Set("tier", tier)
-
-			virtualNetworkSubnetId := ""
-			if v := props.VirtualNetworkSubnetResourceId; v != nil {
-				virtualNetworkSubnetId = *v
-			}
-			d.Set("virtual_network_subnet_id", virtualNetworkSubnetId)
+			d.Set("instance_count", pointer.From(props.Count))
+			d.Set("tier", pointer.From(props.Tier))
+			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetResourceId))
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -219,7 +204,7 @@ func resourceContainerRegistryAgentPoolRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceContainerRegistryAgentPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryAgentPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2019_06_01_preview.AgentPools
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

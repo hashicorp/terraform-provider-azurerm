@@ -132,7 +132,6 @@ func (r StreamAnalyticsStreamInputBlobResource) Exists(ctx context.Context, clie
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) avro(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -151,11 +150,10 @@ resource "azurerm_stream_analytics_stream_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) csv(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +174,10 @@ resource "azurerm_stream_analytics_stream_input_blob" "test" {
     field_delimiter = ","
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) json(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -200,11 +197,10 @@ resource "azurerm_stream_analytics_stream_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -218,7 +214,7 @@ resource "azurerm_storage_account" "updated" {
 
 resource "azurerm_storage_container" "updated" {
   name                  = "example2"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -237,11 +233,10 @@ resource "azurerm_stream_analytics_stream_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) authenticationMode(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -262,11 +257,10 @@ resource "azurerm_stream_analytics_stream_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) requiresImport(data acceptance.TestData) string {
-	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -288,7 +282,7 @@ resource "azurerm_stream_analytics_stream_input_blob" "import" {
     }
   }
 }
-`, template)
+`, r.json(data))
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) template(data acceptance.TestData) string {
@@ -312,7 +306,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 

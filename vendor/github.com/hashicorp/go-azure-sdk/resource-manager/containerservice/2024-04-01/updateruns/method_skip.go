@@ -91,9 +91,20 @@ func (c UpdateRunsClient) Skip(ctx context.Context, id UpdateRunId, input SkipPr
 
 // SkipThenPoll performs Skip then polls until it's completed
 func (c UpdateRunsClient) SkipThenPoll(ctx context.Context, id UpdateRunId, input SkipProperties, options SkipOperationOptions) error {
+	return c.SkipCallbackThenPoll(ctx, id, input, options, nil)
+}
+
+// SkipCallbackThenPoll performs Skip, runs the optional callback function, then polls until it's completed
+func (c UpdateRunsClient) SkipCallbackThenPoll(ctx context.Context, id UpdateRunId, input SkipProperties, options SkipOperationOptions, callback func() error) error {
 	result, err := c.Skip(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing Skip: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

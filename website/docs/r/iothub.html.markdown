@@ -168,7 +168,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network?
 
-* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
+* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Defaults to `1.2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -350,7 +350,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname` - The hostname of the IotHub Resource.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 * `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
 

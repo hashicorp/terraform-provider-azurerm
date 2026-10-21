@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
@@ -120,41 +119,42 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Topic creation.")
 	id := outputs.NewOutputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", id.ID())
+			}
 		}
 	}
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
-	systemPropertyColumns := d.Get("system_property_columns").(map[string]interface{})
+	systemPropertyColumns := d.Get("system_property_columns").(map[string]any)
 	dataSourceProperties := &outputs.ServiceBusTopicOutputDataSourceProperties{
 		TopicName:             pointer.To(d.Get("topic_name").(string)),
 		ServiceBusNamespace:   pointer.To(d.Get("servicebus_namespace").(string)),
-		PropertyColumns:       utils.ExpandStringSlice(d.Get("property_columns").([]interface{})),
+		PropertyColumns:       pluginsdk.ExpandStringSlice(d.Get("property_columns").([]any)),
 		SystemPropertyColumns: expandSystemPropertyColumns(systemPropertyColumns),
-		AuthenticationMode:    pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+		AuthenticationMode:    pointer.ToEnum[outputs.AuthenticationMode](d.Get("authentication_mode").(string)),
 	}
 
 	// Add shared access policy key/name only if required by authentication mode
@@ -188,7 +188,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *pluginsdk.Resou
 	return resourceStreamAnalyticsOutputServiceBusTopicRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,29 +220,13 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 				return fmt.Errorf("converting %s to a ServiceBus Topic Output", *id)
 			}
 
-			topicName := ""
-			if v := output.Properties.TopicName; v != nil {
-				topicName = *v
-			}
-			d.Set("topic_name", topicName)
+			d.Set("topic_name", pointer.From(output.Properties.TopicName))
 
-			namespace := ""
-			if v := output.Properties.ServiceBusNamespace; v != nil {
-				namespace = *v
-			}
-			d.Set("servicebus_namespace", namespace)
+			d.Set("servicebus_namespace", pointer.From(output.Properties.ServiceBusNamespace))
 
-			accessPolicy := ""
-			if v := output.Properties.SharedAccessPolicyName; v != nil {
-				accessPolicy = *v
-			}
-			d.Set("shared_access_policy_name", accessPolicy)
+			d.Set("shared_access_policy_name", pointer.From(output.Properties.SharedAccessPolicyName))
 
-			var propertyColumns []string
-			if v := output.Properties.PropertyColumns; v != nil {
-				propertyColumns = *v
-			}
-			d.Set("property_columns", propertyColumns)
+			d.Set("property_columns", pointer.From(output.Properties.PropertyColumns))
 
 			authMode := ""
 			if v := output.Properties.AuthenticationMode; v != nil {
@@ -262,7 +246,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -281,7 +265,7 @@ func resourceStreamAnalyticsOutputServiceBusTopicDelete(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func expandSystemPropertyColumns(input map[string]interface{}) *map[string]string {
+func expandSystemPropertyColumns(input map[string]any) *map[string]string {
 	output := make(map[string]string)
 	for k, v := range input {
 		output[k] = v.(string)

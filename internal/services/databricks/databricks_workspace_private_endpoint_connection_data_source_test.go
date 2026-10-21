@@ -172,8 +172,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_cname_record" "test" {
   name                = azurerm_databricks_workspace.test.workspace_url
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }

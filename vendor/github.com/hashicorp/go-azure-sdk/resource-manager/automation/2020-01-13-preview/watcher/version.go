@@ -8,3 +8,7 @@ const defaultApiVersion = "2020-01-13-preview"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/watcher/2020-01-13-preview"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

@@ -62,9 +62,20 @@ func (c AppPlatformClient) ApiPortalsCreateOrUpdate(ctx context.Context, id ApiP
 
 // ApiPortalsCreateOrUpdateThenPoll performs ApiPortalsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) ApiPortalsCreateOrUpdateThenPoll(ctx context.Context, id ApiPortalId, input ApiPortalResource) error {
+	return c.ApiPortalsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ApiPortalsCreateOrUpdateCallbackThenPoll performs ApiPortalsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ApiPortalsCreateOrUpdateCallbackThenPoll(ctx context.Context, id ApiPortalId, input ApiPortalResource, callback func() error) error {
 	result, err := c.ApiPortalsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ApiPortalsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -47,6 +47,7 @@ resource "azurerm_key_vault" "example" {
   name                            = "${var.prefix}anfakv"
   location                        = azurerm_resource_group.example.location
   resource_group_name             = azurerm_resource_group.example.name
+  rbac_authorization_enabled      = false
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
@@ -169,7 +170,7 @@ resource "azurerm_netapp_volume" "example" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["0.0.0.0/0"]
-    protocols_enabled   = ["NFSv3"]
+    protocol            = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true

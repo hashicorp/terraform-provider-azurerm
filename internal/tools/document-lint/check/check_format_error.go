@@ -40,7 +40,8 @@ func (f formatErr) String() string {
 	case strings.HasPrefix(f.Origin, "* ~>"):
 		return fmt.Sprintf("%s a %s block should not start with `*`", base, util.Bold("Note"))
 	default:
-		return fmt.Sprintf("%s should be formatted as: %s", base,
+		return fmt.Sprintf(
+			"%s should be formatted as: %s", base,
 			util.FormatCode("* `field` - (Required/Optional) Xxx..."),
 		)
 	}

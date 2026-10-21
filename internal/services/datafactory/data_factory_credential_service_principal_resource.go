@@ -125,7 +125,7 @@ func (DataFactoryCredentialServicePrincipalResource) Attributes() map[string]*pl
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (DataFactoryCredentialServicePrincipalResource) ModelObject() interface{} {
+func (DataFactoryCredentialServicePrincipalResource) ModelObject() any {
 	return &DataFactoryCredentialServicePrincipalResourceSchema{}
 }
 
@@ -150,13 +150,16 @@ func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc
 			}
 
 			id := credentials.NewCredentialID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, data.Name)
-			existing, err := client.CredentialOperationsGet(ctx, id, credentials.DefaultCredentialOperationsGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_factory_credential_service_principal", id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.CredentialOperationsGet(ctx, id, credentials.DefaultCredentialOperationsGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return tf.ImportAsExistsError("azurerm_data_factory_credential_service_principal", id.ID())
+				}
 			}
 
 			props := credentials.ServicePrincipalCredential{
@@ -167,7 +170,7 @@ func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc
 				},
 			}
 			if len(data.Annotations) > 0 {
-				annotations := make([]interface{}, len(data.Annotations))
+				annotations := make([]any, len(data.Annotations))
 				for i, v := range data.Annotations {
 					annotations[i] = v
 				}
@@ -272,7 +275,7 @@ func (r DataFactoryCredentialServicePrincipalResource) Update() sdk.ResourceFunc
 
 			if metadata.ResourceData.HasChange("annotations") {
 				if len(data.Annotations) > 0 {
-					annotations := make([]interface{}, len(data.Annotations))
+					annotations := make([]any, len(data.Annotations))
 					for i, v := range data.Annotations {
 						annotations[i] = v
 					}

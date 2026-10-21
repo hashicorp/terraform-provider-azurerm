@@ -62,9 +62,20 @@ func (c MetricsObjectFirewallResourcesClient) MetricsObjectFirewallCreateOrUpdat
 
 // MetricsObjectFirewallCreateOrUpdateThenPoll performs MetricsObjectFirewallCreateOrUpdate then polls until it's completed
 func (c MetricsObjectFirewallResourcesClient) MetricsObjectFirewallCreateOrUpdateThenPoll(ctx context.Context, id FirewallId, input MetricsObjectFirewallResource) error {
+	return c.MetricsObjectFirewallCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// MetricsObjectFirewallCreateOrUpdateCallbackThenPoll performs MetricsObjectFirewallCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c MetricsObjectFirewallResourcesClient) MetricsObjectFirewallCreateOrUpdateCallbackThenPoll(ctx context.Context, id FirewallId, input MetricsObjectFirewallResource, callback func() error) error {
 	result, err := c.MetricsObjectFirewallCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MetricsObjectFirewallCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

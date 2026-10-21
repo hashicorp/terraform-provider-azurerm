@@ -62,9 +62,20 @@ func (c DedicatedHsmsClient) DedicatedHsmCreateOrUpdate(ctx context.Context, id 
 
 // DedicatedHsmCreateOrUpdateThenPoll performs DedicatedHsmCreateOrUpdate then polls until it's completed
 func (c DedicatedHsmsClient) DedicatedHsmCreateOrUpdateThenPoll(ctx context.Context, id DedicatedHSMId, input DedicatedHsm) error {
+	return c.DedicatedHsmCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DedicatedHsmCreateOrUpdateCallbackThenPoll performs DedicatedHsmCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c DedicatedHsmsClient) DedicatedHsmCreateOrUpdateCallbackThenPoll(ctx context.Context, id DedicatedHSMId, input DedicatedHsm, callback func() error) error {
 	result, err := c.DedicatedHsmCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DedicatedHsmCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

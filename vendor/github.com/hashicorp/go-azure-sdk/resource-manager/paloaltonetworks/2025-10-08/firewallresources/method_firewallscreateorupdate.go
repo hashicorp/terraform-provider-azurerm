@@ -62,9 +62,20 @@ func (c FirewallResourcesClient) FirewallsCreateOrUpdate(ctx context.Context, id
 
 // FirewallsCreateOrUpdateThenPoll performs FirewallsCreateOrUpdate then polls until it's completed
 func (c FirewallResourcesClient) FirewallsCreateOrUpdateThenPoll(ctx context.Context, id FirewallId, input FirewallResource) error {
+	return c.FirewallsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// FirewallsCreateOrUpdateCallbackThenPoll performs FirewallsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c FirewallResourcesClient) FirewallsCreateOrUpdateCallbackThenPoll(ctx context.Context, id FirewallId, input FirewallResource, callback func() error) error {
 	result, err := c.FirewallsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing FirewallsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

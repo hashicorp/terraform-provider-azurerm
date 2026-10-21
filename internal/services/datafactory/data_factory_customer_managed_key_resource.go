@@ -29,7 +29,7 @@ type DataFactoryCustomerManagedKeyModel struct {
 
 var _ sdk.ResourceWithUpdate = DataFactoryCustomerManagedKeyResource{}
 
-func (r DataFactoryCustomerManagedKeyResource) ModelObject() interface{} {
+func (r DataFactoryCustomerManagedKeyResource) ModelObject() any {
 	return &DataFactoryCustomerManagedKeyModel{}
 }
 
@@ -99,8 +99,10 @@ func (r DataFactoryCustomerManagedKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := dataFactory.Model
-			if payload.Properties.Encryption != nil {
-				return tf.ImportAsExistsError("azurerm_data_factory_customer_managed_key", id.ID())
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				if payload.Properties.Encryption != nil {
+					return tf.ImportAsExistsError("azurerm_data_factory_customer_managed_key", id.ID())
+				}
 			}
 
 			keyVaultKey, err := keyvault.ParseNestedItemID(customerManagedKey.CustomerManagedKeyID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)

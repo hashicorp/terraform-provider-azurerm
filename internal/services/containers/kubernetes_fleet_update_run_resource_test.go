@@ -146,6 +146,7 @@ resource "azurerm_kubernetes_fleet_update_run" "import" {
 }
 
 func (r KubernetesFleetUpdateRunTestResource) complete(data acceptance.TestData) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 
@@ -171,7 +172,7 @@ resource "azurerm_kubernetes_fleet_update_run" "test" {
 
   depends_on = [azurerm_kubernetes_fleet_member.test]
 }
-`, r.template(data), data.RandomInteger, currentKubernetesVersionAlias)
+`, r.template(data), data.RandomInteger, meta.CurrentKubernetesVersionAlias)
 }
 
 func (r KubernetesFleetUpdateRunTestResource) template(data acceptance.TestData) string {
@@ -208,6 +209,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {

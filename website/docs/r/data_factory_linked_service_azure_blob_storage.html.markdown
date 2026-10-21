@@ -56,11 +56,12 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "example"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 resource "azurerm_data_factory_linked_service_key_vault" "test" {
@@ -74,7 +75,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   data_factory_id = azurerm_data_factory.test.id
 
   sas_uri = "https://example.blob.core.windows.net"
-  key_vault_sas_token {
+  sas_token_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
@@ -118,7 +119,7 @@ The following supported arguments are specific to Azure Blob Storage Linked Serv
 
 * `connection_string_insecure` - (Optional) The connection string sent insecurely. Conflicts with `connection_string`, `sas_uri` and `service_endpoint`.
 
-~> **Note:** `connection_string` uses the Azure [SecureString](https://learn.microsoft.com/en-us/dotnet/api/microsoft.azure.management.datafactory.models.securestring) to encrypt the contents within the REST payload sent to Azure whilst the `connection_string_insecure` is sent as a regular string. Both properties are still sent using SSL/HTTPS. At this time the portal will not decrypt Secure Strings so the `connection_string` property in the portal will show as `******` whilst `connection_string_insecure` will be viewable in the portal.
+~> **Note:** `connection_string` uses the Azure [SecureString](https://learn.microsoft.com/dotnet/api/microsoft.azure.management.datafactory.models.securestring) to encrypt the contents within the REST payload sent to Azure whilst the `connection_string_insecure` is sent as a regular string. Both properties are still sent using SSL/HTTPS. At this time the portal will not decrypt Secure Strings so the `connection_string` property in the portal will show as `******` whilst `connection_string_insecure` will be viewable in the portal.
 
 * `sas_uri` - (Optional) The SAS URI. Conflicts with `connection_string_insecure`, `connection_string` and `service_endpoint`.
 

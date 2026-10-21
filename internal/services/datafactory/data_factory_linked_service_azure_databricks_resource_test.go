@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,24 +25,6 @@ func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msi(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDataFactoryLinkedServiceDatabricks_authViaMSIDeprecated(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping test as `msi_work_space_resource_id` is deprecated in favour of `msi_workspace_id` in 5.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
-
-	r := LinkedServiceDatabricksResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.msiDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,41 +111,6 @@ func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *cl
 	}
 
 	return pointer.To(resp.ID != nil), nil
-}
-
-func (LinkedServiceDatabricksResource) msiDeprecated(data acceptance.TestData) string {
-	stuff := fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                       = "acctestDatabricksLinkedService%d"
-  data_factory_id            = azurerm_data_factory.test.id
-  msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
-
-  description         = "Initial description"
-  annotations         = ["test1", "test2"]
-  existing_cluster_id = "test"
-  adb_domain          = "https://adb-111111111.11.azuredatabricks.net"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-	println(stuff)
-	return stuff
 }
 
 func (LinkedServiceDatabricksResource) msi(data acceptance.TestData) string {
@@ -254,11 +200,12 @@ resource "azurerm_data_factory" "test" {
 
 // Create a key vault so we can setup a KV linked service
 resource "azurerm_key_vault" "test" {
-  name                = "acctest%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "acctest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
 }
 
 // Create the KV linked service so we can test out integration the Databricks linked service

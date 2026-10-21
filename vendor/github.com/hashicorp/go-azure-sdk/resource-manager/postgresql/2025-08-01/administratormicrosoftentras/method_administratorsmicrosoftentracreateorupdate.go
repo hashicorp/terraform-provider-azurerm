@@ -60,9 +60,20 @@ func (c AdministratorMicrosoftEntrasClient) AdministratorsMicrosoftEntraCreateOr
 
 // AdministratorsMicrosoftEntraCreateOrUpdateThenPoll performs AdministratorsMicrosoftEntraCreateOrUpdate then polls until it's completed
 func (c AdministratorMicrosoftEntrasClient) AdministratorsMicrosoftEntraCreateOrUpdateThenPoll(ctx context.Context, id AdministratorId, input AdministratorMicrosoftEntraAdd) error {
+	return c.AdministratorsMicrosoftEntraCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AdministratorsMicrosoftEntraCreateOrUpdateCallbackThenPoll performs AdministratorsMicrosoftEntraCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AdministratorMicrosoftEntrasClient) AdministratorsMicrosoftEntraCreateOrUpdateCallbackThenPoll(ctx context.Context, id AdministratorId, input AdministratorMicrosoftEntraAdd, callback func() error) error {
 	result, err := c.AdministratorsMicrosoftEntraCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AdministratorsMicrosoftEntraCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

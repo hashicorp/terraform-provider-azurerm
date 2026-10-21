@@ -61,9 +61,20 @@ func (c WebAppsClient) RestoreSnapshotSlot(ctx context.Context, id SlotId, input
 
 // RestoreSnapshotSlotThenPoll performs RestoreSnapshotSlot then polls until it's completed
 func (c WebAppsClient) RestoreSnapshotSlotThenPoll(ctx context.Context, id SlotId, input SnapshotRestoreRequest) error {
+	return c.RestoreSnapshotSlotCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RestoreSnapshotSlotCallbackThenPoll performs RestoreSnapshotSlot, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) RestoreSnapshotSlotCallbackThenPoll(ctx context.Context, id SlotId, input SnapshotRestoreRequest, callback func() error) error {
 	result, err := c.RestoreSnapshotSlot(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RestoreSnapshotSlot: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

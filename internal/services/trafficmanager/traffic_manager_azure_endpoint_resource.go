@@ -13,10 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -27,7 +26,7 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 		Read:   resourceAzureEndpointRead,
 		Update: resourceAzureEndpointUpdate,
 		Delete: resourceAzureEndpointDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: schema.ValidateResourceIDPriorToImport(func(id string) error {
 			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err
@@ -129,12 +128,12 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 						"first": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"last": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: azValidate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"scope": {
 							Type:         pluginsdk.TypeInt,
@@ -148,7 +147,7 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,15 +159,17 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeAzureEndpoints, d.Get("name").(string))
 
-	existing, err := client.EndpointsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.EndpointsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+			}
 		}
-	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_azure_endpoint", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_azure_endpoint", id.ID())
+		}
 	}
 
 	status := trafficmanagers.EndpointStatusEnabled
@@ -180,11 +181,11 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Name: pointer.To(id.EndpointName),
 		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", trafficmanagers.EndpointTypeAzureEndpoints)),
 		Properties: &trafficmanagers.EndpointProperties{
-			CustomHeaders:    expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
+			CustomHeaders:    expandEndpointCustomHeaderConfig(d.Get("custom_header").([]any)),
 			AlwaysServe:      pointer.To(trafficmanagers.AlwaysServeDisabled),
 			EndpointStatus:   &status,
 			TargetResourceId: pointer.To(d.Get("target_resource_id").(string)),
-			Subnets:          expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
+			Subnets:          expandEndpointSubnetConfig(d.Get("subnet").([]any)),
 		},
 	}
 
@@ -200,7 +201,7 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		params.Properties.Weight = pointer.To(int64(weight))
 	}
 
-	inputMappings := d.Get("geo_mappings").([]interface{})
+	inputMappings := d.Get("geo_mappings").([]any)
 	geoMappings := make([]string, 0)
 	for _, v := range inputMappings {
 		geoMappings = append(geoMappings, v.(string))
@@ -217,7 +218,7 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceAzureEndpointRead(d, meta)
 }
 
-func resourceAzureEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +270,7 @@ func resourceAzureEndpointRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,7 +310,7 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("custom_header") {
-		params.Properties.CustomHeaders = expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{}))
+		params.Properties.CustomHeaders = expandEndpointCustomHeaderConfig(d.Get("custom_header").([]any))
 	}
 
 	if d.HasChange("target_resource_id") {
@@ -317,7 +318,7 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("subnet") {
-		params.Properties.Subnets = expandEndpointSubnetConfig(d.Get("subnet").([]interface{}))
+		params.Properties.Subnets = expandEndpointSubnetConfig(d.Get("subnet").([]any))
 	}
 
 	if d.HasChange("priority") {
@@ -333,7 +334,7 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("geo_mappings") {
-		inputMappings := d.Get("geo_mappings").([]interface{})
+		inputMappings := d.Get("geo_mappings").([]any)
 		geoMappings := make([]string, 0)
 		for _, v := range inputMappings {
 			geoMappings = append(geoMappings, v.(string))
@@ -352,7 +353,7 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceAzureEndpointRead(d, meta)
 }
 
-func resourceAzureEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAzureEndpointDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

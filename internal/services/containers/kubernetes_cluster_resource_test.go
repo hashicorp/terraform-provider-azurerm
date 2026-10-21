@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,20 +21,14 @@ import (
 
 type KubernetesClusterResource struct{}
 
-var (
-	olderKubernetesVersion        = "1.32.9"
-	currentKubernetesVersion      = "1.33.5"
-	olderKubernetesVersionAlias   = "1.32"
-	currentKubernetesVersionAlias = "1.33"
-)
-
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.hostEncryption(data, currentKubernetesVersion),
+			Config: r.hostEncryption(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
@@ -60,17 +54,18 @@ func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.runCommand(data, currentKubernetesVersion, true),
+			Config: r.runCommand(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("run_command_enabled").HasValue("true"),
 			),
 		},
 		{
-			Config: r.runCommand(data, currentKubernetesVersion, false),
+			Config: r.runCommand(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("run_command_enabled").HasValue("false"),
@@ -82,16 +77,17 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, true),
+			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, false),
+			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -102,10 +98,11 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageProfile(data, currentKubernetesVersion),
+			Config: r.storageProfile(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -116,10 +113,11 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
+			Config: r.workloadAutoscalerProfileKeda(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
@@ -127,7 +125,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, false),
+			Config: r.workloadAutoscalerProfileKeda(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
@@ -140,10 +138,11 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, true),
+			Config: r.imageCleanerSecurityProfile(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("true"),
@@ -151,7 +150,7 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 			),
 		},
 		{
-			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, false),
+			Config: r.imageCleanerSecurityProfile(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("false"),
@@ -163,17 +162,18 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, true),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -228,16 +228,17 @@ func TestAccKubernetesCluster_nodeProvisioningProfileUpdate(t *testing.T) {
 func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.edgeZone(data, currentKubernetesVersion, "Test1"),
+			Config: r.edgeZone(data, meta.CurrentKubernetesVersion, "Test1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.edgeZone(data, currentKubernetesVersion, "Test2"),
+			Config: r.edgeZone(data, meta.CurrentKubernetesVersion, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -374,8 +375,7 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 
 		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
-		if err != nil {
+		if err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
 
@@ -389,10 +389,11 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 	dnsPrefix := fmt.Sprintf("1stCluster%d", data.RandomInteger)
 
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dnsPrefix(data, currentKubernetesVersion),
+			Config: r.dnsPrefix(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dns_prefix").HasValue(dnsPrefix),
@@ -427,6 +428,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -563,6 +569,7 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
 }
 
 func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 
@@ -584,6 +591,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     pod_subnet_id  = azurerm_subnet.pod_subnet.id
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -592,7 +604,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     outbound_type  = %q
   }
 }
-  `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, currentKubernetesVersionAlias, "10%", outboundType)
+  `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersionAlias, "10%", outboundType)
 }
 
 func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {
@@ -618,7 +630,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%[1]d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "FSv2-Type2"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 0
 }
 
@@ -648,6 +660,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -691,6 +708,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -726,6 +748,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -794,6 +821,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -829,6 +861,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -868,6 +905,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -875,7 +917,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
 }
 
-func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
+func TestAccKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
@@ -916,10 +958,15 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v3"
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
   identity {
     type = "SystemAssigned"
@@ -953,12 +1000,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                      = substr("acctest%[1]d", 0, 24)
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
-  enable_rbac_authorization = true
-  sku_name                  = "standard"
+  name                       = substr("acctest%[1]d", 0, 24)
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled = true
+  sku_name                   = "standard"
 }
 
 resource "azurerm_role_assignment" "test_admin" {
@@ -1006,6 +1053,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -1040,6 +1092,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1083,6 +1140,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -1114,6 +1176,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     upgrade_settings {
       max_surge = "10%%"
     }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   identity {
@@ -1168,10 +1235,9 @@ resource "azurerm_private_dns_zone" "acr_private_dns_zone" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link_acr" {
-  name                  = "acctest-dns-vnet-link-acr"
-  private_dns_zone_name = azurerm_private_dns_zone.acr_private_dns_zone.name
-  resource_group_name   = azurerm_resource_group.test.name
-  virtual_network_id    = azurerm_virtual_network.vnet.id
+  name                = "acctest-dns-vnet-link-acr"
+  private_dns_zone_id = azurerm_private_dns_zone.acr_private_dns_zone.id
+  virtual_network_id  = azurerm_virtual_network.vnet.id
 }
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
@@ -1261,6 +1327,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   network_profile {
     network_plugin_mode = "overlay"
     network_plugin      = "azure"
@@ -1308,6 +1379,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
   }
 
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
   network_profile {
     network_plugin_mode = "overlay"
     network_plugin      = "azure"
@@ -1351,6 +1427,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge = "10%%"
     }
     vnet_subnet_id = azurerm_subnet.vnet-nodepool.id
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
   }
 
   network_profile {

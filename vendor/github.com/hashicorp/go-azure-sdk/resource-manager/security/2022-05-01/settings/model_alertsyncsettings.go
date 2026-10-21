@@ -3,6 +3,8 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -15,18 +17,20 @@ type AlertSyncSettings struct {
 
 	// Fields inherited from Setting
 
-	Id   *string     `json:"id,omitempty"`
-	Kind SettingKind `json:"kind"`
-	Name *string     `json:"name,omitempty"`
-	Type *string     `json:"type,omitempty"`
+	Id         *string                `json:"id,omitempty"`
+	Kind       SettingKind            `json:"kind"`
+	Name       *string                `json:"name,omitempty"`
+	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+	Type       *string                `json:"type,omitempty"`
 }
 
 func (s AlertSyncSettings) Setting() BaseSettingImpl {
 	return BaseSettingImpl{
-		Id:   s.Id,
-		Kind: s.Kind,
-		Name: s.Name,
-		Type: s.Type,
+		Id:         s.Id,
+		Kind:       s.Kind,
+		Name:       s.Name,
+		SystemData: s.SystemData,
+		Type:       s.Type,
 	}
 }
 

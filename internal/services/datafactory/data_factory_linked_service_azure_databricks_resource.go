@@ -10,22 +10,21 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceDatabricksCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceDatabricksRead,
 		Update: resourceDataFactoryLinkedServiceDatabricksCreateUpdate,
@@ -253,33 +252,9 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["access_token"].ExactlyOneOf = []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"}
-		resource.Schema["key_vault_password"].ExactlyOneOf = []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"}
-
-		resource.Schema["msi_workspace_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: workspaces.ValidateWorkspaceID,
-			ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
-		}
-
-		resource.Schema["msi_work_space_resource_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: workspaces.ValidateWorkspaceID,
-			ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
-			Deprecated:   "The `msi_work_space_resource_id` property is deprecated in favour of the `msi_workspace_id` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-	}
-
-	return resource
 }
 
-func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -293,15 +268,17 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Databricks %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+			if err != nil {
+				if !response.WasNotFound(existing.Response.Response) {
+					return fmt.Errorf("checking for presence of existing Data Factory Databricks %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_databricks", id.ID())
+			if !response.WasNotFound(existing.Response.Response) {
+				return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_databricks", id.ID())
+			}
 		}
 	}
 
@@ -309,13 +286,8 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 
 	// Check if the MSI authentication block is set
 	msiAuth := d.Get("msi_workspace_id")
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("msi_work_space_resource_id"); ok {
-			msiAuth = v.(string)
-		}
-	}
 	accessTokenAuth := d.Get("access_token").(string)
-	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]interface{})
+	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]any)
 
 	// Set the properties based on the authentication type that was provided
 	if msiAuth != "" {
@@ -347,8 +319,8 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		databricksProperties.ExistingClusterID = v.(string)
 	}
 
-	if v, ok := d.GetOk("instance_pool"); ok && v.([]interface{})[0] != nil {
-		instancePoolMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("instance_pool"); ok && v.([]any)[0] != nil {
+		instancePoolMap := v.([]any)[0].(map[string]any)
 
 		if data := instancePoolMap["instance_pool_id"]; data != nil {
 			databricksProperties.InstancePoolID = data
@@ -368,8 +340,8 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]interface{})[0] != nil {
-		newClusterMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]any)[0] != nil {
+		newClusterMap := v.([]any)[0].(map[string]any)
 
 		if data := newClusterMap["cluster_version"]; data != nil {
 			databricksProperties.NewClusterVersion = data
@@ -397,25 +369,24 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		}
 
 		if newClusterMap["spark_config"] != nil {
-			if sparkConfig := newClusterMap["spark_config"].(map[string]interface{}); len(sparkConfig) > 0 {
+			if sparkConfig := newClusterMap["spark_config"].(map[string]any); len(sparkConfig) > 0 {
 				databricksProperties.NewClusterSparkConf = sparkConfig
 			}
 		}
 
 		if newClusterMap["spark_environment_variables"] != nil {
-			if sparkEnvVars := newClusterMap["spark_environment_variables"].(map[string]interface{}); len(sparkEnvVars) > 0 {
+			if sparkEnvVars := newClusterMap["spark_environment_variables"].(map[string]any); len(sparkEnvVars) > 0 {
 				databricksProperties.NewClusterSparkEnvVars = sparkEnvVars
 			}
 		}
 
 		if newClusterMap["custom_tags"] != nil {
-			if customTags := newClusterMap["custom_tags"].(map[string]interface{}); len(customTags) > 0 {
+			if customTags := newClusterMap["custom_tags"].(map[string]any); len(customTags) > 0 {
 				databricksProperties.NewClusterCustomTags = customTags
 			}
 		}
 
-		initScripts := newClusterMap["init_scripts"]
-		databricksProperties.NewClusterInitScripts = &initScripts
+		databricksProperties.NewClusterInitScripts = pointer.To(newClusterMap["init_scripts"])
 	}
 
 	databricksLinkedService := &datafactory.AzureDatabricksLinkedService{
@@ -425,7 +396,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		databricksLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		databricksLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -433,12 +404,11 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		databricksLinkedService.AdditionalProperties = v.(map[string]interface{})
+		databricksLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		databricksLinkedService.Annotations = &annotations
+		databricksLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -454,7 +424,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	return resourceDataFactoryLinkedServiceDatabricksRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -468,7 +438,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -489,9 +459,6 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 		d.Set("adb_domain", props.Domain)
 
 		if props.Authentication != nil && props.Authentication == "MSI" {
-			if !features.FivePointOh() {
-				d.Set("msi_work_space_resource_id", props.WorkspaceResourceID)
-			}
 			d.Set("msi_workspace_id", props.WorkspaceResourceID)
 		} else if accessToken := props.AccessToken; accessToken != nil {
 			// We only process AzureKeyVaultSecreReference because a string based access token is masked with asterisks in the GET response
@@ -503,8 +470,8 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		instancePoolArray := make([]interface{}, 0)
-		newClusterArray := make([]interface{}, 0)
+		instancePoolArray := make([]any, 0)
+		newClusterArray := make([]any, 0)
 		if props.ExistingClusterID != nil {
 			if err := d.Set("existing_cluster_id", props.ExistingClusterID); err != nil {
 				return fmt.Errorf("setting `existing_cluster_id`: %+v", err)
@@ -518,7 +485,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `instance_pool`: %+v", err)
 			}
 
-			instancePoolMap := map[string]interface{}{
+			instancePoolMap := map[string]any{
 				"instance_pool_id":      id,
 				"min_number_of_workers": minWorkers,
 				"cluster_version":       clusterVersion,
@@ -540,7 +507,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `new_cluster_config`: %+v", err)
 			}
 
-			newClusterMap := map[string]interface{}{
+			newClusterMap := map[string]any{
 				"min_number_of_workers": minWorkers,
 				"cluster_version":       clusterVersion,
 				"node_type":             nodeType,
@@ -587,13 +554,11 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 	d.Set("additional_properties", databricks.AdditionalProperties)
 	d.Set("description", databricks.Description)
 
-	annotations := flattenDataFactoryAnnotations(databricks.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(databricks.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenLinkedServiceParameters(databricks.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenLinkedServiceParameters(databricks.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
@@ -604,7 +569,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -614,16 +579,16 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Data Factory Databricks %s: %+v", *id, err)
 		}
 	}
 	return nil
 }
 
-func buildNumberOfWorkersProperties(minWorkersProperty interface{}, maxWorkersProperty interface{}) (string, interface{}) {
+func buildNumberOfWorkersProperties(minWorkersProperty any, maxWorkersProperty any) (string, any) {
 	var err error
 
 	// Default settings

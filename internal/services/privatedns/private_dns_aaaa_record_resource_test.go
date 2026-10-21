@@ -91,7 +91,7 @@ func TestAccPrivateDnsAaaaRecord_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsAAAARecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsAAAARecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -123,8 +123,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 }
@@ -137,8 +136,7 @@ func (r PrivateDnsAAAARecordResource) requiresImport(data acceptance.TestData) s
 
 resource "azurerm_private_dns_aaaa_record" "import" {
   name                = azurerm_private_dns_aaaa_record.test.name
-  resource_group_name = azurerm_private_dns_aaaa_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_aaaa_record.test.zone_name
+  private_dns_zone_id = azurerm_private_dns_aaaa_record.test.private_dns_zone_id
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 }
@@ -163,8 +161,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335", "fd73:5e76:3ab5:d2e9::1"]
 }
@@ -189,8 +186,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 
@@ -220,8 +216,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "myaaaarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 

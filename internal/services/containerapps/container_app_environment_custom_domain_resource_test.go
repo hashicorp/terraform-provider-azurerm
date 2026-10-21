@@ -43,6 +43,20 @@ func (r ContainerAppEnvironmentCustomDomainResource) Exists(ctx context.Context,
 	return pointer.To(false), nil
 }
 
+func TestAccContainerAppEnvironmentCustomDomainResource_regressionTest(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_custom_domain", "test")
+	r := ContainerAppEnvironmentCustomDomainResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppEnvironmentCustomDomainResource_basic(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
@@ -217,6 +231,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  logs_destination           = "log-analytics"
 }
 
 `, data.RandomInteger, data.Locations.Primary, dnsZone, dataResourceGroup)

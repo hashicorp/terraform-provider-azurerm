@@ -145,11 +145,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[2]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  name              = "acctesteventhub-%[2]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
 }
 
 resource "azurerm_kusto_cluster" "test" {
@@ -193,6 +192,7 @@ resource "azurerm_kusto_database_principal_assignment" "test" {
   principal_type = "App"
   role           = "Admin"
 }
+
 
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

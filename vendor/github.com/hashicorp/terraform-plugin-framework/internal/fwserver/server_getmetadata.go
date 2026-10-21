@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver
@@ -23,6 +23,7 @@ type GetMetadataResponse struct {
 	Functions          []FunctionMetadata
 	ListResources      []ListResourceMetadata
 	Resources          []ResourceMetadata
+	StateStores        []StateStoreMetadata
 	ServerCapabilities *ServerCapabilities
 }
 
@@ -68,6 +69,12 @@ type ActionMetadata struct {
 	TypeName string
 }
 
+// StateStoreMetadata is the framework server equivalent of the tfprotov6.StateStoreMetadata types.
+type StateStoreMetadata struct {
+	// TypeName is the name of the state store.
+	TypeName string
+}
+
 // GetMetadata implements the framework server GetMetadata RPC.
 func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp *GetMetadataResponse) {
 	resp.Actions = []ActionMetadata{}
@@ -75,6 +82,7 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.EphemeralResources = []EphemeralResourceMetadata{}
 	resp.Functions = []FunctionMetadata{}
 	resp.ListResources = []ListResourceMetadata{}
+	resp.StateStores = []StateStoreMetadata{}
 	resp.Resources = []ResourceMetadata{}
 
 	resp.ServerCapabilities = s.ServerCapabilities()
@@ -94,6 +102,9 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resourceMetadatas, diags := s.ResourceMetadatas(ctx)
 	resp.Diagnostics.Append(diags...)
 
+	statestoreMetadatas, diags := s.StateStoreMetadatas(ctx)
+	resp.Diagnostics.Append(diags...)
+
 	// Metadata for list resources must be retrieved after metadata for managed
 	// resources. Server.ListResourceFuncs checks that each list resource type
 	// name matches a known managed resource type name.
@@ -110,4 +121,5 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	resp.Functions = functionMetadatas
 	resp.ListResources = listResourceMetadatas
 	resp.Resources = resourceMetadatas
+	resp.StateStores = statestoreMetadatas
 }

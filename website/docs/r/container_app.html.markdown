@@ -156,6 +156,8 @@ A `custom_scale_rule` block supports the following:
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
+* `ìdentity_id`- (Optional) Resource ID for the System or User Assigned Managed identity to use when executing the scale rule.
+
 ---
 
 A `http_scale_rule` block supports the following:
@@ -470,7 +472,7 @@ A `dapr` block supports the following:
 
 A `registry` block supports the following:
 
-* `server` - (Required) The hostname for the Container Registry.
+* `server` - (Required) The FQDN for the Container Registry.
 
 The authentication details must also be supplied, `identity` and `username`/`password_secret_name` are mutually exclusive.
 

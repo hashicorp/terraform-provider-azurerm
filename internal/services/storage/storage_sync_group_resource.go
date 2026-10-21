@@ -53,7 +53,7 @@ func resourceStorageSyncGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -64,14 +64,17 @@ func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	id := syncgroupresource.NewSyncGroupID(serviceId.SubscriptionId, serviceId.ResourceGroupName, serviceId.StorageSyncServiceName, d.Get("name").(string))
-	existing, err := client.SyncGroupsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+
+	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+		existing, err := client.SyncGroupsGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_sync_group", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_storage_sync_group", id.ID())
+		}
 	}
 
 	if _, err := client.SyncGroupsCreate(ctx, id, syncgroupresource.SyncGroupCreateParameters{}); err != nil {
@@ -82,7 +85,7 @@ func resourceStorageSyncGroupCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceStorageSyncGroupRead(d, meta)
 }
 
-func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,7 +114,7 @@ func resourceStorageSyncGroupRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceStorageSyncGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

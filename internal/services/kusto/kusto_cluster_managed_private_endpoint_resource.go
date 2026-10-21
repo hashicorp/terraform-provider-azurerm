@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -94,7 +95,7 @@ func resourceKustoClusterManagedPrivateEndpoint() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -102,15 +103,17 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 
 	id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		managedPrivateEndpoint, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			managedPrivateEndpoint, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_cluster_managed_private_endpoint", id.ID())
+			if !response.WasNotFound(managedPrivateEndpoint.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_kusto_cluster_managed_private_endpoint", id.ID())
+			}
 		}
 	}
 
@@ -129,16 +132,21 @@ func resourceKustoClusterManagedPrivateEndpointCreateUpdate(d *schema.ResourceDa
 		managedPrivateEndpoint.Properties.RequestMessage = pointer.To(v.(string))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, managedPrivateEndpoint)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if d.IsNewResource() {
+		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, managedPrivateEndpoint, sdk.SetIDCallback(meta, &id, d)); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+		d.SetId(id.ID())
+	} else {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, managedPrivateEndpoint); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
 	return resourceKustoClusterManagedPrivateEndpointRead(d, meta)
 }
 
-func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +188,7 @@ func resourceKustoClusterManagedPrivateEndpointRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClusterManagedPrivateEndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,8 +198,7 @@ func resourceKustoClusterManagedPrivateEndpointDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

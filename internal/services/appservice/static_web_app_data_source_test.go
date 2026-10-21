@@ -13,6 +13,16 @@ import (
 
 type StaticWebAppDataSource struct{}
 
+func TestAccAzureStaticWebAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_static_web_app", "test")
+	r := StaticWebAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureStaticWebAppDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_static_web_app", "test")
 	r := StaticWebAppDataSource{}
@@ -27,7 +37,7 @@ func TestAccAzureStaticWebAppDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("basic_auth.#").HasValue("1"),
 				check.That(data.ResourceName).Key("basic_auth.0.environments").HasValue("AllEnvironments"),
 				check.That(data.ResourceName).Key("identity.#").Exists(),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
 	})

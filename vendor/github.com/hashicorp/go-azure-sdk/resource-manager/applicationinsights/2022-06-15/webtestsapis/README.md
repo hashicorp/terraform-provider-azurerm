@@ -131,7 +131,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := webtestsapis.NewWebTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webTestName")
 
-payload := webtestsapis.TagsResource{
+payload := webtestsapis.ApplicationInsightsCommonTypesTagsResource{
 	// ...
 }
 

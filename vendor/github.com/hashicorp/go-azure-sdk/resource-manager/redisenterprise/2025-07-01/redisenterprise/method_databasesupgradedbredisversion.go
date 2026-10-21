@@ -56,9 +56,20 @@ func (c RedisEnterpriseClient) DatabasesUpgradeDBRedisVersion(ctx context.Contex
 
 // DatabasesUpgradeDBRedisVersionThenPoll performs DatabasesUpgradeDBRedisVersion then polls until it's completed
 func (c RedisEnterpriseClient) DatabasesUpgradeDBRedisVersionThenPoll(ctx context.Context, id DatabaseId) error {
+	return c.DatabasesUpgradeDBRedisVersionCallbackThenPoll(ctx, id, nil)
+}
+
+// DatabasesUpgradeDBRedisVersionCallbackThenPoll performs DatabasesUpgradeDBRedisVersion, runs the optional callback function, then polls until it's completed
+func (c RedisEnterpriseClient) DatabasesUpgradeDBRedisVersionCallbackThenPoll(ctx context.Context, id DatabaseId, callback func() error) error {
 	result, err := c.DatabasesUpgradeDBRedisVersion(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DatabasesUpgradeDBRedisVersion: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -109,7 +109,6 @@ func (r StreamAnalyticsClusterResource) Exists(ctx context.Context, client *clie
 }
 
 func (r StreamAnalyticsClusterResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -119,11 +118,10 @@ resource "azurerm_stream_analytics_cluster" "test" {
   location            = azurerm_resource_group.test.location
   streaming_capacity  = 36
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsClusterResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -133,11 +131,10 @@ resource "azurerm_stream_analytics_cluster" "test" {
   location            = azurerm_resource_group.test.location
   streaming_capacity  = 72
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsClusterResource) tags(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -151,11 +148,10 @@ resource "azurerm_stream_analytics_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsClusterResource) tagsUpdated(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -170,11 +166,10 @@ resource "azurerm_stream_analytics_cluster" "test" {
     Env   = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StreamAnalyticsClusterResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -184,7 +179,7 @@ resource "azurerm_stream_analytics_cluster" "import" {
   location            = azurerm_stream_analytics_cluster.test.location
   streaming_capacity  = azurerm_stream_analytics_cluster.test.streaming_capacity
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsClusterResource) template(data acceptance.TestData) string {

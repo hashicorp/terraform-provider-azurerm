@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageMoverTestResource struct{}
+type StorageMoverResource struct{}
 
 func TestAccStorageMover_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover", "test")
-	r := StorageMoverTestResource{}
+	r := StorageMoverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccStorageMover_basic(t *testing.T) {
 
 func TestAccStorageMover_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover", "test")
-	r := StorageMoverTestResource{}
+	r := StorageMoverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccStorageMover_requiresImport(t *testing.T) {
 
 func TestAccStorageMover_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover", "test")
-	r := StorageMoverTestResource{}
+	r := StorageMoverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccStorageMover_complete(t *testing.T) {
 
 func TestAccStorageMover_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_mover", "test")
-	r := StorageMoverTestResource{}
+	r := StorageMoverResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccStorageMover_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := storagemovers.ParseStorageMoverID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r StorageMoverTestResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -112,7 +112,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageMoverTestResource) basic(data acceptance.TestData) string {
+func (r StorageMoverResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -125,7 +125,7 @@ resource "azurerm_storage_mover" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageMoverTestResource) requiresImport(data acceptance.TestData) string {
+func (r StorageMoverResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -138,7 +138,7 @@ resource "azurerm_storage_mover" "import" {
 `, config, data.Locations.Primary)
 }
 
-func (r StorageMoverTestResource) complete(data acceptance.TestData) string {
+func (r StorageMoverResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -155,7 +155,7 @@ resource "azurerm_storage_mover" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StorageMoverTestResource) update(data acceptance.TestData) string {
+func (r StorageMoverResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

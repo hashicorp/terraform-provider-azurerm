@@ -5,7 +5,7 @@ package validate
 
 import "testing"
 
-func TestAccountName(t *testing.T) {
+func TestValidateAccountName(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Expected bool

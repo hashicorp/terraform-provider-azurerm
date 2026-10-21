@@ -56,9 +56,20 @@ func (c ReplicationFabricsClient) RemoveInfra(ctx context.Context, id Replicatio
 
 // RemoveInfraThenPoll performs RemoveInfra then polls until it's completed
 func (c ReplicationFabricsClient) RemoveInfraThenPoll(ctx context.Context, id ReplicationFabricId) error {
+	return c.RemoveInfraCallbackThenPoll(ctx, id, nil)
+}
+
+// RemoveInfraCallbackThenPoll performs RemoveInfra, runs the optional callback function, then polls until it's completed
+func (c ReplicationFabricsClient) RemoveInfraCallbackThenPoll(ctx context.Context, id ReplicationFabricId, callback func() error) error {
 	result, err := c.RemoveInfra(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing RemoveInfra: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

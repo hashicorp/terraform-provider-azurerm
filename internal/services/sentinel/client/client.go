@@ -6,27 +6,29 @@ package client
 import (
 	"fmt"
 
-	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertruletemplates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/dataconnectors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/securitymlanalyticssettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/threatintelligence"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlistitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type Client struct {
 	AlertRulesClient         *alertrules.AlertRulesClient
 	AlertRuleTemplatesClient *alertruletemplates.AlertRuleTemplatesClient
 	AutomationRulesClient    *automationrules.AutomationRulesClient
-	DataConnectorsClient     *securityinsight.DataConnectorsClient
+	DataConnectorsClient     *dataconnectors.DataConnectorsClient
 	WatchlistsClient         *watchlists.WatchlistsClient
 	WatchlistItemsClient     *watchlistitems.WatchlistItemsClient
 	OnboardingStatesClient   *sentinelonboardingstates.SentinelOnboardingStatesClient
-	AnalyticsSettingsClient  *securityinsight.SecurityMLAnalyticsSettingsClient
-	ThreatIntelligenceClient *securityinsight.ThreatIntelligenceIndicatorClient
+	AnalyticsSettingsClient  *securitymlanalyticssettings.SecurityMLAnalyticsSettingsClient
+	ThreatIntelligenceClient *threatintelligence.ThreatIntelligenceClient
 	MetadataClient           *metadata.MetadataClient
 }
 
@@ -37,8 +39,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(alertRulesClient.Client, o.Authorizers.ResourceManager)
 
-	alertRuleTemplatesClient := alertruletemplates.NewAlertRuleTemplatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&alertRuleTemplatesClient.Client, o.ResourceManagerAuthorizer)
+	alertRuleTemplatesClient, err := alertruletemplates.NewAlertRuleTemplatesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Alert Rule Templates Client: %+v", err)
+	}
+	o.Configure(alertRuleTemplatesClient.Client, o.Authorizers.ResourceManager)
 
 	automationRulesClient, err := automationrules.NewAutomationRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -46,8 +51,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(automationRulesClient.Client, o.Authorizers.ResourceManager)
 
-	dataConnectorsClient := securityinsight.NewDataConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&dataConnectorsClient.Client, o.ResourceManagerAuthorizer)
+	dataConnectorsClient, err := dataconnectors.NewDataConnectorsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Data Connectors Client: %+v", err)
+	}
+	o.Configure(dataConnectorsClient.Client, o.Authorizers.ResourceManager)
 
 	watchListsClient, err := watchlists.NewWatchlistsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -67,11 +75,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(onboardingStatesClient.Client, o.Authorizers.ResourceManager)
 
-	analyticsSettingsClient := securityinsight.NewSecurityMLAnalyticsSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&analyticsSettingsClient.Client, o.ResourceManagerAuthorizer)
+	analyticsSettingsClient, err := securitymlanalyticssettings.NewSecurityMLAnalyticsSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Security ML Analytics Settings Client: %+v", err)
+	}
+	o.Configure(analyticsSettingsClient.Client, o.Authorizers.ResourceManager)
 
-	threatIntelligenceClient := securityinsight.NewThreatIntelligenceIndicatorClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&threatIntelligenceClient.Client, o.ResourceManagerAuthorizer)
+	threatIntelligenceClient, err := threatintelligence.NewThreatIntelligenceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Threat Intelligence Client: %+v", err)
+	}
+	o.Configure(threatIntelligenceClient.Client, o.Authorizers.ResourceManager)
 
 	metadataClient, err := metadata.NewMetadataClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -81,14 +95,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AlertRulesClient:         alertRulesClient,
-		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
+		AlertRuleTemplatesClient: alertRuleTemplatesClient,
 		AutomationRulesClient:    automationRulesClient,
-		DataConnectorsClient:     &dataConnectorsClient,
+		DataConnectorsClient:     dataConnectorsClient,
 		WatchlistsClient:         watchListsClient,
 		WatchlistItemsClient:     watchListItemsClient,
 		OnboardingStatesClient:   onboardingStatesClient,
-		AnalyticsSettingsClient:  &analyticsSettingsClient,
-		ThreatIntelligenceClient: &threatIntelligenceClient,
+		AnalyticsSettingsClient:  analyticsSettingsClient,
+		ThreatIntelligenceClient: threatIntelligenceClient,
 		MetadataClient:           metadataClient,
 	}, nil
 }

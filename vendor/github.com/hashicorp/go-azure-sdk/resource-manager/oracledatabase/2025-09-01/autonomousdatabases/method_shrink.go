@@ -58,9 +58,20 @@ func (c AutonomousDatabasesClient) Shrink(ctx context.Context, id AutonomousData
 
 // ShrinkThenPoll performs Shrink then polls until it's completed
 func (c AutonomousDatabasesClient) ShrinkThenPoll(ctx context.Context, id AutonomousDatabaseId) error {
+	return c.ShrinkCallbackThenPoll(ctx, id, nil)
+}
+
+// ShrinkCallbackThenPoll performs Shrink, runs the optional callback function, then polls until it's completed
+func (c AutonomousDatabasesClient) ShrinkCallbackThenPoll(ctx context.Context, id AutonomousDatabaseId, callback func() error) error {
 	result, err := c.Shrink(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Shrink: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

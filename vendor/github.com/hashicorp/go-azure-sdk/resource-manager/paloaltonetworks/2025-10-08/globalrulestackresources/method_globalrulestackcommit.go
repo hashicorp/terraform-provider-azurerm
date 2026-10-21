@@ -56,9 +56,20 @@ func (c GlobalRulestackResourcesClient) GlobalRulestackcommit(ctx context.Contex
 
 // GlobalRulestackcommitThenPoll performs GlobalRulestackcommit then polls until it's completed
 func (c GlobalRulestackResourcesClient) GlobalRulestackcommitThenPoll(ctx context.Context, id GlobalRulestackId) error {
+	return c.GlobalRulestackcommitCallbackThenPoll(ctx, id, nil)
+}
+
+// GlobalRulestackcommitCallbackThenPoll performs GlobalRulestackcommit, runs the optional callback function, then polls until it's completed
+func (c GlobalRulestackResourcesClient) GlobalRulestackcommitCallbackThenPoll(ctx context.Context, id GlobalRulestackId, callback func() error) error {
 	result, err := c.GlobalRulestackcommit(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GlobalRulestackcommit: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -3,7 +3,7 @@
 
 package parse
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+// NOTE: this file is written by hand, as the ID generator cannot handle IDs without a subscription
 
 import (
 	"fmt"
@@ -15,13 +15,6 @@ import (
 type BillingAccountCostManagementExportId struct {
 	BillingAccountName string
 	ExportName         string
-}
-
-func NewBillingAccountCostManagementExportID(billingAccountName, exportName string) BillingAccountCostManagementExportId {
-	return BillingAccountCostManagementExportId{
-		BillingAccountName: billingAccountName,
-		ExportName:         exportName,
-	}
 }
 
 func (id BillingAccountCostManagementExportId) String() string {

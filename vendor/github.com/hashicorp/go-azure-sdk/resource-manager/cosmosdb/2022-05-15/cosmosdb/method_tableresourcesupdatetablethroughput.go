@@ -62,9 +62,20 @@ func (c CosmosDBClient) TableResourcesUpdateTableThroughput(ctx context.Context,
 
 // TableResourcesUpdateTableThroughputThenPoll performs TableResourcesUpdateTableThroughput then polls until it's completed
 func (c CosmosDBClient) TableResourcesUpdateTableThroughputThenPoll(ctx context.Context, id TableId, input ThroughputSettingsUpdateParameters) error {
+	return c.TableResourcesUpdateTableThroughputCallbackThenPoll(ctx, id, input, nil)
+}
+
+// TableResourcesUpdateTableThroughputCallbackThenPoll performs TableResourcesUpdateTableThroughput, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) TableResourcesUpdateTableThroughputCallbackThenPoll(ctx context.Context, id TableId, input ThroughputSettingsUpdateParameters, callback func() error) error {
 	result, err := c.TableResourcesUpdateTableThroughput(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing TableResourcesUpdateTableThroughput: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

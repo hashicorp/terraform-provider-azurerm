@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -116,6 +116,18 @@ func (s TestStep) validate(ctx context.Context, req testStepValidateRequest) err
 
 	if req.StepConfiguration == nil && !s.ImportState && !s.RefreshState {
 		err := fmt.Errorf("TestStep missing Config or ConfigDirectory or ConfigFile or ImportState or RefreshState")
+		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	if s.VerifyStateStoreLock && !s.StateStore {
+		err := fmt.Errorf("TestStep StateStore field must be set to true when VerifyStateStoreLock is true")
+		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	if s.DefaultWorkspaceOnly && !s.StateStore {
+		err := fmt.Errorf("TestStep StateStore field must be set to true when DefaultWorkspaceOnly is true")
 		logging.HelperResourceError(ctx, "TestStep validation error", map[string]interface{}{logging.KeyError: err})
 		return err
 	}

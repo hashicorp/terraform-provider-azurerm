@@ -83,7 +83,7 @@ func (CAARecordV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (CAARecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		parsedId, err := recordsets.ParseRecordTypeIDInsensitively(oldId)
 		if err != nil {
@@ -96,13 +96,13 @@ func (CAARecordV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-func resourceDnsCaaRecordHash(v interface{}) int {
+func resourceDnsCaaRecordHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["flags"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["tag"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["value"].(string)))
+	if m, ok := v.(map[string]any); ok {
+		fmt.Fprintf(&buf, "%d-", m["flags"].(int))
+		fmt.Fprintf(&buf, "%s-", m["tag"].(string))
+		fmt.Fprintf(&buf, "%s-", m["value"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())

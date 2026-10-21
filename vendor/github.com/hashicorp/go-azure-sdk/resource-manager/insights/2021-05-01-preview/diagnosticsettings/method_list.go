@@ -16,7 +16,24 @@ import (
 type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DiagnosticSettingsResourceCollection
+	Model        *[]DiagnosticSettingsResource
+}
+
+type ListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []DiagnosticSettingsResource
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -27,6 +44,7 @@ func (c DiagnosticSettingsClient) List(ctx context.Context, id commonids.ScopeId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/diagnosticSettings", id.ID()),
 	}
 
@@ -36,7 +54,7 @@ func (c DiagnosticSettingsClient) List(ctx context.Context, id commonids.ScopeId
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,11 +63,44 @@ func (c DiagnosticSettingsClient) List(ctx context.Context, id commonids.ScopeId
 		return
 	}
 
-	var model DiagnosticSettingsResourceCollection
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]DiagnosticSettingsResource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListComplete retrieves all the results into a single object
+func (c DiagnosticSettingsClient) ListComplete(ctx context.Context, id commonids.ScopeId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, DiagnosticSettingsResourceOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c DiagnosticSettingsClient) ListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate DiagnosticSettingsResourceOperationPredicate) (result ListCompleteResult, err error) {
+	items := make([]DiagnosticSettingsResource, 0)
+
+	resp, err := c.List(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

@@ -27,7 +27,8 @@ func TestAccWebPubsubHub_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -56,7 +57,8 @@ func TestAccWebPubsubHub_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -70,7 +72,8 @@ func TestAccWebPubsubHub_usingAuthGuid(t *testing.T) {
 		{
 			Config: r.usingAuthGuid(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -84,7 +87,8 @@ func TestAccWebPubsubHub_usingAuthTokenAudience(t *testing.T) {
 		{
 			Config: r.usingAuthTokenAudience(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -156,13 +160,15 @@ func TestAccWebPubsubHub_withMultipleEventHandlerSettingsUpdate(t *testing.T) {
 		{
 			Config: r.withMultipleEventhandlerSettingsAndNoAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withMultipleEventHandlerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -176,19 +182,22 @@ func TestAccWebPubsubHub_withMultipleEventListenerSettingsUpdate(t *testing.T) {
 		{
 			Config: r.withMultipleEventListenerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.withMultipleEventListenerSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -364,19 +373,17 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_eventhub" "test1" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_web_pubsub_hub" "test" {

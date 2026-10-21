@@ -62,9 +62,20 @@ func (c EventSubscriptionsClient) DomainEventSubscriptionsCreateOrUpdate(ctx con
 
 // DomainEventSubscriptionsCreateOrUpdateThenPoll performs DomainEventSubscriptionsCreateOrUpdate then polls until it's completed
 func (c EventSubscriptionsClient) DomainEventSubscriptionsCreateOrUpdateThenPoll(ctx context.Context, id DomainEventSubscriptionId, input EventSubscription) error {
+	return c.DomainEventSubscriptionsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DomainEventSubscriptionsCreateOrUpdateCallbackThenPoll performs DomainEventSubscriptionsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c EventSubscriptionsClient) DomainEventSubscriptionsCreateOrUpdateCallbackThenPoll(ctx context.Context, id DomainEventSubscriptionId, input EventSubscription, callback func() error) error {
 	result, err := c.DomainEventSubscriptionsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DomainEventSubscriptionsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

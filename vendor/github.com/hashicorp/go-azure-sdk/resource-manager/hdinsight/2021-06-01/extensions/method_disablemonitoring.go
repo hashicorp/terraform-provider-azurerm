@@ -59,9 +59,20 @@ func (c ExtensionsClient) DisableMonitoring(ctx context.Context, id commonids.HD
 
 // DisableMonitoringThenPoll performs DisableMonitoring then polls until it's completed
 func (c ExtensionsClient) DisableMonitoringThenPoll(ctx context.Context, id commonids.HDInsightClusterId) error {
+	return c.DisableMonitoringCallbackThenPoll(ctx, id, nil)
+}
+
+// DisableMonitoringCallbackThenPoll performs DisableMonitoring, runs the optional callback function, then polls until it's completed
+func (c ExtensionsClient) DisableMonitoringCallbackThenPoll(ctx context.Context, id commonids.HDInsightClusterId, callback func() error) error {
 	result, err := c.DisableMonitoring(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DisableMonitoring: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

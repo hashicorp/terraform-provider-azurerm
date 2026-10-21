@@ -18,17 +18,18 @@ import (
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
 	servicenetworking_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"
-	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	preflight "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/client"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 	advisor "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
+	appgateway "github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway/client"
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
@@ -72,6 +73,7 @@ import (
 	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
+	expressroute "github.com/hashicorp/terraform-provider-azurerm/internal/services/expressroute/client"
 	extendedlocation "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 	fabric "github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
@@ -93,6 +95,7 @@ import (
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
+	manageddevopspools "github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
@@ -106,11 +109,12 @@ import (
 	netapp "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/client"
 	network "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/client"
 	networkfunction "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/client"
+	networkgateway "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkgateway/client"
+	networkmanager "github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/client"
 	newrelic "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
 	oracle "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
-	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
 	portal "github.com/hashicorp/terraform-provider-azurerm/internal/services/portal/client"
@@ -123,7 +127,6 @@ import (
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
-	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
@@ -145,8 +148,8 @@ import (
 	systemCenterVirtualMachineManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
+	virtualwan "github.com/hashicorp/terraform-provider-azurerm/internal/services/virtualwan/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
-	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
 	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
@@ -160,11 +163,14 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
+	Preflight *preflight.Client
+
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
 	ApiManagement                     *apiManagement.Client
 	AppConfiguration                  *appConfiguration.Client
+	AppGateway                        *appgateway.Client
 	AppInsights                       *applicationInsights.Client
 	AppPlatform                       *appPlatform.Client
 	AppService                        *appService.Client
@@ -209,6 +215,7 @@ type Client struct {
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid.Client
 	Eventhub                          *eventhub.Client
+	ExpressRoute                      *expressroute.Client
 	ExtendedLocation                  *extendedlocation.Client
 	Fabric                            *fabric.Client
 	FluidRelay                        *fluidrelay_2022_05_26.Client
@@ -230,6 +237,7 @@ type Client struct {
 	MachineLearning                   *machinelearning.Client
 	Maintenance                       *maintenance.Client
 	ManagedApplication                *managedapplication.Client
+	ManagedDevOpsPools                *manageddevopspools.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
 	ManagedIdentity                   *managedidentity.Client
@@ -243,11 +251,12 @@ type Client struct {
 	NetApp                            *netapp.Client
 	Network                           *network.Client
 	NetworkFunction                   *networkfunction.Client
+	NetworkGateway                    *networkgateway.Client
+	NetworkManager                    *networkmanager.Client
 	NewRelic                          *newrelic.Client
 	Nginx                             *nginx_2024_11_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
 	Oracle                            *oracle.Client
-	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client
 	Policy                            *policy.Client
 	Portal                            *portal.Client
@@ -260,7 +269,6 @@ type Client struct {
 	RecoveryServices                  *recoveryServices.Client
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
-	RedisEnterprise                   *redisenterprise.Client
 	Relay                             *relay.Client
 	Resource                          *resource.Client
 	Search                            *search.Client
@@ -274,7 +282,6 @@ type Client struct {
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
 	StorageCache                      *storagecache_2024_07_01.Client
-	StorageCache_2023_05_01           *storagecache_2023_05_01.Client
 	StorageMover                      *storageMover.Client
 	StreamAnalytics                   *streamAnalytics.Client
 	Subscription                      *subscription.Client
@@ -282,8 +289,8 @@ type Client struct {
 	SystemCenterVirtualMachineManager *systemcentervirtualmachinemanager_2023_10_07.Client
 	TrafficManager                    *trafficManager.Client
 	VideoIndexer                      *videoindexer.Client
+	VirtualWan                        *virtualwan.Client
 	Vmware                            *vmware.Client
-	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
 	Workloads                         *workloads_v2024_09_01.Client
 }
@@ -304,6 +311,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 
 	var err error
 
+	if client.Preflight, err = preflight.NewClient(o); err != nil {
+		return fmt.Errorf("building client for preflight validator: %+v", err)
+	}
+
 	if client.AadB2c, err = aadb2c.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AadB2c: %+v", err)
 	}
@@ -318,6 +329,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.AppConfiguration, err = appConfiguration.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AppConfiguration: %+v", err)
+	}
+	if client.AppGateway, err = appgateway.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AppGateway: %+v", err)
 	}
 	if client.AppInsights, err = applicationInsights.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ApplicationInsights: %+v", err)
@@ -451,6 +465,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
+	if client.ExpressRoute, err = expressroute.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ExpressRoute: %+v", err)
+	}
 	if client.ExtendedLocation, err = extendedlocation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ExtendedLocation: %+v", err)
 	}
@@ -512,6 +529,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
+	if client.ManagedDevOpsPools, err = manageddevopspools.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed DevOps Pools: %+v", err)
+	}
 	if client.ManagementGroups, err = managementgroup.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Management Groups: %+v", err)
 	}
@@ -551,6 +571,12 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.NetworkFunction, err = networkfunction.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NetworkFunction: %+v", err)
 	}
+	if client.NetworkGateway, err = networkgateway.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetworkGateway: %+v", err)
+	}
+	if client.NetworkManager, err = networkmanager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for NetworkManager: %+v", err)
+	}
 	if client.NewRelic, err = newrelic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NewRelic: %+v", err)
 	}
@@ -562,9 +588,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Oracle, err = oracle.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for OracleDatabase: %+v", err)
-	}
-	if client.Orbital, err = orbital.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Orbital: %+v", err)
 	}
 	if client.Policy, err = policy.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Policy: %+v", err)
@@ -601,9 +624,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Redis, err = redis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Redis: %+v", err)
-	}
-	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
@@ -644,9 +664,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
 	}
-	if client.StorageCache_2023_05_01, err = storageCache.NewClient_2023_05_01(o); err != nil {
-		return fmt.Errorf("building clients for Storage Cache 2023-05-01: %+v", err)
-	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)
 	}
@@ -657,7 +674,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}
 
-	client.Synapse = synapse.NewClient(o)
+	if client.Synapse, err = synapse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Synapse: %w", err)
+	}
+
 	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
 	}
@@ -669,13 +689,17 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Video Indexer: %+v", err)
 	}
 
+	if client.VirtualWan, err = virtualwan.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for VirtualWan: %+v", err)
+	}
+
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
 	}
-	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Voice Services: %+v", err)
+
+	if client.Web, err = web.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Web: %+v", err)
 	}
-	client.Web = web.NewClient(o)
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)

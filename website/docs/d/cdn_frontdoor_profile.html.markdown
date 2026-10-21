@@ -14,8 +14,8 @@ Use this data source to access information about an existing Front Door (standar
 
 ```hcl
 data "azurerm_cdn_frontdoor_profile" "example" {
-  name                = "existing-cdn-profile"
-  resource_group_name = "existing-resources"
+  name                = "example-cdn-profile"
+  resource_group_name = "example-resources"
 }
 
 output "front_door_id" {
@@ -77,4 +77,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2024-02-01
+* `Microsoft.Cdn` - 2025-12-01

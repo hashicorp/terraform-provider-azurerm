@@ -20,25 +20,23 @@ type SystemAndUserAssignedMap struct {
 	IdentityIds map[string]UserAssignedIdentityDetails `json:"userAssignedIdentities"`
 }
 
-func (s *SystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
+func (s SystemAndUserAssignedMap) MarshalJSON() ([]byte, error) {
 	// we use a custom marshal function here since we can only send the Type / UserAssignedIdentities field
 	identityType := TypeNone
 	userAssignedIdentityIds := map[string]UserAssignedIdentityDetails{}
 
-	if s != nil {
-		if s.Type == TypeSystemAssigned {
-			identityType = TypeSystemAssigned
-		}
-		if s.Type == TypeSystemAssignedUserAssigned {
-			identityType = TypeSystemAssignedUserAssigned
-		}
-		if s.Type == TypeUserAssigned {
-			identityType = TypeUserAssigned
-		}
+	if s.Type == TypeSystemAssigned {
+		identityType = TypeSystemAssigned
+	}
+	if s.Type == TypeSystemAssignedUserAssigned {
+		identityType = TypeSystemAssignedUserAssigned
+	}
+	if s.Type == TypeUserAssigned {
+		identityType = TypeUserAssigned
+	}
 
-		if identityType != TypeNone {
-			userAssignedIdentityIds = s.IdentityIds
-		}
+	if identityType != TypeNone {
+		userAssignedIdentityIds = s.IdentityIds
 	}
 
 	out := map[string]interface{}{
