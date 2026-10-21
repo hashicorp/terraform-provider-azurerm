@@ -3,16 +3,16 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription_rule"
 description: |-
-    Lists ServiceBus Subscription Rule resources.
+    Lists Service Bus Subscription Rule resources.
 ---
 
 # List resource: azurerm_servicebus_subscription_rule
 
-Lists ServiceBus Subscription Rule resources.
+Lists Service Bus Subscription Rule resources.
 
 ## Example Usage
 
-### List all ServiceBus Subscription Rules in a ServiceBus Subscription
+### List all Service Bus Subscription Rules in a Service Bus Subscription
 
 ```hcl
 list "azurerm_servicebus_subscription_rule" "example" {
@@ -27,4 +27,4 @@ list "azurerm_servicebus_subscription_rule" "example" {
 
 This list resource supports the following arguments:
 
-* `servicebus_subscription_id` - (Required) The ID of the ServiceBus Subscription to query.
+* `servicebus_subscription_id` - (Required) The ID of the Service Bus Subscription to query.

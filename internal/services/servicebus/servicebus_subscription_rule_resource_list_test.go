@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccServiceBusSubscriptionRule_listByServicbusSubscriptionID(t *testing.T) {
+func TestAccServiceBusSubscriptionRule_listByServicBusSubscriptionID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "list")
 	r := ServicebusSubscriptionRuleResource{}
 
