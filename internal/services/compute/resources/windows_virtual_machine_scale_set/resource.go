@@ -92,7 +92,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return nil
 			}),
 
-			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) bool {
+			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) bool {
 				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
 				oldZones, _ := d.GetChange("zones")
 				// In-place association is only supported when adding a CRG to an already-zonal scale set. Updating or de-associating still requires a force new (actually requires deallocation).
