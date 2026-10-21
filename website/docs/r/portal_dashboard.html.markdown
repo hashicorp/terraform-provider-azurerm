@@ -39,11 +39,11 @@ resource "azurerm_portal_dashboard" "my-board" {
   }
   dashboard_properties = <<DASH
 {
-   "lenses": {
-        "0": {
+    "lenses": [
+        {
             "order": 0,
-            "parts": {
-                "0": {
+            "parts": [
+                {
                     "position": {
                         "x": 0,
                         "y": 0,
@@ -63,8 +63,8 @@ resource "azurerm_portal_dashboard" "my-board" {
                             }
                         }
                     }
-                },               
-                "1": {
+                },
+                {
                     "position": {
                         "x": 5,
                         "y": 0,
@@ -86,7 +86,7 @@ resource "azurerm_portal_dashboard" "my-board" {
                         }
                     }
                 },
-                "2": {
+                {
                     "position": {
                         "x": 0,
                         "y": 4,
@@ -107,10 +107,10 @@ resource "azurerm_portal_dashboard" "my-board" {
                             "type": "ApplicationInsights"
                         }
                     }
-                }              
-            }
+                }
+            ]
         }
-    },
+    ],
     "metadata": {
         "model": {
             "timeRange": {
@@ -162,33 +162,33 @@ Since the contents of the dashboard JSON can be quite lengthy, use a template fi
 
 ```JSON
 {
-    "lenses": {
-         "0": {
-             "order": 0,
-             "parts": {
-                 "0": {
-                     "position": {
-                         "x": 0,
-                         "y": 0,
-                         "rowSpan": 2,
-                         "colSpan": 3
-                     },
-                     "metadata": {
-                         "inputs": [],
-                         "type": "Extension/HubsExtension/PartType/MarkdownPart",
-                         "settings": {
-                             "content": {
-                                 "settings": {
-                                     "content": "${md_content}", // <-- note the 'var.' is dropped
-                                     "subtitle": "",
-                                     "title": ""
-                                 }
-                             }
-                         }
-                     }
-                 },  
-                 ...
-                 ...
+    "lenses": [
+        {
+            "order": 0,
+            "parts": [
+                {
+                    "position": {
+                        "x": 0,
+                        "y": 0,
+                        "rowSpan": 2,
+                        "colSpan": 3
+                    },
+                    "metadata": {
+                        "inputs": [],
+                        "type": "Extension/HubsExtension/PartType/MarkdownPart",
+                        "settings": {
+                            "content": {
+                                "settings": {
+                                    "content": "${md_content}", // <-- note the 'var.' is dropped
+                                    "subtitle": "",
+                                    "title": ""
+                                }
+                            }
+                        }
+                    }
+                },
+                ...
+                ...
 ```
 
 This is then referenced in the `.tf` file by using a [`template_file`](https://www.terraform.io/docs/providers/template/d/file.html) data source (terraform 0.11 or earlier), or the [`templatefile`](https://www.terraform.io/docs/configuration/functions/templatefile.html) function (terraform 0.12+).
@@ -283,4 +283,4 @@ Note the URI in the above sample can be found using the Resource Explorer tool i
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Portal` - 2019-01-01-preview
+* `Microsoft.Portal` - 2026-04-01
