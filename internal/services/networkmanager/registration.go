@@ -7,6 +7,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_admin_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_admin_rule_collection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_connectivity_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_deployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_ipam_pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_ipam_pool_static_cidr"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_management_group_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_network_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_routing_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_routing_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_routing_rule_collection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_scope_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_security_admin_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_static_member"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_subscription_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_verifier_workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_manager_verifier_workspace_reachability_analysis_intent"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_security_perimeter"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_security_perimeter_access_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_security_perimeter_association"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkmanager/resources/network_security_perimeter_profile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,39 +58,39 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ManagerConnectivityConfigurationDataSource{},
-		ManagerDataSource{},
-		ManagerIpamPoolDataSource{},
-		ManagerNetworkGroupDataSource{},
-		NetworkSecurityPerimeterDataSource{},
-		NetworkSecurityPerimeterProfileDataSource{},
+		network_manager_connectivity_configuration.DataSource{},
+		network_manager.DataSource{},
+		network_manager_ipam_pool.DataSource{},
+		network_manager_network_group.DataSource{},
+		network_security_perimeter.DataSource{},
+		network_security_perimeter_profile.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagerAdminRuleCollectionResource{},
-		ManagerAdminRuleResource{},
-		ManagerConnectivityConfigurationResource{},
-		ManagerDeploymentResource{},
-		ManagerIpamPoolResource{},
-		ManagerIpamPoolStaticCidrResource{},
-		ManagerManagementGroupConnectionResource{},
-		ManagerNetworkGroupResource{},
-		ManagerResource{},
-		ManagerRoutingConfigurationResource{},
-		ManagerRoutingRuleCollectionResource{},
-		ManagerRoutingRuleResource{},
-		ManagerScopeConnectionResource{},
-		ManagerSecurityAdminConfigurationResource{},
-		ManagerStaticMemberResource{},
-		ManagerSubscriptionConnectionResource{},
-		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
-		ManagerVerifierWorkspaceResource{},
-		NetworkSecurityPerimeterAccessRuleResource{},
-		NetworkSecurityPerimeterAssociationResource{},
-		NetworkSecurityPerimeterProfileResource{},
-		NetworkSecurityPerimeterResource{},
+		network_manager_admin_rule_collection.Resource{},
+		network_manager_admin_rule.Resource{},
+		network_manager_connectivity_configuration.Resource{},
+		network_manager_deployment.Resource{},
+		network_manager_ipam_pool.Resource{},
+		network_manager_ipam_pool_static_cidr.Resource{},
+		network_manager_management_group_connection.Resource{},
+		network_manager_network_group.Resource{},
+		network_manager.Resource{},
+		network_manager_routing_configuration.Resource{},
+		network_manager_routing_rule_collection.Resource{},
+		network_manager_routing_rule.Resource{},
+		network_manager_scope_connection.Resource{},
+		network_manager_security_admin_configuration.Resource{},
+		network_manager_static_member.Resource{},
+		network_manager_subscription_connection.Resource{},
+		network_manager_verifier_workspace_reachability_analysis_intent.Resource{},
+		network_manager_verifier_workspace.Resource{},
+		network_security_perimeter_access_rule.Resource{},
+		network_security_perimeter_association.Resource{},
+		network_security_perimeter_profile.Resource{},
+		network_security_perimeter.Resource{},
 	}
 }
 
