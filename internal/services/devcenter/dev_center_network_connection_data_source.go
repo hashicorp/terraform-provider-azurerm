@@ -80,7 +80,7 @@ func (DevCenterNetworkConnectionDataSource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (DevCenterNetworkConnectionDataSource) ModelObject() interface{} {
+func (DevCenterNetworkConnectionDataSource) ModelObject() any {
 	return &DevCenterNetworkConnectionDataSourceModel{}
 }
 

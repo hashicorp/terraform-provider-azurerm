@@ -48,7 +48,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Attributes()
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (p PrivateEndpointApplicationSecurityGroupAssociationResource) ModelObject() interface{} {
+func (p PrivateEndpointApplicationSecurityGroupAssociationResource) ModelObject() any {
 	return &PrivateEndpointApplicationSecurityGroupAssociationModel{}
 }
 

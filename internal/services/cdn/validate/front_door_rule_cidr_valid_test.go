@@ -7,7 +7,7 @@ import "testing"
 
 func TestFrontDoorRuleCidrIsValid(t *testing.T) {
 	cases := []struct {
-		Input interface{}
+		Input any
 		Valid bool
 	}{
 		{

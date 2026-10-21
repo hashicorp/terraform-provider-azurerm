@@ -188,7 +188,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -220,7 +220,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 			DnsConfig:                   expandArmTrafficManagerDNSConfig(d),
 			MonitorConfig:               expandArmTrafficManagerMonitorConfig(d),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if maxReturn, ok := d.GetOk("max_return"); ok {
@@ -254,7 +254,7 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
-func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -315,7 +315,7 @@ func resourceArmTrafficManagerProfileFlatten(d *pluginsdk.ResourceData, id *prof
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -329,7 +329,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 		Properties: &profiles.ProfileProperties{},
 	}
 	if d.HasChange("tags") {
-		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		update.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if d.HasChange("profile_status") {
@@ -367,7 +367,7 @@ func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
-func resourceArmTrafficManagerProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -388,10 +388,10 @@ func resourceArmTrafficManagerProfileDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.MonitorConfig {
-	monitorSets := d.Get("monitor_config").([]interface{})
-	monitor := monitorSets[0].(map[string]interface{})
+	monitorSets := d.Get("monitor_config").([]any)
+	monitor := monitorSets[0].(map[string]any)
 
-	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
+	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]any))
 
 	cfg := profiles.MonitorConfig{
 		Protocol:                  pointer.ToEnum[profiles.MonitorProtocol](monitor["protocol"].(string)),
@@ -403,7 +403,7 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 		ToleratedNumberOfFailures: pointer.To(int64(monitor["tolerated_number_of_failures"].(int))),
 	}
 
-	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
+	if v, ok := monitor["expected_status_code_ranges"].([]any); ok {
 		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesItem, 0)
 		for _, r := range v {
 			parts := strings.Split(r.(string), "-")
@@ -420,7 +420,7 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	return &cfg
 }
 
-func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersItem {
+func expandArmTrafficManagerCustomHeadersConfig(d []any) *[]profiles.MonitorConfigCustomHeadersItem {
 	if len(d) == 0 || d[0] == nil {
 		return nil
 	}
@@ -428,7 +428,7 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.Mon
 	customHeaders := make([]profiles.MonitorConfigCustomHeadersItem, len(d))
 
 	for i, v := range d {
-		ch := v.(map[string]interface{})
+		ch := v.(map[string]any)
 		customHeaders[i] = profiles.MonitorConfigCustomHeadersItem{
 			Name:  pointer.To(ch["name"].(string)),
 			Value: pointer.To(ch["value"].(string)),
@@ -438,8 +438,8 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.Mon
 	return &customHeaders
 }
 
-func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersItem) []interface{} {
-	result := make([]interface{}, 0)
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersItem) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
@@ -460,8 +460,8 @@ func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfig
 }
 
 func expandArmTrafficManagerDNSConfig(d *pluginsdk.ResourceData) *profiles.DnsConfig {
-	dnsSets := d.Get("dns_config").([]interface{})
-	dns := dnsSets[0].(map[string]interface{})
+	dnsSets := d.Get("dns_config").([]any)
+	dns := dnsSets[0].(map[string]any)
 
 	return &profiles.DnsConfig{
 		RelativeName: pointer.To(dns["relative_name"].(string)),
@@ -477,17 +477,17 @@ func expandArmTrafficManagerTrafficView(s bool) *profiles.TrafficViewEnrollmentS
 	return &enabled
 }
 
-func flattenAzureRMTrafficManagerProfileDNSConfig(dns *profiles.DnsConfig) []interface{} {
-	result := make(map[string]interface{})
+func flattenAzureRMTrafficManagerProfileDNSConfig(dns *profiles.DnsConfig) []any {
+	result := make(map[string]any)
 
 	result["relative_name"] = *dns.RelativeName
 	result["ttl"] = int(*dns.Ttl)
 
-	return []interface{}{result}
+	return []any{result}
 }
 
-func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *profiles.MonitorConfig) []interface{} {
-	result := make(map[string]interface{})
+func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *profiles.MonitorConfig) []any {
+	result := make(map[string]any)
 
 	protocol := ""
 	if cfg.Protocol != nil {
@@ -517,5 +517,5 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *profiles.MonitorConfi
 		result["expected_status_code_ranges"] = ranges
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }

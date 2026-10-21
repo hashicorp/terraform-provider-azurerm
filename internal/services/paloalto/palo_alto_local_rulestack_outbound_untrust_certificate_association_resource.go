@@ -30,7 +30,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) IDValidatio
 	return certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID
 }
 
-func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) ModelObject() interface{} {
+func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) ModelObject() any {
 	return &LocalRulestackOutboundUnTrustCertificateResourceModel{}
 }
 

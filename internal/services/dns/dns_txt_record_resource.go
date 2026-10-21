@@ -94,7 +94,7 @@ func resourceDnsTxtRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -121,7 +121,7 @@ func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := recordsets.RecordSet{
 		Name: &name,
@@ -144,7 +144,7 @@ func resourceDnsTxtRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceDnsTxtRecordRead(d, meta)
 }
 
-func resourceDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceDnsTxtRecordFlatten(d *pluginsdk.ResourceData, id *recordsets.Recor
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,8 +205,8 @@ func resourceDnsTxtRecordDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]any {
+	results := make([]map[string]any, 0)
 
 	if records != nil {
 		for _, record := range *records {
@@ -215,7 +215,7 @@ func flattenAzureRmDnsTxtRecords(records *[]recordsets.TxtRecord) []map[string]i
 				value = strings.Join(*v, "")
 			}
 
-			results = append(results, map[string]interface{}{
+			results = append(results, map[string]any{
 				"value": value,
 			})
 		}
@@ -230,7 +230,7 @@ func expandAzureRmDnsTxtRecords(d *pluginsdk.ResourceData) *[]recordsets.TxtReco
 
 	segmentLen := 254
 	for i, v := range recordStrings {
-		record := v.(map[string]interface{})
+		record := v.(map[string]any)
 		v := record["value"].(string)
 
 		var value []string

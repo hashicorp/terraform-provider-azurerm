@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func AppConfigurationFeatureName(input interface{}, key string) ([]string, []error) {
+func AppConfigurationFeatureName(input any, key string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotContainAny("%:"),
 		validation.StringIsNotWhiteSpace,
 	)(input, key)
 }
 
-func AppConfigurationFeatureKey(input interface{}, key string) ([]string, []error) {
+func AppConfigurationFeatureKey(input any, key string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotContainAny("%"),
 		validation.StringIsNotWhiteSpace,

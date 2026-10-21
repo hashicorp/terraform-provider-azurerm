@@ -173,7 +173,7 @@ func (m ConfigurationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m ConfigurationResource) ModelObject() interface{} {
+func (m ConfigurationResource) ModelObject() any {
 	return &ConfigurationModel{}
 }
 

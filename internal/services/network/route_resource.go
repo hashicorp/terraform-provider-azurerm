@@ -83,7 +83,7 @@ func resourceRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Routes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +135,7 @@ func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceRouteRead(d, meta)
 }
 
-func resourceRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +182,7 @@ func resourceRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceRouteRead(d, meta)
 }
 
-func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +219,7 @@ func resourceRouteFlatten(d *pluginsdk.ResourceData, id *routes.RouteId, model *
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Routes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

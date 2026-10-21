@@ -324,7 +324,7 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (CloudVmClusterResource) ModelObject() interface{} {
+func (CloudVmClusterResource) ModelObject() any {
 	return &CloudVmClusterResource{}
 }
 

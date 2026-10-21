@@ -19,6 +19,16 @@ import (
 
 type ApiManagementNotificationRecipientUserResource struct{}
 
+func TestAccApiManagementNotificationRecipientUser_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_user", "test")
+	r := ApiManagementNotificationRecipientUserResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccApiManagementNotificationRecipientUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_user", "test")
 	r := ApiManagementNotificationRecipientUserResource{}

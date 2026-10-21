@@ -81,7 +81,7 @@ func TestResourceDnsRecordImporter_DifferentRecordTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{}, map[string]interface{}{})
+			d := schema.TestResourceDataRaw(t, map[string]*schema.Schema{}, map[string]any{})
 			d.SetId(tt.idPath)
 
 			result, err := ResourceDnsRecordImporter(tt.recordType)(nil, d, nil)

@@ -26,7 +26,7 @@ type NetAppVolumeQuotaRuleResource struct{}
 
 var _ sdk.Resource = NetAppVolumeQuotaRuleResource{}
 
-func (r NetAppVolumeQuotaRuleResource) ModelObject() interface{} {
+func (r NetAppVolumeQuotaRuleResource) ModelObject() any {
 	return &models.NetAppVolumeQuotaRuleModel{}
 }
 
@@ -280,7 +280,7 @@ func waitForQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarule
 }
 
 func netAppVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {

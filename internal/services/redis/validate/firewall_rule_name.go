@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FirewallRuleName(v interface{}, k string) ([]string, []error) {
+func FirewallRuleName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^\w+$`), "may only contain alphanumeric characters and underscores")(v, k)
 }

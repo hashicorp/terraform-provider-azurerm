@@ -40,7 +40,7 @@ func (r LocalRuleStackPrefixList) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack_prefix_list"
 }
 
-func (r LocalRuleStackPrefixList) ModelObject() interface{} {
+func (r LocalRuleStackPrefixList) ModelObject() any {
 	return &LocalRuleStackPrefixListModel{}
 }
 

@@ -26,7 +26,7 @@ var _ sdk.ResourceWithUpdate = FileSystemResource{}
 
 type FileSystemResource struct{}
 
-func (r FileSystemResource) ModelObject() interface{} {
+func (r FileSystemResource) ModelObject() any {
 	return &FileSystemResourceSchema{}
 }
 

@@ -15,7 +15,7 @@ import (
 )
 
 func importSubscriptionByAlias() pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) (data []*pluginsdk.ResourceData, err error) {
 		aliasClient := meta.(*clients.Client).Subscription.AliasClient
 		client := meta.(*clients.Client).Subscription.SubscriptionsClient
 		aliasId, err := subscriptionAliasPandora.ParseAliasID(d.Id())

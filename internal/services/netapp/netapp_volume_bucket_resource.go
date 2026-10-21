@@ -30,7 +30,7 @@ func (r NetAppVolumeBucketResource) Identity() resourceids.ResourceId {
 	return &buckets.BucketId{}
 }
 
-func (r NetAppVolumeBucketResource) ModelObject() interface{} {
+func (r NetAppVolumeBucketResource) ModelObject() any {
 	return &models.NetAppVolumeBucketModel{}
 }
 

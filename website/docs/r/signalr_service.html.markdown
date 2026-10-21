@@ -57,9 +57,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the SignalR service exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku` - (Required) A `sku` block as defined below.
 
-* `cors` - (Optional) A `cors` block as documented below.
+* `cors` - (Optional) A `cors` block as defined below.
 
 * `connectivity_logs_enabled` - (Optional) Specifies if Connectivity Logs are enabled or not. Defaults to `false`.
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `service_mode` - (Optional) Specifies the service mode. Possible values are `Classic`, `Default` and `Serverless`. Defaults to `Default`.
 
-* `upstream_endpoint` - (Optional) An `upstream_endpoint` block as documented below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
+* `upstream_endpoint` - (Optional) An `upstream_endpoint` block as defined below. Using this block requires the SignalR service to be Serverless. When creating multiple blocks they will be processed in the order they are defined in.
 
 * `live_trace` - (Optional) A `live_trace` block as defined below.
 

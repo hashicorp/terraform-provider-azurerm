@@ -37,7 +37,7 @@ func (r AlertProcessingRuleActionGroupResource) ResourceType() string {
 	return "azurerm_monitor_alert_processing_rule_action_group"
 }
 
-func (r AlertProcessingRuleActionGroupResource) ModelObject() interface{} {
+func (r AlertProcessingRuleActionGroupResource) ModelObject() any {
 	return &AlertProcessingRuleActionGroupModel{}
 }
 

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 )
 
-func WorkspaceID(input interface{}, key string) (warnings []string, errors []error) {
+func WorkspaceID(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

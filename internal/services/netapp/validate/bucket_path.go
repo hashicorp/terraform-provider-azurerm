@@ -11,7 +11,7 @@ import (
 
 // BucketPath validates that the given value is an absolute POSIX-style path used
 // as the mount path inside a NetApp Files bucket.
-func BucketPath(v interface{}, k string) ([]string, []error) {
+func BucketPath(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`^/`), `must be an absolute POSIX-style path starting with "/"`),
 		validation.StringDoesNotMatch(regexp.MustCompile(`\\`), "must not contain backslashes"),

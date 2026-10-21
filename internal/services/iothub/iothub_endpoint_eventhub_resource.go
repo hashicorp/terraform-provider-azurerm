@@ -128,7 +128,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -249,7 +249,7 @@ func resourceIotHubEndpointEventHubCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceIotHubEndpointEventHubRead(d, meta)
 }
 
-func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,7 +316,7 @@ func resourceIotHubEndpointEventHubRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceIotHubEndpointEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

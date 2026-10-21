@@ -155,7 +155,7 @@ func resourceIothubEndpointStorageContainerSchema() map[string]*pluginsdk.Schema
 	}
 }
 
-func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).IoTHub.ResourceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -287,7 +287,7 @@ func resourceIotHubEndpointStorageContainerCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceIotHubEndpointStorageContainerRead(d, meta)
 }
 
-func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -358,7 +358,7 @@ func resourceIotHubEndpointStorageContainerRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

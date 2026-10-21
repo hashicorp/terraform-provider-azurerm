@@ -42,7 +42,7 @@ func (l LocalRulestackDataSource) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack"
 }
 
-func (l LocalRulestackDataSource) ModelObject() interface{} {
+func (l LocalRulestackDataSource) ModelObject() any {
 	return &LocalRulestackDataSourceModel{}
 }
 

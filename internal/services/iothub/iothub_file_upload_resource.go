@@ -118,7 +118,7 @@ func (r IotHubFileUploadResource) ResourceType() string {
 	return "azurerm_iothub_file_upload"
 }
 
-func (r IotHubFileUploadResource) ModelObject() interface{} {
+func (r IotHubFileUploadResource) ModelObject() any {
 	return &IotHubFileUploadResourceModel{}
 }
 
