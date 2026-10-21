@@ -407,7 +407,7 @@ func OrchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx
 
 	if extensions, ok := diff.GetOk("extension"); ok {
 		for _, ext := range extensions.(*pluginsdk.Set).List() {
-			extType := ext.(map[string]interface{})["type"].(string)
+			extType := ext.(map[string]any)["type"].(string)
 			if extType == "ApplicationHealthLinux" || extType == "ApplicationHealthWindows" {
 				return nil
 			}
