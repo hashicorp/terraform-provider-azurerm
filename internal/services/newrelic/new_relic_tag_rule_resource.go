@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package newrelic
@@ -41,7 +41,7 @@ func (r NewRelicTagRuleResource) ResourceType() string {
 	return "azurerm_new_relic_tag_rule"
 }
 
-func (r NewRelicTagRuleResource) ModelObject() interface{} {
+func (r NewRelicTagRuleResource) ModelObject() any {
 	return &NewRelicTagRuleModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes
@@ -109,7 +109,7 @@ func TestParseKubeConfig(t *testing.T) {
 					},
 					CurrentContext: "test-cluster",
 					Kind:           "Config",
-					Preferences: map[string]interface{}{
+					Preferences: map[string]any{
 						"colors": true,
 					},
 				},

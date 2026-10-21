@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -26,7 +26,7 @@ import (
 )
 
 type azureRmFrameworkProvider struct {
-	V2Provider interface{ Meta() interface{} }
+	V2Provider interface{ Meta() any }
 	ProviderConfig
 }
 
@@ -42,7 +42,7 @@ func NewFrameworkV5Provider() provider.Provider {
 	return &azureRmFrameworkProvider{}
 }
 
-func NewFrameworkProvider(primary interface{ Meta() interface{} }) provider.Provider {
+func NewFrameworkProvider(primary interface{ Meta() any }) provider.Provider {
 	return &azureRmFrameworkProvider{
 		V2Provider: primary,
 	}

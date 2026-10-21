@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package networkfunction
@@ -35,7 +35,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) ResourceType() string {
 	return "azurerm_network_function_azure_traffic_collector"
 }
 
-func (r NetworkFunctionAzureTrafficCollectorResource) ModelObject() interface{} {
+func (r NetworkFunctionAzureTrafficCollectorResource) ModelObject() any {
 	return &NetworkFunctionAzureTrafficCollectorModel{}
 }
 

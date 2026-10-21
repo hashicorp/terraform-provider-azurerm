@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -34,7 +34,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_dns_forwarding_ruleset"
 }
 
-func (r PrivateDNSResolverDnsForwardingRulesetResource) ModelObject() interface{} {
+func (r PrivateDNSResolverDnsForwardingRulesetResource) ModelObject() any {
 	return &PrivateDNSResolverDnsForwardingRulesetModel{}
 }
 

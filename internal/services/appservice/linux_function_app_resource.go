@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 //go:generate go run ../../tools/generator-tests resourceidentity -test-params "B1"
@@ -95,7 +95,7 @@ var (
 	_ sdk.ResourceWithIdentity       = LinuxFunctionAppResource{}
 )
 
-func (r LinuxFunctionAppResource) ModelObject() interface{} {
+func (r LinuxFunctionAppResource) ModelObject() any {
 	return &LinuxFunctionAppModel{}
 }
 
@@ -784,7 +784,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)

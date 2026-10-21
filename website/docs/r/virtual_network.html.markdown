@@ -75,7 +75,7 @@ The following arguments are supported:
 
 -> **Note:** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.
 
-* `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
+* `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as defined below.
 
 * `encryption` - (Optional) A `encryption` block as defined below.
 
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 -> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
-* `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
+* `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields defined below.
 
 -> **Note:** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
@@ -232,4 +232,4 @@ terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -27,8 +27,8 @@ func (r NetAppVolumeGroupOracleDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_group_oracle"
 }
 
-func (r NetAppVolumeGroupOracleDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeGroupOracleDataSourceModel{}
+func (r NetAppVolumeGroupOracleDataSource) ModelObject() any {
+	return &models.NetAppVolumeGroupOracleDataSourceModel{}
 }
 
 func (r NetAppVolumeGroupOracleDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -259,7 +259,7 @@ func (r NetAppVolumeGroupOracleDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
 
-			var state netAppModels.NetAppVolumeGroupOracleDataSourceModel
+			var state models.NetAppVolumeGroupOracleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

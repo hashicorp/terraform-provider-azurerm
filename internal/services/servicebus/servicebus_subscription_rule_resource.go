@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -186,7 +186,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +268,7 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
-func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +296,7 @@ func resourceServiceBusSubscriptionRuleFlatten(d *pluginsdk.ResourceData, id *ru
 
 	if model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("filter_type", string(pointer.From(props.FilterType)))
+			d.Set("filter_type", pointer.FromEnum(props.FilterType))
 
 			if props.Action != nil {
 				d.Set("action", props.Action.SqlExpression)
@@ -318,7 +318,7 @@ func resourceServiceBusSubscriptionRuleFlatten(d *pluginsdk.ResourceData, id *ru
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -339,7 +339,7 @@ func resourceServiceBusSubscriptionRuleDelete(d *pluginsdk.ResourceData, meta in
 }
 
 func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules.CorrelationFilter, error) {
-	configs := d.Get("correlation_filter").([]interface{})
+	configs := d.Get("correlation_filter").([]any)
 	if len(configs) == 0 {
 		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
@@ -347,7 +347,7 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	if configs[0] == nil {
 		return nil, fmt.Errorf("at least one property must not be empty in the `correlation_filter` block")
 	}
-	config := configs[0].(map[string]interface{})
+	config := configs[0].(map[string]any)
 
 	contentType := config["content_type"].(string)
 	correlationID := config["correlation_id"].(string)
@@ -358,7 +358,7 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	sessionID := config["session_id"].(string)
 	to := config["to"].(string)
 
-	properties := expandProperties(config["properties"].(map[string]interface{}))
+	properties := expandProperties(config["properties"].(map[string]any))
 
 	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(*properties) == 0 {
 		return nil, fmt.Errorf("at least one property must be set in the `correlation_filter` block")
@@ -405,12 +405,12 @@ func expandAzureRmServiceBusCorrelationFilter(d *pluginsdk.ResourceData) (*rules
 	return &correlationFilter, nil
 }
 
-func flattenAzureRmServiceBusCorrelationFilter(input *rules.CorrelationFilter) []interface{} {
+func flattenAzureRmServiceBusCorrelationFilter(input *rules.CorrelationFilter) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	filter := make(map[string]interface{})
+	filter := make(map[string]any)
 
 	if input.CorrelationId != nil {
 		filter["correlation_id"] = *input.CorrelationId
@@ -448,10 +448,10 @@ func flattenAzureRmServiceBusCorrelationFilter(input *rules.CorrelationFilter) [
 		filter["properties"] = flattenProperties(input.Properties)
 	}
 
-	return []interface{}{filter}
+	return []any{filter}
 }
 
-func expandProperties(input map[string]interface{}) *map[string]string {
+func expandProperties(input map[string]any) *map[string]string {
 	output := make(map[string]string)
 	for k, v := range input {
 		output[k] = v.(string)
