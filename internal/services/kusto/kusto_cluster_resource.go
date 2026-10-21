@@ -4,7 +4,6 @@
 package kusto
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -111,6 +110,53 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"trusted_external_tenants": {
+				// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
+				// The Azure Data Explorer API returns tenants in its own order, so compare the tenant sets.
+				DiffSuppressFunc: func(_, _, _ string, d *pluginsdk.ResourceData) bool {
+					if d == nil || d.Id() == "" {
+						return false
+					}
+
+					// Do not suppress changes for omitted or unknown configuration of this Optional + Computed list.
+					rawConfig := d.GetRawConfig()
+					if rawConfig.IsNull() {
+						return false
+					}
+
+					rawTenants := rawConfig.GetAttr("trusted_external_tenants")
+					if rawTenants.IsNull() || !rawTenants.IsWhollyKnown() {
+						return false
+					}
+
+					oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+					oldList, okOld := oldTenants.([]interface{})
+					newList, okNew := newTenants.([]interface{})
+					if !okOld || !okNew {
+						return false
+					}
+
+					oldSet := make(map[string]struct{}, len(oldList))
+					for _, tenant := range oldList {
+						oldSet[tenant.(string)] = struct{}{}
+					}
+
+					newSet := make(map[string]struct{}, len(newList))
+					for _, tenant := range newList {
+						newSet[tenant.(string)] = struct{}{}
+					}
+
+					if len(oldSet) != len(newSet) {
+						return false
+					}
+
+					for tenant := range oldSet {
+						if _, ok := newSet[tenant]; !ok {
+							return false
+						}
+					}
+
+					return true
+				},
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
@@ -223,54 +269,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			// `trusted_external_tenants` is semantically an unordered set of tenant IDs, but it is
-			// modelled as a `TypeList` and the Azure Data Explorer API returns the tenants in its own
-			// canonical order, which frequently differs from the configured order. That reordering
-			// surfaces as a permanent no-op diff, so suppress it when the configured set matches what
-			// is already in state; a genuine add/removal changes the set and still applies.
-
-			// Only reconcile an existing cluster - at create time there is nothing in state to compare
-			// against and, since this property is O+C, `SetNew` would replace a legitimate
-			// `(known after apply)` plan with an empty list.
-			if d.Id() == "" {
-				return nil
-			}
-
-			// Only compare when the property is set in the config and is wholly known. `GetChange`
-			// surfaces an unknown (known-after-apply) list as its zero value (`[]interface{}{}`), which
-			// would compare equal to an empty state and cause `SetNew` to suppress a legitimate change.
-			// Note that `IsWhollyKnown` returns `true` for a null value, so `IsNull` is checked first.
-			rawConfig := d.GetRawConfig()
-			if rawConfig.IsNull() {
-				return nil
-			}
-
-			rawTrustedExternalTenants := rawConfig.GetAttr("trusted_external_tenants")
-			if rawTrustedExternalTenants.IsNull() || !rawTrustedExternalTenants.IsWhollyKnown() {
-				return nil
-			}
-
-			oldTenants, newTenants := d.GetChange("trusted_external_tenants")
-			oldList, ok := oldTenants.([]interface{})
-			if !ok {
-				return nil
-			}
-
-			newList, ok := newTenants.([]interface{})
-			if !ok {
-				return nil
-			}
-
-			if trustedExternalTenantsEqual(oldList, newList) {
-				if err := d.SetNew("trusted_external_tenants", oldList); err != nil {
-					return fmt.Errorf("setting new value for `trusted_external_tenants`: %+v", err)
-				}
-			}
-
-			return nil
-		}),
 	}
 }
 
