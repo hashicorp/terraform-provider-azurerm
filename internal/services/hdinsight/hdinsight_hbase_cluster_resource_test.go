@@ -1406,6 +1406,24 @@ resource "azurerm_network_security_group" "test" {
     },
     {
       access                                     = "Allow"
+      description                                = "Allow internal HDI services."
+      destination_address_prefix                 = "*"
+      destination_address_prefixes               = []
+      destination_application_security_group_ids = []
+      destination_port_range                     = "*"
+      destination_port_ranges                    = []
+      direction                                  = "Inbound"
+      name                                       = "Rule-102"
+      priority                                   = 102
+      protocol                                   = "*"
+      source_address_prefix                      = "HDInsight"
+      source_address_prefixes                    = []
+      source_application_security_group_ids      = []
+      source_port_range                          = "*"
+      source_port_ranges                         = []
+    },
+    {
+      access                                     = "Allow"
       description                                = "Rule can be deleted but do not change source ips."
       destination_address_prefix                 = "*"
       destination_address_prefixes               = []
@@ -1435,24 +1453,6 @@ resource "azurerm_network_security_group" "test" {
       priority                                   = 104
       protocol                                   = "*"
       source_address_prefix                      = "CorpNetSaw"
-      source_address_prefixes                    = []
-      source_application_security_group_ids      = []
-      source_port_range                          = "*"
-      source_port_ranges                         = []
-    },
-    {
-      access                                     = "Allow"
-      description                                = "Allow internal HDI services."
-      destination_address_prefix                 = "*"
-      destination_address_prefixes               = []
-      destination_application_security_group_ids = []
-      destination_port_range                     = "*"
-      destination_port_ranges                    = []
-      direction                                  = "Inbound"
-      name                                       = "Rule-105"
-      priority                                   = 105
-      protocol                                   = "*"
-      source_address_prefix                      = "HDInsight"
       source_address_prefixes                    = []
       source_application_security_group_ids      = []
       source_port_range                          = "*"
