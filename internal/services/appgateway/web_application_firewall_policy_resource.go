@@ -547,7 +547,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			for i, raw := range exceptions {
 				exception := raw.(map[string]any)
-				switch exception["match_variable"].(string) {
+				matchVariable := exception["match_variable"].(string)
+				switch matchVariable {
 				case string(webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestHeader), string(webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestURI):
 					if len(exception["values"].([]any)) > 10 {
 						return fmt.Errorf("`managed_rules.0.exception.%d.values` cannot contain more than 10 items when `match_variable` is `%s`", i, matchVariable)
