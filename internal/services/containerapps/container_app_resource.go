@@ -452,8 +452,9 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 				ingress := app.Ingress[0]
 				// Ingress session affinity validations
 				if ingress.IsSessionAffinity &&
-					app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) {
-					return fmt.Errorf("session affinity can only be used in conjunction with `Single` `revision_mode`")
+					(app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) ||
+						ingress.Transport == string(containerapps.IngressTransportMethodTcp)) {
+					return fmt.Errorf("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`")
 				}
 				// Ingress traffic weight validations
 

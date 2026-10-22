@@ -614,7 +614,7 @@ func TestAccContainerAppResource_ingressStickySessionsValidation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.ingressStickySessionsValidation(data, "Multiple", true),
-			ExpectError: regexp.MustCompile("`sticky` session affinity can only be used in conjunction with `Single` `revision_mode`"),
+			ExpectError: regexp.MustCompile("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`"),
 		},
 	})
 }
