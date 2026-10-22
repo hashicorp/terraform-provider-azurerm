@@ -381,7 +381,7 @@ func TestAccWebApplicationFirewallPolicy_exceptionsInvalidRuleSet(t *testing.T) 
 		{
 			Config:      config,
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("requires a `managed_rule_set`"),
+			ExpectError: regexp.MustCompile("must be `3.2` or later for `OWASP`"),
 		},
 	})
 }

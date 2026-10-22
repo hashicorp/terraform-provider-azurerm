@@ -526,6 +526,20 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+			ruleSets := diff.Get("managed_rules.0.managed_rule_set").([]any)
+
+			primaryRuleSetCount := 0
+			for _, raw := range ruleSets {
+				ruleSet := raw.(map[string]any)
+				switch ruleSet["type"].(string) {
+				case "OWASP", "Microsoft_DefaultRuleSet":
+					primaryRuleSetCount++
+					if primaryRuleSetCount > 1 {
+						return errors.New("`managed_rules.0.managed_rule_set` can contain only one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")
+					}
+				}
+			}
+
 			exceptions := diff.Get("managed_rules.0.exception").([]any)
 			if len(exceptions) == 0 {
 				return nil
@@ -533,43 +547,38 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			for i, raw := range exceptions {
 				exception := raw.(map[string]any)
-				matchVariable := exception["match_variable"].(string)
-				switch webapplicationfirewallpolicies.ExceptionEntryMatchVariable(matchVariable) {
-				case webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestHeader, webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestURI:
+				switch exception["match_variable"].(string) {
+				case string(webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestHeader), string(webapplicationfirewallpolicies.ExceptionEntryMatchVariableRequestURI):
 					if len(exception["values"].([]any)) > 10 {
 						return fmt.Errorf("`managed_rules.0.exception.%d.values` cannot contain more than 10 items when `match_variable` is `%s`", i, matchVariable)
 					}
 				}
 			}
 
-			ruleSets := diff.Get("managed_rules.0.managed_rule_set").([]any)
-			if len(ruleSets) == 0 {
-				return nil
-			}
-
 			for i, raw := range ruleSets {
 				ruleSet := raw.(map[string]any)
+
 				if ruleSet["type"].(string) == "" || ruleSet["version"].(string) == "" {
-					return nil
-				}
-				var minimumVersion string
-				switch ruleSet["type"].(string) {
-				case "OWASP":
-					minimumVersion = "3.2"
-				case "Microsoft_DefaultRuleSet":
-					minimumVersion = "2.1"
-				default:
 					continue
 				}
 				configuredVersion, err := version.NewVersion(ruleSet["version"].(string))
 				if err != nil {
 					return fmt.Errorf("parsing `managed_rules.0.managed_rule_set.%d.version`: %+v", i, err)
 				}
-				if configuredVersion.GreaterThanOrEqual(version.Must(version.NewVersion(minimumVersion))) {
-					return nil
+
+				switch ruleSet["type"].(string) {
+				case "OWASP":
+					if configuredVersion.LessThan(version.Must(version.NewVersion("3.2"))) {
+						return fmt.Errorf("`managed_rules.0.managed_rule_set.%d.version` must be `3.2` or later for `OWASP` when `managed_rules.0.exception` is configured", i)
+					}
+				case "Microsoft_DefaultRuleSet":
+					if configuredVersion.LessThan(version.Must(version.NewVersion("2.1"))) {
+						return fmt.Errorf("`managed_rules.0.managed_rule_set.%d.version` must be `2.1` or later for `Microsoft_DefaultRuleSet` when `managed_rules.0.exception` is configured", i)
+					}
 				}
 			}
-			return errors.New("`managed_rules.0.exception` requires a `managed_rule_set` with `type` of `OWASP` and `version` of `3.2` or later, or `type` of `Microsoft_DefaultRuleSet` and `version` of `2.1` or later")
+
+			return nil
 		}),
 	}
 }
