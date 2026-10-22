@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var notificationHubResourceName = "azurerm_notification_hub"
-
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceNotificationHubCreateUpdate,
