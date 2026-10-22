@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -74,8 +74,7 @@ func (r BackupProtectionPolicyVMListResource) List(ctx context.Context, request 
 	listVaultId := backuppolicies.NewVaultID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName)
 
 	// Backup Policies are listed at the vault level and include all policy types, so we filter to Azure VM policies only.
-	filter := "backupManagementType eq 'AzureIaasVM'"
-	resp, err := backupPoliciesClient.ListComplete(ctx, listVaultId, backuppolicies.ListOperationOptions{Filter: &filter})
+	resp, err := backupPoliciesClient.ListComplete(ctx, listVaultId, backuppolicies.ListOperationOptions{Filter: pointer.To("backupManagementType eq 'AzureIaasVM'")})
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_backup_policy_vm"), err)
 		return

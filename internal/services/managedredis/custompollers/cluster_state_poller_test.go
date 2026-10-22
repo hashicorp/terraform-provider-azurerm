@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -67,7 +67,7 @@ func TestClusterStatePoller_InProgress(t *testing.T) {
 					HttpResponse: &http.Response{StatusCode: 200},
 					Model: &redisenterprise.Cluster{
 						Properties: &redisenterprise.ClusterCreateProperties{
-							ResourceState: pointer.To(tc.state),
+							ResourceState: new(tc.state),
 						},
 					},
 				},
@@ -234,7 +234,7 @@ func (m *statefulMockClient) Get(ctx context.Context, id redisenterprise.RedisEn
 		HttpResponse: &http.Response{StatusCode: 200},
 		Model: &redisenterprise.Cluster{
 			Properties: &redisenterprise.ClusterCreateProperties{
-				ResourceState: pointer.To(state),
+				ResourceState: new(state),
 			},
 		},
 	}, nil

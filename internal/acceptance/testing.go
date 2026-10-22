@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -80,10 +80,6 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 
 		EnableAuthenticatingUsingClientCertificate: true,
 		EnableAuthenticatingUsingClientSecret:      true,
-		EnableAuthenticatingUsingAzureCLI:          false,
-		EnableAuthenticatingUsingManagedIdentity:   false,
-		EnableAuthenticationUsingOIDC:              false,
-		EnableAuthenticationUsingGitHubOIDC:        false,
 	}
 }
 

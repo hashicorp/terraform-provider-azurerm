@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 // Command pr-guide-suggestions is a fast, AST-based linter for the AzureRM
@@ -167,7 +167,7 @@ func splitSet(s string) map[string]bool {
 		return nil
 	}
 	out := map[string]bool{}
-	for _, part := range strings.Split(s, ",") {
+	for part := range strings.SplitSeq(s, ",") {
 		if p := strings.ToUpper(strings.TrimSpace(part)); p != "" {
 			out[p] = true
 		}

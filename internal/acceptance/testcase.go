@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -289,6 +289,46 @@ func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, prev
 	resource.ParallelTest(t, testCase)
 }
 
+// DataSourceSequentialRegressionTest is DataSourceRegressionTest for data sources whose tests cannot run in parallel, because the
+// resources they read are limited to one or two at a time.
+func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		Steps:    steps,
+	}
+
+	resource.Test(t, testCase)
+}
+
 // ResourceRegressionAdditionalStepsTest runs an acceptance test for resource regression scenarios that require multiple steps to set up.
 // It expects multiple steps (3 or more), for regression testing with 1 or 2 steps, use ResourceRegressionTest.
 // All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
@@ -335,10 +375,8 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
 	for group, m := range tests {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})

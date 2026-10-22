@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package notificationhub
@@ -36,17 +36,17 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_notification_hub_namespace": dataSourceNotificationHubNamespace(),
 		"azurerm_notification_hub":           dataSourceNotificationHub(),
+		"azurerm_notification_hub_namespace": dataSourceNotificationHubNamespace(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_notification_hub":                    resourceNotificationHub(),
 		"azurerm_notification_hub_authorization_rule": resourceNotificationHubAuthorizationRule(),
 		"azurerm_notification_hub_namespace":          resourceNotificationHubNamespace(),
-		"azurerm_notification_hub":                    resourceNotificationHub(),
 	}
 }
 

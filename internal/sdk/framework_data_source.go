@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -48,7 +48,7 @@ func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.Read
 }
 
 type FrameworkWrappedDataSource interface {
-	ModelObject() interface{}
+	ModelObject() any
 
 	ResourceType() string
 

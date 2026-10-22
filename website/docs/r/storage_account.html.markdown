@@ -98,7 +98,11 @@ The following arguments are supported:
 
 -> **Note:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Possible values are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS`, and `RAGZRS`.
+
+~> **Note:** Changing `account_replication_type` between non-zonal (`LRS`, `GRS`, `RAGRS`) and zonal (`ZRS`, `GZRS`, `RAGZRS`) types forces a new resource to be created, except for the equivalent tier pairs (`LRS` <-> `ZRS`, `GRS` <-> `GZRS`, and `RAGRS` <-> `RAGZRS`). For those pairs, the provider triggers a customer-initiated migration instead. This migration can take days to complete and the provider does not wait for it to finish. While a migration is in progress, plan time diffs on `account_replication_type` that match the type of the migration request will be suppressed.
+
+-> **Note:** For more information on `account_replication_type` migrations, including certain timing limitations, see [Change how a storage account is replicated](https://learn.microsoft.com/azure/storage/common/redundancy-migration?tabs=portal)
 
 * `provisioned_billing_model_version` - (Optional) Specifies the version of the **provisioned** billing model (e.g. when `account_kind = "FileStorage"` for Storage File). Possible value is `V2`. Changing this forces a new resource to be created.
 
@@ -124,7 +128,7 @@ The following arguments are supported:
 
 ~> **Note:** Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, you will need to enable [the `storage_use_azuread` flag in the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) to use Azure AD for authentication, however not all Azure Storage services support Active Directory authentication.
 
-* `public_network_access_enabled` - (Optional) Whether the public network access is enabled? Defaults to `true`.
+* `public_network_access` - (Optional) The public network access setting. Possible values are `Disabled`, `Enabled`, and `SecuredByPerimeter`. Defaults to `Enabled`.
 
 * `default_to_oauth_authentication` - (Optional) Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is `false`
 
@@ -136,9 +140,9 @@ The following arguments are supported:
 
 -> **Note:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true` and `account_replication_type` must be `LRS` or `RAGRS`.
 
-* `custom_domain` - (Optional) A `custom_domain` block as documented below.
+* `custom_domain` - (Optional) A `custom_domain` block as defined below.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
 ~> **Note:** It's possible to define a Customer Managed Key both within either the `customer_managed_key` block or by using the [`azurerm_storage_account_customer_managed_key`](storage_account_customer_managed_key.html) resource. However, it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since these will conflict. When using the `azurerm_storage_account_customer_managed_key` resource, you will need to use `ignore_changes` on the `customer_managed_key` block.
 
@@ -150,7 +154,7 @@ The following arguments are supported:
 
 ~> **Note:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
 
-* `network_rules` - (Optional) A `network_rules` block as documented below.
+* `network_rules` - (Optional) A `network_rules` block as defined below.
 
 * `large_file_share_enabled` - (Optional) Are Large File Shares Enabled? Defaults to `false`.
 
@@ -245,7 +249,7 @@ A `custom_domain` block supports the following:
 
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
-~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/azure/storage/blobs/storage-custom-domain-name)
 
 ---
 
@@ -410,6 +414,10 @@ A `smb` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Account.
+
+* `account_replication_type_migration_in_progress` - Whether a replication type migration is in progress.
+
+* `account_replication_type_migrating_to` - The `account_replication_type` that the Storage Account is migrating to.
 
 * `primary_location` - The primary location of the storage account.
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics_test
@@ -13,7 +13,7 @@ import (
 
 type LogAnalyticsWorkspaceTableDataSource struct{}
 
-func TestLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
+func TestAccLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace_table", "test")
 	r := LogAnalyticsWorkspaceTableDataSource{}
 

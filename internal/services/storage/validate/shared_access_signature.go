@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,7 +10,7 @@ import (
 )
 
 // lintignore:V013 // false positive - this validates an IP or IP range; the string comparison checks the range bounds are not identical
-func SharedAccessSignatureIP(v interface{}, k string) (warnings []string, errors []error) {
+func SharedAccessSignatureIP(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if net.ParseIP(value) != nil {
