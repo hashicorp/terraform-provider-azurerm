@@ -119,7 +119,10 @@ A `validation_rules` block supports the following:
 
 * `ssl_check_enabled` - (Optional) Should the SSL check be enabled?
 
-* `ignore_status_code` - (Optional) Should status code of the response be ignored? ´expected_status_code´ will be ignored.
+* `ignore_status_code` - (Optional) Should status code of the response be ignored? Defaults to `false`.
+* 
+
+-> **Note:** When `ignore_status_code` is set, the `expected_status_code`  will be ignored.
 
 ## Attributes Reference
 
