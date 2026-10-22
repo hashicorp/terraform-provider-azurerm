@@ -247,11 +247,12 @@ Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
 
 1. Specifying a `Default` if Azure consistently sets the same value
 2. Setting the property to `Required` and requiring the user to specify a value at creation time
-3. Having the user explicitly opt out from managing the property by using `ignore_changes`
 
 Examples of invalid uses of O+C:
 
-1. Preventing users from seeing a plan diff when upgrading to an AzureRM version that adds support for a new property in a low impact / less-frequently-used resource. In this situation, users are expected to either adjust their HCL configuration to match Azure or explicitly opt out from managing the property using `ignore_changes`.
+1. Adding O+C property when Azure always set a static default value on creation when value not provided, use Optional + Default instead
+2. Adding O+C property when Azure does not set any default value on creation
+3. Adding O+C property that is difficult to clear, for example a list property. User might expact property removal is a reset / value-clearance, not realising they have to do `subnet = []`.  Consider implementing the property as a child resource.
 
 Examples of valid uses of O+C:
 
@@ -267,13 +268,15 @@ If you encounter a field that must be `Optional` and `Computed`, make sure it fo
 Example:
 
 ```go
-	"etag": {
+	"storage_type": {
 		Type: pluginsdk.TypeString,
 		Optional: true,
-		// NOTE: O+C Azure generates a new value every time this resource is updated
+		// NOTE: O+C Azure sets a location-specific default if not provided
 		Computed: true,
 	},
 ```
+
+When in doubt, adhere to the principle of "do not surprise user with unexpected plan diff upon AzureRM version update". See also relevant guide on how to identify breaking change: [guide-breaking-changes.md](./guide-breaking-changes.md).
 
 ## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
 
