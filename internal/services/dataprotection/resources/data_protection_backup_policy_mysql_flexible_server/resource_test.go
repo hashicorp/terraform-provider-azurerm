@@ -18,6 +18,17 @@ import (
 
 type DataProtectionBackupPolicyMysqlFlexibleServerResource struct{}
 
+func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_mysql_flexible_server", "test")
+	r := DataProtectionBackupPolicyMysqlFlexibleServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_mysql_flexible_server", "test")
 	r := DataProtectionBackupPolicyMysqlFlexibleServerResource{}

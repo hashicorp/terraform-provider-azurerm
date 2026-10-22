@@ -13,6 +13,17 @@ import (
 
 type DashboardGrafanaDataSource struct{}
 
+func TestAccDashboardGrafanaDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDashboardGrafanaDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaDataSource{}

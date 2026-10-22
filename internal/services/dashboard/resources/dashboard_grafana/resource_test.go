@@ -19,6 +19,16 @@ import (
 
 type DashboardGrafanaResource struct{}
 
+func TestAccDashboardGrafana_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDashboardGrafana_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
 	r := DashboardGrafanaResource{}

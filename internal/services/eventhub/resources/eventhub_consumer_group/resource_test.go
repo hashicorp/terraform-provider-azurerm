@@ -18,6 +18,17 @@ import (
 
 type EventhubConsumerGroupResource struct{}
 
+func TestAccEventHubConsumerGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
+	r := EventhubConsumerGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 	r := EventhubConsumerGroupResource{}

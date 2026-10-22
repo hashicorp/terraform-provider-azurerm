@@ -13,6 +13,17 @@ import (
 
 type EventHubConsumerGroupDataSource struct{}
 
+func TestAccEventHubConsumerGroupDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")
+	r := EventHubConsumerGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubConsumerGroupDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_consumer_group", "test")
 	r := EventHubConsumerGroupDataSource{}

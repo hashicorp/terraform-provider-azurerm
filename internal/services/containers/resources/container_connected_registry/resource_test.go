@@ -19,6 +19,17 @@ import (
 
 type ContainerConnectedRegistryResource struct{}
 
+func TestAccContainerConnectedRegistry_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_connected_registry", "test")
+	r := ContainerConnectedRegistryResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerConnectedRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_connected_registry", "test")
 	r := ContainerConnectedRegistryResource{}

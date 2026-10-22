@@ -18,6 +18,17 @@ import (
 
 type FirewallPolicyRuleCollectionGroupResource struct{}
 
+func TestAccFirewallPolicyRuleCollectionGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
+	r := FirewallPolicyRuleCollectionGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 	r := FirewallPolicyRuleCollectionGroupResource{}

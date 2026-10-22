@@ -18,6 +18,17 @@ import (
 
 type ContainerGroupResource struct{}
 
+func TestAccContainerGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windowsComplete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}

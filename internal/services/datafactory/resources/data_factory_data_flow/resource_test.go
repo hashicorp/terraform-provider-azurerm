@@ -18,6 +18,17 @@ import (
 
 type DataFlowResource struct{}
 
+func TestAccDataFactoryDataFlow_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
+	r := DataFlowResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDataFlow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_data_flow", "test")
 	r := DataFlowResource{}

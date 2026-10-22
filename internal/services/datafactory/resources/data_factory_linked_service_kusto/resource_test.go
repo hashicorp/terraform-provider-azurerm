@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceKustoResource struct{}
 
+func TestAccDataFactoryLinkedServiceKusto_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
+	r := LinkedServiceKustoResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceKusto_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
 	r := LinkedServiceKustoResource{}

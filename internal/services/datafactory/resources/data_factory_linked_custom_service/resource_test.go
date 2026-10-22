@@ -18,6 +18,17 @@ import (
 
 type LinkedCustomServiceResource struct{}
 
+func TestAccDataFactoryLinkedCustomService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
+	r := LinkedCustomServiceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedCustomService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_custom_service", "test")
 	r := LinkedCustomServiceResource{}

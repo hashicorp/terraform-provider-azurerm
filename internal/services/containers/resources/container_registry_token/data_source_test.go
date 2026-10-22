@@ -13,6 +13,17 @@ import (
 
 type ContainerRegistryTokenDataSource struct{}
 
+func TestAccDataSourceContainerRegistryToken_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_token", "test")
+	r := ContainerRegistryTokenDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceContainerRegistryToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_token", "test")
 	r := ContainerRegistryTokenDataSource{}

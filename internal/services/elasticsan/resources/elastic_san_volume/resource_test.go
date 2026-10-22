@@ -19,6 +19,17 @@ import (
 
 type ElasticSANVolumeTestResource struct{}
 
+func TestAccElasticSANVolume_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
+	r := ElasticSANVolumeTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccElasticSANVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san_volume", "test")
 	r := ElasticSANVolumeTestResource{}

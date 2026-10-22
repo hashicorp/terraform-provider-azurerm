@@ -18,6 +18,17 @@ import (
 
 type EventHubNamespaceSchemaRegistryResource struct{}
 
+func TestAccEventHubNamespaceSchemaRegistry_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_schema_group", "test")
+	r := EventHubNamespaceSchemaRegistryResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubNamespaceSchemaRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_schema_group", "test")
 	r := EventHubNamespaceSchemaRegistryResource{}

@@ -18,6 +18,17 @@ import (
 
 type FlowletDataFlowResource struct{}
 
+func TestAccDataFactoryFlowletDataFlow_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
+	r := FlowletDataFlowResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryFlowletDataFlow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
 	r := FlowletDataFlowResource{}

@@ -13,6 +13,17 @@ import (
 
 type EventHubNamespaceAuthorizationRuleDataSource struct{}
 
+func TestAccEventHubNamespaceAuthorizationRuleDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
+	r := EventHubNamespaceAuthorizationRuleDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data, true, true, true),
+		},
+	}, "")
+}
+
 func TestAccEventHubNamespaceAuthorizationRuleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
 	r := EventHubNamespaceAuthorizationRuleDataSource{}

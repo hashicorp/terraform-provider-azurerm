@@ -18,6 +18,17 @@ import (
 
 type DatasetCosmosDbSQLAPIResource struct{}
 
+func TestAccDataFactoryDatasetCosmosDbSQLAPI_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
+	r := DatasetCosmosDbSQLAPIResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryDatasetCosmosDbSQLAPI_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
 	r := DatasetCosmosDbSQLAPIResource{}

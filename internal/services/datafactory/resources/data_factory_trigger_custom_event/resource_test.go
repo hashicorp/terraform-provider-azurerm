@@ -18,6 +18,17 @@ import (
 
 type TriggerCustomEventResource struct{}
 
+func TestAccDataFactoryTriggerCustomEvent_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
+	r := TriggerCustomEventResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryTriggerCustomEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_custom_event", "test")
 	r := TriggerCustomEventResource{}

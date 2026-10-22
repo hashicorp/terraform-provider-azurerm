@@ -18,6 +18,17 @@ import (
 
 type RouteFilterResource struct{}
 
+func TestAccRouteFilter_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
+	r := RouteFilterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccRouteFilter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 	r := RouteFilterResource{}

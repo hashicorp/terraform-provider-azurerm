@@ -18,6 +18,17 @@ import (
 
 type CustomDatasetResource struct{}
 
+func TestAccDataFactoryCustomDataset_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
+	r := CustomDatasetResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryCustomDataset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_custom_dataset", "test")
 	r := CustomDatasetResource{}

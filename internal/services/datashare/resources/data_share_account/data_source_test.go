@@ -13,6 +13,17 @@ import (
 
 type DataShareAccountDataSource struct{}
 
+func TestAccDataShareAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_account", "test")
+	r := DataShareAccountDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataShareAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_account", "test")
 	r := DataShareAccountDataSource{}

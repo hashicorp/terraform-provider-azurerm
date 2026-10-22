@@ -18,6 +18,17 @@ import (
 
 type EventGridNamespaceResource struct{}
 
+func TestAccEventGridNamespaceResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")
+	r := EventGridNamespaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccEventGridNamespaceResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")
 	r := EventGridNamespaceResource{}
