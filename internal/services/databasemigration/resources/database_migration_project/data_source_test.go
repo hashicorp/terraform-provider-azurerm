@@ -13,6 +13,17 @@ import (
 
 type DatabaseMigrationProjectDataSource struct{}
 
+func TestAccDatabaseMigrationProjectDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDatabaseMigrationProjectDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
 	r := DatabaseMigrationProjectDataSource{}

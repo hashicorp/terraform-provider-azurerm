@@ -19,6 +19,16 @@ import (
 
 type DataProtectionBackupInstanceBlobStorageResource struct{}
 
+func TestAccDataProtectionBackupInstanceBlobStorage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupInstanceBlobStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
 	r := DataProtectionBackupInstanceBlobStorageResource{}

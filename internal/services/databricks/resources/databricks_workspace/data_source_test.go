@@ -14,6 +14,17 @@ import (
 
 type DatabricksWorkspaceDataSource struct{}
 
+func TestAccDatabricksWorkspaceDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceDataSource{}

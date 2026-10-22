@@ -18,6 +18,17 @@ import (
 
 type DataFactoryCustomerManagedKeyTestResource struct{}
 
+func TestAccDataFactoryCustomerManagedKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
+	r := DataFactoryCustomerManagedKeyTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedKey(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
 	r := DataFactoryCustomerManagedKeyTestResource{}

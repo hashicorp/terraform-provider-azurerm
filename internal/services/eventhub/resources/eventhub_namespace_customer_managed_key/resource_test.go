@@ -18,6 +18,17 @@ import (
 
 type EventHubNamespaceCustomerManagedKeyResource struct{}
 
+func TestAccEventHubNamespaceCustomerManagedKey_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")
+	r := EventHubNamespaceCustomerManagedKeyResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccEventHubNamespaceCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_customer_managed_key", "test")
 	r := EventHubNamespaceCustomerManagedKeyResource{}

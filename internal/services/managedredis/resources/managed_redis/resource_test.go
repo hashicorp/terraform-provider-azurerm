@@ -18,6 +18,16 @@ import (
 
 type ManagedRedisResource struct{}
 
+func TestAccManagedRedis_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccManagedRedis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
 	r := ManagedRedisResource{}

@@ -19,6 +19,17 @@ import (
 
 type LinkedServiceMySQLResource struct{}
 
+func TestAccDataFactoryLinkedServiceMySQL_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
+	r := LinkedServiceMySQLResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
 	r := LinkedServiceMySQLResource{}

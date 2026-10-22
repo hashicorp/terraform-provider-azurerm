@@ -18,6 +18,17 @@ import (
 
 type DataboxEdgeDeviceResource struct{}
 
+func TestAccDataboxEdgeDevice_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
+	r := DataboxEdgeDeviceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataboxEdgeDevice_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databox_edge_device", "test")
 	r := DataboxEdgeDeviceResource{}

@@ -20,6 +20,17 @@ import (
 
 type KubernetesNodePoolSnapshotDataSource struct{}
 
+func TestAccDataSourceKubernetesNodePoolSnapshot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")
+	r := KubernetesNodePoolSnapshotDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.snapshotSource(data),
+		},
+	}, "")
+}
+
 func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")
 	r := KubernetesNodePoolSnapshotDataSource{}

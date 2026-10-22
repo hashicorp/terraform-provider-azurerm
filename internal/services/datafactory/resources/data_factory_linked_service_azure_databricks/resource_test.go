@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceDatabricksResource struct{}
 
+func TestAccDataFactoryLinkedServiceDatabricks_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
+
+	r := LinkedServiceDatabricksResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msi(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
 

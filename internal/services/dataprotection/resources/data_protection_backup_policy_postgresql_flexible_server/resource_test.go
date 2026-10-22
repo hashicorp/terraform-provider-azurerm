@@ -18,6 +18,17 @@ import (
 
 type DataProtectionBackupPolicyPostgresqlFlexibleServerResource struct{}
 
+func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
+	r := DataProtectionBackupPolicyPostgresqlFlexibleServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
 	r := DataProtectionBackupPolicyPostgresqlFlexibleServerResource{}
