@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managementgroup_test
+package management_group_test
 
 import (
 	"fmt"
