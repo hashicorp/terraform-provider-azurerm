@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package api_management_api_diagnostic
@@ -61,6 +61,11 @@ func apiManagementApiDiagnosticSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+		},
+
+		"metrics_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"http_correlation_protocol": {

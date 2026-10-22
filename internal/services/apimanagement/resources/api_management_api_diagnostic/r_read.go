@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package api_management_api_diagnostic
@@ -52,6 +52,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta any)
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == apidiagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("metrics_enabled", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))

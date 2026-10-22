@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package api_management_diagnostic
@@ -38,6 +38,10 @@ func RegisterResource() *pluginsdk.Resource {
 				if d.Get("identifier") != "applicationinsights" {
 					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 				}
+			}
+
+			if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() && d.Get("identifier") != "applicationinsights" {
+				return fmt.Errorf("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
 			}
 
 			return nil

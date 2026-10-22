@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package api_management_diagnostic
@@ -74,6 +74,10 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
 		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[diagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
+	}
+
+	if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() {
+		parameters.Properties.Metrics = pointer.To(d.Get("metrics_enabled").(bool))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
