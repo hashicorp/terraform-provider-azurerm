@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedhsm
+package key_vault_managed_hardware_security_module_role_definition
 
 import (
 	"context"
@@ -30,11 +30,11 @@ type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
 }
 
-type KeyvaultMHSMRoleDefinitionDataSource struct{}
+type DataSource struct{}
 
-var _ sdk.DataSource = KeyvaultMHSMRoleDefinitionDataSource{}
+var _ sdk.DataSource = DataSource{}
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (k DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -50,7 +50,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.
 	}
 }
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"role_type": {
 			Type:     pluginsdk.TypeString,
@@ -122,15 +122,15 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Attributes() map[string]*pluginsdk
 	}
 }
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) ModelObject() any {
+func (k DataSource) ModelObject() any {
 	return &KeyVaultMHSMRoleDefinitionDataSourceModel{}
 }
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) ResourceType() string {
+func (k DataSource) ResourceType() string {
 	return "azurerm_key_vault_managed_hardware_security_module_role_definition"
 }
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
+func (k DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

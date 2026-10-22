@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedhsm
+package key_vault_managed_hardware_security_module_key
 
 import (
 	"context"
@@ -32,10 +32,10 @@ type KeyVaultMHSMKeyDataSourceModel struct {
 	Version        string         `tfschema:"version"`
 }
 
-type KeyvaultMHSMKeyDataSource struct{}
+type DataSource struct{}
 
 // Arguments implements sdk.DataSource.
-func (k KeyvaultMHSMKeyDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (k DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
@@ -52,7 +52,7 @@ func (k KeyvaultMHSMKeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 // Attributes implements sdk.DataSource.
-func (k KeyvaultMHSMKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"key_type": {
 			Type:     pluginsdk.TypeString,
@@ -101,11 +101,11 @@ func (k KeyvaultMHSMKeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeyvaultMHSMKeyDataSource) ModelObject() any {
+func (k DataSource) ModelObject() any {
 	return &KeyVaultMHSMKeyDataSourceModel{}
 }
 
-func (k KeyvaultMHSMKeyDataSource) Read() sdk.ResourceFunc {
+func (k DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 5,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -174,8 +174,8 @@ func (k KeyvaultMHSMKeyDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (k KeyvaultMHSMKeyDataSource) ResourceType() string {
+func (k DataSource) ResourceType() string {
 	return "azurerm_key_vault_managed_hardware_security_module_key"
 }
 
-var _ sdk.DataSource = KeyvaultMHSMKeyDataSource{}
+var _ sdk.DataSource = DataSource{}
