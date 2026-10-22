@@ -13,17 +13,6 @@ import (
 
 type ManagerIpamPoolDataSource struct{}
 
-func (d ManagerIpamPoolDataSource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_network_manager_ipam_pool" "test" {
-  name               = azurerm_network_manager_ipam_pool.test.name
-  network_manager_id = azurerm_network_manager_ipam_pool.test.network_manager_id
-}
-`, ManagerIpamPoolResource{}.complete(data))
-}
-
 func testAccNetworkManagerIpamPoolDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_manager_ipam_pool", "test")
 	d := ManagerIpamPoolDataSource{}
@@ -40,4 +29,15 @@ func testAccNetworkManagerIpamPoolDataSource_complete(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (d ManagerIpamPoolDataSource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_network_manager_ipam_pool" "test" {
+  name               = azurerm_network_manager_ipam_pool.test.name
+  network_manager_id = azurerm_network_manager_ipam_pool.test.network_manager_id
+}
+`, ManagerIpamPoolResource{}.complete(data))
 }
