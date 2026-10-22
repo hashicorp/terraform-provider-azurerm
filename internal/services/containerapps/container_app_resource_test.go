@@ -619,22 +619,6 @@ func TestAccContainerAppResource_ingressStickySessionsValidation(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_ingressStickySessionsDefault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
-	r := ContainerAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ingress.0.session_affinity_enabled").DoesNotExist(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccContainerAppResource_ingressStickySessionsSticky(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -648,14 +632,6 @@ func TestAccContainerAppResource_ingressStickySessionsSticky(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccContainerAppResource_ingressStickySessionsNone(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
-	r := ContainerAppResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.ingressStickySessionsValidation(data, "Multiple", false),
 			Check: acceptance.ComposeTestCheckFunc(

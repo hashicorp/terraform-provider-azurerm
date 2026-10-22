@@ -396,7 +396,9 @@ An `ingress` block supports the following:
 
 * `ip_security_restriction` - (Optional) One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
 
-* `session_affinity_enabled`- Is session affinity enabled.
+* `session_affinity_enabled`- Is session affinity enabled. Defaults to `false`.
+
+~> **Note:** Session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`.
 
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
 

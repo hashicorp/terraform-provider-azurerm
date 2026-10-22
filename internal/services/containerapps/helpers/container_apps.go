@@ -582,7 +582,7 @@ func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 }
 
 func flattenContainerAppIngressStickySessions(input *containerapps.IngressStickySessions) bool {
-	return input != nil && input.Affinity != nil && *input.Affinity == containerapps.AffinitySticky
+	return input != nil && pointer.FromEnum(input.Affinity) == string(containerapps.AffinitySticky)
 }
 
 func flattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
