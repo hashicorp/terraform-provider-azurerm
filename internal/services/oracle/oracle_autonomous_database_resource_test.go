@@ -333,8 +333,6 @@ resource "azurerm_oracle_autonomous_database" "import" {
 
 func (a AdbsRegularResource) publicAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 provider "azurerm" {
@@ -346,11 +344,11 @@ resource "azurerm_oracle_autonomous_database" "test" {
   display_name                     = "OFake%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
-	compute_model                    = "ECPU"
-	compute_count                    = 2
-	license_model                    = "BringYourOwnLicense"
-	database_edition                 = "EnterpriseEdition"
-	backup_retention_period_in_days  = 12
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "BringYourOwnLicense"
+  database_edition                 = "EnterpriseEdition"
+  backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true
@@ -367,8 +365,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
 
 func (a AdbsRegularResource) publicAccessUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 provider "azurerm" {
@@ -380,11 +376,11 @@ resource "azurerm_oracle_autonomous_database" "test" {
   display_name                     = "OFake%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
-	compute_model                    = "ECPU"
-	compute_count                    = 2
-	license_model                    = "BringYourOwnLicense"
-	database_edition                 = "EnterpriseEdition"
-	backup_retention_period_in_days  = 12
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "BringYourOwnLicense"
+  database_edition                 = "EnterpriseEdition"
+  backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true

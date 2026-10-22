@@ -196,8 +196,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"database_edition": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C Azure pre-populates value on existing resources and set a default on creation if a value is not provided, hence we cannot set a static default without preventing unexpected plan diff
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDatabaseEditionType(), false),
 		},
