@@ -242,6 +242,8 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("capacity_reservation_group_id") {
+		updateInstances = true
+
 		// capacityReservation is not exposed on the PATCH update model, so it can only be set via PUT,
 		// which preserves the write-only values omitted from the GET model
 		existing.Model.Properties.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
