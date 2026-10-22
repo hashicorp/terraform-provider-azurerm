@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package preflight_test
 
 import (
@@ -17,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func TestValidateResource(t *testing.T) {
+func TestAccPreflight_validateResource(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skipf("Acceptance tests skipped unless env 'TF_ACC' set")
 	}

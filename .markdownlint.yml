@@ -1,3 +1,6 @@
+# Copyright IBM Corp. 2014, 2026
+# SPDX-License-Identifier: MPL-2.0
+
 # Configuration for markdownlint (run by .github/workflows/pr-check-markdown.yaml via `make markdownlint`).
 # Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
 

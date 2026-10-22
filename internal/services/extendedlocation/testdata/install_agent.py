@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # This python script is used to install a Helm client on the cluster.
@@ -131,7 +131,7 @@ def install_helm_client():
 
     # Download compressed halm binary if not already present
     if not os.path.isfile(download_location):
-        # Creating the helm folder if it doesnt exist
+        # Creating the helm folder if it doesn't exist
         if not os.path.exists(download_dir):
             try:
                 os.makedirs(download_dir)

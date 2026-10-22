@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -53,7 +53,7 @@ func (ResourceAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (ResourceAnchorDataSource) ModelObject() interface{} {
+func (ResourceAnchorDataSource) ModelObject() any {
 	return &ResourceAnchorDataSourceModel{}
 }
 

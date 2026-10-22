@@ -13,7 +13,7 @@ This example will provision:
 - A Subnet
   - A Subnet Network Security Group
   - A Subnet Network Security Group association
-- A Puplic IP
+- A Public IP
 - A NAT Gateway
   - A NAT Gateway Public IP association
   - A NAT Gateway Subnet association

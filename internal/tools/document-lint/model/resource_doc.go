@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package model
@@ -221,13 +221,13 @@ func (p Properties) FindAllSubBlock(name string) (res []*Field) {
 }
 
 type PossibleValue struct {
-	Valeus []string
+	Values []string
 	Field  *Field
 }
 
 func NewPossibleValue(values []string, f *Field) PossibleValue {
 	return PossibleValue{
-		Valeus: values,
+		Values: values,
 		Field:  f,
 	}
 }

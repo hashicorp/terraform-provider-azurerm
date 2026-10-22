@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -10,7 +10,7 @@ import (
 
 // ClientID validates the ClientID is valid for a Kubernetes Cluster
 // lintignore:V013 // the "msi" check returns a specific remediation message, not a generic not-in-slice error
-func ClientID(i interface{}, k string) ([]string, []error) {
+func ClientID(i any, k string) ([]string, []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}

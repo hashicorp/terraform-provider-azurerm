@@ -58,7 +58,7 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the EventGrid Domain.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 ---
 

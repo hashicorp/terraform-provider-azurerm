@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -92,6 +92,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AccountTablePropertiesResource{},
 		LocalUserResource{},
 		StorageContainerImmutabilityPolicyResource{},
+		StorageDiscoveryWorkspaceResource{},
 		SyncServerEndpointResource{},
 	}
 }
@@ -116,6 +117,8 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		StorageAccountCustomerManagedKeyListResource{},
 		StorageAccountListResource{},
+		StorageAccountNetworkRulesListResource{},
+		StorageContainerListResource{},
 		StorageSyncListResource{},
 		SyncServerEndpointListResource{},
 	}

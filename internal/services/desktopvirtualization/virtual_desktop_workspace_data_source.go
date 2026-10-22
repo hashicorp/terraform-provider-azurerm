@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -32,7 +32,7 @@ type DesktopVirtualizationWorkspaceModel struct {
 
 var _ sdk.DataSource = DesktopVirtualizationWorkspaceDataSource{}
 
-func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() interface{} {
+func (d DesktopVirtualizationWorkspaceDataSource) ModelObject() any {
 	return &DesktopVirtualizationWorkspaceModel{}
 }
 

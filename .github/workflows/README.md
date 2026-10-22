@@ -62,7 +62,7 @@ and (b) have its display name added to the `workflow_run` list in
 `pr-waiting-response-on-ci-fail.yaml`. One without the other does nothing.
 
 **Security note**: artifact contents come from the untrusted side. Never trust
-them for anything more dangerous than labeling — a malicious PR could upload an
+them for anything more dangerous than labelling — a malicious PR could upload an
 arbitrary PR number.
 
 ## Renaming caveats

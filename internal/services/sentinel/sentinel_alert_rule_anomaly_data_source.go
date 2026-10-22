@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -152,7 +152,7 @@ func (a AlertRuleAnomalyDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (a AlertRuleAnomalyDataSource) ModelObject() interface{} {
+func (a AlertRuleAnomalyDataSource) ModelObject() any {
 	return &AlertRuleAnomalyDataSourceModel{}
 }
 
