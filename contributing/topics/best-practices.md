@@ -252,7 +252,7 @@ Examples of invalid uses of O+C:
 
 1. Adding O+C property when Azure always set a static default value on creation when value not provided, use Optional + Default instead
 2. Adding O+C property when Azure does not set any default value on creation
-3. Adding O+C property that is difficult to clear, for example a list property. User might expact property removal is a reset / value-clearance, not realising they have to do `subnet = []`.  Consider implementing the property as a child resource.
+3. Adding O+C property that is difficult to clear, for example a list property. User might expact property removal is a reset / value-clearance, not realising they have to do `subnet = []`.  Consider implementing the property as a child resource / as a required property in the next major version.
 
 Examples of valid uses of O+C:
 
@@ -276,7 +276,12 @@ Example:
 	},
 ```
 
-When in doubt, adhere to the principle of "do not surprise user with unexpected plan diff upon AzureRM version update". See also relevant guide on how to identify breaking change: [guide-breaking-changes.md](./guide-breaking-changes.md).
+When in doubt, adhere these two principles:
+
+1. Do not surprise user with unexpected plan diff upon AzureRM version update
+2. If the property is removed from HCL config, the intent and effect should be intuitive
+
+See also relevant guide on how to identify breaking change: [guide-breaking-changes.md](./guide-breaking-changes.md).
 
 ## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
 
