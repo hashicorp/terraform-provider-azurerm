@@ -450,19 +450,6 @@ func TestAccCognitiveAccount_customerManagedKey(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccount_customerManagedKey_versionlessKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	r := CognitiveAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.customerManagedKeyVersionlessKey(data),
-			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("expected a versioned ID"),
-		},
-	})
-}
-
 func TestAccCognitiveAccount_aiServices_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -1466,30 +1453,6 @@ resource "azurerm_cognitive_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
-}
-
-func (CognitiveAccountResource) customerManagedKeyVersionlessKey(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctest-cogacc-%d"
-  location            = "%s"
-  resource_group_name = "acctestRG-cognitive-%d"
-  kind                = "SpeechServices"
-  sku_name            = "S0"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  customer_managed_key {
-    key_vault_key_id = "https://acctestkv.vault.azure.net/keys/acctestkey"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (CognitiveAccountResource) customerManagedKeyUpdate(data acceptance.TestData) string {

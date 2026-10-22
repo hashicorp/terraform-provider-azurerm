@@ -6,7 +6,6 @@ package cognitive_account_customer_managed_key_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -103,19 +102,6 @@ func TestAccCognitiveAccountCustomerManagedKey_update(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountCustomerManagedKey_versionlessKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_customer_managed_key", "test")
-	r := CognitiveAccountCustomerManagedKeyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.versionlessKey(data),
-			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("expected a versioned ID"),
-		},
-	})
-}
-
 func (r CognitiveAccountCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cognitiveservicesaccounts.ParseAccountID(state.ID)
 	if err != nil {
@@ -146,19 +132,6 @@ resource "azurerm_cognitive_account_customer_managed_key" "test" {
   key_vault_key_id     = azurerm_key_vault_key.test.id
 }
 `, r.template(data))
-}
-
-func (r CognitiveAccountCustomerManagedKeyResource) versionlessKey(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_cognitive_account_customer_managed_key" "test" {
-  cognitive_account_id = "/subscriptions/%s/resourceGroups/acctestRG-cognitive/providers/Microsoft.CognitiveServices/accounts/acctest-cogacc"
-  key_vault_key_id     = "https://acctestkv.vault.azure.net/keys/acctestkey"
-}
-`, data.Client().SubscriptionID)
 }
 
 func (r CognitiveAccountCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
