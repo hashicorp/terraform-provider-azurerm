@@ -5,7 +5,6 @@ package appgateway
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -526,20 +525,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
-			ruleSets := diff.Get("managed_rules.0.managed_rule_set").([]any)
-
-			primaryRuleSetCount := 0
-			for _, raw := range ruleSets {
-				ruleSet := raw.(map[string]any)
-				switch ruleSet["type"].(string) {
-				case "OWASP", "Microsoft_DefaultRuleSet":
-					primaryRuleSetCount++
-					if primaryRuleSetCount > 1 {
-						return errors.New("`managed_rules.0.managed_rule_set` can contain only one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")
-					}
-				}
-			}
-
 			exceptions := diff.Get("managed_rules.0.exception").([]any)
 			if len(exceptions) == 0 {
 				return nil
@@ -556,7 +541,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 				}
 			}
 
-			for i, raw := range ruleSets {
+			for i, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
 				ruleSet := raw.(map[string]any)
 
 				if ruleSet["type"].(string) == "" || ruleSet["version"].(string) == "" {
