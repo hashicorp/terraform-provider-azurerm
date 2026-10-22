@@ -1,0 +1,59 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package mssql_server_extended_auditing_policy
+
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta any) error {
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.ServerExtendedAuditingPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, serverId)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("reading MsSql Server Extended Auditing Policy %s: %+v", id, err)
+	}
+
+	d.Set("server_id", serverId.ID())
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("blob_storage_endpoint", props.StorageEndpoint)
+			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
+			d.Set("retention_in_days", props.RetentionDays)
+			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
+			d.Set("predicate_expression", props.PredicateExpression)
+			d.Set("audit_actions_and_groups", pluginsdk.FlattenSlice(props.AuditActionsAndGroups))
+
+			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
+				d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionId)
+			}
+		}
+	}
+
+	return nil
+}
