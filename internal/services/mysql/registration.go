@@ -7,6 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/resources/mysql_flexible_database"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/resources/mysql_flexible_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/resources/mysql_flexible_server_active_directory_administrator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/resources/mysql_flexible_server_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/resources/mysql_flexible_server_firewall_rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +33,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		MySQLFlexibleServerAdministratorResource{},
+		mysql_flexible_server_active_directory_administrator.Resource{},
 	}
 }
 
@@ -47,17 +52,17 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_mysql_flexible_server": dataSourceMysqlFlexibleServer(),
+		"azurerm_mysql_flexible_server": mysql_flexible_server.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_mysql_flexible_database":             resourceMySqlFlexibleDatabase(),
-		"azurerm_mysql_flexible_server":               resourceMysqlFlexibleServer(),
-		"azurerm_mysql_flexible_server_configuration": resourceMySQLFlexibleServerConfiguration(),
-		"azurerm_mysql_flexible_server_firewall_rule": resourceMySqlFlexibleServerFirewallRule(),
+		"azurerm_mysql_flexible_database":             mysql_flexible_database.RegisterResource(),
+		"azurerm_mysql_flexible_server":               mysql_flexible_server.RegisterResource(),
+		"azurerm_mysql_flexible_server_configuration": mysql_flexible_server_configuration.RegisterResource(),
+		"azurerm_mysql_flexible_server_firewall_rule": mysql_flexible_server_firewall_rule.RegisterResource(),
 	}
 }
 
@@ -84,9 +89,9 @@ func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
 // ListResources returns a list of List Resources supported by this Service
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		MysqlFlexibleDatabaseListResource{},
-		MysqlFlexibleServerConfigurationListResource{},
-		MysqlFlexibleServerFirewallRuleListResource{},
-		MysqlFlexibleServerListResource{},
+		mysql_flexible_database.ListResource{},
+		mysql_flexible_server_configuration.ListResource{},
+		mysql_flexible_server_firewall_rule.ListResource{},
+		mysql_flexible_server.ListResource{},
 	}
 }
