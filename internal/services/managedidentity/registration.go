@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/resources/federated_identity_credential"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/resources/user_assigned_identity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -33,8 +35,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		FederatedIdentityCredentialResource{},
-		UserAssignedIdentityResource{},
+		federated_identity_credential.Resource{},
+		user_assigned_identity.Resource{},
 	}
 }
 
@@ -48,7 +50,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_user_assigned_identity": dataSourceArmUserAssignedIdentity(),
+		"azurerm_user_assigned_identity": user_assigned_identity.RegisterDataSource(),
 	}
 }
 
@@ -75,7 +77,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		FederatedIdentityCredentialListResource{},
-		UserAssignedIdentityListResource{},
+		federated_identity_credential.ListResource{},
+		user_assigned_identity.ListResource{},
 	}
 }

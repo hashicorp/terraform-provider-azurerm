@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managedidentity_test
+package user_assigned_identity_test
 
 import (
 	"context"

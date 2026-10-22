@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package managedidentity_test
+package federated_identity_credential_test
 
 import (
 	"testing"

@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package managedidentity
+package federated_identity_credential
 
 import (
 	"context"
@@ -21,23 +21,23 @@ import (
 )
 
 type (
-	FederatedIdentityCredentialListResource struct{}
-	FederatedIdentityCredentialListModel    struct {
+	ListResource                         struct{}
+	FederatedIdentityCredentialListModel struct {
 		UserAssignedIdentityId types.String `tfsdk:"user_assigned_identity_id"`
 	}
 )
 
-var _ sdk.FrameworkListWrappedResource = new(FederatedIdentityCredentialListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (FederatedIdentityCredentialListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = FederatedIdentityCredentialResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (FederatedIdentityCredentialListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(FederatedIdentityCredentialResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (FederatedIdentityCredentialListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"user_assigned_identity_id": schema.StringAttribute{
@@ -50,7 +50,7 @@ func (FederatedIdentityCredentialListResource) ListResourceConfigSchema(_ contex
 	}
 }
 
-func (FederatedIdentityCredentialListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.ManagedIdentity.V20241130.FederatedIdentityCredentials
 
 	var data FederatedIdentityCredentialListModel
@@ -62,17 +62,17 @@ func (FederatedIdentityCredentialListResource) List(ctx context.Context, request
 
 	userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(data.UserAssignedIdentityId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing User Assigned Identity ID for `%s`", FederatedIdentityCredentialResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing User Assigned Identity ID for `%s`", Resource{}.ResourceType()), err)
 		return
 	}
 
 	resp, err := client.ListComplete(ctx, *userAssignedIdentityId, federatedidentitycredentials.DefaultListOperationOptions())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", FederatedIdentityCredentialResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", Resource{}.ResourceType()), err)
 		return
 	}
 
-	r := FederatedIdentityCredentialResource{}
+	r := Resource{}
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range resp.Items {
