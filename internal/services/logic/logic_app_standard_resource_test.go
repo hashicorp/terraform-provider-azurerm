@@ -268,22 +268,23 @@ func TestAccLogicAppStandard_tagsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLogicAppStandard_appSettings(t *testing.T) {
+func TestAccLogicAppStandard_appSettingsRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.appSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.appSettings(data),
+			Config: r.appSettingsRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.appSettingsAreRemoved("remove-one", "remove-two")),
 			),
 		},
 		data.ImportStep(),
@@ -1261,6 +1262,35 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 	}
 }
 
+func (r LogicAppStandardResource) appSettingsAreRemoved(settings ...string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := commonids.ParseLogicAppId(state.ID)
+		if err != nil {
+			return err
+		}
+
+		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+		defer cancel()
+
+		appSettingsResp, err := clients.AppService.WebAppsClient.ListApplicationSettings(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("listing AppSettings: %+v", err)
+		}
+
+		if appSettingsResp.Model == nil {
+			return fmt.Errorf("listing AppSettings for %s: `model` was nil", id)
+		}
+
+		for _, setting := range settings {
+			if _, ok := pointer.From(appSettingsResp.Model.Properties)[setting]; ok {
+				return fmt.Errorf("expected app setting %q to be removed", setting)
+			}
+		}
+
+		return nil
+	}
+}
+
 func (r LogicAppStandardResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1741,6 +1771,29 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 func (r LogicAppStandardResource) appSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_share_name = "acctest-%[2]d-func-content"
+
+  app_settings = {
+    "hello"                          = "world"
+    "remove-one"                     = "one"
+    "remove-two"                     = "two"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) appSettingsRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
