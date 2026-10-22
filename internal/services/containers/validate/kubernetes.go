@@ -15,7 +15,8 @@ func KubernetesAdminUserName(i any, k string) ([]string, []error) {
 }
 
 func KubernetesAgentPoolName(i any, k string) ([]string, []error) {
-	return validation.StringMatch(regexp.MustCompile(`^[a-z]{1}[a-z\d]{0,11}$`), "must begin with a lowercase letter, contain only lowercase letters and numbers and be between 1 and 12 characters in length")(i, k)
+	// AKS enforces OS, pool-type, and subscription-specific name length limits.
+	return validation.StringMatch(regexp.MustCompile(`^[a-z]{1}[a-z\d]{0,38}$`), "must begin with a lowercase letter, contain only lowercase letters and numbers and be between 1 and 39 characters in length")(i, k)
 }
 
 func KubernetesClusterName(i any, k string) ([]string, []error) {
