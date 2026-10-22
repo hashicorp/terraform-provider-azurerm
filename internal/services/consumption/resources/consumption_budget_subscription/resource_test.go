@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package consumption_budget_subscription_test
@@ -399,7 +399,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
       ]
     }
 
-    // Removed not block 
+    // Removed not block
   }
 
   notification {
@@ -426,7 +426,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     enabled        = true
     threshold      = 100.0
     threshold_type = "Forecasted"
-    // Changed from EqualTo to GreaterThanOrEqualTo 
+    // Changed from EqualTo to GreaterThanOrEqualTo
     operator = "GreaterThanOrEqualTo"
 
     contact_emails = [

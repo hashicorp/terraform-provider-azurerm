@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_token_test
@@ -12,6 +12,17 @@ import (
 )
 
 type ContainerRegistryTokenDataSource struct{}
+
+func TestAccDataSourceContainerRegistryToken_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_token", "test")
+	r := ContainerRegistryTokenDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceContainerRegistryToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_token", "test")

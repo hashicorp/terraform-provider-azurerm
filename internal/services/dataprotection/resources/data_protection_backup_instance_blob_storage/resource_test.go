@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_blob_storage_test
@@ -18,6 +18,16 @@ import (
 )
 
 type DataProtectionBackupInstanceBlobStorageResource struct{}
+
+func TestAccDataProtectionBackupInstanceBlobStorage_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")
+	r := DataProtectionBackupInstanceBlobStorageResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataProtectionBackupInstanceBlobStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_blob_storage", "test")

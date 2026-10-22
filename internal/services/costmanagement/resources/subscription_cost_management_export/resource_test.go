@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription_cost_management_export_test
@@ -18,6 +18,17 @@ import (
 )
 
 type SubscriptionCostManagementExport struct{}
+
+func TestAccSubscriptionCostManagementExport_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
+	r := SubscriptionCostManagementExport{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccSubscriptionCostManagementExport_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subscription_cost_management_export", "test")
