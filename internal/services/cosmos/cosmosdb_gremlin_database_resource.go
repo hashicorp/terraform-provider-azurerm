@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -73,7 +73,7 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -121,7 +121,7 @@ func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCosmosGremlinDatabaseRead(d, meta)
 }
 
-func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceCosmosGremlinDatabaseRead(d, meta)
 }
 
-func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

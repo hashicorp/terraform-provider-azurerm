@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -34,7 +34,7 @@ type ContainerAppEnvironmentDaprComponentModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentDaprComponentResource{}
 
-func (r ContainerAppEnvironmentDaprComponentResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentDaprComponentResource) ModelObject() any {
 	return &ContainerAppEnvironmentDaprComponentModel{}
 }
 

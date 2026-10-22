@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -63,7 +63,7 @@ func resourceLogicAppTriggerCustom() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	workflowId, err := workflows.ParseWorkflowID(d.Get("logic_app_id").(string))
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	bodyRaw := d.Get("body").(string)
 
-	var body map[string]interface{}
+	var body map[string]any
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
 		return fmt.Errorf("unmarshalling JSON for %s: %+v", id.ID(), err)
 	}
@@ -87,7 +87,7 @@ func resourceLogicAppTriggerCustomCreateUpdate(d *pluginsdk.ResourceData, meta i
 	return resourceLogicAppTriggerCustomRead(d, meta)
 }
 
-func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := workflowtriggers.ParseTriggerID(d.Id())
 	if err != nil {
 		return err

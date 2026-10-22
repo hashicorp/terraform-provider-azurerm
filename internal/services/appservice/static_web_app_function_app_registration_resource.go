@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -30,7 +30,7 @@ func (r StaticWebAppFunctionAppRegistrationResource) ResourceType() string {
 	return "azurerm_static_web_app_function_app_registration"
 }
 
-func (r StaticWebAppFunctionAppRegistrationResource) ModelObject() interface{} {
+func (r StaticWebAppFunctionAppRegistrationResource) ModelObject() any {
 	return &StaticWebAppFunctionAppRegistrationModel{}
 }
 

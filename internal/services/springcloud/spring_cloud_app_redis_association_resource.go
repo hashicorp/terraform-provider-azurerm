@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -90,7 +90,7 @@ func resourceSpringCloudAppRedisAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudAppRedisAssociationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceSpringCloudAppRedisAssociationCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSpringCloudAppRedisAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppRedisAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +178,7 @@ func resourceSpringCloudAppRedisAssociationRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudAppRedisAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRedisAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

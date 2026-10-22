@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -48,7 +48,7 @@ func (DevCenterAttachedNetworkDataSource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (DevCenterAttachedNetworkDataSource) ModelObject() interface{} {
+func (DevCenterAttachedNetworkDataSource) ModelObject() any {
 	return &DevCenterAttachedNetworkDataSourceModel{}
 }
 

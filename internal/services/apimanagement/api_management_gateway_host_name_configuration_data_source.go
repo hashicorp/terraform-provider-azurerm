@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -72,7 +72,7 @@ func dataSourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementGatewayHostnameConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

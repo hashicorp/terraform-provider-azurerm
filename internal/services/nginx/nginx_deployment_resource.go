@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -302,7 +302,7 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m DeploymentResource) ModelObject() interface{} {
+func (m DeploymentResource) ModelObject() any {
 	return &DeploymentModel{}
 }
 

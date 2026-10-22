@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func Flatten(tagMap map[string]*string) map[string]interface{} {
+func Flatten(tagMap map[string]*string) map[string]any {
 	// If tagsMap is nil, len(tagsMap) will be 0.
-	output := make(map[string]interface{}, len(tagMap))
+	output := make(map[string]any, len(tagMap))
 
 	for i, v := range tagMap {
 		if v == nil {

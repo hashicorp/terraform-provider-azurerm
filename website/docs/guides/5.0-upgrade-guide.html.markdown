@@ -295,7 +295,7 @@ use computed cross-resource references for key arguments.
 
 ### `azurerm_redis_enterprise_cluster`
 
-* This deprecated resource has been superseded by `azurerm_managed_redis_cluster` and has been removed from the provider.
+* This deprecated resource has been superseded by `azurerm_managed_redis` and has been removed from the provider.
 
 ### `azurerm_redis_enterprise_database`
 

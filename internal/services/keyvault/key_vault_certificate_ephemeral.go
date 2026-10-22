@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -223,7 +223,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		}
 	}
 
-	var privateKey interface{}
+	var privateKey any
 
 	if *pfx.ContentType == "application/x-pkcs12" {
 		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)

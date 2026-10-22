@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -133,7 +133,7 @@ func dataSourceVirtualDesktopHostPool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 

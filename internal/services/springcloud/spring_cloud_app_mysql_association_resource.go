@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -103,7 +103,7 @@ func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceSpringCloudAppMysqlAssociationCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSpringCloudAppMysqlAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppMysqlAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppMysqlAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceSpringCloudAppMysqlAssociationRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudAppMysqlAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppMysqlAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

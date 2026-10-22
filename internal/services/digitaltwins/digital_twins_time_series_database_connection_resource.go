@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package digitaltwins
@@ -116,7 +116,7 @@ func (m TimeSeriesDatabaseConnectionResource) Attributes() map[string]*pluginsdk
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m TimeSeriesDatabaseConnectionResource) ModelObject() interface{} {
+func (m TimeSeriesDatabaseConnectionResource) ModelObject() any {
 	return &TimeSeriesDatabaseConnectionModel{}
 }
 

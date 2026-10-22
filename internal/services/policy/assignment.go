@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 )
 
-func convertEnforcementMode(mode bool) *assignments.EnforcementMode {
-	m := assignments.EnforcementModeDoNotEnforce
+func convertEnforcementMode(mode bool) *policyassignments.EnforcementMode {
+	m := policyassignments.EnforcementModeDoNotEnforce
 	if mode {
-		m = assignments.EnforcementModeDefault
+		m = policyassignments.EnforcementModeDefault
 	}
 	return &m
 }
 
-func waitForPolicyAssignmentToStabilize(ctx context.Context, client *assignments.PolicyAssignmentsClient, id assignments.ScopedPolicyAssignmentId, shouldExist bool) error {
+func waitForPolicyAssignmentToStabilize(ctx context.Context, client *policyassignments.PolicyAssignmentsClient, id policyassignments.ScopedPolicyAssignmentId, shouldExist bool) error {
 	pollerOpts := &custompollers.EventualConsistencyPollerOptions{
 		Interval:              time.Second * 5,
 		TargetStatusCode:      pointer.To(http.StatusOK),
