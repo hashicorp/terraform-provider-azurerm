@@ -390,7 +390,7 @@ resource "azurerm_static_web_app" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r StaticWebAppResource) withSystemAssignedIdentity(data acceptance.TestData) string {
@@ -415,7 +415,7 @@ resource "azurerm_static_web_app" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r StaticWebAppResource) freeWithIdentity(data acceptance.TestData) string {
@@ -440,7 +440,7 @@ resource "azurerm_static_web_app" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r StaticWebAppResource) withUserAssignedIdentity(data acceptance.TestData) string {
@@ -473,7 +473,7 @@ resource "azurerm_static_web_app" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticWebAppResource) basicUpdate(data acceptance.TestData) string {
@@ -499,7 +499,7 @@ resource "azurerm_static_web_app" "test" {
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
 }
 
 func (r StaticWebAppResource) requiresImport(data acceptance.TestData) string {
@@ -539,7 +539,7 @@ resource "azurerm_static_web_app" "test" {
     "foo" = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r StaticWebAppResource) appSettingsUpdate(data acceptance.TestData) string {
@@ -563,7 +563,7 @@ resource "azurerm_static_web_app" "test" {
     "baz" = "foo"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r StaticWebAppResource) withBasicAuth(data acceptance.TestData) string {
@@ -589,7 +589,7 @@ resource "azurerm_static_web_app" "test" {
     environments = "AllEnvironments"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r StaticWebAppResource) freeWithAuth(data acceptance.TestData) string {
@@ -615,7 +615,7 @@ resource "azurerm_static_web_app" "test" {
     environments = "AllEnvironments"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r StaticWebAppResource) complete(data acceptance.TestData) string {
@@ -663,7 +663,7 @@ resource "azurerm_static_web_app" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r StaticWebAppResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
@@ -686,7 +686,7 @@ resource "azurerm_static_web_app" "test" {
 
   public_network_access_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r StaticWebAppResource) withPrivateEndpoint(data acceptance.TestData) string {
@@ -741,7 +741,7 @@ resource "azurerm_private_endpoint" "test" {
     is_manual_connection           = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r StaticWebAppResource) withPrivateEndpointUpdate(data acceptance.TestData) string {
@@ -797,5 +797,5 @@ resource "azurerm_private_endpoint" "test" {
     is_manual_connection           = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
