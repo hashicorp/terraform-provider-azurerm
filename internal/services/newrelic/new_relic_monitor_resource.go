@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package newrelic
@@ -62,7 +62,7 @@ func (r NewRelicMonitorResource) ResourceType() string {
 	return "azurerm_new_relic_monitor"
 }
 
-func (r NewRelicMonitorResource) ModelObject() interface{} {
+func (r NewRelicMonitorResource) ModelObject() any {
 	return &NewRelicMonitorModel{}
 }
 
@@ -263,7 +263,7 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -484,7 +484,7 @@ func expandUserInfoModel(inputList []UserInfoModel) *monitors.UserInfo {
 func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 	var outputList []PlanDataModel
 	if input == nil {
-		return outputList
+		return []PlanDataModel{}
 	}
 	output := PlanDataModel{}
 	if input.BillingCycle != nil {
@@ -509,7 +509,7 @@ func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	var outputList []UserInfoModel
 	if input == nil {
-		return outputList
+		return []UserInfoModel{}
 	}
 	output := UserInfoModel{}
 

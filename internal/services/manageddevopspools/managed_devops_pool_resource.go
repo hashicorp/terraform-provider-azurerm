@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package manageddevopspools
@@ -89,7 +89,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								},
 
 								// There's an issue with API that if parallelism is omitted, it's always set to `0` instead of being computed dynamically.
-								// To workaround this, mark it as Required which is also consistent with portal behavior.
+								// To workaround this, mark it as Required which is also consistent with portal behaviour.
 								// Relevant GH issue: https://github.com/Azure/azure-rest-api-specs/issues/40986
 								"parallelism": {
 									Type:         pluginsdk.TypeInt,
@@ -385,7 +385,7 @@ func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ManagedDevOpsPoolResource) ModelObject() interface{} {
+func (ManagedDevOpsPoolResource) ModelObject() any {
 	return &ManagedDevOpsPoolModel{}
 }
 

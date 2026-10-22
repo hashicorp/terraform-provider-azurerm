@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package devcenter
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -18,7 +21,7 @@ var _ sdk.Resource = DevCenterGalleryResource{}
 
 type DevCenterGalleryResource struct{}
 
-func (r DevCenterGalleryResource) ModelObject() interface{} {
+func (r DevCenterGalleryResource) ModelObject() any {
 	return &DevCenterGalleryResourceSchema{}
 }
 

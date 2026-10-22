@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -186,7 +186,7 @@ func FlattenFilteringTags(input *[]tagrules.FilteringTag) []FilteringTag {
 		{
 			Name:   pointer.From(tags.Name),
 			Value:  pointer.From(tags.Value),
-			Action: string(pointer.From(tags.Action)),
+			Action: pointer.FromEnum(tags.Action),
 		},
 	}
 }

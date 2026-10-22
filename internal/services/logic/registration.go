@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -47,9 +47,9 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
 		"azurerm_logic_app_integration_account": dataSourceLogicAppIntegrationAccount(),
 		"azurerm_logic_app_standard":            dataSourceLogicAppStandard(),
+		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
 	}
 }
 

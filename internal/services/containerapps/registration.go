@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -33,23 +33,23 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		ContainerAppDataSource{},
-		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentCertificateDataSource{},
+		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentStorageDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ContainerAppCustomDomainResource{},
 		ContainerAppEnvironmentCertificateResource{},
 		ContainerAppEnvironmentCustomDomainResource{},
 		ContainerAppEnvironmentDaprComponentResource{},
 		ContainerAppEnvironmentManagedCertificateResource{},
 		ContainerAppEnvironmentResource{},
 		ContainerAppEnvironmentStorageResource{},
-		ContainerAppResource{},
-		ContainerAppCustomDomainResource{},
 		ContainerAppJobResource{},
+		ContainerAppResource{},
 	}
 }
 

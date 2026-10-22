@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -47,13 +47,13 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_iot_security_solution":                                           resourceIotSecuritySolution(),
 		"azurerm_security_center_assessment":                                      resourceSecurityCenterAssessment(),
 		"azurerm_security_center_assessment_policy":                               resourceArmSecurityCenterAssessmentPolicy(),
+		"azurerm_security_center_automation":                                      resourceSecurityCenterAutomation(),
 		"azurerm_security_center_contact":                                         resourceSecurityCenterContact(),
+		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
+		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
 		"azurerm_security_center_setting":                                         resourceSecurityCenterSetting(),
 		"azurerm_security_center_subscription_pricing":                            resourceSecurityCenterSubscriptionPricing(),
 		"azurerm_security_center_workspace":                                       resourceSecurityCenterWorkspace(),
-		"azurerm_security_center_automation":                                      resourceSecurityCenterAutomation(),
-		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
-		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package attestation
@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/resources/attestation_provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,14 +37,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_attestation_provider": dataSourceAttestationProvider(),
+		"azurerm_attestation_provider": attestation_provider.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_attestation_provider": resourceAttestationProvider(),
+		"azurerm_attestation_provider": attestation_provider.RegisterResource(),
 	}
 }
 
@@ -64,5 +65,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		attestation_provider.ListResource{},
+	}
 }
