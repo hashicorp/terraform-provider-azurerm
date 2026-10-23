@@ -6,7 +6,6 @@ package windows_virtual_machine_test
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -34,7 +33,7 @@ import (
 func TestAccWindowsVirtualMachine_authPasswordWriteOnlyLifecycle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
-	passwords := []string{"P@ss-" + rand.Text(), "P@ss-" + rand.Text()}
+	passwords := []string{"Acctest-Lifecycle-First!123", "Acctest-Lifecycle-Second!456"}
 	var machineID string
 
 	step := func(password string, version int, action plancheck.ResourceActionType) acceptance.TestStep {
@@ -76,8 +75,8 @@ func TestAccWindowsVirtualMachine_authPasswordWriteOnlyLifecycle(t *testing.T) {
 func TestAccWindowsVirtualMachine_authPasswordWriteOnlyTransitions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
-	ordinaryPassword := "P@ss-" + rand.Text()
-	writeOnlyPassword := "P@ss-" + rand.Text()
+	ordinaryPassword := "Acctest-Ordinary-Password!123"
+	writeOnlyPassword := "Acctest-WriteOnly-Password!456"
 	var machineID string
 
 	step := func(writeOnly bool, password string, action plancheck.ResourceActionType) acceptance.TestStep {
@@ -119,7 +118,7 @@ func TestAccWindowsVirtualMachine_authPasswordWriteOnlyTransitions(t *testing.T)
 func TestAccWindowsVirtualMachine_authPasswordWriteOnlyImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
-	password := "P@ss-" + rand.Text()
+	password := "Acctest-Imported-Password!789"
 	var resourceID, machineID string
 
 	step := func(label string, action plancheck.ResourceActionType) acceptance.TestStep {
