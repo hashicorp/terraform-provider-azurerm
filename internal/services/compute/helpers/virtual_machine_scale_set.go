@@ -5,7 +5,9 @@ package helpers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 
@@ -354,10 +356,14 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 	}
 }
 
-func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
-	// Note: AutomaticZoneRebalancingPolicy is excluded as it's in private preview and
-	// has been removed from the schema to prevent API errors.
+func ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
 	result := &virtualmachinescalesets.ResiliencyPolicy{}
+
+	result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
+		Enabled:           pointer.To(automaticZoneRebalancingEnabled),
+		RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
+		RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
+	}
 
 	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
 		Enabled: pointer.To(resilientVMCreationEnabled),
@@ -370,10 +376,13 @@ func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilien
 	return result
 }
 
-func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (resilientVMCreationEnabled, resilientVMDeletionEnabled bool) {
+func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) {
 	if input == nil {
-		// No ResiliencyPolicy - don't set these fields in state for backward compatibility
-		return resilientVMCreationEnabled, resilientVMDeletionEnabled
+		return automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled
+	}
+
+	if automaticZoneRebalancing := input.AutomaticZoneRebalancingPolicy; automaticZoneRebalancing != nil {
+		automaticZoneRebalancingEnabled = pointer.From(automaticZoneRebalancing.Enabled)
 	}
 
 	if vmCreation := input.ResilientVMCreationPolicy; vmCreation != nil {
@@ -385,6 +394,44 @@ func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.Resi
 	}
 
 	return
+}
+
+func OrchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+	if !diff.Get("automatic_zone_rebalancing_enabled").(bool) {
+		return nil
+	}
+
+	if _, ok := diff.GetOk("zones"); !ok {
+		return errors.New("`zones` must be specified when `automatic_zone_rebalancing_enabled` is set to `true`")
+	}
+
+	if extensions, ok := diff.GetOk("extension"); ok {
+		for _, ext := range extensions.(*pluginsdk.Set).List() {
+			extType := ext.(map[string]any)["type"].(string)
+			if extType == "ApplicationHealthLinux" || extType == "ApplicationHealthWindows" {
+				return nil
+			}
+		}
+	}
+
+	return errors.New("`automatic_zone_rebalancing_enabled` can only be set to `true` when a health extension is configured")
+}
+
+func VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
+	err := OrchestratedVirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff(ctx, diff, v)
+	if err == nil {
+		return nil
+	}
+
+	if _, ok := diff.GetOk("zones"); !ok {
+		return errors.New("`zones` must be specified when `automatic_zone_rebalancing_enabled` is set to `true`")
+	}
+
+	if healthProbeID := diff.GetRawConfig().GetAttr("health_probe_id"); !healthProbeID.IsNull() {
+		return nil
+	}
+
+	return errors.New("`automatic_zone_rebalancing_enabled` can only be set to `true` when a `health_probe_id` or a health extension is configured")
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
