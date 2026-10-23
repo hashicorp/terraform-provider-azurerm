@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package commands
@@ -101,7 +101,7 @@ Parameters:
 Example:
 scaff resource -name="fw_mssql_database" -service_package_name="MSSQL" -rp_name="sql" -client_name="DatabasesClient" -updatable=true -no_resource_group=true -api_version="2023-08-01-preview" -id_type="commonids.SqlDatabaseId" -sdk_name="databases" -id_segments="SubscriptionId,ResourceGroupName,ServerName,DatabaseName" -uses_lro_crud=true -use_read_options=true
 
-or 
+or
 
 go run internal/tools/scaff/main.go resource -name="fw_mssql_database" -service_package_name="MSSQL" -rp_name="sql" -client_name="DatabasesClient" -updatable=true -no_resource_group=true -api_version="2023-08-01-preview" -id_type="commonids.SqlDatabaseId" -sdk_name="databases" -id_segments="SubscriptionId,ResourceGroupName,ServerName,DatabaseName" -uses_lro_crud=true -use_read_options=true
 `

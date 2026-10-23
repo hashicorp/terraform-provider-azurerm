@@ -14,7 +14,7 @@ Use this data source to access information about an existing Subscription Templa
 
 ```hcl
 data "azurerm_subscription_template_deployment" "example" {
-  name = "existing"
+  name = "example-deployment"
 }
 
 output "id" {

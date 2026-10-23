@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validation
@@ -9,7 +9,7 @@ import (
 	"time"
 
 	iso8601 "github.com/btubbs/datetime" // azignore:AZG010 - iso8601 says what is being parsed, datetime does not
-	"github.com/rickb777/date/period"
+	"github.com/rickb777/period"
 )
 
 func ISO8601Duration(i any, k string) (warnings []string, errors []error) {
