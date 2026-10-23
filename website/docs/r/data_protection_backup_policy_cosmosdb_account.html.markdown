@@ -3,12 +3,12 @@ subcategory: "DataProtection"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_protection_backup_policy_cosmosdb_account"
 description: |-
-  Manages a Data Protection Backup Policy for Cosmos DB Database Accounts.
+  Manages a Data Protection (Backup Vault) Backup Policy for Cosmos DB Database Accounts.
 ---
 
 # azurerm_data_protection_backup_policy_cosmosdb_account
 
-Manages a Data Protection Backup Policy for Cosmos DB Database Accounts.
+Manages a Data Protection (Backup Vault) Backup Policy for Cosmos DB Database Accounts.
 
 ## Example Usage
 
@@ -27,9 +27,9 @@ resource "azurerm_data_protection_backup_vault" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
-  name                           = "example-data-protection-backup-policy-cosmosdb-account"
+  name                            = "example-data-protection-backup-policy-cosmosdb-account"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
-  backup_schedule                = "R/2026-02-08T10:00:00+00:00/P1W"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
   default_retention_duration      = "P10Y"
 
   weekly_retention_rule {
@@ -124,7 +124,7 @@ A `yearly_retention_rule` block supports the following:
 
 * `weeks_of_month` - (Optional) A set of ordinal weeks within each month in which backups matching this rule are retained. Possible values are `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
 
-~> **Note:** Specify `days_of_week`, `weeks_of_month`, and `months_of_year` together to select backups by day, week, and month. When all three fields are omitted, this rule retains the first successful full backup of the year.
+~> **Note:** Specify `days_of_week`, `weeks_of_month`, and `months_of_year` together to select backups by day, week, and month. When all three fields are omitted, this rule retains first successful full backup of the year.
 
 ## Attributes Reference
 
