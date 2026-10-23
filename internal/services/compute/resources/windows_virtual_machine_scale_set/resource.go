@@ -5,6 +5,7 @@ package windows_virtual_machine_scale_set
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -82,7 +83,20 @@ func RegisterResource() *pluginsdk.Resource {
 					}
 				}
 
+				if !diff.GetRawConfig().GetAttr("capacity_reservation_group_id").IsNull() {
+					if diff.Get("single_placement_group").(bool) {
+						return errors.New("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+					}
+				}
+
 				return nil
+			}),
+
+			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) bool {
+				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
+				oldZones, _ := d.GetChange("zones")
+				// In-place association is only supported when adding a CRG to an already-zonal scale set. Updating or de-associating still requires a force new (actually requires deallocation).
+				return oldZones.(*schema.Set).Len() == 0 || oldCRG.(string) != ""
 			}),
 		),
 	}
