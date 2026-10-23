@@ -38,6 +38,10 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta any) 
 	}
 	props := existing.Model.Properties
 
+	if d.HasChange("authentication") {
+		props.Authentication = expandCdnFrontDoorOriginGroupAuthentication(d.Get("authentication").([]any))
+	}
+
 	// The API requires that an explicit null be passed as the 'health_probe' value to disable the health probe
 	// e.g. {"properties":{"healthProbeSettings":null}}
 	if d.HasChange("health_probe") {
