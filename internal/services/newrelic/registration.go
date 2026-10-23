@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/resources/new_relic_monitor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/resources/new_relic_tag_rule"
 )
 
 type Registration struct{}
@@ -29,8 +31,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		NewRelicMonitorResource{},
-		NewRelicTagRuleResource{},
+		new_relic_monitor.Resource{},
+		new_relic_tag_rule.Resource{},
 	}
 }
 
