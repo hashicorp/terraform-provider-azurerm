@@ -3606,7 +3606,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   windows_profile {
     admin_username = "azureuser"
-    admin_password = "P@55W0rd1234!%[5]s"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
   }
 }
 
@@ -3623,7 +3623,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.Locations.Primary, data.RandomInteger, windowsProfile, tags, data.RandomString)
+`, data.Locations.Primary, data.RandomInteger, windowsProfile, tags)
 }
 
 func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {
