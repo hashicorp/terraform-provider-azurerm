@@ -323,16 +323,14 @@ func resourceServiceBusSubscriptionFlatten(d *pluginsdk.ResourceData, id *subscr
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-			d.Set("status", pointer.To(string(*props.Status)))
+			d.Set("status", pointer.To(props.Status))
 			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("max_delivery_count", pointer.To(props.MaxDeliveryCount))
 
-			if count := props.MaxDeliveryCount; count != nil {
-				d.Set("max_delivery_count", int(*count))
-			}
-			if props.IsClientAffine != nil && *props.IsClientAffine {
-				if props.ClientAffineProperties != nil && props.ClientAffineProperties.ClientId != nil {
-					clientId = *props.ClientAffineProperties.ClientId
+			if pointer.From(props.IsClientAffine) {
+				if props.ClientAffineProperties != nil {
+					clientId = pointer.From(props.ClientAffineProperties.ClientId)
 				}
 				clientScopedEnabled = true
 			}

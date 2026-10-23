@@ -35,7 +35,7 @@ func TestAccServiceBusSubscription_listByTopicID(t *testing.T) {
 				Query:  true,
 				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_servicebus_subscription.list", 3),
+					querycheck.ExpectLength("azurerm_servicebus_subscription.list", 3),
 					querycheck.ExpectIdentity(
 						"azurerm_servicebus_subscription.list",
 						map[string]knownvalue.Check{
