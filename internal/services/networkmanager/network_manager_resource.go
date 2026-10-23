@@ -92,6 +92,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 					"management_group_ids": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.ManagementGroupID,
@@ -101,6 +102,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 					"subscription_ids": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: commonids.ValidateSubscriptionID,
