@@ -51,6 +51,10 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `ingress_configuration` - (Optional) An `ingress_configuration` block as defined below. Configures [Premium Ingress](https://learn.microsoft.com/azure/container-apps/premium-ingress) with a dedicated workload profile for ingress proxies.
+
+  ~> **Note:** When `ingress_configuration` is set, a dedicated workload profile is automatically created and managed for the ingress proxies. Do not define a separate `workload_profile` block for it.
+
 * `infrastructure_resource_group_name` - (Optional) Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. Changing this forces a new resource to be created.
 
 ~> **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.
@@ -98,6 +102,28 @@ A `workload_profile` block supports the following:
 * `maximum_count` - (Optional) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
 * `minimum_count` - (Optional) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
+
+---
+
+An `ingress_configuration` block supports the following:
+
+* `workload_profile_name` - (Optional) The name of the dedicated ingress workload profile. Defaults to `premium-ingress`.
+
+* `workload_profile_type` - (Optional) The workload profile SKU. Possible values are `D4`, `D8`, `D16`, and `D32`. Defaults to `D4`.
+
+* `minimum_node_count` - (Optional) The minimum number of ingress nodes. Must be at least `2`. Defaults to `2`.
+
+* `maximum_node_count` - (Optional) The maximum number of ingress nodes. Must be at least `2`. Defaults to `10`.
+
+~> **Note:** `maximum_node_count` must be greater than or equal to `minimum_node_count`.
+
+* `termination_grace_period_minutes` - (Optional) The termination grace period in minutes. Possible values are between `1` and `60`. Converted to seconds for the API.
+
+* `request_idle_timeout` - (Optional) The request idle timeout in minutes. Possible values are between `4` and `30`.
+
+* `header_count_limit` - (Optional) The maximum number of HTTP headers per request.
+
+~> **Note:** When `termination_grace_period_minutes`, `request_idle_timeout`, or `header_count_limit` are omitted, the API does not assign explicit values. These fields will read back as `0` in Terraform state, which reflects the `null` returned by the Azure API and Portal. This is expected behavior.
 
 ---
 
