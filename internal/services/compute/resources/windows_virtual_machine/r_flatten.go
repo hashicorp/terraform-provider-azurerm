@@ -129,6 +129,8 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
 				d.Set("computer_name", profile.ComputerName)
 
+				d.Set("admin_password_wo_version", d.Get("admin_password_wo_version"))
+
 				if config := profile.WindowsConfiguration; config != nil {
 					if err := d.Set("additional_unattend_content", helpers.FlattenAdditionalUnattendContent(config.AdditionalUnattendContent, d)); err != nil {
 						return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
