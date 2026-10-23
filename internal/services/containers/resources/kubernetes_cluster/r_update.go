@@ -365,6 +365,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		existing.Model.Properties.WindowsProfile = expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 	}
 
+	if d.HasChange("node_resource_group_restriction_level") {
+		updateCluster = true
+		if existing.Model.Properties.NodeResourceGroupProfile == nil {
+			existing.Model.Properties.NodeResourceGroupProfile = &managedclusters.ManagedClusterNodeResourceGroupProfile{}
+		}
+		if v, ok := d.GetOk("node_resource_group_restriction_level"); ok {
+			existing.Model.Properties.NodeResourceGroupProfile.RestrictionLevel = pointer.ToEnum[managedclusters.RestrictionLevel](v.(string))
+		}
+	}
+
 	if d.HasChange("identity") {
 		updateCluster = true
 		managedClusterIdentityRaw := d.Get("identity").([]any)

@@ -1170,6 +1170,14 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"node_resource_group_restriction_level": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C avoids removing an existing ReadOnly deny assignment when importing or upgrading a cluster with this argument omitted.
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForRestrictionLevel(), false),
+		},
+
 		"current_kubernetes_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
