@@ -42,29 +42,29 @@ type ValidationRequest struct {
 // resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
 // payload will produce unreliable validation results. See internal/preflight/README.md
 // for implementation patterns and guidance.
-func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, properties any) (ValidationRequest, error) {
+func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, properties any, sku *any) (ValidationRequest, error) {
 	scope, provider, resourceType, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
 
-	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties, sku)
 }
 
 // NewValidationRequestWithTypeOverride is like NewValidationRequest but accepts an explicit
 // resourceType, overriding the value that would otherwise be derived from the ARM ID's path
 // segments. Use this when the preflight API requires a type discriminator that differs from
 // the ARM resource type path segment. Example: Microsoft.Cache/redis vs Microsoft.Cache/redisEnterprise.
-func NewValidationRequestWithTypeOverride(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
+func NewValidationRequestWithTypeOverride(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any, sku *any) (ValidationRequest, error) {
 	scope, provider, _, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
 
-	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties), nil
+	return buildValidationRequest(location, id, provider, resourceType, resourceName, scope, apiVersion, properties, sku)
 }
 
-func buildValidationRequest(location *string, id resourceids.ResourceId, provider, resourceType, resourceName, scope, apiVersion string, properties any) ValidationRequest {
+func buildValidationRequest(location *string, id resourceids.ResourceId, provider, resourceType, resourceName, scope, apiVersion string, properties any, sku *any) (ValidationRequest, error) {
 	return ValidationRequest{
 		Location:   location,
 		Provider:   provider,
@@ -75,9 +75,11 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 			ApiVersion: apiVersion,
 			Name:       resourceName,
 			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
+			Location:   location,
 			Properties: properties,
+			Sku:        sku,
 		},
-	}
+	}, nil
 }
 
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {

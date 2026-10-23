@@ -7,8 +7,10 @@ package sdk
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ResourceValidationRequestResource struct {
-	ApiVersion string `json:"apiVersion"`
-	Name       string `json:"name"`
-	Type       string `json:"type"`
-	Properties any    `json:"properties"`
+	ApiVersion string  `json:"apiVersion"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	Location   *string `json:"location,omitempty"`
+	Properties any     `json:"properties"`
+	Sku        *any    `json:"sku,omitempty"`
 }

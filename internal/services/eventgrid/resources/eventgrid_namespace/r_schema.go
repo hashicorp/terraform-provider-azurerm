@@ -185,7 +185,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 					}
 
 					id := namespaces.NewNamespaceID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
-					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-15-preview", req)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-15-preview", req.Properties, pointer.To[any](req.Sku))
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
 					}

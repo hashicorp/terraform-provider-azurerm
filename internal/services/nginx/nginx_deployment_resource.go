@@ -728,7 +728,7 @@ func (m DeploymentResource) CustomizeDiff() sdk.ResourceFunc {
 
 					id := nginxdeployment.NewNginxDeploymentID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2024-11-01-preview", req)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2024-11-01-preview", req.Properties, pointer.To[any](req.Sku))
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
 					}
