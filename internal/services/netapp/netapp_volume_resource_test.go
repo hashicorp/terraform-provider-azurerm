@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -2314,7 +2314,7 @@ provider "azurerm" {
 	netapp {
       prevent_volume_destruction            = false
       delete_backups_on_backup_vault_destroy = true
-    } 
+    }
   }
 }
 `

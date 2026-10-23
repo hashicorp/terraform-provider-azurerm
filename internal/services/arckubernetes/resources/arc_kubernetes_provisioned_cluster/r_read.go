@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package arc_kubernetes_provisioned_cluster
@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name arc_kubernetes_provisioned_cluster
 
 func (r Resource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
