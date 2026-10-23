@@ -4,6 +4,8 @@
 package appgateway
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -441,6 +443,23 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+			primaryRuleSetCount := 0
+			for _, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
+				ruleSet := raw.(map[string]any)
+				switch ruleSet["type"].(string) {
+				case "OWASP", "Microsoft_DefaultRuleSet":
+					primaryRuleSetCount++
+				}
+			}
+
+			if primaryRuleSetCount != 1 {
+				return errors.New("`managed_rules.0.managed_rule_set` must contain exactly one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")
+			}
+
+			return nil
+		}),
 	}
 }
 
