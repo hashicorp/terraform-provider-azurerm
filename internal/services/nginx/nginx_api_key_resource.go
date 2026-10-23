@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeploymentapikeyresponses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -44,7 +44,7 @@ func (m APIKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
+			ValidateFunc: nginxdeployments.ValidateNginxDeploymentID,
 		},
 
 		"end_date_time": {
@@ -84,20 +84,20 @@ func (m APIKeyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Nginx.NginxApiKey
+			client := metadata.Client.Nginx.NginxDeploymentApiKeyResponses
 
 			var model APIKeyModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			deployID, err := nginxdeployment.ParseNginxDeploymentID(model.NginxDeploymentId)
+			deployID, err := nginxdeployments.ParseNginxDeploymentID(model.NginxDeploymentId)
 			if err != nil {
 				return err
 			}
 
 			subscriptionID := metadata.Client.Account.SubscriptionId
-			id := nginxapikey.NewApiKeyID(
+			id := nginxdeploymentapikeyresponses.NewApiKeyID(
 				subscriptionID,
 				deployID.ResourceGroupName,
 				deployID.NginxDeploymentName,
@@ -114,8 +114,8 @@ func (m APIKeyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			req := nginxapikey.NginxDeploymentApiKeyRequest{
-				Properties: &nginxapikey.NginxDeploymentApiKeyRequestProperties{
+			req := nginxdeploymentapikeyresponses.NginxDeploymentApiKeyRequest{
+				Properties: &nginxdeploymentapikeyresponses.NginxDeploymentApiKeyRequestProperties{
 					SecretText:  pointer.To(model.SecretText),
 					EndDateTime: pointer.To(model.EndDateTime),
 				},
@@ -135,8 +135,8 @@ func (m APIKeyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxApiKey
-			id, err := nginxapikey.ParseApiKeyID(meta.ResourceData.Id())
+			client := meta.Client.Nginx.NginxDeploymentApiKeyResponses
+			id, err := nginxdeploymentapikeyresponses.ParseApiKeyID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -160,9 +160,9 @@ func (m APIKeyResource) Update() sdk.ResourceFunc {
 			}
 
 			// full update - fill in the existing fields from the API and then patch it
-			upd := nginxapikey.NginxDeploymentApiKeyRequest{
+			upd := nginxdeploymentapikeyresponses.NginxDeploymentApiKeyRequest{
 				Name: existing.Model.Name,
-				Properties: &nginxapikey.NginxDeploymentApiKeyRequestProperties{
+				Properties: &nginxdeploymentapikeyresponses.NginxDeploymentApiKeyRequestProperties{
 					EndDateTime: existing.Model.Properties.EndDateTime,
 					// secret_text field is not returned by the API so decode from state
 					SecretText: pointer.To(model.SecretText),
@@ -184,8 +184,8 @@ func (m APIKeyResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxApiKey
-			id, err := nginxapikey.ParseApiKeyID(meta.ResourceData.Id())
+			client := meta.Client.Nginx.NginxDeploymentApiKeyResponses
+			id, err := nginxdeploymentapikeyresponses.ParseApiKeyID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -209,7 +209,7 @@ func (m APIKeyResource) Read() sdk.ResourceFunc {
 
 			var output APIKeyModel
 			output.Name = id.ApiKeyName
-			output.NginxDeploymentId = nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName).ID()
+			output.NginxDeploymentId = nginxdeployments.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName).ID()
 			// secret_text field is not returned by the API so decode from state
 			output.SecretText = state.SecretText
 			if model := resp.Model; model != nil {
@@ -227,8 +227,8 @@ func (m APIKeyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxApiKey
-			id, err := nginxapikey.ParseApiKeyID(meta.ResourceData.Id())
+			client := meta.Client.Nginx.NginxDeploymentApiKeyResponses
+			id, err := nginxdeploymentapikeyresponses.ParseApiKeyID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -243,5 +243,5 @@ func (m APIKeyResource) Delete() sdk.ResourceFunc {
 }
 
 func (m APIKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return nginxapikey.ValidateApiKeyID
+	return nginxdeploymentapikeyresponses.ValidateApiKeyID
 }
