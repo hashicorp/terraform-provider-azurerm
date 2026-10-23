@@ -67,7 +67,11 @@ The following arguments are supported:
 
 * `account_name` - (Optional) The Azure Storage Account in which the Share to be used is located. Changing this forces a new resource to be created.
 
-* `access_key` - (Optional) The Storage Account Access Key.
+* `access_key` - (Optional) The Storage Account Access Key. Conflicts with `access_key_wo`.
+
+* `access_key_wo` - (Optional, Write-Only) The Storage Account Access Key. Conflicts with `access_key`.
+
+* `access_key_wo_version` - (Optional) An integer value used to trigger an update for `access_key_wo`. This property should be incremented when updating `access_key_wo`.
 
 * `share_name` - (Required) The name of the Azure Storage Share to use. Changing this forces a new resource to be created.
 
