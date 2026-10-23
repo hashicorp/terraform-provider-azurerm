@@ -206,7 +206,11 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any
 				}
 
 				if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-					if err := d.Set("termination_notification", helpers.FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+					if err := d.Set("os_image_notification", helpers.FlattenVirtualMachineScaleSetOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+						return fmt.Errorf("setting `os_image_notification`: %+v", err)
+					}
+
+					if err := d.Set("termination_notification", helpers.FlattenVirtualMachineScaleSetTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 						return fmt.Errorf("setting `termination_notification`: %+v", err)
 					}
 				}
