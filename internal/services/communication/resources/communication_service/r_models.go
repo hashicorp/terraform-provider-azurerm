@@ -3,11 +3,16 @@
 
 package communication_service
 
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+)
+
 type CommunicationServiceResourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	DataLocation      string            `tfschema:"data_location"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name              string                                     `tfschema:"name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	DataLocation      string                                     `tfschema:"data_location"`
+	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Tags              map[string]string                          `tfschema:"tags"`
 
 	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
 	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
