@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
+
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
@@ -752,8 +754,6 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker? Defaults to `true`.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled? Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux App Service.
@@ -907,4 +907,4 @@ terraform import azurerm_linux_web_app.example /subscriptions/12345678-1234-9876
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2025-05-01, 2023-01-01
