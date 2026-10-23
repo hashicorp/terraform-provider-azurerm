@@ -64,6 +64,10 @@ func (d GiVersionsDataSource) ResourceType() string {
 	return "azurerm_oracle_gi_versions"
 }
 
+func (d GiVersionsDataSource) DeprecatedInFavourOfDataSource() string {
+	return "azurerm_oracle_grid_infrastructure_versions"
+}
+
 func (d GiVersionsDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return giversions.ValidateGiVersionID
 }
