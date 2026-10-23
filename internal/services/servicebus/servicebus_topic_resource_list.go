@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -7,12 +7,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/topics"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,65 +23,56 @@ import (
 
 type ServiceBusTopicListResource struct{}
 
+type ServiceBusTopicListModel struct {
+	NamespaceId types.String `tfsdk:"servicebus_namespace_id"`
+}
+
 var _ sdk.FrameworkListWrappedResource = new(ServiceBusTopicListResource)
+
+func (ServiceBusTopicListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = serviceBusTopicResourceName
+}
 
 func (ServiceBusTopicListResource) ResourceFunc() *pluginsdk.Resource {
 	return resourceServiceBusTopic()
 }
 
-func (ServiceBusTopicListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = serviceBusTopicResourceName
+func (ServiceBusTopicListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"servicebus_namespace_id": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{Func: namespaces.ValidateNamespaceID},
+				},
+			},
+		},
+	}
 }
 
 func (ServiceBusTopicListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.ServiceBus.TopicsClient
 	namespacesClient := metadata.Client.ServiceBus.NamespacesClient
 
-	var data sdk.DefaultListModel
+	var data ServiceBusTopicListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
 		return
 	}
 
-	subscriptionID := metadata.SubscriptionId
-	if !data.SubscriptionId.IsNull() {
-		subscriptionID = data.SubscriptionId.ValueString()
+	parentID, err := namespaces.ParseNamespaceID(data.NamespaceId.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Namespace ID for `%s`", serviceBusTopicResourceName), err)
+		return
 	}
 
-	var namespaceItems []namespaces.SBNamespace
+	topicNamespaceID := topics.NewNamespaceID(parentID.SubscriptionId, parentID.ResourceGroupName, parentID.NamespaceName)
 
-	switch {
-	case !data.ResourceGroupName.IsNull():
-		resp, err := namespacesClient.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", serviceBusTopicResourceName), err)
-			return
-		}
-		namespaceItems = resp.Items
-	default:
-		resp, err := namespacesClient.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", serviceBusTopicResourceName), err)
-			return
-		}
-		namespaceItems = resp.Items
-	}
-
-	results := make([]topics.SBTopic, 0)
-	for _, ns := range namespaceItems {
-		namespaceId, err := namespaces.ParseNamespaceID(pointer.From(ns.Id))
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing ServiceBus Namespace ID for `%s`", serviceBusTopicResourceName), err)
-			return
-		}
-
-		resp, err := client.ListByNamespaceComplete(ctx, topics.NewNamespaceID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName), topics.DefaultListByNamespaceOperationOptions())
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", serviceBusTopicResourceName), err)
-			return
-		}
-		results = append(results, resp.Items...)
+	resp, err := client.ListByNamespaceComplete(ctx, topicNamespaceID, topics.DefaultListByNamespaceOperationOptions())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", serviceBusTopicResourceName), err)
+		return
 	}
 
 	// The List wrapper cancels the supplied context before the iterator below runs,
@@ -93,17 +87,16 @@ func (ServiceBusTopicListResource) List(ctx context.Context, request list.ListRe
 		listCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
-		for _, item := range results {
+		for _, item := range resp.Items {
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
+			rd := resourceServiceBusTopic().Data(&terraform.InstanceState{})
 			id, err := topics.ParseTopicIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing ID for `%s`", serviceBusTopicResourceName), err)
 				return
 			}
-
-			rd := resourceServiceBusTopic().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
 			if err := resourceServiceBusTopicFlatten(listCtx, rd, id, &item, namespacesClient, request.IncludeResource); err != nil {
@@ -116,7 +109,6 @@ func (ServiceBusTopicListResource) List(ctx context.Context, request list.ListRe
 				push(result)
 				return
 			}
-
 			if !push(result) {
 				return
 			}

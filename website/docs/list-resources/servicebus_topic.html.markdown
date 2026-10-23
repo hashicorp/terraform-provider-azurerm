@@ -12,22 +12,13 @@ Lists ServiceBus Topic resources.
 
 ## Example Usage
 
-### List all ServiceBus Topics in the subscription
+### List all ServiceBus Topics in a ServiceBus Namespace
 
 ```hcl
-list "azurerm_servicebus_topic" "example" {
-  provider = azurerm
-  config {}
-}
-```
-
-### List all ServiceBus Topics in a specific resource group
-
-```hcl
-list "azurerm_servicebus_topic" "example" {
+list "azurerm_servicebus_queue" "example" {
   provider = azurerm
   config {
-    resource_group_name = "example-rg"
+    servicebus_namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ServiceBus/namespaces/example-namespace"
   }
 }
 ```
@@ -36,6 +27,4 @@ list "azurerm_servicebus_topic" "example" {
 
 This list resource supports the following arguments:
 
-* `resource_group_name` - (Optional) The name of the resource group to query.
-
-* `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
+* `servicebus_namespace_id` - (Required) The ID of the ServiceBus Namespace to query.

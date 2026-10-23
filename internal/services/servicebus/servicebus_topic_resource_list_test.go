@@ -37,13 +37,6 @@ func TestAccServiceBusTopic_listBySubscriptionAndRG(t *testing.T) {
 					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
 				},
 			},
-			{
-				Query:  true,
-				Config: r.basicQueryByResourceGroupName(),
-				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength(listResourceAddress, 3),
-				},
-			},
 		},
 	})
 }
@@ -78,17 +71,8 @@ func (r ServicebusTopicResource) basicQuery() string {
 	return `
 list "azurerm_servicebus_topic" "list" {
   provider = azurerm
-  config {}
-}
-`
-}
-
-func (r ServicebusTopicResource) basicQueryByResourceGroupName() string {
-	return `
-list "azurerm_servicebus_topic" "list" {
-  provider = azurerm
   config {
-    resource_group_name = azurerm_resource_group.test.name
+    servicebus_namespace_id = azurerm_servicebus_namespace.test.id
   }
 }
 `
