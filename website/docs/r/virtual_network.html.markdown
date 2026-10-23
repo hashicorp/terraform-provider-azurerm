@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `private_endpoint_vnet_policies` - (Optional) The Private Endpoint VNet Policies for the Virtual Network. Possible values are `Disabled` and `Basic`. Defaults to `Disabled`.
 
+* `summarized_gateway_prefixes` - (Optional) The list of summarized gateway prefixes advertised for the Virtual Network.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
