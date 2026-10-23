@@ -109,10 +109,10 @@ resource "azurerm_data_protection_backup_vault" "test" {
 }
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
-  name                           = "acctest-dbp-cosmos-%[1]d"
+  name                            = "acctest-dbp-cosmos-%[1]d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                = "R/2026-02-08T10:00:00+00:00/P1W"
-  default_retention_duration     = "P10Y"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
+  default_retention_duration      = "P10Y"
 }
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -138,10 +138,10 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "another" {
-  name                           = "acctest-dbp-cosmos-other-%[1]d"
+  name                            = "acctest-dbp-cosmos-other-%[1]d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                = "R/2026-02-09T10:00:00+00:00/P1W"
-  default_retention_duration     = "P5Y"
+  backup_schedule                 = "R/2026-02-09T10:00:00+00:00/P1W"
+  default_retention_duration      = "P5Y"
 }
 
 resource "azurerm_role_assignment" "reader" {
