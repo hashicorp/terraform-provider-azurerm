@@ -28,6 +28,8 @@ func TestAccDataSourceVirtualNetwork_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
 				check.That(data.ResourceName).Key("dns_servers.0").HasValue("10.0.0.4"),
 				check.That(data.ResourceName).Key("address_space.0").HasValue("10.0.0.0/16"),
+				check.That(data.ResourceName).Key("advertised_gateway_prefixes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("advertised_gateway_prefixes.0").HasValue("10.0.0.0/8"),
 				check.That(data.ResourceName).Key("subnets.0").HasValue("subnet1"),
 			),
 		},
@@ -68,11 +70,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_servers         = ["10.0.0.4"]
+  name                        = "acctestvnet-%d"
+  address_space               = ["10.0.0.0/16"]
+  advertised_gateway_prefixes = ["10.0.0.0/8"]
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  dns_servers                 = ["10.0.0.4"]
 
   subnet {
     name             = "subnet1"
