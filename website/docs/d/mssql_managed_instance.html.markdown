@@ -55,6 +55,8 @@ The following attributes are exported:
 
 * `minimum_tls_version` - The Minimum TLS Version.
 
+* `pricing_model` - The pricing model for the SQL Managed Instance.
+
 * `proxy_override` - Specifies how the SQL Managed Instance will be accessed.
 
 * `public_data_endpoint_enabled` - Whether the public data endpoint is enabled.
