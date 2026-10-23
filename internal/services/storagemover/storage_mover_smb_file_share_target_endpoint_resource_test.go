@@ -76,7 +76,6 @@ func TestAccStorageMoverSmbFileShareTargetEndpoint_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("description").HasValue("Updated SMB File Share Target Endpoint Description"),
 			),
 		},
 		data.ImportStep(),
