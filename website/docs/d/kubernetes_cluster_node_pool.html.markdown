@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `kubernetes_cluster_name` - (Required) The Name of the Kubernetes Cluster where this Node Pool is located.
 
-* `name` - (Required) The name of this Kubernetes Cluster Node Pool.
+* `name` - (Required) The name of this Kubernetes Cluster Node Pool. Must begin with a lowercase letter, contain only lowercase letters and numbers, and be between 1 and 39 characters in length.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Kubernetes Cluster exists.
 
