@@ -924,8 +924,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplica
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webcategories
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors
-github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules
+github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources
+github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/tagrules
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate
