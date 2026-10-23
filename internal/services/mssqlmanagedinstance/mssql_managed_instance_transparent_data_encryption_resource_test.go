@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance_test
@@ -473,8 +473,8 @@ provider "azurerm" {
     }
 
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
       deleted until this can be properly investigated
       tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
@@ -596,8 +596,8 @@ provider "azurerm" {
     }
 
     resource_group {
-      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
-      prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
       deleted until this can be properly investigated
       tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
