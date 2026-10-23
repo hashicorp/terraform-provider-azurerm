@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn_frontdoor_custom_domain_test
@@ -33,9 +33,9 @@ func TestAccCdnFrontDoorCustomDomain_listByProfileID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_cdn_frontdoor_custom_domain.list", 1),
+					querycheck.ExpectLength("azurerm_cdn_frontdoor_custom_domain.list", 1),
 					querycheck.ExpectIdentity(
 						"azurerm_cdn_frontdoor_custom_domain.list",
 						map[string]knownvalue.Check{
@@ -51,7 +51,7 @@ func TestAccCdnFrontDoorCustomDomain_listByProfileID(t *testing.T) {
 	})
 }
 
-func (r CdnFrontdoorCustomDomainResource) basicQuery(data acceptance.TestData) string {
+func (r CdnFrontdoorCustomDomainResource) basicQuery() string {
 	return `
 list "azurerm_cdn_frontdoor_custom_domain" "list" {
   provider = azurerm
