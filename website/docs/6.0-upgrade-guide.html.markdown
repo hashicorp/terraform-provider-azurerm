@@ -90,6 +90,15 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_mssql_database`
+
+* The `free_limit_enabled` property now defaults to `false`.
+* The `free_limit_exhaustion_behavior` property now defaults to `AutoPause`.
+
+To retain existing free-offer settings, explicitly configure both properties before upgrading. For a free-offer database using `BillOverUsage`, set `free_limit_enabled = true` and `free_limit_exhaustion_behavior = "BillOverUsage"`.
+
+!> **Note:** Leaving `free_limit_exhaustion_behavior` unset for a database using `BillOverUsage` will plan to replace the database after upgrading. Leaving `free_limit_enabled` unset will also plan to disable the free offer. See the [Azure SQL free offer limitations](https://learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql#offer-limitations) for more information.
+
 ### `azurerm_network_interface`
 
 * The `auxiliary_mode` no longer accepts the `None` value.
