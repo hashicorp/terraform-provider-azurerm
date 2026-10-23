@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ServiceBusTopicResource struct{}
+type ServicebusTopicResource struct{}
 
 func TestAccServiceBusTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccServiceBusTopic_basic(t *testing.T) {
 
 func TestAccServiceBusTopic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,7 +51,7 @@ func TestAccServiceBusTopic_complete(t *testing.T) {
 
 func TestAccServiceBusTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,7 +69,7 @@ func TestAccServiceBusTopic_requiresImport(t *testing.T) {
 
 func TestAccServiceBusTopic_basicDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccServiceBusTopic_basicDisabled(t *testing.T) {
 
 func TestAccServiceBusTopic_basicDisableEnable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,7 +113,7 @@ func TestAccServiceBusTopic_basicDisableEnable(t *testing.T) {
 
 func TestAccServiceBusTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -136,7 +136,7 @@ func TestAccServiceBusTopic_update(t *testing.T) {
 
 func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -153,7 +153,7 @@ func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 
 func TestAccServiceBusTopic_maxMessageSizePremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -168,7 +168,7 @@ func TestAccServiceBusTopic_maxMessageSizePremium(t *testing.T) {
 
 func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -191,7 +191,7 @@ func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 
 func TestAccServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -206,7 +206,7 @@ func TestAccServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 
 func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -225,7 +225,7 @@ func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 
 func TestAccServiceBusTopic_nonPartitionedPremiumNamespaceError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -237,7 +237,7 @@ func TestAccServiceBusTopic_nonPartitionedPremiumNamespaceError(t *testing.T) {
 
 func TestAccServiceBusTopic_partitionedPremiumNamespace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	r := ServiceBusTopicResource{}
+	r := ServicebusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -254,7 +254,7 @@ func TestAccServiceBusTopic_partitionedPremiumNamespace(t *testing.T) {
 	})
 }
 
-func (t ServiceBusTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t ServicebusTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := topics.ParseTopicID(state.ID)
 	if err != nil {
 		return nil, err
@@ -268,7 +268,7 @@ func (t ServiceBusTopicResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ServiceBusTopicResource) basic(data acceptance.TestData) string {
+func (ServicebusTopicResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -293,7 +293,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) complete(data acceptance.TestData) string {
+func (ServicebusTopicResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -319,7 +319,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ServiceBusTopicResource) requiresImport(data acceptance.TestData) string {
+func (r ServicebusTopicResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -330,7 +330,7 @@ resource "azurerm_servicebus_topic" "import" {
 `, r.basic(data))
 }
 
-func (ServiceBusTopicResource) basicDisabled(data acceptance.TestData) string {
+func (ServicebusTopicResource) basicDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -356,7 +356,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) update(data acceptance.TestData) string {
+func (ServicebusTopicResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -383,7 +383,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) basicPremium(data acceptance.TestData) string {
+func (ServicebusTopicResource) basicPremium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -413,7 +413,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) enablePartitioningStandard(data acceptance.TestData) string {
+func (ServicebusTopicResource) enablePartitioningStandard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -440,7 +440,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) enablePartitioningPremium(data acceptance.TestData) string {
+func (ServicebusTopicResource) enablePartitioningPremium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -469,7 +469,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) enableDuplicateDetection(data acceptance.TestData) string {
+func (ServicebusTopicResource) enableDuplicateDetection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -495,7 +495,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) isoTimeSpanAttributes(data acceptance.TestData) string {
+func (ServicebusTopicResource) isoTimeSpanAttributes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -524,7 +524,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusTopicResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
+func (ServicebusTopicResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -553,7 +553,7 @@ resource "azurerm_servicebus_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (ServiceBusTopicResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
+func (ServicebusTopicResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
