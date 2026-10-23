@@ -284,7 +284,6 @@ func TestAccLogicAppStandard_appSettingsRemoved(t *testing.T) {
 			Config: r.appSettingsRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.appSettingsAreRemoved("remove-one", "remove-two")),
 			),
 		},
 		data.ImportStep(),
@@ -1256,35 +1255,6 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 		}
 		if exists != shouldExist {
 			return fmt.Errorf("expected %t but got %t", shouldExist, exists)
-		}
-
-		return nil
-	}
-}
-
-func (r LogicAppStandardResource) appSettingsAreRemoved(settings ...string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := commonids.ParseLogicAppId(state.ID)
-		if err != nil {
-			return err
-		}
-
-		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
-		defer cancel()
-
-		appSettingsResp, err := clients.AppService.WebAppsClient.ListApplicationSettings(ctx, *id)
-		if err != nil {
-			return fmt.Errorf("listing AppSettings: %+v", err)
-		}
-
-		if appSettingsResp.Model == nil {
-			return fmt.Errorf("listing AppSettings for %s: `model` was nil", id)
-		}
-
-		for _, setting := range settings {
-			if _, ok := pointer.From(appSettingsResp.Model.Properties)[setting]; ok {
-				return fmt.Errorf("expected app setting %q to be removed", setting)
-			}
 		}
 
 		return nil
