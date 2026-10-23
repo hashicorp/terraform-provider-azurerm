@@ -101,7 +101,7 @@ func cognitiveAccountSchema() map[string]*pluginsdk.Schema {
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 
 					"identity_client_id": {
