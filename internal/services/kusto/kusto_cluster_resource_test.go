@@ -287,6 +287,26 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.trustedExternalTenants(data, "[\"*\", data.azurerm_client_config.current.tenant_id]"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Re-applying the same set of trusted tenants in either order must be a no-op. The ADX API
+			// returns the tenants in its own canonical order, which previously produced a perpetual diff
+			// (see https://github.com/hashicorp/terraform-provider-azurerm/issues/32793). Plan-only steps
+			// do not update state, so exercising both orderings guarantees that at least one differs from
+			// Azure's ordering; without the fix that permutation would produce a non-empty plan.
+			Config:   r.trustedExternalTenants(data, "[\"*\", data.azurerm_client_config.current.tenant_id]"),
+			PlanOnly: true,
+		},
+		{
+			Config:   r.trustedExternalTenants(data, "[data.azurerm_client_config.current.tenant_id, \"*\"]"),
+			PlanOnly: true,
+		},
 	})
 }
 

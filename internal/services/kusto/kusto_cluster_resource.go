@@ -110,6 +110,53 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"trusted_external_tenants": {
+				// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
+				// The Azure Data Explorer API returns tenants in its own order, so compare the tenant sets.
+				DiffSuppressFunc: func(_, _, _ string, d *pluginsdk.ResourceData) bool {
+					if d == nil || d.Id() == "" {
+						return false
+					}
+
+					// Do not suppress changes for omitted or unknown configuration of this Optional + Computed list.
+					rawConfig := d.GetRawConfig()
+					if rawConfig.IsNull() {
+						return false
+					}
+
+					rawTenants := rawConfig.GetAttr("trusted_external_tenants")
+					if rawTenants.IsNull() || !rawTenants.IsWhollyKnown() {
+						return false
+					}
+
+					oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+					oldList, okOld := oldTenants.([]interface{})
+					newList, okNew := newTenants.([]interface{})
+					if !okOld || !okNew {
+						return false
+					}
+
+					oldSet := make(map[string]struct{}, len(oldList))
+					for _, tenant := range oldList {
+						oldSet[tenant.(string)] = struct{}{}
+					}
+
+					newSet := make(map[string]struct{}, len(newList))
+					for _, tenant := range newList {
+						newSet[tenant.(string)] = struct{}{}
+					}
+
+					if len(oldSet) != len(newSet) {
+						return false
+					}
+
+					for tenant := range oldSet {
+						if _, ok := newSet[tenant]; !ok {
+							return false
+						}
+					}
+
+					return true
+				},
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true, // azignore:AZS007 - pre-existing violation
