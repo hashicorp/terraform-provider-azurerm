@@ -64,6 +64,8 @@ A `hub_profile` block supports the following:
 
 * `api_server_access_profile` - (Optional) An `api_server_access_profile` block as defined above. Changing this forces a new resource to be created.
 
+-> **Note:** Omitting `agent_profile` or `api_server_access_profile` preserves the existing hub settings. Configure new values explicitly to change these settings, which replaces the Fleet Manager.
+
 * `dns_prefix` - (Optional) DNS prefix used to create the FQDN for the Fleet hub. This must be omitted when `api_server_access_profile.private_cluster_enabled` is set to `true`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
