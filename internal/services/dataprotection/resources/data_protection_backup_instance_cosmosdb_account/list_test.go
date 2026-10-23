@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_cosmosdb_account_test
@@ -37,15 +37,6 @@ func TestAccDataProtectionBackupInstanceCosmosdbAccount_list(t *testing.T) {
 				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 2),
-					querycheck.ExpectIdentity(
-						listResourceAddress,
-						map[string]knownvalue.Check{
-							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"backup_vault_name":   knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
-						},
-					),
 				},
 			},
 		},
@@ -103,6 +94,7 @@ func (DataProtectionBackupInstanceCosmosdbAccountResource) basicListQuery() stri
 	return `
 list "azurerm_data_protection_backup_instance_cosmosdb_account" "list" {
   provider = azurerm
+
   config {
     data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   }

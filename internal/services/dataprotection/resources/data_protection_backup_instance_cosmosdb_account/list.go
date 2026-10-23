@@ -65,7 +65,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 
 	vaultId, err := backupinstances.ParseBackupVaultID(data.VaultId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, "parsing Data Protection Backup Vault ID", err)
+		sdk.SetResponseErrorDiagnostic(stream, "parsing `data_protection_backup_vault_id`", err)
 		return
 	}
 

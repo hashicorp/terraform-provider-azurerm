@@ -3,12 +3,12 @@ subcategory: "DataProtection"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_protection_backup_instance_cosmosdb_account"
 description: |-
-  Manages a Data Protection Backup Instance for a Cosmos DB Database Account.
+  Manages a Data Protection (Backup Vault) Backup Instance for a Cosmos DB Database Account.
 ---
 
 # azurerm_data_protection_backup_instance_cosmosdb_account
 
-Manages a Data Protection Backup Instance for a Cosmos DB Database Account.
+Manages a Data Protection (Backup Vault) Backup Instance for a Cosmos DB Database Account.
 
 ## Example Usage
 
