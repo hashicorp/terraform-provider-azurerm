@@ -9,6 +9,7 @@ project {
 
   header_ignore = [
     ".ci/**",
+    ".changelog/**",
     ".github/**",
     ".teamcity/**",
     ".tools/bin/**", # gitignored tool installs (make tools)
