@@ -90,6 +90,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `key_vault_id` property has been removed.
 
+### `azurerm_lb`
+
+* The `sku` property no longer accepts `Basic`. Migrate existing Basic SKU Load Balancers to Standard SKU before upgrading to v6.0 of the AzureRM Provider. Please see the Microsoft [upgrade guidance](https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance) for more information.
+
 ### `azurerm_network_interface`
 
 * The `auxiliary_mode` no longer accepts the `None` value.
