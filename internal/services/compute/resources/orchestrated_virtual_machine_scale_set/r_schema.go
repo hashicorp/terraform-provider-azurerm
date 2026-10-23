@@ -126,6 +126,18 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"data_disk": helpers.OrchestratedVirtualMachineScaleSetDataDiskSchema(),
 
+		"disk_controller_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C Azure may return a default value for some SKUs, so we need to mark this as computed to avoid diffs in that scenario
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(virtualmachinescalesets.DiskControllerTypesNVMe),
+				string(virtualmachinescalesets.DiskControllerTypesSCSI),
+			}, false),
+		},
+
 		// Optional
 		"additional_capabilities": helpers.OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
