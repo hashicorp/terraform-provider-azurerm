@@ -87,7 +87,11 @@ func TestAccPaloAltoNextGenerationFirewallMetrics_update(t *testing.T) {
 func (r PaloAltoNextGenerationFirewallMetricsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 %[1]s
@@ -117,7 +121,11 @@ resource "azurerm_palo_alto_next_generation_firewall_metrics" "import" {
 func (r PaloAltoNextGenerationFirewallMetricsResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 %[1]s
