@@ -19,6 +19,8 @@ import (
 type VmwareExpressRouteAuthorizationResource struct{}
 
 func TestAccVmwareExpressRouteAuthorization_basic(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_express_route_authorization", "test")
 	r := VmwareExpressRouteAuthorizationResource{}
 
@@ -36,6 +38,8 @@ func TestAccVmwareExpressRouteAuthorization_basic(t *testing.T) {
 }
 
 func TestAccVmwareExpressRouteAuthorization_requiresImport(t *testing.T) {
+	t.Skip("Skipping as VMware Private Cloud tests fail due to QuotaExceeded: insufficient capacity in the region")
+
 	data := acceptance.BuildTestData(t, "azurerm_vmware_express_route_authorization", "test")
 	r := VmwareExpressRouteAuthorizationResource{}
 
