@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -250,7 +250,7 @@ func (r ResourceGroupAssignmentTestResource) Exists(ctx context.Context, client 
 		return nil, err
 	}
 
-	assignment, err := client.Policy.AssignmentsClient.Get(ctx, *id)
+	assignment, err := client.Policy.AssignmentsClient.Get(ctx, *id, policyassignments.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(assignment.HttpResponse) {
 			return pointer.To(false), nil
