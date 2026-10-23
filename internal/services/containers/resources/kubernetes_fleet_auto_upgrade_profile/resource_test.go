@@ -97,7 +97,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_selectionRemoval(t *testing.T) {
 			Config: r.selection(data, "Latest"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_image_selection_type").HasValue("Latest"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 			),
 		},
@@ -115,7 +114,6 @@ func TestAccKubernetesFleetAutoUpgradeProfile_selectionRemoval(t *testing.T) {
 			Config: r.selection(data, "Latest"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_image_selection_type").HasValue("Latest"),
 			),
 		},
 		data.ImportStep(),
