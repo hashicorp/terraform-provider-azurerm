@@ -78,7 +78,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 	r := Resource{}
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range resp.Items {
-			if item.Properties == nil || !strings.EqualFold(pointer.From(item.Properties.DataSourceInfo.ResourceType), cosmosDBAccountDataSourceType) {
+			if item.Properties == nil || !backupInstanceSupportsCosmosdbAccounts(*item.Properties) {
 				continue
 			}
 
@@ -100,7 +100,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 				BackupPolicyId:    item.Properties.PolicyInfo.PolicyId,
 				ProtectionState:   pointer.FromEnum(item.Properties.CurrentProtectionState),
 			}
-			if err := r.flatten(rmd, id, &model); err != nil {
+			if err := r.flatten(rmd, id, model); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
@@ -116,4 +116,8 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			}
 		}
 	}
+}
+
+func backupInstanceSupportsCosmosdbAccounts(input backupinstanceresources.BackupInstance) bool {
+	return strings.EqualFold(pointer.From(input.DataSourceInfo.ResourceType), cosmosDBAccountDataSourceType)
 }

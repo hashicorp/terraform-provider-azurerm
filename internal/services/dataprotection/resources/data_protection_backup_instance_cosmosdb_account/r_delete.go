@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -21,6 +22,20 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
+			}
+
+			existing, err := client.BackupInstancesGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return nil
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+			if existing.Model.Properties == nil || !backupInstanceSupportsCosmosdbAccounts(*existing.Model.Properties) {
+				return fmt.Errorf("%s is not a backup instance for `%s`", *id, cosmosDBAccountDataSourceType)
 			}
 
 			if err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions()); err != nil {

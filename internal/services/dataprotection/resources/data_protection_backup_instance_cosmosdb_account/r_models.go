@@ -7,7 +7,7 @@ type BackupInstanceCosmosdbAccountModel struct {
 	Name                        string `tfschema:"name"`
 	DataProtectionBackupVaultId string `tfschema:"data_protection_backup_vault_id"`
 	Location                    string `tfschema:"location"`
-	BackupPolicyId              string `tfschema:"backup_policy_cosmosdb_account_id"`
+	BackupPolicyId              string `tfschema:"data_protection_backup_policy_cosmosdb_account_id"`
 	CosmosdbAccountId           string `tfschema:"cosmosdb_account_id"`
 	ProtectionState             string `tfschema:"protection_state"`
 }

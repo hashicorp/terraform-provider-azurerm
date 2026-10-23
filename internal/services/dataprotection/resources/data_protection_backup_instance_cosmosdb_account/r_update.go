@@ -37,15 +37,15 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			parameters := *existing.Model
 			if parameters.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChange("backup_policy_cosmosdb_account_id") {
+			if metadata.ResourceData.HasChange("data_protection_backup_policy_cosmosdb_account_id") {
 				policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 				if err != nil {
 					return err
@@ -54,7 +54,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, *id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
@@ -64,7 +64,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			})
 			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+				return fmt.Errorf("waiting for %s to become available: %+v", *id, err)
 			}
 
 			return nil

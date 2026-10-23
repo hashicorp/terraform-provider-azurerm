@@ -39,15 +39,19 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var model *BackupInstanceCosmosdbAccountModel
-			if resp.Model != nil && resp.Model.Properties != nil {
-				props := resp.Model.Properties
-				model = &BackupInstanceCosmosdbAccountModel{
-					Location:          location.NormalizeNilable(props.DataSourceInfo.ResourceLocation),
-					CosmosdbAccountId: props.DataSourceInfo.ResourceID,
-					BackupPolicyId:    props.PolicyInfo.PolicyId,
-					ProtectionState:   pointer.FromEnum(props.CurrentProtectionState),
-				}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+			if resp.Model.Properties == nil || !backupInstanceSupportsCosmosdbAccounts(*resp.Model.Properties) {
+				return fmt.Errorf("%s is not a backup instance for `%s`", *id, cosmosDBAccountDataSourceType)
+			}
+
+			props := resp.Model.Properties
+			model := BackupInstanceCosmosdbAccountModel{
+				Location:          location.NormalizeNilable(props.DataSourceInfo.ResourceLocation),
+				CosmosdbAccountId: props.DataSourceInfo.ResourceID,
+				BackupPolicyId:    props.PolicyInfo.PolicyId,
+				ProtectionState:   pointer.FromEnum(props.CurrentProtectionState),
 			}
 
 			return r.flatten(metadata, id, model)
@@ -55,29 +59,27 @@ func (r Resource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r Resource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model *BackupInstanceCosmosdbAccountModel) error {
+func (r Resource) flatten(metadata sdk.ResourceMetaData, id *backupinstanceresources.BackupInstanceId, model BackupInstanceCosmosdbAccountModel) error {
 	state := BackupInstanceCosmosdbAccountModel{
 		Name:                        id.BackupInstanceName,
 		DataProtectionBackupVaultId: backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName).ID(),
 	}
 
-	if model != nil {
-		state.Location = model.Location
+	state.Location = model.Location
 
-		accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosdbAccountId)
-		if err != nil {
-			return err
-		}
-		state.CosmosdbAccountId = accountId.ID()
-
-		backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyIDInsensitively(model.BackupPolicyId)
-		if err != nil {
-			return err
-		}
-		state.BackupPolicyId = backupPolicyId.ID()
-
-		state.ProtectionState = model.ProtectionState
+	accountId, err := cosmosdb.ParseDatabaseAccountIDInsensitively(model.CosmosdbAccountId)
+	if err != nil {
+		return err
 	}
+	state.CosmosdbAccountId = accountId.ID()
+
+	backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyIDInsensitively(model.BackupPolicyId)
+	if err != nil {
+		return err
+	}
+	state.BackupPolicyId = backupPolicyId.ID()
+
+	state.ProtectionState = model.ProtectionState
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 		return err

@@ -6,12 +6,9 @@ package data_protection_backup_instance_cosmosdb_account_test
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -76,11 +73,11 @@ resource "azurerm_role_assignment" "cosmos_operator2" {
 }
 
 resource "azurerm_data_protection_backup_instance_cosmosdb_account" "test2" {
-  name                              = "acctest-dbi-cosmos2-%d"
-  location                          = azurerm_resource_group.test.location
-  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.test.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
-  cosmosdb_account_id               = azurerm_cosmosdb_account.test2.id
+  name                                              = "acctest-dbi-cosmos2-%d"
+  location                                          = azurerm_resource_group.test.location
+  data_protection_backup_vault_id                   = azurerm_data_protection_backup_vault.test.id
+  data_protection_backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.test.id
+  cosmosdb_account_id                               = azurerm_cosmosdb_account.test2.id
 
   depends_on = [
     azurerm_role_assignment.reader,

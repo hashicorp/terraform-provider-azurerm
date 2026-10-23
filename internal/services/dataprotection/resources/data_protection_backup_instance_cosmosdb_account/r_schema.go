@@ -27,9 +27,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"backup_policy_cosmosdb_account_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
-
 		"cosmosdb_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cosmosdb.DatabaseAccountId{}),
+
+		"data_protection_backup_policy_cosmosdb_account_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
 	}
 }
 

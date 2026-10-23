@@ -56,7 +56,7 @@ resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
   name                            = "example-data-protection-backup-policy-cosmosdb-account"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
   default_retention_duration      = "P10Y"
-  full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
+  backup_schedule                 = "R/2026-02-08T10:00:00+00:00/P1W"
 }
 
 resource "azurerm_role_assignment" "reader" {
@@ -72,11 +72,11 @@ resource "azurerm_role_assignment" "cosmos_operator" {
 }
 
 resource "azurerm_data_protection_backup_instance_cosmosdb_account" "example" {
-  name                              = "example-data-protection-backup-instance-cosmosdb-account"
-  location                          = azurerm_resource_group.example.location
-  data_protection_backup_vault_id   = azurerm_data_protection_backup_vault.example.id
-  backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.example.id
-  cosmosdb_account_id               = azurerm_cosmosdb_account.example.id
+  name                                              = "example-data-protection-backup-instance-cosmosdb-account"
+  location                                          = azurerm_resource_group.example.location
+  data_protection_backup_vault_id                   = azurerm_data_protection_backup_vault.example.id
+  data_protection_backup_policy_cosmosdb_account_id = azurerm_data_protection_backup_policy_cosmosdb_account.example.id
+  cosmosdb_account_id                               = azurerm_cosmosdb_account.example.id
 
   depends_on = [
     azurerm_role_assignment.reader,
@@ -95,13 +95,13 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region of the Cosmos DB Database Account. Changing this forces a new resource to be created.
 
-* `backup_policy_cosmosdb_account_id` - (Required) The ID of the Data Protection Backup Policy for Cosmos DB Database Accounts.
-
 * `cosmosdb_account_id` - (Required) The ID of the Cosmos DB Database Account to protect. Changing this forces a new resource to be created.
 
 ~> **Note:** The Cosmos DB Database Account must use Continuous backup mode.
 
 -> **Note:** The Backup Vault's system-assigned identity requires the `Reader` role on the source Resource Group and the `Cosmos DB Operator` role on the Cosmos DB Database Account.
+
+* `data_protection_backup_policy_cosmosdb_account_id` - (Required) The ID of the Data Protection Backup Policy for Cosmos DB Database Accounts.
 
 ## Attributes Reference
 
