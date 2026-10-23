@@ -69,6 +69,10 @@ func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.Az
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 				return fmt.Errorf("setting `virtual_hub`: %+v", err)
 			}
+
+			if err := d.Set("autoscale", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -181,6 +185,19 @@ func flattenFirewallVirtualHubSetting(props *azurefirewalls.AzureFirewallPropert
 			"public_ip_count":     publicIpCount,
 			"public_ip_addresses": publicIps,
 			"private_ip_address":  privateIp,
+		},
+	}
+}
+
+func flattenFirewallAutoscaleConfiguration(input *azurefirewalls.AzureFirewallAutoscaleConfiguration) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"minimum_capacity": int(pointer.From(input.MinCapacity)),
+			"maximum_capacity": int(pointer.From(input.MaxCapacity)),
 		},
 	}
 }
