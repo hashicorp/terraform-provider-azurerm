@@ -60,9 +60,16 @@ func TestAccApiManagementPolicy_update(t *testing.T) {
 			Config: r.customPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.customPolicyXml()+"\n"),
 			),
 		},
-		data.ImportStep("xml_link"),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
+		},
 	})
 }
 
@@ -75,9 +82,16 @@ func TestAccApiManagementPolicy_customPolicy(t *testing.T) {
 			Config: r.customPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.customPolicyXml()+"\n"),
 			),
 		},
-		data.ImportStep("xml_link"),
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
+		},
 	})
 }
 
@@ -123,7 +137,7 @@ resource "azurerm_api_management_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (ApiManagementPolicyResource) customPolicy(data acceptance.TestData) string {
+func (r ApiManagementPolicyResource) customPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -147,14 +161,18 @@ resource "azurerm_api_management_policy" "test" {
   api_management_id = azurerm_api_management.test.id
 
   xml_content = <<XML
-<policies>
+%[3]s
+XML
+
+}
+`, data.RandomInteger, data.Locations.Primary, r.customPolicyXml())
+}
+
+func (ApiManagementPolicyResource) customPolicyXml() string {
+	return `<policies>
   <inbound>
     <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
     <find-and-replace from="xyz" to="foo" />
   </inbound>
-</policies>
-XML
-
-}
-`, data.RandomInteger, data.Locations.Primary)
+</policies>`
 }

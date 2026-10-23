@@ -138,7 +138,7 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
+	resp, err := client.Get(ctx, *id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatRawxml)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
@@ -158,7 +158,10 @@ func resourceApiManagementAPIOperationPolicyRead(d *pluginsdk.ResourceData, meta
 		if props := model.Properties; props != nil {
 			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 			// as such there is no way to set `xml_link` and we'll let Terraform handle it
-			d.Set("xml_content", html.UnescapeString(props.Value))
+			policyContent := html.UnescapeString(props.Value)
+			if currentContent := d.Get("xml_content").(string); !XmlWithDotNetInterpolationsDiffSuppress("xml_content", currentContent, policyContent, d) {
+				d.Set("xml_content", policyContent)
+			}
 		}
 	}
 
