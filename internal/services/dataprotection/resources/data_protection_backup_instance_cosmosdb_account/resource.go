@@ -6,7 +6,9 @@ package data_protection_backup_instance_cosmosdb_account
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
