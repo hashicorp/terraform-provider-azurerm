@@ -378,7 +378,7 @@ func (r AppServiceEnvironmentV3Resource) CustomizeDiff() sdk.ResourceFunc {
 					req := expandCreateForAppServiceEnvironmentV3(model, vnetLoc)
 					id := commonids.NewAppServiceEnvironmentID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
 
-					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(vnetLoc), pointer.To(id), "2023-01-01", req.Properties, nil)
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
 					}
