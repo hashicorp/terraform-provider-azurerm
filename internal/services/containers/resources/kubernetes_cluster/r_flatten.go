@@ -77,20 +77,24 @@ func flattenKubernetesClusterLinuxProfile(profile *managedclusters.ContainerServ
 	}
 }
 
-func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []any {
+func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile, preserveEmptyProfile bool) []any {
 	if profile == nil {
-		return []any{}
+		profile = &managedclusters.ManagedClusterAPIServerAccessProfile{}
 	}
 
-	// API access profile can be managed by other properties, only return it if one of the properties has been set
-	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+	authorizedIPRanges := pluginsdk.FlattenSlice(profile.AuthorizedIPRanges)
+	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
+	subnetId := pointer.From(profile.SubnetId)
+
+	// Preserve a configured empty block, but do not recreate a removed block from API defaults.
+	if !preserveEmptyProfile && len(authorizedIPRanges) == 0 && !enableVnetIntegration && subnetId == "" {
 		return []any{}
 	}
 
 	return []any{map[string]any{
-		"authorized_ip_ranges":                pluginsdk.FlattenSlice(profile.AuthorizedIPRanges),
-		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
-		"subnet_id":                           pointer.From(profile.SubnetId),
+		"authorized_ip_ranges":                authorizedIPRanges,
+		"virtual_network_integration_enabled": enableVnetIntegration,
+		"subnet_id":                           subnetId,
 	}}
 }
 
