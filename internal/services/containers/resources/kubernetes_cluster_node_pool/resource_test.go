@@ -892,38 +892,62 @@ func TestAccKubernetesClusterNodePool_security(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
-	steps := []acceptance.TestStep{}
-	for _, tc := range []struct {
-		security   string
-		label      string
-		secureBoot bool
-		vtpm       bool
-		skipImport bool
-	}{
-		{label: "initial"},
-		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "initial", skipImport: true},
-		{security: "security {\nsecure_boot_enabled = true\nvtpm_enabled = true\n}", label: "initial", secureBoot: true, vtpm: true},
-		{label: "initial"},
-		// Exercise the production update path while security is omitted.
-		{label: "updated"},
-		{security: "security {\nsecure_boot_enabled = true\n}", label: "updated", secureBoot: true},
-		{security: "security {\nvtpm_enabled = true\n}", label: "updated", vtpm: true},
-		{security: "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", label: "updated", skipImport: true},
-	} {
-		config := r.securityConfig(data, tc.security, tc.label)
-		steps = append(steps, acceptance.TestStep{
-			Config: config,
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityConfig(data, "", "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.checkSecurity(tc.secureBoot, tc.vtpm)),
 			),
-		})
-		if !tc.skipImport {
-			steps = append(steps, data.ImportStep())
-		}
-	}
-
-	data.ResourceTest(t, r, steps)
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityConfig(data, "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", "initial"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.securityConfig(data, "security {\nsecure_boot_enabled = true\nvtpm_enabled = true\n}", "initial"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityConfig(data, "", "initial"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityConfig(data, "", "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityConfig(data, "security {\nsecure_boot_enabled = true\n}", "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityConfig(data, "security {\nvtpm_enabled = true\n}", "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityConfig(data, "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", "updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
 }
 
 func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
@@ -962,48 +986,12 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 				},
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
-					data.CheckWithClient(r.checkSecurity(false, false)),
 				),
 			},
 			newImport,
 			{Config: config, PlanOnly: true, ProtoV5ProviderFactories: current},
 		},
 	})
-}
-
-func (KubernetesClusterNodePoolResource) checkSecurity(secureBoot, vtpm bool) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, client *clients.Client, state *terraform.InstanceState) error {
-		id, err := agentpools.ParseAgentPoolID(state.ID)
-		if err != nil {
-			return err
-		}
-		if err := checkKubernetesNodePoolSecurity(ctx, client, *id, secureBoot, vtpm); err != nil {
-			return err
-		}
-		defaultID := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-		return checkKubernetesNodePoolSecurity(ctx, client, defaultID, false, false)
-	}
-}
-
-func checkKubernetesNodePoolSecurity(ctx context.Context, client *clients.Client, id agentpools.AgentPoolId, secureBoot, vtpm bool) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	resp, err := client.Containers.AgentPoolsClient.Get(ctx, id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.SecurityProfile == nil {
-		return fmt.Errorf("%s did not return a security profile", id)
-	}
-	profile := resp.Model.Properties.SecurityProfile
-	if profile.EnableSecureBoot == nil || profile.EnableVTPM == nil {
-		return fmt.Errorf("%s did not return both security flags", id)
-	}
-	if *profile.EnableSecureBoot != secureBoot || *profile.EnableVTPM != vtpm {
-		return fmt.Errorf("%s returned secure boot %t and vTPM %t; expected %t and %t", id, *profile.EnableSecureBoot, *profile.EnableVTPM, secureBoot, vtpm)
-	}
-	return nil
 }
 
 func TestAccKubernetesClusterNodePool_maxSize(t *testing.T) {

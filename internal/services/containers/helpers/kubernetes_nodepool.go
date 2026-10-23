@@ -1354,10 +1354,10 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	networkProfile := FlattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
-	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(agentPool.SecurityProfile)
-	if agentPool.SecurityProfile != nil && len(d.Get("default_node_pool.0.security").([]any)) == 0 && !pointer.From(agentPool.SecurityProfile.EnableSecureBoot) && !pointer.From(agentPool.SecurityProfile.EnableVTPM) {
-		securityProfile = []any{}
-	}
+	securityProfile := flattenManagedClusterAgentPoolSecurityProfile(
+		agentPool.SecurityProfile,
+		len(d.Get("default_node_pool.0.security").([]any)) > 0,
+	)
 
 	out := map[string]any{
 		"auto_scaling_enabled":          enableAutoScaling,
@@ -1867,15 +1867,21 @@ func expandManagedClusterAgentPoolSecurityProfile(input []any) *managedclusters.
 	}
 }
 
-func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []any {
+func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentPoolSecurityProfile, hasExistingBlock bool) []any {
 	if input == nil {
+		return []any{}
+	}
+
+	secureBootEnabled := pointer.From(input.EnableSecureBoot)
+	vtpmEnabled := pointer.From(input.EnableVTPM)
+	if !hasExistingBlock && !secureBootEnabled && !vtpmEnabled {
 		return []any{}
 	}
 
 	return []any{
 		map[string]any{
-			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
-			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": secureBootEnabled,
+			"vtpm_enabled":        vtpmEnabled,
 		},
 	}
 }

@@ -148,7 +148,9 @@ The following arguments are supported:
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
-* `security` - (Optional) A `security` block as documented below. Changing either flag reimages the nodes in this pool and can disrupt workloads.
+* `security` - (Optional) A `security` block as documented below.
+
+~> **Note:** Changing either flag in `security` reimages the nodes in this pool and can disrupt workloads.
 
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated.
 
@@ -250,11 +252,11 @@ A `security` block supports the following:
 
 ~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
 
--> **Note:** On creation, omitting this block uses Azure's security defaults. Removing a configured block disables both settings. For an existing pool with either setting enabled, configure this block to match those settings; omitting it plans to disable them. When the block is present, at least one flag must be specified; the other defaults to `false`.
-
 * `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Node Pool. Defaults to `false`.
 
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Node Pool. Defaults to `false`.
+
+~> **Note:** At least one of `secure_boot_enabled` or `vtpm_enabled` must be specified.
 
 ---
 

@@ -179,11 +179,7 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
-		securityProfile := flattenAgentPoolSecurityProfile(props.SecurityProfile)
-		if props.SecurityProfile != nil && len(d.Get("security").([]any)) == 0 && !pointer.From(props.SecurityProfile.EnableSecureBoot) && !pointer.From(props.SecurityProfile.EnableVTPM) {
-			securityProfile = []any{}
-		}
-		if err := d.Set("security", securityProfile); err != nil {
+		if err := d.Set("security", flattenAgentPoolSecurityProfile(props.SecurityProfile, len(d.Get("security").([]any)) > 0)); err != nil {
 			return fmt.Errorf("setting `security`: %+v", err)
 		}
 
@@ -195,15 +191,21 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []any {
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile, hasExistingBlock bool) []any {
 	if input == nil {
+		return []any{}
+	}
+
+	secureBootEnabled := pointer.From(input.EnableSecureBoot)
+	vtpmEnabled := pointer.From(input.EnableVTPM)
+	if !hasExistingBlock && !secureBootEnabled && !vtpmEnabled {
 		return []any{}
 	}
 
 	return []any{
 		map[string]any{
-			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
-			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": secureBootEnabled,
+			"vtpm_enabled":        vtpmEnabled,
 		},
 	}
 }
