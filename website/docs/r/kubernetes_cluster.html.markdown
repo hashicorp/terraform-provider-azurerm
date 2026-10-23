@@ -778,9 +778,13 @@ A `bootstrap_profile` block supports the following:
 
 * `artifact_source` - (Optional) The artifact source. The source where the artifacts are downloaded from. Possible values are `Cache` and `Direct`. Defaults to `Direct`.
 
-~> **Note:** If the `artifact_source` is set to `Cache` and the `outbound_type` has been specified, the managed ACR and related resources will **not** be automatically deleted and must be removed manually. Please see the product [documentation](https://learn.microsoft.com/azure/aks/concepts-network-isolated#how-a-network-isolated-cluster-works) for more information.
+-> **Note:** To migrate an existing cluster to `outbound_type = "none"`, first apply `artifact_source = "Cache"` while retaining the current outbound type. Reimage all node pools and wait for the upgrade to finish before applying `outbound_type = "none"`. See the [AKS migration steps](https://learn.microsoft.com/azure/aks/network-isolated#update-an-existing-aks-cluster-to-network-isolated-type).
+
+~> **Note:** When `outbound_type` changes to a value other than `none` or `block` while `artifact_source` remains `Cache`, AKS retains its managed ACR and related resources. Azure deletes these resources when the cluster is deleted. Please see the product [documentation](https://learn.microsoft.com/azure/aks/concepts-network-isolated#how-a-network-isolated-cluster-works) for more information.
 
 * `container_registry_id` - (Optional) The resource Id of Azure Container Registry.
+
+When `Cache` uses an AKS-managed registry, omit `container_registry_id`. The managed registry ID is available from the `azurerm_kubernetes_cluster` data source, but is not stored in the resource state unless it was configured.
 
 -> **Note:** The `container_registry_id` requires an ACR with a private link to the cluster. You must manage permissions, cache rules, the associated private link and the private endpoint. Please see the product [documentation](https://learn.microsoft.com/azure/container-registry/container-registry-private-link) for more information on configuring an ACR with a private endpoint.
 
