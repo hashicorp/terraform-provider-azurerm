@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `scopes` - (Required) Specifies the list of resource IDs that this scheduled query rule is scoped to. Changing this forces a new resource to be created. Currently, the API supports exactly 1 resource ID in the scopes list.
 
-* `severity` - (Required) Severity of the alert. Should be an integer between 0 and 4. Value of 0 is severest.
+* `severity` - (Required) Severity of the alert. Possible numeric values are `0`, `1`, `2`, `3` and `4`. Possible string values are `critical`, `error`, `warning`, `informational`, and `verbose`. Value `0`/`critical` is severest.
 
 * `window_duration` - (Required) Specifies the period of time in ISO 8601 duration format on which the Scheduled Query Rule will be executed (bin size). If `evaluation_frequency` is `PT1M`, possible values are `PT1M`, `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, and `PT6H`. Otherwise, possible values are `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D`, and `P2D`.
 
