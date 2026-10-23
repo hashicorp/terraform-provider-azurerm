@@ -4,6 +4,7 @@
 package cdn_frontdoor_secret
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -49,6 +50,16 @@ func cdnFrontdoorSecretSchema() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate),
+								},
+
+								"key_vault_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									ValidateFunc: commonids.ValidateKeyVaultID,
+									DiffSuppressFunc: func(_, _, new string, _ *pluginsdk.ResourceData) bool {
+										return new == ""
+									},
 								},
 
 								"subject_alternative_names": {
