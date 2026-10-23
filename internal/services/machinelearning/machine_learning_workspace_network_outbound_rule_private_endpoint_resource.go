@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -22,6 +22,7 @@ import (
 var resourceTypeSupportSubResType = map[string][]string{
 	"Microsoft.KeyVault":                {"vault"},
 	"Microsoft.Cache":                   {"redisCache"},
+	"Microsoft.CognitiveServices":       {"account"},
 	"Microsoft.MachineLearningServices": {"amlworkspace"},
 	"Microsoft.Storage":                 {"blob", "table", "queue", "file", "web", "dfs"},
 }
@@ -78,6 +79,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Arguments() map[string]*plu
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				"account",
 				"vault",
 				"amlworkspace",
 				"blob",

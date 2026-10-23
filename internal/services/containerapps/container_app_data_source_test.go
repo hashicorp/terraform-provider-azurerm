@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -12,6 +12,16 @@ import (
 )
 
 type ContainerAppDataSource struct{}
+
+func TestAccContainerAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_app", "test")
+	r := ContainerAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "rev1"),
+		},
+	}, "")
+}
 
 func TestAccContainerAppDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_app", "test")

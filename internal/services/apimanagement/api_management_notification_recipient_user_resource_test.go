@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -18,6 +18,16 @@ import (
 )
 
 type ApiManagementNotificationRecipientUserResource struct{}
+
+func TestAccApiManagementNotificationRecipientUser_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_user", "test")
+	r := ApiManagementNotificationRecipientUserResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccApiManagementNotificationRecipientUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_notification_recipient_user", "test")

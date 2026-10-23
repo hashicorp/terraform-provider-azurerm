@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ApiManagementDiagnosticResource struct{}
+
+func TestAccApiManagementDiagnostic_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
+	r := ApiManagementDiagnosticResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccApiManagementDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
@@ -199,6 +209,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   api_management_name      = azurerm_api_management.test.name
   api_management_logger_id = azurerm_api_management_logger.test2.id
+  metrics_enabled          = true
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -228,6 +239,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   sampling_percentage       = 11.1
   always_log_errors         = false
   log_client_ip             = false
+  metrics_enabled           = true
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
 
@@ -307,6 +319,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   sampling_percentage       = 11.1
   always_log_errors         = false
   log_client_ip             = false
+  metrics_enabled           = false
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
   operation_name_format     = "Url"

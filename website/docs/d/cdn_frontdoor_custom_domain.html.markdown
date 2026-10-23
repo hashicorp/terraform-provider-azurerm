@@ -14,9 +14,9 @@ Gets information about an existing Front Door (standard/premium) Custom Domain.
 
 ```hcl
 data "azurerm_cdn_frontdoor_custom_domain" "example" {
-  name                = "existing-cdn-frontdoor-custom-domain"
-  profile_name        = "existing-cdn-frontdoor-profile"
-  resource_group_name = "existing-resource-group"
+  name                = "example-cdn-frontdoor-custom-domain"
+  profile_name        = "example-cdn-frontdoor-profile"
+  resource_group_name = "example-resources"
 }
 ```
 

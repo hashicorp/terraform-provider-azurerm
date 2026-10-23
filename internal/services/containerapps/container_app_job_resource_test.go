@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -33,6 +33,16 @@ func (r ContainerAppJobResource) Exists(ctx context.Context, client *clients.Cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(true), nil
+}
+
+func TestAccContainerAppJob_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func TestAccContainerAppJob_basic(t *testing.T) {

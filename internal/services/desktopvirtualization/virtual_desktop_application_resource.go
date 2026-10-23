@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -48,10 +48,11 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
-					validation.StringIsNotEmpty,
+					// NOTE: name string length is incorrect in the API specs, see: https://github.com/Azure/azure-rest-api-specs/issues/46813
+					validation.StringLenBetween(1, 260),
 					validation.StringMatch(
-						regexp.MustCompile("^[-a-zA-Z0-9]{1,260}$"),
-						"Virtual desktop application name must be 1 - 260 characters long, contain only letters, numbers and hyphens.",
+						regexp.MustCompile(`^[A-Za-z0-9@._ -]*$`),
+						"Virtual desktop application name must be 1 - 260 characters long and may only contain letters, numbers, spaces, periods, underscores, hyphens, and @.",
 					),
 				),
 			},

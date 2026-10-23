@@ -16,9 +16,9 @@ Use this data source to access information about an existing Front Door (standar
 
 ```hcl
 data "azurerm_cdn_frontdoor_rule_set" "example" {
-  name                = "existing-rule-set"
-  profile_name        = "existing-profile"
-  resource_group_name = "existing-resources"
+  name                = "example-rule-set"
+  profile_name        = "example-profile"
+  resource_group_name = "example-resources"
 }
 ```
 
