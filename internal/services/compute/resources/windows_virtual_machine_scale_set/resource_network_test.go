@@ -93,6 +93,13 @@ func TestAccWindowsVirtualMachineScaleSet_networkAuxiliary(t *testing.T) {
 		},
 		data.ImportStep("admin_password"),
 		{
+			Config: r.networkAuxiliaryAcceleratedConnectionsR1Sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
 			Config: r.networkAuxiliaryNone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -700,6 +707,48 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     accelerated_networking_enabled = true
     auxiliary_mode                 = "AcceleratedConnections"
     auxiliary_sku                  = "A1"
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineScaleSetResource) networkAuxiliaryAcceleratedConnectionsR1Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_D3_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
+    auxiliary_sku                  = "R1"
 
     ip_configuration {
       name      = "internal"
