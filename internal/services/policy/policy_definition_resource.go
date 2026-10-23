@@ -46,7 +46,7 @@ func resourcePolicyDefinition() *pluginsdk.Resource {
 		Schema: resourcePolicyDefinitionSchema(),
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
-			// `parameters` cannot have values removed so we'll ForceNew if there are less parameters between Terraform runs
+			// `parameters` cannot have values removed or renamed so we'll ForceNew if any existing parameter is missing between Terraform runs
 			if d.HasChange("parameters") {
 				oldParametersRaw, newParametersRaw := d.GetChange("parameters")
 				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
@@ -65,7 +65,7 @@ func resourcePolicyDefinition() *pluginsdk.Resource {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(newParameters) < len(oldParameters) {
+					if parametersRemoved(oldParameters, newParameters) {
 						return d.ForceNew("parameters")
 					}
 				}
