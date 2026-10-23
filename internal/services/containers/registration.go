@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster_deployment_safeguard"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster_extension"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster_node_pool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_fleet_auto_upgrade_profile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_fleet_manager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_fleet_update_run"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_fleet_update_strategy"
@@ -106,6 +107,7 @@ func (r Registration) Resources() []sdk.Resource {
 		kubernetes_automatic_cluster.Resource{},
 		kubernetes_cluster_deployment_safeguard.Resource{},
 		kubernetes_cluster_extension.Resource{},
+		kubernetes_fleet_auto_upgrade_profile.Resource{},
 		kubernetes_fleet_manager.Resource{},
 		kubernetes_fleet_update_run.Resource{},
 		kubernetes_fleet_update_strategy.Resource{},
@@ -135,5 +137,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		kubernetes_automatic_cluster.ListResource{},
 		kubernetes_cluster_node_pool.ListResource{},
+		kubernetes_fleet_auto_upgrade_profile.ListResource{},
 	}
 }
