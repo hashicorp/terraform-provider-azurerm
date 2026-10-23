@@ -163,6 +163,8 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta a
 						return fmt.Errorf("setting `data_disk`: %+v", err)
 					}
 
+					d.Set("disk_controller_type", pointer.FromEnum(storageProfile.DiskControllerType))
+
 					var storageImageId string
 					if storageProfile.ImageReference != nil && storageProfile.ImageReference.Id != nil {
 						storageImageId = *storageProfile.ImageReference.Id

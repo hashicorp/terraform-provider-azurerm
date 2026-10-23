@@ -100,6 +100,14 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"data_disk": helpers.VirtualMachineScaleSetDataDiskSchema(),
 
+		"disk_controller_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure assigns a default disk controller type based on the VM size and image when not specified
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForDiskControllerTypes(), false),
+		},
+
 		"do_not_run_extensions_on_overprovisioned_machines": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
