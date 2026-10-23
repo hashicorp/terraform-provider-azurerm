@@ -101,6 +101,13 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 			if d.HasChange("data_disks") {
 				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]any))
 			}
+			if d.HasChange("managed_disk") {
+				vmConfig := parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration
+				if vmConfig.OsDisk == nil {
+					vmConfig.OsDisk = &pool.OSDisk{}
+				}
+				vmConfig.OsDisk.ManagedDisk = expandBatchPoolManagedDisk(d.Get("managed_disk").([]any))
+			}
 		}
 	}
 
