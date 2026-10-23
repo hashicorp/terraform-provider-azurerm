@@ -134,6 +134,18 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
+		"secure_boot_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"vtpm_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
 		"eviction_policy": {
 			// only applicable when `priority` is set to `Spot`
 			Type:         pluginsdk.TypeString,
