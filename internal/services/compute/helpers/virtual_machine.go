@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -633,4 +634,85 @@ func FlattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryA
 	}
 
 	return out
+}
+
+func VirtualMachineSizePropertiesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// NOTE: O+C because Azure API returns the value even when it's not configured.
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"vcpu_available": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// NOTE: O+C because Azure API returns the value even when it's not configured.
+					Computed:     true,
+					ValidateFunc: validation.IntPositive,
+					AtLeastOneOf: []string{"size_properties.0.vcpu_available", "size_properties.0.vcpu_per_core"},
+				},
+
+				"vcpu_per_core": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					// NOTE: O+C because Azure API returns the value even when it's not configured.
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(1, 2),
+					AtLeastOneOf: []string{"size_properties.0.vcpu_available", "size_properties.0.vcpu_per_core"},
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineSizeProperties(input []any) *virtualmachines.VMSizeProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	sizeProps := input[0].(map[string]any)
+
+	out := &virtualmachines.VMSizeProperties{}
+	if v := sizeProps["vcpu_available"].(int); v > 0 {
+		out.VCPUsAvailable = pointer.To(int64(v))
+	}
+	if v := sizeProps["vcpu_per_core"].(int); v > 0 {
+		out.VCPUsPerCore = pointer.To(int64(v))
+	}
+	return out
+}
+
+func ExpandVirtualMachineSizePropertiesFromRawConfig(sizeProps cty.Value) *virtualmachines.VMSizeProperties {
+	if !sizeProps.IsKnown() || sizeProps.IsNull() || sizeProps.LengthInt() == 0 {
+		return nil
+	}
+
+	config := sizeProps.AsValueSlice()[0]
+	if !config.IsKnown() || config.IsNull() {
+		return nil
+	}
+
+	out := &virtualmachines.VMSizeProperties{}
+	configMap := config.AsValueMap()
+	if v, _ := pluginsdk.GoValueFromTerraformValue[int](configMap["vcpu_available"]); v != nil && *v > 0 {
+		out.VCPUsAvailable = pointer.To(int64(*v))
+	}
+	if v, _ := pluginsdk.GoValueFromTerraformValue[int](configMap["vcpu_per_core"]); v != nil && *v > 0 {
+		out.VCPUsPerCore = pointer.To(int64(*v))
+	}
+	return out
+}
+
+func FlattenVirtualMachineSizeProperties(input *virtualmachines.VMSizeProperties) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"vcpu_available": pointer.From(input.VCPUsAvailable),
+			"vcpu_per_core":  pointer.From(input.VCPUsPerCore),
+		},
+	}
 }
