@@ -78,7 +78,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 	r := Resource{}
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range resp.Items {
-			if item.Properties == nil || !backupInstanceSupportsCosmosdbAccounts(*item.Properties) {
+			if item.Properties == nil || !strings.EqualFold(pointer.From(item.Properties.DataSourceInfo.ResourceType), cosmosDBAccountDataSourceType) {
 				continue
 			}
 
@@ -116,8 +116,4 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			}
 		}
 	}
-}
-
-func backupInstanceSupportsCosmosdbAccounts(input backupinstanceresources.BackupInstance) bool {
-	return strings.EqualFold(pointer.From(input.DataSourceInfo.ResourceType), cosmosDBAccountDataSourceType)
 }
