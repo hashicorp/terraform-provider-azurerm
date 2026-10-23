@@ -69,11 +69,23 @@ The following arguments are supported:
 
 * `access_key` - (Optional) The Storage Account Access Key.
 
+* `access_key_vault_secret` - (Optional) An `access_key_vault_secret` block as defined below.
+
+~> **Note:** One of `access_key` or `access_key_vault_secret` must be specified when `account_name` is set.
+
 * `share_name` - (Required) The name of the Azure Storage Share to use. Changing this forces a new resource to be created.
 
 * `access_mode` - (Required) The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`. Changing this forces a new resource to be created.
 
 * `nfs_server_url` - (Optional) The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`. Changing this forces a new resource to be created.
+
+---
+
+An `access_key_vault_secret` block supports the following:
+
+* `identity` - (Required) The identity used to access the Key Vault. Possible values are `System` or the ID of a User Assigned Identity assigned to the Container App Environment.
+
+* `key_vault_secret_id` - (Required) The ID of the Key Vault Secret containing the Storage Account Access Key. Can be either a versioned or versionless ID.
 
 ## Attributes Reference
 
