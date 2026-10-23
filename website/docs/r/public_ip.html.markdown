@@ -80,7 +80,9 @@ The following arguments are supported:
 
 * `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
 
-* `sku` - (Optional) The SKU of the Public IP. Possible values are `Basic`, `Standard`, and `StandardV2`. Defaults to `Standard`. Changing this forces a new resource to be created.
+* `sku` - (Optional) The SKU of the Public IP. Possible values are `Basic`, `Standard`, and `StandardV2`. Defaults to `Standard`.
+
+-> **Note:** `sku` can only be upgraded in-place, following the path `Basic` -> `Standard` -> `StandardV2`. An in-place upgrade retains the allocated IP address. Downgrading the `sku` forces a new resource to be created, which results in a new IP address being allocated.
 
 -> **Note:** Public IP `Standard` and `StandardV2` SKUs require `allocation_method` to be set to `Static`.
 
