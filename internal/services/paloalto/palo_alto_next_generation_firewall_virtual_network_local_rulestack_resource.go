@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
@@ -26,15 +27,16 @@ import (
 type NextGenerationFirewallVNetLocalRulestackResource struct{}
 
 type NextGenerationFirewallVnetLocalRulestackModel struct {
-	Name               string                      `tfschema:"name"`
-	ResourceGroupName  string                      `tfschema:"resource_group_name"`
-	NetworkProfile     []schema.NetworkProfileVnet `tfschema:"network_profile"`
-	RuleStackId        string                      `tfschema:"rulestack_id"`
-	DNSSettings        []schema.DNSSettings        `tfschema:"dns_settings"`
-	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
-	MarketplaceOfferId string                      `tfschema:"marketplace_offer_id"`
-	PlanId             string                      `tfschema:"plan_id"`
-	Tags               map[string]any              `tfschema:"tags"`
+	Name               string                       `tfschema:"name"`
+	ResourceGroupName  string                       `tfschema:"resource_group_name"`
+	NetworkProfile     []schema.NetworkProfileVnet  `tfschema:"network_profile"`
+	RuleStackId        string                       `tfschema:"rulestack_id"`
+	DNSSettings        []schema.DNSSettings         `tfschema:"dns_settings"`
+	FrontEnd           []schema.DestinationNAT      `tfschema:"destination_nat"`
+	MarketplaceOfferId string                       `tfschema:"marketplace_offer_id"`
+	PlanId             string                       `tfschema:"plan_id"`
+	Identity           []identity.ModelUserAssigned `tfschema:"identity"`
+	Tags               map[string]any               `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetLocalRulestackResource{}
@@ -81,6 +83,8 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 			Default:      "panw-cngfw-payg",
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
+
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -133,6 +137,11 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 
 			loc := location.Normalize(ruleStack.Model.Location)
 
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			firewall := firewallresources.FirewallResource{
 				Location: loc,
 				Properties: firewallresources.FirewallDeploymentProperties{
@@ -152,7 +161,8 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
-				Tags: tags.Expand(model.Tags),
+				Identity: expandedIdentity,
+				Tags:     tags.Expand(model.Tags),
 			}
 
 			locks.ByID(ruleStackID.ID())
@@ -207,6 +217,12 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
 
 				state.PlanId = props.PlanData.PlanId
+
+				flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = pointer.From(flattenedIdentity)
 
 				state.Tags = tags.Flatten(existing.Model.Tags)
 			}
@@ -299,6 +315,14 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 			}
 
 			firewall.Properties = props
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				firewall.Identity = expandedIdentity
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				firewall.Tags = tags.Expand(model.Tags)
