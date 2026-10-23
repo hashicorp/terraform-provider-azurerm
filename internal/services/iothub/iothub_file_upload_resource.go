@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -118,7 +118,7 @@ func (r IotHubFileUploadResource) ResourceType() string {
 	return "azurerm_iothub_file_upload"
 }
 
-func (r IotHubFileUploadResource) ModelObject() interface{} {
+func (r IotHubFileUploadResource) ModelObject() any {
 	return &IotHubFileUploadResourceModel{}
 }
 

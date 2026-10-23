@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -146,7 +146,7 @@ func (r IotHubEndpointCosmosDBAccountResource) ResourceType() string {
 	return "azurerm_iothub_endpoint_cosmosdb_account"
 }
 
-func (r IotHubEndpointCosmosDBAccountResource) ModelObject() interface{} {
+func (r IotHubEndpointCosmosDBAccountResource) ModelObject() any {
 	return &IotHubEndpointCosmosDBAccountResource{}
 }
 

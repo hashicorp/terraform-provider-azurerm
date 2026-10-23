@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -64,7 +64,7 @@ func PrivateEndpointApplicationSecurityGroupAssociationID(input string) (Private
 	}, nil
 }
 
-func PrivateEndpointApplicationSecurityGroupAssociationIDValidation(input interface{}, key string) (warnings []string, errors []error) {
+func PrivateEndpointApplicationSecurityGroupAssociationIDValidation(input any, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))

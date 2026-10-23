@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -22,6 +22,9 @@ type Client struct {
 	BackupInstanceClient *backupinstanceresources.BackupInstanceResourcesClient
 	ResourceGuardClient  *resourceguardresources.ResourceGuardResourcesClient
 
+	// Using 2026-06-01 only for resources requiring its new features.
+	// Backup vaults stay on 2025-07-01 because 2026-06-01 requires soft delete to be AlwaysOn,
+	// which would break existing configurations using other soft-delete settings.
 	BackupPolicyClient20260601    *basebackuppolicyresources20260601.BaseBackupPolicyResourcesClient
 	BackupInstanceClient20260601  *backupinstanceresources20260601.BackupInstanceResourcesClient
 	BackupInstancesClient20260601 *backupinstances.BackupInstancesClient

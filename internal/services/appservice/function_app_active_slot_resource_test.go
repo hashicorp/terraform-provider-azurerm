@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -18,6 +18,16 @@ import (
 )
 
 type FunctionApActiveSlotResource struct{}
+
+func TestAccFunctionAppActiveSlot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
+	r := FunctionApActiveSlotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWindows(data),
+		},
+	}, "")
+}
 
 func TestAccFunctionAppActiveSlot_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_active_slot", "test")
@@ -252,7 +262,6 @@ resource "azurerm_storage_account" "test" {
   location                        = azurerm_resource_group.test.location
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
-  account_kind                    = "Storage"
   allow_nested_items_to_be_public = true
 }
 

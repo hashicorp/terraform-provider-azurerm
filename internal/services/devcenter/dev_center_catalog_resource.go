@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -37,7 +37,7 @@ type DevCenterCatalogsResource struct{}
 
 var _ sdk.Resource = DevCenterCatalogsResource{}
 
-func (r DevCenterCatalogsResource) ModelObject() interface{} {
+func (r DevCenterCatalogsResource) ModelObject() any {
 	return &DevCenterCatalogsResourceModel{}
 }
 

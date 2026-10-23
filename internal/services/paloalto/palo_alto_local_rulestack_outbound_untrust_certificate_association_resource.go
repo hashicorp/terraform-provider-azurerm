@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -30,7 +30,7 @@ func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) IDValidatio
 	return certificateobjectlocalrulestackresources.ValidateLocalRulestackCertificateID
 }
 
-func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) ModelObject() interface{} {
+func (l LocalRulestackOutboundUnTrustCertificateAssociationResource) ModelObject() any {
 	return &LocalRulestackOutboundUnTrustCertificateResourceModel{}
 }
 

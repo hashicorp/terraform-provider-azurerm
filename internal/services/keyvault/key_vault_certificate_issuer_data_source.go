@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -77,7 +77,7 @@ func dataSourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

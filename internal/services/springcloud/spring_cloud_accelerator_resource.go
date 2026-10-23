@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -40,7 +40,7 @@ func (s SpringCloudAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_accelerator"
 }
 
-func (s SpringCloudAcceleratorResource) ModelObject() interface{} {
+func (s SpringCloudAcceleratorResource) ModelObject() any {
 	return &SpringCloudAcceleratorModel{}
 }
 

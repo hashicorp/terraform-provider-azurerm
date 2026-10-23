@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -30,7 +30,7 @@ func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_role"
 }
 
-func (r CosmosDbPostgreSQLRoleResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLRoleResource) ModelObject() any {
 	return &CosmosDbPostgreSQLRoleResourceModel{}
 }
 

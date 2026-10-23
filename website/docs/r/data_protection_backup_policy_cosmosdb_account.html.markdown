@@ -27,11 +27,24 @@ resource "azurerm_data_protection_backup_vault" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "example" {
-  name                            = "example-data-protection-backup-policy-cosmosdb-account"
+  name                           = "example-data-protection-backup-policy-cosmosdb-account"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
+  backup_schedule                = "R/2026-02-08T10:00:00+00:00/P1W"
   default_retention_duration      = "P10Y"
-  full_backup_schedule            = "R/2026-02-08T10:00:00+00:00/P1W"
-  incremental_backup_enabled      = true
+
+  weekly_retention_rule {
+    duration = "P4W"
+  }
+
+  monthly_retention_rule {
+    duration       = "P6M"
+    days_of_week   = ["Sunday"]
+    weeks_of_month = ["First"]
+  }
+
+  yearly_retention_rule {
+    duration = "P10Y"
+  }
 }
 ```
 
@@ -45,43 +58,73 @@ The following arguments are supported:
 
 * `data_protection_backup_vault_id` - (Required) The ID of the Data Protection Backup Vault where the policy should exist. Changing this forces a new resource to be created.
 
-* `default_retention_duration` - (Required) The duration for which backups are retained by the default retention rule. Changing this forces a new resource to be created.
+* `backup_schedule` - (Required) The repeating time interval that specifies the weekday and time when the weekly Full backup runs. Changing this forces a new resource to be created.
+
+-> **Note:** The interval must use `R/YYYY-MM-DDThh:mm:ssZ/P1W`, `R/YYYY-MM-DDThh:mm:ss+hh:mm/P1W`, or `R/YYYY-MM-DDThh:mm:ss-hh:mm/P1W`. Seconds and a time zone suffix are required; `Z` represents UTC. For example, `R/2026-02-08T10:00:00Z/P1W` schedules a weekly Full backup at 10:00 UTC on Sunday. Minute-only timestamps (`Thh:mm`), fractional seconds (`Thh:mm:ss.fff`), and other ISO 8601 variations are not accepted. The `YYYY-MM-DD` component is used to determine the weekday and does not specify the date when backups begin.
+
+* `default_retention_duration` - (Required) The duration for which the default retention rule retains backups. Changing this forces a new resource to be created.
 
 -> **Note:** The duration must use the ISO 8601 duration format.
 
-* `full_backup_schedule` - (Required) The repeating time interval that defines the weekly Full backup schedule. Changing this forces a new resource to be created.
+* `backup_frequency` - (Optional) The frequency at which backups are performed. Possible values are `Daily` and `Weekly`. Defaults to `Daily`. Changing this forces a new resource to be created.
 
--> **Note:** The interval must use the format `R/YYYY-MM-DDThh:mm:ss[.fff][Z|(+/-)hh:mm]/P1W`. The supported time formats are exactly `Thh:mm`, `Thh:mm:ss`, and `Thh:mm:ss.fff`; other ISO 8601 variations are not accepted. A time zone suffix of `Z` or `(+/-)hh:mm` is required.
+~> **Note:** If `backup_frequency` is set to `Daily`, Azure Backup performs a Full backup once every week, while Incremental backups are attempted on other days. If set to `Weekly`, only the weekly Full backup is scheduled. The weekly Full backup runs on the weekday and at the time specified by `backup_schedule`.
 
-~> **Note:** When `incremental_backup_enabled` is `true`, Incremental backups are scheduled automatically at 24-hour intervals on each of the following six days.
+* `monthly_retention_rule` - (Optional) A `monthly_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
-* `incremental_backup_enabled` - (Optional) Whether Incremental backups are attempted on the days when the weekly Full backup is not scheduled. Defaults to `true`. Changing this forces a new resource to be created.
+* `weekly_retention_rule` - (Optional) A `weekly_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
-* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
+* `yearly_retention_rule` - (Optional) A `yearly_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** Each `retention_rule` block requires at least one of `absolute_criteria` or `days_of_week` to be specified.
-
-* `time_zone` - (Optional) The Windows time zone identifier used by the backup schedule. Possible values are `Afghanistan Standard Time`, `Alaskan Standard Time`, `Aleutian Standard Time`, `Altai Standard Time`, `Arab Standard Time`, `Arabian Standard Time`, `Arabic Standard Time`, `Argentina Standard Time`, `Astrakhan Standard Time`, `Atlantic Standard Time`, `AUS Central Standard Time`, `Aus Central W. Standard Time`, `AUS Eastern Standard Time`, `Azerbaijan Standard Time`, `Azores Standard Time`, `Bahia Standard Time`, `Bangladesh Standard Time`, `Belarus Standard Time`, `Bougainville Standard Time`, `Canada Central Standard Time`, `Cape Verde Standard Time`, `Caucasus Standard Time`, `Cen. Australia Standard Time`, `Central America Standard Time`, `Central Asia Standard Time`, `Central Brazilian Standard Time`, `Central Europe Standard Time`, `Central European Standard Time`, `Central Pacific Standard Time`, `Central Standard Time`, `Central Standard Time (Mexico)`, `Chatham Islands Standard Time`, `China Standard Time`, `Coordinated Universal Time`, `Cuba Standard Time`, `Dateline Standard Time`, `E. Africa Standard Time`, `E. Australia Standard Time`, `E. Europe Standard Time`, `E. South America Standard Time`, `Easter Island Standard Time`, `Eastern Standard Time`, `Eastern Standard Time (Mexico)`, `Egypt Standard Time`, `Ekaterinburg Standard Time`, `Fiji Standard Time`, `FLE Standard Time`, `Georgian Standard Time`, `GMT Standard Time`, `Greenland Standard Time`, `Greenwich Standard Time`, `GTB Standard Time`, `Haiti Standard Time`, `Hawaiian Standard Time`, `India Standard Time`, `Iran Standard Time`, `Israel Standard Time`, `Jordan Standard Time`, `Kaliningrad Standard Time`, `Kamchatka Standard Time`, `Korea Standard Time`, `Libya Standard Time`, `Line Islands Standard Time`, `Lord Howe Standard Time`, `Magadan Standard Time`, `Magallanes Standard Time`, `Marquesas Standard Time`, `Mauritius Standard Time`, `Mid-Atlantic Standard Time`, `Middle East Standard Time`, `Montevideo Standard Time`, `Morocco Standard Time`, `Mountain Standard Time`, `Mountain Standard Time (Mexico)`, `Myanmar Standard Time`, `N. Central Asia Standard Time`, `Namibia Standard Time`, `Nepal Standard Time`, `New Zealand Standard Time`, `Newfoundland Standard Time`, `Norfolk Standard Time`, `North Asia East Standard Time`, `North Asia Standard Time`, `North Korea Standard Time`, `Omsk Standard Time`, `Pacific SA Standard Time`, `Pacific Standard Time`, `Pacific Standard Time (Mexico)`, `Pakistan Standard Time`, `Paraguay Standard Time`, `Qyzylorda Standard Time`, `Romance Standard Time`, `Russia Time Zone 10`, `Russia Time Zone 11`, `Russia Time Zone 3`, `Russian Standard Time`, `SA Eastern Standard Time`, `SA Pacific Standard Time`, `SA Western Standard Time`, `Saint Pierre Standard Time`, `Sakhalin Standard Time`, `Samoa Standard Time`, `Sao Tome Standard Time`, `Saratov Standard Time`, `SE Asia Standard Time`, `Singapore Standard Time`, `South Africa Standard Time`, `South Sudan Standard Time`, `Sri Lanka Standard Time`, `Sudan Standard Time`, `Syria Standard Time`, `Taipei Standard Time`, `Tasmania Standard Time`, `Tocantins Standard Time`, `Tokyo Standard Time`, `Tomsk Standard Time`, `Tonga Standard Time`, `Transbaikal Standard Time`, `Turkey Standard Time`, `Turks And Caicos Standard Time`, `Ulaanbaatar Standard Time`, `US Eastern Standard Time`, `US Mountain Standard Time`, `UTC`, `UTC-02`, `UTC-08`, `UTC-09`, `UTC-11`, `UTC+12`, `UTC+13`, `Venezuela Standard Time`, `Vladivostok Standard Time`, `Volgograd Standard Time`, `W. Australia Standard Time`, `W. Central Africa Standard Time`, `W. Europe Standard Time`, `W. Mongolia Standard Time`, `West Asia Standard Time`, `West Bank Standard Time`, `West Pacific Standard Time`, `Yakutsk Standard Time`, and `Yukon Standard Time`. Changing this forces a new resource to be created.
+-> **Note:** At most one rule of each category can be configured. Rules select Full backups and are evaluated in yearly, monthly, then weekly priority order.
 
 ---
 
-A `retention_rule` block supports the following:
+A `monthly_retention_rule` block supports the following:
 
 * `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
 
 -> **Note:** The duration must use the ISO 8601 duration format.
 
-* `name` - (Required) The name of the retention rule. Changing this forces a new resource to be created.
+* `days_of_week` - (Optional) A set containing exactly one day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
 
-* `absolute_criteria` - (Optional) The absolute criterion used to identify retained backups. Possible values are `FirstOfMonth`, `FirstOfWeek`, and `FirstOfYear`. Changing this forces a new resource to be created.
+~> **Note:** The value specified for `days_of_week` must match the day of the week in `backup_schedule`.
 
-* `days_of_week` - (Optional) A set containing one day of the week on which backups are retained. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+* `weeks_of_month` - (Optional) A set of ordinal weeks within each month in which backups matching this rule are retained. Possible values are `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
 
-~> **Note:** The value specified for `days_of_week` must match the day of the week in `full_backup_schedule`.
+~> **Note:** Specify `days_of_week` and `weeks_of_month` together to select backups by day and week. When both fields are omitted, this rule retains the first successful full backup of the month.
 
-* `months_of_year` - (Optional) A set of months in which backups are retained. Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, and `December`. Changing this forces a new resource to be created.
+---
 
-* `weeks_of_month` - (Optional) A set of weeks of the month in which backups are retained. Possible values are `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
+A `weekly_retention_rule` block supports the following:
+
+* `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
+
+-> **Note:** The duration must use the ISO 8601 duration format.
+
+* `days_of_week` - (Optional) A set containing exactly one day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+
+~> **Note:** The value specified for `days_of_week` must match the day of the week in `backup_schedule`.
+
+-> **Note:** When `days_of_week` is omitted, this rule retains the first successful full backup of the week.
+
+---
+
+A `yearly_retention_rule` block supports the following:
+
+* `duration` - (Required) The duration for which backups matching this retention rule are retained. Changing this forces a new resource to be created.
+
+-> **Note:** The duration must use the ISO 8601 duration format.
+
+* `days_of_week` - (Optional) A set containing exactly one day of the week whose scheduled backup is retained by this rule. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
+
+~> **Note:** The value specified for `days_of_week` must match the day of the week in `backup_schedule`.
+
+* `months_of_year` - (Optional) A set of calendar months in which backups matching this rule are retained. Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, and `December`. Changing this forces a new resource to be created.
+
+* `weeks_of_month` - (Optional) A set of ordinal weeks within each month in which backups matching this rule are retained. Possible values are `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
+
+~> **Note:** Specify `days_of_week`, `weeks_of_month`, and `months_of_year` together to select backups by day, week, and month. When all three fields are omitted, this rule retains the first successful full backup of the year.
 
 ## Attributes Reference
 

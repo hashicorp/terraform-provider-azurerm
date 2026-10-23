@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -38,7 +38,7 @@ type ContainerAppDataSourceModel struct {
 	Dapr                       []helpers.Dapr                             `tfschema:"dapr"`
 	Template                   []helpers.ContainerTemplate                `tfschema:"template"`
 	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags                       map[string]interface{}                     `tfschema:"tags"`
+	Tags                       map[string]any                             `tfschema:"tags"`
 	OutboundIpAddresses        []string                                   `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string                                     `tfschema:"latest_revision_name"`
 	LatestRevisionFqdn         string                                     `tfschema:"latest_revision_fqdn"`
@@ -133,7 +133,7 @@ func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ContainerAppDataSource) ModelObject() interface{} {
+func (r ContainerAppDataSource) ModelObject() any {
 	return &ContainerAppDataSourceModel{}
 }
 

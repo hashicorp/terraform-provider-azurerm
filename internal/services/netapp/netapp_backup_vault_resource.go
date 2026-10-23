@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -29,7 +29,7 @@ type NetAppBackupVaultResource struct{}
 
 var _ sdk.Resource = NetAppBackupVaultResource{}
 
-func (r NetAppBackupVaultResource) ModelObject() interface{} {
+func (r NetAppBackupVaultResource) ModelObject() any {
 	return &models.NetAppBackupVaultModel{}
 }
 
@@ -265,7 +265,7 @@ func waitForBackupVaultDeletion(ctx context.Context, vaultClient *backupvaults.B
 }
 
 func netappBackupVaultStateRefreshFunc(ctx context.Context, vaultClient *backupvaults.BackupVaultsClient, backupClient *backups.BackupsClient, id backupvaults.BackupVaultId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := vaultClient.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {

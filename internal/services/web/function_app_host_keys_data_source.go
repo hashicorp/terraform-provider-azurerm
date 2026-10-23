@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -83,7 +83,7 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

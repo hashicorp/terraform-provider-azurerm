@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -31,7 +31,7 @@ func (r NetAppVolumeBucketWithServerResource) Identity() resourceids.ResourceId 
 	return &buckets.BucketId{}
 }
 
-func (r NetAppVolumeBucketWithServerResource) ModelObject() interface{} {
+func (r NetAppVolumeBucketWithServerResource) ModelObject() any {
 	return &models.NetAppVolumeBucketWithServerModel{}
 }
 

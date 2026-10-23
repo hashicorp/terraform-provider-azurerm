@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -62,7 +62,7 @@ func (r IotCentralOrganizationResource) ResourceType() string {
 	return "azurerm_iotcentral_organization"
 }
 
-func (r IotCentralOrganizationResource) ModelObject() interface{} {
+func (r IotCentralOrganizationResource) ModelObject() any {
 	return &IotCentralOrganizationModel{}
 }
 

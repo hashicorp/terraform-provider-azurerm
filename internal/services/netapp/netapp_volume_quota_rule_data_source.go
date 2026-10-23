@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -27,7 +27,7 @@ func (r NetAppVolumeQuotaRuleDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_quota_rule"
 }
 
-func (r NetAppVolumeQuotaRuleDataSource) ModelObject() interface{} {
+func (r NetAppVolumeQuotaRuleDataSource) ModelObject() any {
 	return &models.NetAppVolumeQuotaRuleDataSourceModel{}
 }
 

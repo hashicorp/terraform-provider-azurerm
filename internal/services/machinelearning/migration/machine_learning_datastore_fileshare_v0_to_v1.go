@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -16,7 +16,7 @@ var _ pluginsdk.StateUpgrade = MachineLearningDataStoreFileShareV0ToV1{}
 type MachineLearningDataStoreFileShareV0ToV1 struct{}
 
 func (MachineLearningDataStoreFileShareV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		if v, ok := rawState["storage_fileshare_id"].(string); ok && v != "" {
 			if id, err := parse.StorageShareResourceManagerID(v); err == nil {
 				rawState["storage_fileshare_id"] = fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName).ID()

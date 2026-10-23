@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -87,7 +87,7 @@ func (r LogAnalyticsWorkspaceTableResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) ModelObject() interface{} {
+func (r LogAnalyticsWorkspaceTableResource) ModelObject() any {
 	return &LogAnalyticsWorkspaceTableResourceModel{}
 }
 

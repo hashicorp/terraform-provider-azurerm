@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -25,7 +25,7 @@ func (r NetAppVolumeBucketWithServerDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_bucket_with_server"
 }
 
-func (r NetAppVolumeBucketWithServerDataSource) ModelObject() interface{} {
+func (r NetAppVolumeBucketWithServerDataSource) ModelObject() any {
 	return &models.NetAppVolumeBucketWithServerDataSourceModel{}
 }
 

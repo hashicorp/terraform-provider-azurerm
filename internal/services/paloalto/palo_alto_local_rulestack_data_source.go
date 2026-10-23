@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -42,7 +42,7 @@ func (l LocalRulestackDataSource) ResourceType() string {
 	return "azurerm_palo_alto_local_rulestack"
 }
 
-func (l LocalRulestackDataSource) ModelObject() interface{} {
+func (l LocalRulestackDataSource) ModelObject() any {
 	return &LocalRulestackDataSourceModel{}
 }
 

@@ -86,10 +86,37 @@ func (r DataProtectionBackupInstanceCosmosdbAccountResource) Exists(ctx context.
 
 func (r DataProtectionBackupInstanceCosmosdbAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-dp-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-dbv-cosmos-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_data_protection_backup_policy_cosmosdb_account" "test" {
+  name                           = "acctest-dbp-cosmos-%[1]d"
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
+  backup_schedule                = "R/2026-02-08T10:00:00+00:00/P1W"
+  default_retention_duration     = "P10Y"
+}
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctestcosmos%d"
+  name                = "acctestcosmos%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   offer_type          = "Standard"
@@ -111,10 +138,10 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 resource "azurerm_data_protection_backup_policy_cosmosdb_account" "another" {
-  name                            = "acctest-dbp-cosmos-other-%d"
+  name                           = "acctest-dbp-cosmos-other-%[1]d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  default_retention_duration      = "P5Y"
-  full_backup_schedule            = "R/2026-02-09T10:00:00+00:00/P1W"
+  backup_schedule                = "R/2026-02-09T10:00:00+00:00/P1W"
+  default_retention_duration     = "P5Y"
 }
 
 resource "azurerm_role_assignment" "reader" {
@@ -128,7 +155,7 @@ resource "azurerm_role_assignment" "cosmos_operator" {
   role_definition_name = "Cosmos DB Operator"
   principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
-`, DataProtectionBackupPolicyCosmosdbAccountResource{}.basic(data), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r DataProtectionBackupInstanceCosmosdbAccountResource) basic(data acceptance.TestData) string {
