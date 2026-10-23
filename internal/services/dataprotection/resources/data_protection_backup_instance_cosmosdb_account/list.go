@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package dataprotection
+package data_protection_backup_instance_cosmosdb_account
 
 import (
 	"context"
@@ -22,23 +22,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstanceCosmosdbAccountListResource struct{}
+type ListResource struct{}
 
-type DataProtectionBackupInstanceCosmosdbAccountListModel struct {
+type ListModel struct {
 	VaultId types.String `tfsdk:"data_protection_backup_vault_id"`
 }
 
-var _ sdk.FrameworkListWrappedResource = new(DataProtectionBackupInstanceCosmosdbAccountListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (DataProtectionBackupInstanceCosmosdbAccountListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(DataProtectionBackupInstanceCosmosdbAccountResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (DataProtectionBackupInstanceCosmosdbAccountListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = DataProtectionBackupInstanceCosmosdbAccountResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (DataProtectionBackupInstanceCosmosdbAccountListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"data_protection_backup_vault_id": schema.StringAttribute{
@@ -53,10 +53,10 @@ func (DataProtectionBackupInstanceCosmosdbAccountListResource) ListResourceConfi
 	}
 }
 
-func (DataProtectionBackupInstanceCosmosdbAccountListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.DataProtection.BackupInstancesClient20260601
 
-	var data DataProtectionBackupInstanceCosmosdbAccountListModel
+	var data ListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -71,11 +71,11 @@ func (DataProtectionBackupInstanceCosmosdbAccountListResource) List(ctx context.
 
 	resp, err := client.ListComplete(ctx, *vaultId)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", DataProtectionBackupInstanceCosmosdbAccountResource{}.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", Resource{}.ResourceType()), err)
 		return
 	}
 
-	r := DataProtectionBackupInstanceCosmosdbAccountResource{}
+	r := Resource{}
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range resp.Items {
 			if item.Properties == nil || !strings.EqualFold(pointer.From(item.Properties.DataSourceInfo.ResourceType), cosmosDBAccountDataSourceType) {
