@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	_ sdk.Resource           = Resource{}
-	_ sdk.ResourceWithUpdate = Resource{}
+	_ sdk.Resource                  = Resource{}
+	_ sdk.ResourceWithUpdate        = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
 )
 
 type Resource struct{}
