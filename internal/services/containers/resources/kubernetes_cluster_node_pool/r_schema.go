@@ -260,6 +260,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleDownMode(), false),
 		},
 
+		"security": helpers.SchemaNodePoolSecurity("security"),
+
 		"temporary_name_for_rotation": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
