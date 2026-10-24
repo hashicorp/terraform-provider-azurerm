@@ -46,6 +46,14 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			d.Set("gpu_driver", pointer.FromEnum(v.Driver))
 		}
 
+		gatewayPublicIPPrefixSize := 0
+		if props.GatewayProfile != nil {
+			gatewayPublicIPPrefixSize = int(pointer.From(props.GatewayProfile.PublicIPPrefixSize))
+		}
+		if err := d.Set("gateway_public_ip_prefix_size", gatewayPublicIPPrefixSize); err != nil {
+			return fmt.Errorf("setting `gateway_public_ip_prefix_size`: %+v", err)
+		}
+
 		if props.CreationData != nil {
 			d.Set("snapshot_id", props.CreationData.SourceResourceId)
 		}

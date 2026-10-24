@@ -1152,6 +1152,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
+
+					"static_egress_gateway_profile_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 				},
 			},
 		},

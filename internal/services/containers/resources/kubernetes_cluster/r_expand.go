@@ -283,6 +283,10 @@ func expandKubernetesClusterNetworkProfile(input []any, d *pluginsdk.ResourceDat
 		networkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(v.([]any), d)
 	}
 
+	networkProfile.StaticEgressGatewayProfile = &managedclusters.ManagedClusterStaticEgressGatewayProfile{
+		Enabled: pointer.To(config["static_egress_gateway_profile_enabled"].(bool)),
+	}
+
 	return &networkProfile, nil
 }
 
@@ -820,5 +824,11 @@ func expandKubernetesClusterUpgradeOverrideSetting(input []any) *managedclusters
 			ForceUpgrade: pointer.To(raw["force_upgrade_enabled"].(bool)),
 			Until:        pointer.To(raw["effective_until"].(string)),
 		},
+	}
+}
+
+func expandStaticEgressGatewayProfile(enabled bool) *managedclusters.ManagedClusterStaticEgressGatewayProfile {
+	return &managedclusters.ManagedClusterStaticEgressGatewayProfile{
+		Enabled: pointer.To(enabled),
 	}
 }
