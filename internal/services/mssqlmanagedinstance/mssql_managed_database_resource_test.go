@@ -174,6 +174,12 @@ func TestAccMsSqlManagedDatabase_recoverDatabase(t *testing.T) {
 		{
 			Config: r.basic(data),
 		},
+		{
+			Config: r.recovery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(""),
 	})
 }
@@ -301,14 +307,14 @@ resource "azurerm_mssql_managed_database" "pitr" {
 `, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
 }
 
-func (r MsSqlManagedDatabase) recovery(data acceptance.TestData, recoverableDbId string) string {
+func (r MsSqlManagedDatabase) recovery(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_mssql_managed_database" "recovery" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   name                = "acctest-%[2]d-rec"
-  recover_database_id = "%[3]s"
+  recover_database_id = "${azurerm_mssql_managed_database.test.managed_instance_id}/recoverableDatabases/${azurerm_mssql_managed_database.test.name}"
 }
-`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger, recoverableDbId)
+`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
 }
