@@ -21,6 +21,17 @@ import (
 
 type KubernetesClusterTrustedAccessRoleBindingTestResource struct{}
 
+func TestAccKubernetesClusterTrustedAccessRoleBinding_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
+	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesClusterTrustedAccessRoleBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_trusted_access_role_binding", "test")
 	r := KubernetesClusterTrustedAccessRoleBindingTestResource{}
