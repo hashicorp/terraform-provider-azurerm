@@ -47,6 +47,13 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	// API defaults cannot distinguish an omitted block from an explicit false/false block.
+	disabledSecurityImport := data.ImportBlockWithIDStep(true)
+	disabledSecurityImport.ImportPlanChecks = resource.ImportPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+		},
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,6 +69,7 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		disabledSecurityImport,
 		{
 			Config: r.defaultNodePoolSecurity(data, "security {\nsecure_boot_enabled = true\nvtpm_enabled = true\n}", "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
