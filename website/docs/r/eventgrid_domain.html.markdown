@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
+* `data_residency_boundary` - (Optional) Specifies the data residency boundary. Possible values are `WithinGeopair`, `WithinRegion`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Domain. Defaults to `true`.
@@ -57,6 +59,8 @@ The following arguments are supported:
 * `auto_delete_topic_with_last_subscription` - (Optional) Whether to delete the domain topic when the last event subscription at the scope of the domain topic is deleted. Defaults to `true`.
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
+
+* `minimum_tls_version` - (Optional) The minimum TLS version that clients can use. Possible values are `1.0`, `1.1`, `1.2`. Default is `1.2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
