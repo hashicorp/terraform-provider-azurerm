@@ -497,6 +497,17 @@ func TestAccKubernetesClusterNodePool_podSubnet(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_podSubnetUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podSubnet(data),
+		},
+	}, "5.10.0")
+}
+
 func TestAccKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}

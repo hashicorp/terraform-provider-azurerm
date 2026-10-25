@@ -291,6 +291,17 @@ func TestAccKubernetesCluster_podSubnet(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_podSubnetUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.podSubnet(data),
+		},
+	}, "5.10.0")
+}
+
 func TestAccKubernetesCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
