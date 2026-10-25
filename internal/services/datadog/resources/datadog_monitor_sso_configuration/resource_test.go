@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_monitor_sso_configuration_test
@@ -37,6 +37,16 @@ func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) 
 	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
 	r.enterpriseAppId = os.Getenv("ARM_TEST_ENTERPRISE_APP_ID")
+}
+
+func TestAccDatadogMonitorSSO_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
+	r := SSODatadogMonitorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
 }
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {

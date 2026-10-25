@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_service_versions_test
@@ -15,6 +15,17 @@ import (
 type KubernetesServiceVersionDataSource struct{}
 
 const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
+
+func TestAccDataSourceAzureRMKubernetesServiceVersions_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")
+	r := KubernetesServiceVersionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")

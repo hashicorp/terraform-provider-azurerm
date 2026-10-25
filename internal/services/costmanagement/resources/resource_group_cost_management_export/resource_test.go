@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_group_cost_management_export_test
@@ -18,6 +18,17 @@ import (
 )
 
 type ResourceGroupCostManagementExport struct{}
+
+func TestAccResourceGroupCostManagementExport_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")
+	r := ResourceGroupCostManagementExport{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccResourceGroupCostManagementExport_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_export", "test")

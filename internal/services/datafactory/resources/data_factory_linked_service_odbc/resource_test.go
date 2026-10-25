@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_odbc_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceOdbcResource struct{}
+
+func TestAccDataFactoryLinkedServiceODBC_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")
+	r := LinkedServiceOdbcResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.anon_auth(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceODBC_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_odbc", "test")

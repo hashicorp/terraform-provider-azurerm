@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_parquet_test
@@ -17,6 +17,17 @@ import (
 )
 
 type DatasetParquetResource struct{}
+
+func TestAccDataFactoryDatasetParquet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
+	r := DatasetParquetResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.http(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryDatasetParquet_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_parquet", "test")
