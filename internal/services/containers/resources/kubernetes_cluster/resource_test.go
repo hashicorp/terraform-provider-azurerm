@@ -6,6 +6,7 @@ package kubernetes_cluster_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -308,6 +310,40 @@ func TestAccKubernetesCluster_bootstrapProfileManagedRegistry(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccKubernetesCluster_bootstrapProfileManagedRegistryRegression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	var registryID string
+	registryKey := "bootstrap_profile.0.container_registry_id"
+	config := r.networkIsolatedBootstrapProfileManagedRegistry(data, "Cache", "none")
+	checkRegistryID := resource.TestCheckResourceAttrWith("data.azurerm_kubernetes_cluster.test", registryKey, func(value string) error {
+		if value == "" || (registryID != "" && !strings.EqualFold(value, registryID)) {
+			return fmt.Errorf("managed registry ID is empty or changed: before=%q after=%q", registryID, value)
+		}
+		registryID = value
+		return nil
+	})
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		// 5.10.0 stores the generated registry ID despite the omitted input.
+		{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				checkRegistryID,
+				check.That(data.ResourceName).Key(registryKey).MatchesOtherKey(check.That("data.azurerm_kubernetes_cluster.test").Key(registryKey)),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: config,
+			Check: acceptance.ComposeTestCheckFunc(
+				checkRegistryID,
+				check.That(data.ResourceName).Key(registryKey).HasValue(""),
+			),
+		},
+	}, "5.10.0")
 }
 
 func TestAccKubernetesCluster_bootstrapProfileDirectToCache(t *testing.T) {
