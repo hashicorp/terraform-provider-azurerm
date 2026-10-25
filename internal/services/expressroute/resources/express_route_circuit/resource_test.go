@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_circuit_test
@@ -38,12 +38,16 @@ func TestAccExpressRouteCircuit_sequential(t *testing.T) {
 			"port":                         testAccExpressRouteCircuit_withExpressRoutePort,
 			"updatePort":                   testAccExpressRouteCircuit_updateExpressRoutePort,
 			"authorizationKey":             testAccExpressRouteCircuit_authorizationKey,
+			"regression":                   testAccExpressRouteCircuit_regressionTest,
+			"data_regression":              testAccDataSourceExpressRoute_regressionTest,
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering":           testAccExpressRouteCircuitPeering_azurePrivatePeering,
 			"azurePrivatePeeringDataSource": testAccDataSourceExpressRouteCircuitPeering_privatePeering,
 			"azurePrivatePeeringWithUpdate": testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
 			"requiresImport":                testAccExpressRouteCircuitPeering_requiresImport,
+			"regression":                    testAccExpressRouteCircuitPeering_regressionTest,
+			"regressionDataSource":          testAccDataSourceExpressRouteCircuitPeering_regressionTest,
 		},
 		"MicrosoftPeering": {
 			"microsoftPeering":                    testAccExpressRouteCircuitPeering_microsoftPeering,
@@ -58,6 +62,7 @@ func TestAccExpressRouteCircuit_sequential(t *testing.T) {
 			"basic":          testAccExpressRouteCircuitAuthorization_basic,
 			"multiple":       testAccExpressRouteCircuitAuthorization_multiple,
 			"requiresImport": testAccExpressRouteCircuitAuthorization_requiresImport,
+			"regression":     testAccExpressRouteCircuitAuthorization_regressionTest,
 		},
 	}
 
@@ -70,6 +75,17 @@ func TestAccExpressRouteCircuit_sequential(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testAccExpressRouteCircuit_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicMeteredConfig(data),
+		},
+	}, "")
 }
 
 func testAccExpressRouteCircuit_authorizationKey(t *testing.T) {

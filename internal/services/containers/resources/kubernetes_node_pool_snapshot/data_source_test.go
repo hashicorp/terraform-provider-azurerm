@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_node_pool_snapshot_test
@@ -19,6 +19,17 @@ import (
 )
 
 type KubernetesNodePoolSnapshotDataSource struct{}
+
+func TestAccDataSourceKubernetesNodePoolSnapshot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")
+	r := KubernetesNodePoolSnapshotDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.snapshotSource(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")

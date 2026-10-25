@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_service_test
@@ -17,6 +17,16 @@ import (
 )
 
 type DatabaseMigrationServiceResource struct{}
+
+func TestAccDatabaseMigrationService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
+	r := DatabaseMigrationServiceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDatabaseMigrationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")

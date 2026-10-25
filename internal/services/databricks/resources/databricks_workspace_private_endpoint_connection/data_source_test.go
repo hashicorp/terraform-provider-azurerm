@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_workspace_private_endpoint_connection_test
@@ -12,6 +12,17 @@ import (
 )
 
 type DatabricksWorkspacePrivateEndpointConnectionDataSource struct{}
+
+func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace_private_endpoint_connection", "test")
+	r := DatabricksWorkspacePrivateEndpointConnectionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDatabricksWorkspacePrivateEndpointConnectionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace_private_endpoint_connection", "test")

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_instance_mysql_flexible_server"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_instance_postgresql_flexible_server"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_blob_storage"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_cosmosdb_account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_data_lake_storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_disk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/resources/data_protection_backup_policy_kubernetes_cluster"
@@ -30,7 +31,9 @@ import (
 type Registration struct{}
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		data_protection_backup_policy_cosmosdb_account.ListResource{},
+	}
 }
 
 func (r Registration) Actions() []func() action.Action {
@@ -105,6 +108,7 @@ func (r Registration) Resources() []sdk.Resource {
 		data_protection_backup_instance_kubernetes_cluster.Resource{},
 		data_protection_backup_instance_mysql_flexible_server.Resource{},
 		data_protection_backup_instance_postgresql_flexible_server.Resource{},
+		data_protection_backup_policy_cosmosdb_account.Resource{},
 		data_protection_backup_policy_data_lake_storage.Resource{},
 		data_protection_backup_policy_kubernetes_cluster.Resource{},
 		data_protection_backup_policy_mysql_flexible_server.Resource{},
