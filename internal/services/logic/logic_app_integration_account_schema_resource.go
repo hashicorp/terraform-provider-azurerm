@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -78,7 +78,7 @@ func resourceLogicAppIntegrationAccountSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.IntegrationAccountSchemaClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourceLogicAppIntegrationAccountSchemaCreateUpdate(d *pluginsdk.ResourceD
 	return resourceLogicAppIntegrationAccountSchemaRead(d, meta)
 }
 
-func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountSchemaClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceLogicAppIntegrationAccountSchemaRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceLogicAppIntegrationAccountSchemaDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountSchemaDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountSchemaClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

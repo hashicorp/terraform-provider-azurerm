@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -72,7 +72,7 @@ func (l LogAnalyticsClusterResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (r LogAnalyticsClusterResource) ModelObject() interface{} {
+func (r LogAnalyticsClusterResource) ModelObject() any {
 	return &LogAnalyticsClusterModel{}
 }
 

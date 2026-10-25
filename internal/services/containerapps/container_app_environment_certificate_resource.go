@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -30,9 +30,9 @@ type CertificateKeyVaultModel struct {
 }
 
 type ContainerAppCertificateModel struct {
-	Name                 string                 `tfschema:"name"`
-	ManagedEnvironmentId string                 `tfschema:"container_app_environment_id"`
-	Tags                 map[string]interface{} `tfschema:"tags"`
+	Name                 string         `tfschema:"name"`
+	ManagedEnvironmentId string         `tfschema:"container_app_environment_id"`
+	Tags                 map[string]any `tfschema:"tags"`
 
 	// Write only?
 	CertificatePassword string `tfschema:"certificate_password"`
@@ -50,7 +50,7 @@ type ContainerAppCertificateModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentCertificateResource{}
 
-func (r ContainerAppEnvironmentCertificateResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentCertificateResource) ModelObject() any {
 	return &ContainerAppCertificateModel{}
 }
 

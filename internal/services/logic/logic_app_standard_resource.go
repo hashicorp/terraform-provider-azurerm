@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -316,7 +316,7 @@ func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r LogicAppResource) ModelObject() interface{} {
+func (r LogicAppResource) ModelObject() any {
 	return &LogicAppResourceModel{}
 }
 
@@ -819,11 +819,9 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {
-				if strings.EqualFold(data.PublicNetworkAccess, helpers.PublicNetworkAccessEnabled) {
-					siteEnvelope.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-				} else {
-					siteEnvelope.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-				}
+				siteEnvelope.PublicNetworkAccess = pointer.To(data.PublicNetworkAccess)
+				// Both fields must agree so the existing site configuration does not override the update.
+				siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 			}
 
 			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
@@ -999,15 +997,15 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 	return results
 }
 
-func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction) []interface{} {
-	restrictions := make([]interface{}, 0)
+func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction) []any {
+	restrictions := make([]any, 0)
 
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	for _, v := range *input {
-		restriction := make(map[string]interface{})
+		restriction := make(map[string]any)
 		if ip := v.IPAddress; ip != nil {
 			if *ip == "Any" {
 				continue
@@ -1213,7 +1211,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 			appSettings = *existing.AppSettings
 		}
 
-		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]interface{}), n.(map[string]interface{}), metadata)
+		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]any), n.(map[string]any), metadata)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
@@ -1237,8 +1235,8 @@ func expandAppSettings(input map[string]string) []webapps.NameValuePair {
 	return output
 }
 
-func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]interface{}, metadata sdk.ResourceMetaData) *[]webapps.NameValuePair {
-	f := func(input map[string]interface{}) (result map[string]string) {
+func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any, metadata sdk.ResourceMetaData) *[]webapps.NameValuePair {
+	f := func(input map[string]any) (result map[string]string) {
 		result = make(map[string]string)
 		for k, v := range input {
 			result[k] = v.(string)
@@ -1300,7 +1298,7 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	for k, v := range oMap {
 		if _, ok := cMap[k]; !ok {
 			remove[k] = v
-			break
+			continue
 		}
 
 		addOrUpdate[k] = v

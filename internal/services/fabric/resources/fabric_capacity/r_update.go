@@ -1,0 +1,63 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package fabric_capacity
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/fabric/2023-11-01/fabriccapacities"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+func (r Resource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Fabric.FabricCapacitiesClient
+
+			id, err := fabriccapacities.ParseCapacityID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model FabricCapacityResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			payload := existing.Model
+			if metadata.ResourceData.HasChange("administration_members") {
+				payload.Properties.Administration = fabriccapacities.CapacityAdministration{
+					Members: model.AdministrationMembers,
+				}
+			}
+
+			if metadata.ResourceData.HasChange("sku") {
+				payload.Sku = expandSkuModel(model.Sku)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}

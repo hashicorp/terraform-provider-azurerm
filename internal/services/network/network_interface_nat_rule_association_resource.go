@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -63,7 +64,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,8 +81,8 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 
 	ipConfigId := commonids.NewNetworkInterfaceIPConfigurationID(networkInterfaceId.SubscriptionId, networkInterfaceId.ResourceGroupName, networkInterfaceId.NetworkInterfaceName, d.Get("ip_configuration_name").(string))
 
-	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -153,7 +154,7 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 	return resourceNetworkInterfaceNatRuleAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +221,7 @@ func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,8 +233,8 @@ func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData,
 
 	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	read, err := client.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

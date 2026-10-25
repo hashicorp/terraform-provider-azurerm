@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -38,7 +38,7 @@ func (r PrivateDNSResolverOutboundEndpointResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_outbound_endpoint"
 }
 
-func (r PrivateDNSResolverOutboundEndpointResource) ModelObject() interface{} {
+func (r PrivateDNSResolverOutboundEndpointResource) ModelObject() any {
 	return &PrivateDNSResolverOutboundEndpointModel{}
 }
 

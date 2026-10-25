@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover
@@ -46,7 +46,7 @@ func (r StorageMoverSourceEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_source_endpoint"
 }
 
-func (r StorageMoverSourceEndpointResource) ModelObject() interface{} {
+func (r StorageMoverSourceEndpointResource) ModelObject() any {
 	return &StorageMoverSourceEndpointModel{}
 }
 

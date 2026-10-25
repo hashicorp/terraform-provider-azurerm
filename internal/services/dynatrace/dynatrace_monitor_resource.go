@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -193,7 +193,7 @@ func (r MonitorsResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r MonitorsResource) ModelObject() interface{} {
+func (r MonitorsResource) ModelObject() any {
 	return &MonitorsResourceModel{}
 }
 
@@ -301,7 +301,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
 				}
 
-				if environmentProps := metadata.ResourceData.Get("environment_properties"); environmentProps != nil && len(environmentProps.([]interface{})) > 0 {
+				if environmentProps := metadata.ResourceData.Get("environment_properties"); environmentProps != nil && len(environmentProps.([]any)) > 0 {
 					state.EnvironmentProperties = FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties)
 				}
 

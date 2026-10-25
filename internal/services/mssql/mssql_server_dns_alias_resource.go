@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -55,7 +55,7 @@ func (m ServerDNSAliasResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m ServerDNSAliasResource) ModelObject() interface{} {
+func (m ServerDNSAliasResource) ModelObject() any {
 	return &ServerDNSAliasModel{}
 }
 
