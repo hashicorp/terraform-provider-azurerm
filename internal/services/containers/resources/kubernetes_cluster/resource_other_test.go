@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster_test
@@ -34,6 +34,17 @@ func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccKubernetesCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicVMSSConfig(data),
+		},
+	}, "")
 }
 
 func TestAccKubernetesCluster_basicVMSS(t *testing.T) {

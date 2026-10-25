@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_namespace_disaster_recovery_config_test
@@ -17,6 +17,17 @@ import (
 )
 
 type EventHubNamespaceDisasterRecoveryConfigResource struct{}
+
+func TestAccEventHubNamespaceDisasterRecoveryConfig_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
+	r := EventHubNamespaceDisasterRecoveryConfigResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")

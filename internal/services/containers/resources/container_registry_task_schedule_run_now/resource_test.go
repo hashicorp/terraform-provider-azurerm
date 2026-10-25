@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_task_schedule_run_now_test
@@ -17,6 +17,25 @@ import (
 
 type ContainerRegistryTaskScheduleResource struct {
 	githubRepo
+}
+
+func TestAccContainerRegistryTaskSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_task_schedule_run_now", "test")
+
+	preCheckGithubRepo(t)
+
+	r := ContainerRegistryTaskScheduleResource{
+		githubRepo: githubRepo{
+			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
+			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
+		},
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, r.dockerTaskStep),
+		},
+	}, "")
 }
 
 func TestAccContainerRegistryTaskSchedule_basic(t *testing.T) {
