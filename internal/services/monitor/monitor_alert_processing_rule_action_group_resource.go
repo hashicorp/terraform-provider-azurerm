@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -37,7 +37,7 @@ func (r AlertProcessingRuleActionGroupResource) ResourceType() string {
 	return "azurerm_monitor_alert_processing_rule_action_group"
 }
 
-func (r AlertProcessingRuleActionGroupResource) ModelObject() interface{} {
+func (r AlertProcessingRuleActionGroupResource) ModelObject() any {
 	return &AlertProcessingRuleActionGroupModel{}
 }
 

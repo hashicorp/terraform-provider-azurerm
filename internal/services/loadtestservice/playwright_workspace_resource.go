@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package loadtestservice
@@ -68,7 +68,7 @@ func (PlaywrightWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (PlaywrightWorkspaceResource) ModelObject() interface{} {
+func (PlaywrightWorkspaceResource) ModelObject() any {
 	return &PlaywrightWorkspaceModel{}
 }
 

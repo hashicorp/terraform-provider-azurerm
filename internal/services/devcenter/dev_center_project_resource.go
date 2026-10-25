@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -27,7 +27,7 @@ var (
 
 type DevCenterProjectResource struct{}
 
-func (r DevCenterProjectResource) ModelObject() interface{} {
+func (r DevCenterProjectResource) ModelObject() any {
 	return &DevCenterProjectResourceSchema{}
 }
 
@@ -40,7 +40,7 @@ type DevCenterProjectResourceSchema struct {
 	MaximumDevBoxesPerUser int64                                      `tfschema:"maximum_dev_boxes_per_user"`
 	Name                   string                                     `tfschema:"name"`
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
-	Tags                   map[string]interface{}                     `tfschema:"tags"`
+	Tags                   map[string]any                             `tfschema:"tags"`
 }
 
 func (r DevCenterProjectResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

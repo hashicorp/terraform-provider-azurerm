@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -18,13 +18,6 @@ var _ pollers.PollerType = &frontDoorRuleDeletePoller{}
 type frontDoorRuleDeletePoller struct {
 	client *rules.RulesClient
 	id     rules.RuleId
-}
-
-func NewFrontDoorRuleDeletePoller(client *rules.RulesClient, id rules.RuleId) pollers.PollerType {
-	return &frontDoorRuleDeletePoller{
-		client: client,
-		id:     id,
-	}
 }
 
 func (p frontDoorRuleDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
-	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -140,10 +140,10 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		PartnerId:        builder.PartnerID,
 		TerraformVersion: builder.TerraformVersion,
 
-		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
-		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
-		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
-		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
+		KeyVaultAuthorizer:        autorest.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
+		ManagedHSMAuthorizer:      autorest.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
+		ResourceManagerAuthorizer: autorest.AutorestAuthorizer(resourceManagerAuth),
+		SynapseAuthorizer:         autorest.AutorestAuthorizer(synapseAuth),
 
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,

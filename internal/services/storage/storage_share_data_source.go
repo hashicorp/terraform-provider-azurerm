@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -84,7 +84,7 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

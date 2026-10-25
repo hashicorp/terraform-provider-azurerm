@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dns_test
@@ -42,5 +42,5 @@ data "azurerm_dns_cname_record" "test" {
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
 }
-`, DnsCNameRecordResource{}.basic(data))
+`, DnsCnameRecordResource{}.basic(data))
 }

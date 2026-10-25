@@ -10,7 +10,7 @@ The Terms and Conditions must be accepted for a marketplace image prior to being
 
 As such in order to run this example you may need to accept the T&C's for the Marketplace image - which can be done in one of two ways.
 
-To accept the Terms & Conditions for the Marketplace image via PowerShell, you can [use the `Set-AzureRmMarketplaceTerms` Cmdlet](https://docs.microsoft.com/en-us/powershell/module/azurerm.marketplaceordering/set-azurermmarketplaceterms?view=azurermps-6.13.0) - for example:
+To accept the Terms & Conditions for the Marketplace image via PowerShell, you can [use the `Set-AzureRmMarketplaceTerms` Cmdlet](https://docs.microsoft.com/powershell/module/azurerm.marketplaceordering/set-azurermmarketplaceterms?view=azurermps-6.13.0) - for example:
 
 ```powershell
 > Set-AzureRmMarketplaceTerms -Publisher "radware" -Product "radware-alteon-va" -Name "radware-alteon-ng-va-adc" -Accept

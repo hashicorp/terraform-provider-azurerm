@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus_test
@@ -31,6 +31,7 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("partitioning_enabled").Exists(),
 				check.That(data.ResourceName).Key("lock_duration").Exists(),
 				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
+				check.That(data.ResourceName).Key("maximum_message_size_in_kb").Exists(),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").Exists(),
 				check.That(data.ResourceName).Key("requires_duplicate_detection").Exists(),
 				check.That(data.ResourceName).Key("requires_session").Exists(),
@@ -48,5 +49,5 @@ data "azurerm_servicebus_queue" "test" {
   name         = azurerm_servicebus_queue.test.name
   namespace_id = azurerm_servicebus_namespace.test.id
 }
-`, ServiceBusQueueResource{}.basic(data))
+`, ServicebusQueueResource{}.basic(data))
 }

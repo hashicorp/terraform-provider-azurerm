@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package domainservices
@@ -77,7 +77,7 @@ func (r DomainServiceTrustResource) ResourceType() string {
 	return "azurerm_active_directory_domain_service_trust"
 }
 
-func (r DomainServiceTrustResource) ModelObject() interface{} {
+func (r DomainServiceTrustResource) ModelObject() any {
 	return &DomainServiceTrustModel{}
 }
 
@@ -217,7 +217,7 @@ func (r DomainServiceTrustResource) Read() sdk.ResourceFunc {
 			if len(replicaSets) == 0 {
 				return fmt.Errorf("checking for presence of existing %s: API response contained nil or missing replica set details", idsdk)
 			}
-			initialReplicaSetId := replicaSets[0].(map[string]interface{})["id"].(string)
+			initialReplicaSetId := replicaSets[0].(map[string]any)["id"].(string)
 			dsid := parse.NewDomainServiceID(id.SubscriptionId, id.ResourceGroup, id.DomainServiceName, initialReplicaSetId)
 
 			var state DomainServiceTrustModel

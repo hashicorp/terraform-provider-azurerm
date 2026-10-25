@@ -16,6 +16,9 @@
 
 #include "textflag.h"
 
+// Keep this 4 KiB padding in sync with writeIsolationSize in
+// write_darwin_amd64.go. Larger runtime page sizes are rejected in Go before
+// any page protection is changed.
 #define NOP8 BYTE $0x90; BYTE $0x90; BYTE $0x90; BYTE $0x90; BYTE $0x90; BYTE $0x90; BYTE $0x90; BYTE $0x90;
 #define NOP64 NOP8; NOP8; NOP8; NOP8; NOP8; NOP8; NOP8; NOP8;
 #define NOP512 NOP64; NOP64; NOP64; NOP64; NOP64; NOP64; NOP64; NOP64;

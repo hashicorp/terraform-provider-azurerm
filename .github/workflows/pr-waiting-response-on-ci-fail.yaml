@@ -5,7 +5,8 @@ name: Add waiting-response on failures
 # PR checks completes in failure, downloads its wr_actions artifact to identify
 # the PR and adds the waiting-response label.
 
-on:
+# workflow_run is needed for write access on fork PRs, which pull_request cannot provide
+on:  # zizmor: ignore[dangerous-triggers]
   # NOTE: these are workflow display names (not filenames), and every workflow listed
   # here must upload the wr_actions artifact on failure (via pr-save-artifacts.yaml)
   # so the job below can identify the PR to label.
@@ -30,7 +31,7 @@ jobs:
     steps:
       - name: Get Artifact
         id: get_artifact
-        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
+        uses: dawidd6/action-download-artifact@27e4ae67c24b67d3b54bc6d6a45475be1e28031b # v26
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           run_id: ${{ github.event.workflow_run.id }}
@@ -45,11 +46,13 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
       - name: Add waiting-response on fail
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PR_NUMBER: ${{ steps.env_vars.outputs.prnumber }}
         with:
           script: |
             github.rest.issues.addLabels({
-              issue_number: ${{ steps.env_vars.outputs.prnumber }},
-              owner: "${{ steps.env_vars.outputs.ghowner }}",
-              repo: "${{ steps.env_vars.outputs.ghrepo }}",
+              issue_number: parseInt(process.env.PR_NUMBER, 10),
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               labels: ["waiting-response"]
             })

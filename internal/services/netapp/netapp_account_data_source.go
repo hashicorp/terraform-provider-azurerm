@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -45,7 +45,7 @@ func dataSourceNetAppAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetAppAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.AccountClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

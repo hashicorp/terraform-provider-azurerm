@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -285,7 +285,7 @@ func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt
 	}
 	close(pages)
 
-	for i := 0; i < workerCount; i++ {
+	for range workerCount {
 		go sbu.blobPageUploadWorker(ctx, blobPageUploadContext{
 			blobSize: fileSize,
 			pages:    pages,
@@ -371,10 +371,7 @@ type blobPageUploadContext struct {
 func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
 	for page := range uploadCtx.pages {
 		start := page.offset
-		end := page.offset + page.section.Size() - 1
-		if end > uploadCtx.blobSize-1 {
-			end = uploadCtx.blobSize - 1
-		}
+		end := min(page.offset+page.section.Size()-1, uploadCtx.blobSize-1)
 		size := end - start + 1
 
 		chunk := make([]byte, size)
