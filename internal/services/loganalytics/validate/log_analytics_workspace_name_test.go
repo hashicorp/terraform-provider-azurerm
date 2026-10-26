@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestAccLogAnalyticsWorkspaceName_validation(t *testing.T) {
+func TestLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	str := strings.Repeat("a", 63)
 	cases := []struct {
 		Value    string

@@ -32,7 +32,7 @@ list "azurerm_storage_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 This list resource supports the following attributes:
 
