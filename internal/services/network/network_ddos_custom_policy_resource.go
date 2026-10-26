@@ -103,7 +103,7 @@ func (NetworkDDoSCustomPolicyResource) Attributes() map[string]*pluginsdk.Schema
 	}
 }
 
-func (NetworkDDoSCustomPolicyResource) ModelObject() interface{} {
+func (NetworkDDoSCustomPolicyResource) ModelObject() any {
 	return &NetworkDDoSCustomPolicyResourceModel{}
 }
 
