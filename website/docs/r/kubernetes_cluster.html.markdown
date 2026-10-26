@@ -726,7 +726,7 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard`. Changing this forces a new resource to be created.
 
-* `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
+* `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`.
 
 * `advanced_networking` - (Optional) An `advanced_networking` block as defined below.
 
@@ -768,9 +768,11 @@ A `load_balancer_profile` block supports the following:
 
 A `nat_gateway_profile` block supports the following:
 
-* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the managed nat gateway. Must be between `4` and `120` inclusive. Defaults to `4`.
+* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the managed nat gateway. Must be between `4` and `120` inclusive. Defaults to `4`. Changing this forces a new resource to be created.
 
-* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `16` inclusive.
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `16` inclusive. Changing this forces a new resource to be created.
+
+* `sku` - (Optional) The SKU of the managed NAT Gateway. Possible values are `Standard` and `StandardV2`. When creating a cluster, AKS defaults to `StandardV2` where available and `Standard` otherwise. When managing an existing cluster, omitting this field retains its current SKU. An existing `Standard` gateway can be upgraded to `StandardV2` in place. AKS does not support downgrading from `StandardV2` to `Standard`; recreate the Kubernetes Cluster to use `Standard`. This can only be set when `outbound_type` is `managedNATGateway`.
 
 ---
 

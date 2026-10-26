@@ -157,6 +157,22 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta any) bool {
 				return len(old.([]any)) > 0
 			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.nat_gateway_profile", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) != len(new.([]any))
+			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+				key := "network_profile.0.nat_gateway_profile.0.sku"
+				if d.HasChange(key) {
+					old, new := d.GetChange(key)
+					if err := validateKubernetesClusterNatGatewaySkuChange(old.(string), new.(string)); err != nil {
+						return err
+					}
+				}
+				if d.HasChange(key) && d.Get(key).(string) != "" && d.Get("network_profile.0.outbound_type").(string) != string(managedclusters.OutboundTypeManagedNATGateway) {
+					return fmt.Errorf("`network_profile.0.nat_gateway_profile.0.sku` can only be set when `network_profile.0.outbound_type` is `%s`", managedclusters.OutboundTypeManagedNATGateway)
+				}
+				return nil
+			},
 			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 				outboundType := d.Get("network_profile.0.outbound_type").(string)
 				artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
@@ -202,4 +218,11 @@ func RegisterResource() *pluginsdk.Resource {
 	maps.Copy(resource.Schema, schemaKubernetesAddOns())
 
 	return resource
+}
+
+func validateKubernetesClusterNatGatewaySkuChange(old, new string) error {
+	if old == string(managedclusters.ManagedClusterNATGatewaySkuStandardVTwo) && new == string(managedclusters.ManagedClusterNATGatewaySkuStandard) {
+		return fmt.Errorf("downgrading `network_profile.0.nat_gateway_profile.0.sku` from `StandardV2` to `Standard` is not supported by AKS")
+	}
+	return nil
 }

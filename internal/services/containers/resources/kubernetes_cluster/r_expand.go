@@ -401,6 +401,10 @@ func expandNatGatewayProfile(d []any) *managedclusters.ManagedClusterNATGatewayP
 		}
 	}
 
+	if sku, ok := config["sku"].(string); ok && sku != "" {
+		profile.Sku = pointer.ToEnum[managedclusters.ManagedClusterNATGatewaySku](sku)
+	}
+
 	return profile
 }
 

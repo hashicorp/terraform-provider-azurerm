@@ -1092,7 +1092,6 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					"nat_gateway_profile": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
-						ForceNew: true,
 						Optional: true,
 						Computed: true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Resource{
@@ -1101,13 +1100,22 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      4,
+									ForceNew:     true,
 									ValidateFunc: validation.IntBetween(4, 120),
 								},
 								"managed_outbound_ip_count": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Computed:     true, // azignore:AZS007 - pre-existing violation
-									ValidateFunc: validation.IntBetween(1, 100),
+									ForceNew:     true,
+									ValidateFunc: validation.IntBetween(1, 16),
+								},
+								"sku": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									// NOTE: O+C AKS has a region-specific default, and omitting this field must preserve an existing cluster's SKU
+									Computed:     true,
+									ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForManagedClusterNATGatewaySku(), false),
 								},
 								"effective_outbound_ips": {
 									Type:     pluginsdk.TypeSet,
