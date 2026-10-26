@@ -12,7 +12,7 @@ Lists API Management Named Value resources.
 
 ## Example Usage
 
-### List Api Management Named Values in an API Management Service
+### List API Management Named Values in an API Management Service
 
 ```hcl
 list "azurerm_api_management_named_value" "example" {
