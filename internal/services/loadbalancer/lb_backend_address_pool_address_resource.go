@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -249,6 +250,9 @@ func (r BackendAddressPoolAddressResource) Read() sdk.ResourceFunc {
 			poolId := loadbalancers.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
 			pool, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, poolId)
 			if err != nil {
+				if response.WasNotFound(pool.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving %s: %+v", poolId, err)
 			}
 			if pool.Model == nil {

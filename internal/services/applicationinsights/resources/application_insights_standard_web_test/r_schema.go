@@ -160,12 +160,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Default:  200,
 					},
 
-					// Typo in API spec, issue: https://github.com/Azure/azure-rest-api-specs/issues/22136
-					// "ignore_status_code": {
-					// 	Type:   pluginsdk.TypeBool,
-					// 	Optional: true,
-					// 	Default: false,
-					// },
+					"ignore_status_code": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 
 					"ssl_cert_remaining_lifetime": {
 						Type:         pluginsdk.TypeInt,

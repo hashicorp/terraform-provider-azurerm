@@ -1298,7 +1298,7 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 	for k, v := range oMap {
 		if _, ok := cMap[k]; !ok {
 			remove[k] = v
-			break
+			continue
 		}
 
 		addOrUpdate[k] = v
