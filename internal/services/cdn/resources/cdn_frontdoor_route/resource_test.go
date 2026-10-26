@@ -168,6 +168,31 @@ func TestAccCdnFrontDoorRoute_originPath(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRoute_compressionContentTypes(t *testing.T) {
+	// regression test case for issue #29668
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_route", "test")
+	r := CdnFrontDoorRouteResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.compressionContentTypes(data, `["text/html", "application/x-ns-proxy-autoconfig"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cache.0.content_types_to_compress.#").HasValue("2"),
+				check.That(data.ResourceName).Key("cache.0.content_types_to_compress.1").HasValue("application/x-ns-proxy-autoconfig"),
+			),
+		},
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+		{
+			Config: r.compressionContentTypes(data, `["application/x-ns-proxy-autoconfig", "application/wasm", "text/css"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cache.0.content_types_to_compress.#").HasValue("3"),
+			),
+		},
+		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+	})
+}
+
 func (r CdnFrontDoorRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := routes.ParseRouteID(state.ID)
 	if err != nil {
@@ -351,6 +376,27 @@ resource "azurerm_cdn_frontdoor_route" "test" {
   supported_protocols    = ["Http", "Https"]
 }
 `, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRouteResource) compressionContentTypes(data acceptance.TestData, contentTypes string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
+
+  cache {
+    compression_enabled       = true
+    content_types_to_compress = %s
+  }
+}
+`, template, data.RandomInteger, contentTypes)
 }
 
 func (r CdnFrontDoorRouteResource) update(data acceptance.TestData) string {
