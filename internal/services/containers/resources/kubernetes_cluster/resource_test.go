@@ -64,14 +64,24 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", "initial"),
+			Config: r.defaultNodePoolSecurity(data, `
+security {
+  secure_boot_enabled = false
+  vtpm_enabled        = false
+}
+`, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		disabledSecurityImport,
 		{
-			Config: r.defaultNodePoolSecurity(data, "security {\nsecure_boot_enabled = true\nvtpm_enabled = true\n}", "initial"),
+			Config: r.defaultNodePoolSecurity(data, `
+security {
+  secure_boot_enabled = true
+  vtpm_enabled        = true
+}
+`, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -92,21 +102,34 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, "security {\nsecure_boot_enabled = true\n}", "updated"),
+			Config: r.defaultNodePoolSecurity(data, `
+security {
+  secure_boot_enabled = true
+}
+`, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, "security {\nvtpm_enabled = true\n}", "updated"),
+			Config: r.defaultNodePoolSecurity(data, `
+security {
+  vtpm_enabled = true
+}
+`, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, "security {\nsecure_boot_enabled = false\nvtpm_enabled = false\n}", "updated"),
+			Config: r.defaultNodePoolSecurity(data, `
+security {
+  secure_boot_enabled = false
+  vtpm_enabled        = false
+}
+`, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
