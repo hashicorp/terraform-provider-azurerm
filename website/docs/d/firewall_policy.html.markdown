@@ -14,8 +14,8 @@ Use this data source to access information about an existing Firewall Policy.
 
 ```hcl
 data "azurerm_firewall_policy" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-firewall-policy"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

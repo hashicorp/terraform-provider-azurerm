@@ -14,8 +14,8 @@ Use this data source to access information about an existing Service Bus Topic.
 
 ```hcl
 data "azurerm_servicebus_topic" "example" {
-  name         = "existing"
-  namespace_id = "existing"
+  name         = "example-topic"
+  namespace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ServiceBus/namespaces/example-namespace"
 }
 
 output "id" {
