@@ -5,17 +5,17 @@ package datadog_monitor_tag_rule
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules"
 )
 
-func expandLogRules(input []any) *rules.LogRules {
+func expandLogRules(input []any) *tagrules.LogRules {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]any)
 	filteringTag := v["filter"].([]any)
 
-	return &rules.LogRules{
+	return &tagrules.LogRules{
 		SendAadLogs:          pointer.To(v["aad_log_enabled"].(bool)),
 		SendSubscriptionLogs: pointer.To(v["subscription_log_enabled"].(bool)),
 		SendResourceLogs:     pointer.To(v["resource_log_enabled"].(bool)),
@@ -23,28 +23,28 @@ func expandLogRules(input []any) *rules.LogRules {
 	}
 }
 
-func expandMetricRules(input []any) *rules.MetricRules {
+func expandMetricRules(input []any) *tagrules.MetricRules {
 	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]any)
 	filteringTag := v["filter"].([]any)
 
-	return &rules.MetricRules{
+	return &tagrules.MetricRules{
 		FilteringTags: expandFilteringTag(filteringTag),
 	}
 }
 
-func expandFilteringTag(input []any) *[]rules.FilteringTag {
-	filteringTags := make([]rules.FilteringTag, 0)
+func expandFilteringTag(input []any) *[]tagrules.FilteringTag {
+	filteringTags := make([]tagrules.FilteringTag, 0)
 
 	for _, v := range input {
 		config := v.(map[string]any)
 
-		filteringTags = append(filteringTags, rules.FilteringTag{
+		filteringTags = append(filteringTags, tagrules.FilteringTag{
 			Name:   pointer.To(config["name"].(string)),
 			Value:  pointer.To(config["value"].(string)),
-			Action: pointer.ToEnum[rules.TagAction](config["action"].(string)),
+			Action: pointer.To(tagrules.TagAction(config["action"].(string))),
 		})
 	}
 
