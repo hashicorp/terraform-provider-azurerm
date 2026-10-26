@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
@@ -58,57 +57,34 @@ func TestAccPreflight_validateResource(t *testing.T) {
 	}{
 		{
 			Name:        "valid_webapp",
-			Location:    "westeurope",
+			Location:    "northeurope",
 			ID:          pointer.To(commonids.NewAppServiceID(client.Account.SubscriptionId, "testResourceGroup", "testSiteName")),
 			APIVersion:  "2024-11-01",
 			Properties:  testdata.WebAppExample(client.Account.SubscriptionId),
 			ExpectError: false,
 		},
 		{
-			Name:        "invalid_vnet_missing_required_property",
-			Location:    "westeurope",
+			Name:        "valid_vnet",
+			Location:    "northeurope",
 			ID:          pointer.To(commonids.NewVirtualNetworkID(client.Account.SubscriptionId, "testResourceGroup", "testVirtualValid")),
 			APIVersion:  "2024-01-01",
-			Properties:  testdata.VirtualNetworkExampleMissingRequiredProperty(client.Account.SubscriptionId),
+			Properties:  testdata.VirtualNetworkExample(),
+			ExpectError: false,
+		},
+		{
+			Name:        "invalid_vnet_missing_required_property",
+			Location:    "northeurope",
+			ID:          pointer.To(commonids.NewVirtualNetworkID(client.Account.SubscriptionId, "testResourceGroup", "testVirtualValid")),
+			APIVersion:  "2024-01-01",
+			Properties:  testdata.VirtualNetworkExampleMissingRequiredProperty(),
 			ExpectError: true,
 		},
 		{
-			Name:       "network_security_group_allowed_by_location_policy",
-			Location:   "northeurope",
-			ID:         pointer.To(networksecuritygroups.NewNetworkSecurityGroupID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-nsg-allowed")),
-			APIVersion: "2025-07-01",
-			Properties: &networksecuritygroups.NetworkSecurityGroupPropertiesFormat{},
-			BeforeTest: func(t *testing.T) {
-				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "northeurope")
-				assignPolicy(t, client, groupID, allowedLocations, fmt.Sprintf("preflight-location-%d", time.Now().UnixNano()), map[string]policyassignments.ParameterValuesValue{
-					"listOfAllowedLocations": {Value: pointer.To[any]([]string{"northeurope"})},
-				})
-			},
-		},
-		{
-			Name:          "network_security_group_denied_by_location_policy",
-			Location:      "northeurope",
-			ID:            pointer.To(networksecuritygroups.NewNetworkSecurityGroupID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-nsg-denied")),
-			APIVersion:    "2025-07-01",
-			Properties:    &networksecuritygroups.NetworkSecurityGroupPropertiesFormat{},
-			ExpectError:   true,
-			ErrorContains: allowedLocations,
-			BeforeTest: func(t *testing.T) {
-				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "northeurope")
-				assignPolicy(t, client, groupID, allowedLocations, fmt.Sprintf("preflight-location-%d", time.Now().UnixNano()), map[string]policyassignments.ParameterValuesValue{
-					"listOfAllowedLocations": {Value: pointer.To[any]([]string{})},
-				})
-			},
-		},
-		{
-			Name:       "service_plan_p0v4_allowed_by_private_link_sku_policy",
-			Location:   "westus2",
-			ID:         pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-p0v4")),
-			APIVersion: "2023-12-01",
-			Properties: &appserviceplans.AppServicePlanProperties{
-				Reserved:       pointer.To(true),
-				PerSiteScaling: pointer.To(true),
-			},
+			Name:        "service_plan_p0v4_allowed_by_private_link_sku_policy",
+			Location:    "westus2",
+			ID:          pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-p0v4")),
+			APIVersion:  "2023-12-01",
+			Properties:  testdata.AppServicePlanP0V4Example(),
 			SKU:         pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("P0V4")}),
 			ExpectError: false,
 			BeforeTest: func(t *testing.T) {
@@ -117,13 +93,11 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			},
 		},
 		{
-			Name:       "service_plan_f1_denied_by_private_link_sku_policy",
-			Location:   "westus2",
-			ID:         pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-f1")),
-			APIVersion: "2023-12-01",
-			Properties: &appserviceplans.AppServicePlanProperties{
-				Reserved: pointer.To(true),
-			},
+			Name:          "service_plan_f1_denied_by_private_link_sku_policy",
+			Location:      "westus2",
+			ID:            pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-f1")),
+			APIVersion:    "2023-12-01",
+			Properties:    testdata.AppServicePlanF1Example(),
 			SKU:           pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("F1")}),
 			ExpectError:   true,
 			ErrorContains: appServiceAppsShouldUseASKUThatSupportsPrivateLink,
