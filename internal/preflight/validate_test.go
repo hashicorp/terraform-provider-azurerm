@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight/testdata"
@@ -29,6 +29,7 @@ import (
 
 // Built-in policy definitions
 const appServiceAppsShouldUseASKUThatSupportsPrivateLink = "/providers/Microsoft.Authorization/policyDefinitions/546fe8d2-368d-4029-a418-6af48a7f61e5"
+const allowedLocations = "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c"
 
 func TestAccPreflight_validateResource(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
@@ -42,10 +43,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 		t.Fatalf("diags had error!")
 	}
 	client := p.Meta().(*clients.Client)
-	// this test isn't specific to a single resource type, we're using TestData only to get random int and location
-	data := acceptance.BuildTestData(t, "resource_type_not_used", "test")
-	skuPolicyResourceGroup := fmt.Sprintf("acctestRG-preflight-%d", data.RandomInteger)
-	skuPolicyLocation := data.Locations.Primary
+	skuPolicyResourceGroup := fmt.Sprintf("acctestRG-preflight-%d", time.Now().UnixNano())
 
 	cases := []struct {
 		Name          string
@@ -56,6 +54,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 		SKU           *any
 		ExpectError   bool
 		ErrorContains string
+		RequiredEnv   string
 		BeforeTest    func(*testing.T)
 	}{
 		{
@@ -75,8 +74,36 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			ExpectError: true,
 		},
 		{
+			Name:       "network_security_group_allowed_by_location_policy",
+			Location:   "northeurope",
+			ID:         pointer.To(networksecuritygroups.NewNetworkSecurityGroupID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-nsg-allowed")),
+			APIVersion: "2025-07-01",
+			Properties: &networksecuritygroups.NetworkSecurityGroupPropertiesFormat{},
+			BeforeTest: func(t *testing.T) {
+				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "northeurope")
+				assignPolicy(t, client, groupID, allowedLocations, fmt.Sprintf("preflight-location-%d", time.Now().UnixNano()), map[string]policyassignments.ParameterValuesValue{
+					"listOfAllowedLocations": {Value: pointer.To[any]([]string{"northeurope"})},
+				})
+			},
+		},
+		{
+			Name:          "network_security_group_denied_by_location_policy",
+			Location:      "northeurope",
+			ID:            pointer.To(networksecuritygroups.NewNetworkSecurityGroupID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-nsg-denied")),
+			APIVersion:    "2025-07-01",
+			Properties:    &networksecuritygroups.NetworkSecurityGroupPropertiesFormat{},
+			ExpectError:   true,
+			ErrorContains: allowedLocations,
+			BeforeTest: func(t *testing.T) {
+				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "northeurope")
+				assignPolicy(t, client, groupID, allowedLocations, fmt.Sprintf("preflight-location-%d", time.Now().UnixNano()), map[string]policyassignments.ParameterValuesValue{
+					"listOfAllowedLocations": {Value: pointer.To[any]([]string{})},
+				})
+			},
+		},
+		{
 			Name:       "service_plan_p0v4_allowed_by_private_link_sku_policy",
-			Location:   skuPolicyLocation,
+			Location:   "westeurope",
 			ID:         pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-p0v4")),
 			APIVersion: "2023-12-01",
 			Properties: &appserviceplans.AppServicePlanProperties{
@@ -85,14 +112,15 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			},
 			SKU:         pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("P0V4")}),
 			ExpectError: false,
+			RequiredEnv: "ARM_TEST_PREFLIGHT_APP_SERVICE_PLAN",
 			BeforeTest: func(t *testing.T) {
-				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, skuPolicyLocation)
-				assignPolicy(t, client, groupID, appServiceAppsShouldUseASKUThatSupportsPrivateLink, fmt.Sprintf("preflight-sku-%d", time.Now().UnixNano()))
+				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westeurope")
+				assignPolicy(t, client, groupID, appServiceAppsShouldUseASKUThatSupportsPrivateLink, fmt.Sprintf("preflight-sku-%d", time.Now().UnixNano()), nil)
 			},
 		},
 		{
 			Name:       "service_plan_f1_denied_by_private_link_sku_policy",
-			Location:   skuPolicyLocation,
+			Location:   "westeurope",
 			ID:         pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-f1")),
 			APIVersion: "2023-12-01",
 			Properties: &appserviceplans.AppServicePlanProperties{
@@ -101,9 +129,10 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			SKU:           pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("F1")}),
 			ExpectError:   true,
 			ErrorContains: appServiceAppsShouldUseASKUThatSupportsPrivateLink,
+			RequiredEnv:   "ARM_TEST_PREFLIGHT_APP_SERVICE_PLAN",
 			BeforeTest: func(t *testing.T) {
-				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, skuPolicyLocation)
-				assignPolicy(t, client, groupID, appServiceAppsShouldUseASKUThatSupportsPrivateLink, fmt.Sprintf("preflight-sku-%d", time.Now().UnixNano()))
+				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westeurope")
+				assignPolicy(t, client, groupID, appServiceAppsShouldUseASKUThatSupportsPrivateLink, fmt.Sprintf("preflight-sku-%d", time.Now().UnixNano()), nil)
 			},
 		},
 	}
@@ -114,6 +143,10 @@ func TestAccPreflight_validateResource(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
+			// App Service preflight checks regional compute quota even without deployment.
+			if tc.RequiredEnv != "" && os.Getenv(tc.RequiredEnv) != "true" {
+				t.Skipf("set %s=true to enable this quota-dependent case", tc.RequiredEnv)
+			}
 			if tc.BeforeTest != nil {
 				tc.BeforeTest(t)
 			}
@@ -163,19 +196,23 @@ func setupResourceGroup(t *testing.T, client *clients.Client, resourceGroupName,
 	return groupID
 }
 
-func assignPolicy(t *testing.T, client *clients.Client, groupID commonids.ResourceGroupId, policyDefinitionID, assignmentName string) policyassignments.ScopedPolicyAssignmentId {
+func assignPolicy(t *testing.T, client *clients.Client, groupID commonids.ResourceGroupId, policyDefinitionID, assignmentName string, parameters map[string]policyassignments.ParameterValuesValue) policyassignments.ScopedPolicyAssignmentId {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	assignmentID := policyassignments.NewScopedPolicyAssignmentID(groupID.ID(), assignmentName)
+	assignmentParameters := map[string]policyassignments.ParameterValuesValue{
+		"effect": {Value: pointer.To[any]("Deny")},
+	}
+	for name, value := range parameters {
+		assignmentParameters[name] = value
+	}
 	assignment := policyassignments.PolicyAssignment{
 		Properties: &policyassignments.PolicyAssignmentProperties{
 			PolicyDefinitionId: pointer.To(policyDefinitionID),
 			Scope:              pointer.To(assignmentID.Scope),
 			EnforcementMode:    pointer.To(policyassignments.EnforcementModeDefault),
-			Parameters: pointer.To(map[string]policyassignments.ParameterValuesValue{
-				"effect": {Value: pointer.To[any]("Deny")},
-			}),
+			Parameters:         pointer.To(assignmentParameters),
 		},
 	}
 	if _, err := client.Policy.AssignmentsClient.Create(ctx, assignmentID, assignment); err != nil {
