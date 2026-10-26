@@ -54,7 +54,6 @@ func TestAccPreflight_validateResource(t *testing.T) {
 		SKU           *any
 		ExpectError   bool
 		ErrorContains string
-		RequiredEnv   string
 		BeforeTest    func(*testing.T)
 	}{
 		{
@@ -103,7 +102,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 		},
 		{
 			Name:       "service_plan_p0v4_allowed_by_private_link_sku_policy",
-			Location:   "westeurope",
+			Location:   "westus2",
 			ID:         pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-p0v4")),
 			APIVersion: "2023-12-01",
 			Properties: &appserviceplans.AppServicePlanProperties{
@@ -112,15 +111,14 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			},
 			SKU:         pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("P0V4")}),
 			ExpectError: false,
-			RequiredEnv: "ARM_TEST_PREFLIGHT_APP_SERVICE_PLAN",
 			BeforeTest: func(t *testing.T) {
-				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westeurope")
+				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westus2")
 				assignPolicy(t, client, groupID, appServiceAppsShouldUseASKUThatSupportsPrivateLink, fmt.Sprintf("preflight-sku-%d", time.Now().UnixNano()), nil)
 			},
 		},
 		{
 			Name:       "service_plan_f1_denied_by_private_link_sku_policy",
-			Location:   "westeurope",
+			Location:   "westus2",
 			ID:         pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-f1")),
 			APIVersion: "2023-12-01",
 			Properties: &appserviceplans.AppServicePlanProperties{
@@ -129,9 +127,8 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			SKU:           pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("F1")}),
 			ExpectError:   true,
 			ErrorContains: appServiceAppsShouldUseASKUThatSupportsPrivateLink,
-			RequiredEnv:   "ARM_TEST_PREFLIGHT_APP_SERVICE_PLAN",
 			BeforeTest: func(t *testing.T) {
-				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westeurope")
+				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westus2")
 				assignPolicy(t, client, groupID, appServiceAppsShouldUseASKUThatSupportsPrivateLink, fmt.Sprintf("preflight-sku-%d", time.Now().UnixNano()), nil)
 			},
 		},
@@ -143,10 +140,6 @@ func TestAccPreflight_validateResource(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			// App Service preflight checks regional compute quota even without deployment.
-			if tc.RequiredEnv != "" && os.Getenv(tc.RequiredEnv) != "true" {
-				t.Skipf("set %s=true to enable this quota-dependent case", tc.RequiredEnv)
-			}
 			if tc.BeforeTest != nil {
 				tc.BeforeTest(t)
 			}
