@@ -32,8 +32,8 @@ type Registration struct{}
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		data_protection_backup_policy_cosmosdb_account.ListResource{},
 		DataProtectionBackupVaultResourceGuardAssociationListResource{},
+		data_protection_backup_policy_cosmosdb_account.ListResource{},
 	}
 }
 
@@ -105,6 +105,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		DataProtectionBackupVaultResourceGuardAssociationResource{},
 		data_protection_backup_instance_data_lake_storage.Resource{},
 		data_protection_backup_instance_kubernetes_cluster.Resource{},
 		data_protection_backup_instance_mysql_flexible_server.Resource{},
@@ -115,6 +116,5 @@ func (r Registration) Resources() []sdk.Resource {
 		data_protection_backup_policy_mysql_flexible_server.Resource{},
 		data_protection_backup_policy_postgresql_flexible_server.Resource{},
 		data_protection_backup_vault_customer_managed_key.Resource{},
-		DataProtectionBackupVaultResourceGuardAssociationResource{},
 	}
 }
