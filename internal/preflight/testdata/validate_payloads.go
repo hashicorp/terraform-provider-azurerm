@@ -12,6 +12,7 @@ import (
 
 func WebAppExample(subscriptionId string) map[string]any {
 	return map[string]any{
+		"kind":     "app",
 		"location": "northeurope",
 		"properties": map[string]any{
 			"serverFarmId": fmt.Sprintf("/subscriptions/%s/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp", subscriptionId),
