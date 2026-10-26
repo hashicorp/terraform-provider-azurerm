@@ -57,18 +57,16 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultNodePoolSecurity(data, "", "initial"),
+			Config: r.defaultNodePoolSecurity(data, false, "", "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, `
-security {
-  secure_boot_enabled = false
-  vtpm_enabled        = false
-}
+			Config: r.defaultNodePoolSecurity(data, true, `
+secure_boot_enabled = false
+vtpm_enabled        = false
 `, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -76,11 +74,9 @@ security {
 		},
 		disabledSecurityImport,
 		{
-			Config: r.defaultNodePoolSecurity(data, `
-security {
-  secure_boot_enabled = true
-  vtpm_enabled        = true
-}
+			Config: r.defaultNodePoolSecurity(data, true, `
+secure_boot_enabled = true
+vtpm_enabled        = true
 `, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -88,24 +84,22 @@ security {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, "", "initial"),
+			Config: r.defaultNodePoolSecurity(data, false, "", "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, "", "updated"),
+			Config: r.defaultNodePoolSecurity(data, false, "", "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, `
-security {
-  secure_boot_enabled = true
-}
+			Config: r.defaultNodePoolSecurity(data, true, `
+secure_boot_enabled = true
 `, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -113,10 +107,8 @@ security {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, `
-security {
-  vtpm_enabled = true
-}
+			Config: r.defaultNodePoolSecurity(data, true, `
+vtpm_enabled = true
 `, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -124,11 +116,9 @@ security {
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, `
-security {
-  secure_boot_enabled = false
-  vtpm_enabled        = false
-}
+			Config: r.defaultNodePoolSecurity(data, true, `
+secure_boot_enabled = false
+vtpm_enabled        = false
 `, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -142,7 +132,7 @@ func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	config := r.defaultNodePoolSecurity(data, "", "initial")
+	config := r.defaultNodePoolSecurity(data, false, "", "initial")
 	previous := map[string]resource.ExternalProvider{
 		"azurerm": {Source: "hashicorp/azurerm", VersionConstraint: "=5.7.0"},
 	}
@@ -586,7 +576,16 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, security, label string) string {
+func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, includeSecurity bool, securitySettings, label string) string {
+	securityBlock := ""
+	if includeSecurity {
+		securityBlock = fmt.Sprintf(`
+security {
+%s
+}
+`, securitySettings)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -628,7 +627,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, security, label)
+`, data.RandomInteger, data.Locations.Primary, securityBlock, label)
 }
 
 func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {

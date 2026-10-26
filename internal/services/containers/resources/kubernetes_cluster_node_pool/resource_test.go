@@ -912,18 +912,16 @@ func TestAccKubernetesClusterNodePool_security(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.securityConfig(data, "", "initial"),
+			Config: r.securityConfig(data, false, "", "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityConfig(data, `
-security {
-  secure_boot_enabled = false
-  vtpm_enabled        = false
-}
+			Config: r.securityConfig(data, true, `
+secure_boot_enabled = false
+vtpm_enabled        = false
 `, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -931,11 +929,9 @@ security {
 		},
 		disabledSecurityImport,
 		{
-			Config: r.securityConfig(data, `
-security {
-  secure_boot_enabled = true
-  vtpm_enabled        = true
-}
+			Config: r.securityConfig(data, true, `
+secure_boot_enabled = true
+vtpm_enabled        = true
 `, "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -943,24 +939,22 @@ security {
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityConfig(data, "", "initial"),
+			Config: r.securityConfig(data, false, "", "initial"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityConfig(data, "", "updated"),
+			Config: r.securityConfig(data, false, "", "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityConfig(data, `
-security {
-  secure_boot_enabled = true
-}
+			Config: r.securityConfig(data, true, `
+secure_boot_enabled = true
 `, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -968,10 +962,8 @@ security {
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityConfig(data, `
-security {
-  vtpm_enabled = true
-}
+			Config: r.securityConfig(data, true, `
+vtpm_enabled = true
 `, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -979,11 +971,9 @@ security {
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityConfig(data, `
-security {
-  secure_boot_enabled = false
-  vtpm_enabled        = false
-}
+			Config: r.securityConfig(data, true, `
+secure_boot_enabled = false
+vtpm_enabled        = false
 `, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -997,7 +987,7 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
-	config := r.securityConfig(data, "", "initial")
+	config := r.securityConfig(data, false, "", "initial")
 	previous := map[string]resource.ExternalProvider{
 		"azurerm": {Source: "hashicorp/azurerm", VersionConstraint: "=5.7.0"},
 	}
@@ -3175,7 +3165,16 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) securityConfig(data acceptance.TestData, security, label string) string {
+func (r KubernetesClusterNodePoolResource) securityConfig(data acceptance.TestData, includeSecurity bool, securitySettings, label string) string {
+	securityBlock := ""
+	if includeSecurity {
+		securityBlock = fmt.Sprintf(`
+security {
+%s
+}
+`, securitySettings)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3227,7 +3226,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, security, label)
+`, data.RandomInteger, data.Locations.Primary, securityBlock, label)
 }
 
 func (r KubernetesClusterNodePoolResource) maxSizeConfig(data acceptance.TestData) string {
