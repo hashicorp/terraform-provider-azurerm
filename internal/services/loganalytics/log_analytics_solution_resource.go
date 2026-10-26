@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -59,7 +59,7 @@ var (
 	_ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
 )
 
-func (s LogAnalyticsSolutionResource) ModelObject() interface{} {
+func (s LogAnalyticsSolutionResource) ModelObject() any {
 	return &SolutionResourceModel{}
 }
 
@@ -232,10 +232,8 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("expected %q to match 'Solution(WorkspaceName)'", val)
 					}
 
-					solutionName := segments[0]
-					workspaceName := strings.TrimSuffix(segments[1], ")")
-					state.SolutionName = solutionName
-					state.WorkspaceName = workspaceName
+					state.SolutionName = segments[0]
+					state.WorkspaceName = strings.TrimSuffix(segments[1], ")")
 				}
 
 				if props := model.Properties; props != nil {

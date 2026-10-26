@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -12,6 +12,16 @@ import (
 )
 
 type ResourcesDataSource struct{}
+
+func TestAccDataSourceResources_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
+	r := ResourcesDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.ByName(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceResources_ByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")

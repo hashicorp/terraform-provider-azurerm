@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -12,6 +12,16 @@ import (
 )
 
 type TenantTemplateDeploymentDataSource struct{}
+
+func TestAccDataSourceTenantTemplateDeployment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_tenant_template_deployment", "test")
+	r := TenantTemplateDeploymentDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.withDataSource(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceTenantTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_tenant_template_deployment", "test")

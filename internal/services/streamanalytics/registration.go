@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -32,10 +32,10 @@ func (r Registration) Resources() []sdk.Resource {
 		JobScheduleResource{},
 		JobStorageAccountResource{},
 		ManagedPrivateEndpointResource{},
-		OutputFunctionResource{},
-		OutputTableResource{},
-		OutputPowerBIResource{},
 		OutputCosmosDBResource{},
+		OutputFunctionResource{},
+		OutputPowerBIResource{},
+		OutputTableResource{},
 		StreamInputEventHubV2Resource{},
 	}
 }
@@ -62,12 +62,12 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_stream_analytics_job":                     resourceStreamAnalyticsJob(),
 		"azurerm_stream_analytics_function_javascript_uda": resourceStreamAnalyticsFunctionUDA(),
 		"azurerm_stream_analytics_function_javascript_udf": resourceStreamAnalyticsFunctionUDF(),
+		"azurerm_stream_analytics_job":                     resourceStreamAnalyticsJob(),
 		"azurerm_stream_analytics_output_blob":             resourceStreamAnalyticsOutputBlob(),
-		"azurerm_stream_analytics_output_mssql":            resourceStreamAnalyticsOutputSql(),
 		"azurerm_stream_analytics_output_eventhub":         resourceStreamAnalyticsOutputEventHub(),
+		"azurerm_stream_analytics_output_mssql":            resourceStreamAnalyticsOutputSql(),
 		"azurerm_stream_analytics_output_servicebus_queue": resourceStreamAnalyticsOutputServiceBusQueue(),
 		"azurerm_stream_analytics_output_servicebus_topic": resourceStreamAnalyticsOutputServiceBusTopic(),
 		"azurerm_stream_analytics_output_synapse":          resourceStreamAnalyticsOutputSynapse(),

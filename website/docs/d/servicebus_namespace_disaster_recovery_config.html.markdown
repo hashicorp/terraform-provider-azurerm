@@ -14,7 +14,7 @@ Use this data source to access information about an existing Service Bus Disaste
 
 ```hcl
 data "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
-  name         = "existing"
+  name         = "example-alias"
   namespace_id = "example-namespace-id"
 }
 
@@ -61,4 +61,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus` - 2024-01-01
+* `Microsoft.ServiceBus` - 2026-01-01

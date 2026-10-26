@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type CosmosDbPostgreSQLRoleResourceModel struct {
@@ -29,7 +30,7 @@ func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_role"
 }
 
-func (r CosmosDbPostgreSQLRoleResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLRoleResource) ModelObject() any {
 	return &CosmosDbPostgreSQLRoleResourceModel{}
 }
 
@@ -58,7 +59,7 @@ func (r CosmosDbPostgreSQLRoleResource) Arguments() map[string]*pluginsdk.Schema
 			Required:     true,
 			ForceNew:     true,
 			Sensitive:    true,
-			ValidateFunc: validate.RolePassword,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 	}
 }

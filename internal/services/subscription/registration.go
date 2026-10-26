@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -37,9 +37,9 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
+		"azurerm_extended_locations": dataSourceExtendedLocations(),
 		"azurerm_subscription":       dataSourceSubscription(),
 		"azurerm_subscriptions":      dataSourceSubscriptions(),
-		"azurerm_extended_locations": dataSourceExtendedLocations(),
 	}
 }
 

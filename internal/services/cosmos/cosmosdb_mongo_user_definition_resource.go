@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -33,7 +33,7 @@ func (r CosmosDbMongoUserDefinitionResource) ResourceType() string {
 	return "azurerm_cosmosdb_mongo_user_definition"
 }
 
-func (r CosmosDbMongoUserDefinitionResource) ModelObject() interface{} {
+func (r CosmosDbMongoUserDefinitionResource) ModelObject() any {
 	return &CosmosDbMongoUserDefinitionResourceModel{}
 }
 

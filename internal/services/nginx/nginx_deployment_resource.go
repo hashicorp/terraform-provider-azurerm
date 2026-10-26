@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -101,10 +101,9 @@ func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, ne
 	if len(private) > 0 {
 		var privateIPs []nginxdeployment.NginxPrivateIPAddress
 		for _, ip := range private {
-			alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
 			privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
 				PrivateIPAddress:          pointer.To(ip.IpAddress),
-				PrivateIPAllocationMethod: &alloc,
+				PrivateIPAllocationMethod: pointer.ToEnum[nginxdeployment.NginxPrivateIPAllocationMethod](ip.AllocationMethod),
 				SubnetId:                  pointer.To(ip.SubnetId),
 			})
 		}
@@ -303,7 +302,7 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m DeploymentResource) ModelObject() interface{} {
+func (m DeploymentResource) ModelObject() any {
 	return &DeploymentModel{}
 }
 
@@ -357,8 +356,7 @@ func expandCreateForNginxDeployment(model DeploymentModel) (nginxdeployment.Ngin
 	req.Tags = pointer.To(model.Tags)
 
 	if model.Sku != "" {
-		sku := nginxdeployment.ResourceSku{Name: model.Sku}
-		req.Sku = &sku
+		req.Sku = pointer.To(nginxdeployment.ResourceSku{Name: model.Sku})
 	}
 
 	prop := &nginxdeployment.NginxDeploymentProperties{}
@@ -694,7 +692,6 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			meta.Logger.Infof("deleting %s", id)
 
 			if err := client.DeploymentsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)

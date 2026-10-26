@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package devcenter
@@ -46,7 +46,7 @@ func (DevCenterEnvironmentTypeDataSource) Attributes() map[string]*pluginsdk.Sch
 	}
 }
 
-func (DevCenterEnvironmentTypeDataSource) ModelObject() interface{} {
+func (DevCenterEnvironmentTypeDataSource) ModelObject() any {
 	return &DevCenterEnvironmentTypeDataSourceModel{}
 }
 

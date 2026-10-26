@@ -1,9 +1,10 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
@@ -13,6 +14,12 @@ import (
 )
 
 func TestAccSignalrServiceCustomDomain_resourceIdentity(t *testing.T) {
+	for _, v := range []string{"ARM_TEST_DNS_ZONE", "ARM_TEST_DATA_RESOURCE_GROUP"} {
+		if os.Getenv(v) == "" {
+			t.Skipf("Skipping as `%s` was not specified", v)
+		}
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 

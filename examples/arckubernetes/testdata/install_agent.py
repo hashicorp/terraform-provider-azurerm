@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 import argparse
@@ -128,7 +128,7 @@ def install_helm_client():
 
     # Download compressed halm binary if not already present
     if not os.path.isfile(download_location):
-        # Creating the helm folder if it doesnt exist
+        # Creating the helm folder if it doesn't exist
         if not os.path.exists(download_dir):
             try:
                 os.makedirs(download_dir)
@@ -228,7 +228,7 @@ def install_agent():
 
     # Retrieving Helm chart OCI Artifact location
     registry_path = get_helm_registry("https://westeurope.dp.kubernetesconfiguration.azure.com")
-    
+
     # Get helm chart path
     chart_path = get_chart_path(
         registry_path, None, None, helm_client_location)

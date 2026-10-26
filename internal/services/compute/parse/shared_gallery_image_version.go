@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -17,14 +17,6 @@ type SharedGalleryImageVersionId struct {
 	GalleryName string
 	ImageName   string
 	Version     string
-}
-
-func NewSharedGalleryImageVersionID(galleryName, imageName, version string) SharedGalleryImageVersionId {
-	return SharedGalleryImageVersionId{
-		GalleryName: galleryName,
-		ImageName:   imageName,
-		Version:     version,
-	}
 }
 
 func (id SharedGalleryImageVersionId) String() string {
