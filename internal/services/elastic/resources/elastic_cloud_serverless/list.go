@@ -1,7 +1,7 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package elastic
+package elastic_cloud_serverless
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ElasticCloudServerlessListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(ElasticCloudServerlessListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (ElasticCloudServerlessListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = ElasticCloudServerlessResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (ElasticCloudServerlessListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(ElasticCloudServerlessResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (ElasticCloudServerlessListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Elastic.ServerlessMonitorClient
 
 	var data sdk.DefaultListModel
@@ -49,7 +49,7 @@ func (ElasticCloudServerlessListResource) List(ctx context.Context, request list
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.MonitorsListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", ElasticCloudServerlessResource{}.ResourceType()), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", Resource{}.ResourceType()), err)
 			return
 		}
 
@@ -57,7 +57,7 @@ func (ElasticCloudServerlessListResource) List(ctx context.Context, request list
 	default:
 		resp, err := client.MonitorsListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", ElasticCloudServerlessResource{}.ResourceType()), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", Resource{}.ResourceType()), err)
 			return
 		}
 
@@ -65,7 +65,7 @@ func (ElasticCloudServerlessListResource) List(ctx context.Context, request list
 	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
-		serverlessResource := ElasticCloudServerlessResource{}
+		serverlessResource := Resource{}
 		for _, monitor := range monitors {
 			if monitor.Properties == nil || pointer.From(monitor.Properties.HostingType) != elasticmonitorresources.HostingTypeServerless {
 				continue

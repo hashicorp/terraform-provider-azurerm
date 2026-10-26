@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/resources/elastic_cloud_elasticsearch"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/resources/elastic_cloud_serverless"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,7 +42,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ElasticCloudServerlessResource{},
+		elastic_cloud_serverless.Resource{},
 	}
 }
 
@@ -77,6 +78,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		&ElasticCloudServerlessListResource{},
+		elastic_cloud_serverless.ListResource{},
 	}
 }
