@@ -140,7 +140,7 @@ func (d RelayNamespaceDataSource) Read() sdk.ResourceFunc {
 
 			keysResp, err := client.ListKeys(ctx, authRuleId)
 			if err != nil {
-				log.Printf("[ERROR] Unable to List Write keys for %s: %s", id, err)
+				log.Printf("[WARN] Unable to List Write keys for %s: %s", id, err)
 			} else if keysModel := keysResp.Model; keysModel != nil {
 				state.PrimaryConnectionString = pointer.From(keysModel.PrimaryConnectionString)
 				state.SecondaryConnectionString = pointer.From(keysModel.SecondaryConnectionString)
