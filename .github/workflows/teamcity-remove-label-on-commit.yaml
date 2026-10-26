@@ -3,6 +3,10 @@ name: TeamCity Remove Label on Commit
 
 # On new commits to a PR, replaces teamcity-passed/failed/new-failure labels with
 # teamcity-outdated so stale acceptance-test results are not trusted.
+#
+# Pushes that only touch paths that cannot affect acceptance test results are skipped.
+# The pushed range (`before`..`after`) is compared rather than using a `paths-ignore`
+# filter, which is evaluated against every file in the PR, not just the push.
 
 # pull_request_target is used to label only; the PR head is never checked out
 on:  # zizmor: ignore[dangerous-triggers]
@@ -21,6 +25,7 @@ jobs:
       TEAMCITY_LABELS: teamcity-passed,teamcity-failed,teamcity-new-failure
       OUTDATED_LABEL: teamcity-outdated
       PASSED_LABEL: teamcity-passed
+      IGNORED_PATH_PREFIXES: website/,contributing/,.changelog/,examples/,.github/
     steps:
       - name: Check for TeamCity labels and apply outdated label
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
@@ -30,11 +35,14 @@ jobs:
             const teamcityLabels = process.env.TEAMCITY_LABELS.split(',');
             const outdatedLabel = process.env.OUTDATED_LABEL;
             const passedLabel = process.env.PASSED_LABEL;
+            const ignoredPathPrefixes = process.env.IGNORED_PATH_PREFIXES.split(',').filter(Boolean);
+
+            const prNumber = context.payload.pull_request.number;
 
             const { data: labels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number
+              issue_number: prNumber
             });
 
             const labelNames = labels.map(label => label.name);
@@ -42,52 +50,106 @@ jobs:
             const hasOutdatedLabel = labelNames.includes(outdatedLabel);
             const hasPassedLabel = labelNames.includes(passedLabel);
 
-            if (hasTeamCityLabel) {
-              const foundLabels = teamcityLabels.filter(label => labelNames.includes(label));
-              core.info(`Found TeamCity labels: ${foundLabels.join(', ')}`);
+            if (!hasTeamCityLabel) {
+              core.info(`No TeamCity labels found on PR #${prNumber}`);
+              return;
+            }
 
-              if (!hasOutdatedLabel) {
-                core.info(`Applying "${outdatedLabel}" label to PR #${context.payload.pull_request.number}`);
+            const foundLabels = teamcityLabels.filter(label => labelNames.includes(label));
+            core.info(`Found TeamCity labels: ${foundLabels.join(', ')}`);
 
-                try {
-                  await github.rest.issues.addLabels({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: context.payload.pull_request.number,
-                    labels: [outdatedLabel]
-                  });
+            // any doubt (compare failed, empty or possibly truncated file list) applies the label
+            const isIgnoredPath = (path) => ignoredPathPrefixes.some(prefix => path.startsWith(prefix));
 
-                  core.info(`Successfully applied "${outdatedLabel}" label`);
-                } catch (error) {
-                  core.error(`Failed to apply "${outdatedLabel}" label: ${error.message}`);
-                  throw error;
-                }
-              } else {
-                core.info(`Label "${outdatedLabel}" already exists on PR #${context.payload.pull_request.number}`);
+            const pushOnlyTouchesIgnoredPaths = async () => {
+              const before = context.payload.before;
+              const after = context.payload.after;
+              if (!before || !after || /^0+$/.test(before)) {
+                core.info('No before/after range in event payload; treating push as a code change');
+                return false;
               }
 
-              // Remove passed label if it exists
-              if (hasPassedLabel) {
-                core.info(`Removing "${passedLabel}" label from PR #${context.payload.pull_request.number}`);
+              // the compare API returns at most 300 files and cannot page through more
+              const maxFiles = 300;
+              let files;
+              try {
+                const { data: compare } = await github.rest.repos.compareCommitsWithBasehead({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  basehead: `${before}...${after}`
+                });
+                files = compare.files || [];
+              } catch (error) {
+                core.warning(`Could not compare ${before.slice(0, 7)}...${after.slice(0, 7)} (${error.message}); treating push as a code change`);
+                return false;
+              }
 
-                try {
-                  await github.rest.issues.removeLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: context.payload.pull_request.number,
-                    name: passedLabel
-                  });
+              if (files.length === 0) {
+                core.info('Compare returned no changed files; treating push as a code change');
+                return false;
+              }
+              if (files.length >= maxFiles) {
+                core.info(`Compare returned ${files.length} files and may be truncated; treating push as a code change`);
+                return false;
+              }
 
-                  core.info(`Successfully removed "${passedLabel}" label`);
-                } catch (error) {
-                  if (error.status === 404) {
-                    core.warning(`Label "${passedLabel}" was not found on PR #${context.payload.pull_request.number}`);
-                  } else {
-                    core.error(`Failed to remove "${passedLabel}" label: ${error.message}`);
-                    throw error;
-                  }
+              for (const file of files) {
+                const paths = [file.filename, file.previous_filename].filter(Boolean);
+                const affectingPath = paths.find(path => !isIgnoredPath(path));
+                if (affectingPath) {
+                  core.info(`Push changes a file that can affect test results: ${affectingPath}`);
+                  return false;
                 }
+              }
+
+              core.info(`All ${files.length} file(s) changed by this push are under ignored paths`);
+              return true;
+            };
+
+            if (await pushOnlyTouchesIgnoredPaths()) {
+              core.info(`Push to PR #${prNumber} cannot affect test results; leaving TeamCity labels unchanged`);
+              return;
+            }
+
+            if (!hasOutdatedLabel) {
+              core.info(`Applying "${outdatedLabel}" label to PR #${prNumber}`);
+
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  labels: [outdatedLabel]
+                });
+
+                core.info(`Successfully applied "${outdatedLabel}" label`);
+              } catch (error) {
+                core.error(`Failed to apply "${outdatedLabel}" label: ${error.message}`);
+                throw error;
               }
             } else {
-              core.info(`No TeamCity labels found on PR #${context.payload.pull_request.number}`);
+              core.info(`Label "${outdatedLabel}" already exists on PR #${prNumber}`);
+            }
+
+            // Remove passed label if it exists
+            if (hasPassedLabel) {
+              core.info(`Removing "${passedLabel}" label from PR #${prNumber}`);
+
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: passedLabel
+                });
+
+                core.info(`Successfully removed "${passedLabel}" label`);
+              } catch (error) {
+                if (error.status === 404) {
+                  core.warning(`Label "${passedLabel}" was not found on PR #${prNumber}`);
+                } else {
+                  core.error(`Failed to remove "${passedLabel}" label: ${error.message}`);
+                  throw error;
+                }
+              }
             }
