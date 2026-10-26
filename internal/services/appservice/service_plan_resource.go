@@ -380,7 +380,7 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 
 					id := commonids.NewAppServicePlanID(metadata.Client.Account.SubscriptionId, model.ResourceGroup, model.Name)
 
-					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-01", req.Properties, pointer.To[any](req.Sku))
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2023-12-01", req)
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
 					}

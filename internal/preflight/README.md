@@ -12,11 +12,10 @@ is implemented via `CustomizeDiff` on resources that support it.
 ## Constraint: PUT payloads only
 
 The Azure Preflight Validation API validates full ARM **PUT** payloads. **PATCH operations are
-not supported.** The `properties` value passed to `NewValidationRequest` must represent the
-complete ARM properties used by the resource's PUT request. A partial or PATCH-style
+not supported.** The `requestBody` value passed to `NewValidationRequest` must represent the
+complete resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
 payload will produce unreliable validation results — either false positives (blocked valid
 configs) or false negatives (invalid configs that pass undetected).
-
 
 ---
 
@@ -47,7 +46,7 @@ For most resources, the resource type is derived automatically from the ARM ID's
 
 ```go
 resId := mypackage.NewMyResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
-preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req.Properties, nil)
+preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req)
 ```
 
 The `resourceType` field in the request (used to select validation rules) is extracted from the
@@ -64,7 +63,7 @@ cases the preflight API uses a different type discriminator than the ARM ID segm
 resId := redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 // Microsoft.Cache hosts both "redis" (classic) and "redisEnterprise" products under the same
 // provider. The preflight API uses "redis" as the type discriminator for this resource.
-preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(pointer.To(model.Location), pointer.To(resId), "redis", "2025-07-01", req.Properties, pointer.To[any](req.Sku))
+preflightValidate, err := preflight.NewValidationRequestWithTypeOverride(pointer.To(model.Location), pointer.To(resId), "redis", "2025-07-01", req)
 ```
 
 ---
@@ -126,7 +125,7 @@ func (r MyResource) CustomizeDiff() sdk.ResourceFunc {
                     }
 
                     resId := mypackage.NewMyResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
-                    preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req.Properties, nil)
+                    preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req)
                     if err != nil {
                         return fmt.Errorf("constructing preflight validation request: %w", err)
                     }
@@ -175,7 +174,7 @@ if metadata.Client.Features.EnhancedValidation.PreflightEnabled {
         }
 
         resId := mypackage.NewMyResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
-        preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req.Properties, nil)
+        preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(resId), "2025-01-01", req)
         if err != nil {
             return fmt.Errorf("constructing preflight validation request: %w", err)
         }

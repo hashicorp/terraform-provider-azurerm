@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
@@ -48,8 +47,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 		Location      string
 		ID            resourceids.ResourceId
 		APIVersion    string
-		Properties    any
-		SKU           *any
+		RequestBody   any
 		ExpectError   bool
 		ErrorContains string
 		BeforeTest    func(*testing.T)
@@ -59,7 +57,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			Location:    "northeurope",
 			ID:          pointer.To(commonids.NewAppServiceID(client.Account.SubscriptionId, "testResourceGroup", "testSiteName")),
 			APIVersion:  "2024-11-01",
-			Properties:  testdata.WebAppExample(client.Account.SubscriptionId),
+			RequestBody: testdata.WebAppExample(client.Account.SubscriptionId),
 			ExpectError: false,
 		},
 		{
@@ -67,7 +65,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			Location:    "northeurope",
 			ID:          pointer.To(commonids.NewVirtualNetworkID(client.Account.SubscriptionId, "testResourceGroup", "testVirtualValid")),
 			APIVersion:  "2024-01-01",
-			Properties:  testdata.VirtualNetworkExample(),
+			RequestBody: testdata.VirtualNetworkExample(),
 			ExpectError: false,
 		},
 		{
@@ -75,7 +73,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			Location:    "northeurope",
 			ID:          pointer.To(commonids.NewVirtualNetworkID(client.Account.SubscriptionId, "testResourceGroup", "testVirtualValid")),
 			APIVersion:  "2024-01-01",
-			Properties:  testdata.VirtualNetworkExampleMissingRequiredProperty(),
+			RequestBody: testdata.VirtualNetworkExampleMissingRequiredProperty(),
 			ExpectError: true,
 		},
 		{
@@ -83,8 +81,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			Location:    "westus2",
 			ID:          pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-p0v4")),
 			APIVersion:  "2023-12-01",
-			Properties:  testdata.AppServicePlanP0V4Example(),
-			SKU:         pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("P0V4")}),
+			RequestBody: testdata.AppServicePlanP0V4Example(),
 			ExpectError: false,
 			BeforeTest: func(t *testing.T) {
 				groupID := setupResourceGroup(t, client, skuPolicyResourceGroup, "westus2")
@@ -96,8 +93,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			Location:      "westus2",
 			ID:            pointer.To(commonids.NewAppServicePlanID(client.Account.SubscriptionId, skuPolicyResourceGroup, "preflight-f1")),
 			APIVersion:    "2023-12-01",
-			Properties:    testdata.AppServicePlanF1Example(),
-			SKU:           pointer.To[any](&appserviceplans.SkuDescription{Name: pointer.To("F1")}),
+			RequestBody:   testdata.AppServicePlanF1Example(),
 			ExpectError:   true,
 			ErrorContains: appServiceAppsShouldUseASKUThatSupportsPrivateLink,
 			BeforeTest: func(t *testing.T) {
@@ -118,7 +114,7 @@ func TestAccPreflight_validateResource(t *testing.T) {
 			}
 			testCtx, testCancel := context.WithTimeout(context.Background(), 5*time.Minute)
 			defer testCancel()
-			request, err := preflight.NewValidationRequest(pointer.To(tc.Location), tc.ID, tc.APIVersion, tc.Properties, tc.SKU)
+			request, err := preflight.NewValidationRequest(pointer.To(tc.Location), tc.ID, tc.APIVersion, tc.RequestBody)
 			if err != nil {
 				t.Fatalf("building validation request: %s", err)
 			}

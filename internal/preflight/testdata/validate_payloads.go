@@ -12,36 +12,53 @@ import (
 
 func WebAppExample(subscriptionId string) map[string]any {
 	return map[string]any{
-		"serverFarmId": fmt.Sprintf("/subscriptions/%s/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp", subscriptionId),
+		"location": "northeurope",
+		"properties": map[string]any{
+			"serverFarmId": fmt.Sprintf("/subscriptions/%s/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp", subscriptionId),
+		},
 	}
 }
 
 func AppServicePlanP0V4Example() map[string]any {
 	return map[string]any{
-		"reserved":       true,
-		"perSiteScaling": true,
+		"location": "westus2",
+		"sku":      map[string]any{"name": "P0V4"},
+		"properties": map[string]any{
+			"reserved":       true,
+			"perSiteScaling": true,
+		},
 	}
 }
 
 func AppServicePlanF1Example() map[string]any {
 	return map[string]any{
-		"reserved": true,
+		"location": "westus2",
+		"sku":      map[string]any{"name": "F1"},
+		"properties": map[string]any{
+			"reserved": true,
+		},
 	}
 }
 
 func VirtualNetworkExample() map[string]any {
 	return map[string]any{
-		"addressSpace": map[string]any{
-			"addressPrefixes": []string{"10.0.0.0/16"},
+		"location": "northeurope",
+		"properties": map[string]any{
+			"addressSpace": map[string]any{
+				"addressPrefixes": []string{"10.0.0.0/16"},
+			},
+			"flowTimeoutInMinutes": 10,
 		},
-		"flowTimeoutInMinutes": 10,
 	}
 }
 
 func VirtualNetworkExampleMissingRequiredProperty() map[string]any {
 	return map[string]any{
-		"addressSpace":         map[string]any{},
-		"flowTimeoutInMinutes": 10,
+		"location": "northeurope",
+		"properties": map[string]any{
+			"addressSpace":         map[string]any{},
+			"flowTimeoutInMinutes": 10,
+		},
 	}
 }
 
