@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -395,7 +395,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx contex
 func optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(vmId string, vaultName string) string {
 	return fmt.Sprintf(`
 An existing soft-deleted Backup Protected VM exists with the source VM %q in the recovery services
-vault %q, however automatically recovering this Backup Protected VM has been disabled via the 
+vault %q, however automatically recovering this Backup Protected VM has been disabled via the
 "features" block.
 
 Terraform can automatically recover the soft-deleted Backup Protected VM when this behaviour is
