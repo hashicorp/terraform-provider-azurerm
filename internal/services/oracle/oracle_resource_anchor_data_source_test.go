@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -14,7 +14,7 @@ import (
 
 type ResourceAnchorDataSource struct{}
 
-func TestResourceAnchorDataSource_basic(t *testing.T) {
+func TestAccResourceAnchorDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ResourceAnchorDataSource{}.ResourceType(), "test")
 	r := ResourceAnchorDataSource{}
 
