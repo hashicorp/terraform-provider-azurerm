@@ -133,7 +133,7 @@ func ExpandLongTermRetentionPolicy(input []any) *longtermretentionpolicies.LongT
 }
 
 func FlattenLongTermRetentionPolicy(input *longtermretentionpolicies.LongTermRetentionPolicy) []any {
-	if input == nil {
+	if input == nil || input.Properties == nil {
 		return []any{}
 	}
 
