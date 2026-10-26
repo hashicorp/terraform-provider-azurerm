@@ -13,13 +13,13 @@ Use this data source to access information about an existing Maintenance Configu
 ## Example Usage
 
 ```hcl
-data "azurerm_maintenance_configuration" "existing" {
+data "azurerm_maintenance_configuration" "example" {
   name                = "example-mc"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = azurerm_maintenance_configuration.existing.id
+  value = data.azurerm_maintenance_configuration.example.id
 }
 ```
 
