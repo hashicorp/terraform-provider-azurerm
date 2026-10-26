@@ -30,7 +30,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("single_sign_on"); ok && d.HasChange("single_sign_on") {
-		payload.Properties.SingleSignOnState = pointer.To(datadogsinglesignonresources.SingleSignOnStates(v.(string)))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[datadogsinglesignonresources.SingleSignOnStates](v.(string))
 	}
 
 	if err := client.SingleSignOnConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {

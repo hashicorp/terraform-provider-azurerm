@@ -15,7 +15,7 @@ func expandMonitorIdentityProperties(input []any) *datadogmonitorresources.Ident
 	v := input[0].(map[string]any)
 	return &datadogmonitorresources.IdentityProperties{
 		// @tombuildsstuff: this should be normalized in Pandora to a common identity type? is this a Swagger bag with SA & UA omitted?
-		Type: pointer.To(datadogmonitorresources.ManagedIdentityTypes(v["type"].(string))),
+		Type: pointer.ToEnum[datadogmonitorresources.ManagedIdentityTypes](v["type"].(string)),
 	}
 }
 

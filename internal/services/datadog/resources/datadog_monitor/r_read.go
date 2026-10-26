@@ -57,7 +57,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 
 			d.Set("monitoring_enabled", monitoringEnabled)
-			d.Set("marketplace_subscription_status", string(pointer.From(props.MarketplaceSubscriptionStatus)))
+			d.Set("marketplace_subscription_status", pointer.FromEnum(props.MarketplaceSubscriptionStatus))
 		}
 
 		skuName := ""
