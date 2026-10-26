@@ -6,6 +6,7 @@ package preflight_test
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 	"testing"
@@ -158,7 +159,7 @@ func setupResourceGroup(t *testing.T, client *clients.Client, resourceGroupName,
 	return groupID
 }
 
-func assignPolicy(t *testing.T, client *clients.Client, groupID commonids.ResourceGroupId, policyDefinitionID, assignmentName string, parameters map[string]policyassignments.ParameterValuesValue) policyassignments.ScopedPolicyAssignmentId {
+func assignPolicy(t *testing.T, client *clients.Client, groupID commonids.ResourceGroupId, policyDefinitionID, assignmentName string, parameters map[string]policyassignments.ParameterValuesValue) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
@@ -166,9 +167,7 @@ func assignPolicy(t *testing.T, client *clients.Client, groupID commonids.Resour
 	assignmentParameters := map[string]policyassignments.ParameterValuesValue{
 		"effect": {Value: pointer.To[any]("Deny")},
 	}
-	for name, value := range parameters {
-		assignmentParameters[name] = value
-	}
+	maps.Copy(assignmentParameters, parameters)
 	assignment := policyassignments.PolicyAssignment{
 		Properties: &policyassignments.PolicyAssignmentProperties{
 			PolicyDefinitionId: pointer.To(policyDefinitionID),
@@ -187,5 +186,4 @@ func assignPolicy(t *testing.T, client *clients.Client, groupID commonids.Resour
 			t.Errorf("deleting policy assignment: %s", err)
 		}
 	})
-	return assignmentID
 }
