@@ -28,7 +28,6 @@ import (
 
 // Built-in policy definitions
 const appServiceAppsShouldUseASKUThatSupportsPrivateLink = "/providers/Microsoft.Authorization/policyDefinitions/546fe8d2-368d-4029-a418-6af48a7f61e5"
-const allowedLocations = "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c"
 
 func TestAccPreflight_validateResource(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
