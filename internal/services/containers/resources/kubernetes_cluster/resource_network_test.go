@@ -2454,7 +2454,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 2
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2as_v7"
     max_pods   = 60
     upgrade_settings {
       max_surge = "10%%"

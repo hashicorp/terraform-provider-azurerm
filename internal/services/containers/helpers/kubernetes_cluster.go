@@ -7,7 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-06-01/agentpools"
 )
 
 func Base64Decode(str string) string {

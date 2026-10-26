@@ -142,12 +142,14 @@ type AgentPoolSSHAccess string
 
 const (
 	AgentPoolSSHAccessDisabled  AgentPoolSSHAccess = "Disabled"
+	AgentPoolSSHAccessEntraId   AgentPoolSSHAccess = "EntraId"
 	AgentPoolSSHAccessLocalUser AgentPoolSSHAccess = "LocalUser"
 )
 
 func PossibleValuesForAgentPoolSSHAccess() []string {
 	return []string{
 		string(AgentPoolSSHAccessDisabled),
+		string(AgentPoolSSHAccessEntraId),
 		string(AgentPoolSSHAccessLocalUser),
 	}
 }
@@ -168,6 +170,7 @@ func (s *AgentPoolSSHAccess) UnmarshalJSON(bytes []byte) error {
 func parseAgentPoolSSHAccess(input string) (*AgentPoolSSHAccess, error) {
 	vals := map[string]AgentPoolSSHAccess{
 		"disabled":  AgentPoolSSHAccessDisabled,
+		"entraid":   AgentPoolSSHAccessEntraId,
 		"localuser": AgentPoolSSHAccessLocalUser,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -343,6 +346,88 @@ func parseCode(input string) (*Code, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := Code(input)
+	return &out, nil
+}
+
+type ContainerNetworkLogs string
+
+const (
+	ContainerNetworkLogsDisabled ContainerNetworkLogs = "Disabled"
+	ContainerNetworkLogsEnabled  ContainerNetworkLogs = "Enabled"
+)
+
+func PossibleValuesForContainerNetworkLogs() []string {
+	return []string{
+		string(ContainerNetworkLogsDisabled),
+		string(ContainerNetworkLogsEnabled),
+	}
+}
+
+func (s *ContainerNetworkLogs) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerNetworkLogs(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseContainerNetworkLogs(input string) (*ContainerNetworkLogs, error) {
+	vals := map[string]ContainerNetworkLogs{
+		"disabled": ContainerNetworkLogsDisabled,
+		"enabled":  ContainerNetworkLogsEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ContainerNetworkLogs(input)
+	return &out, nil
+}
+
+type DRANETMode string
+
+const (
+	DRANETModeManaged   DRANETMode = "Managed"
+	DRANETModeUnmanaged DRANETMode = "Unmanaged"
+)
+
+func PossibleValuesForDRANETMode() []string {
+	return []string{
+		string(DRANETModeManaged),
+		string(DRANETModeUnmanaged),
+	}
+}
+
+func (s *DRANETMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDRANETMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDRANETMode(input string) (*DRANETMode, error) {
+	vals := map[string]DRANETMode{
+		"managed":   DRANETModeManaged,
+		"unmanaged": DRANETModeUnmanaged,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DRANETMode(input)
 	return &out, nil
 }
 
@@ -1146,6 +1231,47 @@ func parseLocalDNSState(input string) (*LocalDNSState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := LocalDNSState(input)
+	return &out, nil
+}
+
+type ManagedClusterNATGatewaySku string
+
+const (
+	ManagedClusterNATGatewaySkuStandard     ManagedClusterNATGatewaySku = "Standard"
+	ManagedClusterNATGatewaySkuStandardVTwo ManagedClusterNATGatewaySku = "StandardV2"
+)
+
+func PossibleValuesForManagedClusterNATGatewaySku() []string {
+	return []string{
+		string(ManagedClusterNATGatewaySkuStandard),
+		string(ManagedClusterNATGatewaySkuStandardVTwo),
+	}
+}
+
+func (s *ManagedClusterNATGatewaySku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedClusterNATGatewaySku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseManagedClusterNATGatewaySku(input string) (*ManagedClusterNATGatewaySku, error) {
+	vals := map[string]ManagedClusterNATGatewaySku{
+		"standard":   ManagedClusterNATGatewaySkuStandard,
+		"standardv2": ManagedClusterNATGatewaySkuStandardVTwo,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ManagedClusterNATGatewaySku(input)
 	return &out, nil
 }
 
