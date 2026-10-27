@@ -1,0 +1,53 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package data_share_dataset_data_lake_gen2_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+)
+
+type DataShareDatasetDataLakeGen2DataSource struct{}
+
+func TestAccDataShareDatasetDataLakeGen2DataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen2", "test")
+	r := DataShareDatasetDataLakeGen2DataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
+func TestAccDataShareDatasetDataLakeGen2DataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen2", "test")
+	r := DataShareDatasetDataLakeGen2DataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("file_system_name").Exists(),
+				check.That(data.ResourceName).Key("file_path").Exists(),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
+		},
+	})
+}
+
+func (DataShareDatasetDataLakeGen2DataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_data_share_dataset_data_lake_gen2" "test" {
+  name     = azurerm_data_share_dataset_data_lake_gen2.test.name
+  share_id = azurerm_data_share_dataset_data_lake_gen2.test.share_id
+}
+`, DataShareDatasetDataLakeGen2Resource{}.basicFile(data))
+}
