@@ -84,7 +84,7 @@ func TestAccAdbsRegularResource_update(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updateDataStorageSizeFromTbsToGbs(t *testing.T) {
+func TestAccAdbsRegularResource_updateDataStorageSizeFromTbsToGbs(t *testing.T) {
 	if features.SixPointOh() {
 		t.Skip("data_storage_size_in_tbs is removed in 6.0")
 	}
