@@ -8,6 +8,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -21,9 +22,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -35,11 +38,12 @@ import (
 type LinuxFunctionAppResource struct{}
 
 type LinuxFunctionAppModel struct {
-	Name               string `tfschema:"name"`
-	ResourceGroup      string `tfschema:"resource_group_name"`
-	Location           string `tfschema:"location"`
-	ServicePlanId      string `tfschema:"service_plan_id"`
-	StorageAccountName string `tfschema:"storage_account_name"`
+	Name                      string `tfschema:"name"`
+	ResourceGroup             string `tfschema:"resource_group_name"`
+	Location                  string `tfschema:"location"`
+	ServicePlanId             string `tfschema:"service_plan_id"`
+	ContainerAppEnvironmentId string `tfschema:"container_app_environment_id"`
+	StorageAccountName        string `tfschema:"storage_account_name"`
 
 	StorageAccountKey       string `tfschema:"storage_account_access_key"`
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
@@ -127,9 +131,25 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
 			Description:  "The ID of the App Service Plan within which to create this Function App",
+			ExactlyOneOf: []string{
+				"service_plan_id",
+				"container_app_environment_id",
+			},
+		},
+
+		"container_app_environment_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: managedenvironments.ValidateManagedEnvironmentID,
+			Description:  "The ID of the Container App Environment within which to create this Function App",
+			ExactlyOneOf: []string{
+				"service_plan_id",
+				"container_app_environment_id",
+			},
 		},
 
 		"storage_account_name": {
@@ -405,54 +425,70 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 			id := commonids.NewAppServiceID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
 
-			servicePlanId, err := commonids.ParseAppServicePlanID(functionApp.ServicePlanId)
-			if err != nil {
-				return err
-			}
-
-			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
-			}
-
 			var planSKU *string
+			var serverFarmId *string
+			var managedEnvironmentId *string
+			kind := "functionapp,linux"
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
 				Name: functionApp.Name,
 				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
 			}
-			if servicePlanModel := servicePlan.Model; servicePlanModel != nil {
-				if sku := servicePlanModel.Sku; sku != nil && sku.Name != nil {
-					planSKU = sku.Name
+
+			if functionApp.ContainerAppEnvironmentId != "" {
+				environmentId, err := managedenvironments.ParseManagedEnvironmentID(functionApp.ContainerAppEnvironmentId)
+				if err != nil {
+					return err
 				}
 
-				if ase := servicePlanModel.Properties.HostingEnvironmentProfile; ase != nil {
-					// Attempt to check the ASE for the appropriate suffix for the name availability request.
-					// This varies between internal and external ASE Types, and potentially has other names in other clouds
-					// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
-					nameSuffix := "appserviceenvironment.net"
-					if ase.Id != nil {
-						aseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
-						nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-						if err != nil {
-							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
-						} else {
-							existingASE, err := aseClient.Get(ctx, *aseId)
-							if err != nil || existingASE.Model == nil {
-								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
-							} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
-								nameSuffix = *props.DnsSuffix
-							}
-						}
+				managedEnvironmentId = pointer.To(environmentId.ID())
+				kind = "functionapp,linux,container,azurecontainerapps"
+			} else {
+				servicePlanId, err := commonids.ParseAppServicePlanID(functionApp.ServicePlanId)
+				if err != nil {
+					return err
+				}
+
+				servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
+				if err != nil {
+					return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+				}
+
+				serverFarmId = pointer.To(servicePlanId.ID())
+				if servicePlanModel := servicePlan.Model; servicePlanModel != nil {
+					if sku := servicePlanModel.Sku; sku != nil && sku.Name != nil {
+						planSKU = sku.Name
 					}
 
-					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix)
-					availabilityRequest.IsFqdn = pointer.To(true)
+					if ase := servicePlanModel.Properties.HostingEnvironmentProfile; ase != nil {
+						// Attempt to check the ASE for the appropriate suffix for the name availability request.
+						// This varies between internal and external ASE Types, and potentially has other names in other clouds
+						// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
+						nameSuffix := "appserviceenvironment.net"
+						if ase.Id != nil {
+							aseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
+							nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+							if err != nil {
+								metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
+							} else {
+								existingASE, err := aseClient.Get(ctx, *aseId)
+								if err != nil || existingASE.Model == nil {
+									metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionApp.Name, servicePlanId)
+								} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
+									nameSuffix = *props.DnsSuffix
+								}
+							}
+						}
 
-					if !functionApp.VnetImagePullEnabled {
-						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						availabilityRequest.Name = fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix)
+						availabilityRequest.IsFqdn = pointer.To(true)
+
+						if !functionApp.VnetImagePullEnabled {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						}
 					}
 				}
 			}
+
 			// Only send for ElasticPremium and Consumption plan
 			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
 			sendContentSettings := elasticOrConsumptionPlan && !functionApp.ForceDisableContentShare
@@ -540,10 +576,11 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Location),
 				Tags:     pointer.To(functionApp.Tags),
-				Kind:     pointer.To("functionapp,linux"),
+				Kind:     pointer.To(kind),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:              pointer.To(functionApp.ServicePlanId),
+					ServerFarmId:              serverFarmId,
+					ManagedEnvironmentId:      managedEnvironmentId,
 					Enabled:                   pointer.To(functionApp.Enabled),
 					HTTPSOnly:                 pointer.To(functionApp.HttpsOnly),
 					SiteConfig:                siteConfig,
@@ -557,14 +594,16 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			pna := helpers.PublicNetworkAccessEnabled
-			if !functionApp.PublicNetworkAccess {
-				pna = helpers.PublicNetworkAccessDisabled
-			}
+			if managedEnvironmentId == nil {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !functionApp.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
 
-			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
-			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
-			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
+				siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
+			}
 
 			if functionApp.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionApp.KeyVaultReferenceIdentityID)
@@ -578,7 +617,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionApp.ClientCertExclusionPaths)
 			}
 
-			if err = client.CreateOrUpdateCallbackThenPoll(ctx, id, siteEnvelope, metadata.SetIDAndIdentityCallback(&id)); err != nil {
+			if err = createOrUpdateLinuxFunctionApp(ctx, client, id, siteEnvelope, managedEnvironmentId != nil, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating Linux %s: %+v", id, err)
 			}
 
@@ -606,8 +645,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
-				return fmt.Errorf("creating Linux %s: %+v", id, err)
+			if managedEnvironmentId == nil {
+				if err = createOrUpdateLinuxFunctionApp(ctx, client, id, siteEnvelope, false, nil); err != nil {
+					return fmt.Errorf("creating Linux %s: %+v", id, err)
+				}
 			}
 
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
@@ -692,6 +733,71 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
+			}
+			// Container Apps-hosted Function Apps expose configuration and app settings, but not
+			// the App Service publishing, deployment-slot and connection-string read path.
+			if functionApp.Model != nil && functionApp.Model.Properties != nil && pointer.From(functionApp.Model.Properties.ManagedEnvironmentId) != "" {
+				site := *functionApp.Model
+				if pointer.From(site.Properties.ServerFarmId) != "" {
+					return fmt.Errorf("determining hosting target for Linux %s: both Service Plan ID and Container App Environment ID were returned", id)
+				}
+				environmentId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(*site.Properties.ManagedEnvironmentId)
+				if err != nil {
+					return err
+				}
+
+				config, err := client.GetConfiguration(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+				}
+				if config.Model == nil {
+					return fmt.Errorf("reading Site Config for Linux %s: model was nil", id)
+				}
+				siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionApp(config.Model.Properties)
+				if err != nil {
+					return err
+				}
+				helpers.SetFunctionAppContainerSiteConfigDefaults(siteConfig)
+
+				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+				}
+				if appSettingsResp.Model == nil {
+					return fmt.Errorf("reading App Settings for Linux %s: model was nil", id)
+				}
+
+				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(site.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening identity for Linux %s: %+v", id, err)
+				}
+
+				state := LinuxFunctionAppModel{
+					Name:                             id.SiteName,
+					ResourceGroup:                    id.ResourceGroupName,
+					Location:                         location.Normalize(site.Location),
+					ContainerAppEnvironmentId:        environmentId.ID(),
+					Enabled:                          true,
+					Kind:                             pointer.From(site.Kind),
+					Tags:                             pointer.From(site.Tags),
+					Identity:                         pointer.From(ident),
+					DefaultHostname:                  pointer.From(site.Properties.DefaultHostName),
+					CustomDomainVerificationId:       pointer.From(site.Properties.CustomDomainVerificationId),
+					KeyVaultReferenceIdentityID:      pointer.From(site.Properties.KeyVaultReferenceIdentity),
+					SiteConfig:                       []helpers.SiteConfigLinuxFunctionApp{*siteConfig},
+					ClientCertMode:                   string(webapps.ClientCertModeOptional),
+					PublicNetworkAccess:              true,
+					PublishingFTPBasicAuthEnabled:    true,
+					PublishingDeployBasicAuthEnabled: true,
+				}
+				state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
+				if _, configured := metadata.ResourceData.GetOk("app_settings.WEBSITE_AUTH_ENCRYPTION_KEY"); !configured {
+					delete(state.AppSettings, "WEBSITE_AUTH_ENCRYPTION_KEY")
+				}
+				if err := metadata.Encode(&state); err != nil {
+					return fmt.Errorf("encoding Linux %s: %+v", id, err)
+				}
+				return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 			}
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
@@ -795,7 +901,14 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
-					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
+					// Container Apps-hosted Function Apps are handled entirely by the early
+					// Container Apps dispatch above, so `props.ManagedEnvironmentId` is
+					// guaranteed empty here.
+					serverFarmId := pointer.From(props.ServerFarmId)
+					if serverFarmId == "" {
+						return fmt.Errorf("determining Service Plan ID for Linux %s: Service Plan ID was empty", id)
+					}
+					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(serverFarmId)
 					if err != nil {
 						return err
 					}
@@ -908,9 +1021,14 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 			model := *existing.Model
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
-			if err != nil {
-				return err
+			var planSKU *string
+			if state.ServicePlanId != "" {
+				_, planSKU, err = helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+				if err != nil {
+					return err
+				}
+			} else if state.ContainerAppEnvironmentId == "" {
+				return fmt.Errorf("determining hosting target for Linux %s: neither `service_plan_id` nor `container_app_environment_id` was configured", id)
 			}
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
@@ -1071,9 +1189,25 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(state.SiteConfig[0].ApplicationStack)
 			}
 
+			if state.ContainerAppEnvironmentId != "" {
+				settings, err := client.ListApplicationSettings(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+				}
+				if settings.Model == nil || settings.Model.Properties == nil {
+					return fmt.Errorf("reading App Settings for Linux %s: properties were nil", id)
+				}
+				// Preserve the platform-generated key without managing it as a user app setting.
+				if key, ok := (*settings.Model.Properties)["WEBSITE_AUTH_ENCRYPTION_KEY"]; ok {
+					siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, map[string]string{"WEBSITE_AUTH_ENCRYPTION_KEY": key})
+				}
+			}
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
-			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+			if state.ContainerAppEnvironmentId != "" {
+				model.Properties.PublicNetworkAccess = nil
+				model.Properties.SiteConfig.PublicNetworkAccess = nil
+			} else if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
 				if !state.PublicNetworkAccess {
 					pna = helpers.PublicNetworkAccessDisabled
@@ -1084,7 +1218,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+			if err := createOrUpdateLinuxFunctionApp(ctx, client, *id, model, state.ContainerAppEnvironmentId != "", nil); err != nil {
 				return fmt.Errorf("updating Linux %s: %+v", id, err)
 			}
 
@@ -1110,8 +1244,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.UpdateConfiguration(ctx, *id, webapps.SiteConfigResource{Properties: model.Properties.SiteConfig}); err != nil {
-				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
+			if state.ContainerAppEnvironmentId == "" {
+				if _, err := client.UpdateConfiguration(ctx, *id, webapps.SiteConfigResource{Properties: model.Properties.SiteConfig}); err != nil {
+					return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
@@ -1219,10 +1355,24 @@ func (r LinuxFunctionAppResource) CustomImporter() sdk.ResourceRunFunc {
 			return fmt.Errorf("reading Linux %s: %+v", id, err)
 		}
 		props := *site.Model.Properties
-		if props.ServerFarmId == nil {
-			return fmt.Errorf("determining Service Plan ID for Linux %s: %+v", id, err)
+		serverFarmId := pointer.From(props.ServerFarmId)
+		managedEnvironmentId := pointer.From(props.ManagedEnvironmentId)
+		if serverFarmId != "" && managedEnvironmentId != "" {
+			return fmt.Errorf("determining hosting target for Linux %s: both Service Plan ID and Container App Environment ID were returned", id)
 		}
-		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
+		if managedEnvironmentId != "" {
+			if _, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(managedEnvironmentId); err != nil {
+				return err
+			}
+			if site.Model.Kind == nil || !strings.Contains(strings.ToLower(*site.Model.Kind), "functionapp") || !strings.Contains(strings.ToLower(*site.Model.Kind), "linux") {
+				return fmt.Errorf("specified site is not a Linux Function App")
+			}
+			return nil
+		}
+		if serverFarmId == "" {
+			return fmt.Errorf("determining hosting target for Linux %s: neither a Service Plan ID nor a Container App Environment ID was returned", id)
+		}
+		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(serverFarmId)
 		if err != nil {
 			return err
 		}
@@ -1245,6 +1395,50 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
+			containerAppEnvironmentConfigured := false
+			rawConfig := rd.GetRawConfig()
+			if !rawConfig.IsNull() && rawConfig.IsKnown() {
+				if value, ok := rawConfig.AsValueMap()["container_app_environment_id"]; ok {
+					containerAppEnvironmentConfigured = !value.IsNull()
+				}
+			}
+			if containerAppEnvironmentConfigured {
+				if connections := rawConfig.GetAttr("connection_string"); !connections.IsNull() {
+					if !connections.IsKnown() || !connections.Length().IsKnown() || connections.LengthInt() > 0 {
+						return fmt.Errorf("`connection_string` cannot be configured when `container_app_environment_id` is configured; use `app_settings` instead")
+					}
+				}
+				if rd.NewValueKnown("name") {
+					if err := helpers.ValidateFunctionAppContainerName(rd.Get("name").(string)); err != nil {
+						return err
+					}
+				}
+				for _, name := range []string{
+					"vnet_image_pull_enabled", "virtual_network_backup_restore_enabled", "virtual_network_subnet_id",
+					"daily_memory_time_quota", "client_certificate_enabled", "client_certificate_mode", "client_certificate_exclusion_paths", "https_only", "enabled",
+					"ftp_publish_basic_authentication_enabled", "webdeploy_publish_basic_authentication_enabled", "zip_deploy_file",
+					"auth_settings", "auth_settings_v2", "backup", "sticky_settings", "storage_account",
+				} {
+					if value := rawConfig.GetAttr(name); !value.IsNull() {
+						if value.IsKnown() && (value.Type().IsListType() || value.Type().IsSetType()) && value.Length().IsKnown() && value.LengthInt() == 0 {
+							continue
+						}
+						return fmt.Errorf("`%s` is not supported by this resource when `container_app_environment_id` is configured", name)
+					}
+				}
+				siteConfigs := rawConfig.GetAttr("site_config")
+				if siteConfigs.IsKnown() && !siteConfigs.IsNull() && siteConfigs.LengthInt() > 0 {
+					if err := helpers.ValidateFunctionAppContainerSiteConfig(siteConfigs.AsValueSlice()[0]); err != nil {
+						return err
+					}
+				}
+				if _, ok := rd.GetOk("site_config.0.application_stack.0.docker"); !ok {
+					return fmt.Errorf("a `docker` block must be specified in `site_config.0.application_stack` when `container_app_environment_id` is configured")
+				}
+				if value, ok := rawConfig.AsValueMap()["public_network_access_enabled"]; ok && !value.IsNull() {
+					return fmt.Errorf("`public_network_access_enabled` cannot be configured when `container_app_environment_id` is configured; configure public network access on the Container App Environment instead")
+				}
+			}
 			if rd.HasChange("vnet_image_pull_enabled") {
 				planId := rd.Get("service_plan_id")
 				// the plan id is known after apply during the initial creation
@@ -1340,6 +1534,42 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func createOrUpdateLinuxFunctionApp(ctx context.Context, client *webapps.WebAppsClient, id commonids.AppServiceId, input webapps.Site, containerAppEnvironment bool, callback func() error) error {
+	if !containerAppEnvironment {
+		return client.CreateOrUpdateCallbackThenPoll(ctx, id, input, callback)
+	}
+
+	input.Properties = helpers.FunctionAppContainerSiteProperties(input.Properties)
+
+	result, err := client.CreateOrUpdate(ctx, id, input)
+	if err != nil {
+		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
+	}
+
+	if result.HttpResponse == nil {
+		return fmt.Errorf("performing CreateOrUpdate: response was nil")
+	}
+	if result.HttpResponse.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	poller, err := custompollers.NewFunctionAppContainerCreateOrUpdatePoller(client.Client, result.HttpResponse)
+	if err != nil {
+		return fmt.Errorf("building Function App container poller: %+v", err)
+	}
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
+	}
+
+	return nil
 }
 
 func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData) {
