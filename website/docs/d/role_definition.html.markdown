@@ -66,7 +66,7 @@ output "contributor_role_definition_id" {
 
 * `type` - The Type of the Role.
 
-* `permissions` - A `permissions` block as documented below.
+* `permissions` - A `permissions` block as defined below.
 
 * `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
 
