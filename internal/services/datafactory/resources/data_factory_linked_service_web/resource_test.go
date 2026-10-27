@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_web_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceWebResource struct{}
+
+func TestAccDataFactoryLinkedServiceWeb_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
+	r := LinkedServiceWebResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.anon_auth(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
