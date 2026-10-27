@@ -375,9 +375,9 @@ A `default_node_pool` block supports the following:
 
 -> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
-* `name` - (Required) The name which should be used for the default Kubernetes Node Pool. Must begin with a lowercase letter and contain only lowercase letters and numbers. The provider accepts between 1 and 39 characters.
+* `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
-~> **Note:** Names longer than 12 characters require AKS support for longer Linux node pool names in the subscription. AKS enforces the supported maximum, which may be lower than 39 characters.
+~> **Note:** Names must begin with a lowercase letter and contain only lowercase letters and numbers. The provider accepts between 1 and 39 characters. Linux node pool names are normally limited to 12 characters; longer names require private AKS enablement for the subscription. AKS enforces the supported maximum, which may be lower than 39 characters.
 
 * `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
 

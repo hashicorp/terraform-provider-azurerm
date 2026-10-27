@@ -30,7 +30,9 @@ The following arguments are supported:
 
 * `kubernetes_cluster_name` - (Required) The Name of the Kubernetes Cluster where this Node Pool is located.
 
-* `name` - (Required) The name of this Kubernetes Cluster Node Pool. Must begin with a lowercase letter, contain only lowercase letters and numbers, and be between 1 and 39 characters in length.
+* `name` - (Required) The name of this Kubernetes Cluster Node Pool.
+
+~> **Note:** Names must begin with a lowercase letter and contain only lowercase letters and numbers. The provider accepts between 1 and 39 characters. Linux node pool names are normally limited to 12 characters; longer names require private AKS enablement for the subscription. AKS enforces the supported maximum, which may be lower than 39 characters.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Kubernetes Cluster exists.
 
