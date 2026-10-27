@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -13,7 +13,7 @@ import (
 
 type DBServersDataSource struct{}
 
-func TestDBServersDataSource_basic(t *testing.T) {
+func TestAccDBServersDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_servers", "test")
 	r := DBServersDataSource{}
 
