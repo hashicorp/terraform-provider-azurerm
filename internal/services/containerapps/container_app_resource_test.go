@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -19,6 +19,16 @@ import (
 )
 
 type ContainerAppResource struct{}
+
+func TestAccContainerAppResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "rev1"),
+		},
+	}, "")
+}
 
 func TestAccContainerAppResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
