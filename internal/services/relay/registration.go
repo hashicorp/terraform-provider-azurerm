@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/resources/relay_hybrid_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/resources/relay_hybrid_connection_authorization_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/resources/relay_namespace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/resources/relay_namespace_authorization_rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,10 +45,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),
-		"azurerm_relay_hybrid_connection_authorization_rule": resourceRelayHybridConnectionAuthorizationRule(),
-		"azurerm_relay_namespace":                            resourceRelayNamespace(),
-		"azurerm_relay_namespace_authorization_rule":         resourceRelayNamespaceAuthorizationRule(),
+		"azurerm_relay_hybrid_connection":                    relay_hybrid_connection.RegisterResource(),
+		"azurerm_relay_hybrid_connection_authorization_rule": relay_hybrid_connection_authorization_rule.RegisterResource(),
+		"azurerm_relay_namespace":                            relay_namespace.RegisterResource(),
+		"azurerm_relay_namespace_authorization_rule":         relay_namespace_authorization_rule.RegisterResource(),
 	}
 }
 
