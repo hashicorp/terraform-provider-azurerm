@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -12,6 +12,16 @@ import (
 )
 
 type ApiManagementGatewayHostnameConfigurationDataSource struct{}
+
+func TestAccDataSourceApiManagementGatewayHostnameConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_gateway_host_name_configuration", "test")
+	r := ApiManagementGatewayHostnameConfigurationDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceApiManagementGatewayHostnameConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_gateway_host_name_configuration", "test")
