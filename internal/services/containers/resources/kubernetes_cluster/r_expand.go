@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
@@ -651,17 +650,6 @@ func expandStorageProfile(input []any) *managedclusters.ManagedClusterStoragePro
 	}
 
 	return &profile
-}
-
-func expandEdgeZone(input string) *edgezones.Model {
-	normalized := edgezones.Normalize(input)
-	if normalized == "" {
-		return nil
-	}
-
-	return &edgezones.Model{
-		Name: normalized,
-	}
 }
 
 func expandKubernetesClusterServiceMeshProfile(input []any, existing *managedclusters.ServiceMeshProfile) *managedclusters.ServiceMeshProfile {

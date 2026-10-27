@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
@@ -695,14 +694,6 @@ func flattenKubernetesClusterMicrosoftDefender(input *managedclusters.ManagedClu
 			"log_analytics_workspace_id": pointer.From(input.Defender.LogAnalyticsWorkspaceResourceId),
 		},
 	}
-}
-
-func flattenEdgeZone(input *edgezones.Model) string {
-	// As the `extendedLocation.type` returned by API is always lower case, so it has to use `Normalize` function while comparing them
-	if input == nil || input.Name == "" {
-		return ""
-	}
-	return edgezones.NormalizeNilable(&input.Name)
 }
 
 func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedClusterIngressProfile) []any {
