@@ -467,31 +467,29 @@ func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirector
 		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]any)), ",")
 
 		result := netappaccounts.ActiveDirectory{
-			Dns:                        pointer.To(dns),
-			Domain:                     pointer.To(v["domain"].(string)),
-			OrganizationalUnit:         pointer.To(v["organizational_unit"].(string)),
-			Password:                   pointer.To(v["password"].(string)),
-			SmbServerName:              pointer.To(v["smb_server_name"].(string)),
-			Username:                   pointer.To(v["username"].(string)),
-			Site:                       pointer.To(v["site_name"].(string)),
-			AdName:                     pointer.To(v["kerberos_ad_name"].(string)),
-			KdcIP:                      pointer.To(v["kerberos_kdc_ip"].(string)),
-			AesEncryption:              pointer.To(v["aes_encryption_enabled"].(bool)),
-			AllowLocalNfsUsersWithLdap: pointer.To(v["local_nfs_users_with_ldap_allowed"].(bool)),
-			LdapOverTLS:                pointer.To(v["ldap_over_tls_enabled"].(bool)),
-			ServerRootCACertificate:    pointer.To(v["server_root_ca_certificate"].(string)),
-			LdapSigning:                pointer.To(v["ldap_signing_enabled"].(bool)),
-			EncryptDCConnections:       pointer.To(v["dc_connection_encryption_enabled"].(bool)),
+			Dns:                           pointer.To(dns),
+			Domain:                        pointer.To(v["domain"].(string)),
+			OrganizationalUnit:            pointer.To(v["organizational_unit"].(string)),
+			Password:                      pointer.To(v["password"].(string)),
+			SmbServerName:                 pointer.To(v["smb_server_name"].(string)),
+			Username:                      pointer.To(v["username"].(string)),
+			Site:                          pointer.To(v["site_name"].(string)),
+			AdName:                        pointer.To(v["kerberos_ad_name"].(string)),
+			KdcIP:                         pointer.To(v["kerberos_kdc_ip"].(string)),
+			AesEncryption:                 pointer.To(v["aes_encryption_enabled"].(bool)),
+			AllowLocalNfsUsersWithLdap:    pointer.To(v["local_nfs_users_with_ldap_allowed"].(bool)),
+			LdapOverTLS:                   pointer.To(v["ldap_over_tls_enabled"].(bool)),
+			ServerRootCACertificate:       pointer.To(v["server_root_ca_certificate"].(string)),
+			LdapSigning:                   pointer.To(v["ldap_signing_enabled"].(bool)),
+			EncryptDCConnections:          pointer.To(v["dc_connection_encryption_enabled"].(bool)),
+			PreferredServersForLdapClient: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(v["ldap_client_preferred_server_ips"].([]any)), ",")),
 		}
 
+		var searchScope map[string]any
 		if rawSearchScope := v["ldap_search_scope"].([]any); len(rawSearchScope) > 0 {
-			searchScope := rawSearchScope[0].(map[string]any)
-			result.LdapSearchScope = expandNetAppLdapSearchScope(searchScope)
+			searchScope = rawSearchScope[0].(map[string]any)
 		}
-
-		if ldapClientServers := v["ldap_client_preferred_server_ips"].([]any); len(ldapClientServers) > 0 {
-			result.PreferredServersForLdapClient = pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(ldapClientServers), ","))
-		}
+		result.LdapSearchScope = expandNetAppLdapSearchScope(searchScope)
 
 		if admins := v["administrator_users"].(*pluginsdk.Set); admins != nil {
 			result.Administrators = pluginsdk.ExpandStringSlice(admins.List())
@@ -512,7 +510,13 @@ func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirector
 
 func expandNetAppLdapSearchScope(input map[string]any) *netappaccounts.LdapSearchScopeOpt {
 	if input == nil {
-		return nil
+		// if not supplied, set empty strings to all fields to properly update in API.
+		// if LdapSearchScopeOpt is left nil or empty, the API will not update the search scope and will leave it as-is.
+		return &netappaccounts.LdapSearchScopeOpt{
+			GroupDN:               pointer.To(""),
+			GroupMembershipFilter: pointer.To(""),
+			UserDN:                pointer.To(""),
+		}
 	}
 
 	result := netappaccounts.LdapSearchScopeOpt{
