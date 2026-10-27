@@ -4,13 +4,8 @@
 package helpers
 
 import (
-
-	//nolint:staticcheck
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 )
-
-//nolint:staticcheck
 
 func ExpandEdgeZone(input string) *edgezones.Model {
 	normalized := edgezones.Normalize(input)

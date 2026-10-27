@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package redhatopenshift
+package redhat_openshift_cluster
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RedHatOpenShiftClusterListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(RedHatOpenShiftClusterListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (RedHatOpenShiftClusterListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = RedHatOpenShiftCluster{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (RedHatOpenShiftClusterListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(RedHatOpenShiftCluster{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (r ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.RedHatOpenShift.OpenShiftClustersClient
 
 	var data sdk.DefaultListModel
@@ -44,7 +44,7 @@ func (r RedHatOpenShiftClusterListResource) List(ctx context.Context, request li
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	clusterResource := RedHatOpenShiftCluster{}
+	clusterResource := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
