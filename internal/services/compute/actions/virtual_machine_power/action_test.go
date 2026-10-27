@@ -61,7 +61,7 @@ func (a *VirtualMachinePowerAction) restart(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%[2]d"
+  name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -97,18 +97,18 @@ resource "azurerm_linux_virtual_machine" "test" {
 
 action "azurerm_virtual_machine_power" "test" {
   config {
-    virtual_machine_id = "/subscriptions/%[3]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Compute/virtualMachines/acctestVM-%[2]d" // sidestep cyclic reference issue
+    virtual_machine_id = azurerm_linux_virtual_machine.test.id
     power_action       = "restart"
   }
 }
-`, a.templateLinux(data), data.RandomInteger, data.Subscriptions.Primary)
+`, a.templateLinux(data), data.RandomInteger)
 }
 
 func (a *VirtualMachinePowerAction) techSupport(data acceptance.TestData, tagVal string) string {
 	return fmt.Sprintf(`
 
 
-%[1]s
+%s
 
 resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
@@ -134,7 +134,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-    triggerme = "%[3]s"
+    triggerme = "%s"
   }
 }
 
@@ -155,18 +155,18 @@ resource "terraform_data" "trigger" {
 
 action "azurerm_virtual_machine_power" "power_off" {
   config {
-    virtual_machine_id = "/subscriptions/%[4]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Compute/virtualMachines/${local.vm_name}" // sidestep cyclic reference issue
+    virtual_machine_id = azurerm_windows_virtual_machine.test.id
     power_action       = "power_off"
   }
 }
 
 action "azurerm_virtual_machine_power" "power_on" {
   config {
-    virtual_machine_id = "/subscriptions/%[4]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Compute/virtualMachines/${local.vm_name}" // sidestep cyclic reference issue
+    virtual_machine_id = azurerm_windows_virtual_machine.test.id
     power_action       = "power_on"
   }
 }
-`, a.templateWindows(data), data.RandomInteger, tagVal, data.Subscriptions.Primary)
+`, a.templateWindows(data), tagVal)
 }
 
 func (a *VirtualMachinePowerAction) templateLinux(data acceptance.TestData) string {
