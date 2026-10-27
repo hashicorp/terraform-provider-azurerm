@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package relay_test
+package relay_namespace_authorization_rule_test
 
 import (
 	"context"
