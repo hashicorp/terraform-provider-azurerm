@@ -91,6 +91,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Data Protection Backup Instance for the Cosmos DB Database Account. Changing this forces a new resource to be created.
 
+~> **Note:** The `name` must not contain forward slashes (`/`).
+
 * `data_protection_backup_vault_id` - (Required) The ID of the Data Protection Backup Vault where the Backup Instance should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region of the Cosmos DB Database Account. Changing this forces a new resource to be created.
