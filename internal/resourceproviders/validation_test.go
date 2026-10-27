@@ -87,3 +87,50 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateSupported(t *testing.T) {
+	testCases := []struct {
+		name   string
+		cached *[]string
+		input  ResourceProviders
+		valid  bool
+	}{
+		{
+			name:   "cache unavailable",
+			cached: nil,
+			input:  ResourceProviders{"Microsoft.Dashboardd": {}},
+			valid:  true,
+		},
+		{
+			name:   "supported",
+			cached: &[]string{"Microsoft.Compute", "Microsoft.Dashboard"},
+			input:  ResourceProviders{"Microsoft.Compute": {}, "Microsoft.Dashboard": {}},
+			valid:  true,
+		},
+		{
+			name:   "unsupported",
+			cached: &[]string{"Microsoft.Compute", "Microsoft.Dashboard"},
+			input:  ResourceProviders{"Microsoft.Compute": {}, "Microsoft.Dashboardd": {}},
+			valid:  false,
+		},
+		{
+			name:   "incorrect casing",
+			cached: &[]string{"Microsoft.Compute", "Microsoft.Dashboard"},
+			input:  ResourceProviders{"microsoft.dashboard": {}},
+			valid:  false,
+		},
+	}
+	defer func() {
+		cachedResourceProviders = nil
+	}()
+
+	for _, testCase := range testCases {
+		t.Logf("Testing %q..", testCase.name)
+
+		cachedResourceProviders = testCase.cached
+		err := ValidateSupported(testCase.input)
+		if valid := err == nil; testCase.valid != valid {
+			t.Errorf("Expected %t but got %t: %+v", testCase.valid, valid, err)
+		}
+	}
+}
