@@ -74,10 +74,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Kubernetes Fleet Member.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Kubernetes Fleet Member.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Kubernetes Fleet Member.
-* `update` - (Defaults to 30 minutes) Used when updating this Kubernetes Fleet Member.
+* `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Fleet Member.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Fleet Member.
+* `update` - (Defaults to 30 minutes) Used when updating the Kubernetes Fleet Member.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Kubernetes Fleet Member.
 
 ## Import
 
@@ -91,3 +91,9 @@ terraform import azurerm_kubernetes_fleet_member.example /subscriptions/{subscri
 * Where `{resourceGroupName}` is the name of Resource Group where this Kubernetes Fleet Member exists. For example `example-resource-group`.
 * Where `{fleetName}` is the name of the Fleet. For example `fleetValue`.
 * Where `{memberName}` is the name of the Member. For example `memberValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2024-04-01

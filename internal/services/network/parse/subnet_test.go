@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SubnetId{}
 
-func TestSubnetIDFormatter(t *testing.T) {
+func TestParseSubnetIDFormatter(t *testing.T) {
 	actual := NewSubnetID("12345678-1234-9876-4563-123456789012", "resGroup1", "network1", "subnet1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworks/network1/subnets/subnet1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSubnetIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSubnetID(t *testing.T) {
+func TestParseSubnetID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestSubnetID(t *testing.T) {
 	}
 }
 
-func TestSubnetIDInsensitively(t *testing.T) {
+func TestParseSubnetIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -241,6 +241,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_snapshots     = true
       prefix_match          = ["*/test"]
       exclude_prefixes      = ["syslog.log"]
+      created_within_days   = 20
     }
   }
 }
@@ -277,6 +278,7 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
       include_deleted       = true
       include_snapshots     = true
       prefix_match          = ["*/test"]
+      created_within_days   = 100
     }
   }
 

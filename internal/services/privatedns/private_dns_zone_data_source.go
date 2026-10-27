@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -62,7 +62,7 @@ func dataSourcePrivateDnsZone() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns
 	resourceGroupsClient := meta.(*clients.Client).Resource.ResourceGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

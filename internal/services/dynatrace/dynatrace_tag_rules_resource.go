@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -167,7 +167,7 @@ func (r TagRulesResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r TagRulesResource) ModelObject() interface{} {
+func (r TagRulesResource) ModelObject() any {
 	return &TagRulesResourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -18,7 +18,7 @@ import (
 // since this depends on GetAuthConfig which lives in this package
 // unfortunately this has to live in a different package to the other func
 
-func TestEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
+func TestAccRequiredResourceProviders_areRegistered(t *testing.T) {
 	config := GetAuthConfig(t)
 	if config == nil {
 		return

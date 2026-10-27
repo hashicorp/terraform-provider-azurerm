@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -97,7 +97,7 @@ func resourceDevTestLab() *pluginsdk.Resource {
 	}
 }
 
-func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	parameters := labs.Lab{
 		Location: pointer.To(location),
-		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+		Tags:     expandTags(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -141,7 +141,7 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDevTestLabRead(d, meta)
 }
 
-func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDevTestLabDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

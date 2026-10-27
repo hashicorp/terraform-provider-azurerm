@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -32,7 +32,7 @@ type ContainerAppEnvironmentStorageModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
 
-func (r ContainerAppEnvironmentStorageResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentStorageResource) ModelObject() any {
 	return &ContainerAppEnvironmentStorageModel{}
 }
 

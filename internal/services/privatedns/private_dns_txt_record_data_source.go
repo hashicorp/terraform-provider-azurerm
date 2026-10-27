@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -65,7 +65,7 @@ func dataSourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsTxtRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	recordSetsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -2979,21 +2979,21 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 
 	if metadata.ResourceData.HasChange("template.0.container.0.liveness_probe") {
 		newLivenessRaw := metadata.ResourceData.Get("template.0.container.0.liveness_probe")
-		if newLiveness, ok := newLivenessRaw.([]interface{}); ok && len(newLiveness) > 0 {
+		if newLiveness, ok := newLivenessRaw.([]any); ok && len(newLiveness) > 0 {
 			hasLiveness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.readiness_probe") {
 		newReadinessRaw := metadata.ResourceData.Get("template.0.container.0.readiness_probe")
-		if newReadiness, ok := newReadinessRaw.([]interface{}); ok && len(newReadiness) > 0 {
+		if newReadiness, ok := newReadinessRaw.([]any); ok && len(newReadiness) > 0 {
 			hasReadiness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.startup_probe") {
 		newStartupRaw := metadata.ResourceData.Get("template.0.container.0.startup_probe")
-		if newStartup, ok := newStartupRaw.([]interface{}); ok && len(newStartup) > 0 {
+		if newStartup, ok := newStartupRaw.([]any); ok && len(newStartup) > 0 {
 			hasStartup = true
 		}
 	}
@@ -3134,7 +3134,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"activemq", "artemis-queue", "kafka", "pulsar", "aws-cloudwatch",
 						"aws-dynamodb", "aws-dynamodb-streams", "aws-kinesis-stream", "aws-sqs-queue",
-						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-eventhub",
+						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-durabletask-scheduler", "azure-eventhub",
 						"azure-log-analytics", "azure-monitor", "azure-pipelines", "azure-servicebus",
 						"azure-queue", "cassandra", "cpu", "cron", "datadog", "elasticsearch", "external",
 						"external-push", "gcp-stackdriver", "gcp-storage", "gcp-pubsub", "graphite", "http",

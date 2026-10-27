@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -35,7 +35,7 @@ type DesktopVirtualizationApplicationGroupModel struct {
 
 var _ sdk.DataSource = DesktopVirtualizationApplicationGroupDataSource{}
 
-func (r DesktopVirtualizationApplicationGroupDataSource) ModelObject() interface{} {
+func (r DesktopVirtualizationApplicationGroupDataSource) ModelObject() any {
 	return &DesktopVirtualizationApplicationGroupModel{}
 }
 
