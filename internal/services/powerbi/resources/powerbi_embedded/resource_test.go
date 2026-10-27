@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package powerbi_test
+package powerbi_embedded_test
 
 import (
 	"context"
