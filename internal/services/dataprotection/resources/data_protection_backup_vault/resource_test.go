@@ -25,7 +25,7 @@ func TestAccDataProtectionBackupVault_regressionTest(t *testing.T) {
 	r := DataProtectionBackupVaultResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regressionTest(data),
 		},
 	}, "")
 }
@@ -258,6 +258,32 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r DataProtectionBackupVaultResource) regressionTest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  immutability               = "Disabled"
+  soft_delete                = "Off"
+  retention_duration_in_days = 14
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r DataProtectionBackupVaultResource) basic(data acceptance.TestData) string {
