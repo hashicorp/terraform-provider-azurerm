@@ -14,10 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//nolint:staticcheck
-
-//nolint:staticcheck
-
 func FlattenJSON(stringMap any) string {
 	if stringMap != nil {
 		if v, ok := stringMap.(*any); ok {

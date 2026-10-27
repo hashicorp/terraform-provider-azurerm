@@ -6,7 +6,7 @@ package management_group_policy_assignment
 import (
 	"regexp"
 
-	managementGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -17,7 +17,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managementGroupValidate.ManagementGroupID,
+			ValidateFunc: validate.ManagementGroupID,
 		},
 		"name": {
 			Type:     pluginsdk.TypeString,
