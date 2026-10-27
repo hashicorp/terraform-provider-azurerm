@@ -4,8 +4,8 @@
 package data_factory
 
 import (
+	"encoding/json"
 	"fmt"
-	"json"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
