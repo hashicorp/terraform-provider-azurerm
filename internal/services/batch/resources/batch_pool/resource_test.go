@@ -730,11 +730,7 @@ func TestAccBatchPool_securityProfileWithUEFISettings(t *testing.T) {
 	r := BatchPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.securityProfileWithUEFISettings(data, true),
-			ExpectError: regexp.MustCompile("`managed_disk.0.security_encryption_type` can only be specified when `security_profile.0.security_type` is `confidentialVM`"),
-		},
-		{
-			Config: r.securityProfileWithUEFISettings(data, false),
+			Config: r.securityProfileWithUEFISettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -748,13 +744,56 @@ func TestAccBatchPool_securityProfileWithConfidentialVM(t *testing.T) {
 	r := BatchPoolResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.securityProfileWithConfidentialVM(data, false),
+			Config:      r.securityProfileWithConfidentialVM(data, ""),
 			ExpectError: regexp.MustCompile("`managed_disk.0.security_encryption_type` is required when `security_profile.0.security_type` is `confidentialVM`"),
 		},
 		{
-			Config: r.securityProfileWithConfidentialVM(data, true),
+			Config: r.securityProfileWithConfidentialVM(data, "VMGuestStateOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.securityProfileWithConfidentialVM(data, "NonPersistedTPM"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
+func TestAccBatchPool_managedDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedDisk(data, "Standard_LRS", "VMGuestStateOnly"),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta(
+				"`managed_disk.0.security_encryption_type` can only be specified when `security_profile.0.security_type` is `confidentialVM`",
+			)),
+		},
+		{
+			Config: r.managedDisk(data, "Standard_LRS", ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.managedDisk(data, "StandardSSD_LRS", ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+		{
+			Config: r.managedDisk(data, "", ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("0"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation"),
@@ -2658,11 +2697,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) securityProfileWithUEFISettings(data acceptance.TestData, hasEncryptionType bool) string {
-	encryptionType := ""
-	if hasEncryptionType {
-		encryptionType = `security_encryption_type = "VMGuestStateOnly"`
-	}
+func (BatchPoolResource) securityProfileWithUEFISettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
@@ -2692,18 +2727,14 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 
-  managed_disk {
-    storage_account_type = "Standard_LRS"
-    %s
-  }
 }
-`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, encryptionType)
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
 
-func (BatchPoolResource) securityProfileWithConfidentialVM(data acceptance.TestData, hasEncryptionType bool) string {
+func (BatchPoolResource) securityProfileWithConfidentialVM(data acceptance.TestData, securityEncryptionType string) string {
 	encryptionType := ""
-	if hasEncryptionType {
-		encryptionType = `security_encryption_type = "VMGuestStateOnly"`
+	if securityEncryptionType != "" {
+		encryptionType = fmt.Sprintf("security_encryption_type = %q", securityEncryptionType)
 	}
 
 	return fmt.Sprintf(`
@@ -2716,12 +2747,13 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                = "acctestpool%s"
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_batch_account.test.name
-  vm_size             = "Standard_DC2as_v5"
-  node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  max_tasks_per_node  = 1
+  name                          = "acctestpool%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  account_name                  = azurerm_batch_account.test.name
+  vm_size                       = "Standard_DC2as_v5"
+  node_agent_sku_id             = "batch.node.ubuntu 22.04"
+  max_tasks_per_node            = 1
+  stop_pending_resize_operation = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -2751,4 +2783,56 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, encryptionType)
+}
+
+func (BatchPoolResource) managedDisk(data acceptance.TestData, storageAccountType, securityEncryptionType string) string {
+	managedDisk := ""
+	if storageAccountType != "" || securityEncryptionType != "" {
+		settings := ""
+		if storageAccountType != "" {
+			settings += fmt.Sprintf("    storage_account_type = %q\n", storageAccountType)
+		}
+		if securityEncryptionType != "" {
+			settings += fmt.Sprintf("    security_encryption_type = %q\n", securityEncryptionType)
+		}
+		managedDisk = fmt.Sprintf("\n  managed_disk {\n%s  }\n", settings)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_batch_account" "test" {
+  name                = "acctestbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                          = "acctestpool%s"
+  resource_group_name           = azurerm_resource_group.test.name
+  account_name                  = azurerm_batch_account.test.name
+  node_agent_sku_id             = "batch.node.ubuntu 22.04"
+  vm_size                       = "STANDARD_A1_V2"
+  stop_pending_resize_operation = true
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  security_profile {
+    host_encryption_enabled = false
+    security_type           = "trustedLaunch"
+    secure_boot_enabled     = true
+    vtpm_enabled            = false
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+%s
+}
+`, BatchPoolResource{}.template(data), data.RandomString, data.RandomString, managedDisk)
 }
