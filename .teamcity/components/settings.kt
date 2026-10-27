@@ -49,7 +49,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("germanywestcentral", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("germanywestcentral", "westus2", "eastus2", true), maxConcurrentBuilds = 1),
+        "appservice" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("germanywestcentral", "westus2", "eastus2", false), maxConcurrentBuilds = 1),
 
         // Arc Kubernetes Provisioned Cluster is only available in certain locations
         "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),

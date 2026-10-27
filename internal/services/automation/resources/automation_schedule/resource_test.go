@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_schedule_test
@@ -126,6 +126,21 @@ func TestAccAutomationSchedule_oneTime_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.oneTime_complete(data, startTime),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationSchedule_minute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
+	r := AutomationScheduleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.recurring_basic(data, "Minute", 15),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -333,7 +348,6 @@ resource "azurerm_automation_schedule" "test" {
 `, AutomationScheduleResource{}.template(data), data.RandomInteger, startTime)
 }
 
-//nolint:unparam
 func (AutomationScheduleResource) recurring_basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 %s
