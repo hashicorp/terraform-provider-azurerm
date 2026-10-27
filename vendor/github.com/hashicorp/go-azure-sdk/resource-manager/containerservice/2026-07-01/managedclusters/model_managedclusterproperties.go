@@ -18,6 +18,7 @@ type ManagedClusterProperties struct {
 	DisableLocalAccounts       *bool                                      `json:"disableLocalAccounts,omitempty"`
 	DiskEncryptionSetID        *string                                    `json:"diskEncryptionSetID,omitempty"`
 	DnsPrefix                  *string                                    `json:"dnsPrefix,omitempty"`
+	EnableFIPS                 *bool                                      `json:"enableFIPS,omitempty"`
 	EnableRBAC                 *bool                                      `json:"enableRBAC,omitempty"`
 	Fqdn                       *string                                    `json:"fqdn,omitempty"`
 	FqdnSubdomain              *string                                    `json:"fqdnSubdomain,omitempty"`
