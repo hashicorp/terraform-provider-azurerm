@@ -7,6 +7,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_a_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_aaaa_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_cname_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_mx_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_ptr_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_soa_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_srv_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_txt_record"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_zone"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/resources/private_dns_zone_virtual_network_link"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -18,10 +28,10 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		PrivateDnsARecordListResource{},
-		PrivateDnsCNameRecordListResource{},
-		PrivateDnsZoneListResource{},
-		PrivateDnsZoneVirtualNetworkLinkListResource{},
+		private_dns_a_record.ListResource{},
+		private_dns_cname_record.ListResource{},
+		private_dns_zone.ListResource{},
+		private_dns_zone_virtual_network_link.ListResource{},
 	}
 }
 
@@ -58,30 +68,30 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_private_dns_a_record":                  dataSourcePrivateDnsARecord(),
-		"azurerm_private_dns_aaaa_record":               dataSourcePrivateDnsAaaaRecord(),
-		"azurerm_private_dns_cname_record":              dataSourcePrivateDnsCNameRecord(),
-		"azurerm_private_dns_mx_record":                 dataSourcePrivateDnsMxRecord(),
-		"azurerm_private_dns_ptr_record":                dataSourcePrivateDnsPtrRecord(),
-		"azurerm_private_dns_soa_record":                dataSourcePrivateDnsSoaRecord(),
-		"azurerm_private_dns_srv_record":                dataSourcePrivateDnsSrvRecord(),
-		"azurerm_private_dns_txt_record":                dataSourcePrivateDnsTxtRecord(),
-		"azurerm_private_dns_zone":                      dataSourcePrivateDnsZone(),
-		"azurerm_private_dns_zone_virtual_network_link": dataSourcePrivateDnsZoneVirtualNetworkLink(),
+		"azurerm_private_dns_a_record":                  private_dns_a_record.RegisterDataSource(),
+		"azurerm_private_dns_aaaa_record":               private_dns_aaaa_record.RegisterDataSource(),
+		"azurerm_private_dns_cname_record":              private_dns_cname_record.RegisterDataSource(),
+		"azurerm_private_dns_mx_record":                 private_dns_mx_record.RegisterDataSource(),
+		"azurerm_private_dns_ptr_record":                private_dns_ptr_record.RegisterDataSource(),
+		"azurerm_private_dns_soa_record":                private_dns_soa_record.RegisterDataSource(),
+		"azurerm_private_dns_srv_record":                private_dns_srv_record.RegisterDataSource(),
+		"azurerm_private_dns_txt_record":                private_dns_txt_record.RegisterDataSource(),
+		"azurerm_private_dns_zone":                      private_dns_zone.RegisterDataSource(),
+		"azurerm_private_dns_zone_virtual_network_link": private_dns_zone_virtual_network_link.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_private_dns_a_record":                  resourcePrivateDnsARecord(),
-		"azurerm_private_dns_aaaa_record":               resourcePrivateDnsAaaaRecord(),
-		"azurerm_private_dns_cname_record":              resourcePrivateDnsCNameRecord(),
-		"azurerm_private_dns_mx_record":                 resourcePrivateDnsMxRecord(),
-		"azurerm_private_dns_ptr_record":                resourcePrivateDnsPtrRecord(),
-		"azurerm_private_dns_srv_record":                resourcePrivateDnsSrvRecord(),
-		"azurerm_private_dns_txt_record":                resourcePrivateDnsTxtRecord(),
-		"azurerm_private_dns_zone":                      resourcePrivateDnsZone(),
-		"azurerm_private_dns_zone_virtual_network_link": resourcePrivateDnsZoneVirtualNetworkLink(),
+		"azurerm_private_dns_a_record":                  private_dns_a_record.RegisterResource(),
+		"azurerm_private_dns_aaaa_record":               private_dns_aaaa_record.RegisterResource(),
+		"azurerm_private_dns_cname_record":              private_dns_cname_record.RegisterResource(),
+		"azurerm_private_dns_mx_record":                 private_dns_mx_record.RegisterResource(),
+		"azurerm_private_dns_ptr_record":                private_dns_ptr_record.RegisterResource(),
+		"azurerm_private_dns_srv_record":                private_dns_srv_record.RegisterResource(),
+		"azurerm_private_dns_txt_record":                private_dns_txt_record.RegisterResource(),
+		"azurerm_private_dns_zone":                      private_dns_zone.RegisterResource(),
+		"azurerm_private_dns_zone_virtual_network_link": private_dns_zone_virtual_network_link.RegisterResource(),
 	}
 }
