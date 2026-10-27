@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"time"
 
-	//nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
