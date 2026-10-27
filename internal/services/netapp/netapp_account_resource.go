@@ -206,6 +206,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"administrator_users": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							MaxItems: 255,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.All(
@@ -223,6 +224,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"backup_users": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							MaxItems: 255,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.All(
@@ -240,6 +242,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"security_users": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
+							MaxItems: 255,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.All(
