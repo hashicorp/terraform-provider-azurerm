@@ -97,6 +97,14 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	}
 }
 
+func IsConsumptionProfileType(workloadProfileType string) bool {
+	switch WorkloadProfileSku(workloadProfileType) {
+	case WorkloadProfileSkuConsumption, WorkloadProfileSkuConsumptionGpuNc24A100, WorkloadProfileSkuConsumptionGpuNc8AsT4:
+		return true
+	}
+	return false
+}
+
 func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments.WorkloadProfile {
 	if len(input) == 0 {
 		return nil
@@ -106,15 +114,13 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 
 	for _, v := range input {
 		r := managedenvironments.WorkloadProfile{
-			Name: v.Name,
+			Name:                v.Name,
+			WorkloadProfileType: v.WorkloadProfileType,
 		}
 
-		if v.Name != string(WorkloadProfileSkuConsumption) {
-			r.WorkloadProfileType = v.WorkloadProfileType
+		if !IsConsumptionProfileType(v.WorkloadProfileType) {
 			r.MaximumCount = pointer.To(v.MaximumCount)
 			r.MinimumCount = pointer.To(v.MinimumCount)
-		} else {
-			r.WorkloadProfileType = string(WorkloadProfileSkuConsumption)
 		}
 
 		result = append(result, r)
