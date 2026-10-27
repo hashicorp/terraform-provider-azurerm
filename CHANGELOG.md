@@ -1,3 +1,23 @@
+## 5.11.0 (October 23, 2026)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_storage_account_static_website` ([#33626](https://github.com/hashicorp/terraform-provider-azurerm/issues/33626))
+* **New List Resource**: `azurerm_data_protection_backup_policy_cosmosdb_account` ([#33505](https://github.com/hashicorp/terraform-provider-azurerm/issues/33505))
+* **New List Resource**: `azurerm_servicebus_queue` ([#33519](https://github.com/hashicorp/terraform-provider-azurerm/issues/33519))
+* **New Resource**: `azurerm_data_protection_backup_policy_cosmosdb_account` ([#33505](https://github.com/hashicorp/terraform-provider-azurerm/issues/33505))
+
+ENHANCEMENTS:
+
+* dependencies: `Go` - update to `1.26.10` ([#33703](https://github.com/hashicorp/terraform-provider-azurerm/issues/33703))
+* `azurerm_api_management_api_diagnostic` - add support for the `metrics_enabled` property ([#28499](https://github.com/hashicorp/terraform-provider-azurerm/issues/28499))
+* `azurerm_api_management_diagnostic` - add support for the `metrics_enabled` property ([#28499](https://github.com/hashicorp/terraform-provider-azurerm/issues/28499))
+* `azurerm_automation_schedule` - add support for the `Minute` value for the `frequency` property ([#33680](https://github.com/hashicorp/terraform-provider-azurerm/issues/33680))
+
+BUG FIXES:
+
+* `azurerm_dev_test_global_vm_shutdown_schedule` - fix `virtual_machine_id` parsing ([#33606](https://github.com/hashicorp/terraform-provider-azurerm/issues/33606))
+
 ## 5.10.0 (October 15, 2026)
 
 FEATURES:
