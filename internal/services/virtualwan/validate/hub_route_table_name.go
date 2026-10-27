@@ -1,0 +1,17 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package validate
+
+import (
+	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func HubRouteTableName(v any, k string) ([]string, []error) {
+	return validation.StringMatch(
+		regexp.MustCompile(`^[^<>%&:?/+]+$`),
+		`must not contain characters from "<>&:?/+%"`,
+	)(v, k)
+}

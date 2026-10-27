@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -12,7 +12,7 @@ import (
 
 type DbSystemShapesDataSource struct{}
 
-func TestDbSystemShapesDataSource_basic(t *testing.T) {
+func TestAccDbSystemShapesDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_shapes", "test")
 	r := DbSystemShapesDataSource{}
 
@@ -26,7 +26,7 @@ func TestDbSystemShapesDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestDbSystemShapesDataSource_complete(t *testing.T) {
+func TestAccDbSystemShapesDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_system_shapes", "test")
 	r := DbSystemShapesDataSource{}
 

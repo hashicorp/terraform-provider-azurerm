@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -32,7 +32,7 @@ func (a AdbsRegularResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestAdbsRegularResource_basic(t *testing.T) {
+func TestAccAdbsRegularResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +47,7 @@ func TestAdbsRegularResource_basic(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_complete(t *testing.T) {
+func TestAccAdbsRegularResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,7 +61,7 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_update(t *testing.T) {
+func TestAccAdbsRegularResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -82,7 +82,7 @@ func TestAdbsRegularResource_update(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
+func TestAccAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -103,7 +103,7 @@ func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_updatePublicAccess(t *testing.T) {
+func TestAccAdbsRegularResource_updatePublicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -124,7 +124,7 @@ func TestAdbsRegularResource_updatePublicAccess(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_publicAccess(t *testing.T) {
+func TestAccAdbsRegularResource_publicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -138,7 +138,7 @@ func TestAdbsRegularResource_publicAccess(t *testing.T) {
 	})
 }
 
-func TestAdbsRegularResource_requiresImport(t *testing.T) {
+func TestAccAdbsRegularResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
