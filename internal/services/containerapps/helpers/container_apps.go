@@ -3134,7 +3134,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"activemq", "artemis-queue", "kafka", "pulsar", "aws-cloudwatch",
 						"aws-dynamodb", "aws-dynamodb-streams", "aws-kinesis-stream", "aws-sqs-queue",
-						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-eventhub",
+						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-durabletask-scheduler", "azure-eventhub",
 						"azure-log-analytics", "azure-monitor", "azure-pipelines", "azure-servicebus",
 						"azure-queue", "cassandra", "cpu", "cron", "datadog", "elasticsearch", "external",
 						"external-push", "gcp-stackdriver", "gcp-storage", "gcp-pubsub", "graphite", "http",
