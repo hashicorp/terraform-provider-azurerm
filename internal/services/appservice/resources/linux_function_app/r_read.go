@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -201,10 +200,6 @@ func (r Resource) Read() sdk.ResourceFunc {
 			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
-}
-
-func (r Resource) Identity() resourceids.ResourceId {
-	return &commonids.FunctionAppId{}
 }
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {

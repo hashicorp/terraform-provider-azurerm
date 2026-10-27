@@ -5,9 +5,12 @@ package linux_function_app
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -test-params "B1"
 
 const (
 	StorageStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
@@ -29,4 +32,8 @@ func (r Resource) ResourceType() string {
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateFunctionAppID
+}
+
+func (r Resource) Identity() resourceids.ResourceId {
+	return &commonids.FunctionAppId{}
 }
