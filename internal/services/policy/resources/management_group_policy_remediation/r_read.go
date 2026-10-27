@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -37,7 +37,7 @@ func resourceManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.RemediationName)
-	managementGroupID := managementGroupParse.NewManagementGroupId(id.ManagementGroupId)
+	managementGroupID := parse.NewManagementGroupId(id.ManagementGroupId)
 	d.Set("management_group_id", managementGroupID.ID())
 
 	if props := resp.Model.Properties; props != nil {

@@ -6,7 +6,6 @@ package policy_definition
 import (
 	"fmt"
 
-	//nolint:staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
