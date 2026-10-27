@@ -222,6 +222,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
+		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
