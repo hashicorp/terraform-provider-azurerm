@@ -3,8 +3,6 @@
 
 package site_recovery_vmware_replicated_vm
 
-//nolint:staticcheck
-
 type IncludedDiskModel struct {
 	DiskId                    string `tfschema:"disk_id"`
 	LogStorageAccountId       string `tfschema:"log_storage_account_id"`
