@@ -24,7 +24,7 @@ func TestAccDashboardGrafana_regressionTest(t *testing.T) {
 	r := DashboardGrafanaResource{}
 	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regression(data),
 		},
 	}, "")
 }
@@ -207,6 +207,50 @@ resource "azurerm_dashboard_grafana" "import" {
   grafana_major_version = "13"
 }
 `, config)
+}
+
+func (r DashboardGrafanaResource) regression(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%[1]s
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "a-uid-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                              = "a-dg-%[2]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  api_key_enabled                   = true
+  deterministic_outbound_ip_enabled = true
+  public_network_access_enabled     = false
+  grafana_major_version             = "13"
+  smtp {
+    enabled          = true
+    host             = "localhost:25"
+    user             = "user"
+    password         = "password"
+    from_address     = "admin@grafana.localhost"
+    from_name        = "Grafana"
+    start_tls_policy = "OpportunisticStartTLS"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  azure_monitor_workspace_integrations {
+    resource_id = azurerm_monitor_workspace.test.id
+  }
+
+  tags = {
+    key = "value"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r DashboardGrafanaResource) complete(data acceptance.TestData) string {
