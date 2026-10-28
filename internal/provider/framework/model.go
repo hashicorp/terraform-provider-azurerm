@@ -52,6 +52,7 @@ type Features struct {
 	DatabricksWorkspace      types.List `tfsdk:"databricks_workspace"`
 	EnhancedValidation       types.List `tfsdk:"enhanced_validation"`
 	KeyVault                 types.List `tfsdk:"key_vault"`
+	KubernetesCluster        types.List `tfsdk:"kubernetes_cluster"`
 	LogAnalyticsWorkspace    types.List `tfsdk:"log_analytics_workspace"`
 	MachineLearning          types.List `tfsdk:"machine_learning"`
 	ManagedDisk              types.List `tfsdk:"managed_disk"`
@@ -81,6 +82,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"databricks_workspace":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes)),
 	"enhanced_validation":        types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(EnhancedValidationModelAttributes)),
 	"key_vault":                  types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes)),
+	"kubernetes_cluster":         types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(KubernetesClusterAttributes)),
 	"log_analytics_workspace":    types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(LogAnalyticsWorkspaceAttributes)),
 	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
 	"managed_disk":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes)),
@@ -131,6 +133,14 @@ type CognitiveAccount struct {
 
 var CognitiveAccountAttributes = map[string]attr.Type{
 	"purge_soft_delete_on_destroy": types.BoolType,
+}
+
+type KubernetesCluster struct {
+	NodePoolNameMaxLength types.Int64 `tfsdk:"node_pool_name_max_length"`
+}
+
+var KubernetesClusterAttributes = map[string]attr.Type{
+	"node_pool_name_max_length": types.Int64Type,
 }
 
 type KeyVault struct {

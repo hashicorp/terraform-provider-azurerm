@@ -4,6 +4,8 @@
 package validate
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -15,8 +17,18 @@ func KubernetesAdminUserName(i any, k string) ([]string, []error) {
 }
 
 func KubernetesAgentPoolName(i any, k string) ([]string, []error) {
-	// AKS enforces OS, pool-type, and subscription-specific name length limits.
 	return validation.StringMatch(regexp.MustCompile(`^[a-z]{1}[a-z\d]{0,38}$`), "must begin with a lowercase letter, contain only lowercase letters and numbers and be between 1 and 39 characters in length")(i, k)
+}
+
+func KubernetesAgentPoolNameWithFeatures(name, key string, maxLength int) error {
+	if maxLength < 12 || maxLength > 39 {
+		return fmt.Errorf("`features.kubernetes_cluster.node_pool_name_max_length` must be between 12 and 39")
+	}
+	_, errs := validation.StringMatch(
+		regexp.MustCompile(fmt.Sprintf(`^[a-z]{1}[a-z\d]{0,%d}$`, maxLength-1)),
+		fmt.Sprintf("must begin with a lowercase letter, contain only lowercase letters and numbers and be between 1 and %d characters in length", maxLength),
+	)(name, key)
+	return errors.Join(errs...)
 }
 
 func KubernetesClusterName(i any, k string) ([]string, []error) {

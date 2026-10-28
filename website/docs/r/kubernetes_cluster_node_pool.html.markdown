@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Node Pool which should be created within the Kubernetes Cluster. Changing this forces a new resource to be created.
 
-~> **Note:** Names must begin with a lowercase letter and contain only lowercase letters and numbers. The provider accepts between 1 and 39 characters. Linux node pool names are normally limited to 12 characters; longer names require private AKS enablement for the subscription. AKS enforces the supported maximum, which may be lower than 39 characters.
+~> **Note:** Names must begin with a lowercase letter and contain only lowercase letters and numbers. Linux node pool names have a default maximum length of 12 characters. Support for longer names, up to 39 characters, can be requested on a per-subscription basis through private AKS enablement. Configure `node_pool_name_max_length` in the provider's [`features.kubernetes_cluster` block](../guides/features-block.html#node_pool_name_max_length) to extend resource validation.
 
 ~> **Note:** A Windows Node Pool cannot have a `name` longer than 6 characters.
 
