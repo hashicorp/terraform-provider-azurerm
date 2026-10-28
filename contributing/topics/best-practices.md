@@ -240,7 +240,7 @@ To work around situations where we need to expose the default value from the Azu
 
 Whilst this works, there is one side effect: A null/absent O+C attribute in the config doesn't mean to unset this attribute in the API, instead you can only explicitly *zero* (some of) it by setting it to its *zero* value. Also note *zero* and *being absent* sometimes are not the same and you may want to differentiate.
 
-Following is a descision tree helping you identify when (not) to introduce `Optional` + `Computed`:
+Following is a decision tree helping you identify when (not) to introduce `Optional` + `Computed`:
 
 ```mermaid
 %%{init: {"flowchart": {"defaultRenderer": "elk", "nodeSpacing": 50, "rankSpacing": 70}}}%%
