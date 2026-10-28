@@ -32,6 +32,23 @@ func TestAccPrivateEndpoint_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("network_interface.0.id").Exists(),
 				check.That(data.ResourceName).Key("network_interface.0.name").Exists(),
 				check.That(data.ResourceName).Key("private_service_connection.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("resource_guid").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpoint_resourceGuid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_guid").IsUUID(),
 			),
 		},
 		data.ImportStep(),

@@ -267,6 +267,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `network_interface` - A `network_interface` block as defined below.
 
+* `resource_guid` - The resource GUID of the network interface associated with the Private Endpoint.
+
 * `custom_dns_configs` - A `custom_dns_configs` block as defined below.
 
 * `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.

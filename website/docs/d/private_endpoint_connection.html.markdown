@@ -38,6 +38,8 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the resource exists.
 
+* `resource_guid` - The resource GUID of the network interface associated with the Private Endpoint.
+
 ---
 
 A `network_interface` block exports:

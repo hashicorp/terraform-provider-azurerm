@@ -79,6 +79,11 @@ func dataSourcePrivateEndpointConnection() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"resource_guid": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -115,7 +120,9 @@ func dataSourcePrivateEndpointConnectionRead(d *pluginsdk.ResourceData, meta any
 				nic := (*nics)[0]
 				if nic.Id != nil && *nic.Id != "" {
 					networkInterfaceId = *nic.Id
-					privateIpAddress = getPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
+					nicDetails := getNetworkInterfaceDetails(ctx, nicsClient, networkInterfaceId)
+					privateIpAddress = nicDetails.privateIPAddress
+					d.Set("resource_guid", nicDetails.resourceGuid)
 				}
 			}
 
@@ -146,16 +153,21 @@ func flattenNetworkInterface(networkInterfaceId string) any {
 	}
 }
 
-func getPrivateIpAddress(ctx context.Context, client *networkinterfaces.NetworkInterfacesClient, networkInterfaceId string) string {
-	privateIpAddress := ""
+type networkInterfaceDetails struct {
+	privateIPAddress string
+	resourceGuid     string
+}
+
+func getNetworkInterfaceDetails(ctx context.Context, client *networkinterfaces.NetworkInterfacesClient, networkInterfaceId string) networkInterfaceDetails {
+	details := networkInterfaceDetails{}
 	id, err := commonids.ParseNetworkInterfaceID(networkInterfaceId)
 	if err != nil {
-		return privateIpAddress
+		return details
 	}
 
 	resp, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		return privateIpAddress
+		return details
 	}
 
 	if model := resp.Model; model != nil {
@@ -164,16 +176,19 @@ func getPrivateIpAddress(ctx context.Context, client *networkinterfaces.NetworkI
 				for i, config := range *configs {
 					if propFmt := config.Properties; propFmt != nil {
 						if propFmt.PrivateIPAddress != nil && *propFmt.PrivateIPAddress != "" && i == 0 {
-							privateIpAddress = *propFmt.PrivateIPAddress
+							details.privateIPAddress = *propFmt.PrivateIPAddress
 						}
 						break
 					}
 				}
 			}
+			if props.ResourceGuid != nil {
+				details.resourceGuid = *props.ResourceGuid
+			}
 		}
 	}
 
-	return privateIpAddress
+	return details
 }
 
 func dataSourceFlattenPrivateEndpointServiceConnection(serviceConnections *[]privateendpoints.PrivateLinkServiceConnection, manualServiceConnections *[]privateendpoints.PrivateLinkServiceConnection, privateIpAddress string) []any {

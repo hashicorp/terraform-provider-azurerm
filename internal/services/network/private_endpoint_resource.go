@@ -294,6 +294,11 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				},
 			},
 
+			"resource_guid": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
@@ -681,7 +686,9 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				nic := (*nics)[0]
 				if nic.Id != nil && *nic.Id != "" {
 					networkInterfaceId = *nic.Id
-					privateIpAddress = getPrivateIpAddress(ctx, nicsClient, networkInterfaceId)
+					nicDetails := getNetworkInterfaceDetails(ctx, nicsClient, networkInterfaceId)
+					privateIpAddress = nicDetails.privateIPAddress
+					d.Set("resource_guid", nicDetails.resourceGuid)
 				}
 			}
 
