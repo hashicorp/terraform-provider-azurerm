@@ -465,6 +465,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		input.Properties.LongTermRetentionBackupResourceId = pointer.To(v.(string))
 	}
 
+	if v, ok := d.GetOk("federated_client_id"); ok {
+		input.Properties.FederatedClientId = pointer.To(v.(string))
+	}
+
 	if v, ok := d.GetOk("identity"); ok {
 		expandedIdentity, err := identity.ExpandUserAssignedMap(v.([]any))
 		if err != nil {
@@ -732,6 +736,11 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("elastic_pool_id") {
 		props.ElasticPoolId = pointer.To(d.Get("elastic_pool_id").(string))
+	}
+
+	// sending `""` to the API can remove this property.
+	if d.HasChange("federated_client_id") {
+		props.FederatedClientId = pointer.To(d.Get("federated_client_id").(string))
 	}
 
 	if d.HasChange("license_type") {
@@ -1201,6 +1210,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 
 			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
 			d.Set("collation", pointer.From(props.Collation))
+			d.Set("federated_client_id", pointer.From(props.FederatedClientId))
 			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 			d.Set("storage_account_type", requestedBackupStorageRedundancy)
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
@@ -1608,6 +1618,12 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForAlwaysEncryptedEnclaveType(), false),
+		},
+
+		"federated_client_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"license_type": {
