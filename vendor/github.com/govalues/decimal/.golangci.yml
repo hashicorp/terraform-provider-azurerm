@@ -1,0 +1,19 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - goimports
+    - govet
+    - ineffassign
+    - godot
+    - gosec
+    - misspell
+    - stylecheck
+    - revive
+    - staticcheck
+    - typecheck
+    - unused
+    - gocyclo

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 package streamanalytics
 
@@ -27,7 +27,7 @@ type JobStorageAccountModel struct {
 
 var _ sdk.ResourceWithUpdate = JobStorageAccountResource{}
 
-func (r JobStorageAccountResource) ModelObject() interface{} {
+func (r JobStorageAccountResource) ModelObject() any {
 	return &JobStorageAccountModel{}
 }
 
@@ -167,7 +167,7 @@ func (r JobStorageAccountResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if jobStorage := props.JobStorageAccount; jobStorage != nil {
-						state.AuthenticationMode = string(pointer.From(jobStorage.AuthenticationMode))
+						state.AuthenticationMode = pointer.FromEnum(jobStorage.AuthenticationMode)
 						state.StorageAccountKey = metadata.ResourceData.Get("storage_account_key").(string)
 						state.StorageAccountName = pointer.From(jobStorage.AccountName)
 					}

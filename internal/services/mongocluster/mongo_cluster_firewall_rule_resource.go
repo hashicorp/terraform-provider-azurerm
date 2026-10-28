@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mongocluster
@@ -28,7 +28,7 @@ type MongoClusterFirewallRuleResourceModel struct {
 	StartIpAddress string `tfschema:"start_ip_address"`
 }
 
-func (r MongoClusterFirewallRuleResource) ModelObject() interface{} {
+func (r MongoClusterFirewallRuleResource) ModelObject() any {
 	return &MongoClusterFirewallRuleResourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package relay
@@ -14,6 +14,7 @@ type Registration struct{}
 
 var (
 	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
@@ -33,12 +34,24 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
-// SupportedDataSources returns the supported Data Sources supported by this Service
+// DataSources returns the typed DataSources supported by this service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		RelayNamespaceDataSource{},
+	}
+}
+
+// Resources returns the typed Resources supported by this service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
+}
+
+// SupportedDataSources returns the untyped Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{}
 }
 
-// SupportedResources returns the supported Resources supported by this Service
+// SupportedResources returns the untyped Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),

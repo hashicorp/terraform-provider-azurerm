@@ -72,7 +72,9 @@ The following arguments are supported:
 
 * `short_term_retention_days` - (Optional) The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 
-* `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created.
+* `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created. Conflicts with `recover_database_id`.
+
+* `recover_database_id` - (Optional) The ID of the Recoverable Managed Database from which to perform a cross-region / recovery restore. Changing this forces a new resource to be created. Conflicts with `point_in_time_restore`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -120,4 +122,4 @@ terraform import azurerm_mssql_managed_database.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

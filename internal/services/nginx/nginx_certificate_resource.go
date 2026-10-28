@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -70,7 +70,7 @@ func (m CertificateResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m CertificateResource) ModelObject() interface{} {
+func (m CertificateResource) ModelObject() any {
 	return &CertificateModel{}
 }
 

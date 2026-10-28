@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipgroups"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -71,7 +71,7 @@ func (r IpGroupListResource) List(ctx context.Context, request list.ListRequest,
 
 			rd := resourceIpGroup().Data(&terraform.InstanceState{})
 
-			id, err := ipgroups.ParseIPGroupID(pointer.From(ipgroup.Id))
+			id, err := ipgroups.ParseIPGroupIDInsensitively(pointer.From(ipgroup.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network IpGroup ID", err)
 				return
