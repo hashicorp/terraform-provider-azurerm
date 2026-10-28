@@ -255,11 +255,13 @@ A `custom_domain` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
+* `key_vault_key_id` - (Required) The ID of the Key Vault or Managed HSM Key, supplying a version-less key ID will enable auto-rotation of this key.
 
 * `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
-~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`. `user_assigned_identity_id` is required when the identity type is `UserAssigned`.
+~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`. `user_assigned_identity_id` is required when the identity type is `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+~> **Note:** When using a `SystemAssigned` identity, the Storage Account must already exist and its identity must have permission to access the key before adding the `customer_managed_key` block. This also applies to imported Storage Accounts. To enable customer-managed keys when creating a new Storage Account, use a `UserAssigned` identity. Alternatively, use the `azurerm_storage_account_customer_managed_key` resource to configure the key after the Storage Account and its key permissions have been created.
 
 ---
 

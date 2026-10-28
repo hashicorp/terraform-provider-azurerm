@@ -1516,103 +1516,26 @@ func TestAccStorageAccount_customerManagedKeySystemAssignedIdentity(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.systemAssignedIdentity(data),
+			// The system-assigned identity and its key permissions must exist before enabling CMK.
+			Config: r.customerManagedKeySystemAssignedIdentity(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("customer_managed_key.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.customerManagedKeySystemAssignedIdentity(data),
+			Config: r.customerManagedKeySystemAssignedIdentity(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("customer_managed_key.0.key_vault_key_id").MatchesOtherKey(check.That("azurerm_key_vault_key.test").Key("id")),
+				check.That(data.ResourceName).Key("customer_managed_key.0.user_assigned_identity_id").IsEmpty(),
 			),
 		},
+		data.ImportStep(),
 	})
-}
-
-func (r StorageAccountResource) customerManagedKeySystemAssignedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
-}
-
-resource "azurerm_key_vault_access_policy" "storage_client" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
-  secret_permissions = ["Get"]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      customer_managed_key,
-    ]
-  }
-}
-
-resource "azurerm_key_vault_access_policy" "storage_system" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_storage_account.test.identity.0.principal_id
-
-  key_permissions    = ["Get", "Create", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify"]
-  secret_permissions = ["Get"]
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "acctest%s"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
-
-  depends_on = [
-    azurerm_key_vault_access_policy.storage_client,
-    azurerm_key_vault_access_policy.storage_system
-  ]
-}
-
-resource "azurerm_storage_account_customer_managed_key" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-  key_vault_id       = azurerm_key_vault.test.id
-  key_name           = azurerm_key_vault_key.test.name
-
-  depends_on = [
-    azurerm_key_vault_key.test
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func TestAccStorageAccount_edgeZone(t *testing.T) {
@@ -3815,6 +3738,87 @@ resource "azurerm_storage_account" "test" {
   infrastructure_encryption_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) customerManagedKeySystemAssignedIdentity(data acceptance.TestData, enabled bool) string {
+	customerManagedKey := ""
+	if enabled {
+		customerManagedKey = `
+  customer_managed_key {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+  }
+`
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  rbac_authorization_enabled = false
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_access_policy" "storage_client" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = ["Get", "Create", "Delete", "List", "Recover", "Purge", "GetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_access_policy" "storage_system" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_storage_account.test.identity.0.principal_id
+
+  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["unwrapKey", "wrapKey"]
+
+  # Depending on storage_system here would create a cycle with the inline CMK block.
+  depends_on = [azurerm_key_vault_access_policy.storage_client]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+
+  identity {
+    type = "SystemAssigned"
+  }
+%s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, customerManagedKey)
 }
 
 func (r StorageAccountResource) cmkTemplate(data acceptance.TestData) string {
