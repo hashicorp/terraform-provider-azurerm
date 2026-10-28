@@ -96,6 +96,22 @@ resource "azurerm_linux_function_app" "example" {
 }
 ```
 
+## Container App Environment Hosting
+
+When `container_app_environment_id` is specified, the Function App runs as a container in the Container App Environment rather than on an App Service Plan, and the following apply:
+
+* The `name` must be at most 32 characters, start with a lowercase letter, end with a lowercase letter or digit, and contain only lowercase letters, digits and single hyphens.
+
+* Only the following `site_config` settings can be configured: `application_stack` (`docker` only), `application_insights_key`, `application_insights_connection_string`, `container_registry_use_managed_identity`, `container_registry_managed_identity_client_id`, `elastic_instance_minimum` (the minimum number of replicas) and `app_scale_limit` (the maximum number of replicas).
+
+* `public_network_access_enabled`, `enabled`, `https_only`, `client_certificate_enabled`, `client_certificate_mode`, `client_certificate_exclusion_paths`, `daily_memory_time_quota`, `vnet_image_pull_enabled`, `virtual_network_backup_restore_enabled`, `virtual_network_subnet_id`, `ftp_publish_basic_authentication_enabled` and `webdeploy_publish_basic_authentication_enabled` cannot be configured. Networking, including public network access, is managed on the Container App Environment.
+
+* `auth_settings`, `auth_settings_v2`, `backup`, `connection_string`, `content_share_force_disabled`, `end_to_end_tls_encryption_enabled`, `sticky_settings`, `storage_account` and `zip_deploy_file` are not supported. Use `app_settings` for application connection strings.
+
+* Deployment slots and publishing credentials are not available.
+
+* Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` for these Function Apps, so they are always set to their default values (`true`, `Optional`, `true`, `true` and `true` respectively) in the state and do not reflect changes made outside of Terraform.
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -109,16 +125,6 @@ The following arguments are supported:
 * `container_app_environment_id` - (Optional) The ID of the Container App Environment within which to create this Function App. Changing this forces a new Linux Function App to be created.
 
 -> **Note:** A `docker` block must be specified in `site_config.application_stack` when `container_app_environment_id` is specified.
-
--> **Note:** `public_network_access_enabled` cannot be configured when `container_app_environment_id` is specified. Public network access must be configured on the Container App Environment.
-
--> **Note:** Container Apps-hosted Function App names must contain at most 32 lowercase letters, digits or hyphens, start with a letter, end with a letter or digit, and must not contain consecutive hyphens.
-
--> **Note:** When `container_app_environment_id` is specified, the supported `site_config` settings are `application_stack.docker`, `application_insights_key`, `application_insights_connection_string`, `container_registry_use_managed_identity`, `container_registry_managed_identity_client_id`, `elastic_instance_minimum` (minimum replicas) and `app_scale_limit` (maximum replicas). Other `site_config` settings cannot be explicitly configured. Their App Service schema defaults are not sent to Azure.
-
--> **Note:** `enabled`, `https_only`, `client_certificate_enabled`, `client_certificate_mode`, `client_certificate_exclusion_paths`, `daily_memory_time_quota`, `vnet_image_pull_enabled`, `virtual_network_backup_restore_enabled` and `virtual_network_subnet_id` cannot be configured in this hosting mode. Networking is managed by the Container App Environment.
-
--> **Note:** This resource does not support the App Service `auth_settings`, `auth_settings_v2`, `backup`, `connection_string`, `sticky_settings`, `storage_account`, `zip_deploy_file`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` settings for Container Apps-hosted Function Apps. Use `app_settings` for application connection strings. Deployment slots and publishing credentials are not exposed in this hosting mode. Defaults retained in state for inapplicable App Service settings do not describe Container Apps security or networking configuration.
 
 * `service_plan_id` - (Optional) The ID of the App Service Plan within which to create this Function App.
 

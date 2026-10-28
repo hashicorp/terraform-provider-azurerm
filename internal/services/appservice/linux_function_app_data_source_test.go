@@ -59,6 +59,9 @@ func TestAccLinuxFunctionAppDataSource_containerAppEnvironment(t *testing.T) {
 					check.That("azurerm_container_app_environment.test").Key("id"),
 				),
 				check.That(data.ResourceName).Key("service_plan_id").HasValue(""),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Optional"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 	})

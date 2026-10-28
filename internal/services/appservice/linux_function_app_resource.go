@@ -8,7 +8,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -772,6 +771,10 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("flattening identity for Linux %s: %+v", id, err)
 				}
 
+				// Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled` or the
+				// basic authentication settings for Container Apps-hosted Function Apps, and the basic authentication
+				// endpoints return `400 Bad Request`. These attributes cannot be configured in this hosting mode, so
+				// they are set to their schema defaults here and in the data source.
 				state := LinuxFunctionAppModel{
 					Name:                             id.SiteName,
 					ResourceGroup:                    id.ResourceGroupName,
@@ -1027,8 +1030,6 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-			} else if state.ContainerAppEnvironmentId == "" {
-				return fmt.Errorf("determining hosting target for Linux %s: neither `service_plan_id` nor `container_app_environment_id` was configured", id)
 			}
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
@@ -1204,10 +1205,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
-			if state.ContainerAppEnvironmentId != "" {
-				model.Properties.PublicNetworkAccess = nil
-				model.Properties.SiteConfig.PublicNetworkAccess = nil
-			} else if metadata.ResourceData.HasChange("public_network_access_enabled") {
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
 				if !state.PublicNetworkAccess {
 					pna = helpers.PublicNetworkAccessDisabled
@@ -1418,6 +1416,7 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 					"daily_memory_time_quota", "client_certificate_enabled", "client_certificate_mode", "client_certificate_exclusion_paths", "https_only", "enabled",
 					"ftp_publish_basic_authentication_enabled", "webdeploy_publish_basic_authentication_enabled", "zip_deploy_file",
 					"auth_settings", "auth_settings_v2", "backup", "sticky_settings", "storage_account",
+					"end_to_end_tls_encryption_enabled", "content_share_force_disabled",
 				} {
 					if value := rawConfig.GetAttr(name); !value.IsNull() {
 						if value.IsKnown() && (value.Type().IsListType() || value.Type().IsSetType()) && value.Length().IsKnown() && value.LengthInt() == 0 {
@@ -1543,33 +1542,7 @@ func createOrUpdateLinuxFunctionApp(ctx context.Context, client *webapps.WebApps
 
 	input.Properties = helpers.FunctionAppContainerSiteProperties(input.Properties)
 
-	result, err := client.CreateOrUpdate(ctx, id, input)
-	if err != nil {
-		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
-	}
-
-	if callback != nil {
-		if err := callback(); err != nil {
-			return fmt.Errorf("executing callback function: %+v", err)
-		}
-	}
-
-	if result.HttpResponse == nil {
-		return fmt.Errorf("performing CreateOrUpdate: response was nil")
-	}
-	if result.HttpResponse.StatusCode == http.StatusOK {
-		return nil
-	}
-
-	poller, err := custompollers.NewFunctionAppContainerCreateOrUpdatePoller(client.Client, result.HttpResponse)
-	if err != nil {
-		return fmt.Errorf("building Function App container poller: %+v", err)
-	}
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
-	}
-
-	return nil
+	return custompollers.CreateOrUpdateFunctionAppContainer(ctx, client, id, input, callback)
 }
 
 func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData) {

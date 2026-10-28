@@ -433,13 +433,13 @@ func (r ContainerAppEnvironmentResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = client.Delete(ctx, *id); err != nil {
+			result, err := client.Delete(ctx, *id)
+			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 			// The operation endpoint can complete with an empty response that the SDK's
-			// LRO poller cannot decode. Verify deletion of the resource itself instead.
-			poller := custompollers.NewManagedEnvironmentDeletePoller(client, *id)
-			if err := poller.PollUntilDone(ctx); err != nil {
+			// LRO poller cannot decode, in which case deletion of the resource itself is verified.
+			if err := custompollers.WaitForManagedEnvironmentDeletion(ctx, &result.Poller, client, *id); err != nil {
 				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 

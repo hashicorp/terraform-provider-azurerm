@@ -61,7 +61,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `container_app_environment_id` - The ID of the Container App Environment within which this Function App has been created.
 
--> **Note:** For Container Apps-hosted Function Apps, this data source reads the Site, SiteConfig and application settings. App Service-only publishing credentials, connection strings, sticky settings, authentication settings, backup and logging configuration are not retrieved; their empty/default outputs do not describe Container Apps configuration.
+-> **Note:** When the Function App is hosted on a Container App Environment, App Service-only attributes such as `site_credential`, `connection_string`, `sticky_settings`, `auth_settings`, `auth_settings_v2` and `backup` are not populated.
+
+-> **Note:** When the Function App is hosted on a Container App Environment, Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled`, so these are always `true`, `Optional`, `true`, `true` and `true` respectively.
 
 * `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
 

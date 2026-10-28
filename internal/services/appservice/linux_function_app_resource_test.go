@@ -1476,11 +1476,13 @@ func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("first"),
 				check.That(data.ResourceName).Key("app_settings.ACCEPTANCE_TEST").HasValue("first"),
+				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("10"),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("0"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.containerAppEnvironment(data, "second"),
+			Config: r.containerAppEnvironmentWithScale(data, "second", 5, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
@@ -1489,9 +1491,27 @@ func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("second"),
 				check.That(data.ResourceName).Key("app_settings.ACCEPTANCE_TEST").HasValue("second"),
+				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("5"),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("1"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironmentUnsupportedSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.containerAppEnvironmentUnsupportedSetting(data, "end_to_end_tls_encryption_enabled = true"),
+			ExpectError: regexp.MustCompile("`end_to_end_tls_encryption_enabled` is not supported by this resource when `container_app_environment_id` is configured"),
+		},
+		{
+			Config:      r.containerAppEnvironmentUnsupportedSetting(data, "content_share_force_disabled = true"),
+			ExpectError: regexp.MustCompile("`content_share_force_disabled` is not supported by this resource when `container_app_environment_id` is configured"),
+		},
 	})
 }
 
@@ -3271,7 +3291,20 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppResource) containerAppEnvironmentUnsupportedSetting(data acceptance.TestData, setting string) string {
+	return strings.Replace(
+		r.containerAppEnvironment(data, "first"),
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n",
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n  "+setting+"\n",
+		1,
+	)
+}
+
 func (r LinuxFunctionAppResource) containerAppEnvironment(data acceptance.TestData, environmentTag string) string {
+	return r.containerAppEnvironmentWithScale(data, environmentTag, 10, 0)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentWithScale(data acceptance.TestData, environmentTag string, appScaleLimit, elasticInstanceMinimum int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3310,8 +3343,8 @@ resource "azurerm_linux_function_app" "test" {
   }
 
   site_config {
-    app_scale_limit          = 10
-    elastic_instance_minimum = 0
+    app_scale_limit          = %[5]d
+    elastic_instance_minimum = %[6]d
 
     application_stack {
       docker {
@@ -3326,7 +3359,7 @@ resource "azurerm_linux_function_app" "test" {
     environment = %[4]q
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, environmentTag)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, environmentTag, appScaleLimit, elasticInstanceMinimum)
 }
 
 func (r LinuxFunctionAppResource) appStackDockerUseMSI(data acceptance.TestData, planSku string) string {

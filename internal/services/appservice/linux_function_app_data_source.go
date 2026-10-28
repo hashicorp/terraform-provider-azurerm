@@ -349,7 +349,6 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					ResourceGroup:              id.ResourceGroupName,
 					Location:                   location.Normalize(site.Location),
 					ContainerAppEnvironmentId:  environmentId.ID(),
-					Enabled:                    pointer.From(site.Properties.Enabled),
 					Kind:                       pointer.From(site.Kind),
 					Tags:                       pointer.From(site.Tags),
 					DefaultHostname:            pointer.From(site.Properties.DefaultHostName),
@@ -357,6 +356,14 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					Availability:               string(pointer.From(site.Properties.AvailabilityState)),
 					Usage:                      string(pointer.From(site.Properties.UsageState)),
 					SiteConfig:                 []helpers.SiteConfigLinuxFunctionApp{*siteConfig},
+
+					// Azure does not return these for Container Apps-hosted Function Apps, so they match the
+					// values set by the `azurerm_linux_function_app` resource.
+					Enabled:                          true,
+					ClientCertMode:                   string(webapps.ClientCertModeOptional),
+					PublicNetworkAccess:              true,
+					PublishingFTPBasicAuthEnabled:    true,
+					PublishingDeployBasicAuthEnabled: true,
 				}
 				state.unpackLinuxFunctionAppSettings(containerAppSettingsResp.Model, metadata)
 				delete(state.AppSettings, "WEBSITE_AUTH_ENCRYPTION_KEY")

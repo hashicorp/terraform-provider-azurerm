@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -13,9 +14,11 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 )
 
+var functionAppContainerNameRegex = regexp.MustCompile(`^[a-z]([a-z0-9-]*[a-z0-9])?$`)
+
 func ValidateFunctionAppContainerName(name string) error {
-	if len(name) > 32 || !regexp.MustCompile(`^[a-z]([a-z0-9-]*[a-z0-9])?$`).MatchString(name) || strings.Contains(name, "--") {
-		return fmt.Errorf("`name` must be at most 32 characters, start with a lowercase letter, end with a lowercase letter or digit, and contain only lowercase letters, digits and single hyphens when `container_app_environment_id` is configured")
+	if len(name) > 32 || !functionAppContainerNameRegex.MatchString(name) || strings.Contains(name, "--") {
+		return errors.New("`name` must be at most 32 characters, start with a lowercase letter, end with a lowercase letter or digit, and contain only lowercase letters, digits and single hyphens when `container_app_environment_id` is configured")
 	}
 	return nil
 }
