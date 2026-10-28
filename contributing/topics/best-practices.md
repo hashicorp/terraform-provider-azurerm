@@ -256,7 +256,7 @@ flowchart TD
     B4 -->|No| E4["Use Optional & Default"]
     B5 -->|Yes| E5["Use Required"]
     B5 -->|No| E2["Use Optional & Computed"]
-    E3 -.Major Version Upgrade.-> E6["Remove the Optional³"]
+    E3 -.Major Version Upgrade.-> E6["Remove the Computed³"]
 ```
 
 - <sup>1</sup>: Here *dynamic* means the returned default value depends on the region, other properties of the creation request, etc.
