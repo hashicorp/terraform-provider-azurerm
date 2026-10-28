@@ -238,27 +238,30 @@ In version 5 of the Terraform Protocol, if a field is created with one value at 
 
 To work around situations where we need to expose the default value from the Azure API - we've historically marked fields as both `Optional` and `Computed` - meaning that a value will be returned from the API when it's not defined.
 
-Whilst this works, there are some side effects, for example:
+Whilst this works, there is one side effect: A null/absent O+C attribute in the config doesn't mean to unset this attribute in the API, instead you can only explicitly *zero* (some of) it by setting it to its *zero* value. Also note *zero* and *being absent* sometimes are not the same and you may want to differentiate.
 
-1. It's hard for users to reset a field to its default value, for example: subnets block within the azurerm_virtual_network resource require that an explicit empty list is specified (`subnets = []`) to remove
-2. The default value set by the Azure API cannot be documented because it is not set in the Terraform schema, and not possible for [document-lint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/document-lint) to statically check
+Following is a descision tree helping you identify when (not) to introduce `Optional` + `Computed`:
 
-Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
+```mermaid
+%%{init: {"flowchart": {"defaultRenderer": "elk", "nodeSpacing": 50, "rankSpacing": 70}}}%%
+flowchart TD
+    Start("New Optional Attribute") --> B1{"ForceNew?"}
+    B1 -->|Yes| B2{"New Resource?"}
+    B1 -->|No| B3{"API returns default value when not specified?"}
+    B2 -->|Yes| E1(("End"))
+    B2 -->|No| E3["Use Optional & Computed"]
+    B3 -->|Yes| B4{"API returned default value is dynamic?<sup>1</sup>"}
+    B3 -->|No| E1
+    B4 -->|Yes| B5{"Proper to be Required?<sup>2</sup>"}
+    B4 -->|No| E4["Use Optional & Default"]
+    B5 -->|Yes| E5["Use Required"]
+    B5 -->|No| E2["Use Optional & Computed"]
+    E3 -.Major Version Upgrade.-> E6["Change to Optional & Default<sup>3</sup>"]
+```
 
-1. Specifying a `Default` if Azure consistently sets the same value
-2. Setting the property to `Required` and requiring the user to specify a value at creation time
-
-Examples of invalid uses of O+C:
-
-1. Adding O+C property when Azure always set a static default value on creation when value not provided, use Optional + Default instead
-2. Adding O+C property when Azure does not set any default value on creation
-3. Adding O+C property that is difficult to clear, for example a list property. User might expact property removal is a reset / value-clearance, not realising they have to do `subnet = []`.  Consider implementing the property as a child resource / as a required property in the next major version.
-
-Examples of valid uses of O+C:
-
-1. (Hypothetical) Temporarily adding an O+C property with `ForceNew: true` to `azurerm_public_ip` (a high-impact or foundational resource) where Azure sets a non-static default value. There have been cases where CD pipelines were not appropriately set up to check plan diffs, resulting in accidental, catastrophic resource replacements. Using O+C means the default behaviour is to opt-out from tracking the property and prevent such replacements. This O+C should be replaced by a `Required` in the next major version. Follow the behaviour switching pattern described in [the breaking changes guide](./guide-breaking-changes.md).
-2. Allowing Azure to set a location-specific default value that is preferable to a hardcoded default. For example, `PremiumSSDv2` for `mongo_cluster.storage_type` is [preferred for its performance and cost benefits](https://github.com/hashicorp/terraform-provider-azurerm/pull/33361#discussion_r4167778143), but is not yet available in all locations.
-3. Renaming properties according to the [breaking change guide](./guide-breaking-changes.md).
+- <sup>1</sup>: Here *dynamic* means the returned default value depends on the region, other properties of the creation request, etc.
+- <sup>2</sup>: *Proper* here means whether it will add unnecessary effort to the users to ask them always specify this attribute. E.g. A niche property rarely used by most of the users, or a property which .
+- <sup>3</sup>: This is to get rid of the O+C side effects.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
 
@@ -275,13 +278,6 @@ Example:
 		Computed: true,
 	},
 ```
-
-When in doubt, adhere these two principles:
-
-1. Do not surprise user with unexpected plan diff upon AzureRM version update
-2. If the property is removed from HCL config, the intent and effect should be intuitive
-
-See also relevant guide on how to identify breaking change: [guide-breaking-changes.md](./guide-breaking-changes.md).
 
 ## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
 
