@@ -250,13 +250,13 @@ flowchart TD
     B1 -->|No| B3{"API returns default value when not specified?"}
     B2 -->|Yes| E1(("End"))
     B2 -->|No| E3["Use Optional & Computed"]
-    B3 -->|Yes| B4{"API returned default value is dynamic?<sup>1</sup>"}
+    B3 -->|Yes| B4{"API returned default value is dynamic?¹"}
     B3 -->|No| E1
-    B4 -->|Yes| B5{"Proper to be Required?<sup>2</sup>"}
+    B4 -->|Yes| B5{"Proper to be Required?²"}
     B4 -->|No| E4["Use Optional & Default"]
     B5 -->|Yes| E5["Use Required"]
     B5 -->|No| E2["Use Optional & Computed"]
-    E3 -.Major Version Upgrade.-> E6["Change to Optional & Default<sup>3</sup>"]
+    E3 -.Major Version Upgrade.-> E6["Change to Optional & Default³"]
 ```
 
 - <sup>1</sup>: Here *dynamic* means the returned default value depends on the region, other properties of the creation request, etc.
