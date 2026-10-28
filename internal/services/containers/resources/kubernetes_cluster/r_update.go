@@ -140,6 +140,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			return err
 		}
 		existing.Model.Properties.AddonProfiles = addonProfiles
+
+		// TODO: Migrate `oms_agent` legacy add-on flow to the `azureMonitorProfile.containerInsights` API object
+		// Note: the add-on block (`oms_agent`) supports additional fields that are not exposed in the object, investigate
+		if d.HasChange("oms_agent") {
+			// In API version 2026-06-01 and above, the `containerInsights` settings overlap with the add-on payload, with the former taking precedence which causes perpetual diffs.
+			// For now, remove from payload to ensure add-on values are used, preserving existing behaviour.
+			if props.AzureMonitorProfile != nil {
+				props.AzureMonitorProfile.ContainerInsights = nil
+			}
+		}
 	}
 
 	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
