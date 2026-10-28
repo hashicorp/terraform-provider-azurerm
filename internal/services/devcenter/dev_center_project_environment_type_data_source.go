@@ -96,7 +96,7 @@ func (DevCenterProjectEnvironmentTypeDataSource) Attributes() map[string]*plugin
 	}
 }
 
-func (DevCenterProjectEnvironmentTypeDataSource) ModelObject() interface{} {
+func (DevCenterProjectEnvironmentTypeDataSource) ModelObject() any {
 	return &DevCenterProjectEnvironmentTypeDataSourceModel{}
 }
 

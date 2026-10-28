@@ -27,15 +27,15 @@ var (
 
 type KubernetesFleetManagerResource struct{}
 
-func (r KubernetesFleetManagerResource) ModelObject() interface{} {
+func (r KubernetesFleetManagerResource) ModelObject() any {
 	return &KubernetesFleetManagerResourceSchema{}
 }
 
 type KubernetesFleetManagerResourceSchema struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Location          string         `tfschema:"location"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (r KubernetesFleetManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

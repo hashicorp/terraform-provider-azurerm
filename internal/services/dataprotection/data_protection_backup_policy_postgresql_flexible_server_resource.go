@@ -70,7 +70,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) ResourceType
 	return "azurerm_data_protection_backup_policy_postgresql_flexible_server"
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) ModelObject() any {
 	return &BackupPolicyPostgreSQLFlexibleServerModel{}
 }
 

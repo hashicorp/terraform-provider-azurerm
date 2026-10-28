@@ -192,23 +192,23 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) error {
+func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ any) error {
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
 	ipAddresses := d.Get("ip_addresses").(string)
 	signedVersion := d.Get("signed_version").(string)
-	resourceTypesIface := d.Get("resource_types").([]interface{})
-	servicesIface := d.Get("services").([]interface{})
+	resourceTypesIface := d.Get("resource_types").([]any)
+	servicesIface := d.Get("services").([]any)
 	start := d.Get("start").(string)
 	expiry := d.Get("expiry").(string)
-	permissionsIface := d.Get("permissions").([]interface{})
+	permissionsIface := d.Get("permissions").([]any)
 
-	resourceTypes := BuildResourceTypesString(resourceTypesIface[0].(map[string]interface{}))
-	services := BuildServicesString(servicesIface[0].(map[string]interface{}))
+	resourceTypes := BuildResourceTypesString(resourceTypesIface[0].(map[string]any))
+	services := BuildServicesString(servicesIface[0].(map[string]any))
 
 	permissions := ""
 	if len(permissionsIface) > 0 && permissionsIface[0] != nil {
-		permissions = BuildPermissionsString(permissionsIface[0].(map[string]interface{}))
+		permissions = BuildPermissionsString(permissionsIface[0].(map[string]any))
 	}
 
 	// Parse the connection string
@@ -244,7 +244,7 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 	return nil
 }
 
-func BuildPermissionsString(perms map[string]interface{}) string {
+func BuildPermissionsString(perms map[string]any) string {
 	retVal := ""
 
 	if val, pres := perms["read"].(bool); pres && val {
@@ -290,7 +290,7 @@ func BuildPermissionsString(perms map[string]interface{}) string {
 	return retVal
 }
 
-func BuildServicesString(services map[string]interface{}) string {
+func BuildServicesString(services map[string]any) string {
 	retVal := ""
 
 	if val, pres := services["blob"].(bool); pres && val {
@@ -312,7 +312,7 @@ func BuildServicesString(services map[string]interface{}) string {
 	return retVal
 }
 
-func BuildResourceTypesString(resTypes map[string]interface{}) string {
+func BuildResourceTypesString(resTypes map[string]any) string {
 	retVal := ""
 
 	if val, pres := resTypes["service"].(bool); pres && val {

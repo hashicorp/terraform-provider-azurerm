@@ -84,7 +84,7 @@ func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsCNameRecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ interface{}) ([]*pluginsdk.ResourceData, error) {
+func resourcePrivateDnsCNameRecordImporter(_ context.Context, d *pluginsdk.ResourceData, _ any) ([]*pluginsdk.ResourceData, error) {
 	resourceId, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return []*pluginsdk.ResourceData{d}, err
@@ -95,7 +95,7 @@ func resourcePrivateDnsCNameRecordImporter(_ context.Context, d *pluginsdk.Resou
 	return []*pluginsdk.ResourceData{d}, nil
 }
 
-func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata: tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:      pointer.To(int64(d.Get("ttl").(int))),
 			CnameRecord: &privatedns.CnameRecord{
 				Cname: pointer.To(d.Get("record").(string)),
@@ -152,7 +152,7 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 	return resourcePrivateDnsCNameRecordRead(d, meta)
 }
 
-func resourcePrivateDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsCNameRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +196,7 @@ func resourcePrivateDnsCNameRecordFlatten(d *pluginsdk.ResourceData, id *private
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourcePrivateDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

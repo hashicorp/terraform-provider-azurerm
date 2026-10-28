@@ -38,7 +38,7 @@ func (s StorageDefenderResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 	return commonids.ValidateStorageAccountID
 }
 
-func (s StorageDefenderResource) ModelObject() interface{} {
+func (s StorageDefenderResource) ModelObject() any {
 	return &StorageDefenderModel{}
 }
 

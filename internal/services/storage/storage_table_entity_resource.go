@@ -80,7 +80,7 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -156,7 +156,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       d.Get("entity").(map[string]any),
 	}
 
 	if _, err = client.InsertOrMerge(ctx, tableName, input); err != nil {
@@ -168,7 +168,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -215,7 +215,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: d.Get("partition_key").(string),
 		RowKey:       d.Get("row_key").(string),
-		Entity:       d.Get("entity").(map[string]interface{}),
+		Entity:       d.Get("entity").(map[string]any),
 	}
 
 	if _, err = client.InsertOrMerge(ctx, tableName, input); err != nil {
@@ -227,7 +227,7 @@ func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -312,7 +312,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -367,12 +367,12 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 // The api returns extra information that we already have. We'll remove it here before setting it in state.
-func flattenEntity(entity map[string]interface{}) map[string]interface{} {
+func flattenEntity(entity map[string]any) map[string]any {
 	delete(entity, "PartitionKey")
 	delete(entity, "RowKey")
 	delete(entity, "Timestamp")
 
-	result := map[string]interface{}{}
+	result := map[string]any{}
 	for k, v := range entity {
 		// skip ODATA annotation returned with fullmetadata
 		if strings.HasPrefix(k, "odata.") || strings.HasSuffix(k, "@odata.type") {

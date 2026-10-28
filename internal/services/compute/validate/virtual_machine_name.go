@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func VirtualMachineName(i interface{}, k string) (warnings []string, errors []error) {
+func VirtualMachineName(i any, k string) (warnings []string, errors []error) {
 	// VM name can be 1-80 characters in length
 	return validation.All(
 		validation.StringIsNotWhiteSpace,

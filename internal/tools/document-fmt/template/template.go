@@ -18,7 +18,7 @@ func Render(data *data.TerraformNodeData, text string) ([]string, error) {
 	var b bytes.Buffer
 
 	tmpl := template.New("template")
-	tmpl.Funcs(map[string]interface{}{
+	tmpl.Funcs(map[string]any{
 		"lower": strings.ToLower,
 		"title": toTitle,
 	})

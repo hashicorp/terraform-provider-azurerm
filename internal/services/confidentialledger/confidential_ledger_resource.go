@@ -125,7 +125,7 @@ func resourceConfidentialLedger() *pluginsdk.Resource {
 	}
 }
 
-func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,8 +145,8 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	aadBasedUsers := expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
-	certBasedUsers := expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
+	aadBasedUsers := expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]any))
+	certBasedUsers := expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]any))
 	ledgerType := confidentialledger.LedgerType(d.Get("ledger_type").(string))
 	location := location.Normalize(d.Get("location").(string))
 	parameters := confidentialledger.ConfidentialLedger{
@@ -156,7 +156,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 			CertBasedSecurityPrincipals: certBasedUsers,
 			LedgerType:                  &ledgerType,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.LedgerCreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -167,7 +167,7 @@ func resourceConfidentialLedgerCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceConfidentialLedgerRead(d, meta)
 }
 
-func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +218,7 @@ func resourceConfidentialLedgerRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -250,15 +250,15 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("azuread_based_service_principal") {
-		ledger.Properties.AadBasedSecurityPrincipals = expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]interface{}))
+		ledger.Properties.AadBasedSecurityPrincipals = expandAADBasedSecurityPrincipal(d.Get("azuread_based_service_principal").([]any))
 	}
 
 	if d.HasChange("certificate_based_security_principal") {
-		ledger.Properties.CertBasedSecurityPrincipals = expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]interface{}))
+		ledger.Properties.CertBasedSecurityPrincipals = expandCertBasedSecurityPrincipal(d.Get("certificate_based_security_principal").([]any))
 	}
 
 	if d.HasChange("tags") {
-		ledger.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		ledger.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.LedgerUpdateThenPoll(ctx, *id, ledger); err != nil {
@@ -268,7 +268,7 @@ func resourceConfidentialLedgerUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceConfidentialLedgerRead(d, meta)
 }
 
-func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ConfidentialLedger.ConfidentialLedgerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,11 +285,11 @@ func resourceConfidentialLedgerDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandAADBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.AADBasedSecurityPrincipal {
+func expandAADBasedSecurityPrincipal(input []any) *[]confidentialledger.AADBasedSecurityPrincipal {
 	output := make([]confidentialledger.AADBasedSecurityPrincipal, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		principalId := v["principal_id"].(string)
 		tenantId := v["tenant_id"].(string)
 
@@ -305,11 +305,11 @@ func expandAADBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.
 	return &output
 }
 
-func expandCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger.CertBasedSecurityPrincipal {
+func expandCertBasedSecurityPrincipal(input []any) *[]confidentialledger.CertBasedSecurityPrincipal {
 	output := make([]confidentialledger.CertBasedSecurityPrincipal, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		output = append(output, confidentialledger.CertBasedSecurityPrincipal{
 			Cert:           pointer.To(v["pem_public_key"].(string)),
@@ -320,8 +320,8 @@ func expandCertBasedSecurityPrincipal(input []interface{}) *[]confidentialledger
 	return &output
 }
 
-func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecurityPrincipal) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecurityPrincipal) []any {
+	output := make([]any, 0)
 	if input == nil {
 		return output
 	}
@@ -332,7 +332,7 @@ func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecuri
 			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"ledger_role_name": ledgerRoleName,
 			"principal_id":     pointer.From(item.PrincipalId),
 			"tenant_id":        pointer.From(item.TenantId),
@@ -342,10 +342,10 @@ func flattenAADBasedSecurityPrincipal(input *[]confidentialledger.AADBasedSecuri
 	return output
 }
 
-func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecurityPrincipal) []interface{} {
-	output := make([]interface{}, 0)
+func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecurityPrincipal) []any {
+	output := make([]any, 0)
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	for _, item := range *input {
@@ -354,7 +354,7 @@ func flattenCertBasedSecurityPrincipal(input *[]confidentialledger.CertBasedSecu
 			ledgerRoleName = string(*item.LedgerRoleName)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"ledger_role_name": ledgerRoleName,
 			"pem_public_key":   pointer.From(item.Cert),
 		})

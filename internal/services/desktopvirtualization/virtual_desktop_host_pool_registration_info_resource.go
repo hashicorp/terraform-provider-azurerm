@@ -65,7 +65,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfo() *pluginsdk.Resource {
 	}
 }
 
-func hostpoolRegistrationInfoCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func hostpoolRegistrationInfoCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 	if d.HasChange("expiration_date") {
 		if err := d.SetNewComputed("token"); err != nil {
 			return err
@@ -75,7 +75,7 @@ func hostpoolRegistrationInfoCustomDiff(ctx context.Context, d *pluginsdk.Resour
 	return nil
 }
 
-func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +118,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfoCreateUpdate(d *pluginsdk.Res
 	return resourceVirtualDesktopHostPoolRegistrationInfoRead(d, meta)
 }
 
-func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceVirtualDesktopHostPoolRegistrationInfoRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopHostPoolRegistrationInfoDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.HostPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

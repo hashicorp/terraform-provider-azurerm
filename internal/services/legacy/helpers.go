@@ -3,7 +3,7 @@
 
 package legacy
 
-func expandZones(v []interface{}) *[]string {
+func expandZones(v []any) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {
 		zones = append(zones, zone.(string))

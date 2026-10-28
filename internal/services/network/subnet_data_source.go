@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -97,7 +97,7 @@ func dataSourceSubnet() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -136,7 +136,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
-			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
+			d.Set("private_endpoint_network_policies", pointer.FromEnum(props.PrivateEndpointNetworkPolicies))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
 			networkSecurityGroupId := ""

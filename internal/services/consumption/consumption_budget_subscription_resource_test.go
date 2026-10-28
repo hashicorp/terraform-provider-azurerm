@@ -332,7 +332,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 }
 
 func (ConsumptionBudgetSubscriptionResource) completeUpdate(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -67,8 +67,8 @@ func componentExists(ctx context.Context, clients *clients.Client, state *plugin
 	}
 
 	definitionRaw := *resp.Model.Properties.Definition
-	definitionMap := definitionRaw.(map[string]interface{})
-	actions := definitionMap[propertyName].(map[string]interface{})
+	definitionMap := definitionRaw.(map[string]any)
+	actions := definitionMap[propertyName].(map[string]any)
 
 	exists := false
 	for k := range actions {

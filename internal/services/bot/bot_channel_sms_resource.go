@@ -83,7 +83,7 @@ func resourceBotChannelSMS() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourceBotChannelSMSCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceBotChannelSMSRead(d, meta)
 }
 
-func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +169,7 @@ func resourceBotChannelSMSRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceBotChannelSMSUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSMSUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +201,7 @@ func resourceBotChannelSMSUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceBotChannelSMSRead(d, meta)
 }
 
-func resourceBotChannelSMSDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelSMSDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

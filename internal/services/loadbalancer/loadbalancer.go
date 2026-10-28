@@ -6,7 +6,7 @@ package loadbalancer
 import (
 	"context"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -115,7 +115,7 @@ func loadBalancerSubResourceImporter(parser func(input string) (*loadbalancers.L
 	return pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 		_, err := parser(id)
 		return err
-	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 		lbId, err := parser(d.Id())
 		if err != nil {
 			return nil, err

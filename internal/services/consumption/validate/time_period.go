@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ConsumptionBudgetTimePeriodStartDate(i interface{}, k string) (warnings []string, errors []error) {
+func ConsumptionBudgetTimePeriodStartDate(i any, k string) (warnings []string, errors []error) {
 	validateRFC3339TimeWarnings, validateRFC3339TimeErrors := validation.IsRFC3339Time(i, k)
 	errors = append(errors, validateRFC3339TimeErrors...)
 	warnings = append(warnings, validateRFC3339TimeWarnings...)

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,7 +38,7 @@ func (ArcKubernetesProvisionedClusterListResource) List(ctx context.Context, req
 		return
 	}
 
-	var results []arckubernetes.ConnectedCluster
+	var results []connectedclusters.ConnectedCluster
 	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
@@ -68,7 +68,7 @@ func (ArcKubernetesProvisionedClusterListResource) List(ctx context.Context, req
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := arckubernetes.ParseConnectedClusterIDInsensitively(pointer.From(item.Id))
+			id, err := connectedclusters.ParseConnectedClusterIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", resource.ResourceType()), err)
 				return

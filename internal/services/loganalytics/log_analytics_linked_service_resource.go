@@ -42,7 +42,7 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 
 		Schema: resourceLogAnalyticsLinkedServiceSchema(),
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
 					if _, err := automationaccount.ValidateAutomationAccountID(readAccessID, "read_access_id"); err != nil {
@@ -64,7 +64,7 @@ func resourceLogAnalyticsLinkedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -132,7 +132,7 @@ func resourceLogAnalyticsLinkedServiceCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceLogAnalyticsLinkedServiceRead(d, meta)
 }
 
-func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -167,7 +167,7 @@ func resourceLogAnalyticsLinkedServiceRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

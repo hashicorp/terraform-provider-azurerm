@@ -57,7 +57,7 @@ func dataSourcePortalDashboard() *pluginsdk.Resource {
 	}
 }
 
-func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePortalDashboardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

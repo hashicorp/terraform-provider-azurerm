@@ -60,7 +60,7 @@ func resourceSiteRecoveryProtectionContainer() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -98,7 +98,7 @@ func resourceSiteRecoveryProtectionContainerCreate(d *pluginsdk.ResourceData, me
 	return resourceSiteRecoveryProtectionContainerRead(d, meta)
 }
 
-func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(d.Id())
 	if err != nil {
 		return err
@@ -124,7 +124,7 @@ func resourceSiteRecoveryProtectionContainerRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationprotectioncontainers.ParseReplicationProtectionContainerID(d.Id())
 	if err != nil {
 		return err

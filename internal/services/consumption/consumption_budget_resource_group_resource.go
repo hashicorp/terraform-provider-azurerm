@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	validateResourceGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -50,7 +50,7 @@ func (r ResourceGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validateResourceGroup.ResourceGroupID,
+			ValidateFunc: validate.ResourceGroupID,
 		},
 	}
 	return r.base.arguments(schema)
@@ -60,7 +60,7 @@ func (r ResourceGroupConsumptionBudget) Attributes() map[string]*pluginsdk.Schem
 	return r.base.attributes()
 }
 
-func (r ResourceGroupConsumptionBudget) ModelObject() interface{} {
+func (r ResourceGroupConsumptionBudget) ModelObject() any {
 	return &ResourceGroupConsumptionBudgetModel{}
 }
 

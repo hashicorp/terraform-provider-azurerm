@@ -328,7 +328,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     subnet_id                    = azurerm_subnet.test.id
     proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "shared"
-    storage_quota_in_gb          = 1024
+    storage_quota_in_gb          = 50
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
     security_style               = "unix"

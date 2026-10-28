@@ -51,14 +51,14 @@ func schemaStreamAnalyticsStreamInputSerialization() *pluginsdk.Schema {
 	}
 }
 
-func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (inputs.Serialization, error) {
-	v := input[0].(map[string]interface{})
+func expandStreamAnalyticsStreamInputSerialization(input []any) (inputs.Serialization, error) {
+	v := input[0].(map[string]any)
 
 	inputType := v["type"].(string)
 	encoding := v["encoding"].(string)
 	fieldDelimiter := v["field_delimiter"].(string)
 
-	var props interface{}
+	var props any
 
 	switch inputType {
 	case string(inputs.EventSerializationTypeAvro):
@@ -102,7 +102,7 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 	encoding := v.Encoding
 	fieldDelimiter := v.FieldDelimiter
 
-	var props interface{}
+	var props any
 
 	switch inputType {
 	case string(inputs.EventSerializationTypeAvro):
@@ -139,7 +139,7 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 	return nil, fmt.Errorf("unsupported Input Type %q", inputType)
 }
 
-func flattenStreamAnalyticsStreamInputSerialization(input inputs.Serialization) []interface{} {
+func flattenStreamAnalyticsStreamInputSerialization(input inputs.Serialization) []any {
 	var encoding string
 	var fieldDelimiter string
 	var inputType string
@@ -172,8 +172,8 @@ func flattenStreamAnalyticsStreamInputSerialization(input inputs.Serialization) 
 		inputType = string(inputs.EventSerializationTypeJson)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"encoding":        encoding,
 			"type":            inputType,
 			"field_delimiter": fieldDelimiter,

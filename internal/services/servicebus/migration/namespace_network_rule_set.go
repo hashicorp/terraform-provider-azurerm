@@ -66,7 +66,7 @@ func (NamespaceNetworkRuleSetV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (NamespaceNetworkRuleSetV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// removing the constant URI suffix from the id since it isn't needed
 		oldId := strings.TrimSuffix(rawState["id"].(string), "/networkrulesets/default")
 

@@ -104,7 +104,7 @@ func TestCosmosThroughput(t *testing.T) {
 
 func TestCosmosMaxThroughput(t *testing.T) {
 	cases := []struct {
-		Value  interface{}
+		Value  any
 		Errors int
 	}{
 		{

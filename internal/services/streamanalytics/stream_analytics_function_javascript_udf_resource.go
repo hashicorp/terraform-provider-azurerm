@@ -123,7 +123,7 @@ func resourceStreamAnalyticsFunctionUDF() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -145,8 +145,8 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	inputs := expandStreamAnalyticsFunctionInputs(d.Get("input").([]interface{}))
-	output := expandStreamAnalyticsFunctionOutput(d.Get("output").([]interface{}))
+	inputs := expandStreamAnalyticsFunctionInputs(d.Get("input").([]any))
+	output := expandStreamAnalyticsFunctionOutput(d.Get("output").([]any))
 
 	function := functions.Function{
 		Properties: &functions.ScalarFunctionProperties{
@@ -177,7 +177,7 @@ func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceStreamAnalyticsFunctionUDFRead(d, meta)
 }
 
-func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceStreamAnalyticsFunctionUDFRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceStreamAnalyticsFunctionUDFDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDFDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,11 +247,11 @@ func resourceStreamAnalyticsFunctionUDFDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandStreamAnalyticsFunctionInputs(input []interface{}) *[]functions.FunctionInput {
+func expandStreamAnalyticsFunctionInputs(input []any) *[]functions.FunctionInput {
 	outputs := make([]functions.FunctionInput, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		variableType := v["type"].(string)
 		outputs = append(outputs, functions.FunctionInput{
 			DataType:                 pointer.To(variableType),
@@ -262,19 +262,19 @@ func expandStreamAnalyticsFunctionInputs(input []interface{}) *[]functions.Funct
 	return &outputs
 }
 
-func flattenStreamAnalyticsFunctionInputs(input *[]functions.FunctionInput) []interface{} {
+func flattenStreamAnalyticsFunctionInputs(input *[]functions.FunctionInput) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 
 	for _, v := range *input {
 		variableType := pointer.From(v.DataType)
 
 		isConfigurationParameter := pointer.From(v.IsConfigurationParameter)
 
-		outputs = append(outputs, map[string]interface{}{
+		outputs = append(outputs, map[string]any{
 			"type":                    variableType,
 			"configuration_parameter": isConfigurationParameter,
 		})
@@ -283,8 +283,8 @@ func flattenStreamAnalyticsFunctionInputs(input *[]functions.FunctionInput) []in
 	return outputs
 }
 
-func expandStreamAnalyticsFunctionOutput(input []interface{}) *functions.FunctionOutput {
-	output := input[0].(map[string]interface{})
+func expandStreamAnalyticsFunctionOutput(input []any) *functions.FunctionOutput {
+	output := input[0].(map[string]any)
 
 	dataType := output["type"].(string)
 	return &functions.FunctionOutput{
@@ -292,15 +292,15 @@ func expandStreamAnalyticsFunctionOutput(input []interface{}) *functions.Functio
 	}
 }
 
-func flattenStreamAnalyticsFunctionOutput(input *functions.FunctionOutput) []interface{} {
+func flattenStreamAnalyticsFunctionOutput(input *functions.FunctionOutput) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	variableType := pointer.From(input.DataType)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"type": variableType,
 		},
 	}

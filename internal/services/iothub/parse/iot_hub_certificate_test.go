@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = IotHubCertificateId{}
 
-func TestIotHubCertificateIDFormatter(t *testing.T) {
+func TestParseIotHubCertificateIDFormatter(t *testing.T) {
 	actual := NewIotHubCertificateID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "cert1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/certificates/cert1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestIotHubCertificateIDFormatter(t *testing.T) {
 	}
 }
 
-func TestIotHubCertificateID(t *testing.T) {
+func TestParseIotHubCertificateID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestIotHubCertificateID(t *testing.T) {
 	}
 }
 
-func TestIotHubCertificateIDInsensitively(t *testing.T) {
+func TestParseIotHubCertificateIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

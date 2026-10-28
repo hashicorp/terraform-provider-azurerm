@@ -101,7 +101,7 @@ func resourceVirtualDesktopApplicationGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -131,7 +131,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	payload := applicationgroup.ApplicationGroup{
 		Location: location,
@@ -176,7 +176,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
 
-func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceVirtualDesktopApplicationGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 
 	id, err := applicationgroup.ParseApplicationGroupID(d.Id())

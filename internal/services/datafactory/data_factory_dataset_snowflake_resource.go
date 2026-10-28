@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
@@ -174,7 +174,7 @@ func resourceDataFactoryDatasetSnowflake() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -218,7 +218,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 		SnowflakeDatasetTypeProperties: &snowflakeDatasetProperties,
 		LinkedServiceName:              linkedService,
 		Description:                    &description,
-		Schema:                         make([]interface{}, 0),
+		Schema:                         make([]any, 0),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
@@ -228,18 +228,18 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		snowflakeTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		snowflakeTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
-	annotations := d.Get("annotations").([]interface{})
+	annotations := d.Get("annotations").([]any)
 	snowflakeTableset.Annotations = &annotations
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		snowflakeTableset.AdditionalProperties = v.(map[string]interface{})
+		snowflakeTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		snowflakeTableset.Schema = expandDataFactoryDatasetSnowflakeSchema(v.([]interface{}))
+		snowflakeTableset.Schema = expandDataFactoryDatasetSnowflakeSchema(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -258,7 +258,7 @@ func resourceDataFactoryDatasetSnowflakeCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataFactoryDatasetSnowflakeRead(d, meta)
 }
 
-func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -336,7 +336,7 @@ func resourceDataFactoryDatasetSnowflakeRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataFactoryDatasetSnowflakeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetSnowflakeDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

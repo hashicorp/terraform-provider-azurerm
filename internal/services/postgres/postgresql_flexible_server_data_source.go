@@ -106,7 +106,7 @@ func dataSourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -134,7 +134,7 @@ func dataSourceArmPostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta i
 
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
-			d.Set("version", string(pointer.From(props.Version)))
+			d.Set("version", pointer.FromEnum(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 			d.Set("zone", props.AvailabilityZone)
 

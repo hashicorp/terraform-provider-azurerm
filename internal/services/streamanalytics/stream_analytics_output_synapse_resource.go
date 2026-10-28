@@ -103,7 +103,7 @@ func resourceStreamAnalyticsOutputSynapse() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceStreamAnalyticsOutputSynapseCreateUpdate(d *pluginsdk.ResourceData,
 	return resourceStreamAnalyticsOutputSynapseRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceStreamAnalyticsOutputSynapseRead(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func resourceStreamAnalyticsOutputSynapseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSynapseDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

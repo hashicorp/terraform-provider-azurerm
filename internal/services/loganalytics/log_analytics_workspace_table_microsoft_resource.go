@@ -224,7 +224,7 @@ func (r WorkspaceTableMicrosoftResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r WorkspaceTableMicrosoftResource) ModelObject() interface{} {
+func (r WorkspaceTableMicrosoftResource) ModelObject() any {
 	return &WorkspaceTableMicrosoftResourceModel{}
 }
 

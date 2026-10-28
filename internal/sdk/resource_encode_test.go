@@ -12,8 +12,8 @@ import (
 )
 
 type encodeTestData struct {
-	Input       interface{}
-	Expected    map[string]interface{}
+	Input       any
+	Expected    map[string]any
 	ExpectError bool
 }
 
@@ -63,7 +63,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				"morning": "alvaro",
 			},
 		},
-		Expected: map[string]interface{}{
+		Expected: map[string]any{
 			"number":  int64(42),
 			"price":   129.99,
 			"string":  "world",
@@ -80,14 +80,14 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 				"you",
 				"heard",
 			},
-			"map_of_bools": map[string]interface{}{
+			"map_of_bools": map[string]any{
 				"awesome_feature": true,
 			},
-			"map_of_numbers": map[string]interface{}{
+			"map_of_numbers": map[string]any{
 				"hello": int64(1),
 				"there": int64(3),
 			},
-			"map_of_strings": map[string]interface{}{
+			"map_of_strings": map[string]any{
 				"hello":   "there",
 				"salut":   "tout les monde",
 				"guten":   "tag",
@@ -123,7 +123,7 @@ func TestResourceEncode_TopLevelAllTypesAndCombinations(t *testing.T) {
 			RequiredMapOfStrings:  map[string]string{"epsilon": "zeta", "eta": "theta"},
 			OptionalMapOfStrings:  pointer.To(map[string]string{"iota": "kappa", "lambda": "mu", "nu": "xi"}),
 		},
-		Expected: map[string]interface{}{
+		Expected: map[string]any{
 			"required_str":             "foo",
 			"optional_str":             "bar",
 			"required_int64":           int64(101),
@@ -138,14 +138,14 @@ func TestResourceEncode_TopLevelAllTypesAndCombinations(t *testing.T) {
 			"optional_list_of_int64":   []int64{100, 90, 80, 70, 60},
 			"required_list_of_strings": []string{"foo", "bar"},
 			"optional_list_of_strings": []string{"bar", "foo"},
-			"required_map_of_booleans": map[string]interface{}{"itsTrue": true, "itsFalse": false},
-			"optional_map_of_booleans": map[string]interface{}{"itsNotNotFalse": false, "itsMoreTrue": true},
-			"required_map_of_float":    map[string]interface{}{"avogadro": 6.022},
-			"optional_map_of_float":    map[string]interface{}{"pythagoras": 1.41421, "pi": 3.14159},
-			"required_map_of_int64":    map[string]interface{}{"alpha": int64(200), "beta": int64(300)},
-			"optional_map_of_int64":    map[string]interface{}{"gamma": int64(400), "delta": int64(500)},
-			"required_map_of_strings":  map[string]interface{}{"epsilon": "zeta", "eta": "theta"},
-			"optional_map_of_strings":  map[string]interface{}{"iota": "kappa", "lambda": "mu", "nu": "xi"},
+			"required_map_of_booleans": map[string]any{"itsTrue": true, "itsFalse": false},
+			"optional_map_of_booleans": map[string]any{"itsNotNotFalse": false, "itsMoreTrue": true},
+			"required_map_of_float":    map[string]any{"avogadro": 6.022},
+			"optional_map_of_float":    map[string]any{"pythagoras": 1.41421, "pi": 3.14159},
+			"required_map_of_int64":    map[string]any{"alpha": int64(200), "beta": int64(300)},
+			"optional_map_of_int64":    map[string]any{"gamma": int64(400), "delta": int64(500)},
+			"required_map_of_strings":  map[string]any{"epsilon": "zeta", "eta": "theta"},
+			"optional_map_of_strings":  map[string]any{"iota": "kappa", "lambda": "mu", "nu": "xi"},
 		},
 	}.test(t)
 }
@@ -202,7 +202,7 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 				"morning": "alvaro",
 			},
 		},
-		Expected: map[string]interface{}{
+		Expected: map[string]any{
 			"number":      int64(42),
 			"number_ptr":  nil,
 			"price":       float64(129.99),
@@ -224,14 +224,14 @@ func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 				"heard",
 			},
 			"list_of_strings_ptr": nil,
-			"map_of_bools": map[string]interface{}{
+			"map_of_bools": map[string]any{
 				"awesome_feature": true,
 			},
-			"map_of_numbers": map[string]interface{}{
+			"map_of_numbers": map[string]any{
 				"hello": int64(1),
 				"there": int64(3),
 			},
-			"map_of_strings": map[string]interface{}{
+			"map_of_strings": map[string]any{
 				"hello":   "there",
 				"salut":   "tous les monde",
 				"guten":   "tag",
@@ -306,7 +306,7 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 				"foo": "bar",
 			}),
 		},
-		Expected: map[string]interface{}{
+		Expected: map[string]any{
 			"number":      int64(42),
 			"number_ptr":  int64(22),
 			"price":       float64(129.99),
@@ -332,20 +332,20 @@ func TestResourceEncode_TopLevelNonEmptyPointers(t *testing.T) {
 				"the",
 				"bird",
 			},
-			"map_of_bools": map[string]interface{}{
+			"map_of_bools": map[string]any{
 				"awesome_feature": true,
 			},
-			"map_of_numbers": map[string]interface{}{
+			"map_of_numbers": map[string]any{
 				"hello": int64(1),
 				"there": int64(3),
 			},
-			"map_of_strings": map[string]interface{}{
+			"map_of_strings": map[string]any{
 				"hello":   "there",
 				"salut":   "tous les monde",
 				"guten":   "tag",
 				"morning": "alvaro",
 			},
-			"map_of_strings_ptr": map[string]interface{}{
+			"map_of_strings_ptr": map[string]any{
 				"foo": "bar",
 			},
 		},
@@ -367,7 +367,7 @@ func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 	}
 	encodeTestData{
 		Input: &SimpleType{},
-		Expected: map[string]interface{}{
+		Expected: map[string]any{
 			"number":          int64(0),
 			"price":           float64(0),
 			"string":          "",
@@ -375,9 +375,9 @@ func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 			"list_of_floats":  []float64{},
 			"list_of_numbers": []int64{},
 			"list_of_strings": []string{},
-			"map_of_bools":    map[string]interface{}{},
-			"map_of_numbers":  map[string]interface{}{},
-			"map_of_strings":  map[string]interface{}{},
+			"map_of_bools":    map[string]any{},
+			"map_of_numbers":  map[string]any{},
+			"map_of_strings":  map[string]any{},
 		},
 	}.test(t)
 }
@@ -423,7 +423,7 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 				"bingo": "bango",
 			},
 		},
-		Expected: map[string]interface{}{
+		Expected: map[string]any{
 			"computed_string":          "je suis computed",
 			"computed_number":          int64(732),
 			"computed_bool":            true,
@@ -433,20 +433,20 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 				"you",
 				"heard",
 			},
-			"computed_map_of_bools": map[string]interface{}{
+			"computed_map_of_bools": map[string]any{
 				"hello": true,
 				"world": false,
 			},
-			"computed_map_of_floats": map[string]interface{}{
+			"computed_map_of_floats": map[string]any{
 				"hello": 1.8965345678,
 				"world": 2.0,
 			},
-			"computed_map_of_ints": map[string]interface{}{
+			"computed_map_of_ints": map[string]any{
 				"first":  int64(1),
 				"second": int64(2),
 				"third":  int64(3),
 			},
-			"computed_map_of_strings": map[string]interface{}{
+			"computed_map_of_strings": map[string]any{
 				"hello": "world",
 				"bingo": "bango",
 			},
@@ -465,8 +465,8 @@ func TestResourceEncode_NestedOneLevelDeepEmpty(t *testing.T) {
 		Input: &Type{
 			NestedObject: []Inner{},
 		},
-		Expected: map[string]interface{}{
-			"inner": []interface{}{},
+		Expected: map[string]any{
+			"inner": []any{},
 		},
 	}.test(t)
 }
@@ -523,9 +523,9 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"inner": []interface{}{
-				map[string]interface{}{
+		Expected: map[string]any{
+			"inner": []any{
+				map[string]any{
 					"number":  int64(42),
 					"price":   float64(129.99),
 					"string":  "world",
@@ -542,14 +542,14 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 						"you",
 						"heard",
 					},
-					"map_of_bools": map[string]interface{}{
+					"map_of_bools": map[string]any{
 						"awesome_feature": true,
 					},
-					"map_of_numbers": map[string]interface{}{
+					"map_of_numbers": map[string]any{
 						"hello": int64(1),
 						"there": int64(3),
 					},
-					"map_of_strings": map[string]interface{}{
+					"map_of_strings": map[string]any{
 						"hello":   "there",
 						"salut":   "tous les monde",
 						"guten":   "tag",
@@ -587,9 +587,9 @@ func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 				{},
 			},
 		},
-		Expected: map[string]interface{}{
-			"inner": []interface{}{
-				map[string]interface{}{
+		Expected: map[string]any{
+			"inner": []any{
+				map[string]any{
 					"number":                  int64(0),
 					"price":                   float64(0),
 					"string":                  "",
@@ -597,13 +597,13 @@ func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 					"list_of_floats":          []float64{},
 					"list_of_numbers":         []int64{},
 					"list_of_strings":         []string{},
-					"map_of_bools":            map[string]interface{}{},
-					"map_of_numbers":          map[string]interface{}{},
-					"map_of_strings":          map[string]interface{}{},
-					"computed_map_of_bools":   map[string]interface{}{},
-					"computed_map_of_floats":  map[string]interface{}{},
-					"computed_map_of_ints":    map[string]interface{}{},
-					"computed_map_of_strings": map[string]interface{}{},
+					"map_of_bools":            map[string]any{},
+					"map_of_numbers":          map[string]any{},
+					"map_of_strings":          map[string]any{},
+					"computed_map_of_bools":   map[string]any{},
+					"computed_map_of_floats":  map[string]any{},
+					"computed_map_of_ints":    map[string]any{},
+					"computed_map_of_strings": map[string]any{},
 				},
 			},
 		},
@@ -631,15 +631,15 @@ func TestResourceEncode_NestedOneLevelDeepSingleMultiple(t *testing.T) {
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"inner": []interface{}{
-				map[string]interface{}{
+		Expected: map[string]any{
+			"inner": []any{
+				map[string]any{
 					"value": "first",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "second",
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "third",
 				},
 			},
@@ -666,8 +666,8 @@ func TestResourceEncode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 		Input: &Type{
 			First: []FirstInner{},
 		},
-		Expected: map[string]interface{}{
-			"first": []interface{}{},
+		Expected: map[string]any{
+			"first": []any{},
 		},
 	}.test(t)
 
@@ -680,10 +680,10 @@ func TestResourceEncode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
-					"second": []interface{}{},
+		Expected: map[string]any{
+			"first": []any{
+				map[string]any{
+					"second": []any{},
 				},
 			},
 		},
@@ -702,12 +702,12 @@ func TestResourceEncode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
-					"second": []interface{}{
-						map[string]interface{}{
-							"third": []interface{}{},
+		Expected: map[string]any{
+			"first": []any{
+				map[string]any{
+					"second": []any{
+						map[string]any{
+							"third": []any{},
 						},
 					},
 				},
@@ -746,13 +746,13 @@ func TestResourceEncode_NestedThreeLevelsDeepSingleItem(t *testing.T) {
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
-					"second": []interface{}{
-						map[string]interface{}{
-							"third": []interface{}{
-								map[string]interface{}{
+		Expected: map[string]any{
+			"first": []any{
+				map[string]any{
+					"second": []any{
+						map[string]any{
+							"third": []any{
+								map[string]any{
 									"value": "salut",
 								},
 							},
@@ -842,59 +842,59 @@ func TestResourceEncode_NestedThreeLevelsDeepMultipleItems(t *testing.T) {
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
+		Expected: map[string]any{
+			"first": []any{
+				map[string]any{
 					"value": "first - 1",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 1",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 1",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 2",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 3",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 2",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 4",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 5",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 6",
 								},
 							},
 						},
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "first - 2",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 3",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 7",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 8",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 4",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 9",
 								},
 							},
@@ -984,59 +984,59 @@ func TestResourceEncode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T)
 				},
 			},
 		},
-		Expected: map[string]interface{}{
-			"first": []interface{}{
-				map[string]interface{}{
+		Expected: map[string]any{
+			"first": []any{
+				map[string]any{
 					"value": "first - 1",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 1",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 1",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 2",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 3",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 2",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 4",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 5",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 6",
 								},
 							},
 						},
 					},
 				},
-				map[string]interface{}{
+				map[string]any{
 					"value": "first - 2",
-					"second": []interface{}{
-						map[string]interface{}{
+					"second": []any{
+						map[string]any{
 							"value": "second - 3",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 7",
 								},
-								map[string]interface{}{
+								map[string]any{
 									"value": "third - 8",
 								},
 							},
 						},
-						map[string]interface{}{
+						map[string]any{
 							"value": "second - 4",
-							"third": []interface{}{
-								map[string]interface{}{
+							"third": []any{
+								map[string]any{
 									"value": "third - 9",
 								},
 							},

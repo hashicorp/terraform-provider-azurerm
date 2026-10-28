@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = WorkspaceId{}
 
-func TestWorkspaceIDFormatter(t *testing.T) {
+func TestParseWorkspaceIDFormatter(t *testing.T) {
 	actual := NewWorkspaceID("12345678-1234-9876-4563-123456789012", "workspace1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/workspaceSettings/workspace1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestWorkspaceIDFormatter(t *testing.T) {
 	}
 }
 
-func TestWorkspaceID(t *testing.T) {
+func TestParseWorkspaceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

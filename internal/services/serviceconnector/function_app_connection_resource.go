@@ -88,7 +88,7 @@ func (r FunctionAppConnectorResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r FunctionAppConnectorResource) ModelObject() interface{} {
+func (r FunctionAppConnectorResource) ModelObject() any {
 	return &FunctionAppConnectorResourceModel{}
 }
 

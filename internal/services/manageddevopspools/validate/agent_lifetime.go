@@ -10,7 +10,7 @@ import (
 )
 
 // lintignore:V012 // false positive - this validates a timespan string, not an int; the int comparisons here check the parsed hours/minutes/seconds components
-func AgentLifetime(i interface{}, k string) (warnings []string, errors []error) {
+func AgentLifetime(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

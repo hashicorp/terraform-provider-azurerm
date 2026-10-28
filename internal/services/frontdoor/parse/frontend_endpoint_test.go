@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FrontendEndpointId{}
 
-func TestFrontendEndpointIDFormatter(t *testing.T) {
+func TestParseFrontendEndpointIDFormatter(t *testing.T) {
 	actual := NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "endpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestFrontendEndpointIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFrontendEndpointID(t *testing.T) {
+func TestParseFrontendEndpointID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestFrontendEndpointID(t *testing.T) {
 	}
 }
 
-func TestFrontendEndpointIDInsensitively(t *testing.T) {
+func TestParseFrontendEndpointIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

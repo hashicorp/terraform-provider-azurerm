@@ -60,7 +60,7 @@ func (r DataConnectorOfficeIRMResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_irm"
 }
 
-func (r DataConnectorOfficeIRMResource) ModelObject() interface{} {
+func (r DataConnectorOfficeIRMResource) ModelObject() any {
 	return &DataConnectorOfficeIRMModel{}
 }
 

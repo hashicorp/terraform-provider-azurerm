@@ -82,7 +82,7 @@ func resourceSpringCloudCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CustomDomainsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceSpringCloudCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceSpringCloudCustomDomainRead(d, meta)
 }
 
-func resourceSpringCloudCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCustomDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CustomDomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceSpringCloudCustomDomainRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceSpringCloudCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudCustomDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.CustomDomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

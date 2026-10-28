@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string) ([]string, []error) {
+func OrchestratedVirtualMachineScaleSetPublicIPSku(input any, key string) ([]string, []error) {
 	publicIpSkus := []string{
 		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameBasic), string(virtualmachinescalesets.PublicIPAddressSkuTierRegional)),
 		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameStandard), string(virtualmachinescalesets.PublicIPAddressSkuTierRegional)),

@@ -85,7 +85,7 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -155,7 +155,7 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceApiManagementProductRead(d, meta)
 }
 
-func resourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +194,7 @@ func resourceApiManagementProductRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

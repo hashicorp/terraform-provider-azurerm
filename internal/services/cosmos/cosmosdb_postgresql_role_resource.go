@@ -30,7 +30,7 @@ func (r CosmosDbPostgreSQLRoleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_role"
 }
 
-func (r CosmosDbPostgreSQLRoleResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLRoleResource) ModelObject() any {
 	return &CosmosDbPostgreSQLRoleResourceModel{}
 }
 

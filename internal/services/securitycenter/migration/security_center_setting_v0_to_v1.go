@@ -29,7 +29,7 @@ func (SecurityCenterSettingsV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (SecurityCenterSettingsV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		log.Println("[DEBUG] Migrating Security Center Settings from v0 to v1 format")
 		oldId := strings.Split(rawState["id"].(string), "/")
 		if oldId[len(oldId)-1] == "SENTINEL" {

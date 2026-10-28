@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestManagedInstancesSecurityAlertPolicyID(t *testing.T) {
+func TestValidateManagedInstancesSecurityAlertPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

@@ -60,7 +60,7 @@ func (r DataConnectorIOTResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_iot"
 }
 
-func (r DataConnectorIOTResource) ModelObject() interface{} {
+func (r DataConnectorIOTResource) ModelObject() any {
 	return &DataConnectorIOTModel{}
 }
 

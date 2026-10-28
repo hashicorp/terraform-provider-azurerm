@@ -69,7 +69,7 @@ func resourceEventGridDomainTopic() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -98,7 +98,7 @@ func resourceEventGridDomainTopicCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceEventGridDomainTopicRead(d, meta)
 }
 
-func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopics
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +126,7 @@ func resourceEventGridDomainTopicRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceEventGridDomainTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopics
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

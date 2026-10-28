@@ -56,7 +56,7 @@ func (r ApiManagementNotificationRecipientUserResource) Attributes() map[string]
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ApiManagementNotificationRecipientUserResource) ModelObject() interface{} {
+func (r ApiManagementNotificationRecipientUserResource) ModelObject() any {
 	return &ApiManagementNotificationRecipientUserModel{}
 }
 

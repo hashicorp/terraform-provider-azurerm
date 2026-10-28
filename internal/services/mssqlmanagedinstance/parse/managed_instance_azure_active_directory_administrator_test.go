@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ManagedInstanceAzureActiveDirectoryAdministratorId{}
 
-func TestManagedInstanceAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
+func TestParseManagedInstanceAzureActiveDirectoryAdministratorIDFormatter(t *testing.T) {
 	actual := NewManagedInstanceAzureActiveDirectoryAdministratorID("12345678-1234-9876-4563-123456789012", "resGroup1", "instance1", "activeDirectory").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/managedInstances/instance1/administrators/activeDirectory"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestManagedInstanceAzureActiveDirectoryAdministratorIDFormatter(t *testing.
 	}
 }
 
-func TestManagedInstanceAzureActiveDirectoryAdministratorID(t *testing.T) {
+func TestParseManagedInstanceAzureActiveDirectoryAdministratorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

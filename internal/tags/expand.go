@@ -3,7 +3,7 @@
 
 package tags
 
-func Expand(tagsMap map[string]interface{}) map[string]*string {
+func Expand(tagsMap map[string]any) map[string]*string {
 	output := make(map[string]*string, len(tagsMap))
 
 	for i, v := range tagsMap {

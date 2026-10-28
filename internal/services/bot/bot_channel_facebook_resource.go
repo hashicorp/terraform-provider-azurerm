@@ -98,7 +98,7 @@ func resourceBotChannelFacebook() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -139,7 +139,7 @@ func resourceBotChannelFacebookCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceBotChannelFacebookRead(d, meta)
 }
 
-func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +185,7 @@ func resourceBotChannelFacebookRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceBotChannelFacebookUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceBotChannelFacebookRead(d, meta)
 }
 
-func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,11 +236,11 @@ func resourceBotChannelFacebookDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
+func expandFacebookPage(input []any) *[]botservice.FacebookPage {
 	results := make([]botservice.FacebookPage, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := botservice.FacebookPage{
 			AccessToken: pointer.To(v["access_token"].(string)),
@@ -253,14 +253,14 @@ func expandFacebookPage(input []interface{}) *[]botservice.FacebookPage {
 	return &results
 }
 
-func flattenFacebookPage(input *[]botservice.FacebookPage) []interface{} {
-	results := make([]interface{}, 0)
+func flattenFacebookPage(input *[]botservice.FacebookPage) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"id":           pointer.From(item.ID),
 			"access_token": pointer.From(item.AccessToken),
 		})

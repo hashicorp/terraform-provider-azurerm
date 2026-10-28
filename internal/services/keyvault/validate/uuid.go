@@ -8,7 +8,7 @@ import (
 )
 
 // IsUUIDOrEmpty is a ValidateFunc that ensures a string can be parsed as UUID or is empty
-func IsUUIDOrEmpty(i interface{}, k string) (warnings []string, errors []error) {
+func IsUUIDOrEmpty(i any, k string) (warnings []string, errors []error) {
 	return validation.Any(
 		validation.StringIsEmpty,
 		validation.IsUUID,

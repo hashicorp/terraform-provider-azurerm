@@ -88,7 +88,7 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	namespaceAuthClient := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

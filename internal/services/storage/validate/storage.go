@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func StorageShareDirectoryName(v interface{}, k string) ([]string, []error) {
+func StorageShareDirectoryName(v any, k string) ([]string, []error) {
 	// Per: https://learn.microsoft.com/rest/api/storageservices/naming-and-referencing-shares--directories--files--and-metadata#directory-and-file-names
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`^\.+$`), "must not only contain dots"),

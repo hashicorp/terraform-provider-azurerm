@@ -122,7 +122,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Attributes() map[string]*pluginsdk
 	}
 }
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) ModelObject() interface{} {
+func (k KeyvaultMHSMRoleDefinitionDataSource) ModelObject() any {
 	return &KeyVaultMHSMRoleDefinitionDataSourceModel{}
 }
 

@@ -20,6 +20,18 @@ import (
 
 type BotChannelLineResource struct{}
 
+func TestAccBotChannelLine_regressionTest(t *testing.T) {
+	skipLineChannel(t)
+
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
+	r := BotChannelLineResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelLine_basic(t *testing.T) {
 	skipLineChannel(t)
 

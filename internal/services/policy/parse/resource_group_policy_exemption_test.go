@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ResourceGroupPolicyExemptionId{}
 
-func TestResourceGroupPolicyExemptionIDFormatter(t *testing.T) {
+func TestParseResourceGroupPolicyExemptionIDFormatter(t *testing.T) {
 	actual := NewResourceGroupPolicyExemptionID("12345678-1234-9876-4563-123456789012", "resGroup1", "exemption1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Authorization/policyExemptions/exemption1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestResourceGroupPolicyExemptionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestResourceGroupPolicyExemptionID(t *testing.T) {
+func TestParseResourceGroupPolicyExemptionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

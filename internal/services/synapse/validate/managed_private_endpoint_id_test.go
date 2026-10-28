@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestManagedPrivateEndpointID(t *testing.T) {
+func TestValidateManagedPrivateEndpointID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

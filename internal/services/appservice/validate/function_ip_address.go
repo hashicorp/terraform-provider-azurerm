@@ -11,7 +11,7 @@ import (
 )
 
 // IsIpOrCIDRRange is a SchemaValidateFunc which tests if the provided value is of type string and a valid IP/CIDR range
-func IsIpOrCIDRRangeList(i interface{}, k string) ([]string, []error) {
+func IsIpOrCIDRRangeList(i any, k string) ([]string, []error) {
 	var allWarnings []string
 	var allErrors []error
 	v, ok := i.(string)

@@ -71,7 +71,7 @@ func resourceSpringCloudGatewayCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.GatewayCustomDomainClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -120,7 +120,7 @@ func resourceSpringCloudGatewayCustomDomainCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSpringCloudGatewayCustomDomainRead(d, meta)
 }
 
-func resourceSpringCloudGatewayCustomDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayCustomDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.GatewayCustomDomainClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceSpringCloudGatewayCustomDomainRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSpringCloudGatewayCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudGatewayCustomDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.GatewayCustomDomainClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

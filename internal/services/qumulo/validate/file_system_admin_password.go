@@ -9,7 +9,7 @@ import (
 )
 
 // lintignore:V012,V011,V001 // false positive - this validates a string password, not an int; the int comparisons here check the password length and the number of complexity rules met
-func ValidatePasswordComplexity(input interface{}, key string) (warnings []string, errors []error) {
+func ValidatePasswordComplexity(input any, key string) (warnings []string, errors []error) {
 	password, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected `%q` to be a string", key))

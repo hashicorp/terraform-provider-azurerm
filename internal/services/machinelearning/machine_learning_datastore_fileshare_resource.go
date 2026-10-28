@@ -39,7 +39,7 @@ type MachineLearningDataStoreFileShareModel struct {
 	Tags                  map[string]string `tfschema:"tags"`
 }
 
-func (r MachineLearningDataStoreFileShare) ModelObject() interface{} {
+func (r MachineLearningDataStoreFileShare) ModelObject() any {
 	return &MachineLearningDataStoreFileShareModel{}
 }
 

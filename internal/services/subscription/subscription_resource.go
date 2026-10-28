@@ -121,7 +121,7 @@ func resourceSubscription() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -238,7 +238,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("tags") {
 		tagsClient := meta.(*clients.Client).Resource.TagsClient
-		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		t := tags.Expand(d.Get("tags").(map[string]any))
 		scope := commonids.NewScopeID(commonids.NewSubscriptionID(*alias.Model.Properties.SubscriptionId).ID())
 		tagsResource := tagsSdk.TagsResource{
 			Properties: tagsSdk.Tags{
@@ -253,7 +253,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceSubscriptionRead(d, meta)
 }
 
-func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -286,7 +286,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("tags") {
 		tagsClient := meta.(*clients.Client).Resource.TagsClient
-		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		t := tags.Expand(d.Get("tags").(map[string]any))
 		scope := commonids.NewScopeID(subscriptionId.ID())
 		tagsResource := tagsSdk.TagsResource{
 			Properties: tagsSdk.Tags{
@@ -301,7 +301,7 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -364,7 +364,7 @@ func resourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error
 // used and purged from active use it can never be recovered nor the UUID reused.
 // Note Cancelling a Subscription leaves it in one of several states, `Disabled` for a Subscription with no Resources or
 // Alias assignments, `Warned` for Cancelled with "something" associated with it.
-func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta any) error {
 	aliasClient := meta.(*clients.Client).Subscription.AliasClient
 	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -444,7 +444,7 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions.SubscriptionsClient, subscriptionId commonids.SubscriptionId, targetState string, timeout time.Duration) error {
 	stateConf := &pluginsdk.StateChangeConf{
-		Refresh: func() (result interface{}, state string, err error) {
+		Refresh: func() (result any, state string, err error) {
 			status, err := client.Get(ctx, subscriptionId)
 			if err != nil {
 				return status, "Failed", err
@@ -489,7 +489,7 @@ func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions
 		if !ok {
 			return fmt.Errorf("failure in parsing response while waiting for Subscription %q to become %q: %+v", subscriptionId, targetState, err)
 		}
-		actualState := string(pointer.From(sub.State))
+		actualState := pointer.FromEnum(sub.State)
 		return fmt.Errorf("waiting for Subscription %q to become %q, currently %q", subscriptionId, targetState, actualState)
 	}
 

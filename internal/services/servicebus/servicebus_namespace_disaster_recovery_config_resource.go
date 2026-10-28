@@ -96,7 +96,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	}
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resour
 	return resourceServiceBusNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resour
 	return resourceServiceBusNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	authRuleClient := meta.(*clients.Client).ServiceBus.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -237,7 +237,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resource
 	return nil
 }
 
-func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.ArmDisasterRecoveriesClient
 	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -286,7 +286,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resour
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := namespacesClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, namespaceId, namespaces.CheckNameAvailability{
 				Name: id.DisasterRecoveryConfigName,
 			})
@@ -321,7 +321,7 @@ func resourceServiceBusNamespaceDisasterRecoveryConfigWaitForState(ctx context.C
 		Target:     []string{string(armdisasterrecoveries.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.DisasterRecoveryConfigsGet(ctx, id)
 			if err != nil {
 				return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)

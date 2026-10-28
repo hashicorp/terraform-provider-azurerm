@@ -18,6 +18,16 @@ import (
 
 type AutomationCredentialResource struct{}
 
+func TestAccAutomationCredential_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
+	r := AutomationCredentialResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 	r := AutomationCredentialResource{}

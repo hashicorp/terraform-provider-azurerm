@@ -89,7 +89,7 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -133,7 +133,7 @@ func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceApiManagementEmailTemplateRead(d, meta)
 }
 
-func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourceApiManagementEmailTemplateRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceApiManagementEmailTemplateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementEmailTemplateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

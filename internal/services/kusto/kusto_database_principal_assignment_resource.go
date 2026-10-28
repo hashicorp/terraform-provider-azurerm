@@ -108,7 +108,7 @@ func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -146,7 +146,7 @@ func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, m
 	return resourceKustoDatabasePrincipalAssignmentRead(d, meta)
 }
 
-func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceKustoDatabasePrincipalAssignmentRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceKustoDatabasePrincipalAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoDatabasePrincipalAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

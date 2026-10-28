@@ -58,8 +58,8 @@ func schemaStreamAnalyticsOutputSerialization() *pluginsdk.Schema {
 	}
 }
 
-func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Serialization, error) {
-	v := input[0].(map[string]interface{})
+func expandStreamAnalyticsOutputSerialization(input []any) (outputs.Serialization, error) {
+	v := input[0].(map[string]any)
 
 	outputType := v["type"].(string)
 	encoding := v["encoding"].(string)
@@ -77,7 +77,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		if format != "" {
 			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Avro`")
 		}
-		var props interface{}
+		var props any
 		return outputs.AvroSerialization{
 			Properties: &props,
 		}, nil
@@ -128,7 +128,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 			return nil, fmt.Errorf("`format` cannot be set when `type` is set to `Parquet`")
 		}
 
-		var props interface{}
+		var props any
 		return outputs.ParquetSerialization{
 			Properties: &props,
 		}, nil
@@ -137,7 +137,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 	return nil, fmt.Errorf("unsupported Output Type %q", outputType)
 }
 
-func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []interface{} {
+func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []any {
 	var encoding string
 	var outputType string
 	var fieldDelimiter string
@@ -178,8 +178,8 @@ func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []in
 		outputType = string(outputs.EventSerializationTypeParquet)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"encoding":        encoding,
 			"type":            outputType,
 			"format":          format,

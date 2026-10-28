@@ -72,7 +72,7 @@ func (l LogAnalyticsClusterResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (r LogAnalyticsClusterResource) ModelObject() interface{} {
+func (r LogAnalyticsClusterResource) ModelObject() any {
 	return &LogAnalyticsClusterModel{}
 }
 

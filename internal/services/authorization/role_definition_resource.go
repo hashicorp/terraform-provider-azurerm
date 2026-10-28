@@ -141,12 +141,12 @@ func (r RoleDefinitionResource) ResourceType() string {
 	return "azurerm_role_definition"
 }
 
-func (r RoleDefinitionResource) ModelObject() interface{} {
+func (r RoleDefinitionResource) ModelObject() any {
 	return &RoleDefinitionModel{}
 }
 
 func (r RoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
+	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
@@ -418,7 +418,7 @@ func (RoleDefinitionResource) StateUpgraders() sdk.StateUpgradeData {
 }
 
 func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client *roledefinitions.RoleDefinitionsClient, id roledefinitions.ScopedRoleDefinitionId, updateRequestDate string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return resp, "Failed", err

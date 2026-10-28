@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -92,7 +92,7 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	vaultsClient := keyVaultsClient.VaultsClient
@@ -203,7 +203,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceKustoClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	env := meta.(*clients.Client).Account.Environment
@@ -259,7 +259,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: `properties.keyVaultProperties.keyVaultUri` was nil", id)
 	}
 
-	isHSMURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+	isHSMURI, instanceName, domainSuffix, err := helpers.IsManagedHSMURI(env, keyVaultURI)
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -466,7 +466,7 @@ func (a ArcMachineDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (a ArcMachineDataSource) ModelObject() interface{} {
+func (a ArcMachineDataSource) ModelObject() any {
 	return &ArcMachineDataSource{}
 }
 

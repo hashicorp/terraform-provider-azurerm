@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -123,7 +123,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -192,7 +192,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,9 +219,9 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", props.DisplayName)
 			d.Set("severity", string(props.Severity))
-			d.Set("implementation_effort", string(pointer.From(props.ImplementationEffort)))
+			d.Set("implementation_effort", pointer.FromEnum(props.ImplementationEffort))
 			d.Set("remediation_description", pointer.From(props.RemediationDescription))
-			d.Set("user_impact", string(pointer.From(props.UserImpact)))
+			d.Set("user_impact", pointer.FromEnum(props.UserImpact))
 
 			categories := make([]string, 0)
 			if props.Categories != nil {
@@ -244,7 +244,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,7 +309,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

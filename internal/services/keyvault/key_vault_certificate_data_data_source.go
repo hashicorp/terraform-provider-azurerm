@@ -89,7 +89,7 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -206,7 +206,7 @@ func dataSourceArmKeyVaultCertificateDataRead(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	var privateKey interface{}
+	var privateKey any
 
 	if *pfx.ContentType == "application/x-pkcs12" {
 		rsakey, err := x509.ParsePKCS1PrivateKey(pemKey)

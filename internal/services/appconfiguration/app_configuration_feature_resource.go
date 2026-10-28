@@ -50,7 +50,7 @@ type FeatureResourceModel struct {
 	Name                 string                       `tfschema:"name"`
 	Label                string                       `tfschema:"label"`
 	Locked               bool                         `tfschema:"locked"`
-	Tags                 map[string]interface{}       `tfschema:"tags"`
+	Tags                 map[string]any               `tfschema:"tags"`
 	PercentageFilter     float64                      `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
@@ -196,7 +196,7 @@ func (k FeatureResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (k FeatureResource) ModelObject() interface{} {
+func (k FeatureResource) ModelObject() any {
 	return &FeatureResourceModel{}
 }
 
@@ -288,7 +288,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				Enabled:     model.Enabled,
 			}
 
-			value.Conditions.ClientFilters.Filters = make([]interface{}, 0)
+			value.Conditions.ClientFilters.Filters = make([]any, 0)
 
 			if model.PercentageFilter > 0 {
 				value.Conditions.ClientFilters.Filters = append(value.Conditions.ClientFilters.Filters, PercentageFeatureFilter{
@@ -518,12 +518,12 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				fv.Description = model.Description
 			}
 
-			filters := make([]interface{}, 0)
+			filters := make([]any, 0)
 			filterChanged := false
-			timewindowFilters := make([]interface{}, 0)
-			targetingFilters := make([]interface{}, 0)
+			timewindowFilters := make([]any, 0)
+			targetingFilters := make([]any, 0)
 			percentageFilter := PercentageFeatureFilter{}
-			customFilters := make([]interface{}, 0)
+			customFilters := make([]any, 0)
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
 				for _, f := range fv.Conditions.ClientFilters.Filters {
 					switch f := f.(type) {

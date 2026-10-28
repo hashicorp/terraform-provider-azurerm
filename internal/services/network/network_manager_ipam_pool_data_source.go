@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/ipampools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,7 +26,7 @@ func (r ManagerIpamPoolDataSource) ResourceType() string {
 	return "azurerm_network_manager_ipam_pool"
 }
 
-func (r ManagerIpamPoolDataSource) ModelObject() interface{} {
+func (r ManagerIpamPoolDataSource) ModelObject() any {
 	return &ManagerIpamPoolDataSourceModel{}
 }
 

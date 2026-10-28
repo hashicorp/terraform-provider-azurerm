@@ -48,11 +48,11 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineAdditionalCapabilities(input []interface{}) *virtualmachines.AdditionalCapabilities {
+func expandVirtualMachineAdditionalCapabilities(input []any) *virtualmachines.AdditionalCapabilities {
 	capabilities := virtualmachines.AdditionalCapabilities{}
 
 	if len(input) > 0 {
-		raw := input[0].(map[string]interface{})
+		raw := input[0].(map[string]any)
 
 		capabilities.UltraSSDEnabled = pointer.To(raw["ultra_ssd_enabled"].(bool))
 
@@ -62,20 +62,20 @@ func expandVirtualMachineAdditionalCapabilities(input []interface{}) *virtualmac
 	return &capabilities
 }
 
-func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.AdditionalCapabilities) []interface{} {
+func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.AdditionalCapabilities) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"ultra_ssd_enabled":   pointer.From(input.UltraSSDEnabled),
 			"hibernation_enabled": pointer.From(input.HibernationEnabled),
 		},
 	}
 }
 
-func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []virtualmachines.NetworkInterfaceReference {
+func expandVirtualMachineNetworkInterfaceIDs(input []any) []virtualmachines.NetworkInterfaceReference {
 	output := make([]virtualmachines.NetworkInterfaceReference, 0)
 
 	for i, v := range input {
@@ -90,12 +90,12 @@ func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []virtualmachi
 	return output
 }
 
-func flattenVirtualMachineNetworkInterfaceIDs(input *[]virtualmachines.NetworkInterfaceReference) []interface{} {
+func flattenVirtualMachineNetworkInterfaceIDs(input *[]virtualmachines.NetworkInterfaceReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, v := range *input {
 		if v.Id == nil {
@@ -237,8 +237,8 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.OperatingSystemTypes) (*virtualmachines.OSDisk, error) {
-	raw := input[0].(map[string]interface{})
+func expandVirtualMachineOSDisk(input []any, osType virtualmachines.OperatingSystemTypes) (*virtualmachines.OSDisk, error) {
+	raw := input[0].(map[string]any)
 	caching := raw["caching"].(string)
 
 	disk := virtualmachines.OSDisk{
@@ -275,13 +275,13 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
 	}
 
-	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]any); len(diffDiskSettingsRaw) > 0 {
 		if caching != string(virtualmachines.CachingTypesReadOnly) {
 			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
 			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
-		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
+		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]any)
 		disk.DiffDiskSettings = &virtualmachines.DiffDiskSettings{
 			Option:    pointer.ToEnum[virtualmachines.DiffDiskOptions](diffDiskRaw["option"].(string)),
 			Placement: pointer.ToEnum[virtualmachines.DiffDiskPlacement](diffDiskRaw["placement"].(string)),
@@ -301,20 +301,20 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 	return &disk, nil
 }
 
-func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksClient, input *virtualmachines.OSDisk) ([]interface{}, error) {
+func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksClient, input *virtualmachines.OSDisk) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	diffDiskSettings := make([]interface{}, 0)
+	diffDiskSettings := make([]any, 0)
 	if input.DiffDiskSettings != nil {
 		placement := string(virtualmachines.DiffDiskPlacementCacheDisk)
 		if input.DiffDiskSettings.Placement != nil {
 			placement = string(*input.DiffDiskSettings.Placement)
 		}
 
-		diffDiskSettings = append(diffDiskSettings, map[string]interface{}{
-			"option":    string(pointer.From(input.DiffDiskSettings.Option)),
+		diffDiskSettings = append(diffDiskSettings, map[string]any{
+			"option":    pointer.FromEnum(input.DiffDiskSettings.Option),
 			"placement": placement,
 		})
 	}
@@ -333,7 +333,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	osDiskId := ""
 
 	if input.ManagedDisk != nil {
-		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
+		storageAccountType = pointer.FromEnum(input.ManagedDisk.StorageAccountType)
 
 		if input.ManagedDisk.Id != nil {
 			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
@@ -374,7 +374,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
-			securityEncryptionType = string(pointer.From(securityProfile.SecurityEncryptionType))
+			securityEncryptionType = pointer.FromEnum(securityProfile.SecurityEncryptionType)
 			if securityProfile.DiskEncryptionSet != nil && securityProfile.DiskEncryptionSet.Id != nil {
 				secureVMDiskEncryptionSetId = *securityProfile.DiskEncryptionSet.Id
 			}
@@ -382,9 +382,9 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	}
 
 	writeAcceleratorEnabled := pointer.From(input.WriteAcceleratorEnabled)
-	return []interface{}{
-		map[string]interface{}{
-			"caching":                          string(pointer.From(input.Caching)),
+	return []any{
+		map[string]any{
+			"caching":                          pointer.FromEnum(input.Caching),
 			"diff_disk_settings":               diffDiskSettings,
 			"disk_encryption_set_id":           diskEncryptionSetId,
 			"disk_size_gb":                     diskSizeGb,
@@ -441,14 +441,14 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandOsImageNotificationProfile(input []interface{}) *virtualmachines.OSImageNotificationProfile {
+func expandOsImageNotificationProfile(input []any) *virtualmachines.OSImageNotificationProfile {
 	if len(input) == 0 {
 		return &virtualmachines.OSImageNotificationProfile{
 			Enable: pointer.To(false),
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &virtualmachines.OSImageNotificationProfile{
 		Enable:           pointer.To(true),
@@ -456,14 +456,14 @@ func expandOsImageNotificationProfile(input []interface{}) *virtualmachines.OSIm
 	}
 }
 
-func expandTerminateNotificationProfile(input []interface{}) *virtualmachines.TerminateNotificationProfile {
+func expandTerminateNotificationProfile(input []any) *virtualmachines.TerminateNotificationProfile {
 	if len(input) == 0 {
 		return &virtualmachines.TerminateNotificationProfile{
 			Enable: pointer.To(false),
 		}
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &virtualmachines.TerminateNotificationProfile{
 		Enable:           pointer.To(raw["enabled"].(bool)),
@@ -471,9 +471,9 @@ func expandTerminateNotificationProfile(input []interface{}) *virtualmachines.Te
 	}
 }
 
-func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificationProfile) []interface{} {
+func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificationProfile) []any {
 	if input == nil || !pointer.From(input.Enable) {
-		return []interface{}{}
+		return []any{}
 	}
 
 	timeout := "PT15M"
@@ -481,14 +481,14 @@ func flattenOsImageNotificationProfile(input *virtualmachines.OSImageNotificatio
 		timeout = *input.NotBeforeTimeout
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"timeout": timeout,
 		},
 	}
 }
 
-func flattenTerminateNotificationProfile(input *virtualmachines.TerminateNotificationProfile) []interface{} {
+func flattenTerminateNotificationProfile(input *virtualmachines.TerminateNotificationProfile) []any {
 	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
 
@@ -502,8 +502,8 @@ func flattenTerminateNotificationProfile(input *virtualmachines.TerminateNotific
 		timeout = *input.NotBeforeTimeout
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"enabled": enabled,
 			"timeout": timeout,
 		},
@@ -563,14 +563,14 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachines.VMGalleryApplication {
+func expandVirtualMachineGalleryApplication(input []any) *[]virtualmachines.VMGalleryApplication {
 	out := make([]virtualmachines.VMGalleryApplication, 0)
 	if len(input) == 0 {
 		return &out
 	}
 
 	for _, v := range input {
-		config := v.(map[string]interface{})
+		config := v.(map[string]any)
 		app := &virtualmachines.VMGalleryApplication{
 			PackageReferenceId:              config["version_id"].(string),
 			ConfigurationReference:          pointer.To(config["configuration_blob_uri"].(string)),
@@ -586,12 +586,12 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachi
 	return &out
 }
 
-func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryApplication) []interface{} {
+func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryApplication) []any {
 	if len(*input) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
@@ -620,7 +620,7 @@ func flattenVirtualMachineGalleryApplication(input *[]virtualmachines.VMGalleryA
 			treatFailureAsDeploymentFailureEnabled = *v.TreatFailureAsDeploymentFailure
 		}
 
-		app := map[string]interface{}{
+		app := map[string]any{
 			"version_id":                packageReferenceId,
 			"automatic_upgrade_enabled": automaticUpgradeEnabled,
 			"configuration_blob_uri":    configurationReference,

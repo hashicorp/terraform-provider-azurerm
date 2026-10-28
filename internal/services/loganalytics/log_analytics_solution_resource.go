@@ -59,7 +59,7 @@ var (
 	_ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
 )
 
-func (s LogAnalyticsSolutionResource) ModelObject() interface{} {
+func (s LogAnalyticsSolutionResource) ModelObject() any {
 	return &SolutionResourceModel{}
 }
 

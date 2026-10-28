@@ -86,7 +86,7 @@ func resourceDnsPtrRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -113,7 +113,7 @@ func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := recordsets.RecordSet{
 		Properties: &recordsets.RecordSetProperties{
@@ -131,7 +131,7 @@ func resourceDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceDnsPtrRecordRead(d, meta)
 }
 
-func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +172,7 @@ func resourceDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Dns.RecordSets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

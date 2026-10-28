@@ -22,7 +22,7 @@ type DataCollectionEndpointDataSource struct{}
 
 var _ sdk.DataSource = DataCollectionEndpointDataSource{}
 
-func (d DataCollectionEndpointDataSource) ModelObject() interface{} {
+func (d DataCollectionEndpointDataSource) ModelObject() any {
 	return &DataCollectionEndpoint{}
 }
 
@@ -107,7 +107,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 
 			var publicNetWorkAccessEnabled bool
 			var description, kind, loc, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
-			var tag map[string]interface{}
+			var tag map[string]any
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
 				loc = location.Normalize(model.Location)

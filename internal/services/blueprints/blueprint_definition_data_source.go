@@ -81,7 +81,7 @@ func dataSourceBlueprintDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBlueprintDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Blueprints.BlueprintsClient
 	publishedClient := meta.(*clients.Client).Blueprints.PublishedBlueprintsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -7,15 +7,15 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	preflightClient "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 )
 
 type Client struct {
-	PreflightClient *preflightClient.PreflightClient
+	PreflightClient *sdk.PreflightClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	preflightClient, err := preflightClient.NewResourceValidationClientClientWithBaseURI(o.Environment.ResourceManager)
+	preflightClient, err := sdk.NewResourceValidationClientClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Preflight client: %+v", err)
 	}

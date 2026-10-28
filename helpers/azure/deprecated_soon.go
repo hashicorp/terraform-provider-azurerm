@@ -27,7 +27,7 @@ func SchemaResourceGroupNameDiffSuppress() *pluginsdk.Schema {
 	}
 }
 
-func ValidateResourceID(i interface{}, k string) (warnings []string, errors []error) {
+func ValidateResourceID(i any, k string) (warnings []string, errors []error) {
 	// ValidateResourceID should only be used when a more specific Resource ID validation function
 	// is unavailable.
 	// If in doubt, prefer a validation function that supports multiple types of validation functions

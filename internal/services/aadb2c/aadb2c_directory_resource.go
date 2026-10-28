@@ -42,7 +42,7 @@ func (r AadB2cDirectoryResource) ResourceType() string {
 	return "azurerm_aadb2c_directory"
 }
 
-func (r AadB2cDirectoryResource) ModelObject() interface{} {
+func (r AadB2cDirectoryResource) ModelObject() any {
 	return &AadB2cDirectoryModel{}
 }
 

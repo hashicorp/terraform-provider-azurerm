@@ -275,7 +275,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	autoCli := meta.(*clients.Client).Automation
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
@@ -317,16 +317,16 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 			Location: &location,
 		}
-		if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+		if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]any)); tagsVal != nil {
 			parameters.Tags = &tagsVal
 		}
 
-		contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
+		contentLink := expandContentLink(d.Get("publish_content_link").([]any))
 		if contentLink != nil {
 			parameters.Properties.PublishContentLink = contentLink
 		} else {
 			parameters.Properties.Draft = &runbook.RunbookDraft{}
-			if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
+			if draft := expandDraft(d.Get("draft").([]any)); draft != nil {
 				parameters.Properties.Draft = draft
 			}
 		}
@@ -369,7 +369,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceAutomationRunbookRead(d, meta)
 }
 
-func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta any) error {
 	autoCli := meta.(*clients.Client).Automation
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
@@ -400,7 +400,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := model.Properties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)
 		d.Set("log_progress", props.LogProgress)
-		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
+		d.Set("runbook_type", pointer.FromEnum(props.RunbookType))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
 		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))
@@ -461,7 +461,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.Runbook
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -483,18 +483,18 @@ func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandContentLink(inputs []interface{}) *runbook.ContentLink {
+func expandContentLink(inputs []any) *runbook.ContentLink {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	uri := input["uri"].(string)
 	version := input["version"].(string)
-	hashes := input["hash"].([]interface{})
+	hashes := input["hash"].([]any)
 
 	if len(hashes) > 0 {
-		hash := hashes[0].(map[string]interface{})
+		hash := hashes[0].(map[string]any)
 		hashValue := hash["value"].(string)
 		hashAlgorithm := hash["algorithm"].(string)
 
@@ -514,20 +514,20 @@ func expandContentLink(inputs []interface{}) *runbook.ContentLink {
 	}
 }
 
-func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
+func expandDraft(inputs []any) *runbook.RunbookDraft {
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
-	input := inputs[0].(map[string]interface{})
+	input := inputs[0].(map[string]any)
 	var res runbook.RunbookDraft
 
-	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
+	res.DraftContentLink = expandContentLink(input["content_link"].([]any))
 	res.InEdit = pointer.To(input["edit_mode_enabled"].(bool))
 	parameter := map[string]runbook.RunbookParameter{}
 
-	for _, iparam := range input["parameters"].([]interface{}) {
-		param := iparam.(map[string]interface{})
+	for _, iparam := range input["parameters"].([]any) {
+		param := iparam.(map[string]any)
 		key := param["key"].(string)
 		parameter[key] = runbook.RunbookParameter{
 			Type:         pointer.To(param["type"].(string)),
@@ -538,7 +538,7 @@ func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
 	}
 	res.Parameters = &parameter
 
-	typesInput := input["output_types"].([]interface{})
+	typesInput := input["output_types"].([]any)
 	types := make([]string, 0, len(typesInput))
 	for _, v := range typesInput {
 		types = append(types, v.(string))

@@ -55,7 +55,7 @@ func dataSourceMonitorDiagnosticCategories() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorDiagnosticCategoriesRead(d *pluginsdk.ResourceData, meta any) error {
 	categoriesClient := meta.(*clients.Client).Monitor.DiagnosticSettingsCategoryClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

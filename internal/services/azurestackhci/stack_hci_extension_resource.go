@@ -28,7 +28,7 @@ func (r StackHCIExtensionResource) ResourceType() string {
 	return "azurerm_stack_hci_extension"
 }
 
-func (r StackHCIExtensionResource) ModelObject() interface{} {
+func (r StackHCIExtensionResource) ModelObject() any {
 	return &StackHCIExtensionResourceModel{}
 }
 
@@ -188,7 +188,7 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `setting`: %+v", err)
 				}
 
-				input.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+				input.Properties.ExtensionParameters.Settings = pointer.To(any(expandedSetting))
 			}
 
 			if config.ProtectedSettings != "" {
@@ -197,7 +197,7 @@ func (r StackHCIExtensionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `protected_settings`: %+v", err)
 				}
 
-				input.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+				input.Properties.ExtensionParameters.ProtectedSettings = pointer.To(any(expandedSetting))
 			}
 
 			if err := client.CreateCallbackThenPoll(ctx, id, input, metadata.SetIDCallback(&id)); err != nil {
@@ -251,7 +251,7 @@ func (r StackHCIExtensionResource) Read() sdk.ResourceFunc {
 
 					var setting string
 					if param.Settings != nil {
-						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]interface{}))
+						setting, err = pluginsdk.FlattenJsonToString((*param.Settings).(map[string]any))
 						if err != nil {
 							return fmt.Errorf("flattening `settings`: %+v", err)
 						}
@@ -331,9 +331,9 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("expanding `protected_settings`: %+v", err)
 					}
 
-					updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(interface{}(expandedSetting))
+					updateModel.Properties.ExtensionParameters.ProtectedSettings = pointer.To(any(expandedSetting))
 				} else {
-					var emptyInterface interface{}
+					var emptyInterface any
 					updateModel.Properties.ExtensionParameters.Settings = pointer.To(emptyInterface)
 				}
 			}
@@ -345,9 +345,9 @@ func (r StackHCIExtensionResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("expanding `setting`: %+v", err)
 					}
 
-					updateModel.Properties.ExtensionParameters.Settings = pointer.To(interface{}(expandedSetting))
+					updateModel.Properties.ExtensionParameters.Settings = pointer.To(any(expandedSetting))
 				} else {
-					var emptyInterface interface{}
+					var emptyInterface any
 					updateModel.Properties.ExtensionParameters.Settings = pointer.To(emptyInterface)
 				}
 			}

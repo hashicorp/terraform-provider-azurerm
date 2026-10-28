@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func HealthbotName(i interface{}, k string) ([]string, []error) {
+func HealthbotName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(2, 64),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`), ""),

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -116,7 +116,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -189,7 +189,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }
 
-func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -239,7 +239,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 			d.Set("backend_address_pool_id", backendAddressPoolId)
 			d.Set("tcp_reset_enabled", props.EnableTcpReset)
 
-			frontendIpConfigurations := make([]interface{}, 0)
+			frontendIpConfigurations := make([]any, 0)
 			if configs := props.FrontendIPConfigurations; configs != nil {
 				for _, feConfig := range configs {
 					if feConfig.Id == nil {
@@ -250,7 +250,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 						return err
 					}
 
-					frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
+					frontendIpConfigurations = append(frontendIpConfigurations, map[string]any{
 						"id":   feid.ID(),
 						"name": feid.FrontendIPConfigurationName,
 					})
@@ -265,7 +265,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerOutboundRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -316,11 +316,11 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadba
 		EnableTcpReset:         pointer.To(d.Get("tcp_reset_enabled").(bool)),
 	}
 
-	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
+	feConfigs := d.Get("frontend_ip_configuration").([]any)
 	feConfigSubResources := make([]loadbalancers.SubResource, 0)
 
 	for _, raw := range feConfigs {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v["name"].(string))
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v["name"])

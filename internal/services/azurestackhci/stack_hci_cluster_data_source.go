@@ -31,7 +31,7 @@ func (r StackHCIClusterDataSource) ResourceType() string {
 	return "azurerm_stack_hci_cluster"
 }
 
-func (r StackHCIClusterDataSource) ModelObject() interface{} {
+func (r StackHCIClusterDataSource) ModelObject() any {
 	return &StackHCIClusterDataSourceModel{}
 }
 
@@ -46,7 +46,7 @@ type StackHCIClusterDataSourceModel struct {
 	ServiceEndpoint           string                         `tfschema:"service_endpoint"`
 	ResourceProviderObjectId  string                         `tfschema:"resource_provider_object_id"`
 	Identity                  []identity.ModelSystemAssigned `tfschema:"identity"`
-	Tags                      map[string]interface{}         `tfschema:"tags"`
+	Tags                      map[string]any                 `tfschema:"tags"`
 }
 
 func (r StackHCIClusterDataSource) Arguments() map[string]*schema.Schema {

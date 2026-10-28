@@ -145,7 +145,7 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

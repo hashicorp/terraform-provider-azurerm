@@ -29,7 +29,7 @@ var (
 
 type VirtualMachineRunCommandResource struct{}
 
-func (r VirtualMachineRunCommandResource) ModelObject() interface{} {
+func (r VirtualMachineRunCommandResource) ModelObject() any {
 	return &VirtualMachineRunCommandResourceSchema{}
 }
 
@@ -46,7 +46,7 @@ type VirtualMachineRunCommandResourceSchema struct {
 	RunAsPassword             string                                          `tfschema:"run_as_password"`
 	RunAsUser                 string                                          `tfschema:"run_as_user"`
 	Source                    []VirtualMachineRunCommandScriptSourceSchema    `tfschema:"source"`
-	Tags                      map[string]interface{}                          `tfschema:"tags"`
+	Tags                      map[string]any                                  `tfschema:"tags"`
 	VirtualMachineId          string                                          `tfschema:"virtual_machine_id"`
 }
 
@@ -681,7 +681,7 @@ func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommand
 	return []VirtualMachineRunCommandInstanceViewSchema{
 		{
 			ExitCode:         pointer.From(input.ExitCode),
-			executionState:   string(pointer.From(input.ExecutionState)),
+			executionState:   pointer.FromEnum(input.ExecutionState),
 			executionMessage: pointer.From(input.ExecutionMessage),
 			output:           pointer.From(input.Output),
 			errorMessage:     pointer.From(input.Error),

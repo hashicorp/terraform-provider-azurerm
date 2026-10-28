@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestSqlPoolSecurityAlertPolicyID(t *testing.T) {
+func TestValidateSqlPoolSecurityAlertPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

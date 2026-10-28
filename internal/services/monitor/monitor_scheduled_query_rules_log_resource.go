@@ -132,7 +132,7 @@ func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	action := expandMonitorScheduledQueryRulesLogToMetricAction(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -168,7 +168,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 
 	source := expandMonitorScheduledQueryRulesCommonSource(d)
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := scheduledqueryrules.LogSearchRuleResource{
 		Location: location,
@@ -190,7 +190,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	return resourceMonitorScheduledQueryRulesLogRead(d, meta)
 }
 
-func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,7 +248,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func resourceMonitorScheduledQueryRulesLogDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesLogDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +267,7 @@ func resourceMonitorScheduledQueryRulesLogDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) []scheduledqueryrules.Criteria {
+func expandMonitorScheduledQueryRulesLogCriteria(input []any) []scheduledqueryrules.Criteria {
 	criteria := make([]scheduledqueryrules.Criteria, 0)
 	if len(input) == 0 {
 		return criteria
@@ -277,7 +277,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) []schedule
 		if item == nil {
 			continue
 		}
-		v, ok := item.(map[string]interface{})
+		v, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -287,7 +287,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) []schedule
 			if dimension == nil {
 				continue
 			}
-			dVal, ok := dimension.(map[string]interface{})
+			dVal, ok := dimension.(map[string]any)
 			if !ok {
 				continue
 			}
@@ -295,7 +295,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) []schedule
 			dimensions = append(dimensions, scheduledqueryrules.Dimension{
 				Name:     dVal["name"].(string),
 				Operator: scheduledqueryrules.Operator(dVal["operator"].(string)),
-				Values:   expandStringValues(dVal["values"].([]interface{})),
+				Values:   expandStringValues(dVal["values"].([]any)),
 			})
 		}
 
@@ -308,7 +308,7 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) []schedule
 }
 
 func expandMonitorScheduledQueryRulesLogToMetricAction(d *pluginsdk.ResourceData) *scheduledqueryrules.LogToMetricAction {
-	criteriaRaw := d.Get("criteria").([]interface{})
+	criteriaRaw := d.Get("criteria").([]any)
 	criteria := expandMonitorScheduledQueryRulesLogCriteria(criteriaRaw)
 
 	action := scheduledqueryrules.LogToMetricAction{

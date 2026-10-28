@@ -18,6 +18,16 @@ import (
 
 type AutomationDscNodeConfigurationResource struct{}
 
+func TestAccAutomationDscNodeConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
+	r := AutomationDscNodeConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationDscNodeConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
 	r := AutomationDscNodeConfigurationResource{}

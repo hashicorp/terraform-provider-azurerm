@@ -42,7 +42,7 @@ func (r StorageMoverProjectResource) ResourceType() string {
 	return "azurerm_storage_mover_project"
 }
 
-func (r StorageMoverProjectResource) ModelObject() interface{} {
+func (r StorageMoverProjectResource) ModelObject() any {
 	return &StorageMoverProjectResourceModel{}
 }
 

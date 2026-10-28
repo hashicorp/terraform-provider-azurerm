@@ -124,10 +124,10 @@ func policyDefinitionGroupSchema() *pluginsdk.Schema {
 	}
 }
 
-func policySetDefinitionPolicyDefinitionGroupHash(v interface{}) int {
+func policySetDefinitionPolicyDefinitionGroupHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		buf.WriteString(m["name"].(string))
 	}
 
@@ -135,13 +135,13 @@ func policySetDefinitionPolicyDefinitionGroupHash(v interface{}) int {
 }
 
 func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	var oldPolicySetDefinitionsMetadata map[string]interface{}
+	var oldPolicySetDefinitionsMetadata map[string]any
 	errOld := json.Unmarshal([]byte(old), &oldPolicySetDefinitionsMetadata)
 	if errOld != nil {
 		return false
 	}
 
-	var newPolicySetDefinitionsMetadata map[string]interface{}
+	var newPolicySetDefinitionsMetadata map[string]any
 	errNew := json.Unmarshal([]byte(new), &newPolicySetDefinitionsMetadata)
 	if errNew != nil {
 		return false

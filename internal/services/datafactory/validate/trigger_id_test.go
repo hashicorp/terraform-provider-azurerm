@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestTriggerID(t *testing.T) {
+func TestValidateTriggerID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

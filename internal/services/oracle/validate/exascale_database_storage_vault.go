@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ExascaleDatabaseStorageVaultName(i interface{}, k string) ([]string, []error) {
+func ExascaleDatabaseStorageVaultName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_](?:[a-zA-Z0-9_]*(?:-[a-zA-Z0-9_]+)*-?)?$`), "must begin with a letter or underscore (_), contain only letters, numbers, underscores (_) and cannot contain any consecutive hyphens (--)")(i, k)
 }

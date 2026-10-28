@@ -319,7 +319,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -352,7 +352,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 			DisplayName:           d.Get("display_name").(string),
 			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
-			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false),
+			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident").([]any), "create_incident_enabled", false),
 			Severity:              alertrules.AlertSeverity(d.Get("severity").(string)),
 			Enabled:               d.Get("enabled").(bool),
 			Query:                 d.Get("query").(string),
@@ -368,23 +368,23 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 		param.Properties.TemplateVersion = pointer.To(v.(string))
 	}
 	if v, ok := d.GetOk("event_grouping"); ok {
-		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]interface{}))
+		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]any))
 	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
-		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
+		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]any))
 	}
 	if v, ok := d.GetOk("custom_details"); ok {
-		param.Properties.CustomDetails = pluginsdk.ExpandPtrMapStringString(v.(map[string]interface{}))
+		param.Properties.CustomDetails = pluginsdk.ExpandPtrMapStringString(v.(map[string]any))
 	}
 
 	entityMappingCount := 0
 	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
-		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
+		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]any))
 		entityMappingCount = len(*param.Properties.EntityMappings)
 	}
 	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
-		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
+		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]any))
 		sentinelEntityMappingCount = len(*param.Properties.SentinelEntitiesMappings)
 	}
 
@@ -419,7 +419,7 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceSentinelAlertRuleNrtRead(d, meta)
 }
 
-func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -494,7 +494,7 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceSentinelAlertRuleNrtDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleNrtDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

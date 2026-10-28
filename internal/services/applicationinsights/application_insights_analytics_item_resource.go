@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	analyticsitems "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
@@ -35,7 +35,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			if strings.Contains(id, userScopePath) || strings.Contains(id, sharedScopePath) {
-				if _, err := analyticsitems.ParseProviderComponentID(id); err != nil {
+				if _, err := analyticsitemsapis.ParseProviderComponentID(id); err != nil {
 					return err
 				}
 			}
@@ -66,7 +66,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: components.ValidateComponentID,
+				ValidateFunc: componentsapis.ValidateComponentID,
 			},
 
 			"version": {
@@ -83,7 +83,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice(analyticsitems.PossibleValuesForItemScope(), false),
+				ValidateFunc: validation.StringInSlice(analyticsitemsapis.PossibleValuesForItemScope(), false),
 			},
 
 			"type": {
@@ -91,10 +91,10 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(analyticsitems.ItemTypeQuery),
-					string(analyticsitems.ItemTypeFunction),
-					string(analyticsitems.ItemTypeParameterFolder),
-					string(analyticsitems.ItemTypeRecent),
+					string(analyticsitemsapis.ItemTypeQuery),
+					string(analyticsitemsapis.ItemTypeFunction),
+					string(analyticsitemsapis.ItemTypeParameterFolder),
+					string(analyticsitemsapis.ItemTypeRecent),
 				}, false),
 			},
 
@@ -116,12 +116,12 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := componentsapis.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
@@ -130,23 +130,23 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 	scopeName := d.Get("scope").(string)
 	typeName := d.Get("type").(string)
 
-	itemType := analyticsitems.ItemType(typeName)
-	itemScope := analyticsitems.ItemScope(scopeName)
+	itemType := analyticsitemsapis.ItemType(typeName)
+	itemScope := analyticsitemsapis.ItemScope(scopeName)
 
 	itemScopePath := sharedScopePath
-	if itemScope == analyticsitems.ItemScopeUser {
+	if itemScope == analyticsitemsapis.ItemScopeUser {
 		itemScopePath = userScopePath
 	}
 
-	id := analyticsitems.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, itemScopePath)
+	id := analyticsitemsapis.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, itemScopePath)
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		// We cannot get specific analytics items without their itemID which is why we need to list all the
 		// available items of a certain type and scope in order to check whether a resource already exists and needs
 		// to be imported first
 		// https://github.com/Azure/azure-rest-api-specs/issues/20712 itemScopePath should be set to insights.ItemScopePathAnalyticsItems in List method
-		listId := analyticsitems.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, "analyticsItems")
-		existing, err := client.AnalyticsItemsList(ctx, listId, analyticsitems.DefaultAnalyticsItemsListOperationOptions())
+		listId := analyticsitemsapis.NewProviderComponentID(appInsightsId.SubscriptionId, appInsightsId.ResourceGroupName, appInsightsId.ComponentName, "analyticsItems")
+		existing, err := client.AnalyticsItemsList(ctx, listId, analyticsitemsapis.DefaultAnalyticsItemsListOperationOptions())
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -162,19 +162,19 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	properties := analyticsitems.ApplicationInsightsComponentAnalyticsItem{
+	properties := analyticsitemsapis.ApplicationInsightsComponentAnalyticsItem{
 		Name:    pointer.To(name),
 		Type:    pointer.To(itemType),
 		Scope:   pointer.To(itemScope),
 		Content: pointer.To(d.Get("content").(string)),
 	}
 	if v := d.Get("function_alias").(string); v != "" {
-		properties.Properties = &analyticsitems.ApplicationInsightsComponentAnalyticsItemProperties{
+		properties.Properties = &analyticsitemsapis.ApplicationInsightsComponentAnalyticsItemProperties{
 			FunctionAlias: &v,
 		}
 	}
 
-	resp, err := client.AnalyticsItemsPut(ctx, id, properties, analyticsitems.DefaultAnalyticsItemsPutOperationOptions())
+	resp, err := client.AnalyticsItemsPut(ctx, id, properties, analyticsitemsapis.DefaultAnalyticsItemsPutOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -184,7 +184,7 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 	}
 
 	generatedId := parse.NewAnalyticsSharedItemID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName, *resp.Model.Id).ID()
-	if itemScope == analyticsitems.ItemScopeUser {
+	if itemScope == analyticsitemsapis.ItemScopeUser {
 		generatedId = parse.NewAnalyticsUserItemID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName, *resp.Model.Id).ID()
 	}
 
@@ -193,7 +193,7 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +203,7 @@ func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	getOptions := analyticsitems.AnalyticsItemsGetOperationOptions{
+	getOptions := analyticsitemsapis.AnalyticsItemsGetOperationOptions{
 		Id: pointer.To(itemId),
 	}
 
@@ -220,12 +220,12 @@ func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, m
 
 	if d.HasChange("function_alias") {
 		if payload.Properties == nil {
-			payload.Properties = &analyticsitems.ApplicationInsightsComponentAnalyticsItemProperties{}
+			payload.Properties = &analyticsitemsapis.ApplicationInsightsComponentAnalyticsItemProperties{}
 		}
 		payload.Properties.FunctionAlias = pointer.To(d.Get("function_alias").(string))
 	}
 
-	putOptions := analyticsitems.AnalyticsItemsPutOperationOptions{
+	putOptions := analyticsitemsapis.AnalyticsItemsPutOperationOptions{
 		OverrideItem: pointer.To(true),
 	}
 
@@ -236,7 +236,7 @@ func resourceApplicationInsightsAnalyticsItemUpdate(d *pluginsdk.ResourceData, m
 	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +246,7 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	options := analyticsitems.AnalyticsItemsGetOperationOptions{
+	options := analyticsitemsapis.AnalyticsItemsGetOperationOptions{
 		Id: pointer.To(itemId),
 	}
 
@@ -259,7 +259,7 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	appInsightsId := components.NewComponentID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName)
+	appInsightsId := componentsapis.NewComponentID(id.SubscriptionId, id.ResourceGroupName, id.ComponentName)
 
 	d.Set("application_insights_id", appInsightsId.ID())
 	if model := resp.Model; model != nil {
@@ -278,7 +278,7 @@ func resourceApplicationInsightsAnalyticsItemRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -288,7 +288,7 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	options := analyticsitems.AnalyticsItemsDeleteOperationOptions{
+	options := analyticsitemsapis.AnalyticsItemsDeleteOperationOptions{
 		Id: pointer.To(itemId),
 	}
 
@@ -299,18 +299,18 @@ func resourceApplicationInsightsAnalyticsItemDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func ParseGeneratedAnalyticsItemId(input string) (*analyticsitems.ProviderComponentId, string, error) {
+func ParseGeneratedAnalyticsItemId(input string) (*analyticsitemsapis.ProviderComponentId, string, error) {
 	// The generated ID format differs depending on scope
 	// <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
 	// <appinsightsID>/myAnalyticsItems/<itemID>   [for user scope items]
-	generatedId, err := analyticsitems.ParseProviderComponentID(input)
+	generatedId, err := analyticsitemsapis.ParseProviderComponentID(input)
 	if err != nil {
 		return nil, "", err
 	}
 
 	scope := strings.Split(generatedId.ScopePath, "/")
 
-	id := analyticsitems.NewProviderComponentID(generatedId.SubscriptionId, generatedId.ResourceGroupName, generatedId.ComponentName, scope[1])
+	id := analyticsitemsapis.NewProviderComponentID(generatedId.SubscriptionId, generatedId.ResourceGroupName, generatedId.ComponentName, scope[1])
 
 	return &id, scope[2], nil
 }

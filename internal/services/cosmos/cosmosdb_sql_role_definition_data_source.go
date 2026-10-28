@@ -78,7 +78,7 @@ func dataSourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

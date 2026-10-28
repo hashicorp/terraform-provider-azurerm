@@ -78,11 +78,11 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
-func expandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
+func expandSSHKeys(input []any) []virtualmachines.SshPublicKey {
 	output := make([]virtualmachines.SshPublicKey, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		username := raw["username"].(string)
 		output = append(output, virtualmachines.SshPublicKey{
@@ -94,11 +94,11 @@ func expandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
 	return output
 }
 
-func expandSSHKeysVMSS(input []interface{}) []virtualmachinescalesets.SshPublicKey {
+func expandSSHKeysVMSS(input []any) []virtualmachinescalesets.SshPublicKey {
 	output := make([]virtualmachinescalesets.SshPublicKey, 0)
 
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 
 		username := raw["username"].(string)
 		output = append(output, virtualmachinescalesets.SshPublicKey{
@@ -110,12 +110,12 @@ func expandSSHKeysVMSS(input []interface{}) []virtualmachinescalesets.SshPublicK
 	return output
 }
 
-func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, error) {
+func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]any, error) {
 	if input == nil || input.PublicKeys == nil {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input.PublicKeys {
 		if v.KeyData == nil || v.Path == nil {
 			continue
@@ -126,7 +126,7 @@ func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, er
 			return nil, fmt.Errorf("parsing username from %q", *v.Path)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"public_key": *v.KeyData,
 			"username":   *username,
 		})
@@ -135,12 +135,12 @@ func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, er
 	return &output, nil
 }
 
-func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]interface{}, error) {
+func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]any, error) {
 	if input == nil || input.PublicKeys == nil {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for _, v := range *input.PublicKeys {
 		if v.KeyData == nil || v.Path == nil {
 			continue
@@ -151,7 +151,7 @@ func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]int
 			return nil, fmt.Errorf("parsing username from %q", *v.Path)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"public_key": *v.KeyData,
 			"username":   *username,
 		})
@@ -189,10 +189,10 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	return nil
 }
 
-func SSHKeySchemaHash(v interface{}) int {
+func SSHKeySchemaHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		normalisedKey, err := suppress.NormalizeSSHKey(m["public_key"].(string))
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)

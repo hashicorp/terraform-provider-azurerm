@@ -108,7 +108,7 @@ func dataSourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorOriginGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

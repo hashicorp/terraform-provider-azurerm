@@ -22,17 +22,17 @@ import (
 type ContainerAppEnvironmentManagedCertificateResource struct{}
 
 type ContainerAppEnvironmentManagedCertificateModel struct {
-	Name                      string                 `tfschema:"name"`
-	ContainerAppEnvironmentId string                 `tfschema:"container_app_environment_id"`
-	SubjectName               string                 `tfschema:"subject_name"`
-	DomainControlValidation   string                 `tfschema:"domain_control_validation"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
-	ValidationToken           string                 `tfschema:"validation_token"`
+	Name                      string         `tfschema:"name"`
+	ContainerAppEnvironmentId string         `tfschema:"container_app_environment_id"`
+	SubjectName               string         `tfschema:"subject_name"`
+	DomainControlValidation   string         `tfschema:"domain_control_validation"`
+	Tags                      map[string]any `tfschema:"tags"`
+	ValidationToken           string         `tfschema:"validation_token"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentManagedCertificateResource{}
 
-func (r ContainerAppEnvironmentManagedCertificateResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentManagedCertificateResource) ModelObject() any {
 	return &ContainerAppEnvironmentManagedCertificateModel{}
 }
 

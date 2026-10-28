@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	mgmtGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -73,7 +73,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
-					mgmtGroupValidate.TenantScopedManagementGroupID,
+					validate.TenantScopedManagementGroupID,
 				),
 			},
 
@@ -94,7 +94,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -122,11 +122,11 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 			Source:    pointer.To(d.Get("source_resource_id").(string)),
 			TopicType: pointer.To(d.Get("topic_type").(string)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(v.([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -147,7 +147,7 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceEventGridSystemTopicRead(d, meta)
 }
 
-func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopics
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +196,7 @@ func resourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceEventGridSystemTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopics
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -13,7 +13,7 @@ import (
 )
 
 // lintignore:V001 // numeric ID parsing and range checks, not a plain regex match
-func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateUnixUserIDOrGroupID(v any, k string) (warnings []string, errors []error) {
 	var value int64
 	var err error
 
@@ -47,6 +47,6 @@ func ValidateUnixUserIDOrGroupID(v interface{}, k string) (warnings []string, er
 	return warnings, errors
 }
 
-func ValidateWindowsSID(v interface{}, k string) ([]string, []error) {
+func ValidateWindowsSID(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^S-1-5-(0|18|\d{1,9})(-\d{1,10}){0,14}$`), "must be a valid Windows security identifier (SID)")(v, k)
 }

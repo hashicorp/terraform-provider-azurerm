@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	fqdnlistlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/fqdnlistlocalrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/fqdnlistlocalrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,7 +91,7 @@ func TestAccPaloAltoLocalRulestackFQDNList_requiresImport(t *testing.T) {
 }
 
 func (r LocalRulestackFQDNList) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(state.ID)
+	id, err := fqdnlistlocalrulestackresources.ParseLocalRulestackFqdnListID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -87,7 +87,7 @@ func (r LogAnalyticsWorkspaceTableResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) ModelObject() interface{} {
+func (r LogAnalyticsWorkspaceTableResource) ModelObject() any {
 	return &LogAnalyticsWorkspaceTableResourceModel{}
 }
 
@@ -244,7 +244,7 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
 					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-					state.Plan = string(pointer.From(props.Plan))
+					state.Plan = pointer.FromEnum(props.Plan)
 				}
 			}
 

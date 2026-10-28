@@ -122,7 +122,7 @@ func resourceDatabricksVirtualNetworkPeering() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -160,8 +160,8 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	allowVirtualNetworkAccess := d.Get("allow_virtual_network_access").(bool)
 	useRemoteGateways := d.Get("use_remote_gateways").(bool)
 	remoteVirtualNetwork := d.Get("remote_virtual_network_id").(string)
-	databricksAddressSpace := pluginsdk.ExpandStringSlice(d.Get("address_space_prefixes").([]interface{}))
-	remoteAddressSpace := pluginsdk.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]interface{}))
+	databricksAddressSpace := pluginsdk.ExpandStringSlice(d.Get("address_space_prefixes").([]any))
+	remoteAddressSpace := pluginsdk.ExpandStringSlice(d.Get("remote_address_space_prefixes").([]any))
 
 	props := vnetpeering.VirtualNetworkPeeringPropertiesFormat{
 		DatabricksAddressSpace: &vnetpeering.AddressSpace{
@@ -201,7 +201,7 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -255,7 +255,7 @@ func resourceDatabricksVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -297,7 +297,7 @@ func resourceDatabricksVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, me
 	return resourceDatabricksVirtualNetworkPeeringRead(d, meta)
 }
 
-func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.VnetPeeringClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

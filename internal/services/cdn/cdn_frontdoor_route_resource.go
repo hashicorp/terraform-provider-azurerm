@@ -188,7 +188,7 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -245,14 +245,14 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	props := routes.Route{
 		Properties: &routes.RouteProperties{
 			CustomDomains:       expandCustomDomainActivatedResourceArray(customDomains),
-			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{})),
+			CacheConfiguration:  expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]any)),
 			EnabledState:        expandCdnFrontDoorRouteEnabled(d.Get("enabled").(bool)),
 			ForwardingProtocol:  pointer.ToEnum[routes.ForwardingProtocol](d.Get("forwarding_protocol").(string)),
 			HTTPSRedirect:       expandCdnFrontDoorRouteHttpsRedirect(httpsRedirect),
 			LinkToDefaultDomain: expandCdnFrontDoorRouteDefaultDomain(linkToDefaultDomain),
 			OriginGroup:         originGroup,
 			OriginPath:          pointer.ToOrNil(d.Get("cdn_frontdoor_origin_path").(string)),
-			PatternsToMatch:     pluginsdk.ExpandStringSlice(d.Get("patterns_to_match").([]interface{})),
+			PatternsToMatch:     pluginsdk.ExpandStringSlice(d.Get("patterns_to_match").([]any)),
 			RuleSets:            expandCdnFrontdoorRouteRuleSetReferenceArray(d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()),
 			SupportedProtocols:  expandCdnFrontDoorRouteEndpointProtocolsArray(protocols),
 		},
@@ -266,14 +266,14 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
-	if origins := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(origins) != 0 {
+	if origins := d.Get("cdn_frontdoor_origin_ids").([]any); len(origins) != 0 {
 		d.Set("cdn_frontdoor_origin_ids", origins)
 	}
 
 	return resourceCdnFrontDoorRouteRead(d, meta)
 }
 
-func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -296,7 +296,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+	if originIds := d.Get("cdn_frontdoor_origin_ids").([]any); len(originIds) > 0 {
 		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
@@ -349,7 +349,7 @@ func resourceCdnFrontDoorRouteRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -403,7 +403,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("cache") {
-		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]interface{}))
+		props.CacheConfiguration = expandCdnFrontdoorRouteCacheConfiguration(d.Get("cache").([]any))
 	}
 
 	if d.HasChange("enabled") {
@@ -435,7 +435,7 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("patterns_to_match") {
-		props.PatternsToMatch = pluginsdk.ExpandStringSlice(d.Get("patterns_to_match").([]interface{}))
+		props.PatternsToMatch = pluginsdk.ExpandStringSlice(d.Get("patterns_to_match").([]any))
 	}
 
 	if d.HasChange("cdn_frontdoor_rule_set_ids") {
@@ -452,14 +452,14 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
-	if originIds := d.Get("cdn_frontdoor_origin_ids").([]interface{}); len(originIds) > 0 {
+	if originIds := d.Get("cdn_frontdoor_origin_ids").([]any); len(originIds) > 0 {
 		d.Set("cdn_frontdoor_origin_ids", originIds)
 	}
 
 	return resourceCdnFrontDoorRouteRead(d, meta)
 }
 
-func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorRoutesClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -511,7 +511,7 @@ func expandCdnFrontDoorRouteDefaultDomain(input bool) *routes.LinkToDefaultDomai
 	return pointer.To(routes.LinkToDefaultDomainDisabled)
 }
 
-func expandCdnFrontDoorRouteEndpointProtocolsArray(input []interface{}) *[]routes.AFDEndpointProtocols {
+func expandCdnFrontDoorRouteEndpointProtocolsArray(input []any) *[]routes.AFDEndpointProtocols {
 	results := make([]routes.AFDEndpointProtocols, 0)
 
 	for _, item := range input {
@@ -521,7 +521,7 @@ func expandCdnFrontDoorRouteEndpointProtocolsArray(input []interface{}) *[]route
 	return &results
 }
 
-func expandCdnFrontdoorRouteRuleSetReferenceArray(input []interface{}) *[]routes.ResourceReference {
+func expandCdnFrontdoorRouteRuleSetReferenceArray(input []any) *[]routes.ResourceReference {
 	// NOTE: The Frontdoor service, do not treat an empty object like an empty object
 	// if it is not nil they assume it is fully defined and then end up throwing errors
 	// when they attempt to get a value from one of the fields.
@@ -539,7 +539,7 @@ func expandCdnFrontdoorRouteRuleSetReferenceArray(input []interface{}) *[]routes
 	return &results
 }
 
-func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *routes.AfdRouteCacheConfiguration {
+func expandCdnFrontdoorRouteCacheConfiguration(input []any) *routes.AfdRouteCacheConfiguration {
 	// NOTE: If this is not an explicit nil you will receive an "Unsupported QueryStringCachingBehavior type:
 	// Property 'RouteV2.CacheConfiguration.QueryStringCachingBehavior' is required but it was not set" error.
 	// The Frontdoor service treats empty slices as if they are fully defined unlike other services.
@@ -547,25 +547,25 @@ func expandCdnFrontdoorRouteCacheConfiguration(input []interface{}) *routes.AfdR
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	cacheConfiguration := &routes.AfdRouteCacheConfiguration{
 		CompressionSettings: &routes.CompressionSettings{
 			IsCompressionEnabled: pointer.To(v["compression_enabled"].(bool)),
 		},
-		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]interface{})),
+		QueryParameters:            expandStringSliceToCsvFormat(v["query_strings"].([]any)),
 		QueryStringCachingBehavior: pointer.ToEnum[routes.AfdQueryStringCachingBehavior](v["query_string_caching_behavior"].(string)),
 	}
 
-	if contentTypes := v["content_types_to_compress"].([]interface{}); len(contentTypes) > 0 {
+	if contentTypes := v["content_types_to_compress"].([]any); len(contentTypes) > 0 {
 		cacheConfiguration.CompressionSettings.ContentTypesToCompress = pluginsdk.ExpandStringSlice(contentTypes)
 	}
 
 	return cacheConfiguration
 }
 
-func flattenCdnFrontDoorRouteRuleSetResourceArray(input *[]routes.ResourceReference) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenCdnFrontDoorRouteRuleSetResourceArray(input *[]routes.ResourceReference) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil {
 		return results, nil
 	}
@@ -598,8 +598,8 @@ func flattenCdnFrontDoorRouteOriginGroupResourceReference(input *routes.Resource
 	return "", nil
 }
 
-func flattenCdnFrontDoorRouteCustomDomainActivatedResourceArray(input *[]routes.ActivatedResourceReference) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenCdnFrontDoorRouteCustomDomainActivatedResourceArray(input *[]routes.ActivatedResourceReference) ([]any, error) {
+	results := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return results, nil
 	}
@@ -620,21 +620,21 @@ func flattenCdnFrontDoorRouteCustomDomainActivatedResourceArray(input *[]routes.
 	return results, nil
 }
 
-func flattenCdnFrontDoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfiguration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenCdnFrontDoorRouteCacheConfiguration(input *routes.AfdRouteCacheConfiguration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	compressionEnabled := false
-	contentTypesToCompress := make([]interface{}, 0)
+	contentTypesToCompress := make([]any, 0)
 	if v := input.CompressionSettings; v != nil {
 		compressionEnabled = pointer.From(v.IsCompressionEnabled)
 		contentTypesToCompress = pluginsdk.FlattenSlice(v.ContentTypesToCompress)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"compression_enabled":           compressionEnabled,
 			"content_types_to_compress":     contentTypesToCompress,
 			"query_string_caching_behavior": pointer.FromEnum(input.QueryStringCachingBehavior),

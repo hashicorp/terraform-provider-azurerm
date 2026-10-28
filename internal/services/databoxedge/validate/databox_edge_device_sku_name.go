@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 )
 
-func DataboxEdgeDeviceSkuName(v interface{}, k string) (warnings []string, errors []error) {
+func DataboxEdgeDeviceSkuName(v any, k string) (warnings []string, errors []error) {
 	validSku := false
 	validTier := false
 

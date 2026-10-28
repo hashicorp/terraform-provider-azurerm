@@ -56,11 +56,11 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// sku cannot be downgraded from a production tier (`premium` or `standard`) to a non-production tier (`developer` or `free`), or downgraded from `developer` to `free`
 			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
-			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta any) bool {
 				return ((old == "premium" || old == "standard") && new == "developer") || new == "free"
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				authMode := d.Get("data_plane_proxy_authentication_mode").(string)
 				privLinkDelegation := d.Get("data_plane_proxy_private_link_delegation_enabled").(bool)
 
@@ -293,7 +293,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
 
@@ -353,9 +353,9 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 			},
 			EnablePurgeProtection: pointer.To(d.Get("purge_protection_enabled").(bool)),
 			DisableLocalAuth:      pointer.To(!d.Get("local_auth_enabled").(bool)),
-			Encryption:            expandAppConfigurationEncryption(d.Get("encryption").([]interface{})),
+			Encryption:            expandAppConfigurationEncryption(d.Get("encryption").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.Get("soft_delete_retention_days").(int); ok && v != 7 {
@@ -372,7 +372,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		parameters.Properties.PublicNetworkAccess = parsePublicNetworkAccess(publicNetworkAccessValue.(string))
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -410,7 +410,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -440,12 +440,12 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(t)
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -485,7 +485,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if update.Properties == nil {
 			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
 		}
-		update.Properties.Encryption = expandAppConfigurationEncryption(d.Get("encryption").([]interface{}))
+		update.Properties.Encryption = expandAppConfigurationEncryption(d.Get("encryption").([]any))
 	}
 
 	if d.HasChange("local_auth_enabled") {
@@ -534,10 +534,10 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		oldReplicas, newReplicas := d.GetChange("replica")
 		for _, oldReplica := range oldReplicas.(*pluginsdk.Set).List() {
 			isRemoved := true
-			oldReplicaMap := oldReplica.(map[string]interface{})
+			oldReplicaMap := oldReplica.(map[string]any)
 
 			for _, newReplica := range newReplicas.(*pluginsdk.Set).List() {
-				newReplicaMap := newReplica.(map[string]interface{})
+				newReplicaMap := newReplica.(map[string]any)
 
 				if strings.EqualFold(oldReplicaMap["name"].(string), newReplicaMap["name"].(string)) && strings.EqualFold(location.Normalize(oldReplicaMap["location"].(string)), location.Normalize(newReplicaMap["location"].(string))) {
 					unchangedReplicaNames[oldReplicaMap["name"].(string)] = struct{}{}
@@ -588,7 +588,7 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -622,13 +622,13 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			if dataPlaneProxy := props.DataPlaneProxy; dataPlaneProxy != nil {
-				d.Set("data_plane_proxy_authentication_mode", string(pointer.From(dataPlaneProxy.AuthenticationMode)))
+				d.Set("data_plane_proxy_authentication_mode", pointer.FromEnum(dataPlaneProxy.AuthenticationMode))
 				d.Set("data_plane_proxy_private_link_delegation_enabled", pointer.From(dataPlaneProxy.PrivateLinkDelegation) == configurationstores.PrivateLinkDelegationEnabled)
 			}
 
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
-			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
+			d.Set("public_network_access", pointer.FromEnum(props.PublicNetworkAccess))
 
 			localAuthEnabled := true
 			if props.DisableLocalAuth != nil {
@@ -680,7 +680,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppConfiguration.ConfigurationStoresClient
 	deletedConfigurationStoresClient := meta.(*clients.Client).AppConfiguration.DeletedConfigurationStoresClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -803,13 +803,13 @@ func (p *purgeDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, err
 }
 
 type flattenedAccessKeys struct {
-	primaryReadKey    []interface{}
-	primaryWriteKey   []interface{}
-	secondaryReadKey  []interface{}
-	secondaryWriteKey []interface{}
+	primaryReadKey    []any
+	primaryWriteKey   []any
+	secondaryReadKey  []any
+	secondaryWriteKey []any
 }
 
-func expandAppConfigurationEncryption(input []interface{}) *configurationstores.EncryptionProperties {
+func expandAppConfigurationEncryption(input []any) *configurationstores.EncryptionProperties {
 	result := &configurationstores.EncryptionProperties{
 		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
 	}
@@ -818,7 +818,7 @@ func expandAppConfigurationEncryption(input []interface{}) *configurationstores.
 		return result
 	}
 
-	encryptionParam := input[0].(map[string]interface{})
+	encryptionParam := input[0].(map[string]any)
 
 	if v, ok := encryptionParam["identity_client_id"].(string); ok && v != "" {
 		result.KeyVaultProperties.IdentityClientId = &v
@@ -829,7 +829,7 @@ func expandAppConfigurationEncryption(input []interface{}) *configurationstores.
 	return result
 }
 
-func expandAppConfigurationReplicas(input []interface{}, configurationStoreName, configurationStoreLocation string) (*[]replicas.Replica, error) {
+func expandAppConfigurationReplicas(input []any, configurationStoreName, configurationStoreLocation string) (*[]replicas.Replica, error) {
 	result := make([]replicas.Replica, 0)
 
 	// check if there are duplicated replica names or locations
@@ -838,7 +838,7 @@ func expandAppConfigurationReplicas(input []interface{}, configurationStoreName,
 	replicaNameSet := make(map[string]struct{}, 0)
 
 	for _, v := range input {
-		replica := v.(map[string]interface{})
+		replica := v.(map[string]any)
 		replicaName := replica["name"].(string)
 		replicaLocation := location.Normalize(replica["location"].(string))
 		if strings.EqualFold(replicaLocation, configurationStoreLocation) {
@@ -871,10 +871,10 @@ func expandAppConfigurationReplicas(input []interface{}, configurationStoreName,
 
 func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flattenedAccessKeys {
 	result := flattenedAccessKeys{
-		primaryReadKey:    make([]interface{}, 0),
-		primaryWriteKey:   make([]interface{}, 0),
-		secondaryReadKey:  make([]interface{}, 0),
-		secondaryWriteKey: make([]interface{}, 0),
+		primaryReadKey:    make([]any, 0),
+		primaryWriteKey:   make([]any, 0),
+		secondaryReadKey:  make([]any, 0),
+		secondaryWriteKey: make([]any, 0),
 	}
 
 	for _, value := range values {
@@ -906,9 +906,9 @@ func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flat
 	return result
 }
 
-func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenAppConfigurationAccessKey(input configurationstores.ApiKey) []any {
+	return []any{
+		map[string]any{
 			"connection_string": pointer.From(input.ConnectionString),
 			"id":                pointer.From(input.Id),
 			"secret":            pointer.From(input.Value),
@@ -961,7 +961,7 @@ func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client 
 }
 
 func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking to see if the name for %s is available ..", configurationStoreId)
 
 		subscriptionId := commonids.NewSubscriptionID(configurationStoreId.SubscriptionId)
@@ -1029,7 +1029,7 @@ func resourceConfigurationStoreReplicaWaitForNameAvailable(ctx context.Context, 
 }
 
 func resourceConfigurationStoreReplicaNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreReplicaId replicas.ReplicaId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[DEBUG] Checking to see if the name for %s is available ..", configurationStoreReplicaId)
 
 		subscriptionId := commonids.NewSubscriptionID(configurationStoreReplicaId.SubscriptionId)

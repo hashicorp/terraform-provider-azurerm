@@ -34,7 +34,7 @@ type ApplianceModel struct {
 	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
 	Provider          appliances.Provider            `tfschema:"infrastructure_provider"`
 	PublicKeyBase64   string                         `tfschema:"public_key_base64"`
-	Tags              map[string]interface{}         `tfschema:"tags"`
+	Tags              map[string]any                 `tfschema:"tags"`
 }
 
 func (r ArcResourceBridgeApplianceResource) Arguments() map[string]*schema.Schema {
@@ -83,7 +83,7 @@ func (r ArcResourceBridgeApplianceResource) Attributes() map[string]*schema.Sche
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ArcResourceBridgeApplianceResource) ModelObject() interface{} {
+func (r ArcResourceBridgeApplianceResource) ModelObject() any {
 	return &ArcResourceBridgeApplianceResource{}
 }
 

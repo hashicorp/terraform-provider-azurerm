@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ContainerRegistryWebhookName(v interface{}, k string) ([]string, []error) {
+func ContainerRegistryWebhookName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]{5,50}$`), "alpha numeric characters only are allowed and between 5 and 50 characters")(v, k)
 }

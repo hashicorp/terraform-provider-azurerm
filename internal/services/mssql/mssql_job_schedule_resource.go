@@ -99,7 +99,7 @@ func (MsSqlJobScheduleResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (MsSqlJobScheduleResource) ModelObject() interface{} {
+func (MsSqlJobScheduleResource) ModelObject() any {
 	return &MsSqlJobScheduleResourceModel{}
 }
 
@@ -210,7 +210,7 @@ func (MsSqlJobScheduleResource) Read() sdk.ResourceFunc {
 						state.EndTime = pointer.From(schedule.EndTime)
 						state.Interval = pointer.From(schedule.Interval)
 						state.StartTime = pointer.From(schedule.StartTime)
-						state.Type = string(pointer.From(schedule.Type))
+						state.Type = pointer.FromEnum(schedule.Type)
 					}
 				}
 			}

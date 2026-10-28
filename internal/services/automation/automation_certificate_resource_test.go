@@ -29,6 +29,16 @@ var (
 
 var testCertBase64 = base64.StdEncoding.EncodeToString(testCertRaw)
 
+func TestAccAutomationCertificate_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
+	r := AutomationCertificateResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 	r := AutomationCertificateResource{}

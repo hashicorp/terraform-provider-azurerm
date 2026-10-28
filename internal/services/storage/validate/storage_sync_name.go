@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func StorageSyncName(v interface{}, k string) ([]string, []error) {
+func StorageSyncName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[0-9a-zA-Z-_. ]*[0-9a-zA-Z-_]$"), "can only consist of letters, numbers, spaces, and any of the following characters: '.-_' and that does not end with characters: '. '")(v, k)
 }

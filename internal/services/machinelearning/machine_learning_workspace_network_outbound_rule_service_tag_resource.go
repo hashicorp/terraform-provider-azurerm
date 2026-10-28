@@ -35,7 +35,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) ResourceType() string {
 	return "azurerm_machine_learning_workspace_network_outbound_rule_service_tag"
 }
 
-func (r WorkspaceNetworkOutboundRuleServiceTag) ModelObject() interface{} {
+func (r WorkspaceNetworkOutboundRuleServiceTag) ModelObject() any {
 	return &MachineLearningWorkspaceServiceTagOutboundRuleModel{}
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard"
 )
 
-func DashboardProperties(v interface{}, k string) (warnings []string, errors []error) {
+func DashboardProperties(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) == 0 {

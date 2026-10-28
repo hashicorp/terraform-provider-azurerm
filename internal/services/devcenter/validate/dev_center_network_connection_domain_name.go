@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DevCenterNetworkConnectionDomainName(i interface{}, k string) ([]string, []error) {
+func DevCenterNetworkConnectionDomainName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[a-zA-Z0-9-]([a-zA-Z0-9-.]{0,253}[a-zA-Z0-9-])?$"), "must start or end with an alphanumeric character or dashes, may contain alphanumeric characters, dashes or periods and must be between 1 and 255 characters long")(i, k)
 }

@@ -76,7 +76,7 @@ func (k KeyDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k KeyDataSource) ModelObject() interface{} {
+func (k KeyDataSource) ModelObject() any {
 	return &KeyResourceModel{}
 }
 

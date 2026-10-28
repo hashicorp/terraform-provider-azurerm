@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = FirewallNetworkRuleCollectionId{}
 
-func TestFirewallNetworkRuleCollectionIDFormatter(t *testing.T) {
+func TestParseFirewallNetworkRuleCollectionIDFormatter(t *testing.T) {
 	actual := NewFirewallNetworkRuleCollectionID("00000000-0000-0000-0000-000000000000", "mygroup1", "myfirewall", "networkRuleCollection1").ID()
 	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/networkRuleCollection1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestFirewallNetworkRuleCollectionIDFormatter(t *testing.T) {
 	}
 }
 
-func TestFirewallNetworkRuleCollectionID(t *testing.T) {
+func TestParseFirewallNetworkRuleCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

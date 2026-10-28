@@ -60,7 +60,7 @@ func (r DataConnectorOffice365ProjectResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_365_project"
 }
 
-func (r DataConnectorOffice365ProjectResource) ModelObject() interface{} {
+func (r DataConnectorOffice365ProjectResource) ModelObject() any {
 	return &DataConnectorOffice365ProjectModel{}
 }
 

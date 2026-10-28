@@ -43,7 +43,7 @@ type AlertRuleAnomalyBuiltInResource struct{}
 
 var _ sdk.ResourceWithUpdate = AlertRuleAnomalyBuiltInResource{}
 
-func (r AlertRuleAnomalyBuiltInResource) ModelObject() interface{} {
+func (r AlertRuleAnomalyBuiltInResource) ModelObject() any {
 	return &AlertRuleAnomalyBuiltInModel{}
 }
 

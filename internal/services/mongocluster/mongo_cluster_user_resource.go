@@ -34,7 +34,7 @@ type DatabaseRoleModel struct {
 	Name     string `tfschema:"name"`
 }
 
-func (r MongoClusterUserResource) ModelObject() interface{} {
+func (r MongoClusterUserResource) ModelObject() any {
 	return &MongoClusterUserResourceModel{}
 }
 

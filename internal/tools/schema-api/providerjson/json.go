@@ -22,21 +22,21 @@ const (
 type ProviderJSON schema.Provider
 
 type SchemaJSON struct {
-	Type        string      `json:"type,omitempty"` // TODO - Needs to be interface{}
-	ConfigMode  string      `json:"configMode,omitempty"`
-	Optional    bool        `json:"optional,omitempty"`
-	Required    bool        `json:"required,omitempty"`
-	Default     interface{} `json:"default,omitempty"`
-	Description string      `json:"description,omitempty"`
-	Computed    bool        `json:"computed,omitempty"`
-	ForceNew    bool        `json:"forceNew,omitempty"`
-	Elem        interface{} `json:"elem,omitempty"`
-	MaxItems    int         `json:"maxItems,omitempty"`
-	MinItems    int         `json:"minItems,omitempty"`
+	Type        string `json:"type,omitempty"` // TODO - Needs to be interface{}
+	ConfigMode  string `json:"configMode,omitempty"`
+	Optional    bool   `json:"optional,omitempty"`
+	Required    bool   `json:"required,omitempty"`
+	Default     any    `json:"default,omitempty"`
+	Description string `json:"description,omitempty"`
+	Computed    bool   `json:"computed,omitempty"`
+	ForceNew    bool   `json:"forceNew,omitempty"`
+	Elem        any    `json:"elem,omitempty"`
+	MaxItems    int    `json:"maxItems,omitempty"`
+	MinItems    int    `json:"minItems,omitempty"`
 }
 
 func (b *SchemaJSON) UnmarshalJSON(body []byte) error {
-	var m map[string]interface{}
+	var m map[string]any
 	if err := json.Unmarshal(body, &m); err != nil {
 		return err
 	}
@@ -70,9 +70,9 @@ func (b *SchemaJSON) UnmarshalJSON(body []byte) error {
 	}
 
 	if e, ok := m["elem"]; ok && e != nil {
-		elem := e.(map[string]interface{})
+		elem := e.(map[string]any)
 		if schema, ok := elem["schema"]; ok {
-			b.Elem = ResourceFromMap(schema.(map[string]interface{}))
+			b.Elem = ResourceFromMap(schema.(map[string]any))
 		}
 		if t, ok := elem["type"]; ok {
 			b.Elem = t.(string)

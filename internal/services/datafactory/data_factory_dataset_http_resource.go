@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetHTTP() *pluginsdk.Resource {
@@ -161,7 +161,7 @@ func resourceDataFactoryDatasetHTTP() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -215,19 +215,19 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		httpTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		httpTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		httpTableset.Annotations = pointer.To(v.([]interface{}))
+		httpTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		httpTableset.AdditionalProperties = v.(map[string]interface{})
+		httpTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		httpTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		httpTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -246,7 +246,7 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceDataFactoryDatasetHTTPRead(d, meta)
 }
 
-func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -330,7 +330,7 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceDataFactoryDatasetHTTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetHTTPDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

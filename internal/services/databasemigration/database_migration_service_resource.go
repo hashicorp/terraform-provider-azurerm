@@ -84,7 +84,7 @@ func resourceDatabaseMigrationService() *pluginsdk.Resource {
 	}
 }
 
-func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -114,7 +114,7 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 		Kind: pointer.To("Cloud"), // currently only "Cloud" is supported, hence hardcode here
 	}
 	if t, ok := d.GetOk("tags"); ok {
-		parameters.Tags = tags.Expand(t.(map[string]interface{}))
+		parameters.Tags = tags.Expand(t.(map[string]any))
 	}
 
 	if err := client.ServicesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
@@ -128,7 +128,7 @@ func resourceDatabaseMigrationServiceCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +165,7 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta interf
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +178,7 @@ func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta inte
 	parameters := serviceresource.DataMigrationService{
 		// location isn't update-able but if we don't supply the current value the SDK sends an empty string instead which errors on the API side
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.ServicesUpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -188,7 +188,7 @@ func resourceDatabaseMigrationServiceUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceDatabaseMigrationServiceRead(d, meta)
 }
 
-func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

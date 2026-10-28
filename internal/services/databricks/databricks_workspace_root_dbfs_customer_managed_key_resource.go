@@ -41,7 +41,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&workspaces.WorkspaceId{}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&workspaces.WorkspaceId{}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			// validate that the passed ID is a valid CMK configuration ID
 			id, err := workspaces.ParseWorkspaceID(d.Id())
 			if err != nil {
@@ -89,7 +89,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 	return r
 }
 
-func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta any) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -159,7 +159,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
 
-func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +184,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 		if params := model.Properties.Parameters; params != nil {
 			if encryption := params.Encryption; encryption != nil {
 				if value := encryption.Value; value != nil {
-					if strings.EqualFold(string(pointer.From(value.KeySource)), string(workspaces.KeySourceDefault)) && value.Keyvaulturi == nil && value.KeyName == nil {
+					if strings.EqualFold(pointer.FromEnum(value.KeySource), string(workspaces.KeySourceDefault)) && value.Keyvaulturi == nil && value.KeyName == nil {
 						d.SetId("")
 						return nil
 					}
@@ -207,7 +207,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	workspaceClient := meta.(*clients.Client).DataBricks.WorkspacesClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -264,7 +264,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
 
-func databricksWorkspaceRootDbfsCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func databricksWorkspaceRootDbfsCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

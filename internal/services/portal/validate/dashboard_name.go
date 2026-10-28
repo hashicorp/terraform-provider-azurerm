@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DashboardName(v interface{}, k string) ([]string, []error) {
+func DashboardName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(0, 160),
 		validation.StringMatch(regexp.MustCompile(`^[-\w]+$`), "may only contain alphanumeric and hyphen characters"),

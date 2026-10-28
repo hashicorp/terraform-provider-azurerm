@@ -83,7 +83,7 @@ func dataSourceCdnFrontDoorSecret() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorSecretsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func dataSourceCdnFrontDoorSecretRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			var customerCertificate []interface{}
+			var customerCertificate []any
 			if customerCertificate, err = flattenCdnFrontDoorSecretParameters(ctx, props.Parameters, meta); err != nil {
 				return fmt.Errorf("flattening `secret`: %+v", err)
 			}

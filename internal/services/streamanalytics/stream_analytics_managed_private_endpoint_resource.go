@@ -31,7 +31,7 @@ type ManagedPrivateEndpointModel struct {
 
 var _ sdk.ResourceWithStateMigration = ManagedPrivateEndpointResource{}
 
-func (r ManagedPrivateEndpointResource) ModelObject() interface{} {
+func (r ManagedPrivateEndpointResource) ModelObject() any {
 	return &ManagedPrivateEndpointModel{}
 }
 

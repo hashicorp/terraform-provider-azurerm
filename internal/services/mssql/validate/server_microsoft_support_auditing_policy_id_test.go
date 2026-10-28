@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestServerMicrosoftSupportAuditingPolicyID(t *testing.T) {
+func TestValidateServerMicrosoftSupportAuditingPolicyID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

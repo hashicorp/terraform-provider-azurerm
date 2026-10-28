@@ -191,7 +191,7 @@ func (r LocalUserResource) ResourceType() string {
 	return "azurerm_storage_account_local_user"
 }
 
-func (r LocalUserResource) ModelObject() interface{} {
+func (r LocalUserResource) ModelObject() any {
 	return &LocalUserModel{}
 }
 

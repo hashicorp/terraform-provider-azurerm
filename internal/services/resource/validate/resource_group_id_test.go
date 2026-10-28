@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestResourceGroupID(t *testing.T) {
+func TestValidateResourceGroupID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

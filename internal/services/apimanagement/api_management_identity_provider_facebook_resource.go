@@ -57,7 +57,7 @@ func resourceApiManagementIdentityProviderFacebook() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -99,7 +99,7 @@ func resourceApiManagementIdentityProviderFacebookCreateUpdate(d *pluginsdk.Reso
 	return resourceApiManagementIdentityProviderFacebookRead(d, meta)
 }
 
-func resourceApiManagementIdentityProviderFacebookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceApiManagementIdentityProviderFacebookRead(d *pluginsdk.ResourceData
 	return nil
 }
 
-func resourceApiManagementIdentityProviderFacebookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderFacebookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -33,21 +33,21 @@ type KeyVaultMHSMKeyResource struct{}
 
 var _ sdk.ResourceWithUpdate = KeyVaultMHSMKeyResource{}
 
-func (r KeyVaultMHSMKeyResource) ModelObject() interface{} {
+func (r KeyVaultMHSMKeyResource) ModelObject() any {
 	return &KeyVaultMHSMKeyResourceSchema{}
 }
 
 type KeyVaultMHSMKeyResourceSchema struct {
-	Name           string                 `tfschema:"name"`
-	ManagedHSMID   string                 `tfschema:"managed_hsm_id"`
-	KeyType        string                 `tfschema:"key_type"`
-	KeyOpts        []string               `tfschema:"key_opts"`
-	KeySize        int64                  `tfschema:"key_size"`
-	Curve          string                 `tfschema:"curve"`
-	NotBeforeDate  string                 `tfschema:"not_before_date"`
-	ExpirationDate string                 `tfschema:"expiration_date"`
-	Tags           map[string]interface{} `tfschema:"tags"`
-	VersionedId    string                 `tfschema:"versioned_id"`
+	Name           string         `tfschema:"name"`
+	ManagedHSMID   string         `tfschema:"managed_hsm_id"`
+	KeyType        string         `tfschema:"key_type"`
+	KeyOpts        []string       `tfschema:"key_opts"`
+	KeySize        int64          `tfschema:"key_size"`
+	Curve          string         `tfschema:"curve"`
+	NotBeforeDate  string         `tfschema:"not_before_date"`
+	ExpirationDate string         `tfschema:"expiration_date"`
+	Tags           map[string]any `tfschema:"tags"`
+	VersionedId    string         `tfschema:"versioned_id"`
 }
 
 func (r KeyVaultMHSMKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

@@ -81,7 +81,7 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,7 +130,7 @@ func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
 
-func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
 
-func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

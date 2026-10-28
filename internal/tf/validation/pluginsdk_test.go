@@ -11,7 +11,7 @@ import (
 
 func TestValidateFloatInSlice(t *testing.T) {
 	cases := map[string]struct {
-		Value                  interface{}
+		Value                  any
 		ValidateFunc           pluginsdk.SchemaValidateFunc
 		ExpectValidationErrors bool
 	}{
@@ -60,7 +60,7 @@ func TestValidateStringInEnumSlice(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		Value                  interface{}
+		Value                  any
 		ValidateFunc           pluginsdk.SchemaValidateFunc
 		ExpectValidationErrors bool
 	}{

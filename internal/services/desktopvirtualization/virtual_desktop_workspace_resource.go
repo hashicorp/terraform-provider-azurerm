@@ -85,7 +85,7 @@ func resourceVirtualDesktopWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualDesktopWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func resourceVirtualDesktopWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	payload := workspace.Workspace{
 		Location: location,
@@ -136,7 +136,7 @@ func resourceVirtualDesktopWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceVirtualDesktopWorkspaceRead(d, meta)
 }
 
-func resourceVirtualDesktopWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +181,7 @@ func resourceVirtualDesktopWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceVirtualDesktopWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
 	id, err := workspace.ParseWorkspaceID(d.Id())

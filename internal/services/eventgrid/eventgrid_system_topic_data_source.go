@@ -67,7 +67,7 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

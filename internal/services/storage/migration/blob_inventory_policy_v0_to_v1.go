@@ -118,7 +118,7 @@ func (BlobInventoryPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (BlobInventoryPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 
 		// This now uses the Storage Account ID since it's a 1:1 resource

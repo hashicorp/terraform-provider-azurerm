@@ -70,7 +70,7 @@ func (m CertificateResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m CertificateResource) ModelObject() interface{} {
+func (m CertificateResource) ModelObject() any {
 	return &CertificateModel{}
 }
 

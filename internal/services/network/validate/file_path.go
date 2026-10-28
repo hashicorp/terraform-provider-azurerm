@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FilePath(v interface{}, k string) ([]string, []error) {
+func FilePath(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^(.)+.cap$`), "must end with extension name '.cap'")(v, k)
 }

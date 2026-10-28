@@ -28,7 +28,7 @@ var (
 
 type FederatedIdentityCredentialResource struct{}
 
-func (r FederatedIdentityCredentialResource) ModelObject() interface{} {
+func (r FederatedIdentityCredentialResource) ModelObject() any {
 	return &FederatedIdentityCredentialResourceSchema{}
 }
 

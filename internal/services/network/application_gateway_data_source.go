@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -1176,6 +1176,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"client_authentication_mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"trusted_client_certificate_names": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -1490,7 +1495,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.ApplicationGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

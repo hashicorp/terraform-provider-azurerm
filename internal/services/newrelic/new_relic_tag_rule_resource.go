@@ -41,7 +41,7 @@ func (r NewRelicTagRuleResource) ResourceType() string {
 	return "azurerm_new_relic_tag_rule"
 }
 
-func (r NewRelicTagRuleResource) ModelObject() interface{} {
+func (r NewRelicTagRuleResource) ModelObject() any {
 	return &NewRelicTagRuleModel{}
 }
 

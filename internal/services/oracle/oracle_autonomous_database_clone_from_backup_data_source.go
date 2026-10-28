@@ -446,7 +446,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 	}
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() interface{} {
+func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() any {
 	return &AutonomousDatabaseCloneFromBackupDataSourceModel{}
 }
 

@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -88,7 +88,7 @@ func (r MsSqlManagedInstanceResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance"
 }
 
-func (r MsSqlManagedInstanceResource) ModelObject() interface{} {
+func (r MsSqlManagedInstanceResource) ModelObject() any {
 	return &MsSqlManagedInstanceModel{}
 }
 
@@ -765,8 +765,8 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := existing.Model.Properties; props != nil {
-					model.LicenseType = string(pointer.From(props.LicenseType))
-					model.ProxyOverride = string(pointer.From(props.ProxyOverride))
+					model.LicenseType = pointer.FromEnum(props.LicenseType)
+					model.ProxyOverride = pointer.FromEnum(props.ProxyOverride)
 					model.StorageAccountType = backupStorageRedundancyToStorageAccType(pointer.From(props.RequestedBackupStorageRedundancy))
 
 					model.AdministratorLogin = pointer.From(props.AdministratorLogin)
@@ -800,10 +800,10 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					model.ServicePrincipalType = ""
 					if props.ServicePrincipal != nil {
-						model.ServicePrincipalType = string(pointer.From(props.ServicePrincipal.Type))
+						model.ServicePrincipalType = pointer.FromEnum(props.ServicePrincipal.Type)
 					}
-					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
-					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
+					model.DatabaseFormat = pointer.FromEnum(props.DatabaseFormat)
+					model.HybridSecondaryUsage = pointer.FromEnum(props.HybridSecondaryUsage)
 				}
 			}
 

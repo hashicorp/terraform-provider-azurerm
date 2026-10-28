@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -84,7 +84,7 @@ func (EmailCommunicationServiceResource) Attributes() map[string]*pluginsdk.Sche
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (EmailCommunicationServiceResource) ModelObject() interface{} {
+func (EmailCommunicationServiceResource) ModelObject() any {
 	return &EmailCommunicationServiceResourceModel{}
 }
 

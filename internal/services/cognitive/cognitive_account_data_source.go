@@ -239,7 +239,7 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -339,19 +339,19 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []interface{} {
+func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccounts.NetworkRuleSet) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	ipRules := make([]interface{}, 0)
+	ipRules := make([]any, 0)
 	if input.IPRules != nil {
 		for _, v := range *input.IPRules {
 			ipRules = append(ipRules, v.Value)
 		}
 	}
 
-	virtualNetworkRules := make([]interface{}, 0)
+	virtualNetworkRules := make([]any, 0)
 	if input.VirtualNetworkRules != nil {
 		for _, v := range *input.VirtualNetworkRules {
 			id := v.Id
@@ -360,14 +360,14 @@ func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccoun
 				id = subnetId.ID()
 			}
 
-			virtualNetworkRules = append(virtualNetworkRules, map[string]interface{}{
+			virtualNetworkRules = append(virtualNetworkRules, map[string]any{
 				"subnet_id":                            id,
 				"ignore_missing_vnet_service_endpoint": pointer.From(v.IgnoreMissingVnetServiceEndpoint),
 			})
 		}
 	}
 
-	return []interface{}{map[string]interface{}{
+	return []any{map[string]any{
 		"bypass":                input.Bypass,
 		"default_action":        input.DefaultAction,
 		"ip_rules":              ipRules,
@@ -375,9 +375,9 @@ func flattenCognitiveAccountDataSourceNetworkAcls(input *cognitiveservicesaccoun
 	}}
 }
 
-func flattenCognitiveAccountDataSourceCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
+func flattenCognitiveAccountDataSourceCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]any, error) {
 	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
 	var keyId string
@@ -393,21 +393,21 @@ func flattenCognitiveAccountDataSourceCustomerManagedKey(input *cognitiveservice
 		}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"key_vault_key_id":   keyId,
 			"identity_client_id": identityClientId,
 		},
 	}, nil
 }
 
-func flattenCognitiveAccountDataSourceStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []interface{} {
+func flattenCognitiveAccountDataSourceStorage(input *[]cognitiveservicesaccounts.UserOwnedStorage) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
-		value := make(map[string]interface{})
+		value := make(map[string]any)
 		if v.ResourceId != nil {
 			value["storage_account_id"] = *v.ResourceId
 		}
@@ -419,12 +419,12 @@ func flattenCognitiveAccountDataSourceStorage(input *[]cognitiveservicesaccounts
 	return results
 }
 
-func flattenCognitiveAccountDataSourceNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+func flattenCognitiveAccountDataSourceNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]any, error) {
 	if input == nil {
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
-	results := make([]interface{}, 0)
+	results := make([]any, 0)
 	for _, v := range *input {
 		var subnetId string
 		if v.SubnetArmId != nil {
@@ -435,7 +435,7 @@ func flattenCognitiveAccountDataSourceNetworkInjection(input *[]cognitiveservice
 			subnetId = subnet.ID()
 		}
 
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"scenario":  v.Scenario,
 			"subnet_id": subnetId,
 		})

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SubscriptionName(i interface{}, k string) (warnings []string, errs []error) {
+func SubscriptionName(i any, k string) (warnings []string, errs []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 64),
 		validation.StringDoesNotContainAny("<>;|"),

@@ -120,7 +120,7 @@ func (r IotHubDeviceUpdateInstanceResource) ResourceType() string {
 	return "azurerm_iothub_device_update_instance"
 }
 
-func (r IotHubDeviceUpdateInstanceResource) ModelObject() interface{} {
+func (r IotHubDeviceUpdateInstanceResource) ModelObject() any {
 	return &IotHubDeviceUpdateInstanceModel{}
 }
 

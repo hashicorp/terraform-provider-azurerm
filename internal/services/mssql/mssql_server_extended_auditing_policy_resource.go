@@ -111,7 +111,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -165,8 +165,8 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		params.Properties.PredicateExpression = pointer.To(v.(string))
 	}
 
-	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
-		params.Properties.AuditActionsAndGroups = pluginsdk.ExpandStringSlice(v.([]interface{}))
+	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]any)) > 0 {
+		params.Properties.AuditActionsAndGroups = pluginsdk.ExpandStringSlice(v.([]any))
 	}
 
 	if err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params); err != nil {
@@ -180,7 +180,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	return resourceMsSqlServerExtendedAuditingPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +222,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

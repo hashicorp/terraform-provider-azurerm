@@ -76,7 +76,7 @@ func resourceContainerRegistryScopeMap() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.ScopeMaps
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -100,7 +100,7 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 	parameters := scopemaps.ScopeMap{
 		Properties: &scopemaps.ScopeMapProperties{
 			Description: pointer.To(d.Get("description").(string)),
-			Actions:     pointer.From(pluginsdk.ExpandStringSlice(d.Get("actions").([]interface{}))),
+			Actions:     pointer.From(pluginsdk.ExpandStringSlice(d.Get("actions").([]any))),
 		},
 	}
 
@@ -113,7 +113,7 @@ func resourceContainerRegistryScopeMapCreate(d *pluginsdk.ResourceData, meta int
 	return resourceContainerRegistryScopeMapRead(d, meta)
 }
 
-func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.ScopeMaps
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +126,7 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := scopemaps.ScopeMapUpdateParameters{
 		Properties: &scopemaps.ScopeMapPropertiesUpdateParameters{
 			Description: pointer.To(d.Get("description").(string)),
-			Actions:     pluginsdk.ExpandStringSlice(d.Get("actions").([]interface{})),
+			Actions:     pluginsdk.ExpandStringSlice(d.Get("actions").([]any)),
 		},
 	}
 
@@ -139,7 +139,7 @@ func resourceContainerRegistryScopeMapUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceContainerRegistryScopeMapRead(d, meta)
 }
 
-func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.ScopeMaps
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +173,7 @@ func resourceContainerRegistryScopeMapRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceContainerRegistryScopeMapDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryScopeMapDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.ScopeMaps
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

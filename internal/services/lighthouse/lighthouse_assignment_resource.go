@@ -68,7 +68,7 @@ func resourceLighthouseAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,7 +115,7 @@ func resourceLighthouseAssignmentCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceLighthouseAssignmentRead(d, meta)
 }
 
-func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +151,7 @@ func resourceLighthouseAssignmentRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLighthouseAssignmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -46,7 +46,7 @@ func resourceApiManagementProductGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -76,7 +76,7 @@ func resourceApiManagementProductGroupCreate(d *pluginsdk.ResourceData, meta int
 	return resourceApiManagementProductGroupRead(d, meta)
 }
 
-func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func resourceApiManagementProductGroupRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceApiManagementProductGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

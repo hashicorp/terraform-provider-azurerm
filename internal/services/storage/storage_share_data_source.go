@@ -84,7 +84,7 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta any) error {
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

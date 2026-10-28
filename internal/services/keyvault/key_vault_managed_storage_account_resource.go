@@ -85,7 +85,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -117,7 +117,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 		}
 	}
 
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	parameters := kv74.StorageAccountCreateParameters{
 		ResourceID:         pointer.To(d.Get("storage_account_id").(string)),
@@ -180,7 +180,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 	return resourceKeyVaultManagedStorageAccountRead(d, meta)
 }
 
-func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -238,7 +238,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

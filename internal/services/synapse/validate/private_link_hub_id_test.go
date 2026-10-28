@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestPrivateLinkHubID(t *testing.T) {
+func TestValidatePrivateLinkHubID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

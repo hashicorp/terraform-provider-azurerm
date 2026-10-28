@@ -31,7 +31,7 @@ type ContainerAppEnvironmentCustomDomainModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentCustomDomainResource{}
 
-func (r ContainerAppEnvironmentCustomDomainResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentCustomDomainResource) ModelObject() any {
 	return &ContainerAppEnvironmentCustomDomainModel{}
 }
 

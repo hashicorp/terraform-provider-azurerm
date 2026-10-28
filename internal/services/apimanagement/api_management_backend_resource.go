@@ -340,7 +340,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -363,12 +363,12 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	credentialsRaw := d.Get("credentials").([]interface{})
+	credentialsRaw := d.Get("credentials").([]any)
 	credentials := expandApiManagementBackendCredentials(credentialsRaw)
 	protocol := d.Get("protocol").(string)
-	proxyRaw := d.Get("proxy").([]interface{})
+	proxyRaw := d.Get("proxy").([]any)
 	proxy := expandApiManagementBackendProxy(proxyRaw)
-	tlsRaw := d.Get("tls").([]interface{})
+	tlsRaw := d.Get("tls").([]any)
 	tls := expandApiManagementBackendTls(tlsRaw)
 	url := d.Get("url").(string)
 
@@ -382,7 +382,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
-		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
+		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]any))
 	}
 	if description, ok := d.GetOk("description"); ok {
 		backendContract.Properties.Description = pointer.To(description.(string))
@@ -395,7 +395,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
-		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]any))
 		if err != nil {
 			return err
 		}
@@ -412,7 +412,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceApiManagementBackendRead(d, meta)
 }
 
-func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -466,7 +466,7 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -485,35 +485,35 @@ func resourceApiManagementBackendDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandApiManagementBackendCredentials(input []interface{}) *backend.BackendCredentialsContract {
+func expandApiManagementBackendCredentials(input []any) *backend.BackendCredentialsContract {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	contract := backend.BackendCredentialsContract{}
 	if authorizationRaw := v["authorization"]; authorizationRaw != nil {
-		contract.Authorization = expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]interface{}))
+		contract.Authorization = expandApiManagementBackendCredentialsAuthorization(authorizationRaw.([]any))
 	}
 	if certificate := v["certificate"]; certificate != nil {
-		certificates := pluginsdk.ExpandStringSlice(certificate.([]interface{}))
+		certificates := pluginsdk.ExpandStringSlice(certificate.([]any))
 		if certificates != nil && len(*certificates) > 0 {
 			contract.Certificate = certificates
 		}
 	}
 	if headerRaw := v["header"]; headerRaw != nil {
-		contract.Header = expandApiManagementBackendCredentialsObject(headerRaw.(map[string]interface{}))
+		contract.Header = expandApiManagementBackendCredentialsObject(headerRaw.(map[string]any))
 	}
 	if queryRaw := v["query"]; queryRaw != nil {
-		contract.Query = expandApiManagementBackendCredentialsObject(queryRaw.(map[string]interface{}))
+		contract.Query = expandApiManagementBackendCredentialsObject(queryRaw.(map[string]any))
 	}
 	return &contract
 }
 
-func expandApiManagementBackendCredentialsAuthorization(input []interface{}) *backend.BackendAuthorizationHeaderCredentials {
+func expandApiManagementBackendCredentialsAuthorization(input []any) *backend.BackendAuthorizationHeaderCredentials {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	credentials := backend.BackendAuthorizationHeaderCredentials{}
 	if parameter := v["parameter"]; parameter != nil {
 		credentials.Parameter = parameter.(string)
@@ -524,7 +524,7 @@ func expandApiManagementBackendCredentialsAuthorization(input []interface{}) *ba
 	return &credentials
 }
 
-func expandApiManagementBackendCredentialsObject(input map[string]interface{}) *map[string][]string {
+func expandApiManagementBackendCredentialsObject(input map[string]any) *map[string][]string {
 	output := make(map[string][]string)
 	for k, v := range input {
 		output[k] = strings.Split(v.(string), ",")
@@ -532,11 +532,11 @@ func expandApiManagementBackendCredentialsObject(input map[string]interface{}) *
 	return &output
 }
 
-func expandApiManagementBackendProxy(input []interface{}) *backend.BackendProxyContract {
+func expandApiManagementBackendProxy(input []any) *backend.BackendProxyContract {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	contract := backend.BackendProxyContract{}
 	if password := v["password"]; password != nil {
 		contract.Password = pointer.To(password.(string))
@@ -550,11 +550,11 @@ func expandApiManagementBackendProxy(input []interface{}) *backend.BackendProxyC
 	return &contract
 }
 
-func expandApiManagementBackendServiceFabricCluster(input []interface{}) (*backend.BackendServiceFabricClusterProperties, error) {
+func expandApiManagementBackendServiceFabricCluster(input []any) (*backend.BackendServiceFabricClusterProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	managementEndpoints := v["management_endpoints"].(*pluginsdk.Set).List()
 	maxPartitionResolutionRetries := int64(v["max_partition_resolution_retries"].(int))
 	properties := backend.BackendServiceFabricClusterProperties{
@@ -590,10 +590,10 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (*backe
 	return &properties, nil
 }
 
-func expandApiManagementBackendServiceFabricClusterServerX509Names(input []interface{}) *[]backend.X509CertificateName {
+func expandApiManagementBackendServiceFabricClusterServerX509Names(input []any) *[]backend.X509CertificateName {
 	results := make([]backend.X509CertificateName, 0)
 	for _, certificateName := range input {
-		v := certificateName.(map[string]interface{})
+		v := certificateName.(map[string]any)
 		result := backend.X509CertificateName{
 			IssuerCertificateThumbprint: pointer.To(v["issuer_certificate_thumbprint"].(string)),
 			Name:                        pointer.To(v["name"].(string)),
@@ -603,11 +603,11 @@ func expandApiManagementBackendServiceFabricClusterServerX509Names(input []inter
 	return &results
 }
 
-func expandApiManagementBackendTls(input []interface{}) *backend.BackendTlsProperties {
+func expandApiManagementBackendTls(input []any) *backend.BackendTlsProperties {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	properties := backend.BackendTlsProperties{}
 	if validateCertificateChain := v["validate_certificate_chain"]; validateCertificateChain != nil {
 		properties.ValidateCertificateChain = pointer.To(validateCertificateChain.(bool))
@@ -618,18 +618,18 @@ func expandApiManagementBackendTls(input []interface{}) *backend.BackendTlsPrope
 	return &properties
 }
 
-func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.BackendCircuitBreaker {
+func expandApiManagementBackendCircuitBreaker(input []any) *backend.BackendCircuitBreaker {
 	if len(input) == 0 {
 		return nil
 	}
 
 	rules := make([]backend.CircuitBreakerRule, 0)
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	rule := backend.CircuitBreakerRule{
 		Name:             pointer.To(v["name"].(string)),
 		TripDuration:     pointer.To(v["trip_duration"].(string)),
-		FailureCondition: expandApiManagementBackendCircuitBreakerFailureCondition(v["failure_condition"].([]interface{})),
+		FailureCondition: expandApiManagementBackendCircuitBreakerFailureCondition(v["failure_condition"].([]any)),
 	}
 
 	if acceptRetryAfter, ok := v["accept_retry_after_enabled"]; ok {
@@ -643,12 +643,12 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 	}
 }
 
-func expandApiManagementBackendCircuitBreakerFailureCondition(input []interface{}) *backend.CircuitBreakerFailureCondition {
+func expandApiManagementBackendCircuitBreakerFailureCondition(input []any) *backend.CircuitBreakerFailureCondition {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	condition := backend.CircuitBreakerFailureCondition{
 		Interval: pointer.To(v["interval_duration"].(string)),
 	}
@@ -662,14 +662,14 @@ func expandApiManagementBackendCircuitBreakerFailureCondition(input []interface{
 	}
 
 	if statusCodeRanges, ok := v["status_code_range"]; ok {
-		ranges := statusCodeRanges.([]interface{})
+		ranges := statusCodeRanges.([]any)
 		if len(ranges) > 0 {
 			condition.StatusCodeRanges = expandApiManagementBackendCircuitBreakerStatusCodeRanges(ranges)
 		}
 	}
 
 	if errorReasons, ok := v["error_reasons"]; ok {
-		reasons := errorReasons.([]interface{})
+		reasons := errorReasons.([]any)
 		if len(reasons) > 0 {
 			condition.ErrorReasons = pluginsdk.ExpandStringSlice(reasons)
 		}
@@ -678,14 +678,14 @@ func expandApiManagementBackendCircuitBreakerFailureCondition(input []interface{
 	return &condition
 }
 
-func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []interface{}) *[]backend.FailureStatusCodeRange {
+func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []any) *[]backend.FailureStatusCodeRange {
 	if len(input) == 0 {
 		return nil
 	}
 
 	codeRanges := make([]backend.FailureStatusCodeRange, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 		codeRange := backend.FailureStatusCodeRange{
 			Max: pointer.To(int64(v["max"].(int))),
 			Min: pointer.To(int64(v["min"].(int))),
@@ -696,14 +696,14 @@ func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []interface{
 	return &codeRanges
 }
 
-func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBreaker) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBreaker) []any {
+	results := make([]any, 0)
 	if input == nil || input.Rules == nil {
 		return results
 	}
 
 	for _, rule := range *input.Rules {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		result["name"] = pointer.From(rule.Name)
 		result["trip_duration"] = pointer.From(rule.TripDuration)
 		result["accept_retry_after_enabled"] = pointer.From(rule.AcceptRetryAfter)
@@ -714,14 +714,14 @@ func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBrea
 	return results
 }
 
-func flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input *[]backend.FailureStatusCodeRange) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input *[]backend.FailureStatusCodeRange) []any {
+	results := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
 	for _, item := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		result["min"] = pointer.From(item.Min)
 		result["max"] = pointer.From(item.Max)
 		results = append(results, result)
@@ -730,12 +730,12 @@ func flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input *[]backend.
 	return results
 }
 
-func flattenApiManagementBackendCircuitBreakerFailureCondition(input *backend.CircuitBreakerFailureCondition) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendCircuitBreakerFailureCondition(input *backend.CircuitBreakerFailureCondition) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	result["count"] = pointer.From(input.Count)
 	result["percentage"] = pointer.From(input.Percentage)
@@ -746,12 +746,12 @@ func flattenApiManagementBackendCircuitBreakerFailureCondition(input *backend.Ci
 	return append(results, result)
 }
 
-func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsContract) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsContract) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	result["authorization"] = flattenApiManagementBackendCredentialsAuthorization(input.Authorization)
 	if input.Certificate != nil {
 		result["certificate"] = *input.Certificate
@@ -761,8 +761,8 @@ func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsCon
 	return append(results, result)
 }
 
-func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]interface{} {
-	results := make(map[string]interface{})
+func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]any {
+	results := make(map[string]any)
 	if input == nil {
 		return results
 	}
@@ -772,12 +772,12 @@ func flattenApiManagementBackendCredentialsObject(input *map[string][]string) ma
 	return results
 }
 
-func flattenApiManagementBackendCredentialsAuthorization(input *backend.BackendAuthorizationHeaderCredentials) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendCredentialsAuthorization(input *backend.BackendAuthorizationHeaderCredentials) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	if parameter := input.Parameter; parameter != "" {
 		result["parameter"] = parameter
 	}
@@ -787,12 +787,12 @@ func flattenApiManagementBackendCredentialsAuthorization(input *backend.BackendA
 	return append(results, result)
 }
 
-func flattenApiManagementBackendProxy(input *backend.BackendProxyContract) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendProxy(input *backend.BackendProxyContract) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	if password := input.Password; password != nil {
 		result["password"] = *password
 	}
@@ -803,12 +803,12 @@ func flattenApiManagementBackendProxy(input *backend.BackendProxyContract) []int
 	return append(results, result)
 }
 
-func flattenApiManagementBackendServiceFabricCluster(input *backend.BackendServiceFabricClusterProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendServiceFabricCluster(input *backend.BackendServiceFabricClusterProperties) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	if clientCertificatethumbprint := input.ClientCertificatethumbprint; clientCertificatethumbprint != nil {
 		result["client_certificate_thumbprint"] = *clientCertificatethumbprint
 	}
@@ -828,13 +828,13 @@ func flattenApiManagementBackendServiceFabricCluster(input *backend.BackendServi
 	return append(results, result)
 }
 
-func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]backend.X509CertificateName) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]backend.X509CertificateName) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 	for _, certificateName := range *input {
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		if issuerCertificateThumbprint := certificateName.IssuerCertificateThumbprint; issuerCertificateThumbprint != nil {
 			result["issuer_certificate_thumbprint"] = *issuerCertificateThumbprint
 		}
@@ -846,12 +846,12 @@ func flattenApiManagementBackendServiceFabricClusterServerX509Names(input *[]bac
 	return results
 }
 
-func flattenApiManagementBackendTls(input *backend.BackendTlsProperties) []interface{} {
-	results := make([]interface{}, 0)
+func flattenApiManagementBackendTls(input *backend.BackendTlsProperties) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	result["validate_certificate_chain"] = pointer.From(input.ValidateCertificateChain)
 	result["validate_certificate_name"] = pointer.From(input.ValidateCertificateName)
 	return append(results, result)

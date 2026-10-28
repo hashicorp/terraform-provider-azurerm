@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func DataboxEdgeName(v interface{}, k string) ([]string, []error) {
+func DataboxEdgeName(v any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[\da-zA-Z][-\da-zA-Z]{1,22}[\da-zA-Z]$`), "must be between 3 and 24 characters in length, begin and end with an alphanumeric character, can only contain alphanumeric characters and hyphens")(v, k)
 }

@@ -145,7 +145,7 @@ func resourceSpringCloudAppCosmosDBAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +236,7 @@ func resourceSpringCloudAppCosmosDBAssociationCreateUpdate(d *pluginsdk.Resource
 	return resourceSpringCloudAppCosmosDBAssociationRead(d, meta)
 }
 
-func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceSpringCloudAppCosmosDBAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCosmosDBAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.BindingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -86,7 +86,7 @@ func resourceBotChannelLine() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourceBotChannelLineCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceBotChannelLineRead(d, meta)
 }
 
-func resourceBotChannelLineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelLineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceBotChannelLineRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceBotChannelLineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelLineUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,7 +195,7 @@ func resourceBotChannelLineUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceBotChannelLineRead(d, meta)
 }
 
-func resourceBotChannelLineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelLineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,11 +215,11 @@ func resourceBotChannelLineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandLineChannel(input []interface{}) *[]botservice.LineRegistration {
+func expandLineChannel(input []any) *[]botservice.LineRegistration {
 	results := make([]botservice.LineRegistration, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, botservice.LineRegistration{
 			ChannelSecret:      pointer.To(v["secret"].(string)),
@@ -230,14 +230,14 @@ func expandLineChannel(input []interface{}) *[]botservice.LineRegistration {
 	return &results
 }
 
-func flattenLineChannel(input *[]botservice.LineRegistration) []interface{} {
-	results := make([]interface{}, 0)
+func flattenLineChannel(input *[]botservice.LineRegistration) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"access_token": pointer.From(item.ChannelAccessToken),
 			"secret":       pointer.From(item.ChannelSecret),
 		})

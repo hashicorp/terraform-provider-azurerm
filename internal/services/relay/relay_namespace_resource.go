@@ -95,7 +95,7 @@ func resourceRelayNamespace() *pluginsdk.Resource {
 	}
 }
 
-func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Tier: &skuTier,
 		},
 		Properties: &namespaces.RelayNamespaceProperties{},
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -146,7 +146,7 @@ func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceRelayNamespaceRead(d, meta)
 }
 
-func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +201,7 @@ func resourceRelayNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

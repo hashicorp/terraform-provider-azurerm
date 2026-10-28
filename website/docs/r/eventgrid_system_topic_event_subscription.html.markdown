@@ -87,11 +87,15 @@ The following arguments are supported:
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
+-> **Note:** Event types must be specified using their full name, e.g. `Microsoft.Storage.BlobCreated` rather than `BlobCreated`, and the event types that are available depend on the `topic_type` of the System Topic. When not specified, all event types for the System Topic are included. See the [official documentation](https://learn.microsoft.com/azure/event-grid/system-topics#azure-services-that-support-system-topics) for the event types supported by each topic type, or list them using `az eventgrid topic-type list-event-types --name Microsoft.Storage.StorageAccounts`.
+
 * `subject_filter` - (Optional) A `subject_filter` block as defined below.
 
 * `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
 
 * `delivery_identity` - (Optional) A `delivery_identity` block as defined below.
+
+~> **Note:** The Managed Service Identity used for `delivery_identity` or `dead_letter_identity` must be configured on the System Topic via the `identity` block of the `azurerm_eventgrid_system_topic` resource, and must be granted the appropriate role on the destination (e.g. `Storage Queue Data Message Sender` for a `storage_queue_endpoint`, or `Storage Blob Data Contributor` for a `storage_blob_dead_letter_destination`) before the Event Subscription is created. As Terraform cannot infer this dependency, a `depends_on` reference to the `azurerm_role_assignment` resources may be required. See the [official documentation](https://learn.microsoft.com/azure/event-grid/add-identity-roles) for the roles required by each destination type.
 
 * `delivery_property` - (Optional) One or more `delivery_property` blocks as defined below.
 

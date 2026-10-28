@@ -184,12 +184,12 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 // This functions is used to Flatten the custom parameters in data source.
 // It is similar to flattenWorkspaceCustomParameters but does not return the backend address pool ID.
 // It also omits the public and private subnet NSG association IDs since they are not available in API.
-func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []interface{} {
+func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	parameters := make(map[string]interface{})
+	parameters := make(map[string]any)
 
 	if v := input.AmlWorkspaceId; v != nil {
 		parameters["machine_learning_workspace_id"] = v.Value
@@ -231,10 +231,10 @@ func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCu
 		parameters["vnet_address_prefix"] = v.Value
 	}
 
-	return []interface{}{parameters}
+	return []any{parameters}
 }
 
-func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -160,7 +160,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) StateUpgraders() sdk.StateUpgradeDat
 	}
 }
 
-func (r KeyVaultMHSMRoleDefinitionResource) ModelObject() interface{} {
+func (r KeyVaultMHSMRoleDefinitionResource) ModelObject() any {
 	return &KeyVaultMHSMRoleDefinitionModel{}
 }
 

@@ -40,7 +40,7 @@ func (s SpringCloudAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_accelerator"
 }
 
-func (s SpringCloudAcceleratorResource) ModelObject() interface{} {
+func (s SpringCloudAcceleratorResource) ModelObject() any {
 	return &SpringCloudAcceleratorModel{}
 }
 

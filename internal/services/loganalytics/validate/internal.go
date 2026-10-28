@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func logAnalyticsGenericName(i interface{}, k string) ([]string, []error) {
+func logAnalyticsGenericName(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(4, 63),
 		validation.StringMatch(regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`), "expected value does not match regular expression"),

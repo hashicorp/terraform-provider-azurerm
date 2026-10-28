@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = EndpointServiceBusTopicId{}
 
-func TestEndpointServiceBusTopicIDFormatter(t *testing.T) {
+func TestParseEndpointServiceBusTopicIDFormatter(t *testing.T) {
 	actual := NewEndpointServiceBusTopicID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "serviceBusTopicEndpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/endpoints/serviceBusTopicEndpoint1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestEndpointServiceBusTopicIDFormatter(t *testing.T) {
 	}
 }
 
-func TestEndpointServiceBusTopicID(t *testing.T) {
+func TestParseEndpointServiceBusTopicID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestEndpointServiceBusTopicID(t *testing.T) {
 	}
 }
 
-func TestEndpointServiceBusTopicIDInsensitively(t *testing.T) {
+func TestParseEndpointServiceBusTopicIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

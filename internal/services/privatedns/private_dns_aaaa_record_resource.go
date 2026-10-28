@@ -79,7 +79,7 @@ func resourcePrivateDnsAaaaRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -110,7 +110,7 @@ func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta in
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
 		Properties: &privatedns.RecordSetProperties{
-			Metadata:    tags.Expand(d.Get("tags").(map[string]interface{})),
+			Metadata:    tags.Expand(d.Get("tags").(map[string]any)),
 			Ttl:         pointer.To(int64(d.Get("ttl").(int))),
 			AaaaRecords: expandAzureRmPrivateDnsAaaaRecords(d),
 		},
@@ -131,7 +131,7 @@ func resourcePrivateDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta in
 	return resourcePrivateDnsAaaaRecordRead(d, meta)
 }
 
-func resourcePrivateDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,7 +171,7 @@ func resourcePrivateDnsAaaaRecordRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourcePrivateDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePrivateDnsAaaaRecordDelete(d *pluginsdk.ResourceData, meta any) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

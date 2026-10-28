@@ -40,7 +40,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Eventhub.NamespacesClient
 
 			var cancel context.CancelFunc
@@ -96,7 +96,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +187,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	return resourceEventHubNamespaceCustomerManagedKeyRead(d, meta)
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,12 +245,12 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	log.Printf(`[INFO] Customer Managed Keys cannot be removed from EventHub Namespaces once added. To remove the Customer Managed Key delete and recreate the parent EventHub Namespace`)
 	return nil
 }
 
-func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.KeyVaultProperties, error) {
+func expandEventHubNamespaceKeyVaultKeyIds(input []any) (*[]namespaces.KeyVaultProperties, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}

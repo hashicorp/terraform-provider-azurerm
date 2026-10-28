@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
-	cdnValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -104,7 +104,7 @@ func cdnFrontDoorSocketAddressValuesSchema() *pluginsdk.Schema {
 		MaxItems: 25,
 		Elem: &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			ValidateFunc: cdnValidate.FrontDoorRuleCidrIsValid,
+			ValidateFunc: validate.FrontDoorRuleCidrIsValid,
 		},
 	}
 }
@@ -243,17 +243,8 @@ func flattenCdnFrontDoorRuleConditionOperator(input string, negated bool) string
 
 // Validation
 
-func validateCdnFrontDoorRuleName(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if m, _ := validation.RegExHelper(i, k, `^[a-zA-Z][\da-zA-Z]{0,259}$`); !m {
-		return nil, []error{fmt.Errorf(`%q must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers, got %q`, k, v)}
-	}
-
-	return nil, nil
+func validateCdnFrontDoorRuleName(v any, k string) ([]string, []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[a-zA-Z][\da-zA-Z]{0,259}$`), "must be between 1 and 260 characters in length, begin with a letter and may contain only letters and numbers")(v, k)
 }
 
 func validateCdnFrontDoorRuleActionCounts(urlRewriteCount, urlRedirectCount, routeConfigurationOverrideCount, totalCount int) error {
@@ -306,7 +297,7 @@ func validateCdnFrontDoorRuleModifyHeaderAction(blockName, headerAction, value s
 	return nil
 }
 
-func validateCdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (_ []string, errors []error) {
+func validateCdnFrontDoorUrlRedirectActionQueryString(i any, k string) (_ []string, errors []error) {
 	// Query string must be in <key>=<value> format. ? and & will be added automatically so do not include them.
 	// NOTE: the 2048 character limit matches the service code validation logic for this field
 	return validation.All(
@@ -316,7 +307,7 @@ func validateCdnFrontDoorUrlRedirectActionQueryString(i interface{}, k string) (
 	)(i, k)
 }
 
-func validateCdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []error) {
+func validateCdnFrontDoorCacheDuration(i any, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}

@@ -69,7 +69,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -112,7 +112,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigCreate(d *pluginsdk.Resource
 	return resourceEventHubNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
-func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigUpdate(d *pluginsdk.Resource
 	return resourceEventHubNamespaceDisasterRecoveryConfigRead(d, meta)
 }
 
-func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,7 +198,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +264,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		Target:     []string{"None"},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
 				Name: id.DisasterRecoveryConfigName,
 			}
@@ -296,7 +296,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Con
 		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			read, err := client.Get(ctx, id)
 			if err != nil {
 				return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)

@@ -79,7 +79,7 @@ func resourceSentinelDataConnectorOffice365() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceSentinelDataConnectorOffice365CreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSentinelDataConnectorOffice365Read(d, meta)
 }
 
-func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +227,7 @@ func resourceSentinelDataConnectorOffice365Read(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSentinelDataConnectorOffice365Delete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorOffice365Delete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -460,7 +460,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -516,7 +515,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -560,7 +558,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -604,7 +601,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -668,7 +664,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -732,7 +727,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -873,7 +867,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -932,7 +925,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -991,7 +983,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "test" {
@@ -1153,7 +1144,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "BlobStorage"
   blob_properties {
     last_access_time_enabled = true
   }

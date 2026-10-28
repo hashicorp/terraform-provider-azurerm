@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
-	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -35,17 +35,17 @@ type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
 	MarketplaceOfferId string                      `tfschema:"marketplace_offer_id"`
 	PlanId             string                      `tfschema:"plan_id"`
-	Tags               map[string]interface{}      `tfschema:"tags"`
+	Tags               map[string]any              `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubLocalRuleStackResource{}
 
-func (r NextGenerationFirewallVHubLocalRuleStackResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVHubLocalRuleStackResource) ModelObject() any {
 	return &NextGenerationFirewallVHubLocalRuleStackModel{}
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return firewalls.ValidateFirewallID
+	return firewallresources.ValidateFirewallID
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) ResourceType() string {
@@ -66,7 +66,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 		"rulestack_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: localrulestacks.ValidateLocalRulestackID,
+			ValidateFunc: localrulestackresources.ValidateLocalRulestackID,
 		},
 
 		"network_profile": schema.VHubNetworkProfileSchema(),
@@ -111,7 +111,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 				return err
 			}
 
-			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+			id := firewallresources.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.FirewallsGet(ctx, id)
@@ -125,7 +125,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 				}
 			}
 
-			ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+			ruleStackID, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackId)
 			if err != nil {
 				return err
 			}
@@ -137,21 +137,21 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 
 			loc := location.Normalize(ruleStack.Model.Location)
 
-			firewall := firewalls.FirewallResource{
+			firewall := firewallresources.FirewallResource{
 				Location: loc,
-				Properties: firewalls.FirewallDeploymentProperties{
-					AssociatedRulestack: &firewalls.RulestackDetails{
+				Properties: firewallresources.FirewallDeploymentProperties{
+					AssociatedRulestack: &firewallresources.RulestackDetails{
 						ResourceId: pointer.To(ruleStackID.ID()),
 						Location:   pointer.To(loc),
 					},
 					DnsSettings: schema.ExpandDNSSettings(model.DNSSettings),
-					MarketplaceDetails: firewalls.MarketplaceDetails{
+					MarketplaceDetails: firewallresources.MarketplaceDetails{
 						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
-					PlanData: firewalls.PlanData{
-						BillingCycle: firewalls.BillingCycleMONTHLY,
+					PlanData: firewallresources.PlanData{
+						BillingCycle: firewallresources.BillingCycleMONTHLY,
 						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
@@ -179,7 +179,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFun
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -231,7 +231,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Delete() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -251,7 +251,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.FirewallResources
 
-			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
+			id, err := firewallresources.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -274,12 +274,12 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 			props := firewall.Properties
 
 			if metadata.ResourceData.HasChange("rulestack_id") {
-				ruleStackID, err := localrulestacks.ParseLocalRulestackID(model.RuleStackId)
+				ruleStackID, err := localrulestackresources.ParseLocalRulestackID(model.RuleStackId)
 				if err != nil {
 					return err
 				}
 
-				props.AssociatedRulestack = &firewalls.RulestackDetails{
+				props.AssociatedRulestack = &firewallresources.RulestackDetails{
 					Location:   props.AssociatedRulestack.Location,
 					ResourceId: pointer.To(ruleStackID.ID()),
 				}

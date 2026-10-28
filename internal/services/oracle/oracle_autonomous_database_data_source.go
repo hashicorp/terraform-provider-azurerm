@@ -421,7 +421,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 	}
 }
 
-func (d AutonomousDatabaseRegularDataSource) ModelObject() interface{} {
+func (d AutonomousDatabaseRegularDataSource) ModelObject() any {
 	return &AutonomousDatabaseRegularDataModel{}
 }
 

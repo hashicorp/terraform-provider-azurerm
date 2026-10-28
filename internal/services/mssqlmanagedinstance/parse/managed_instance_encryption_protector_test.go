@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ManagedInstanceEncryptionProtectorId{}
 
-func TestManagedInstanceEncryptionProtectorIDFormatter(t *testing.T) {
+func TestParseManagedInstanceEncryptionProtectorIDFormatter(t *testing.T) {
 	actual := NewManagedInstanceEncryptionProtectorID("12345678-1234-9876-4563-123456789012", "group1", "instance1", "current").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/instance1/encryptionProtector/current"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestManagedInstanceEncryptionProtectorIDFormatter(t *testing.T) {
 	}
 }
 
-func TestManagedInstanceEncryptionProtectorID(t *testing.T) {
+func TestParseManagedInstanceEncryptionProtectorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -23,16 +23,16 @@ type VirtualMachineRestorePointCollectionResource struct{}
 
 var _ sdk.ResourceWithUpdate = VirtualMachineRestorePointCollectionResource{}
 
-func (r VirtualMachineRestorePointCollectionResource) ModelObject() interface{} {
+func (r VirtualMachineRestorePointCollectionResource) ModelObject() any {
 	return &VirtualMachineRestorePointCollectionResourceModel{}
 }
 
 type VirtualMachineRestorePointCollectionResourceModel struct {
-	Name                   string                 `tfschema:"name"`
-	ResourceGroup          string                 `tfschema:"resource_group_name"`
-	Location               string                 `tfschema:"location"`
-	SourceVirtualMachineId string                 `tfschema:"source_virtual_machine_id"`
-	Tags                   map[string]interface{} `tfschema:"tags"`
+	Name                   string         `tfschema:"name"`
+	ResourceGroup          string         `tfschema:"resource_group_name"`
+	Location               string         `tfschema:"location"`
+	SourceVirtualMachineId string         `tfschema:"source_virtual_machine_id"`
+	Tags                   map[string]any `tfschema:"tags"`
 }
 
 func (r VirtualMachineRestorePointCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

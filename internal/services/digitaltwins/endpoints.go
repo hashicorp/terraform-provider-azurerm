@@ -14,7 +14,7 @@ import (
 )
 
 func validateEndpointType(validate func(input endpoints.DigitalTwinsEndpointResourceProperties) error) pluginsdk.ImporterFunc {
-	return func(ctxIn context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	return func(ctxIn context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 		id, err := endpoints.ParseEndpointID(d.Id())
 		if err != nil {
 			return nil, err

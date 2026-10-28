@@ -137,6 +137,16 @@ resource "azurerm_automation_hybrid_runbook_worker" "test" {
 `, a.template(data), uuid.New().String())
 }
 
+func TestAccHybridRunbookWorker_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.HybridRunbookWorkerResource{}.ResourceType(), "test")
+	r := HybridRunbookWorkerResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
 func TestAccHybridRunbookWorker_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.HybridRunbookWorkerResource{}.ResourceType(), "test")
 	r := HybridRunbookWorkerResource{}

@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = WorkspaceAADAdminId{}
 
-func TestWorkspaceAADAdminIDFormatter(t *testing.T) {
+func TestParseWorkspaceAADAdminIDFormatter(t *testing.T) {
 	actual := NewWorkspaceAADAdminID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "workspace1", "activeDirectory").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/administrators/activeDirectory"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestWorkspaceAADAdminIDFormatter(t *testing.T) {
 	}
 }
 
-func TestWorkspaceAADAdminID(t *testing.T) {
+func TestParseWorkspaceAADAdminID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

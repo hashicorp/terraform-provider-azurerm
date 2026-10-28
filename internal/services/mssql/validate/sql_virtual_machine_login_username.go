@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func SqlVirtualMachineLoginUserName(i interface{}, k string) ([]string, []error) {
+func SqlVirtualMachineLoginUserName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile(`^[^\\/"\[\]:|<>+=;,?* .]{2,128}$`), "cannot contain special characters '\\/\"[]:|<>+=;,?* .'")(i, k)
 }

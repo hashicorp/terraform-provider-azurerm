@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = SpringCloudDevToolPortalId{}
 
-func TestSpringCloudDevToolPortalIDFormatter(t *testing.T) {
+func TestParseSpringCloudDevToolPortalIDFormatter(t *testing.T) {
 	actual := NewSpringCloudDevToolPortalID("12345678-1234-9876-4563-123456789012", "resourceGroup1", "service1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/Spring/service1/DevToolPortals/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestSpringCloudDevToolPortalIDFormatter(t *testing.T) {
 	}
 }
 
-func TestSpringCloudDevToolPortalID(t *testing.T) {
+func TestParseSpringCloudDevToolPortalID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -12,6 +12,17 @@ import (
 
 type BillingEnrollmentAccountDataSource struct{}
 
+func TestAccBillingEnrollmentAccountDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_billing_enrollment_account_scope", "test")
+	r := BillingEnrollmentAccountDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(),
+		},
+	}, "")
+}
+
 func TestAccBillingEnrollmentAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_billing_enrollment_account_scope", "test")
 

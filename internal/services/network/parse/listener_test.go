@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ListenerId{}
 
-func TestListenerIDFormatter(t *testing.T) {
+func TestParseListenerIDFormatter(t *testing.T) {
 	actual := NewListenerID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "listener1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/listeners/listener1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestListenerIDFormatter(t *testing.T) {
 	}
 }
 
-func TestListenerID(t *testing.T) {
+func TestParseListenerID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestListenerID(t *testing.T) {
 	}
 }
 
-func TestListenerIDInsensitively(t *testing.T) {
+func TestParseListenerIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

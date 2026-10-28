@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ConsumerGroupId{}
 
-func TestConsumerGroupIDFormatter(t *testing.T) {
+func TestParseConsumerGroupIDFormatter(t *testing.T) {
 	actual := NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "resGroup1", "hub1", "events", "group1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Devices/iotHubs/hub1/eventHubEndpoints/events/consumerGroups/group1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestConsumerGroupIDFormatter(t *testing.T) {
 	}
 }
 
-func TestConsumerGroupID(t *testing.T) {
+func TestParseConsumerGroupID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -145,7 +145,7 @@ func TestConsumerGroupID(t *testing.T) {
 	}
 }
 
-func TestConsumerGroupIDInsensitively(t *testing.T) {
+func TestParseConsumerGroupIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

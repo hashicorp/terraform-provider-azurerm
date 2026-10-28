@@ -14,8 +14,8 @@ Use this data source to access information about an existing Firewall Policy.
 
 ```hcl
 data "azurerm_firewall_policy" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-firewall-policy"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -49,4 +49,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

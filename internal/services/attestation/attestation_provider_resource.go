@@ -53,7 +53,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&attestationproviders.AttestationProvidersId{}),
 		},
 
-		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i any) error {
 			if o, n := diff.GetChange("open_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
 				return fmt.Errorf("`open_enclave_policy_base64` can not be removed, add it to `ignore_changes` block to keep the default values")
 			}
@@ -133,7 +133,7 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 	}
 }
 
-func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta any) error {
 	attestationClients := meta.(*clients.Client).Attestation
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -156,7 +156,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	props := attestationproviders.AttestationServiceCreationParams{
 		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: attestationproviders.AttestationServiceCreationSpecificParams{},
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	// NOTE: This maybe an slice in a future release or even a slice of slices
@@ -215,7 +215,7 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceAttestationProviderRead(d, meta)
 }
 
-func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta any) error {
 	attestationClients := meta.(*clients.Client).Attestation
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -311,7 +311,7 @@ func resourceAttestationProviderFlatten(ctx context.Context, attestationClients 
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta any) error {
 	attestationClients := meta.(*clients.Client).Attestation
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -323,7 +323,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("tags") {
 		payload := attestationproviders.AttestationServicePatchParams{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 		if _, err := attestationClients.ProviderClient.Update(ctx, *id, payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
@@ -370,7 +370,7 @@ func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceAttestationProviderRead(d, meta)
 }
 
-func resourceAttestationProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAttestationProviderDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

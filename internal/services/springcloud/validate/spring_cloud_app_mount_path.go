@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func MountPath(i interface{}, k string) ([]string, []error) {
+func MountPath(i any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(2, 255),
 		validation.StringMatch(regexp.MustCompile(`^(?:\/(?:[a-zA-Z][a-zA-Z0-9]*))+$`), "is not valid, must match the regular expression ^(?:\\/(?:[a-zA-Z][a-zA-Z0-9]*))+$"),

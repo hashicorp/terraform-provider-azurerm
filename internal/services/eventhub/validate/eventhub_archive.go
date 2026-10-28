@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateEventHubArchiveNameFormat(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{

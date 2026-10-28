@@ -60,7 +60,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) ResourceType() st
 	return "azurerm_data_protection_backup_instance_kubernetes_cluster"
 }
 
-func (r DataProtectionBackupInstanceKubernatesClusterResource) ModelObject() interface{} {
+func (r DataProtectionBackupInstanceKubernatesClusterResource) ModelObject() any {
 	return &BackupInstanceKubernatesClusterModel{}
 }
 

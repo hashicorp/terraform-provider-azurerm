@@ -60,7 +60,7 @@ func schemaFromRaw(input *schema.Schema) SchemaJSON {
 	}
 }
 
-func SchemaFromMap(input map[string]interface{}) SchemaJSON {
+func SchemaFromMap(input map[string]any) SchemaJSON {
 	result := SchemaJSON{}
 	if t, ok := input["type"]; ok {
 		result.Type = t.(string)
@@ -113,12 +113,12 @@ func SchemaFromMap(input map[string]interface{}) SchemaJSON {
 	return result
 }
 
-func ResourceFromMap(input map[string]interface{}) ResourceJSON {
+func ResourceFromMap(input map[string]any) ResourceJSON {
 	result := ResourceJSON{
 		Schema: make(map[string]SchemaJSON, 0),
 	}
 	for k, v := range input {
-		result.Schema[k] = SchemaFromMap(v.(map[string]interface{}))
+		result.Schema[k] = SchemaFromMap(v.(map[string]any))
 	}
 	return result
 }
@@ -135,7 +135,7 @@ func decodeConfigMode(input schema.SchemaConfigMode) (out string) {
 	return
 }
 
-func decodeElem(input interface{}) interface{} {
+func decodeElem(input any) any {
 	switch t := input.(type) {
 	case bool:
 		return t

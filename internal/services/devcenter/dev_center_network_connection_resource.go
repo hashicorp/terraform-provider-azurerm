@@ -27,7 +27,7 @@ var (
 
 type DevCenterNetworkConnectionResource struct{}
 
-func (r DevCenterNetworkConnectionResource) ModelObject() interface{} {
+func (r DevCenterNetworkConnectionResource) ModelObject() any {
 	return &DevCenterNetworkConnectionResourceModel{}
 }
 

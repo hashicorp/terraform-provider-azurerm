@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = ContainerRegistryTaskScheduleId{}
 
-func TestContainerRegistryTaskScheduleIDFormatter(t *testing.T) {
+func TestParseContainerRegistryTaskScheduleIDFormatter(t *testing.T) {
 	actual := NewContainerRegistryTaskScheduleID("12345678-1234-9876-4563-123456789012", "group1", "registry1", "task1", "schedule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/tasks/task1/schedule/schedule1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestContainerRegistryTaskScheduleIDFormatter(t *testing.T) {
 	}
 }
 
-func TestContainerRegistryTaskScheduleID(t *testing.T) {
+func TestParseContainerRegistryTaskScheduleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -75,7 +75,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-func (d LinuxFunctionAppDataSource) ModelObject() interface{} {
+func (d LinuxFunctionAppDataSource) ModelObject() any {
 	return &LinuxFunctionAppDataSourceModel{}
 }
 
@@ -353,8 +353,8 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					Tags:                       pointer.From(site.Tags),
 					DefaultHostname:            pointer.From(site.Properties.DefaultHostName),
 					CustomDomainVerificationId: pointer.From(site.Properties.CustomDomainVerificationId),
-					Availability:               string(pointer.From(site.Properties.AvailabilityState)),
-					Usage:                      string(pointer.From(site.Properties.UsageState)),
+					Availability:               pointer.FromEnum(site.Properties.AvailabilityState),
+					Usage:                      pointer.FromEnum(site.Properties.UsageState),
 					SiteConfig:                 []helpers.SiteConfigLinuxFunctionApp{*siteConfig},
 
 					// Azure does not return these for Container Apps-hosted Function Apps, so they match the
@@ -457,7 +457,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				state.Kind = pointer.From(model.Kind)
 
 				if props := model.Properties; props != nil {
-					state.Availability = string(pointer.From(props.AvailabilityState))
+					state.Availability = pointer.FromEnum(props.AvailabilityState)
 
 					// Container Apps-hosted Function Apps are handled entirely by the early
 					// Container Apps dispatch above, so `props.ManagedEnvironmentId` is
@@ -473,13 +473,13 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					state.ServicePlanId = servicePlanId.ID()
 
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
-					state.Usage = string(pointer.From(props.UsageState))
+					state.Usage = pointer.FromEnum(props.UsageState)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 

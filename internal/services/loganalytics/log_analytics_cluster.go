@@ -28,7 +28,7 @@ func logAnalyticsClusterWaitForState(ctx context.Context, client *clusters.Clust
 }
 
 func logAnalyticsClusterRefresh(ctx context.Context, client *clusters.ClustersClient, clusterId clusters.ClusterId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		log.Printf("[INFO] checking on state of Log Analytics Cluster %q", clusterId.ClusterName)
 
 		resp, err := client.Get(ctx, clusterId)

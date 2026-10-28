@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -171,7 +171,7 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -225,9 +225,9 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []interface{} {
+func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	asn := 0
@@ -240,7 +240,7 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 		peerWeight = int(*input.PeerWeight)
 	}
 
-	var instance0BgpPeeringAddress, instance1BgpPeeringAddress []interface{}
+	var instance0BgpPeeringAddress, instance1BgpPeeringAddress []any
 	if input.BgpPeeringAddresses != nil && len(*input.BgpPeeringAddresses) > 0 {
 		instance0BgpPeeringAddress = dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress((*input.BgpPeeringAddresses)[0])
 	}
@@ -248,8 +248,8 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 		instance1BgpPeeringAddress = dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress((*input.BgpPeeringAddresses)[1])
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"asn":                            asn,
 			"bgp_peering_address":            pointer.From(input.BgpPeeringAddress),
 			"instance_0_bgp_peering_address": instance0BgpPeeringAddress,
@@ -259,9 +259,9 @@ func dataSourceFlattenVPNGatewayBGPSettings(input *virtualwans.BgpSettings) []in
 	}
 }
 
-func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwans.IPConfigurationBgpPeeringAddress) []any {
+	return []any{
+		map[string]any{
 			"ip_configuration_id": pointer.From(input.IPconfigurationId),
 			"custom_ips":          pluginsdk.FlattenSlice(input.CustomBgpIPAddresses),
 			"default_ips":         pluginsdk.FlattenSlice(input.DefaultBgpIPAddresses),
@@ -270,14 +270,14 @@ func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwa
 	}
 }
 
-func dataSourceFlattenVPNGatewayIpConfiguration(input *[]virtualwans.VpnGatewayIPConfiguration) []interface{} {
-	result := make([]interface{}, 0)
+func dataSourceFlattenVPNGatewayIpConfiguration(input *[]virtualwans.VpnGatewayIPConfiguration) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
 
 	for _, item := range *input {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"id":                 pointer.From(item.Id),
 			"private_ip_address": pointer.From(item.PrivateIPAddress),
 			"public_ip_address":  pointer.From(item.PublicIPAddress),

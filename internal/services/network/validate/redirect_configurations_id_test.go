@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestRedirectConfigurationsID(t *testing.T) {
+func TestValidateRedirectConfigurationsID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

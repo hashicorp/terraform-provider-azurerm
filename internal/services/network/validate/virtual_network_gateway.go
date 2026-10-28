@@ -9,7 +9,7 @@ import (
 	"net"
 )
 
-func IPAddressInAzureReservedAPIPARange(i interface{}, k string) (warnings []string, errors []error) {
+func IPAddressInAzureReservedAPIPARange(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

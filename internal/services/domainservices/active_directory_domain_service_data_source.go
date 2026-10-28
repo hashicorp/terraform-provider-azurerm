@@ -232,7 +232,7 @@ func dataSourceActiveDirectoryDomainServiceReplicaSetSchema() map[string]*plugin
 	}
 }
 
-func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceActiveDirectoryDomainServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DomainServices.DomainServicesClient
 	subscrptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

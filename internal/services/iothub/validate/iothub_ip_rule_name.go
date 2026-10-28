@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func IoTHubIpRuleName(v interface{}, k string) (warnings []string, errors []error) {
+func IoTHubIpRuleName(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-:.+%_#*?!(),=@;']{1,128}$`).Match([]byte(value)); !matched {

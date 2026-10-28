@@ -113,7 +113,7 @@ func resourceStreamAnalyticsStreamInputEventHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -135,7 +135,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -182,7 +182,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *pluginsdk.Resourc
 	return resourceStreamAnalyticsStreamInputEventHubRead(d, meta)
 }
 
-func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +246,7 @@ func resourceStreamAnalyticsStreamInputEventHubRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceStreamAnalyticsStreamInputEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputEventHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

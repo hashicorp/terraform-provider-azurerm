@@ -50,6 +50,16 @@ github_api_request() {
     "https://api.github.com/repos/$GITHUB_REPO${endpoint}"
 }
 
+test_name_from_occurrence_name() {
+  local occurrence_name="$1"
+
+  if [[ "$occurrence_name" =~ ^[^:]+:\ (.*)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  else
+    printf '%s\n' "$occurrence_name"
+  fi
+}
+
 # Apply a label to the PR
 apply_label() {
   local label="$1"
@@ -107,7 +117,7 @@ RESULTS_DELAY_S=5
 SEEN_COUNT=0
 PREV_SEEN_COUNT=-1
 for attempt in $(seq 1 "$RESULTS_ATTEMPTS"); do
-  RAW_TEST_RESULTS_JSON=$(curl -sS -f \
+  RAW_TEST_RESULTS_JSON=$(curl -sS -f -L \
     -H "Authorization: Bearer $TEAMCITY_TOKEN" \
     -H "Accept: application/json" \
     "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$BUILD_ID),count:100000&fields=testOccurrence(name,status,ignored,duration,newFailure,test(id),firstFailed(build(id,number,branchName)))")
@@ -120,7 +130,7 @@ for attempt in $(seq 1 "$RESULTS_ATTEMPTS"); do
 
   TEST_RESULTS=$(echo "$RAW_TEST_RESULTS_JSON" | jq -r '(.testOccurrence // [])[]
       | select(.status == "SUCCESS" or .status == "FAILURE" or .ignored == true)
-      | "\(.name)|\(if .status == "SUCCESS" then "PASS" elif .status == "FAILURE" then "FAIL" else "SKIP" end)|\((.duration // 0) / 1000)|"')
+      | "\(.name | sub("^[^:]+: "; ""))|\(if .status == "SUCCESS" then "PASS" elif .status == "FAILURE" then "FAIL" else "SKIP" end)|\((.duration // 0) / 1000)|"')
 
   if [ $? -ne 0 ]; then
     TEAMCITY_ERROR="Failed to parse TeamCity test results for build $BUILD_ID."
@@ -143,7 +153,7 @@ done
 # failed before or without reporting tests, or failed tests that were still not indexed.
 BUILD_STATUS=""
 BUILD_STATUS_TEXT=""
-BUILD_INFO_JSON=$(curl -sS -f \
+BUILD_INFO_JSON=$(curl -sS -f -L \
   -H "Authorization: Bearer $TEAMCITY_TOKEN" \
   -H "Accept: application/json" \
   "$TEAMCITY_SERVER_URL/app/rest/builds/id:$BUILD_ID?fields=status,statusText")
@@ -174,7 +184,7 @@ if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
   echo "Fetching main branch test results for comparison..."
 
   # Get the latest successful build on main branch
-  MAIN_BUILD_INFO=$(curl -s \
+  MAIN_BUILD_INFO=$(curl -sL \
     -H "Authorization: Bearer $TEAMCITY_TOKEN" \
     -H "Accept: application/json" \
     "$TEAMCITY_SERVER_URL/app/rest/builds?locator=buildType:(id:$BUILD_TYPE_ID),branch:refs/heads/main,status:SUCCESS,count:1")
@@ -185,7 +195,7 @@ if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
     echo "Found main branch build: $MAIN_BUILD_ID"
 
     # Fetch test results from main branch build via the TeamCity REST API.
-    MAIN_RAW_JSON=$(curl -s \
+    MAIN_RAW_JSON=$(curl -sL \
       -H "Authorization: Bearer $TEAMCITY_TOKEN" \
       -H "Accept: application/json" \
       "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=build:(id:$MAIN_BUILD_ID),count:100000&fields=testOccurrence(name,status,test(id))")
@@ -194,7 +204,7 @@ if [ -z "$TEAMCITY_ERROR" ] && [ "$FAIL_COUNT" -gt 0 ]; then
     MAIN_TEST_RESULTS=$(echo "$MAIN_RAW_JSON" \
       | jq -r '(.testOccurrence // [])[]
           | select(.status == "SUCCESS" or .status == "FAILURE")
-          | "\(.name)|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)"' 2>/dev/null || echo "")
+          | "\(.name | sub("^[^:]+: "; ""))|\(if .status == "SUCCESS" then "PASS" else "FAIL" end)"' 2>/dev/null || echo "")
 
     # Build name→test-entity-id pairs (for history queries)
     MAIN_TEST_ID_MAP=$(echo "$MAIN_RAW_JSON" \
@@ -235,32 +245,27 @@ if [ -z "$TEAMCITY_ERROR" ]; then
     | jq -r '(.testOccurrence // [])[] | select(.status == "SUCCESS" or .status == "FAILURE" or .ignored == true) | .name' \
     2>/dev/null || echo "")
 
-  while IFS= read -r test_name; do
-    [ -z "$test_name" ] && continue
+  while IFS= read -r test_occurrence_name; do
+    [ -z "$test_occurrence_name" ] && continue
 
     TEST_ID=$(echo "$RAW_TEST_RESULTS_JSON" \
-      | TEST_NAME="$test_name" jq -r '
+      | TEST_OCCURRENCE_NAME="$test_occurrence_name" jq -r '
           (.testOccurrence // [])[]
-          | select(.name == env.TEST_NAME)
+          | select(.name == env.TEST_OCCURRENCE_NAME)
           | .test.id // empty
         ' 2>/dev/null | head -1)
 
-    PR_STATUS=$(echo "$RAW_TEST_RESULTS_JSON" \
-      | TEST_NAME="$test_name" jq -r '
+    NEW_FAILURE=$(echo "$RAW_TEST_RESULTS_JSON" \
+      | TEST_OCCURRENCE_NAME="$test_occurrence_name" jq -r '
           (.testOccurrence // [])[]
-          | select(.name == env.TEST_NAME)
-          | .status
+          | select(.name == env.TEST_OCCURRENCE_NAME)
+          | .newFailure // false
         ' 2>/dev/null | head -1)
 
-    FIRST_FAILED_BRANCH=$(echo "$RAW_TEST_RESULTS_JSON" \
-      | TEST_NAME="$test_name" jq -r '
-          (.testOccurrence // [])[]
-          | select(.name == env.TEST_NAME)
-          | .firstFailed.build.branchName // ""
-        ' 2>/dev/null | head -1)
+    test_name=$(test_name_from_occurrence_name "$test_occurrence_name")
 
     IS_NEW="false"
-    if [ "$PR_STATUS" = "FAILURE" ] && [ "$FIRST_FAILED_BRANCH" != "refs/heads/main" ] && [ -n "$FIRST_FAILED_BRANCH" ]; then
+    if [ "$NEW_FAILURE" = "true" ]; then
       IS_NEW="true"
       HAS_NEW_FAILURES="true"
     fi
@@ -270,7 +275,7 @@ if [ -z "$TEAMCITY_ERROR" ]; then
       continue
     fi
 
-    MAIN_HISTORY_JSON=$(curl -s \
+    MAIN_HISTORY_JSON=$(curl -sL \
       -H "Authorization: Bearer $TEAMCITY_TOKEN" \
       -H "Accept: application/json" \
       "$TEAMCITY_SERVER_URL/app/rest/testOccurrences?locator=test:(id:${TEST_ID}),branch:refs/heads/main,count:1000&fields=testOccurrence(status,build(startDate))")

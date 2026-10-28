@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetMySQL() *pluginsdk.Resource {
@@ -146,7 +146,7 @@ func resourceDataFactoryDatasetMySQL() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -198,19 +198,19 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		mysqlTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		mysqlTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		mysqlTableset.Annotations = pointer.To(v.([]interface{}))
+		mysqlTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		mysqlTableset.AdditionalProperties = v.(map[string]interface{})
+		mysqlTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		mysqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		mysqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -229,7 +229,7 @@ func resourceDataFactoryDatasetMySQLCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceDataFactoryDatasetMySQLRead(d, meta)
 }
 
-func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -301,7 +301,7 @@ func resourceDataFactoryDatasetMySQLRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceDataFactoryDatasetMySQLDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetMySQLDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

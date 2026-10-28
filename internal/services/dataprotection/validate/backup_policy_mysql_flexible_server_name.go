@@ -9,6 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func BackupPolicyMySQLFlexibleServerName(i interface{}, k string) ([]string, []error) {
+func BackupPolicyMySQLFlexibleServerName(i any, k string) ([]string, []error) {
 	return validation.StringMatch(regexp.MustCompile("^[-a-zA-Z0-9]{3,150}$"), "must be 3 - 150 characters long, contain only letters, numbers and hyphens")(i, k)
 }

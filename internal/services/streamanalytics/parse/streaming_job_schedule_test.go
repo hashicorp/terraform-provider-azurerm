@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = StreamingJobScheduleId{}
 
-func TestStreamingJobScheduleIDFormatter(t *testing.T) {
+func TestParseStreamingJobScheduleIDFormatter(t *testing.T) {
 	actual := NewStreamingJobScheduleID("12345678-1234-9876-4563-123456789012", "resGroup1", "streamingJob1", "default").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StreamAnalytics/streamingJobs/streamingJob1/schedule/default"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestStreamingJobScheduleIDFormatter(t *testing.T) {
 	}
 }
 
-func TestStreamingJobScheduleID(t *testing.T) {
+func TestParseStreamingJobScheduleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestStreamingJobScheduleID(t *testing.T) {
 	}
 }
 
-func TestStreamingJobScheduleIDInsensitively(t *testing.T) {
+func TestParseStreamingJobScheduleIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

@@ -25,7 +25,7 @@ var (
 
 type KubernetesClusterTrustedAccessRoleBindingResource struct{}
 
-func (r KubernetesClusterTrustedAccessRoleBindingResource) ModelObject() interface{} {
+func (r KubernetesClusterTrustedAccessRoleBindingResource) ModelObject() any {
 	return &KubernetesClusterTrustedAccessRoleBindingResourceSchema{}
 }
 

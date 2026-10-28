@@ -61,7 +61,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociation() *pluginsdk.Res
 	}
 }
 
-func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +122,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *plugins
 	return resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d, meta)
 }
 
-func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -159,7 +159,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *pluginsdk
 	return nil
 }
 
-func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

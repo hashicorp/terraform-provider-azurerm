@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubCertificate() *pluginsdk.Resource {
@@ -78,7 +78,7 @@ func resourceIotHubCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -115,7 +115,7 @@ func resourceIotHubCertificateCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubCertificateRead(d, meta)
 }
 
-func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +146,7 @@ func resourceIotHubCertificateRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -176,7 +176,7 @@ func resourceIotHubCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubCertificateRead(d, meta)
 }
 
-func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.IotHubCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

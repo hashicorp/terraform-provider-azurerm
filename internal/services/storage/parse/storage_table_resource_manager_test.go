@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = StorageTableResourceManagerId{}
 
-func TestStorageTableResourceManagerIDFormatter(t *testing.T) {
+func TestParseStorageTableResourceManagerIDFormatter(t *testing.T) {
 	actual := NewStorageTableResourceManagerID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "tableService1", "table1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/tableServices/tableService1/tables/table1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestStorageTableResourceManagerIDFormatter(t *testing.T) {
 	}
 }
 
-func TestStorageTableResourceManagerID(t *testing.T) {
+func TestParseStorageTableResourceManagerID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

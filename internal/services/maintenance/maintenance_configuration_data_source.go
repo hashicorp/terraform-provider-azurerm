@@ -167,7 +167,7 @@ func dataSourceMaintenanceConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -189,8 +189,8 @@ func dataSourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("scope", string(pointer.From(props.MaintenanceScope)))
-			d.Set("visibility", string(pointer.From(props.Visibility)))
+			d.Set("scope", pointer.FromEnum(props.MaintenanceScope))
+			d.Set("visibility", pointer.FromEnum(props.Visibility))
 
 			properties := flattenExtensionProperties(props.ExtensionProperties)
 			if properties["InGuestPatchMode"] != nil {

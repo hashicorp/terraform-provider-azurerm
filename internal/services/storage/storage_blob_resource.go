@@ -157,7 +157,7 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			"metadata": MetaDataComputedSchema(),
 		},
 
-		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+		CustomizeDiff: func(ctx context.Context, diff *pluginsdk.ResourceDiff, i any) error {
 			if content := diff.Get("source_content"); content != "" && diff.Get("type") == "Page" {
 				if len(content.(string))%512 != 0 {
 					return fmt.Errorf(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`)
@@ -168,7 +168,7 @@ func resourceStorageBlob() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -229,7 +229,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	blobInput := BlobUpload{
 		AccountName:   accountName,
 		ContainerName: containerName,
@@ -260,7 +260,7 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageBlobUpdate(d, meta)
 }
 
-func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -327,7 +327,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("metadata") {
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaDataRaw := d.Get("metadata").(map[string]any)
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
 		}
@@ -352,7 +352,7 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	return resourceStorageBlobRead(d, meta)
 }
 
-func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -447,7 +447,7 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

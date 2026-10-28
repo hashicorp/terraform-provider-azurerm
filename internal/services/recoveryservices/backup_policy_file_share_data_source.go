@@ -28,7 +28,7 @@ func dataSourceBackupPolicyFileShare() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceBackupPolicyFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceBackupPolicyFileShareRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

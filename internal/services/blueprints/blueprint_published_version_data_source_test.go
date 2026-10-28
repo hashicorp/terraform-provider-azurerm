@@ -14,6 +14,17 @@ import (
 type BlueprintPublishedVersionDataSource struct{}
 
 // lintignore:AT001
+func TestAccBlueprintPublishedVersionDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
+	r := BlueprintPublishedVersionDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.atSubscription(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+		},
+	}, "")
+}
+
 func TestAccBlueprintPublishedVersionDataSource_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 	r := BlueprintPublishedVersionDataSource{}

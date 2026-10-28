@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -65,7 +65,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
-					components.ValidateComponentID,
+					componentsapis.ValidateComponentID,
 					workspaces.ValidateWorkspaceID,
 					datacollectionendpoints.ValidateDataCollectionEndpointID,
 				),
@@ -74,7 +74,7 @@ func resourceMonitorPrivateLinkScopedService() *pluginsdk.Resource {
 	}
 }
 
-func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +108,7 @@ func resourceMonitorPrivateLinkScopedServiceCreate(d *pluginsdk.ResourceData, me
 	return resourceMonitorPrivateLinkScopedServiceRead(d, meta)
 }
 
-func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +141,7 @@ func resourceMonitorPrivateLinkScopedServiceRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMonitorPrivateLinkScopedServiceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.PrivateLinkScopedResourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func normalizeLinkedResourceId(input *string) *string {
 		return input
 	}
 
-	if resourceId, err := components.ParseComponentIDInsensitively(*input); err == nil {
+	if resourceId, err := componentsapis.ParseComponentIDInsensitively(*input); err == nil {
 		normalizedId := resourceId.ID()
 		return &normalizedId
 	}

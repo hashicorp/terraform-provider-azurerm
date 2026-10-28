@@ -51,7 +51,7 @@ func (s SpringCloudDevToolPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_dev_tool_portal"
 }
 
-func (s SpringCloudDevToolPortalResource) ModelObject() interface{} {
+func (s SpringCloudDevToolPortalResource) ModelObject() any {
 	return &SpringCloudDevToolPortalModel{}
 }
 

@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestWorkspaceSqlAADAdminID(t *testing.T) {
+func TestValidateWorkspaceSqlAADAdminID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

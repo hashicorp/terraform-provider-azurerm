@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
@@ -286,7 +286,7 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -344,19 +344,19 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		parquetTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		parquetTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		parquetTableset.Annotations = pointer.To(v.([]interface{}))
+		parquetTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		parquetTableset.AdditionalProperties = v.(map[string]interface{})
+		parquetTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		parquetTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		parquetTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
 	dataset := datafactory.DatasetResource{
@@ -375,7 +375,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 	return resourceDataFactoryDatasetParquetRead(d, meta)
 }
 
-func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -463,7 +463,7 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceDataFactoryDatasetParquetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetParquetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

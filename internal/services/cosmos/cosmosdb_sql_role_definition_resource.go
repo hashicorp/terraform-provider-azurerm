@@ -102,7 +102,7 @@ func resourceCosmosDbSQLRoleDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -151,7 +151,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleDefinitionRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -190,7 +190,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -240,7 +240,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 	return resourceCosmosDbSQLRoleDefinitionRead(d, meta)
 }
 
-func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.RbacsClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -261,11 +261,11 @@ func resourceCosmosDbSQLRoleDefinitionDelete(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission {
+func expandSqlRoleDefinitionPermissions(input []any) *[]rbacs.Permission {
 	results := make([]rbacs.Permission, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		results = append(results, rbacs.Permission{
 			DataActions: pluginsdk.ExpandStringSlice(v["data_actions"].(*pluginsdk.Set).List()),
@@ -275,14 +275,14 @@ func expandSqlRoleDefinitionPermissions(input []interface{}) *[]rbacs.Permission
 	return &results
 }
 
-func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSqlRoleDefinitionPermissions(input *[]rbacs.Permission) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		results = append(results, map[string]interface{}{
+		results = append(results, map[string]any{
 			"data_actions": pluginsdk.FlattenSlice(item.DataActions),
 		})
 	}

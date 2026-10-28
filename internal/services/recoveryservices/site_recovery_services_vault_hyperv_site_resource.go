@@ -47,7 +47,7 @@ func (r HyperVSiteResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r HyperVSiteResource) ModelObject() interface{} {
+func (r HyperVSiteResource) ModelObject() any {
 	return &HyperVSiteModel{}
 }
 

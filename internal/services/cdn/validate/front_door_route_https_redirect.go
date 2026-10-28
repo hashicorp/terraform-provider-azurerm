@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func SupportsBothHttpAndHttps(input []interface{}, key string) error {
+func SupportsBothHttpAndHttps(input []any, key string) error {
 	if len(input) == 0 {
 		return fmt.Errorf("expected %q to be a list of string", key)
 	}

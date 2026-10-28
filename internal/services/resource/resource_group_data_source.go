@@ -38,7 +38,7 @@ func dataSourceResourceGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

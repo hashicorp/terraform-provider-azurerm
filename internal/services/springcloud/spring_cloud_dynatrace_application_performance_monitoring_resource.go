@@ -46,7 +46,7 @@ func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) ResourceTy
 	return "azurerm_spring_cloud_dynatrace_application_performance_monitoring"
 }
 
-func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudDynatraceApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudDynatraceApplicationPerformanceMonitoringModel{}
 }
 

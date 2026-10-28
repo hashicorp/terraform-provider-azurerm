@@ -24,7 +24,7 @@ func importDataConnectorUntyped(expectKind dataconnectors.DataConnectorKind) *sc
 	return pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 		_, err := dataconnectors.ParseDataConnectorID(id)
 		return err
-	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 		wrapped := sdk.NewPluginSdkResourceData(d)
 		if err := importSentinelDataConnector(expectKind)(ctx, wrapped, meta); err != nil {
 			return nil, err
@@ -33,8 +33,8 @@ func importDataConnectorUntyped(expectKind dataconnectors.DataConnectorKind) *sc
 	})
 }
 
-func importSentinelDataConnector(expectKind dataconnectors.DataConnectorKind) func(ctx context.Context, d sdk.ResourceData, meta interface{}) error {
-	return func(ctx context.Context, d sdk.ResourceData, meta interface{}) error {
+func importSentinelDataConnector(expectKind dataconnectors.DataConnectorKind) func(ctx context.Context, d sdk.ResourceData, meta any) error {
+	return func(ctx context.Context, d sdk.ResourceData, meta any) error {
 		id, err := dataconnectors.ParseDataConnectorID(d.Id())
 		if err != nil {
 			return err

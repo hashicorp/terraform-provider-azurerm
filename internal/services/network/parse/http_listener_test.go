@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = HttpListenerId{}
 
-func TestHttpListenerIDFormatter(t *testing.T) {
+func TestParseHttpListenerIDFormatter(t *testing.T) {
 	actual := NewHttpListenerID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "listener1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/httpListeners/listener1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestHttpListenerIDFormatter(t *testing.T) {
 	}
 }
 
-func TestHttpListenerID(t *testing.T) {
+func TestParseHttpListenerID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestHttpListenerID(t *testing.T) {
 	}
 }
 
-func TestHttpListenerIDInsensitively(t *testing.T) {
+func TestParseHttpListenerIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

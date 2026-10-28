@@ -85,7 +85,7 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +148,7 @@ func resourceRedisLinkedServerCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceRedisLinkedServerRead(d, meta)
 }
 
-func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +219,7 @@ func resourceRedisLinkedServerDelete(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func redisLinkedServerStateRefreshFunc(ctx context.Context, client *linkedserver.LinkedServerClient, id linkedserver.LinkedServerId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("retrieving status of %s: %+v", id, err)

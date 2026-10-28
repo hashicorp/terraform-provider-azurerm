@@ -110,7 +110,7 @@ func resourceContainerRegistryWebhook() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.WebHooks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -134,7 +134,7 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 	webhook := webhooks.WebhookCreateParameters{
 		Location:   location.Normalize(d.Get("location").(string)),
 		Properties: expandWebhookPropertiesCreateParameters(d),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, webhook, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -146,7 +146,7 @@ func resourceContainerRegistryWebhookCreate(d *pluginsdk.ResourceData, meta inte
 	return resourceContainerRegistryWebhookRead(d, meta)
 }
 
-func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.WebHooks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta inte
 
 	webhook := webhooks.WebhookUpdateParameters{
 		Properties: expandWebhookPropertiesUpdateParameters(d),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, webhook); err != nil {
@@ -168,7 +168,7 @@ func resourceContainerRegistryWebhookUpdate(d *pluginsdk.ResourceData, meta inte
 	return resourceContainerRegistryWebhookRead(d, meta)
 }
 
-func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.WebHooks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +234,7 @@ func resourceContainerRegistryWebhookRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceContainerRegistryWebhookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryWebhookDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.WebHooks
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +253,7 @@ func resourceContainerRegistryWebhookDelete(d *pluginsdk.ResourceData, meta inte
 
 func expandWebhookPropertiesCreateParameters(d *pluginsdk.ResourceData) *webhooks.WebhookPropertiesCreateParameters {
 	customHeaders := make(map[string]string)
-	for k, v := range d.Get("custom_headers").(map[string]interface{}) {
+	for k, v := range d.Get("custom_headers").(map[string]any) {
 		customHeaders[k] = v.(string)
 	}
 
@@ -270,7 +270,7 @@ func expandWebhookPropertiesCreateParameters(d *pluginsdk.ResourceData) *webhook
 
 func expandWebhookPropertiesUpdateParameters(d *pluginsdk.ResourceData) *webhooks.WebhookPropertiesUpdateParameters {
 	customHeaders := make(map[string]string)
-	for k, v := range d.Get("custom_headers").(map[string]interface{}) {
+	for k, v := range d.Get("custom_headers").(map[string]any) {
 		customHeaders[k] = v.(string)
 	}
 

@@ -31,7 +31,7 @@ func MetaDataComputedSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandMetaData(input map[string]interface{}) map[string]string {
+func ExpandMetaData(input map[string]any) map[string]string {
 	output := make(map[string]string)
 
 	for k, v := range input {
@@ -41,8 +41,8 @@ func ExpandMetaData(input map[string]interface{}) map[string]string {
 	return output
 }
 
-func FlattenMetaData(input map[string]string) map[string]interface{} {
-	output := make(map[string]interface{})
+func FlattenMetaData(input map[string]string) map[string]any {
+	output := make(map[string]any)
 
 	for k, v := range input {
 		output[k] = v

@@ -60,7 +60,7 @@ func (EventHubSharedAccessSignatureDataSource) Attributes() map[string]*pluginsd
 	}
 }
 
-func (EventHubSharedAccessSignatureDataSource) ModelObject() interface{} {
+func (EventHubSharedAccessSignatureDataSource) ModelObject() any {
 	return &EventHubSharedAccessSignatureDataSourceModel{}
 }
 

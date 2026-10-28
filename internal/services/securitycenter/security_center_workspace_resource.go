@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -63,7 +63,7 @@ func resourceSecurityCenterWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// TODO: split this create/update
 
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
@@ -117,7 +117,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 		Target:     []string{"Populated"},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err2 := client.Get(ctx, id.WorkspaceSettingName)
 			if err2 != nil {
 				return resp, "Error", fmt.Errorf("reading Security Center Workspace: %+v", err2)
@@ -144,7 +144,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceSecurityCenterWorkspaceRead(d, meta)
 }
 
-func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

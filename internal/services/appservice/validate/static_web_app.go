@@ -9,7 +9,7 @@ import (
 	"regexp"
 )
 
-func StaticWebAppName(v interface{}, k string) (warnings []string, errors []error) {
+func StaticWebAppName(v any, k string) (warnings []string, errors []error) {
 	value, ok := v.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
@@ -23,7 +23,7 @@ func StaticWebAppName(v interface{}, k string) (warnings []string, errors []erro
 }
 
 // lintignore:V011 // the length check is combined with password complexity rules
-func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []error) {
+func StaticWebAppPassword(v any, k string) (warnings []string, errs []error) {
 	value, ok := v.(string)
 	if !ok {
 		errs = append(errs, fmt.Errorf("expected %s to be a string", k))
@@ -48,10 +48,6 @@ func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []er
 
 	if matched := regexp.MustCompile(`[0-9]`).Match([]byte(value)); !matched {
 		errs = append(errs, errors.New("the password must contain at least one number"))
-	}
-
-	if matched := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).Match([]byte(value)); !matched {
-		errs = append(errs, errors.New("the password must contain at least one symbol"))
 	}
 
 	return

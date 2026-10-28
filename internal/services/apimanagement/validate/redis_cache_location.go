@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func RedisCacheLocation(input interface{}, key string) (warnings []string, errors []error) {
+func RedisCacheLocation(input any, key string) (warnings []string, errors []error) {
 	// "default" is valid in addition to any Azure location
 	return validation.Any(
 		validation.StringInSlice([]string{"default"}, false),

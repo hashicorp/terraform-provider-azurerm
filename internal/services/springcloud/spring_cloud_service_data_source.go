@@ -160,7 +160,7 @@ func dataSourceSpringCloudService() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	configServersClient := meta.(*clients.Client).AppPlatform.ConfigServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

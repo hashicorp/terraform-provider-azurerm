@@ -141,7 +141,7 @@ func dataSourceAppServiceCertificateOrder() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

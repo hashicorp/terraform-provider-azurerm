@@ -97,7 +97,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) StateUpgraders() sdk.StateUpgr
 	}
 }
 
-func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() interface{} {
+func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() any {
 	return &KeyVaultManagedHSMRoleAssignmentModel{}
 }
 

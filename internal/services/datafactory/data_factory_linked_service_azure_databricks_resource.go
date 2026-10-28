@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
@@ -254,7 +254,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -287,7 +287,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	// Check if the MSI authentication block is set
 	msiAuth := d.Get("msi_workspace_id")
 	accessTokenAuth := d.Get("access_token").(string)
-	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]interface{})
+	accessTokenKeyVaultAuth := d.Get("key_vault_password").([]any)
 
 	// Set the properties based on the authentication type that was provided
 	if msiAuth != "" {
@@ -319,8 +319,8 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		databricksProperties.ExistingClusterID = v.(string)
 	}
 
-	if v, ok := d.GetOk("instance_pool"); ok && v.([]interface{})[0] != nil {
-		instancePoolMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("instance_pool"); ok && v.([]any)[0] != nil {
+		instancePoolMap := v.([]any)[0].(map[string]any)
 
 		if data := instancePoolMap["instance_pool_id"]; data != nil {
 			databricksProperties.InstancePoolID = data
@@ -340,8 +340,8 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		}
 	}
 
-	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]interface{})[0] != nil {
-		newClusterMap := v.([]interface{})[0].(map[string]interface{})
+	if v, ok := d.GetOk("new_cluster_config"); ok && v.([]any)[0] != nil {
+		newClusterMap := v.([]any)[0].(map[string]any)
 
 		if data := newClusterMap["cluster_version"]; data != nil {
 			databricksProperties.NewClusterVersion = data
@@ -369,19 +369,19 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 		}
 
 		if newClusterMap["spark_config"] != nil {
-			if sparkConfig := newClusterMap["spark_config"].(map[string]interface{}); len(sparkConfig) > 0 {
+			if sparkConfig := newClusterMap["spark_config"].(map[string]any); len(sparkConfig) > 0 {
 				databricksProperties.NewClusterSparkConf = sparkConfig
 			}
 		}
 
 		if newClusterMap["spark_environment_variables"] != nil {
-			if sparkEnvVars := newClusterMap["spark_environment_variables"].(map[string]interface{}); len(sparkEnvVars) > 0 {
+			if sparkEnvVars := newClusterMap["spark_environment_variables"].(map[string]any); len(sparkEnvVars) > 0 {
 				databricksProperties.NewClusterSparkEnvVars = sparkEnvVars
 			}
 		}
 
 		if newClusterMap["custom_tags"] != nil {
-			if customTags := newClusterMap["custom_tags"].(map[string]interface{}); len(customTags) > 0 {
+			if customTags := newClusterMap["custom_tags"].(map[string]any); len(customTags) > 0 {
 				databricksProperties.NewClusterCustomTags = customTags
 			}
 		}
@@ -396,7 +396,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		databricksLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		databricksLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -404,11 +404,11 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		databricksLinkedService.AdditionalProperties = v.(map[string]interface{})
+		databricksLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		databricksLinkedService.Annotations = pointer.To(v.([]interface{}))
+		databricksLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -424,7 +424,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	return resourceDataFactoryLinkedServiceDatabricksRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -470,8 +470,8 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 			}
 		}
 
-		instancePoolArray := make([]interface{}, 0)
-		newClusterArray := make([]interface{}, 0)
+		instancePoolArray := make([]any, 0)
+		newClusterArray := make([]any, 0)
 		if props.ExistingClusterID != nil {
 			if err := d.Set("existing_cluster_id", props.ExistingClusterID); err != nil {
 				return fmt.Errorf("setting `existing_cluster_id`: %+v", err)
@@ -485,7 +485,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `instance_pool`: %+v", err)
 			}
 
-			instancePoolMap := map[string]interface{}{
+			instancePoolMap := map[string]any{
 				"instance_pool_id":      id,
 				"min_number_of_workers": minWorkers,
 				"cluster_version":       clusterVersion,
@@ -507,7 +507,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `new_cluster_config`: %+v", err)
 			}
 
-			newClusterMap := map[string]interface{}{
+			newClusterMap := map[string]any{
 				"min_number_of_workers": minWorkers,
 				"cluster_version":       clusterVersion,
 				"node_type":             nodeType,
@@ -569,7 +569,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -588,7 +588,7 @@ func resourceDataFactoryLinkedServiceDatabricksDelete(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func buildNumberOfWorkersProperties(minWorkersProperty interface{}, maxWorkersProperty interface{}) (string, interface{}) {
+func buildNumberOfWorkersProperties(minWorkersProperty any, maxWorkersProperty any) (string, any) {
 	var err error
 
 	// Default settings

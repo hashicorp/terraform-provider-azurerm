@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestContainerRegistryTokenPasswordID(t *testing.T) {
+func TestValidateContainerRegistryTokenPasswordID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool

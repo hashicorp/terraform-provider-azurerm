@@ -14,7 +14,7 @@ func (NullLogger) Info(_ string) {
 
 // Infof prints out a message prefixed with `[INFO]` formatted
 // with the specified arguments
-func (NullLogger) Infof(_ string, _ ...interface{}) {
+func (NullLogger) Infof(_ string, _ ...any) {
 }
 
 // Warn prints out a message prefixed with `[WARN]` formatted verbatim
@@ -23,5 +23,5 @@ func (NullLogger) Warn(_ string) {
 
 // Warnf prints out a message prefixed with `[WARN]` formatted
 // with the specified arguments
-func (NullLogger) Warnf(_ string, _ ...interface{}) {
+func (NullLogger) Warnf(_ string, _ ...any) {
 }

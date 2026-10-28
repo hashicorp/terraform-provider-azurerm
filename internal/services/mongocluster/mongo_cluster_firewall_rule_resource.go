@@ -28,7 +28,7 @@ type MongoClusterFirewallRuleResourceModel struct {
 	StartIpAddress string `tfschema:"start_ip_address"`
 }
 
-func (r MongoClusterFirewallRuleResource) ModelObject() interface{} {
+func (r MongoClusterFirewallRuleResource) ModelObject() any {
 	return &MongoClusterFirewallRuleResourceModel{}
 }
 

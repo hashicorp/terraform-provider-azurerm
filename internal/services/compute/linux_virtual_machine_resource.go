@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -68,7 +68,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineName,
+				ValidateFunc: validate.VirtualMachineName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -83,7 +83,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"os_managed_disk_id",
 				},
 				ForceNew:     true,
-				ValidateFunc: computeValidate.LinuxAdminUsername,
+				ValidateFunc: validate.LinuxAdminUsername,
 			},
 
 			"network_interface_ids": {
@@ -129,7 +129,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     computeValidate.LinuxAdminPassword,
+				ValidateFunc:     validate.LinuxAdminPassword,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -189,7 +189,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 
-				ValidateFunc: computeValidate.LinuxComputerNameFull,
+				ValidateFunc: validate.LinuxComputerNameFull,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
@@ -382,10 +382,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					images.ValidateImageID,
 					validation.AsGeneratedID(galleryimages.ParseGalleryImageIDInsensitively),
 					validation.AsGeneratedID(galleryimageversions.ParseImageVersionIDInsensitively),
-					computeValidate.CommunityGalleryImageID,
-					computeValidate.CommunityGalleryImageVersionID,
-					computeValidate.SharedGalleryImageID,
-					computeValidate.SharedGalleryImageVersionID,
+					validate.CommunityGalleryImageID,
+					validate.CommunityGalleryImageVersionID,
+					validate.SharedGalleryImageID,
+					validate.SharedGalleryImageVersionID,
 				),
 				ExactlyOneOf: []string{
 					"os_managed_disk_id",
@@ -469,7 +469,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 	}
 }
 
-func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -493,7 +493,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]any)
 	additionalCapabilities := expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 
 	allowExtensionOperations := true
@@ -501,7 +501,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
 	}
 
-	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]any)
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	disablePasswordAuthentication := true
@@ -509,11 +509,11 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		disablePasswordAuthentication = d.Get("disable_password_authentication").(bool)
 	}
 
-	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	planRaw := d.Get("plan").([]interface{})
+	planRaw := d.Get("plan").([]any)
 	plan := expandPlan(planRaw)
 	priority := virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string))
 
@@ -523,9 +523,9 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	size := d.Get("size").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
-	networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
+	networkInterfaceIdsRaw := d.Get("network_interface_ids").([]any)
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	managedDiskIdRaw := d.Get("os_managed_disk_id").(string)
@@ -540,7 +540,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Plan:             plan,
 		Properties: &virtualmachines.VirtualMachineProperties{
 			ApplicationProfile: &virtualmachines.ApplicationProfile{
-				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]any)),
 			},
 			HardwareProfile: &virtualmachines.HardwareProfile{
 				VMSize: pointer.ToEnum[virtualmachines.VirtualMachineSizeTypes](size),
@@ -563,7 +563,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
-	osDiskRaw := d.Get("os_disk").([]interface{})
+	osDiskRaw := d.Get("os_disk").([]any)
 	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesLinux)
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
@@ -572,12 +572,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	securityEncryptionType := ""
 
 	if !osDiskIsImported {
-		securityEncryptionType = osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
+		securityEncryptionType = osDiskRaw[0].(map[string]any)["security_encryption_type"].(string)
 		var computerName string
 		if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 			computerName = v.(string)
 		} else {
-			_, errs := computeValidate.LinuxComputerNameFull(d.Get("name"), "computer_name")
+			_, errs := validate.LinuxComputerNameFull(d.Get("name"), "computer_name")
 			if len(errs) > 0 {
 				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
 			}
@@ -587,7 +587,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 		sshKeys := expandSSHKeys(sshKeysRaw)
 
-		secretsRaw := d.Get("secret").([]interface{})
+		secretsRaw := d.Get("secret").([]any)
 		secrets := expandLinuxSecrets(secretsRaw)
 
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
@@ -675,7 +675,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 			params.Properties.OsProfile.AdminPassword = pointer.To(adminPassword)
 		}
 
-		sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+		sourceImageReferenceRaw := d.Get("source_image_reference").([]any)
 		sourceImageId := d.Get("source_image_id").(string)
 		if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
 			params.Properties.StorageProfile.ImageReference = expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
@@ -753,11 +753,11 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	var terminateNotificationProfile *virtualmachines.TerminateNotificationProfile
 
 	if v, ok := d.GetOk("os_image_notification"); ok {
-		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
+		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]any))
 	}
 
 	if v, ok := d.GetOk("termination_notification"); ok {
-		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]any))
 	}
 
 	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
@@ -862,7 +862,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 
-func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1028,7 +1028,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 						}
 						if patchSettings.AutomaticByPlatformSettings != nil {
 							bypassPlatformSafetyChecksOnUserScheduleEnabled = pointer.From(patchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule)
-							rebootSetting = string(pointer.From(patchSettings.AutomaticByPlatformSettings.RebootSetting))
+							rebootSetting = pointer.FromEnum(patchSettings.AutomaticByPlatformSettings.RebootSetting)
 						}
 					}
 				}
@@ -1057,7 +1057,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 			d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 			if profile := props.StorageProfile; profile != nil {
-				d.Set("disk_controller_type", string(pointer.From(props.StorageProfile.DiskControllerType)))
+				d.Set("disk_controller_type", pointer.FromEnum(props.StorageProfile.DiskControllerType))
 
 				if includeResource {
 					// the storage_account_type isn't returned so we need to look it up
@@ -1146,7 +1146,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1194,7 +1194,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("boot_diagnostics") {
 		shouldUpdate = true
 
-		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
+		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]any)
 		update.Properties.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
@@ -1204,7 +1204,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		profile := virtualmachines.OSProfile{}
 
 		if d.HasChange("secret") {
-			secretsRaw := d.Get("secret").([]interface{})
+			secretsRaw := d.Get("secret").([]any)
 			profile.Secrets = expandLinuxSecrets(secretsRaw)
 		}
 
@@ -1212,7 +1212,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("identity") {
-		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -1302,7 +1302,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("gallery_application") {
 		shouldUpdate = true
 		update.Properties.ApplicationProfile = &virtualmachines.ApplicationProfile{
-			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
+			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]any)),
 		}
 	}
 
@@ -1333,7 +1333,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		// @tombuildsstuff: after testing shutting it down isn't sufficient - we need a full deallocation
 		shouldDeallocate = true
 
-		networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
+		networkInterfaceIdsRaw := d.Get("network_interface_ids").([]any)
 		networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 		update.Properties.NetworkProfile = &virtualmachines.NetworkProfile{
@@ -1359,7 +1359,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldShutDown = true
 		shouldDeallocate = true
 
-		osDiskRaw := d.Get("os_disk").([]interface{})
+		osDiskRaw := d.Get("os_disk").([]any)
 		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesLinux)
 		if err != nil {
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
@@ -1565,12 +1565,12 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("os_image_notification") {
 		shouldUpdate = true
-		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]interface{}))
+		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]any))
 	}
 
 	if d.HasChange("termination_notification") {
 		shouldUpdate = true
-		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]any))
 	}
 
 	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
@@ -1583,7 +1583,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("tags") {
 		shouldUpdate = true
 
-		tagsRaw := d.Get("tags").(map[string]interface{})
+		tagsRaw := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
@@ -1591,12 +1591,12 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldUpdate = true
 
 		n, _ := d.GetChange("additional_capabilities")
-		if len(n.([]interface{})) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+		if len(n.([]any)) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
 			shouldShutDown = true
 			shouldDeallocate = true
 		}
 
-		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]any)
 		update.Properties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
@@ -1742,7 +1742,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 
-func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

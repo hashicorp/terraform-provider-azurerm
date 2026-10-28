@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -56,7 +56,7 @@ func (r SharedPrivateLinkServiceResource) Arguments() map[string]*pluginsdk.Sche
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: networkValidate.PrivateLinkSubResourceName,
+			ValidateFunc: validate.PrivateLinkSubResourceName,
 		},
 
 		"target_resource_id": {
@@ -87,7 +87,7 @@ func (r SharedPrivateLinkServiceResource) ResourceType() string {
 	return "azurerm_search_shared_private_link_service"
 }
 
-func (r SharedPrivateLinkServiceResource) ModelObject() interface{} {
+func (r SharedPrivateLinkServiceResource) ModelObject() any {
 	return &SharedPrivateLinkServiceModel{}
 }
 

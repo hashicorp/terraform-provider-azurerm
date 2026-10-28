@@ -110,7 +110,7 @@ func (EventGridPartnerNamespaceResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r EventGridPartnerNamespaceResource) ModelObject() interface{} {
+func (r EventGridPartnerNamespaceResource) ModelObject() any {
 	return &EventGridPartnerNamespaceResourceModel{}
 }
 

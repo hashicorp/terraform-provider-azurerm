@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = PrivateLinkHubId{}
 
-func TestPrivateLinkHubIDFormatter(t *testing.T) {
+func TestParsePrivateLinkHubIDFormatter(t *testing.T) {
 	actual := NewPrivateLinkHubID("12345678-1234-9876-4563-123456789012", "resGroup1", "privateLinkHub1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Synapse/privateLinkHubs/privateLinkHub1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestPrivateLinkHubIDFormatter(t *testing.T) {
 	}
 }
 
-func TestPrivateLinkHubID(t *testing.T) {
+func TestParsePrivateLinkHubID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

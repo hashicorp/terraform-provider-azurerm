@@ -30,7 +30,7 @@ func (r CosmosDbPostgreSQLNodeConfigurationResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_node_configuration"
 }
 
-func (r CosmosDbPostgreSQLNodeConfigurationResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLNodeConfigurationResource) ModelObject() any {
 	return &CosmosDbPostgreSQLNodeConfigurationResource{}
 }
 

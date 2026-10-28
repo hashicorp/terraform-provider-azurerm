@@ -30,7 +30,7 @@ var (
 
 type DnsZoneResource struct{}
 
-func (DnsZoneResource) ModelObject() interface{} {
+func (DnsZoneResource) ModelObject() any {
 	return &DnsZoneResourceModel{}
 }
 

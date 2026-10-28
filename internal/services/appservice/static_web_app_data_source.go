@@ -124,7 +124,7 @@ func (s StaticWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (s StaticWebAppDataSource) ModelObject() interface{} {
+func (s StaticWebAppDataSource) ModelObject() any {
 	return &StaticWebAppDataSourceModel{}
 }
 

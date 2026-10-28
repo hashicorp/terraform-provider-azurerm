@@ -199,7 +199,7 @@ func (ExadataInfraResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ExadataInfraResource) ModelObject() interface{} {
+func (ExadataInfraResource) ModelObject() any {
 	return &ExadataInfraResource{}
 }
 

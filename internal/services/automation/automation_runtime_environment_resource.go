@@ -53,7 +53,7 @@ func (m AutomationRuntimeEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if rd.HasChange("runtime_default_packages") {
 				old, new := rd.GetChange("runtime_default_packages")
-				oldMap, newMap := old.(map[string]interface{}), new.(map[string]interface{})
+				oldMap, newMap := old.(map[string]any), new.(map[string]any)
 
 				// Azure API limitation: Runtime environment packages cannot be removed once added
 				if len(oldMap) > len(newMap) {
@@ -142,7 +142,7 @@ func (m AutomationRuntimeEnvironmentResource) Attributes() map[string]*pluginsdk
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (m AutomationRuntimeEnvironmentResource) ModelObject() interface{} {
+func (m AutomationRuntimeEnvironmentResource) ModelObject() any {
 	return &AutomationRuntimeEnvironmentResourceModel{}
 }
 

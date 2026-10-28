@@ -215,7 +215,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta any) bool {
 				return old.(bool) && !new.(bool)
 			}),
 			validate.CMKIdentityIdRequiredAtCreation,
@@ -223,7 +223,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -252,7 +252,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = factories.PublicNetworkAccessDisabled
 	}
 
-	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -264,7 +264,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
 		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if purviewId, ok := d.GetOk("purview_id"); ok {
@@ -298,7 +298,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.SetId(id.ID())
 
-	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]interface{}))
+	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]any))
 	if githubConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
 			FactoryResourceId: pointer.To(id.ID()),
@@ -309,7 +309,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
 		}
 	}
-	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]interface{}))
+	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]any))
 	if vstsConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
 			FactoryResourceId: pointer.To(id.ID()),
@@ -334,7 +334,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceDataFactoryRead(d, meta)
 }
 
-func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -440,7 +440,7 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -457,7 +457,7 @@ func resourceDataFactoryDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factories.GlobalParameterSpecification, error) {
+func expandDataFactoryGlobalParameters(input []any) (*map[string]factories.GlobalParameterSpecification, error) {
 	result := make(map[string]factories.GlobalParameterSpecification)
 	if len(input) == 0 {
 		return &result, nil
@@ -466,7 +466,7 @@ func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factori
 		if item == nil {
 			continue
 		}
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		name := v["name"].(string)
 		if _, ok := v[name]; ok {
@@ -481,8 +481,8 @@ func expandDataFactoryGlobalParameters(input []interface{}) (*map[string]factori
 	return &result, nil
 }
 
-func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParameterSpecification) (*[]interface{}, error) {
-	output := make([]interface{}, 0)
+func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParameterSpecification) (*[]any, error) {
+	output := make([]any, 0)
 	if input == nil || len(*input) == 0 {
 		return &output, nil
 	}
@@ -500,7 +500,7 @@ func flattenDataFactoryGlobalParameters(input *map[string]factories.GlobalParame
 			valueResult = fmt.Sprintf("%v", item.Value)
 		}
 
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":  name,
 			"type":  string(item.Type),
 			"value": valueResult,
@@ -529,12 +529,12 @@ func getManagedVirtualNetworkName(ctx context.Context, client *managedvirtualnet
 	return nil, nil
 }
 
-func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHubConfiguration {
+func expandGitHubRepoConfiguration(input []any) *factories.FactoryGitHubConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	item := input[0].(map[string]interface{})
+	item := input[0].(map[string]any)
 	return &factories.FactoryGitHubConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
@@ -545,15 +545,15 @@ func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHub
 	}
 }
 
-func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
 		publishingEnabled := true
 		if v.DisablePublish != nil {
 			publishingEnabled = !*v.DisablePublish
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":       v.AccountName,
 			"branch_name":        v.CollaborationBranch,
 			"git_url":            pointer.From(v.HostName),
@@ -566,12 +566,12 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 	return output
 }
 
-func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConfiguration {
+func expandVSTSRepoConfiguration(input []any) *factories.FactoryVSTSConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
 
-	item := input[0].(map[string]interface{})
+	item := input[0].(map[string]any)
 	return &factories.FactoryVSTSConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
@@ -583,15 +583,15 @@ func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConf
 	}
 }
 
-func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
 		publishingEnabled := true
 		if v.DisablePublish != nil {
 			publishingEnabled = !*v.DisablePublish
 		}
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":       v.AccountName,
 			"branch_name":        v.CollaborationBranch,
 			"project_name":       v.ProjectName,

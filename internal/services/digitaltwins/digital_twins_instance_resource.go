@@ -65,7 +65,7 @@ func resourceDigitalTwinsInstance() *pluginsdk.Resource {
 	}
 }
 
-func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -85,7 +85,7 @@ func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -93,7 +93,7 @@ func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interfac
 	payload := digitaltwinsinstance.DigitalTwinsDescription{
 		Location: location.Normalize(d.Get("location").(string)),
 		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.DigitalTwinsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -104,7 +104,7 @@ func resourceDigitalTwinsInstanceCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceDigitalTwinsInstanceRead(d, meta)
 }
 
-func resourceDigitalTwinsInstanceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceDigitalTwinsInstanceRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 	props := digitaltwinsinstance.DigitalTwinsPatchDescription{}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -171,7 +171,7 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("tags") {
-		props.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		props.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.DigitalTwinsUpdateThenPoll(ctx, *id, props); err != nil {
@@ -181,7 +181,7 @@ func resourceDigitalTwinsInstanceUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceDigitalTwinsInstanceRead(d, meta)
 }
 
-func resourceDigitalTwinsInstanceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

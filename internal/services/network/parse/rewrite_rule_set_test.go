@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = RewriteRuleSetId{}
 
-func TestRewriteRuleSetIDFormatter(t *testing.T) {
+func TestParseRewriteRuleSetIDFormatter(t *testing.T) {
 	actual := NewRewriteRuleSetID("12345678-1234-9876-4563-123456789012", "group1", "applicationGateway1", "rewriteRuleSet1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/applicationGateway1/rewriteRuleSets/rewriteRuleSet1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestRewriteRuleSetIDFormatter(t *testing.T) {
 	}
 }
 
-func TestRewriteRuleSetID(t *testing.T) {
+func TestParseRewriteRuleSetID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestRewriteRuleSetID(t *testing.T) {
 	}
 }
 
-func TestRewriteRuleSetIDInsensitively(t *testing.T) {
+func TestParseRewriteRuleSetIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

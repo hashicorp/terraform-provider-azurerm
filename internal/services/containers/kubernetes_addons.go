@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -256,7 +256,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"key_vault_secrets_provider.0.secret_rotation_enabled",
 							"key_vault_secrets_provider.0.secret_rotation_interval",
 						},
-						ValidateFunc: containerValidate.Duration,
+						ValidateFunc: validate.Duration,
 					},
 					"secret_identity": {
 						Type:     pluginsdk.TypeList,
@@ -284,14 +284,14 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	}
 }
 
-func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
+func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]any, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	disabled := managedclusters.ManagedClusterAddonProfile{}
 
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
-	confidentialComputing := input["confidential_computing"].([]interface{})
+	confidentialComputing := input["confidential_computing"].([]any)
 	if len(confidentialComputing) > 0 && confidentialComputing[0] != nil {
-		value := confidentialComputing[0].(map[string]interface{})
+		value := confidentialComputing[0].(map[string]any)
 		config := make(map[string]string)
 		quoteHelperEnabled := "false"
 		if value["sgx_quote_helper_enabled"].(bool) {
@@ -312,9 +312,9 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		}
 	}
 
-	omsAgent := input["oms_agent"].([]interface{})
+	omsAgent := input["oms_agent"].([]any)
 	if len(omsAgent) > 0 && omsAgent[0] != nil {
-		value := omsAgent[0].(map[string]interface{})
+		value := omsAgent[0].(map[string]any)
 		config := make(map[string]string)
 
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
@@ -341,9 +341,9 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		addonProfiles[omsAgentKey] = disabled
 	}
 
-	aciConnector := input["aci_connector_linux"].([]interface{})
+	aciConnector := input["aci_connector_linux"].([]any)
 	if len(aciConnector) > 0 && aciConnector[0] != nil {
-		value := aciConnector[0].(map[string]interface{})
+		value := aciConnector[0].(map[string]any)
 		config := make(map[string]string)
 
 		if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
@@ -367,9 +367,9 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		}),
 	}
 
-	ingressApplicationGateway := input["ingress_application_gateway"].([]interface{})
+	ingressApplicationGateway := input["ingress_application_gateway"].([]any)
 	if len(ingressApplicationGateway) > 0 && ingressApplicationGateway[0] != nil {
-		value := ingressApplicationGateway[0].(map[string]interface{})
+		value := ingressApplicationGateway[0].(map[string]any)
 		config := make(map[string]string)
 
 		if gatewayId, ok := value["gateway_id"]; ok && gatewayId != "" {
@@ -402,9 +402,9 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 		}
 	}
 
-	azureKeyVaultSecretsProvider := input["key_vault_secrets_provider"].([]interface{})
+	azureKeyVaultSecretsProvider := input["key_vault_secrets_provider"].([]any)
 	if len(azureKeyVaultSecretsProvider) > 0 && azureKeyVaultSecretsProvider[0] != nil {
-		value := azureKeyVaultSecretsProvider[0].(map[string]interface{})
+		value := azureKeyVaultSecretsProvider[0].(map[string]any)
 		config := make(map[string]string)
 
 		config["enableSecretRotation"] = fmt.Sprintf("%t", value["secret_rotation_enabled"].(bool))
@@ -450,8 +450,8 @@ func filterUnsupportedKubernetesAddOns(input map[string]managedclusters.ManagedC
 	return &output, nil
 }
 
-func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) map[string]interface{} {
-	aciConnectors := make([]interface{}, 0)
+func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) map[string]any {
+	aciConnectors := make([]any, 0)
 	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
 	if enabled := aciConnector.Enabled; enabled {
 		subnetName := ""
@@ -461,7 +461,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 
 		identity := flattenKubernetesClusterAddOnIdentityProfile(aciConnector.Identity)
 
-		aciConnectors = append(aciConnectors, map[string]interface{}{
+		aciConnectors = append(aciConnectors, map[string]any{
 			"subnet_name":        subnetName,
 			"connector_identity": identity,
 		})
@@ -473,14 +473,14 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		azurePolicyEnabled = enabledVal
 	}
 
-	confidentialComputings := make([]interface{}, 0)
+	confidentialComputings := make([]any, 0)
 	confidentialComputing := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
 	if enabled := confidentialComputing.Enabled; enabled {
 		quoteHelperEnabled := false
 		if v := kubernetesAddonProfilelocateInConfig(confidentialComputing.Config, "ACCSGXQuoteHelperEnabled"); v != "" && v != "false" {
 			quoteHelperEnabled = true
 		}
-		confidentialComputings = append(confidentialComputings, map[string]interface{}{
+		confidentialComputings = append(confidentialComputings, map[string]any{
 			"sgx_quote_helper_enabled": quoteHelperEnabled,
 		})
 	}
@@ -496,7 +496,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		httpApplicationRoutingZone = v
 	}
 
-	omsAgents := make([]interface{}, 0)
+	omsAgents := make([]any, 0)
 	omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
@@ -519,7 +519,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
 
-		omsAgents = append(omsAgents, map[string]interface{}{
+		omsAgents = append(omsAgents, map[string]any{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
 			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
@@ -527,7 +527,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		})
 	}
 
-	ingressApplicationGateways := make([]interface{}, 0)
+	ingressApplicationGateways := make([]any, 0)
 	ingressApplicationGateway := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
 	if enabled := ingressApplicationGateway.Enabled; enabled {
 		gatewayId := ""
@@ -558,7 +558,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 
 		ingressApplicationGatewayIdentity := flattenKubernetesClusterAddOnIdentityProfile(ingressApplicationGateway.Identity)
 
-		ingressApplicationGateways = append(ingressApplicationGateways, map[string]interface{}{
+		ingressApplicationGateways = append(ingressApplicationGateways, map[string]any{
 			"gateway_id":                           gatewayId,
 			"gateway_name":                         gatewayName,
 			"effective_gateway_id":                 effectiveGatewayId,
@@ -574,7 +574,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		openServiceMeshEnabled = enabledVal
 	}
 
-	azureKeyVaultSecretsProviders := make([]interface{}, 0)
+	azureKeyVaultSecretsProviders := make([]any, 0)
 	azureKeyVaultSecretsProvider := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
 	if enabled := azureKeyVaultSecretsProvider.Enabled; enabled {
 		enableSecretRotation := false
@@ -590,14 +590,14 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 
 		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfile(azureKeyVaultSecretsProvider.Identity)
 
-		azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]interface{}{
+		azureKeyVaultSecretsProviders = append(azureKeyVaultSecretsProviders, map[string]any{
 			"secret_rotation_enabled":  enableSecretRotation,
 			"secret_rotation_interval": rotationPollInterval,
 			"secret_identity":          azureKeyvaultSecretsProviderIdentity,
 		})
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"aci_connector_linux":                aciConnectors,
 		"azure_policy_enabled":               azurePolicyEnabled,
 		"confidential_computing":             confidentialComputings,
@@ -610,19 +610,19 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	}
 }
 
-func flattenKubernetesClusterAddOnIdentityProfile(profile *managedclusters.UserAssignedIdentity) []interface{} {
+func flattenKubernetesClusterAddOnIdentityProfile(profile *managedclusters.UserAssignedIdentity) []any {
 	if profile == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	identity := make([]interface{}, 0)
+	identity := make([]any, 0)
 	clientID := pointer.From(profile.ClientId)
 
 	objectID := pointer.From(profile.ObjectId)
 
 	userAssignedIdentityID := pointer.From(profile.ResourceId)
 
-	identity = append(identity, map[string]interface{}{
+	identity = append(identity, map[string]any{
 		"client_id":                 clientID,
 		"object_id":                 objectID,
 		"user_assigned_identity_id": userAssignedIdentityID,
@@ -631,16 +631,16 @@ func flattenKubernetesClusterAddOnIdentityProfile(profile *managedclusters.UserA
 	return identity
 }
 
-func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]interface{} {
-	return map[string]interface{}{
-		"aci_connector_linux":              d.Get("aci_connector_linux").([]interface{}),
+func collectKubernetesAddons(d *pluginsdk.ResourceData) map[string]any {
+	return map[string]any{
+		"aci_connector_linux":              d.Get("aci_connector_linux").([]any),
 		"azure_policy_enabled":             d.Get("azure_policy_enabled").(bool),
-		"confidential_computing":           d.Get("confidential_computing").([]interface{}),
+		"confidential_computing":           d.Get("confidential_computing").([]any),
 		"http_application_routing_enabled": d.Get("http_application_routing_enabled").(bool),
-		"oms_agent":                        d.Get("oms_agent").([]interface{}),
-		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]interface{}),
+		"oms_agent":                        d.Get("oms_agent").([]any),
+		"ingress_application_gateway":      d.Get("ingress_application_gateway").([]any),
 		"open_service_mesh_enabled":        d.Get("open_service_mesh_enabled").(bool),
-		"key_vault_secrets_provider":       d.Get("key_vault_secrets_provider").([]interface{}),
+		"key_vault_secrets_provider":       d.Get("key_vault_secrets_provider").([]any),
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ManagementLockName(v interface{}, k string) ([]string, []error) {
+func ManagementLockName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringMatch(regexp.MustCompile(`[A-Za-z0-9-_]`), "can only consist of alphanumeric characters, dashes and underscores"),
 		validation.StringLenBetween(0, 259),

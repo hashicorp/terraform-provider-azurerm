@@ -31,7 +31,7 @@ func (r LogAnalyticsWorkspaceOnboardResource) ResourceType() string {
 	return "azurerm_sentinel_log_analytics_workspace_onboarding"
 }
 
-func (r LogAnalyticsWorkspaceOnboardResource) ModelObject() interface{} {
+func (r LogAnalyticsWorkspaceOnboardResource) ModelObject() any {
 	return &SecurityInsightsSentinelOnboardingStateModel{}
 }
 

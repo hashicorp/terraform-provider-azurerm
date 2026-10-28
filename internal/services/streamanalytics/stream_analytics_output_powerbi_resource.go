@@ -95,7 +95,7 @@ func (r OutputPowerBIResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r OutputPowerBIResource) ModelObject() interface{} {
+func (r OutputPowerBIResource) ModelObject() any {
 	return &OutputPowerBIResourceModel{}
 }
 

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryLinkedServiceCosmosDb() *pluginsdk.Resource {
@@ -123,7 +123,7 @@ func resourceDataFactoryLinkedServiceCosmosDb() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	subscriptionId := meta.(*clients.Client).DataFactory.LinkedServiceClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -184,7 +184,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		cosmosdbLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
+		cosmosdbLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -192,11 +192,11 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		cosmosdbLinkedService.AdditionalProperties = v.(map[string]interface{})
+		cosmosdbLinkedService.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		cosmosdbLinkedService.Annotations = pointer.To(v.([]interface{}))
+		cosmosdbLinkedService.Annotations = pointer.To(v.([]any))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -212,7 +212,7 @@ func resourceDataFactoryLinkedServiceCosmosDbCreateUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryLinkedServiceCosmosDbRead(d, meta)
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -269,7 +269,7 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceDataFactoryLinkedServiceCosmosDbDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryLinkedServiceCosmosDbDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -72,7 +72,7 @@ func resourceArmRelayHybridConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -116,7 +116,7 @@ func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 
-func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

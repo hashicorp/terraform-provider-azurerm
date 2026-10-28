@@ -97,7 +97,7 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -158,7 +158,7 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]interface{}))
+		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]any))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName, connection); err != nil {
@@ -169,7 +169,7 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceArmBotConnectionRead(d, meta)
 }
 
-func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +206,7 @@ func resourceArmBotConnectionRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]interface{}))
+		connection.Properties.Parameters = expandBotConnectionParameters(v.(map[string]any))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName, connection); err != nil {
@@ -238,7 +238,7 @@ func resourceArmBotConnectionUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceArmBotConnectionRead(d, meta)
 }
 
-func resourceArmBotConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmBotConnectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,7 +258,7 @@ func resourceArmBotConnectionDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.ConnectionSettingParameter {
+func expandBotConnectionParameters(input map[string]any) *[]botservice.ConnectionSettingParameter {
 	output := make([]botservice.ConnectionSettingParameter, 0)
 
 	for k, v := range input {
@@ -270,8 +270,8 @@ func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.C
 	return &output
 }
 
-func flattenBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]any {
+	output := make(map[string]any)
 	if input == nil {
 		return output
 	}

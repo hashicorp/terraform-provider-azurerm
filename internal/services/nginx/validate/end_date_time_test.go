@@ -12,7 +12,7 @@ import (
 
 func TestValidateNetAppBackupPolicyCombinedRetention(t *testing.T) {
 	cases := []struct {
-		input interface{}
+		input any
 		valid bool
 	}{
 		{

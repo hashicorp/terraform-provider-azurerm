@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -462,7 +462,7 @@ func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Contex
 
 	resp.Model.Properties.ApplicationRuleCollections = &rules
 
-	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *resp.Model); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *resp.Model, azurefirewalls.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("removing Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 

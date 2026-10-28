@@ -169,7 +169,7 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta any) error {
 	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -218,7 +218,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 
 		gpuDriver := ""
 		if props.GpuProfile != nil {
-			gpuDriver = string(pointer.From(props.GpuProfile.Driver))
+			gpuDriver = pointer.FromEnum(props.GpuProfile.Driver)
 		}
 		d.Set("gpu_driver", gpuDriver)
 

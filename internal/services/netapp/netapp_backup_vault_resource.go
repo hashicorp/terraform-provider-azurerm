@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
-	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -29,8 +29,8 @@ type NetAppBackupVaultResource struct{}
 
 var _ sdk.Resource = NetAppBackupVaultResource{}
 
-func (r NetAppBackupVaultResource) ModelObject() interface{} {
-	return &netAppModels.NetAppBackupVaultModel{}
+func (r NetAppBackupVaultResource) ModelObject() any {
+	return &models.NetAppBackupVaultModel{}
 }
 
 func (r NetAppBackupVaultResource) ResourceType() string {
@@ -47,7 +47,7 @@ func (r NetAppBackupVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.VolumeQuotaRuleName,
+			ValidateFunc: validate.VolumeQuotaRuleName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -58,7 +58,7 @@ func (r NetAppBackupVaultResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: netAppValidate.AccountName,
+			ValidateFunc: validate.AccountName,
 		},
 
 		"tags": commonschema.Tags(),
@@ -76,7 +76,7 @@ func (r NetAppBackupVaultResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.NetApp.BackupVaultsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppBackupVaultModel
+			var model models.NetAppBackupVaultModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -123,7 +123,7 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppBackupVaultModel
+			var state models.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -154,7 +154,7 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var state netAppModels.NetAppBackupVaultModel
+			var state models.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -265,7 +265,7 @@ func waitForBackupVaultDeletion(ctx context.Context, vaultClient *backupvaults.B
 }
 
 func netappBackupVaultStateRefreshFunc(ctx context.Context, vaultClient *backupvaults.BackupVaultsClient, backupClient *backups.BackupsClient, id backupvaults.BackupVaultId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		res, err := vaultClient.Get(ctx, id)
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {

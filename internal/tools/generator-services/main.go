@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk" // nolint: typecheck
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 // Packages in this list are deprecated and cannot be run due to breaking API changes

@@ -90,7 +90,7 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 	}
 }
 
-func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Sku: capacities.CapacitySku{
 			Name: d.Get("sku_name").(string),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -135,7 +135,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +187,7 @@ func resourcePowerBIEmbeddedRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,7 +218,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -228,7 +228,7 @@ func resourcePowerBIEmbeddedUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourcePowerBIEmbeddedRead(d, meta)
 }
 
-func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePowerBIEmbeddedDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).PowerBI.CapacityClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

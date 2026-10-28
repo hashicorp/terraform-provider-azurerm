@@ -24,7 +24,7 @@ type ManagedDisksDataSource struct{}
 
 var _ sdk.DataSource = &ManagedDisksDataSource{}
 
-func (m ManagedDisksDataSource) ModelObject() interface{} {
+func (m ManagedDisksDataSource) ModelObject() any {
 	return &ManagedDisksDataSourceModel{}
 }
 

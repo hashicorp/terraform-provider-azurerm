@@ -41,7 +41,7 @@ func (r MachineLearningDataStoreBlobStorage) Attributes() map[string]*schema.Sch
 	return nil
 }
 
-func (r MachineLearningDataStoreBlobStorage) ModelObject() interface{} {
+func (r MachineLearningDataStoreBlobStorage) ModelObject() any {
 	return &MachineLearningDataStoreBlobStorageModel{}
 }
 

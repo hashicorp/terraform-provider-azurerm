@@ -58,7 +58,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtection() *p
 	}
 }
 
-func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionCreat
 	return resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead(d, meta)
 }
 
-func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionRead(
 	return nil
 }
 
-func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorMicrosoftDefenderAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

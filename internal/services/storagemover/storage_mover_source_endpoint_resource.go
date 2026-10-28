@@ -45,7 +45,7 @@ func (r StorageMoverSourceEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_source_endpoint"
 }
 
-func (r StorageMoverSourceEndpointResource) ModelObject() interface{} {
+func (r StorageMoverSourceEndpointResource) ModelObject() any {
 	return &StorageMoverSourceEndpointModel{}
 }
 

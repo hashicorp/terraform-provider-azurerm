@@ -490,7 +490,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupPriority(), false),
 			},
 		},
-		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			if p := d.Get("priority").(string); p == string(containerinstance.ContainerGroupPrioritySpot) {
 				if d.Get("ip_address_type").(string) != "None" {
 					return fmt.Errorf("`ip_address_type` has to be `None` when `priority` is set to `Spot`")
@@ -617,7 +617,7 @@ func containerSecurityContextSchema() *pluginsdk.Schema {
 	}
 }
 
-func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -642,9 +642,9 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	restartPolicy := containerinstance.ContainerGroupRestartPolicy(d.Get("restart_policy").(string))
-	diagnosticsRaw := d.Get("diagnostics").([]interface{})
+	diagnosticsRaw := d.Get("diagnostics").([]any)
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
-	dnsConfig := d.Get("dns_config").([]interface{})
+	dnsConfig := d.Get("dns_config").([]any)
 	addedEmptyDirs := map[string]bool{}
 	subnets, err := expandContainerGroupSubnets(d.Get("subnet_ids").(*pluginsdk.Set).List())
 	if err != nil {
@@ -672,7 +672,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     pointer.To(id.ContainerGroupName),
 		Location: &location,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
 			Sku:                      pointer.ToEnum[containerinstance.ContainerGroupSku](d.Get("sku").(string)),
 			InitContainers:           initContainers,
@@ -688,7 +688,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Zones: &zones,
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -749,7 +749,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceContainerGroupRead(d, meta)
 }
 
-func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -770,7 +770,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	model := *existing.Model
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -796,7 +796,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		model.Properties.Volumes = pointer.To(containerGroupVolumes)
 
 		// As API doesn't return the value of WorkspaceKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
-		if diagnostics := expandContainerGroupDiagnostics(d.Get("diagnostics").([]interface{})); diagnostics != nil && diagnostics.LogAnalytics != nil {
+		if diagnostics := expandContainerGroupDiagnostics(d.Get("diagnostics").([]any)); diagnostics != nil && diagnostics.LogAnalytics != nil {
 			model.Properties.Diagnostics.LogAnalytics.WorkspaceKey = diagnostics.LogAnalytics.WorkspaceKey
 		}
 
@@ -808,7 +808,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("tags") {
 		updateParameters := containerinstance.ContainerGroupUpdate{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags: tags.Expand(d.Get("tags").(map[string]any)),
 		}
 
 		// As CreateOrUpdate API doesn't support to update tags, so it has to use Update API to update tags
@@ -820,7 +820,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceContainerGroupRead(d, meta)
 }
 
-func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -887,7 +887,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if address := props.IPAddress; address != nil {
 			d.Set("ip_address_type", address.Type)
 			d.Set("ip_address", address.IP)
-			exposedPorts := make([]interface{}, len(address.Ports))
+			exposedPorts := make([]any, len(address.Ports))
 			for i := range address.Ports {
 				exposedPorts[i] = address.Ports[i]
 			}
@@ -954,11 +954,11 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func flattenPorts(ports []interface{}) *pluginsdk.Set {
+func flattenPorts(ports []any) *pluginsdk.Set {
 	if len(ports) > 0 {
-		flatPorts := make([]interface{}, 0)
+		flatPorts := make([]any, 0)
 		for _, p := range ports {
-			port := make(map[string]interface{})
+			port := make(map[string]any)
 			switch t := p.(type) {
 			case containerinstance.Port:
 				port["port"] = int(t.Port)
@@ -979,10 +979,10 @@ func flattenPorts(ports []interface{}) *pluginsdk.Set {
 		}
 		return pluginsdk.NewSet(resourceContainerGroupPortsHash, flatPorts)
 	}
-	return pluginsdk.NewSet(resourceContainerGroupPortsHash, make([]interface{}, 0))
+	return pluginsdk.NewSet(resourceContainerGroupPortsHash, make([]any, 0))
 }
 
-func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerInstanceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1026,11 +1026,11 @@ func resourceContainerGroupDelete(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) (*[]containerinstance.InitContainerDefinition, []containerinstance.Volume, error) {
-	containersConfig := d.Get("init_container").([]interface{})
+	containersConfig := d.Get("init_container").([]any)
 	containers := make([]containerinstance.InitContainerDefinition, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
 	for _, containerConfig := range containersConfig {
-		data := containerConfig.(map[string]interface{})
+		data := containerConfig.(map[string]any)
 
 		name := data["name"].(string)
 		image := data["image"].(string)
@@ -1039,7 +1039,7 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 			Name: name,
 			Properties: containerinstance.InitContainerPropertiesDefinition{
 				Image:           pointer.To(image),
-				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
+				SecurityContext: expandContainerSecurityContext(data["security"].([]any)),
 			},
 		}
 
@@ -1064,7 +1064,7 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 		container.Properties.EnvironmentVariables = envVars
 
 		if v, ok := data["commands"]; ok {
-			c := v.([]interface{})
+			c := v.([]any)
 			command := make([]string, 0)
 			for _, v := range c {
 				command = append(command, v.(string))
@@ -1093,39 +1093,39 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 	return &containers, containerGroupVolumes, nil
 }
 
-func expandContainerSecurityContext(input []interface{}) *containerinstance.SecurityContextDefinition {
+func expandContainerSecurityContext(input []any) *containerinstance.SecurityContextDefinition {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	return &containerinstance.SecurityContextDefinition{
 		Privileged: pointer.To(raw["privilege_enabled"].(bool)),
 	}
 }
 
-func flattenContainerSecurityContext(input *containerinstance.SecurityContextDefinition) []interface{} {
+func flattenContainerSecurityContext(input *containerinstance.SecurityContextDefinition) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"privilege_enabled": pointer.From(input.Privileged),
 		},
 	}
 }
 
 func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs map[string]bool) ([]containerinstance.Container, []containerinstance.Port, []containerinstance.Volume, error) {
-	containersConfig := d.Get("container").([]interface{})
+	containersConfig := d.Get("container").([]any)
 	containers := make([]containerinstance.Container, 0)
 	containerInstancePorts := make([]containerinstance.Port, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
 
 	for _, containerConfig := range containersConfig {
-		data := containerConfig.(map[string]interface{})
+		data := containerConfig.(map[string]any)
 
 		name := data["name"].(string)
 		cpu := data["cpu"].(float64)
@@ -1141,7 +1141,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 						Cpu:        cpu,
 					},
 				},
-				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
+				SecurityContext: expandContainerSecurityContext(data["security"].([]any)),
 			},
 		}
 
@@ -1163,7 +1163,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 		if v, ok := data["ports"].(*pluginsdk.Set); ok && len(v.List()) > 0 {
 			var ports []containerinstance.ContainerPort
 			for _, v := range v.List() {
-				portObj := v.(map[string]interface{})
+				portObj := v.(map[string]any)
 
 				port := int64(portObj["port"].(int))
 				proto := portObj["protocol"].(string)
@@ -1201,7 +1201,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 		container.Properties.EnvironmentVariables = envVars
 
 		if v, ok := data["commands"]; ok {
-			c := v.([]interface{})
+			c := v.([]any)
 			command := make([]string, 0)
 			for _, v := range c {
 				command = append(command, v.(string))
@@ -1254,7 +1254,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 		}
 
 		for _, p := range v.List() {
-			portConfig := p.(map[string]interface{})
+			portConfig := p.(map[string]any)
 			port := int64(portConfig["port"].(int))
 			proto := portConfig["protocol"].(string)
 			if !cgpMap[port][containerinstance.ContainerGroupNetworkProtocol(proto)] {
@@ -1275,7 +1275,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 	return containers, containerGroupPorts, containerGroupVolumes, nil
 }
 
-func expandContainerVolume(v interface{}, addedEmptyDirs map[string]bool, containerGroupVolumes []containerinstance.Volume) ([]containerinstance.Volume, error) {
+func expandContainerVolume(v any, addedEmptyDirs map[string]bool, containerGroupVolumes []containerinstance.Volume) ([]containerinstance.Volume, error) {
 	_, containerVolumes, err := expandSingleContainerVolume(v)
 	if err != nil {
 		return nil, err
@@ -1296,8 +1296,8 @@ func expandContainerVolume(v interface{}, addedEmptyDirs map[string]bool, contai
 	return containerGroupVolumes, nil
 }
 
-func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
-	envVars := input.(map[string]interface{})
+func expandContainerEnvironmentVariables(input any, secure bool) *[]containerinstance.EnvironmentVariable {
+	envVars := input.(map[string]any)
 	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
 	if secure {
@@ -1323,7 +1323,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 }
 
 func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]containerinstance.ImageRegistryCredential {
-	credsRaw := d.Get("image_registry_credential").([]interface{})
+	credsRaw := d.Get("image_registry_credential").([]any)
 	if len(credsRaw) == 0 {
 		return nil
 	}
@@ -1331,7 +1331,7 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 	output := make([]containerinstance.ImageRegistryCredential, 0, len(credsRaw))
 
 	for _, c := range credsRaw {
-		credConfig := c.(map[string]interface{})
+		credConfig := c.(map[string]any)
 
 		imageRegistryCredential := containerinstance.ImageRegistryCredential{}
 		if v := credConfig["server"]; v != nil && v != "" {
@@ -1353,8 +1353,8 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 	return &output
 }
 
-func expandSingleContainerVolume(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
-	volumesRaw := input.([]interface{})
+func expandSingleContainerVolume(input any) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
+	volumesRaw := input.([]any)
 
 	if len(volumesRaw) == 0 {
 		return nil, nil, nil
@@ -1364,7 +1364,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
 
 	for _, volumeRaw := range volumesRaw {
-		volumeConfig := volumeRaw.(map[string]interface{})
+		volumeConfig := volumeRaw.(map[string]any)
 
 		name := volumeConfig["name"].(string)
 		mountPath := volumeConfig["mount_path"].(string)
@@ -1386,16 +1386,16 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 			Name: name,
 		}
 
-		secret := expandSecrets(volumeConfig["secret"].(map[string]interface{}))
+		secret := expandSecrets(volumeConfig["secret"].(map[string]any))
 
-		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
+		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]any))
 
 		switch {
 		case emptyDir:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil || gitRepoVolume != nil {
 				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
-			var m interface{} = map[string]string{}
+			var m any = map[string]string{}
 			cv.EmptyDir = &m
 		case gitRepoVolume != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil {
@@ -1427,11 +1427,11 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 	return &volumeMounts, &containerGroupVolumes, nil
 }
 
-func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
+func expandGitRepoVolume(input []any) *containerinstance.GitRepoVolume {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	gitRepoVolume := &containerinstance.GitRepoVolume{
 		Repository: v["url"].(string),
 	}
@@ -1444,7 +1444,7 @@ func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
 	return gitRepoVolume
 }
 
-func expandSecrets(secretsMap map[string]interface{}) map[string]string {
+func expandSecrets(secretsMap map[string]any) map[string]string {
 	if len(secretsMap) == 0 {
 		return nil
 	}
@@ -1457,9 +1457,9 @@ func expandSecrets(secretsMap map[string]interface{}) map[string]string {
 	return output
 }
 
-func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
+func expandContainerProbe(input any) *containerinstance.ContainerProbe {
 	probe := containerinstance.ContainerProbe{}
-	probeRaw := input.([]interface{})
+	probeRaw := input.([]any)
 
 	if len(probeRaw) == 0 {
 		return nil
@@ -1469,7 +1469,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		if p == nil {
 			continue
 		}
-		probeConfig := p.(map[string]interface{})
+		probeConfig := p.(map[string]any)
 
 		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
 			probe.InitialDelaySeconds = pointer.To(int64(v))
@@ -1491,7 +1491,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 			probe.TimeoutSeconds = pointer.To(int64(v))
 		}
 
-		commands := probeConfig["exec"].([]interface{})
+		commands := probeConfig["exec"].([]any)
 		if len(commands) > 0 {
 			exec := containerinstance.ContainerExec{
 				Command: pluginsdk.ExpandStringSlice(commands),
@@ -1499,13 +1499,13 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 			probe.Exec = &exec
 		}
 
-		httpRaw := probeConfig["http_get"].([]interface{})
+		httpRaw := probeConfig["http_get"].([]any)
 		if len(httpRaw) > 0 {
 			for _, httpget := range httpRaw {
 				if httpget == nil {
 					continue
 				}
-				x := httpget.(map[string]interface{})
+				x := httpget.(map[string]any)
 
 				path := x["path"].(string)
 				port := x["port"].(int)
@@ -1515,7 +1515,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 					Path:        pointer.To(path),
 					Port:        int64(port),
 					Scheme:      pointer.ToEnum[containerinstance.Scheme](scheme),
-					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
+					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]any)),
 				}
 			}
 		}
@@ -1523,7 +1523,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 	return &probe
 }
 
-func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containerinstance.HTTPHeader {
+func expandContainerProbeHttpHeaders(input map[string]any) *[]containerinstance.HTTPHeader {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1539,12 +1539,12 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 	return &headers
 }
 
-func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]interface{} {
+func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map[string]any {
 	if input == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
 
-	output := map[string]interface{}{}
+	output := map[string]any{}
 	for _, header := range *input {
 		name := pointer.From(header.Name)
 		output[name] = pointer.From(header.Value)
@@ -1552,21 +1552,21 @@ func flattenContainerProbeHttpHeaders(input *[]containerinstance.HTTPHeader) map
 	return output
 }
 
-func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
+func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *[]containerinstance.ImageRegistryCredential) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	configsOld := d.Get("image_registry_credential").([]interface{})
+	configsOld := d.Get("image_registry_credential").([]any)
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 	for i, cred := range *input {
-		credConfig := make(map[string]interface{})
+		credConfig := make(map[string]any)
 		credConfig["server"] = cred.Server
 		credConfig["username"] = cred.Username
 		credConfig["user_assigned_identity_id"] = cred.Identity
 
 		if len(configsOld) > i {
-			data := configsOld[i].(map[string]interface{})
+			data := configsOld[i].(map[string]any)
 			oldServer := data["server"].(string)
 			if cred.Server == oldServer {
 				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
@@ -1580,25 +1580,25 @@ func flattenContainerImageRegistryCredentials(d *pluginsdk.ResourceData, input *
 	return output
 }
 
-func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContainers *[]containerinstance.InitContainerDefinition, containerGroupVolumes *[]containerinstance.Volume) []any {
 	if initContainers == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
-	for i, c := range d.Get("init_container").([]interface{}) {
-		cfg := c.(map[string]interface{})
+	for i, c := range d.Get("init_container").([]any) {
+		cfg := c.(map[string]any)
 		nameIndexMap[cfg["name"].(string)] = i
 	}
 
-	containerCfg := make([]interface{}, 0, len(*initContainers))
+	containerCfg := make([]any, 0, len(*initContainers))
 	for _, container := range *initContainers {
 		name := container.Name
 
 		// get index from name
 		index := nameIndexMap[name]
 
-		containerConfig := make(map[string]interface{})
+		containerConfig := make(map[string]any)
 		containerConfig["name"] = name
 
 		if v := container.Properties.Image; v != nil {
@@ -1619,7 +1619,7 @@ func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContaine
 		containerConfig["commands"] = commands
 
 		if containerGroupVolumes != nil && container.Properties.VolumeMounts != nil {
-			containersConfigRaw := d.Get("container").([]interface{})
+			containersConfigRaw := d.Get("container").([]any)
 			flattenContainerVolume(containerConfig, containersConfigRaw, container.Name, container.Properties.VolumeMounts, containerGroupVolumes)
 		}
 
@@ -1631,22 +1631,22 @@ func flattenContainerGroupInitContainers(d *pluginsdk.ResourceData, initContaine
 	return containerCfg
 }
 
-func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]containerinstance.Container, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]containerinstance.Container, containerGroupVolumes *[]containerinstance.Volume) []any {
 	// map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
-	for i, c := range d.Get("container").([]interface{}) {
-		cfg := c.(map[string]interface{})
+	for i, c := range d.Get("container").([]any) {
+		cfg := c.(map[string]any)
 		nameIndexMap[cfg["name"].(string)] = i
 	}
 
-	containerCfg := make([]interface{}, 0, len(*containers))
+	containerCfg := make([]any, 0, len(*containers))
 	for _, container := range *containers {
 		name := container.Name
 
 		// get index from name
 		index := nameIndexMap[name]
 
-		containerConfig := make(map[string]interface{})
+		containerConfig := make(map[string]any)
 		containerConfig["name"] = name
 
 		containerConfig["image"] = container.Properties.Image
@@ -1665,7 +1665,7 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 			}
 		}
 
-		containerPorts := make([]interface{}, len(*container.Properties.Ports))
+		containerPorts := make([]any, len(*container.Properties.Ports))
 		if container.Properties.Ports != nil {
 			for i := range *container.Properties.Ports {
 				containerPorts[i] = (*container.Properties.Ports)[i]
@@ -1687,7 +1687,7 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		containerConfig["commands"] = commands
 
 		if containerGroupVolumes != nil && container.Properties.VolumeMounts != nil {
-			containersConfigRaw := d.Get("container").([]interface{})
+			containersConfigRaw := d.Get("container").([]any)
 			flattenContainerVolume(containerConfig, containersConfigRaw, container.Name, container.Properties.VolumeMounts, containerGroupVolumes)
 		}
 
@@ -1701,21 +1701,21 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 	return containerCfg
 }
 
-func flattenContainerVolume(containerConfig map[string]interface{}, containersConfigRaw []interface{}, containerName string, volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume) {
+func flattenContainerVolume(containerConfig map[string]any, containersConfigRaw []any, containerName string, volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume) {
 	// Also pass in the container volume config from schema
-	var containerVolumesConfig *[]interface{}
+	var containerVolumesConfig *[]any
 	for _, containerConfigRaw := range containersConfigRaw {
-		data := containerConfigRaw.(map[string]interface{})
+		data := containerConfigRaw.(map[string]any)
 		nameRaw := data["name"].(string)
 		if nameRaw == containerName {
 			// found container config for current container
 			// extract volume mounts from config
 			if v, ok := data["volume"]; ok {
-				containerVolumesConfig = pointer.To(v.([]interface{}))
+				containerVolumesConfig = pointer.To(v.([]any))
 			}
 		}
 	}
-	volumeConfigs := make([]interface{}, 0)
+	volumeConfigs := make([]any, 0)
 
 	if volumeMounts == nil {
 		containerConfig["volume"] = nil
@@ -1723,7 +1723,7 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 	}
 
 	for _, vm := range *volumeMounts {
-		volumeConfig := make(map[string]interface{})
+		volumeConfig := make(map[string]any)
 		volumeConfig["name"] = vm.Name
 		volumeConfig["mount_path"] = vm.MountPath
 		if vm.ReadOnly != nil {
@@ -1754,7 +1754,7 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 		// and use the data
 		if containerVolumesConfig != nil {
 			for _, cvr := range *containerVolumesConfig {
-				cv := cvr.(map[string]interface{})
+				cv := cvr.(map[string]any)
 				rawName := cv["name"].(string)
 				if vm.Name == rawName {
 					volumeConfig["storage_account_key"] = cv["storage_account_key"].(string)
@@ -1769,8 +1769,8 @@ func flattenContainerVolume(containerConfig map[string]interface{}, containersCo
 	containerConfig["volume"] = volumeConfigs
 }
 
-func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, d *pluginsdk.ResourceData, oldContainerIndex int, rootPropName string) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, d *pluginsdk.ResourceData, oldContainerIndex int, rootPropName string) map[string]any {
+	output := make(map[string]any)
 
 	if input == nil {
 		return output
@@ -1785,8 +1785,8 @@ func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.Envir
 	return output
 }
 
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]any {
+	output := make(map[string]any)
 
 	if input == nil {
 		return output
@@ -1802,9 +1802,9 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	return output
 }
 
-func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} {
+func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 	var revision, directory, repository string
 	if input.Directory != nil {
@@ -1814,8 +1814,8 @@ func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} 
 		revision = *input.Revision
 	}
 	repository = input.Repository
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"url":       repository,
 			"directory": directory,
 			"revision":  revision,
@@ -1823,21 +1823,21 @@ func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} 
 	}
 }
 
-func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
-	outputs := make([]interface{}, 0)
+func flattenContainerProbes(input *containerinstance.ContainerProbe) []any {
+	outputs := make([]any, 0)
 	if input == nil {
 		return outputs
 	}
 
-	output := make(map[string]interface{})
+	output := make(map[string]any)
 
 	if v := input.Exec; v != nil {
 		output["exec"] = *v.Command
 	}
 
-	httpGets := make([]interface{}, 0)
+	httpGets := make([]any, 0)
 	if get := input.HTTPGet; get != nil {
-		httpGet := make(map[string]interface{})
+		httpGet := make(map[string]any)
 		if v := get.Path; v != nil {
 			httpGet["path"] = *v
 		}
@@ -1872,15 +1872,15 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 	return outputs
 }
 
-func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.ContainerGroupDiagnostics {
+func expandContainerGroupDiagnostics(input []any) *containerinstance.ContainerGroupDiagnostics {
 	if len(input) == 0 {
 		return nil
 	}
 
-	vs := input[0].(map[string]interface{})
+	vs := input[0].(map[string]any)
 
-	analyticsVs := vs["log_analytics"].([]interface{})
-	analyticsV := analyticsVs[0].(map[string]interface{})
+	analyticsVs := vs["log_analytics"].([]any)
+	analyticsV := analyticsVs[0].(map[string]any)
 
 	workspaceId := analyticsV["workspace_id"].(string)
 	workspaceKey := analyticsV["workspace_key"].(string)
@@ -1893,7 +1893,7 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 	if logType := analyticsV["log_type"].(string); logType != "" {
 		logAnalytics.LogType = pointer.ToEnum[containerinstance.LogAnalyticsLogType](logType)
 
-		metadataMap := analyticsV["metadata"].(map[string]interface{})
+		metadataMap := analyticsV["metadata"].(map[string]any)
 		metadata := make(map[string]string)
 		for k, v := range metadataMap {
 			metadata[k] = v.(string)
@@ -1905,15 +1905,15 @@ func expandContainerGroupDiagnostics(input []interface{}) *containerinstance.Con
 	return &containerinstance.ContainerGroupDiagnostics{LogAnalytics: &logAnalytics}
 }
 
-func flattenContainerGroupDiagnostics(d *pluginsdk.ResourceData, input *containerinstance.ContainerGroupDiagnostics) []interface{} {
+func flattenContainerGroupDiagnostics(d *pluginsdk.ResourceData, input *containerinstance.ContainerGroupDiagnostics) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	logAnalytics := make([]interface{}, 0)
+	logAnalytics := make([]any, 0)
 
 	if la := input.LogAnalytics; la != nil {
-		output := make(map[string]interface{})
+		output := make(map[string]any)
 
 		logType := ""
 		if la.LogType != nil {
@@ -1921,7 +1921,7 @@ func flattenContainerGroupDiagnostics(d *pluginsdk.ResourceData, input *containe
 		}
 		output["log_type"] = logType
 
-		metadata := make(map[string]interface{})
+		metadata := make(map[string]any)
 		if la.Metadata != nil {
 			for k, v := range *la.Metadata {
 				metadata[k] = v
@@ -1932,10 +1932,10 @@ func flattenContainerGroupDiagnostics(d *pluginsdk.ResourceData, input *containe
 
 		// the existing config may not exist at Import time, protect against it.
 		workspaceKey := ""
-		if existingDiags := d.Get("diagnostics").([]interface{}); len(existingDiags) > 0 {
-			existingDiag := existingDiags[0].(map[string]interface{})
-			if existingLA := existingDiag["log_analytics"].([]interface{}); len(existingLA) > 0 {
-				vs := existingLA[0].(map[string]interface{})
+		if existingDiags := d.Get("diagnostics").([]any); len(existingDiags) > 0 {
+			existingDiag := existingDiags[0].(map[string]any)
+			if existingLA := existingDiag["log_analytics"].([]any); len(existingLA) > 0 {
+				vs := existingLA[0].(map[string]any)
 				if key := vs["workspace_key"]; key != nil && key.(string) != "" {
 					workspaceKey = key.(string)
 				}
@@ -1946,17 +1946,17 @@ func flattenContainerGroupDiagnostics(d *pluginsdk.ResourceData, input *containe
 		logAnalytics = append(logAnalytics, output)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"log_analytics": logAnalytics,
 		},
 	}
 }
 
-func resourceContainerGroupPortsHash(v interface{}) int {
+func resourceContainerGroupPortsHash(v any) int {
 	var buf bytes.Buffer
 
-	if m, ok := v.(map[string]interface{}); ok {
+	if m, ok := v.(map[string]any); ok {
 		fmt.Fprintf(&buf, "%d-", m["port"].(int))
 		fmt.Fprintf(&buf, "%s-", m["protocol"].(string))
 	}
@@ -1964,11 +1964,11 @@ func resourceContainerGroupPortsHash(v interface{}) int {
 	return pluginsdk.HashString(buf.String())
 }
 
-func flattenContainerGroupDnsConfig(input *containerinstance.DnsConfiguration) []interface{} {
-	output := make(map[string]interface{})
+func flattenContainerGroupDnsConfig(input *containerinstance.DnsConfiguration) []any {
+	output := make(map[string]any)
 
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
@@ -1986,16 +1986,16 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DnsConfiguration) [
 	output["options"] = options
 	output["nameservers"] = input.NameServers
 
-	return []interface{}{output}
+	return []any{output}
 }
 
-func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConfiguration {
-	dnsConfigRaw := input.([]interface{})
+func expandContainerGroupDnsConfig(input any) *containerinstance.DnsConfiguration {
+	dnsConfigRaw := input.([]any)
 	if len(dnsConfigRaw) > 0 && dnsConfigRaw[0] != nil {
-		config := dnsConfigRaw[0].(map[string]interface{})
+		config := dnsConfigRaw[0].(map[string]any)
 
 		nameservers := []string{}
-		for _, v := range config["nameservers"].([]interface{}) {
+		for _, v := range config["nameservers"].([]any) {
 			nameservers = append(nameservers, v.(string))
 		}
 		options := []string{}
@@ -2017,8 +2017,8 @@ func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConf
 	return nil
 }
 
-func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubnetId) ([]interface{}, error) {
-	subnetIDs := make([]interface{}, 0)
+func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubnetId) ([]any, error) {
+	subnetIDs := make([]any, 0)
 	if input == nil {
 		return subnetIDs, nil
 	}
@@ -2039,7 +2039,7 @@ func flattenContainerGroupSubnets(input *[]containerinstance.ContainerGroupSubne
 	return subnetIDs, nil
 }
 
-func expandContainerGroupSubnets(input []interface{}) (*[]containerinstance.ContainerGroupSubnetId, error) {
+func expandContainerGroupSubnets(input []any) (*[]containerinstance.ContainerGroupSubnetId, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}

@@ -25,7 +25,7 @@ var (
 
 type KubernetesFleetUpdateStrategyResource struct{}
 
-func (r KubernetesFleetUpdateStrategyResource) ModelObject() interface{} {
+func (r KubernetesFleetUpdateStrategyResource) ModelObject() any {
 	return &KubernetesFleetUpdateStrategyResourceSchema{}
 }
 

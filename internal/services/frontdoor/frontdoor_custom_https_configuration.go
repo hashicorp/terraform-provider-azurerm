@@ -47,13 +47,13 @@ func schemaCustomHttpsConfiguration() map[string]*pluginsdk.Schema {
 }
 
 type flattenedCustomHttpsConfiguration struct {
-	CustomHTTPSConfiguration       []interface{}
+	CustomHTTPSConfiguration       []any
 	CustomHTTPSProvisioningEnabled bool
 }
 
 func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
 	result := flattenedCustomHttpsConfiguration{
-		CustomHTTPSConfiguration: make([]interface{}, 0),
+		CustomHTTPSConfiguration: make([]any, 0),
 	}
 
 	if properties == nil {
@@ -99,14 +99,14 @@ func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProp
 			// is enabled
 			if result.CustomHTTPSProvisioningEnabled {
 				if certificateSource == string(frontdoors.FrontDoorCertificateSourceFrontDoor) {
-					result.CustomHTTPSConfiguration = append(result.CustomHTTPSConfiguration, map[string]interface{}{
+					result.CustomHTTPSConfiguration = append(result.CustomHTTPSConfiguration, map[string]any{
 						"certificate_source":    certificateSource,
 						"minimum_tls_version":   string(config.MinimumTlsVersion),
 						"provisioning_state":    provisioningState,
 						"provisioning_substate": provisioningSubstate,
 					})
 				} else {
-					result.CustomHTTPSConfiguration = append(result.CustomHTTPSConfiguration, map[string]interface{}{
+					result.CustomHTTPSConfiguration = append(result.CustomHTTPSConfiguration, map[string]any{
 						"azure_key_vault_certificate_vault_id":       keyVaultCertificateVaultId,
 						"azure_key_vault_certificate_secret_name":    keyVaultCertificateSecretName,
 						"azure_key_vault_certificate_secret_version": keyVaultCertificateSecretVersion,

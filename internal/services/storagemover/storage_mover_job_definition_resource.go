@@ -48,7 +48,7 @@ func (r StorageMoverJobDefinitionResource) ResourceType() string {
 	return "azurerm_storage_mover_job_definition"
 }
 
-func (r StorageMoverJobDefinitionResource) ModelObject() interface{} {
+func (r StorageMoverJobDefinitionResource) ModelObject() any {
 	return &StorageMoverJobDefinitionResourceModel{}
 }
 

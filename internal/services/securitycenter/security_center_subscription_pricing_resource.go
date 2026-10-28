@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -109,7 +109,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 	}
 }
 
-func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -159,9 +159,9 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	// When the state file contains an `extension` with `additional_extension_properties`
 	// But the tf config does not, `d.Get("extension")` will contain a zero element.
 	// Tracked by https://github.com/hashicorp/terraform-plugin-sdk/issues/1248
-	realCfgExtensions := make([]interface{}, 0)
+	realCfgExtensions := make([]any, 0)
 	for _, e := range d.Get("extension").(*pluginsdk.Set).List() {
-		v := e.(map[string]interface{})
+		v := e.(map[string]any)
 		if v["name"] != "" {
 			realCfgExtensions = append(realCfgExtensions, e)
 		}
@@ -197,7 +197,7 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
 
-func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,9 +226,9 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	// When the state file contains an `extension` with `additional_extension_properties`
 	// But the tf config does not, `d.Get("extension")` will contain a zero element.
 	// Tracked by https://github.com/hashicorp/terraform-plugin-sdk/issues/1248
-	realCfgExtensions := make([]interface{}, 0)
+	realCfgExtensions := make([]any, 0)
 	for _, e := range d.Get("extension").(*pluginsdk.Set).List() {
-		v := e.(map[string]interface{})
+		v := e.(map[string]any)
 		if v["name"] != "" {
 			realCfgExtensions = append(realCfgExtensions, e)
 		}
@@ -279,7 +279,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
 
-func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -314,7 +314,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -343,9 +343,9 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings.Extension) *[]pricings.Extension {
+func expandSecurityCenterSubscriptionPricingExtensions(inputList []any, extensionsStatusFromBackend *[]pricings.Extension) *[]pricings.Extension {
 	extensionStatuses := map[string]bool{}
-	extensionProperties := make(map[string]interface{})
+	extensionProperties := make(map[string]any)
 
 	outputList := make([]pricings.Extension, 0, len(inputList))
 	if extensionsStatusFromBackend != nil {
@@ -360,7 +360,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 
 	// set any extension in the template to be true
 	for _, v := range inputList {
-		input := v.(map[string]interface{})
+		input := v.(map[string]any)
 		if input["name"] == "" {
 			continue
 		}
@@ -383,8 +383,8 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 		// The service will return HTTP 500 if the payload contains extensionProperties and `IsEnabled==false`
 		// `AdditionalProperties of Extension 'xxx' can't be updated while the extension is disabled (IsEnabled = False)`
 		if vAdditional, ok := extensionProperties[extensionName]; ok && toBeEnabled {
-			props, _ := vAdditional.(*interface{})
-			p := (*props).(map[string]interface{})
+			props, _ := vAdditional.(*any)
+			p := (*props).(map[string]any)
 			output.AdditionalExtensionProperties = pointer.To(p)
 		}
 
@@ -394,8 +394,8 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 	return &outputList
 }
 
-func flattenExtensions(inputList *[]pricings.Extension) []interface{} {
-	outputList := make([]interface{}, 0)
+func flattenExtensions(inputList *[]pricings.Extension) []any {
+	outputList := make([]any, 0)
 
 	if inputList == nil {
 		return outputList
@@ -407,7 +407,7 @@ func flattenExtensions(inputList *[]pricings.Extension) []interface{} {
 			continue
 		}
 
-		output := map[string]interface{}{
+		output := map[string]any{
 			"name": input.Name,
 		}
 		if input.AdditionalExtensionProperties != nil {

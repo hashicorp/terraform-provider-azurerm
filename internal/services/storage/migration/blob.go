@@ -86,7 +86,7 @@ func (BlobV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (BlobV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		environment := meta.(*clients.Client).Account.Environment
 		storageDomainSuffix, ok := environment.Storage.DomainSuffix()
 		if !ok {

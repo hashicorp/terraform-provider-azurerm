@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
@@ -148,7 +148,7 @@ func resourceDataFactoryTriggerBlobEvent() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -195,11 +195,11 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		blobEventProps.Annotations = pointer.To(v.([]interface{}))
+		blobEventProps.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		blobEventProps.AdditionalProperties = v.(map[string]interface{})
+		blobEventProps.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("blob_path_begins_with"); ok {
@@ -233,7 +233,7 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceDataFactoryTriggerBlobEventRead(d, meta)
 }
 
-func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -287,7 +287,7 @@ func resourceDataFactoryTriggerBlobEventRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +312,7 @@ func resourceDataFactoryTriggerBlobEventDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandDataFactoryTriggerBlobEvents(input []interface{}) *[]datafactory.BlobEventTypes {
+func expandDataFactoryTriggerBlobEvents(input []any) *[]datafactory.BlobEventTypes {
 	result := make([]datafactory.BlobEventTypes, 0)
 	for _, item := range input {
 		result = append(result, datafactory.BlobEventTypes(item.(string)))
@@ -320,14 +320,14 @@ func expandDataFactoryTriggerBlobEvents(input []interface{}) *[]datafactory.Blob
 	return &result
 }
 
-func expandDataFactoryTriggerPipeline(input []interface{}) *[]datafactory.TriggerPipelineReference {
+func expandDataFactoryTriggerPipeline(input []any) *[]datafactory.TriggerPipelineReference {
 	if len(input) == 0 {
 		return nil
 	}
 
 	result := make([]datafactory.TriggerPipelineReference, 0)
 	for _, item := range input {
-		raw := item.(map[string]interface{})
+		raw := item.(map[string]any)
 
 		// issue https://github.com/hashicorp/terraform-plugin-sdk/issues/588
 		// once it's resolved, we could remove the check empty logic
@@ -341,37 +341,37 @@ func expandDataFactoryTriggerPipeline(input []interface{}) *[]datafactory.Trigge
 				ReferenceName: pointer.To(raw["name"].(string)),
 				Type:          pointer.To("PipelineReference"),
 			},
-			Parameters: raw["parameters"].(map[string]interface{}),
+			Parameters: raw["parameters"].(map[string]any),
 		})
 	}
 	return &result
 }
 
-func flattenDataFactoryTriggerBlobEvents(input *[]datafactory.BlobEventTypes) []interface{} {
+func flattenDataFactoryTriggerBlobEvents(input *[]datafactory.BlobEventTypes) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, item := range *input {
 		result = append(result, string(item))
 	}
 	return result
 }
 
-func flattenDataFactoryTriggerPipeline(input *[]datafactory.TriggerPipelineReference) []interface{} {
+func flattenDataFactoryTriggerPipeline(input *[]datafactory.TriggerPipelineReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, item := range *input {
 		name := ""
 		if item.PipelineReference != nil && item.PipelineReference.ReferenceName != nil {
 			name = *item.PipelineReference.ReferenceName
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"name":       name,
 			"parameters": item.Parameters,
 		})

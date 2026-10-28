@@ -63,7 +63,7 @@ func resourceServiceBusqueueAuthorizationRuleSchema() map[string]*pluginsdk.Sche
 	})
 }
 
-func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,7 +113,7 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceD
 	return resourceServiceBusQueueAuthorizationRuleRead(d, meta)
 }
 
-func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +162,7 @@ func resourceServiceBusQueueAuthorizationRuleRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceServiceBusQueueAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

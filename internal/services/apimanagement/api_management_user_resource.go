@@ -95,7 +95,7 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -156,7 +156,7 @@ func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	return resourceApiManagementUserRead(d, meta)
 }
 
-func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,14 +187,14 @@ func resourceApiManagementUserRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("last_name", pointer.From(props.LastName))
 			d.Set("email", pointer.From(props.Email))
 			d.Set("note", pointer.From(props.Note))
-			d.Set("state", string(pointer.From(props.State)))
+			d.Set("state", pointer.FromEnum(props.State))
 		}
 	}
 
 	return nil
 }
 
-func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

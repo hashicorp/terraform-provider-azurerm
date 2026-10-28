@@ -41,7 +41,7 @@ var (
 
 type SystemCenterVirtualMachineManagerVirtualNetworkResource struct{}
 
-func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerVirtualNetworkModel{}
 }
 

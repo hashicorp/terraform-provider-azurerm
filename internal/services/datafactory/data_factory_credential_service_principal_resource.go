@@ -125,7 +125,7 @@ func (DataFactoryCredentialServicePrincipalResource) Attributes() map[string]*pl
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (DataFactoryCredentialServicePrincipalResource) ModelObject() interface{} {
+func (DataFactoryCredentialServicePrincipalResource) ModelObject() any {
 	return &DataFactoryCredentialServicePrincipalResourceSchema{}
 }
 
@@ -170,7 +170,7 @@ func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc
 				},
 			}
 			if len(data.Annotations) > 0 {
-				annotations := make([]interface{}, len(data.Annotations))
+				annotations := make([]any, len(data.Annotations))
 				for i, v := range data.Annotations {
 					annotations[i] = v
 				}
@@ -275,7 +275,7 @@ func (r DataFactoryCredentialServicePrincipalResource) Update() sdk.ResourceFunc
 
 			if metadata.ResourceData.HasChange("annotations") {
 				if len(data.Annotations) > 0 {
-					annotations := make([]interface{}, len(data.Annotations))
+					annotations := make([]any, len(data.Annotations))
 					for i, v := range data.Annotations {
 						annotations[i] = v
 					}

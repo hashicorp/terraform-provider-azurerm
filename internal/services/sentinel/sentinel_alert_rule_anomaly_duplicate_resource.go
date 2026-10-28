@@ -46,7 +46,7 @@ type AlertRuleAnomalyDuplicateResource struct{}
 
 var _ sdk.ResourceWithUpdate = AlertRuleAnomalyDuplicateResource{}
 
-func (r AlertRuleAnomalyDuplicateResource) ModelObject() interface{} {
+func (r AlertRuleAnomalyDuplicateResource) ModelObject() any {
 	return &AlertRuleAnomalyDuplicateModel{}
 }
 

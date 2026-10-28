@@ -31,6 +31,16 @@ func (a AutomationRuntimeEnvironmentResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccAutomationRuntimeEnvironment_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
+	r := AutomationRuntimeEnvironmentResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completePowerShell(data),
+		},
+	}, "")
+}
+
 func TestAccAutomationRuntimeEnvironment_completePowerShell(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentResource{}.ResourceType(), "test")
 	r := AutomationRuntimeEnvironmentResource{}

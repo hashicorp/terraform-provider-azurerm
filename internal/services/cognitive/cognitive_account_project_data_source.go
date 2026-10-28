@@ -41,7 +41,7 @@ func (r CognitiveAccountProjectDataSource) ResourceType() string {
 	return "azurerm_cognitive_account_project"
 }
 
-func (r CognitiveAccountProjectDataSource) ModelObject() interface{} {
+func (r CognitiveAccountProjectDataSource) ModelObject() any {
 	return &CognitiveAccountProjectDataSourceModel{}
 }
 

@@ -47,7 +47,7 @@ func (StorageTableEntityV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (StorageTableEntityV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		rawStorageTableID, ok := rawState["storage_table_id"].(string)
 		if !ok {
 			return rawState, fmt.Errorf("expected `storage_table_id` to be of type string, got %T", rawState["storage_table_id"])

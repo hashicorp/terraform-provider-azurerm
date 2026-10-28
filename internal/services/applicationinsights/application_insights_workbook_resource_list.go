@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,7 +38,7 @@ func (ApplicationInsightsWorkbookListResource) List(ctx context.Context, request
 		return
 	}
 
-	var results []workbooks.Workbook
+	var results []workbooksapis.Workbook
 	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
@@ -48,14 +48,14 @@ func (ApplicationInsightsWorkbookListResource) List(ctx context.Context, request
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
-		resp, err := client.WorkbooksListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()), workbooks.DefaultWorkbooksListByResourceGroupOperationOptions())
+		resp, err := client.WorkbooksListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()), workbooksapis.DefaultWorkbooksListByResourceGroupOperationOptions())
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
 			return
 		}
 		results = resp.Items
 	default:
-		resp, err := client.WorkbooksListBySubscriptionComplete(ctx, commonids.NewSubscriptionID(subscriptionID), workbooks.DefaultWorkbooksListBySubscriptionOperationOptions())
+		resp, err := client.WorkbooksListBySubscriptionComplete(ctx, commonids.NewSubscriptionID(subscriptionID), workbooksapis.DefaultWorkbooksListBySubscriptionOperationOptions())
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
 			return
@@ -68,7 +68,7 @@ func (ApplicationInsightsWorkbookListResource) List(ctx context.Context, request
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := workbooks.ParseWorkbookIDInsensitively(pointer.From(item.Id))
+			id, err := workbooksapis.ParseWorkbookIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", resource.ResourceType()), err)
 				return

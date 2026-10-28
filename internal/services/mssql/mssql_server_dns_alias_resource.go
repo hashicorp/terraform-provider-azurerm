@@ -55,7 +55,7 @@ func (m ServerDNSAliasResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (m ServerDNSAliasResource) ModelObject() interface{} {
+func (m ServerDNSAliasResource) ModelObject() any {
 	return &ServerDNSAliasModel{}
 }
 

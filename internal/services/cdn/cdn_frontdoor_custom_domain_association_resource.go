@@ -59,7 +59,7 @@ func resourceCdnFrontDoorCustomDomainAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -90,7 +90,7 @@ func resourceCdnFrontDoorCustomDomainAssociationCreate(d *pluginsdk.ResourceData
 	return resourceCdnFrontDoorCustomDomainAssociationRead(d, meta)
 }
 
-func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -115,7 +115,7 @@ func resourceCdnFrontDoorCustomDomainAssociationRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cdn.AFDCustomDomainsClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -151,7 +151,7 @@ func resourceCdnFrontDoorCustomDomainAssociationUpdate(d *pluginsdk.ResourceData
 	return resourceCdnFrontDoorCustomDomainAssociationRead(d, meta)
 }
 
-func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -170,7 +170,7 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	}
 
 	oRids, _ := d.GetChange("cdn_frontdoor_route_ids")
-	oR := oRids.([]interface{})
+	oR := oRids.([]any)
 
 	v, _, err := expandRoutes(oR)
 	if err != nil {
@@ -188,11 +188,11 @@ func resourceCdnFrontDoorCustomDomainAssociationDelete(d *pluginsdk.ResourceData
 	return nil
 }
 
-func validateRoutes(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}, id *afddomains.CustomDomainId) ([]interface{}, error) {
-	out := make([]interface{}, 0)
+func validateRoutes(ctx context.Context, d *pluginsdk.ResourceData, meta any, id *afddomains.CustomDomainId) ([]any, error) {
+	out := make([]any, 0)
 	o, n := d.GetChange("cdn_frontdoor_route_ids")
-	oRoutes := o.([]interface{})
-	nRoutes := n.([]interface{})
+	oRoutes := o.([]any)
+	nRoutes := n.([]any)
 
 	if len(nRoutes) == 0 || id == nil {
 		return out, nil

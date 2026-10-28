@@ -13,7 +13,7 @@ import (
 
 var _ resourceids.Id = RulesEngineId{}
 
-func TestRulesEngineIDFormatter(t *testing.T) {
+func TestParseRulesEngineIDFormatter(t *testing.T) {
 	actual := NewRulesEngineID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "rule1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/rulesEngines/rule1"
 	if actual != expected {
@@ -21,7 +21,7 @@ func TestRulesEngineIDFormatter(t *testing.T) {
 	}
 }
 
-func TestRulesEngineID(t *testing.T) {
+func TestParseRulesEngineID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -129,7 +129,7 @@ func TestRulesEngineID(t *testing.T) {
 	}
 }
 
-func TestRulesEngineIDInsensitively(t *testing.T) {
+func TestParseRulesEngineIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool

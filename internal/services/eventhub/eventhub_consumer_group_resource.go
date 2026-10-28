@@ -220,7 +220,7 @@ func (r ConsumerGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ConsumerGroupResource) ModelObject() interface{} {
+func (r ConsumerGroupResource) ModelObject() any {
 	return &ConsumerGroupObject{}
 }
 

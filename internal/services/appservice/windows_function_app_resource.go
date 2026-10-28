@@ -91,7 +91,7 @@ var _ sdk.ResourceWithCustomizeDiff = WindowsFunctionAppResource{}
 
 var _ sdk.ResourceWithStateMigration = WindowsFunctionAppResource{}
 
-func (r WindowsFunctionAppResource) ModelObject() interface{} {
+func (r WindowsFunctionAppResource) ModelObject() any {
 	return &WindowsFunctionAppModel{}
 }
 
@@ -526,7 +526,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -760,7 +760,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					state.StickySettings = helpers.FlattenStickySettings(stickySettings.Model.Properties)
@@ -971,7 +971,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}

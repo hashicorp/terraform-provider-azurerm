@@ -207,7 +207,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -228,7 +228,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
+	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]any))
 	publicNetworkAccess := domains.PublicNetworkAccessDisabled
 	if v, ok := d.GetOk("public_network_access_enabled"); ok && v.(bool) {
 		publicNetworkAccess = domains.PublicNetworkAccessEnabled
@@ -245,11 +245,11 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		identity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(v.([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -264,7 +264,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceEventGridDomainRead(d, meta)
 }
 
-func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +277,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	payload := domains.DomainUpdateParameters{Properties: &domains.DomainUpdateParameterProperties{}}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -306,7 +306,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("inbound_ip_rule") {
-		inboundIpRule := d.Get("inbound_ip_rule").([]interface{})
+		inboundIpRule := d.Get("inbound_ip_rule").([]any)
 
 		if len(inboundIpRule) == 0 {
 			payload.Properties.InboundIPRules = pointer.To([]domains.InboundIPRule{})
@@ -316,7 +316,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -326,7 +326,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceEventGridDomainRead(d, meta)
 }
 
-func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -425,7 +425,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -454,9 +454,9 @@ func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchem
 	jismp := domains.JsonInputSchemaMappingProperties{}
 
 	if imfok {
-		mappings := imf.([]interface{})
+		mappings := imf.([]any)
 		if len(mappings) > 0 && mappings[0] != nil {
-			mapping := mappings[0].(map[string]interface{})
+			mapping := mappings[0].(map[string]any)
 
 			if id := mapping["id"].(string); id != "" {
 				jismp.Id = &domains.JsonField{SourceField: &id}
@@ -495,9 +495,9 @@ func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchem
 	}
 
 	if imdvok {
-		mappings := imdv.([]interface{})
+		mappings := imdv.([]any)
 		if len(mappings) > 0 && mappings[0] != nil {
-			mapping := mappings[0].(map[string]interface{})
+			mapping := mappings[0].(map[string]any)
 
 			if dataVersion := mapping["data_version"].(string); dataVersion != "" {
 				jismp.DataVersion = &domains.JsonFieldWithDefault{
@@ -524,8 +524,8 @@ func expandDomainInputMapping(d *pluginsdk.ResourceData) *domains.JsonInputSchem
 	}
 }
 
-func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDomainInputMapping(input domains.InputSchemaMapping) []any {
+	output := make([]any, 0)
 	val, ok := input.(domains.JsonInputSchemaMapping)
 	if ok {
 		if props := val.Properties; props != nil {
@@ -559,7 +559,7 @@ func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
 				subject = *props.Subject.SourceField
 			}
 
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"data_version": dataVersion,
 				"event_type":   eventType,
 				"event_time":   eventTime,
@@ -572,8 +572,8 @@ func flattenDomainInputMapping(input domains.InputSchemaMapping) []interface{} {
 	return output
 }
 
-func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []interface{} {
-	output := make([]interface{}, 0)
+func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []any {
+	output := make([]any, 0)
 	val, ok := input.(domains.JsonInputSchemaMapping)
 	if ok {
 		if props := val.Properties; props != nil {
@@ -592,7 +592,7 @@ func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []
 				subject = *props.Subject.DefaultValue
 			}
 
-			output = append(output, map[string]interface{}{
+			output = append(output, map[string]any{
 				"data_version": dataVersion,
 				"event_type":   eventType,
 				"subject":      subject,
@@ -603,14 +603,14 @@ func flattenDomainInputMappingDefaultValues(input domains.InputSchemaMapping) []
 	return output
 }
 
-func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
+func expandDomainInboundIPRules(input []any) *[]domains.InboundIPRule {
 	if len(input) == 0 {
 		return nil
 	}
 
 	rules := make([]domains.InboundIPRule, 0)
 	for _, item := range input {
-		rawRule := item.(map[string]interface{})
+		rawRule := item.(map[string]any)
 		rules = append(rules, domains.InboundIPRule{
 			Action: pointer.ToEnum[domains.IPActionType](rawRule["action"].(string)),
 			IPMask: pointer.To(rawRule["ip_mask"].(string)),
@@ -619,8 +619,8 @@ func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
 	return &rules
 }
 
-func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []interface{} {
-	rules := make([]interface{}, 0)
+func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []any {
+	rules := make([]any, 0)
 	if input == nil {
 		return rules
 	}
@@ -631,7 +631,7 @@ func flattenDomainInboundIPRules(input *[]domains.InboundIPRule) []interface{} {
 			action = string(*r.Action)
 		}
 
-		rules = append(rules, map[string]interface{}{
+		rules = append(rules, map[string]any{
 			"action":  action,
 			"ip_mask": pointer.From(r.IPMask),
 		})

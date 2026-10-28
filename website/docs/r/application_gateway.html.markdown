@@ -593,13 +593,19 @@ A `ssl_profile` block supports the following:
 
 * `name` - (Required) The name of the SSL Profile that is unique within this Application Gateway.
 
-* `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
+* `client_authentication_mode` - (Optional) Specifies the client authentication mode. Possible values are `Strict` and `Passthrough`. Defaults to `Strict`.
+
+* `ssl_policy` - (Optional) An `ssl_policy` block as defined below.
+
+* `trusted_client_certificate_names` - (Optional) The names of the Trusted Client Certificates that will be used to authenticate requests from clients.
 
 * `verify_client_certificate_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
- 
-* `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
 
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+~> **Note:** `verify_client_certificate_issuer_dn` cannot be set to `true` when `client_authentication_mode` is set to `Passthrough`.
+
+* `verify_client_certificate_revocation` - (Optional) Specifies the method to check client certificate revocation status. The only possible value is `OCSP`.
+
+~> **Note:** `verify_client_certificate_revocation` cannot be set to `OCSP` when `client_authentication_mode` is set to `Passthrough`.
 
 ---
 
@@ -1010,4 +1016,4 @@ terraform import azurerm_application_gateway.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

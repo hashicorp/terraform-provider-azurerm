@@ -21,6 +21,16 @@ import (
 
 type BotChannelDirectLineSpeechResource struct{}
 
+func TestAccBotChannelDirectLineSpeech_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
+	r := BotChannelDirectLineSpeechResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}

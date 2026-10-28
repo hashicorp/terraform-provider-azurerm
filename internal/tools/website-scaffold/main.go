@@ -744,7 +744,7 @@ func (gen documentationGenerator) distinctBlockNames(input []string) []string {
 	return output
 }
 
-func (gen documentationGenerator) processElementForExample(field string, indentLevel int, elem interface{}, isAttribute bool) string {
+func (gen documentationGenerator) processElementForExample(field string, indentLevel int, elem any, isAttribute bool) string {
 	indent := gen.buildIndentForExample(indentLevel)
 
 	// it's an array of something, work out what

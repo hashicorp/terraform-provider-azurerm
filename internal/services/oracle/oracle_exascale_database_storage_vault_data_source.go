@@ -125,7 +125,7 @@ func (d ExascaleDatabaseStorageVaultDataSource) Attributes() map[string]*plugins
 	}
 }
 
-func (d ExascaleDatabaseStorageVaultDataSource) ModelObject() interface{} {
+func (d ExascaleDatabaseStorageVaultDataSource) ModelObject() any {
 	return &ExascaleDatabaseStorageVaultDataModel{}
 }
 

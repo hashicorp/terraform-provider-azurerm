@@ -64,7 +64,7 @@ func resourcePortalDashboard() *pluginsdk.Resource {
 	}
 }
 
-func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -89,7 +89,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	props := dashboard.Dashboard{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	var dashboardProperties dashboard.DashboardProperties
@@ -112,7 +112,7 @@ func resourcePortalDashboardCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourcePortalDashboardRead(d, meta)
 }
 
-func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePortalDashboardDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

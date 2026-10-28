@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -183,7 +183,7 @@ func resourceVpnSite() *pluginsdk.Resource {
 	}
 }
 
-func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -212,10 +212,10 @@ func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			},
 			DeviceProperties: expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string)),
 			AddressSpace:     expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List()),
-			VpnSiteLinks:     expandVpnSiteLinks(d.Get("link").([]interface{})),
-			O365Policy:       expandVpnSiteO365Policy(d.Get("o365_policy").([]interface{})),
+			VpnSiteLinks:     expandVpnSiteLinks(d.Get("link").([]any)),
+			O365Policy:       expandVpnSiteO365Policy(d.Get("o365_policy").([]any)),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.VpnSitesCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -226,7 +226,7 @@ func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceVpnSiteRead(d, meta)
 }
 
-func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -291,7 +291,7 @@ func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,15 +324,15 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("link") {
-		payload.Properties.VpnSiteLinks = expandVpnSiteLinks(d.Get("link").([]interface{}))
+		payload.Properties.VpnSiteLinks = expandVpnSiteLinks(d.Get("link").([]any))
 	}
 
 	if d.HasChange("o365_policy") {
-		payload.Properties.O365Policy = expandVpnSiteO365Policy(d.Get("o365_policy").([]interface{}))
+		payload.Properties.O365Policy = expandVpnSiteO365Policy(d.Get("o365_policy").([]any))
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -343,7 +343,7 @@ func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceVpnSiteRead(d, meta)
 }
 
-func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -375,7 +375,7 @@ func expandVpnSiteDeviceProperties(vendor, model string) *virtualwans.DeviceProp
 	return output
 }
 
-func expandVpnSiteAddressSpace(input []interface{}) *virtualwans.AddressSpace {
+func expandVpnSiteAddressSpace(input []any) *virtualwans.AddressSpace {
 	if len(input) == 0 {
 		return nil
 	}
@@ -390,14 +390,14 @@ func expandVpnSiteAddressSpace(input []interface{}) *virtualwans.AddressSpace {
 	}
 }
 
-func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []interface{} {
+func flattenVpnSiteAddressSpace(input *virtualwans.AddressSpace) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 	return pluginsdk.FlattenSlice(input.AddressPrefixes)
 }
 
-func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
+func expandVpnSiteLinks(input []any) *[]virtualwans.VpnSiteLink {
 	if len(input) == 0 {
 		return nil
 	}
@@ -407,7 +407,7 @@ func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
 		if e == nil {
 			continue
 		}
-		e := e.(map[string]interface{})
+		e := e.(map[string]any)
 		link := virtualwans.VpnSiteLink{
 			Name: pointer.To(e["name"].(string)),
 			Properties: &virtualwans.VpnSiteLinkProperties{
@@ -427,7 +427,7 @@ func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
 			link.Properties.Fqdn = pointer.To(v.(string))
 		}
 		if v, ok := e["bgp"]; ok {
-			link.Properties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]interface{}))
+			link.Properties.BgpProperties = expandVpnSiteVpnLinkBgpSettings(v.([]any))
 		}
 
 		result = append(result, link)
@@ -436,12 +436,12 @@ func expandVpnSiteLinks(input []interface{}) *[]virtualwans.VpnSiteLink {
 	return &result
 }
 
-func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
+func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
 		var (
@@ -449,7 +449,7 @@ func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
 			fqdn             string
 			linkProviderName string
 			linkSpeed        int
-			bgpProperty      []interface{}
+			bgpProperty      []any
 		)
 
 		if prop := e.Properties; prop != nil {
@@ -473,7 +473,7 @@ func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
 			bgpProperty = flattenVpnSiteVpnSiteBgpSettings(prop.BgpProperties)
 		}
 
-		link := map[string]interface{}{
+		link := map[string]any{
 			"name":          pointer.From(e.Name),
 			"id":            pointer.From(e.Id),
 			"provider_name": linkProviderName,
@@ -489,12 +489,12 @@ func flattenVpnSiteLinks(input *[]virtualwans.VpnSiteLink) []interface{} {
 	return output
 }
 
-func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *virtualwans.VpnLinkBgpSettings {
+func expandVpnSiteVpnLinkBgpSettings(input []any) *virtualwans.VpnLinkBgpSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	return &virtualwans.VpnLinkBgpSettings{
 		Asn:               pointer.To(int64(v["asn"].(int))),
@@ -502,9 +502,9 @@ func expandVpnSiteVpnLinkBgpSettings(input []interface{}) *virtualwans.VpnLinkBg
 	}
 }
 
-func flattenVpnSiteVpnSiteBgpSettings(input *virtualwans.VpnLinkBgpSettings) []interface{} {
+func flattenVpnSiteVpnSiteBgpSettings(input *virtualwans.VpnLinkBgpSettings) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
 	var asn int
@@ -512,32 +512,32 @@ func flattenVpnSiteVpnSiteBgpSettings(input *virtualwans.VpnLinkBgpSettings) []i
 		asn = int(*input.Asn)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"asn":             asn,
 			"peering_address": pointer.From(input.BgpPeeringAddress),
 		},
 	}
 }
 
-func expandVpnSiteO365Policy(input []interface{}) *virtualwans.O365PolicyProperties {
+func expandVpnSiteO365Policy(input []any) *virtualwans.O365PolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	o365Policy := input[0].(map[string]interface{})
+	o365Policy := input[0].(map[string]any)
 
 	return &virtualwans.O365PolicyProperties{
-		BreakOutCategories: expandVpnSiteO365TrafficCategoryPolicy(o365Policy["traffic_category"].([]interface{})),
+		BreakOutCategories: expandVpnSiteO365TrafficCategoryPolicy(o365Policy["traffic_category"].([]any)),
 	}
 }
 
-func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *virtualwans.O365BreakOutCategoryPolicies {
+func expandVpnSiteO365TrafficCategoryPolicy(input []any) *virtualwans.O365BreakOutCategoryPolicies {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	trafficCategory := input[0].(map[string]interface{})
+	trafficCategory := input[0].(map[string]any)
 
 	return &virtualwans.O365BreakOutCategoryPolicies{
 		Allow:    pointer.To(trafficCategory["allow_endpoint_enabled"].(bool)),
@@ -546,30 +546,30 @@ func expandVpnSiteO365TrafficCategoryPolicy(input []interface{}) *virtualwans.O3
 	}
 }
 
-func flattenVpnSiteO365Policy(input *virtualwans.O365PolicyProperties) []interface{} {
+func flattenVpnSiteO365Policy(input *virtualwans.O365PolicyProperties) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	trafficCategory := make([]interface{}, 0)
+	trafficCategory := make([]any, 0)
 	if input.BreakOutCategories != nil {
 		trafficCategory = flattenVpnSiteO365TrafficCategoryPolicy(input.BreakOutCategories)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"traffic_category": trafficCategory,
 		},
 	}
 }
 
-func flattenVpnSiteO365TrafficCategoryPolicy(input *virtualwans.O365BreakOutCategoryPolicies) []interface{} {
+func flattenVpnSiteO365TrafficCategoryPolicy(input *virtualwans.O365BreakOutCategoryPolicies) []any {
 	if input == nil {
-		return make([]interface{}, 0)
+		return make([]any, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"allow_endpoint_enabled":    pointer.From(input.Allow),
 			"default_endpoint_enabled":  pointer.From(input.Default),
 			"optimize_endpoint_enabled": pointer.From(input.Optimize),

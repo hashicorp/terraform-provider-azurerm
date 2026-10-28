@@ -95,7 +95,7 @@ func (ApiManagementSubscriptionDataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (ApiManagementSubscriptionDataSource) ModelObject() interface{} {
+func (ApiManagementSubscriptionDataSource) ModelObject() any {
 	return &ApiManagementSubscriptionDataSourceModel{}
 }
 

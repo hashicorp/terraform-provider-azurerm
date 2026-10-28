@@ -151,7 +151,7 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (a RoleDefinitionDataSource) ModelObject() interface{} {
+func (a RoleDefinitionDataSource) ModelObject() any {
 	return &RoleDefinitionDataSourceModel{}
 }
 

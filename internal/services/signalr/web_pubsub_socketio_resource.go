@@ -263,7 +263,7 @@ func (w WebPubSubSocketIOResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (w WebPubSubSocketIOResource) ModelObject() interface{} {
+func (w WebPubSubSocketIOResource) ModelObject() any {
 	return &WebPubSubSocketIOResourceModel{}
 }
 

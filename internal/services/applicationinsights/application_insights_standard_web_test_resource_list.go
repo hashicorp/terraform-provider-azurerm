@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,7 +38,7 @@ func (ApplicationInsightsStandardWebTestListResource) List(ctx context.Context, 
 		return
 	}
 
-	var results []webtests.WebTest
+	var results []webtestsapis.WebTest
 	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
@@ -68,7 +68,7 @@ func (ApplicationInsightsStandardWebTestListResource) List(ctx context.Context, 
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := webtests.ParseWebTestIDInsensitively(pointer.From(item.Id))
+			id, err := webtestsapis.ParseWebTestIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", resource.ResourceType()), err)
 				return

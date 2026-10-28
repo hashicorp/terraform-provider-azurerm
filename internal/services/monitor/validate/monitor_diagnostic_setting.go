@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func MonitorDiagnosticSettingName(v interface{}, k string) ([]string, []error) {
+func MonitorDiagnosticSettingName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringDoesNotMatch(regexp.MustCompile(`[<>*%&:\\?+\/]+`), `characters <, >, *, %, &, :, \, ?, +, / are not allowed`),
 		validation.StringLenBetween(1, 260),
