@@ -8,8 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,19 +17,19 @@ import (
 )
 
 func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Datadog.SingleSignOn
+	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	monitorId, err := monitorsresource.ParseMonitorID(d.Get("datadog_monitor_id").(string))
+	monitorId, err := datadogsinglesignonresources.ParseMonitorID(d.Get("datadog_monitor_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := singlesignon.NewSingleSignOnConfigurationID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
+	id := datadogsinglesignonresources.NewSingleSignOnConfigurationID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.ConfigurationsGet(ctx, id)
+		existing, err := client.SingleSignOnConfigurationsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -41,17 +40,17 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	payload := singlesignon.DatadogSingleSignOnResource{
-		Properties: &singlesignon.DatadogSingleSignOnProperties{
+	payload := datadogsinglesignonresources.DatadogSingleSignOnResource{
+		Properties: &datadogsinglesignonresources.DatadogSingleSignOnProperties{
 			EnterpriseAppId: pointer.To(d.Get("enterprise_application_id").(string)),
 		},
 	}
 
 	if v, ok := d.GetOk("single_sign_on"); ok {
-		payload.Properties.SingleSignOnState = pointer.ToEnum[singlesignon.SingleSignOnStates](v.(string))
+		payload.Properties.SingleSignOnState = pointer.ToEnum[datadogsinglesignonresources.SingleSignOnStates](v.(string))
 	}
 
-	if err := client.ConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.SingleSignOnConfigurationsCreateOrUpdateCallbackThenPoll(ctx, id, payload, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
