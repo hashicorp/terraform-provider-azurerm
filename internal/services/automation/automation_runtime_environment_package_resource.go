@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/packageresource"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,7 +20,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = AutomationRuntimeEnvironmentPackageResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:automation_runtime_environment_id,resource_group_name:automation_runtime_environment_id,automation_account_name:automation_runtime_environment_id,runtime_environment_name:automation_runtime_environment_id" -test-expect-non-empty=true
+
+var (
+	_ sdk.ResourceWithIdentity = AutomationRuntimeEnvironmentPackageResource{}
+	_ sdk.Resource             = AutomationRuntimeEnvironmentPackageResource{}
+)
+
+func (r AutomationRuntimeEnvironmentPackageResource) Identity() resourceids.ResourceId {
+	return &packageresource.PackageId{}
+}
 
 type AutomationRuntimeEnvironmentPackageModel struct {
 	Name                           string `tfschema:"name"`
@@ -169,6 +179,9 @@ func (r AutomationRuntimeEnvironmentPackageResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/41641 is resolved
 			pollerType := custompollers.NewAutomationRuntimeEnvironmentPackagePoller(client, id)
@@ -202,48 +215,54 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
-			}
-
-			var stateModel AutomationRuntimeEnvironmentPackageModel
-			if err = metadata.Decode(&stateModel); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			runtimeEnvId := packageresource.NewRuntimeEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RuntimeEnvironmentName)
-
-			output := AutomationRuntimeEnvironmentPackageModel{
-				Name:                           id.PackageName,
-				AutomationRuntimeEnvironmentId: runtimeEnvId.ID(),
-
-				// the fields below don't return by the API, remove it when issue fixed
-				// https://github.com/Azure/azure-rest-api-specs/issues/41604
-				ContentVersion: stateModel.ContentVersion,
-				ContentUri:     stateModel.ContentUri,
-				HashValue:      stateModel.HashValue,
-				HashAlgorithm:  stateModel.HashAlgorithm,
-			}
-
-			if props := resp.Model.Properties; props != nil {
-				if content := props.ContentLink; content != nil {
-					output.ContentUri = pointer.From(content.Uri)
-					output.ContentVersion = pointer.From(content.Version)
-
-					if hash := content.ContentHash; hash != nil {
-						output.HashAlgorithm = hash.Algorithm
-						output.HashValue = hash.Value
-					}
-				}
-
-				output.SizeInBytes = pointer.From(props.SizeInBytes)
-				output.Version = pointer.From(props.Version)
-				output.Default = pointer.From(props.Default)
-			}
-
-			return metadata.Encode(&output)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r AutomationRuntimeEnvironmentPackageResource) flatten(metadata sdk.ResourceMetaData, id *packageresource.PackageId, model *packageresource.Package) error {
+	var stateModel AutomationRuntimeEnvironmentPackageModel
+	if err := metadata.Decode(&stateModel); err != nil {
+		return fmt.Errorf("decoding: %+v", err)
+	}
+
+	runtimeEnvId := packageresource.NewRuntimeEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RuntimeEnvironmentName)
+
+	output := AutomationRuntimeEnvironmentPackageModel{
+		Name:                           id.PackageName,
+		AutomationRuntimeEnvironmentId: runtimeEnvId.ID(),
+
+		// the fields below don't return by the API, remove it when issue fixed
+		// https://github.com/Azure/azure-rest-api-specs/issues/41604
+		ContentVersion: stateModel.ContentVersion,
+		ContentUri:     stateModel.ContentUri,
+		HashValue:      stateModel.HashValue,
+		HashAlgorithm:  stateModel.HashAlgorithm,
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			if content := props.ContentLink; content != nil {
+				output.ContentUri = pointer.From(content.Uri)
+				output.ContentVersion = pointer.From(content.Version)
+
+				if hash := content.ContentHash; hash != nil {
+					output.HashAlgorithm = hash.Algorithm
+					output.HashValue = hash.Value
+				}
+			}
+
+			output.SizeInBytes = pointer.From(props.SizeInBytes)
+			output.Version = pointer.From(props.Version)
+			output.Default = pointer.From(props.Default)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&output)
 }
 
 func (r AutomationRuntimeEnvironmentPackageResource) Delete() sdk.ResourceFunc {
