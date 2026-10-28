@@ -173,7 +173,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/data-plane v0.20261005.1221110
+# github.com/hashicorp/go-azure-sdk/data-plane v0.20261027.1151402
 ## explicit; go 1.26.6
 github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4
@@ -193,7 +193,7 @@ github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/settings
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage
 github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20261026.1174351
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20261027.1151402
 ## explicit; go 1.26.6
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -501,16 +501,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/agreements
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/apikey
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/hosts
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/linkedresources
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitoredresources
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/refreshsetpasswordlink
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules
-github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogs
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/monitoredsubscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories
@@ -1246,7 +1242,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20261026.1174351
+# github.com/hashicorp/go-azure-sdk/sdk v0.20261027.1151402
 ## explicit; go 1.26.6
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
