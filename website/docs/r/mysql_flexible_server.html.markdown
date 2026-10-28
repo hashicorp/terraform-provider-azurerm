@@ -132,7 +132,7 @@ The following arguments are supported:
 
 ~> **Note:** The `replication_role` cannot be set while creating and only can be updated from `Replica` to `None`.
 
-* `rename_enabled` - (Optional) Allows a change to `name` to rename the existing server instead of replacing it. Defaults to `false`. This preview operation requires service-side enablement and uses API version `2025-06-01-preview` only for the rename request. Enabling or disabling this argument alone does not modify the server.
+* `rename_enabled` - (Optional) Allows a change to `name` to rename the existing server instead of replacing it. Defaults to `false`. This operation requires service-side enablement and uses the non-preview API version `2025-12-30` only for the rename request. Enabling or disabling this argument alone does not modify the server.
 
 * `sku_name` - (Optional) The SKU Name for the MySQL Flexible Server.
 

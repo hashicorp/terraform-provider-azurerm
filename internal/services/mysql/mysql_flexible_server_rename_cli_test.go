@@ -60,7 +60,7 @@ func TestMysqlFlexibleServerRenameCLI(t *testing.T) {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			if req.URL.Query().Get("api-version") != "2025-06-01-preview" {
+			if req.URL.Query().Get("api-version") != "2025-12-30" {
 				t.Errorf("unexpected rename API: %s", req.URL)
 			}
 			var payload servers.Server

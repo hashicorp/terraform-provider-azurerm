@@ -241,7 +241,7 @@ func TestMysqlFlexibleServerRenameLifecycle(t *testing.T) {
 					fmt.Fprint(w, `{"nameAvailable":true}`)
 				case req.Method == http.MethodPut:
 					putCount++
-					if req.URL.Query().Get("api-version") != "2025-06-01-preview" {
+					if req.URL.Query().Get("api-version") != "2025-12-30" {
 						t.Errorf("incorrect rename API version: %s", req.URL)
 					}
 					parsed, err := servers.ParseFlexibleServerID(req.URL.Path)

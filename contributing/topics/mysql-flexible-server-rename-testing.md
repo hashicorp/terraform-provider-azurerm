@@ -15,7 +15,7 @@ Prepared against the local rename implementation on **2026-10-17**, with offline
 
 The change adds `rename_enabled` to `azurerm_mysql_flexible_server`. With that option enabled, changing `name` at the **same Terraform resource address** renames the existing server. Without the option, a name change continues to require replacement.
 
-The provider sends a PUT to the destination resource ID using `2025-06-01-preview`, with only:
+The provider sends a PUT to the destination resource ID using the ARM-registered non-preview API version `2025-12-30`, with only:
 
 ```json
 {
@@ -59,7 +59,7 @@ persistence.
 
 | File relative to the repository root | Purpose |
 | --- | --- |
-| `internal\services\mysql\client\client.go` | Dedicated preview rename client, normal authentication/environment configuration |
+| `internal\services\mysql\client\client.go` | Dedicated `2025-12-30` rename client, normal authentication/environment configuration |
 | `internal\services\mysql\mysql_flexible_server_resource.go` | Opt-in schema, planning, mutable identity, update dispatch, and missing-source safeguard |
 | `internal\services\mysql\mysql_flexible_server_rename.go` | Source/destination checks, name availability, PUT, polling, and state reconciliation |
 | `internal\services\mysql\mysql_flexible_server_rename_test.go` | Offline planning and mocked-HTTP lifecycle/failure tests |
@@ -88,8 +88,8 @@ There is no Terraform provider binary to deploy into the MySQL server. Publishin
 Complete these before any live section:
 
 1. Use an approved disposable subscription, resource group, and server. Agree on ownership, cost, test window, and cleanup.
-2. Confirm that the chosen region and subscription support the actual rename PUT using `2025-06-01-preview`. An advertised API version or successful GET does not prove rename support.
-3. Have the service owner confirm topology-specific support. Existing canary evidence using `2025-03-01-preview` is not proof that the provider's June-preview path works.
+2. Confirm that the chosen region and subscription support the actual rename PUT using `2025-12-30`. An advertised API version or successful GET does not prove rename support.
+3. Have the service owner confirm topology-specific support. Existing canary evidence using `2025-03-01-preview` is not proof that the provider's `2025-12-30` path works.
 4. Confirm existing identity permissions to read the source and destination, check name availability, write the destination, and read the operation result. Creation and cleanup require their own permissions.
 5. Do not grant new roles, change feature switches, open firewall access, or disable security controls just to make a test pass without separate approval.
 6. Do not use a customer server, shared production Terraform state, or a server managed by another Terraform resource address.
@@ -222,7 +222,7 @@ Expected coverage:
 | Default compatibility | Name changes still require replacement without opt-in |
 | Opt-in planning | In-place update through the actual Terraform protocol; ID and FQDN unknown until apply; outputs follow the destination after apply |
 | Plan rejection | Case-only rename, unknown destination name or opt-in, and simultaneous property changes rejected |
-| Submission | Exact destination path, June-preview API, minimal payload, canonical source ID |
+| Submission | Exact destination path, `2025-12-30` API, minimal payload, canonical source ID |
 | Completion | Initial 200/201/202 responses with an operation URL are polled |
 | Convergence | A-to-B-to-C renames converge without another rename |
 | Follow-up operations | Update and delete use the final destination ID |
@@ -881,13 +881,13 @@ These are **future user-authorized Git/GitHub actions**, not actions performed b
 
 Before submitting, ask maintainers to review:
 
-1. The preview API requirement and explicit opt-in/default replacement behavior.
-2. The use of stable generated server models with a separately configured preview client; a generated preview SDK or split API-update PR may be required.
+1. The `2025-12-30` non-preview API choice and explicit opt-in/default replacement behavior.
+2. The use of `2023-12-30` generated server models with a separately configured `2025-12-30` rename client; a generated SDK update or split API-update PR may be required.
 3. Mutable resource identity, unknown ID/FQDN planning with the narrow protocol adapter, plan-time destination-name requirement, and missing-source refresh behavior.
 4. Separate-property-change restrictions and the documented manual dependency/recovery procedure.
-5. Live support evidence for the June-preview endpoint and the scope of topology claims.
+5. Live support evidence for the `2025-12-30` endpoint and the scope of topology claims.
 
-The repository has a [preview API version check](../../.github/workflows/pr-check-preview-api-version.yaml). Its current path filters focus on vendor/tool changes; **a green or skipped check does not approve this manually configured preview API**. Do not hide the preview version or weaken the linter.
+The rename client uses a non-preview API version. Keep the repository's [preview API version check](../../.github/workflows/pr-check-preview-api-version.yaml) intact; a green or skipped check does not validate live rename support or the compatibility of the reused generated models.
 
 ### 12.2 Prepare a feature branch without losing local changes
 
@@ -982,7 +982,7 @@ Start from the actual [PR template](../../.github/pull_request_template.md), not
 | Rollback Plan | Forward-fix/provider-revert process plus separate Azure/state recovery; no promise of automatic rename reversal |
 | Changes to Security Controls | Explain changed identity/reference behavior and any actual security-control impact |
 
-The current PR-opening guide asks for review-ready work rather than draft/incomplete feature PRs. Discuss unresolved preview/lifecycle decisions before submission.
+The current PR-opening guide asks for review-ready work rather than draft/incomplete feature PRs. Discuss unresolved API-client/lifecycle decisions before submission.
 
 After opening, obtain the real PR number, rename the changelog entry, and push that narrowly scoped follow-up. Include only sanitized summaries of private live evidence.
 
@@ -995,7 +995,7 @@ gh pr view $PrNumber --repo hashicorp/terraform-provider-azurerm --web
 ```
 
 1. Resolve failures in applicable combined PR checks, generation/schema/formatting, lint, documentation, links, and changelog checks.
-2. Confirm preview API approval explicitly; skipped checks are not approvals.
+2. Confirm API-version and client-model compatibility approval explicitly; skipped checks are not approvals.
 3. Request the maintainer-run acceptance tests through the documented project process. Fork CI generally cannot use protected Azure credentials.
 4. Provide the opt-in and `ARM_TEST_LOCATION_ALT2` requirements; otherwise the new live test can skip or run in the wrong region.
 5. Address every review comment, rerun affected tests, and update the PR's evidence when the implementation changes.
@@ -1087,7 +1087,7 @@ Keep private detailed evidence and publish only sanitized summaries.
 | Source | Base and feature commit, dirty-state status, exact diff, PR link |
 | Tools | Go/Terraform versions, OS/architecture, provider build hash or released package/lock entry |
 | Offline validation | Exact commands, UTC timestamp, pass/fail, and any skipped live test |
-| Full repository gates | Make/CI results, generation differences, preview approval |
+| Full repository gates | Make/CI results, generation differences, API-client compatibility approval |
 | Live scope | Approved environment class, region/topology, permission/change approval reference |
 | Rename | Before/after IDs and FQDNs privately, operation result, state identity, update-only plan |
 | Data and replication | Persistent rows, post-rename writes, replica propagation and required settings |

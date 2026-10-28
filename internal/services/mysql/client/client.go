@@ -35,9 +35,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(azureADAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
-	// Rename is preview-only; keep the existing API version for ordinary server operations.
+	// Use the ARM-registered non-preview API for rename; keep the existing version for ordinary server operations.
 	// The request uses only the unchanged location, createMode and sourceServerResourceId fields.
-	renameClient, err := resourcemanager.NewClient(o.Environment.ResourceManager, "mysql-server-rename", "2025-06-01-preview")
+	renameClient, err := resourcemanager.NewClient(o.Environment.ResourceManager, "mysql-server-rename", "2025-12-30")
 	if err != nil {
 		return nil, fmt.Errorf("building Flexible Server Rename client: %+v", err)
 	}
