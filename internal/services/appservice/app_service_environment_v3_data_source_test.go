@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -12,6 +12,16 @@ import (
 )
 
 type AppServiceEnvironmentV3DataSource struct{}
+
+func TestAccAppServiceEnvironmentV3DataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment_v3", "test")
+	r := AppServiceEnvironmentV3DataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccAppServiceEnvironmentV3DataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment_v3", "test")
