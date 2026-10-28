@@ -260,7 +260,7 @@ flowchart TD
 ```
 
 - <sup>1</sup>: Here *dynamic* means the returned default value depends on the region, other properties of the creation request, etc.
-- <sup>2</sup>: *Proper* here means whether it will add unnecessary effort to the users to ask them always specify this attribute. E.g. A niche property rarely used by most of the users, or a property which .
+- <sup>2</sup>: *Proper* here means whether it will add unnecessary effort to the users to ask them always specify this attribute. E.g. A niche property rarely used by most of the users.
 - <sup>3</sup>: This is to get rid of the O+C side effects.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
