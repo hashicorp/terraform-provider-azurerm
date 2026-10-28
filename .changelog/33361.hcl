@@ -1,0 +1,4 @@
+change "resource-enhancement" {
+    body = "`azurerm_mongo_cluster` - the `storage_type` property is now optional and computed, so the value Azure chooses is kept when it is not set
+```"
+}

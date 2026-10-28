@@ -737,14 +737,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			requiresReplacement := false
-			for field, schema := range r.Arguments() {
-				if schema.ForceNew && metadata.ResourceDiff.HasChange(field) {
-					requiresReplacement = true
-					break
-				}
-			}
-
 			var state MongoClusterResourceModel
 			if err := metadata.DecodeDiff(&state); err != nil {
 				return fmt.Errorf("DecodeDiff: %+v", err)
@@ -810,7 +802,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if err := metadata.ResourceDiff.ForceNew("create_mode"); err != nil {
 					return err
 				}
-				requiresReplacement = true
 			}
 
 			if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["data_api_mode_enabled"].IsNull() && state.CreateMode != string(mongoclusters.CreateModeDefault) {
@@ -826,7 +817,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
 					return err
 				}
-				requiresReplacement = true
 			}
 
 			// When identity is added or removed from the configuration, it should trigger ForceNew.
@@ -838,18 +828,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
 					return err
 				}
-				requiresReplacement = true
-			}
-
-			storageTypeConfig, err := metadata.GetRawConfigAt("storage_type")
-			if err != nil {
-				return fmt.Errorf("retrieving raw config for `storage_type`: %+v", err)
-			}
-
-			// When `storage_type` is omitted, Azure could recreate the cluster with a different service-selected storage type.
-			// Therefore, we enforce that `storage_type` must be explicitly set when replacing an existing cluster to avoid unintended changes.
-			if metadata.ResourceDiff.Id() != "" && storageTypeConfig.IsKnown() && storageTypeConfig.IsNull() && requiresReplacement {
-				return errors.New("`storage_type` must be explicitly configured when replacing an existing MongoDB Cluster")
 			}
 
 			return nil

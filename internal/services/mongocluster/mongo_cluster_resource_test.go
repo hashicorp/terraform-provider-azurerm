@@ -64,7 +64,7 @@ func testAccMongoCluster_update(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
-			Config: r.update(data, 1),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSD"),
@@ -72,8 +72,9 @@ func testAccMongoCluster_update(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
-			Config:      r.update(data, 2),
-			ExpectError: regexp.MustCompile("`storage_type` must be explicitly configured when replacing an existing MongoDB Cluster"),
+			Config:             r.update(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -308,7 +309,7 @@ resource "azurerm_mongo_cluster" "test" {
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
-func (r MongoClusterResource) update(data acceptance.TestData, shardCount int) string {
+func (r MongoClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -318,7 +319,7 @@ resource "azurerm_mongo_cluster" "test" {
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
   administrator_password = "QAZwsx123update"
-  shard_count            = %d
+  shard_count            = "1"
   compute_tier           = "M30"
   high_availability_mode = "ZoneRedundantPreferred"
   public_network_access  = "Disabled"
@@ -331,7 +332,7 @@ resource "azurerm_mongo_cluster" "test" {
     environment = "test"
   }
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger, shardCount)
+`, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) source(data acceptance.TestData) string {

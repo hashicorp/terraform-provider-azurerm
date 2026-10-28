@@ -91,8 +91,6 @@ The following arguments are supported:
 
 -> **Note:** When `storage_type` is omitted, Azure will determine the preferred type based on the region's availability.
 
-~> **Note:** Set `storage_type` explicitly before intentionally replacing an existing MongoDB Cluster. The provider rejects replacements it can detect while `storage_type` is omitted, but replacement mechanisms outside provider diff customization, such as `terraform apply -replace`, may not be detected.
-
 * `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ~> **Note:** `version` is required when `create_mode` is `Default`.
