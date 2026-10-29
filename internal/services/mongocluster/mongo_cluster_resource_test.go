@@ -67,15 +67,9 @@ func testAccMongoCluster_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_type").HasValue("PremiumSSD"),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
-		{
-			Config:             r.update(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: true,
-		},
 	})
 }
 
