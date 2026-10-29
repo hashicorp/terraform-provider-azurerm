@@ -19,9 +19,27 @@ mkdir -p "$HOME/go/bin"
 export PATH="$HOME/go/bin:$PATH"
 
 command -v kubectl >/dev/null || (
-  curl -fsSL -o "$HOME/go/bin/kubectl" "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  case "$(uname -s)" in
+    Linux) operating_system=linux ;;
+    Darwin) operating_system=darwin ;;
+    *) echo "Unsupported operating system for kubectl: $(uname -s)" >&2; exit 1 ;;
+  esac
+
+  case "$(uname -m)" in
+    x86_64|amd64) architecture=amd64 ;;
+    arm64|aarch64) architecture=arm64 ;;
+    *) echo "Unsupported architecture for kubectl: $(uname -m)" >&2; exit 1 ;;
+  esac
+
+  version=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+  curl -fsSL -o "$HOME/go/bin/kubectl" "https://dl.k8s.io/release/$version/bin/$operating_system/$architecture/kubectl"
   chmod +x "$HOME/go/bin/kubectl"
 )
+
+if ! kubectl version --client; then
+  echo "kubectl is not runnable; remove the incompatible binary from PATH and install kubectl for this operating system and architecture" >&2
+  exit 1
+fi
 
 kubectl wait --for=condition=Ready certificate/arc-amp-root-ca -n cert-manager --timeout=300s
 kubectl wait --for=condition=Ready certificate/arc-amp-client-root-ca -n cert-manager --timeout=300s

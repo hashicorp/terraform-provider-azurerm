@@ -19,7 +19,7 @@ from subprocess import PIPE, Popen
 from urllib import request
 
 HELM_VERSION = 'v3.6.3'
-HELM_STORAGE_URL = "https://k8connecthelm.azureedge.net"
+HELM_STORAGE_URL = "https://get.helm.sh"
 
 
 def get_helm_registry(config_dp_endpoint):
@@ -91,17 +91,25 @@ def get_chart_path(registry_path, chart_export_path, kube_config, kube_context, 
 def install_helm_client(retry_count=3, retry_delay=3):
     # Fetch system related info
     operating_system = platform.system().lower()
-    platform.machine()
 
     # Set helm binary download & install locations
     if (operating_system == 'windows'):
         download_location_string = f'.azure\\helm\\{HELM_VERSION}\\helm-{HELM_VERSION}-{operating_system}-amd64.zip'
         install_location_string = f'.azure\\helm\\{HELM_VERSION}\\{operating_system}-amd64\\helm.exe'
-        requestUri = f'{HELM_STORAGE_URL}/helm/helm-{HELM_VERSION}-{operating_system}-amd64.zip'
+        requestUri = f'{HELM_STORAGE_URL}/helm-{HELM_VERSION}-{operating_system}-amd64.zip'
     elif (operating_system == 'linux' or operating_system == 'darwin'):
-        download_location_string = f'.azure/helm/{HELM_VERSION}/helm-{HELM_VERSION}-{operating_system}-amd64.tar.gz'
-        install_location_string = f'.azure/helm/{HELM_VERSION}/{operating_system}-amd64/helm'
-        requestUri = f'{HELM_STORAGE_URL}/helm/helm-{HELM_VERSION}-{operating_system}-amd64.tar.gz'
+        machine = platform.machine().lower()
+        if machine in ('x86_64', 'amd64'):
+            architecture = 'amd64'
+        elif machine in ('arm64', 'aarch64'):
+            architecture = 'arm64'
+        else:
+            raise Exception(
+                f'The {machine} architecture is not currently supported for installing helm client.')
+
+        download_location_string = f'.azure/helm/{HELM_VERSION}/helm-{HELM_VERSION}-{operating_system}-{architecture}.tar.gz'
+        install_location_string = f'.azure/helm/{HELM_VERSION}/{operating_system}-{architecture}/helm'
+        requestUri = f'{HELM_STORAGE_URL}/helm-{HELM_VERSION}-{operating_system}-{architecture}.tar.gz'
     else:
         raise Exception(
             f'The {operating_system} platform is not currently supported for installing helm client.')
