@@ -7,8 +7,10 @@ package tests
 
 import AzureRM
 import AzureRMBetaVersion
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import serviceTestConfigurationOverrides
 import useTeamCityGoTest
 
 class ConfigurationTests {
@@ -171,5 +173,127 @@ class ConfigurationTests {
 
         val isNightlyParam = buildChain.params.findRawParam("reverse.dep.*.env.IS_NIGHTLY_RUN")?.value
         assertTrue("Beta Build chain must pass down reverse.dep.*.env.IS_NIGHTLY_RUN parameter", isNightlyParam == "true")
+    }
+
+    @Test
+    fun serviceConfigurationOverridesPropagated() {
+        val config = TestConfiguration()
+        val project = AzureRM("public", config)
+
+        serviceTestConfigurationOverrides.forEach { (serviceName, testConfig) ->
+            val bt = project.buildTypes.find { it.id.toString().endsWith("_SERVICE_PUBLIC_${serviceName.uppercase()}") }
+            if (bt != null) {
+                assertEquals(
+                    "Service '$serviceName' should have PARALLELISM set to ${testConfig.parallelism}",
+                    testConfig.parallelism.toString(),
+                    bt.params.findRawParam("PARALLELISM")?.value
+                )
+                assertEquals(
+                    "Service '$serviceName' should have TIMEOUT set to ${testConfig.timeout}",
+                    testConfig.timeout.toString(),
+                    bt.params.findRawParam("TIMEOUT")?.value
+                )
+                assertEquals(
+                    "Service '$serviceName' should have executionTimeoutMin set to ${60 * testConfig.timeout}",
+                    60 * testConfig.timeout,
+                    bt.failureConditions.executionTimeoutMin
+                )
+                assertEquals(
+                    "Service '$serviceName' should have maxRunningBuilds set to ${testConfig.maxConcurrentBuilds}",
+                    testConfig.maxConcurrentBuilds,
+                    bt.maxRunningBuilds
+                )
+                assertEquals(
+                    "Service '$serviceName' should have maxRunningBuildsPerBranch set to *:${testConfig.maxConcurrentBuildsPerBranch}",
+                    "*:%d".format(testConfig.maxConcurrentBuildsPerBranch),
+                    bt.maxRunningBuildsPerBranch
+                )
+                assertEquals(
+                    "Service '$serviceName' should have DAYS_OF_WEEK set to ${testConfig.daysOfWeek}",
+                    testConfig.daysOfWeek,
+                    bt.params.findRawParam("DAYS_OF_WEEK")?.value
+                )
+                assertEquals(
+                    "Service '$serviceName' should have DISABLE_TRIGGERS set to ${testConfig.disableTriggers}",
+                    testConfig.disableTriggers.toString(),
+                    bt.params.findRawParam("DISABLE_TRIGGERS")?.value
+                )
+
+                if (testConfig.locationOverride.primary != "") {
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_TEST_LOCATION overridden to ${testConfig.locationOverride.primary}",
+                        testConfig.locationOverride.primary,
+                        bt.params.findRawParam("env.ARM_TEST_LOCATION")?.value
+                    )
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_TEST_LOCATION_ALT overridden to ${testConfig.locationOverride.secondary}",
+                        testConfig.locationOverride.secondary,
+                        bt.params.findRawParam("env.ARM_TEST_LOCATION_ALT")?.value
+                    )
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_TEST_LOCATION_ALT2 overridden to ${testConfig.locationOverride.tertiary}",
+                        testConfig.locationOverride.tertiary,
+                        bt.params.findRawParam("env.ARM_TEST_LOCATION_ALT2")?.value
+                    )
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_PROVIDER_DYNAMIC_TEST overridden to ${testConfig.locationOverride.rotate}",
+                        testConfig.locationOverride.rotate.toString(),
+                        bt.params.findRawParam("env.ARM_PROVIDER_DYNAMIC_TEST")?.value
+                    )
+                }
+
+                if (testConfig.useAltSubscription) {
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_SUBSCRIPTION_ID swapped to alt",
+                        config.subscriptionIdAlt,
+                        bt.params.findRawParam("env.ARM_SUBSCRIPTION_ID")?.value
+                    )
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_SUBSCRIPTION_ID_ALT swapped to main",
+                        config.subscriptionId,
+                        bt.params.findRawParam("env.ARM_SUBSCRIPTION_ID_ALT")?.value
+                    )
+                } else if (testConfig.useDevTestSubscription) {
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_SUBSCRIPTION_ID swapped to devtest",
+                        config.subscriptionIdDevTest,
+                        bt.params.findRawParam("env.ARM_SUBSCRIPTION_ID")?.value
+                    )
+                    assertEquals(
+                        "Service '$serviceName' should have ARM_SUBSCRIPTION_ID_ALT swapped to main",
+                        config.subscriptionId,
+                        bt.params.findRawParam("env.ARM_SUBSCRIPTION_ID_ALT")?.value
+                    )
+                } else {
+                    assertEquals(
+                        "Service '$serviceName' should have main ARM_SUBSCRIPTION_ID",
+                        config.subscriptionId,
+                        bt.params.findRawParam("env.ARM_SUBSCRIPTION_ID")?.value
+                    )
+                    assertEquals(
+                        "Service '$serviceName' should have main ARM_SUBSCRIPTION_ID_ALT",
+                        config.subscriptionIdAlt,
+                        bt.params.findRawParam("env.ARM_SUBSCRIPTION_ID_ALT")?.value
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun betaVersionWeeklyTestDayPropagated() {
+        val config = TestConfiguration()
+        val project = AzureRMBetaVersion("public", config)
+
+        serviceTestConfigurationOverrides.forEach { (serviceName, testConfig) ->
+            val bt = project.buildTypes.find { it.id.toString().endsWith("_SERVICE_PUBLIC_${serviceName.uppercase()}") }
+            if (bt != null) {
+                assertEquals(
+                    "Beta service '$serviceName' should have DAYS_OF_WEEK set to ${testConfig.weeklyTestDay}",
+                    testConfig.weeklyTestDay,
+                    bt.params.findRawParam("DAYS_OF_WEEK")?.value
+                )
+            }
+        }
     }
 }
