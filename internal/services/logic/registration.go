@@ -7,6 +7,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_action_custom"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_action_http"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_agreement"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_assembly"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_batch_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_map"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_partner"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_integration_account_session"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_standard"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_trigger_custom"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_trigger_http_request"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_trigger_recurrence"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/resources/logic_app_workflow"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -18,7 +34,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		LogicAppResource{},
+		logic_app_standard.Resource{},
 	}
 }
 
@@ -47,30 +63,30 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_logic_app_integration_account": dataSourceLogicAppIntegrationAccount(),
-		"azurerm_logic_app_standard":            dataSourceLogicAppStandard(),
-		"azurerm_logic_app_workflow":            dataSourceLogicAppWorkflow(),
+		"azurerm_logic_app_integration_account": logic_app_integration_account.RegisterDataSource(),
+		"azurerm_logic_app_standard":            logic_app_standard.RegisterDataSource(),
+		"azurerm_logic_app_workflow":            logic_app_workflow.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_logic_app_action_custom":                           resourceLogicAppActionCustom(),
-		"azurerm_logic_app_action_http":                             resourceLogicAppActionHTTP(),
-		"azurerm_logic_app_integration_account":                     resourceLogicAppIntegrationAccount(),
-		"azurerm_logic_app_integration_account_agreement":           resourceLogicAppIntegrationAccountAgreement(),
-		"azurerm_logic_app_integration_account_assembly":            resourceLogicAppIntegrationAccountAssembly(),
-		"azurerm_logic_app_integration_account_batch_configuration": resourceLogicAppIntegrationAccountBatchConfiguration(),
-		"azurerm_logic_app_integration_account_certificate":         resourceLogicAppIntegrationAccountCertificate(),
-		"azurerm_logic_app_integration_account_map":                 resourceLogicAppIntegrationAccountMap(),
-		"azurerm_logic_app_integration_account_partner":             resourceLogicAppIntegrationAccountPartner(),
-		"azurerm_logic_app_integration_account_schema":              resourceLogicAppIntegrationAccountSchema(),
-		"azurerm_logic_app_integration_account_session":             resourceLogicAppIntegrationAccountSession(),
-		"azurerm_logic_app_trigger_custom":                          resourceLogicAppTriggerCustom(),
-		"azurerm_logic_app_trigger_http_request":                    resourceLogicAppTriggerHttpRequest(),
-		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
-		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
+		"azurerm_logic_app_action_custom":                           logic_app_action_custom.RegisterResource(),
+		"azurerm_logic_app_action_http":                             logic_app_action_http.RegisterResource(),
+		"azurerm_logic_app_integration_account":                     logic_app_integration_account.RegisterResource(),
+		"azurerm_logic_app_integration_account_agreement":           logic_app_integration_account_agreement.RegisterResource(),
+		"azurerm_logic_app_integration_account_assembly":            logic_app_integration_account_assembly.RegisterResource(),
+		"azurerm_logic_app_integration_account_batch_configuration": logic_app_integration_account_batch_configuration.RegisterResource(),
+		"azurerm_logic_app_integration_account_certificate":         logic_app_integration_account_certificate.RegisterResource(),
+		"azurerm_logic_app_integration_account_map":                 logic_app_integration_account_map.RegisterResource(),
+		"azurerm_logic_app_integration_account_partner":             logic_app_integration_account_partner.RegisterResource(),
+		"azurerm_logic_app_integration_account_schema":              logic_app_integration_account_schema.RegisterResource(),
+		"azurerm_logic_app_integration_account_session":             logic_app_integration_account_session.RegisterResource(),
+		"azurerm_logic_app_trigger_custom":                          logic_app_trigger_custom.RegisterResource(),
+		"azurerm_logic_app_trigger_http_request":                    logic_app_trigger_http_request.RegisterResource(),
+		"azurerm_logic_app_trigger_recurrence":                      logic_app_trigger_recurrence.RegisterResource(),
+		"azurerm_logic_app_workflow":                                logic_app_workflow.RegisterResource(),
 	}
 }
 

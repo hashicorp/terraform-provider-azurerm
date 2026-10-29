@@ -7,6 +7,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_attached_network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_catalog"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_dev_box_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_environment_type"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_gallery"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_network_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_project"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_project_environment_type"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/resources/dev_center_project_pool"
 )
 
 var (
@@ -32,31 +42,31 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		DevCenterAttachedNetworkDataSource{},
-		DevCenterCatalogDataSource{},
-		DevCenterDataSource{},
-		DevCenterDevBoxDefinitionDataSource{},
-		DevCenterEnvironmentTypeDataSource{},
-		DevCenterGalleryDataSource{},
-		DevCenterNetworkConnectionDataSource{},
-		DevCenterProjectDataSource{},
-		DevCenterProjectEnvironmentTypeDataSource{},
-		DevCenterProjectPoolDataSource{},
+		dev_center_attached_network.DataSource{},
+		dev_center_catalog.DataSource{},
+		dev_center.DataSource{},
+		dev_center_dev_box_definition.DataSource{},
+		dev_center_environment_type.DataSource{},
+		dev_center_gallery.DataSource{},
+		dev_center_network_connection.DataSource{},
+		dev_center_project.DataSource{},
+		dev_center_project_environment_type.DataSource{},
+		dev_center_project_pool.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		DevCenterAttachedNetworkResource{},
-		DevCenterCatalogsResource{},
-		DevCenterDevBoxDefinitionResource{},
-		DevCenterEnvironmentTypeResource{},
-		DevCenterGalleryResource{},
-		DevCenterNetworkConnectionResource{},
-		DevCenterProjectEnvironmentTypeResource{},
-		DevCenterProjectPoolResource{},
-		DevCenterProjectResource{},
-		DevCenterResource{},
+		dev_center_attached_network.Resource{},
+		dev_center_catalog.Resource{},
+		dev_center_dev_box_definition.Resource{},
+		dev_center_environment_type.Resource{},
+		dev_center_gallery.Resource{},
+		dev_center_network_connection.Resource{},
+		dev_center_project_environment_type.Resource{},
+		dev_center_project_pool.Resource{},
+		dev_center_project.Resource{},
+		dev_center.Resource{},
 	}
 }
 
