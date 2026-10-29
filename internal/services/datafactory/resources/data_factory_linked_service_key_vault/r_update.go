@@ -33,14 +33,19 @@ func resourceDataFactoryLinkedServiceKeyVaultCreateUpdate(d *pluginsdk.ResourceD
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
-	if err != nil {
-		return err
-	}
+	keyVaultIdRaw := d.Get("key_vault_id").(string)
+	keyVaultBaseUri := pointer.To(d.Get("key_vault_base_url_dynamic_expression").(string))
 
-	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
-	if err != nil {
-		return err
+	if keyVaultIdRaw != "" {
+		keyVaultId, err := commonids.ParseKeyVaultID(keyVaultIdRaw)
+		if err != nil {
+			return fmt.Errorf("parsing Key Vault ID %q: %+v", keyVaultIdRaw, err)
+		}
+
+		keyVaultBaseUri, err = keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+		if err != nil {
+			return fmt.Errorf("retrieving Key Vault Base URI for %s: %+v", *keyVaultId, err)
+		}
 	}
 
 	if d.IsNewResource() {
