@@ -48,7 +48,7 @@ func TestAccKubernetesAutomaticCluster_serviceMeshIngressConfig(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshIngressConfig(data),
+			Config: r.serviceMeshIngressConfig(data, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
@@ -611,7 +611,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r KubernetesAutomaticClusterResource) serviceMeshIngressConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) serviceMeshIngressConfig(data acceptance.TestData, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -656,11 +656,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     proxy_redirect_mechanism         = "CNIChaining"
-    revisions                        = ["asm-1-28"]
+    revisions                        = [%[6]q]
   }
 
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, serviceMeshVersion)
 }
 
 func (KubernetesAutomaticClusterResource) webAppRoutingIngressIstioEnabledConfig(data acceptance.TestData) string {
