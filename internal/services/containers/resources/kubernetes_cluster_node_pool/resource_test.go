@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -3919,6 +3921,68 @@ resource "azurerm_kubernetes_cluster_node_pool" "test3" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func TestAccKubernetesClusterNodePool_messageOfTheDay(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.messageOfTheDay(data, "Welcome to our Kubernetes node!", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("message_of_the_day").HasValue("Welcome to our Kubernetes node!"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.messageOfTheDay(data, "", true),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionNoop),
+				},
+			},
+		},
+		{
+			Config: r.messageOfTheDay(data, "", false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("message_of_the_day").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.messageOfTheDay(data, "Welcome back to our Kubernetes node!", false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("message_of_the_day").HasValue("Welcome back to our Kubernetes node!"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_messageOfTheDayWindows(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.messageOfTheDayWindows(data),
+			ExpectError: regexp.MustCompile("`message_of_the_day` can only be configured when `os_type` is set to `Linux`"),
+		},
+	})
+}
+
 func (KubernetesClusterNodePoolResource) VMSizeOmitted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4198,4 +4262,78 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (KubernetesClusterNodePoolResource) messageOfTheDay(data acceptance.TestData, message string, omitMessage bool) string {
+	messageArgument := fmt.Sprintf("  message_of_the_day    = %q", message)
+	if omitMessage {
+		messageArgument = ""
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+%[3]s
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, messageArgument)
+}
+
+func (r KubernetesClusterNodePoolResource) messageOfTheDayWindows(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "motd"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  os_type               = "Windows"
+  message_of_the_day    = "Welcome to our Kubernetes node!"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateWindowsConfig(data))
 }

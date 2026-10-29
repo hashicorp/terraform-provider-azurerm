@@ -18,6 +18,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+func suppressOmittedKubernetesClusterNodePoolMessageOfTheDay(_, _, _ string, d *pluginsdk.ResourceData) bool {
+	raw := d.GetRawConfig()
+	if !raw.IsKnown() || raw.IsNull() {
+		return false
+	}
+	message, ok := raw.AsValueMap()["message_of_the_day"]
+	return !ok || message.IsNull()
+}
+
 func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -119,6 +128,14 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true, // azignore:AZS007 - pre-existing violation
+		},
+
+		// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
+		"message_of_the_day": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: suppressOmittedKubernetesClusterNodePoolMessageOfTheDay,
+			ForceNew:         true,
 		},
 
 		"mode": {

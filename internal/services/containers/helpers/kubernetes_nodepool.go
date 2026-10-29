@@ -4,6 +4,7 @@
 package helpers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"maps"
 	"regexp"
@@ -27,6 +28,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+// Optional+Computed treats an explicit empty string as unset, so only suppress changes when the argument is absent.
+func suppressOmittedKubernetesClusterMessageOfTheDay(_, _, _ string, d *pluginsdk.ResourceData) bool {
+	raw := d.GetRawConfig()
+	if !raw.IsKnown() || raw.IsNull() {
+		return false
+	}
+	pool, ok := raw.AsValueMap()["default_node_pool"]
+	if !ok || !pool.IsKnown() || pool.IsNull() || pool.LengthInt() == 0 {
+		return false
+	}
+	message, ok := pool.AsValueSlice()[0].AsValueMap()["message_of_the_day"]
+	return !ok || message.IsNull()
+}
 
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -117,6 +132,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 						Computed: true, // azignore:AZS007 - pre-existing violation
+					},
+
+					// lintignore:AZBP001 // Free-form text is base64-encoded; empty input is omitted.
+					"message_of_the_day": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: suppressOmittedKubernetesClusterMessageOfTheDay,
 					},
 
 					"min_count": {
@@ -684,6 +706,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
 			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
 			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
+			MessageOfTheDay:            defaultCluster.MessageOfTheDay,
 			NodeLabels:                 defaultCluster.NodeLabels,
 			NodeTaints:                 defaultCluster.NodeTaints,
 			PodSubnetID:                defaultCluster.PodSubnetID,
@@ -930,6 +953,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.GpuProfile = &managedclusters.GPUProfile{
 			Driver: pointer.ToEnum[managedclusters.GPUDriver](gpuDriver),
 		}
+	}
+
+	if messageOfTheDay := raw["message_of_the_day"].(string); messageOfTheDay != "" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(messageOfTheDay))
+		profile.MessageOfTheDay = pointer.To(encoded)
 	}
 
 	count := raw["node_count"].(int)
@@ -1299,6 +1327,15 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		osSKU = string(*agentPool.OsSKU)
 	}
 
+	messageOfTheDay := ""
+	if agentPool.MessageOfTheDay != nil {
+		decoded, err := base64.StdEncoding.DecodeString(*agentPool.MessageOfTheDay)
+		if err != nil {
+			return nil, fmt.Errorf("decoding `message_of_the_day` for default node pool %q: %+v", agentPool.Name, err)
+		}
+		messageOfTheDay = string(decoded)
+	}
+
 	agentPoolType := ""
 	if agentPool.Type != nil {
 		agentPoolType = string(*agentPool.Type)
@@ -1322,6 +1359,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,
 		"max_pods":                      maxPods,
+		"message_of_the_day":            messageOfTheDay,
 		"min_count":                     minCount,
 		"name":                          name,
 		"node_count":                    count,

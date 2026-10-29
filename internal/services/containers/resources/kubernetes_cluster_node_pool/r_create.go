@@ -4,6 +4,8 @@
 package kubernetes_cluster_node_pool
 
 import (
+	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -233,6 +235,14 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 
 	if capacityReservationGroupId := d.Get("capacity_reservation_group_id").(string); capacityReservationGroupId != "" {
 		profile.CapacityReservationGroupID = pointer.To(capacityReservationGroupId)
+	}
+
+	if messageOfTheDay := d.Get("message_of_the_day").(string); messageOfTheDay != "" {
+		if osType != string(managedclusters.OSTypeLinux) {
+			return errors.New("`message_of_the_day` can only be configured when `os_type` is set to `Linux`")
+		}
+		encoded := base64.StdEncoding.EncodeToString([]byte(messageOfTheDay))
+		profile.MessageOfTheDay = pointer.To(encoded)
 	}
 
 	maxCount := d.Get("max_count").(int)
