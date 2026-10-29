@@ -824,7 +824,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error 
 				return fmt.Errorf("setting `agent_pool_profile`: %+v", err)
 			}
 
-			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile, "", "", false)
 			if err != nil {
 				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
 			}

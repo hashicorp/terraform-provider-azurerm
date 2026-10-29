@@ -297,7 +297,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 
 			d.Set("support_plan", pointer.From(props.SupportPlan))
 
-			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			stateRegistryID, _ := d.Get("bootstrap_profile.0.container_registry_id").(string)
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile, id.SubscriptionId, nodeResourceGroup, bootstrapProfileContainerRegistryIDConfigured(d.GetRawConfig(), stateRegistryID))
 			if err != nil {
 				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
 			}

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -94,7 +95,32 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}}
 }
 
-func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) ([]any, error) {
+func bootstrapProfileContainerRegistryIDConfigured(rawConfig cty.Value, stateRegistryID string) bool {
+	if !rawConfig.IsKnown() || rawConfig.IsNull() {
+		return stateRegistryID != ""
+	}
+	rawBootstrapProfile, ok := rawConfig.AsValueMap()["bootstrap_profile"]
+	if !ok || rawBootstrapProfile.IsNull() {
+		return false
+	}
+	if !rawBootstrapProfile.IsKnown() {
+		return stateRegistryID != ""
+	}
+	if rawBootstrapProfile.LengthInt() == 0 {
+		return false
+	}
+	rawProfile := rawBootstrapProfile.AsValueSlice()[0]
+	if !rawProfile.IsKnown() || rawProfile.IsNull() {
+		return stateRegistryID != ""
+	}
+	rawRegistryID := rawProfile.AsValueMap()["container_registry_id"]
+	if !rawRegistryID.IsKnown() {
+		return stateRegistryID != ""
+	}
+	return !rawRegistryID.IsNull()
+}
+
+func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile, nodeSubscriptionID, nodeResourceGroup string, configuredRegistryID bool) ([]any, error) {
 	if profile == nil || profile.ArtifactSource == nil {
 		return []any{}, nil
 	}
@@ -105,7 +131,10 @@ func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapPro
 		if err != nil {
 			return nil, err
 		}
-		containerRegistryID = id.ID()
+		// AKS-created registries live in the node resource group and are not configured by the user.
+		if configuredRegistryID || nodeResourceGroup == "" || !strings.EqualFold(id.SubscriptionId, nodeSubscriptionID) || !strings.EqualFold(id.ResourceGroupName, nodeResourceGroup) {
+			containerRegistryID = id.ID()
+		}
 	}
 	return []any{
 		map[string]any{
