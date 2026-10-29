@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -12,6 +12,16 @@ import (
 )
 
 type WindowsWebAppDataSource struct{}
+
+func TestAccWindowsWebAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_windows_web_app", "test")
+	r := WindowsWebAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccWindowsWebAppDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_windows_web_app", "test")
