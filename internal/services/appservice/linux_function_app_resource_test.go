@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1496,6 +1497,88 @@ func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironmentDapr(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerAppEnvironmentDapr(data, "first", `
+  dapr {
+    app_id              = "acctest-dapr-%[1]d"
+    api_logging_enabled = true
+  }
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.api_logging_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dapr.0.log_level").HasValue("info"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			// an update that doesn't touch `dapr` must not disable it
+			Config: r.containerAppEnvironmentDapr(data, "second", `
+  dapr {
+    app_id              = "acctest-dapr-%[1]d"
+    api_logging_enabled = true
+  }
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("second"),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.containerAppEnvironmentDapr(data, "second", `
+  dapr {
+    app_id                      = "acctest-dapr-updated-%[1]d"
+    api_logging_enabled         = false
+    log_level                   = "debug"
+    http_max_request_size_in_mb = 8
+    http_read_buffer_size_in_kb = 32
+  }
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-updated-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.api_logging_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("dapr.0.log_level").HasValue("debug"),
+				check.That(data.ResourceName).Key("dapr.0.http_max_request_size_in_mb").HasValue("8"),
+				check.That(data.ResourceName).Key("dapr.0.http_read_buffer_size_in_kb").HasValue("32"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			// removing the block disables Dapr
+			Config: r.containerAppEnvironmentDapr(data, "second", ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironmentDaprRequiresContainerAppEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.daprWithServicePlan(data),
+			ExpectError: regexp.MustCompile("all of `container_app_environment_id,dapr` must be specified"),
+		},
 	})
 }
 
@@ -3306,6 +3389,24 @@ resource "azurerm_linux_function_app" "test" {
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentDapr(data acceptance.TestData, environmentTag, dapr string) string {
+	return strings.Replace(
+		r.containerAppEnvironment(data, environmentTag),
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n",
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n"+strings.ReplaceAll(dapr, "%[1]d", strconv.Itoa(data.RandomInteger)),
+		1,
+	)
+}
+
+func (r LinuxFunctionAppResource) daprWithServicePlan(data acceptance.TestData) string {
+	return strings.Replace(
+		r.basic(data, SkuStandardPlan),
+		"  site_config {}",
+		"  dapr {\n    app_id = \"acctest\"\n  }\n\n  site_config {}",
+		1,
+	)
 }
 
 func (r LinuxFunctionAppResource) containerAppEnvironmentUnsupportedSetting(data acceptance.TestData, setting string) string {

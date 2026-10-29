@@ -51,6 +51,7 @@ type LinuxFunctionAppModel struct {
 	AppSettings                        map[string]string                          `tfschema:"app_settings"`
 	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
 	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	Dapr                               []helpers.FunctionAppDapr                  `tfschema:"dapr"`
 	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
 	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	BuiltinLogging                     bool                                       `tfschema:"builtin_logging_enabled"`
@@ -150,6 +151,8 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 				"container_app_environment_id",
 			},
 		},
+
+		"dapr": helpers.FunctionAppDaprSchema(),
 
 		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
@@ -580,6 +583,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				Properties: &webapps.SiteProperties{
 					ServerFarmId:              serverFarmId,
 					ManagedEnvironmentId:      managedEnvironmentId,
+					DaprConfig:                helpers.ExpandFunctionAppDapr(functionApp.Dapr),
 					Enabled:                   pointer.To(functionApp.Enabled),
 					HTTPSOnly:                 pointer.To(functionApp.HttpsOnly),
 					SiteConfig:                siteConfig,
@@ -787,6 +791,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					DefaultHostname:                  pointer.From(site.Properties.DefaultHostName),
 					CustomDomainVerificationId:       pointer.From(site.Properties.CustomDomainVerificationId),
 					KeyVaultReferenceIdentityID:      pointer.From(site.Properties.KeyVaultReferenceIdentity),
+					Dapr:                             helpers.FlattenFunctionAppDapr(site.Properties.DaprConfig),
 					SiteConfig:                       []helpers.SiteConfigLinuxFunctionApp{*siteConfig},
 					ClientCertMode:                   string(webapps.ClientCertModeOptional),
 					PublicNetworkAccess:              true,
@@ -1188,6 +1193,12 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 				model.Properties.SiteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(state.SiteConfig[0].ApplicationStack)
+			}
+
+			// An existing `daprConfig` is otherwise sent back unchanged, so Dapr is only changed when `dapr` is. Omitting
+			// `daprConfig` is how Azure disables Dapr.
+			if metadata.ResourceData.HasChange("dapr") {
+				model.Properties.DaprConfig = helpers.ExpandFunctionAppDapr(state.Dapr)
 			}
 
 			if state.ContainerAppEnvironmentId != "" {

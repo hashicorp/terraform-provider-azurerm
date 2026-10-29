@@ -84,6 +84,10 @@ resource "azurerm_linux_function_app" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
+  dapr {
+    app_id = "example-linux-function-app"
+  }
+
   site_config {
     application_stack {
       docker {
@@ -109,6 +113,8 @@ When `container_app_environment_id` is specified, the Function App runs as a con
 * `auth_settings`, `auth_settings_v2`, `backup`, `connection_string`, `content_share_force_disabled`, `end_to_end_tls_encryption_enabled`, `sticky_settings`, `storage_account` and `zip_deploy_file` are not supported. Use `app_settings` for application connection strings.
 
 * Deployment slots and publishing credentials are not available.
+
+* Dapr can be enabled with the `dapr` block, which is only available in this hosting mode.
 
 * Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` for these Function Apps, so they are always set to their default values (`true`, `Optional`, `true`, `true` and `true` respectively) in the state and do not reflect changes made outside of Terraform.
 
@@ -167,6 +173,8 @@ The following arguments are supported:
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
+
+* `dapr` - (Optional) A `dapr` block as defined below. Can only be specified when `container_app_environment_id` is specified. Removing this block disables Dapr.
 
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
 
@@ -569,6 +577,24 @@ A `cors` block supports the following:
 * `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
+
+---
+
+A `dapr` block supports the following:
+
+* `app_id` - (Required) The Dapr Application Identifier.
+
+* `app_port` - (Optional) The port which the application is listening on.
+
+~> **Note:** The Dapr sidecar waits for the application to respond on this port before it starts. Only specify `app_port` when the Function App has a Dapr trigger that needs to receive requests from the sidecar. Bindings and output do not need it.
+
+* `api_logging_enabled` - (Optional) Should API logging be enabled for the Dapr sidecar? Defaults to `false`.
+
+* `http_max_request_size_in_mb` - (Optional) The maximum size of the request body for the Dapr HTTP servers, in MB. When not specified, Dapr uses its default of `4` MB.
+
+* `http_read_buffer_size_in_kb` - (Optional) The maximum size of the HTTP header read buffer for the Dapr sidecar, in KB. Possible values are between `1` and `65`. When not specified, Dapr uses its default of `65` KB.
+
+* `log_level` - (Optional) The log level for the Dapr sidecar. Possible values are `debug`, `error`, `info` and `warn`. Defaults to `info`.
 
 ---
 

@@ -48,6 +48,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	ClientCertMode                   string                               `tfschema:"client_certificate_mode"`
 	ClientCertExclusionPaths         string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings                []helpers.ConnectionString           `tfschema:"connection_string"`
+	Dapr                             []helpers.FunctionAppDapr            `tfschema:"dapr"`
 	DailyMemoryTimeQuota             int64                                `tfschema:"daily_memory_time_quota"`
 	Enabled                          bool                                 `tfschema:"enabled"`
 	FunctionExtensionsVersion        string                               `tfschema:"functions_extension_version"`
@@ -112,6 +113,8 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"dapr": helpers.FunctionAppDaprSchemaComputed(),
 
 		"storage_account_name": {
 			Type:     pluginsdk.TypeString,
@@ -349,6 +352,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					ResourceGroup:              id.ResourceGroupName,
 					Location:                   location.Normalize(site.Location),
 					ContainerAppEnvironmentId:  environmentId.ID(),
+					Dapr:                       helpers.FlattenFunctionAppDapr(site.Properties.DaprConfig),
 					Kind:                       pointer.From(site.Kind),
 					Tags:                       pointer.From(site.Tags),
 					DefaultHostname:            pointer.From(site.Properties.DefaultHostName),

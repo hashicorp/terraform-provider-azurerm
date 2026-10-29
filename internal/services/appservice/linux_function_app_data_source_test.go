@@ -62,6 +62,10 @@ func TestAccLinuxFunctionAppDataSource_containerAppEnvironment(t *testing.T) {
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Optional"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.api_logging_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dapr.0.log_level").HasValue("info"),
 			),
 		},
 	})
@@ -75,5 +79,10 @@ data "azurerm_linux_function_app" "test" {
   name                = azurerm_linux_function_app.test.name
   resource_group_name = azurerm_linux_function_app.test.resource_group_name
 }
-`, LinuxFunctionAppResource{}.containerAppEnvironment(data, "first"))
+`, LinuxFunctionAppResource{}.containerAppEnvironmentDapr(data, "first", `
+  dapr {
+    app_id              = "acctest-dapr-%[1]d"
+    api_logging_enabled = true
+  }
+`))
 }

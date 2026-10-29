@@ -185,15 +185,13 @@ func TestNewFunctionAppContainerCreateOrUpdatePoller(t *testing.T) {
 
 			poller, err := NewFunctionAppContainerCreateOrUpdatePoller(nil, response)
 
-			var failedErr pollers.PollingFailedError
-			var cancelledErr pollers.PollingCancelledError
 			switch {
 			case testCase.wantFailed:
-				if !errors.As(err, &failedErr) {
+				if _, ok := errors.AsType[pollers.PollingFailedError](err); !ok {
 					t.Fatalf("expected a PollingFailedError but got %+v", err)
 				}
 			case testCase.wantCancel:
-				if !errors.As(err, &cancelledErr) {
+				if _, ok := errors.AsType[pollers.PollingCancelledError](err); !ok {
 					t.Fatalf("expected a PollingCancelledError but got %+v", err)
 				}
 			default:
@@ -257,18 +255,17 @@ func TestFunctionAppContainerPollTerminalResponse(t *testing.T) {
 
 			result, err := poller.Poll(ctx)
 
-			var failedErr pollers.PollingFailedError
-			var cancelledErr pollers.PollingCancelledError
 			switch {
 			case testCase.failed:
-				if !errors.As(err, &failedErr) {
+				failedErr, ok := errors.AsType[pollers.PollingFailedError](err)
+				if !ok {
 					t.Fatalf("expected a PollingFailedError but got %+v", err)
 				}
 				if testCase.message != "" && failedErr.Message != testCase.message {
 					t.Fatalf("expected message %q but got %q", testCase.message, failedErr.Message)
 				}
 			case testCase.cancelled:
-				if !errors.As(err, &cancelledErr) {
+				if _, ok := errors.AsType[pollers.PollingCancelledError](err); !ok {
 					t.Fatalf("expected a PollingCancelledError but got %+v", err)
 				}
 			default:
@@ -388,18 +385,17 @@ func TestFunctionAppContainerPollContinuationWithTerminalBody(t *testing.T) {
 
 			result, err := poller.Poll(ctx)
 
-			var failedErr pollers.PollingFailedError
-			var cancelledErr pollers.PollingCancelledError
 			switch {
 			case testCase.wantFailed:
-				if !errors.As(err, &failedErr) {
+				failedErr, ok := errors.AsType[pollers.PollingFailedError](err)
+				if !ok {
 					t.Fatalf("expected a PollingFailedError but got %+v", err)
 				}
 				if failedErr.Message != "DeploymentFailed: deployment failed" {
 					t.Fatalf("expected the operation error to be preserved but got %q", failedErr.Message)
 				}
 			case testCase.wantCancel:
-				if !errors.As(err, &cancelledErr) {
+				if _, ok := errors.AsType[pollers.PollingCancelledError](err); !ok {
 					t.Fatalf("expected a PollingCancelledError but got %+v", err)
 				}
 			default:
@@ -554,7 +550,7 @@ func newTestWebAppsClient(t *testing.T, baseURI string) *webapps.WebAppsClient {
 	if err != nil {
 		t.Fatalf("building client: %+v", err)
 	}
-	rmClient.Client.AuthorizeRequest = nil
+	rmClient.AuthorizeRequest = nil
 
 	return &webapps.WebAppsClient{Client: rmClient}
 }

@@ -172,7 +172,7 @@ func TestWaitForManagedEnvironmentDeletion(t *testing.T) {
 			if err != nil {
 				t.Fatalf("building client: %+v", err)
 			}
-			environmentsClient.Client.Client.AuthorizeRequest = nil
+			environmentsClient.Client.AuthorizeRequest = nil
 
 			id := managedenvironments.NewManagedEnvironmentID("00000000-0000-0000-0000-000000000000", "rg", "env")
 

@@ -71,6 +71,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `daily_memory_time_quota` -  The amount of memory in gigabyte-seconds that your application is allowed to consume per day.
 
+* `dapr` - A `dapr` block as defined below. This is only populated when the Function App is hosted on a Container App Environment and Dapr is enabled.
+
 * `default_hostname` - The default hostname of the Linux Function App.
 
 * `hosting_environment_id` - The ID of the App Service Environment used by Function App.
@@ -422,6 +424,22 @@ A `cors` block exports the following:
 * `allowed_origins` - A list of origins that are allowed to make cross-origin calls.
 
 * `support_credentials` - Are credentials allowed in CORS requests?
+
+---
+
+A `dapr` block exports the following:
+
+* `app_id` - The Dapr Application Identifier.
+
+* `app_port` - The port which the application is listening on.
+
+* `api_logging_enabled` - Is API logging enabled for the Dapr sidecar?
+
+* `http_max_request_size_in_mb` - The maximum size of the request body for the Dapr HTTP servers, in MB.
+
+* `http_read_buffer_size_in_kb` - The maximum size of the HTTP header read buffer for the Dapr sidecar, in KB.
+
+* `log_level` - The log level for the Dapr sidecar.
 
 ---
 
