@@ -281,7 +281,7 @@ The `kubernetes_cluster` block supports the following:
 
 * `node_pool_name_max_length` - (Optional) The maximum length accepted by resource validation for Kubernetes node pool names. Must be between `12` and `39`. Applies to default node pools, additional node pools, and temporary rotation names. Defaults to `12`.
 
-~> **Note:** Linux node pool names have a default maximum length of 12 characters. Support for longer names, up to 39 characters, can be requested on a per-subscription basis through private AKS enablement. Configure `node_pool_name_max_length` to extend resource validation. This feature only changes provider validation, it does not enable longer names for a subscription.
+~> **Note:** Names longer than 12 characters require prior private AKS enablement for the subscription. This feature only changes provider validation; it does not enable longer names in AKS. The provider accepts a maximum of 39 characters; AKS enforces the subscription's supported maximum, which may be lower.
 
 ---
 

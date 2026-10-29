@@ -194,6 +194,40 @@ func TestKubernetesAgentPoolName(t *testing.T) {
 	}
 }
 
+func TestKubernetesAgentPoolNameWithFeatures(t *testing.T) {
+	tests := []struct {
+		name      string
+		poolName  string
+		maxLength int
+		wantError bool
+	}{
+		{name: "one character", poolName: "a", maxLength: 12},
+		{name: "default maximum", poolName: strings.Repeat("a", 12), maxLength: 12},
+		{name: "over default maximum", poolName: strings.Repeat("a", 13), maxLength: 12, wantError: true},
+		{name: "long name without opt in", poolName: "linuxworkerpool01", maxLength: 12, wantError: true},
+		{name: "custom maximum", poolName: "linuxworkerpool01", maxLength: 17},
+		{name: "over custom maximum", poolName: strings.Repeat("a", 18), maxLength: 17, wantError: true},
+		{name: "long name with opt in", poolName: "linuxworkerpool01", maxLength: 39},
+		{name: "provider maximum", poolName: strings.Repeat("a", 39), maxLength: 39},
+		{name: "over provider maximum", poolName: strings.Repeat("a", 40), maxLength: 39, wantError: true},
+		{name: "empty name", maxLength: 39, wantError: true},
+		{name: "initial digit", poolName: "1pool", maxLength: 39, wantError: true},
+		{name: "uppercase", poolName: "Pool", maxLength: 39, wantError: true},
+		{name: "hyphen", poolName: "pool-name", maxLength: 39, wantError: true},
+		{name: "maximum below range", poolName: "pool", maxLength: 11, wantError: true},
+		{name: "maximum above range", poolName: "pool", maxLength: 40, wantError: true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := KubernetesAgentPoolNameWithFeatures(test.poolName, "name", test.maxLength)
+			if (err != nil) != test.wantError {
+				t.Fatalf("expected error=%t, got %v", test.wantError, err)
+			}
+		})
+	}
+}
+
 func TestKubernetesDNSPrefix(t *testing.T) {
 	cases := []struct {
 		DNSPrefix string
