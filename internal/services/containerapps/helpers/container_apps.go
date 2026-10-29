@@ -3143,7 +3143,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						"openstack-metric", "openstack-swift", "postgresql", "predictkube", "prometheus",
 						"rabbitmq", "redis", "redis-cluster", "redis-sentinel", "redis-streams",
 						"redis-cluster-streams", "redis-sentinel-streams", "selenium-grid",
-						"solace-event-queue", "github-runner",
+						"solace-event-queue", "github-runner", "temporal",
 					}, false), // Note - this can be any KEDA compatible source in a user's environment
 				},
 
