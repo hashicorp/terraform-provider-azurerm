@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_namespace_test
@@ -17,6 +17,17 @@ import (
 )
 
 type EventGridNamespaceResource struct{}
+
+func TestAccEventGridNamespaceResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")
+	r := EventGridNamespaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccEventGridNamespaceResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")

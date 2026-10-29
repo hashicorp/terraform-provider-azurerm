@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_automatic_cluster_test
@@ -9,15 +9,17 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 )
 
 func TestAccKubernetesAutomaticCluster_serviceMeshProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshProfile(data, true, true),
+			Config: r.serviceMeshProfile(data, true, true, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
@@ -27,7 +29,7 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfile(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceMeshProfile(data, false, false),
+			Config: r.serviceMeshProfile(data, false, false, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
@@ -42,10 +44,11 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfile(t *testing.T) {
 func TestAccKubernetesAutomaticCluster_serviceMeshIngressConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshIngressConfig(data),
+			Config: r.serviceMeshIngressConfig(data, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
@@ -55,7 +58,7 @@ func TestAccKubernetesAutomaticCluster_serviceMeshIngressConfig(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceMeshProfile(data, false, false),
+			Config: r.serviceMeshProfile(data, false, false, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
@@ -70,6 +73,7 @@ func TestAccKubernetesAutomaticCluster_serviceMeshIngressConfig(t *testing.T) {
 func TestAccKubernetesAutomaticCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +87,7 @@ func TestAccKubernetesAutomaticCluster_serviceMeshProfileLifeCycle(t *testing.T)
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceMeshProfile(data, true, false),
+			Config: r.serviceMeshProfile(data, true, false, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_mesh.#").HasValue("1"),
@@ -253,10 +257,11 @@ func TestAccKubernetesAutomaticCluster_webAppRoutingIngressIstioEnabled(t *testi
 func TestAccKubernetesAutomaticCluster_networkingComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.NetworkingConfigComplete(data),
+			Config: r.NetworkingConfigComplete(data, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hosted_system.#").HasValue("1"),
@@ -285,7 +290,7 @@ func TestAccKubernetesAutomaticCluster_webAppRoutingWithMultipleDnsZone(t *testi
 	})
 }
 
-func (r KubernetesAutomaticClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
+func (r KubernetesAutomaticClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -321,10 +326,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   service_mesh {
     internal_ingress_gateway_enabled = %[4]t
     external_ingress_gateway_enabled = %[5]t
-    revisions                        = ["asm-1-28"]
+    revisions                        = [%[6]q]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), internalIngressEnabled, externalIngressEnabled)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), internalIngressEnabled, externalIngressEnabled, serviceMeshVersion)
 }
 
 func (r KubernetesAutomaticClusterResource) serviceMeshProfileDisabled(data acceptance.TestData) string {
@@ -606,7 +611,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r KubernetesAutomaticClusterResource) serviceMeshIngressConfig(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) serviceMeshIngressConfig(data acceptance.TestData, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -651,11 +656,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     proxy_redirect_mechanism         = "CNIChaining"
-    revisions                        = ["asm-1-28"]
+    revisions                        = [%[6]q]
   }
 
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), data.RandomInteger, data.RandomInteger, serviceMeshVersion)
 }
 
 func (KubernetesAutomaticClusterResource) webAppRoutingIngressIstioEnabledConfig(data acceptance.TestData) string {
@@ -685,7 +690,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r KubernetesAutomaticClusterResource) NetworkingConfigComplete(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) NetworkingConfigComplete(data acceptance.TestData, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -736,14 +741,14 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
     proxy_redirect_mechanism         = "CNIChaining"
-    revisions                        = ["asm-1-28"]
+    revisions                        = [%[4]q]
   }
 
   depends_on = [
     azurerm_role_assignment.network,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data))
+`, data.RandomInteger, data.Locations.Primary, r.networkTemplate(data), serviceMeshVersion)
 }
 
 func (KubernetesAutomaticClusterResource) webAppRoutingWithMultipleDnsZone(data acceptance.TestData) string {

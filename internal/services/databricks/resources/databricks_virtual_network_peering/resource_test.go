@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_virtual_network_peering_test
@@ -19,6 +19,17 @@ import (
 )
 
 type DatabricksVirtualNetworkPeeringResource struct{}
+
+func TestAccDatabricksVirtualNetworkPeering_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")
+	r := DatabricksVirtualNetworkPeeringResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDatabricksVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_virtual_network_peering", "test")

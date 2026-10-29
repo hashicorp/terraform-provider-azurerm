@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_monitor_test
@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,6 +32,16 @@ func (r *DatadogMonitorResource) populateFromEnvironment(t *testing.T) {
 	}
 	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
+}
+
+func TestAccDatadogMonitor_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor", "test")
+	r := DatadogMonitorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func TestAccDatadogMonitor_basic(t *testing.T) {
@@ -169,11 +179,11 @@ func TestAccDatadogMonitor_update(t *testing.T) {
 }
 
 func (r DatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := monitorsresource.ParseMonitorID(state.ID)
+	id, err := datadogmonitorresources.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Datadog.MonitorsResource.MonitorsGet(ctx, *id)
+	resp, err := client.Datadog.DatadogMonitorResources.MonitorsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

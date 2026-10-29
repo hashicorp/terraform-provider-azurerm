@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_sas_test
@@ -13,6 +13,19 @@ import (
 )
 
 type EventHubSharedAccessSignatureDataSource struct{}
+
+func TestAccEventHubSharedAccessSignatureDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_sas", "test")
+	r := EventHubSharedAccessSignatureDataSource{}
+	utcNow := time.Now().UTC()
+	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data, endDate),
+		},
+	}, "")
+}
 
 func TestAccEventHubSharedAccessSignatureDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_sas", "test")

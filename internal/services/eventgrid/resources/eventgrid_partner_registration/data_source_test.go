@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_partner_registration_test
@@ -12,6 +12,17 @@ import (
 )
 
 type EventGridPartnerRegistrationDataSource struct{}
+
+func TestAccDataSourceEventGridPartnerRegistration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_partner_registration", "test")
+	r := EventGridPartnerRegistrationDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceEventGridPartnerRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_partner_registration", "test")

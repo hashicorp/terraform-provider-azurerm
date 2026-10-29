@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -38,6 +38,61 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			name:  "GP_Standard_D4ds_v6",
 			input: "GP_Standard_D4ds_v6",
 			valid: true,
+		},
+		{
+			name:  "GP_Standard_D16ads_v6",
+			input: "GP_Standard_D16ads_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D96ads_v6",
+			input: "GP_Standard_D96ads_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D128ds_v6",
+			input: "GP_Standard_D128ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D192ds_v6",
+			input: "GP_Standard_D192ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D256ds_v6",
+			input: "GP_Standard_D256ds_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E20ds_v6",
+			input: "MO_Standard_E20ds_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E128ds_v6",
+			input: "MO_Standard_E128ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D12ads_v6",
+			input: "GP_Standard_D12ads_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E20ads_v6",
+			input: "MO_Standard_E20ads_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E96ads_v6",
+			input: "MO_Standard_E96ads_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E12ads_v6",
+			input: "MO_Standard_E12ads_v6",
+			valid: false,
 		},
 		{
 			name:  "Standard",

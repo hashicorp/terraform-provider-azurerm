@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_synapse_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceSynapseResource struct{}
+
+func TestAccDataFactoryLinkedServiceSynapse_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
+	r := LinkedServiceSynapseResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.connection_string(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceSynapse_ConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
