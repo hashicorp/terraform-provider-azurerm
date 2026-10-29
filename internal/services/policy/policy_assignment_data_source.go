@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -134,7 +134,7 @@ func (AssignmentDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (AssignmentDataSource) ModelObject() interface{} {
+func (AssignmentDataSource) ModelObject() any {
 	return &AssignmentDataSourceModel{}
 }
 

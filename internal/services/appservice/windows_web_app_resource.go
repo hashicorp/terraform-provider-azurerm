@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -275,7 +275,7 @@ func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r WindowsWebAppResource) ModelObject() interface{} {
+func (r WindowsWebAppResource) ModelObject() any {
 	return &WindowsWebAppModel{}
 }
 

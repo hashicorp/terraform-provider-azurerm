@@ -9,6 +9,12 @@ var defaultStartHour = 23
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default number of concurrent builds allowed per-service-package
+var defaultMaxConcurrentBuilds = 3
+
+// specifies the default number of concurrent builds allowed per-branch per-service-package
+var defaultMaxConcurrentBuildsPerBranch = 1
+
 // specifies the default build timeout in hours
 var defaultTimeout = 12
 
@@ -18,8 +24,8 @@ var defaultTerraformCoreVersion = "1.16.4"
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
 
-// This represents a cron view of Monday.
-const val defaultWeeklyDay = "2"
+// This represents a cron view of Sunday.
+const val defaultWeeklyDay = "1"
 
 // Cron value for any day of month
 const val defaultDaysOfMonth = "*"
@@ -40,10 +46,10 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
         // PremiumV2 tier is only available in certain locations `East US 2`, `Australia East`, `Germany West Central`, `Korea Central`, `Norway East` and `UK South`
-        "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
+        "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("germanywestcentral", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
+        "appservice" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("germanywestcentral", "westus2", "eastus2", false), maxConcurrentBuilds = 1),
 
         // Arc Kubernetes Provisioned Cluster is only available in certain locations
         "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
@@ -78,10 +84,10 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true), maxConcurrentBuilds = 1),
 
         // The AKS API has a low rate limit
-        "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
+        "containers" to testConfiguration(parallelism = 6, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
 
         // `azurerm_cost_management_scheduled_action` that can be targeted on a cost management view is limited
         "costmanagement" to testConfiguration(parallelism = 4),
@@ -102,7 +108,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("southeastasia", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), disableTriggers = true),
 
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1),
@@ -167,9 +173,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
         "oracle" to testConfiguration(disableTriggers = true),
 
-        // Orbital is deprecated and can no longer be created - to be removed along with service ref: https://azure.microsoft.com/en-gb/updates?id=azure-orbital-ground-station-retirement
-        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
-
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 
         "policy" to testConfiguration(useAltSubscription = true),
@@ -184,9 +187,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
         "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centraluseuap", "westeurope", true)),
-
-        // redisenterprise is costly - Monday, Wednesday, Friday
-        "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
@@ -213,7 +213,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),
+        "web" to testConfiguration(daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),
 
         // Workloads has quota available in certain locations
         "workloads" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus", "westeurope", "francecentral", false))

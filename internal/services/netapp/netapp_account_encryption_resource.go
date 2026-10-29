@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -28,7 +28,7 @@ type NetAppAccountEncryptionResource struct{}
 
 var _ sdk.Resource = NetAppAccountEncryptionResource{}
 
-func (r NetAppAccountEncryptionResource) ModelObject() interface{} {
+func (r NetAppAccountEncryptionResource) ModelObject() any {
 	return &models.NetAppAccountEncryption{}
 }
 

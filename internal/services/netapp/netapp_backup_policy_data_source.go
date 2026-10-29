@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -26,7 +26,7 @@ func (r NetAppBackupPolicyDataSource) ResourceType() string {
 	return "azurerm_netapp_backup_policy"
 }
 
-func (r NetAppBackupPolicyDataSource) ModelObject() interface{} {
+func (r NetAppBackupPolicyDataSource) ModelObject() any {
 	return &models.NetAppBackupVaultModel{}
 }
 

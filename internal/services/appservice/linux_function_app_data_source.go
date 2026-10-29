@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -73,7 +73,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-func (d LinuxFunctionAppDataSource) ModelObject() interface{} {
+func (d LinuxFunctionAppDataSource) ModelObject() any {
 	return &LinuxFunctionAppDataSourceModel{}
 }
 

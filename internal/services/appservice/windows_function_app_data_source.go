@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -75,7 +75,7 @@ type WindowsFunctionAppDataSourceModel struct {
 
 var _ sdk.DataSource = WindowsFunctionAppDataSource{}
 
-func (d WindowsFunctionAppDataSource) ModelObject() interface{} {
+func (d WindowsFunctionAppDataSource) ModelObject() any {
 	return &WindowsFunctionAppDataSourceModel{}
 }
 

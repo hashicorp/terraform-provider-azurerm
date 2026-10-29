@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,6 +8,6 @@ import (
 )
 
 // the config server URI should be started with http://, https://, git@, or ssh://
-func ConfigServerURI(i interface{}, k string) ([]string, []error) {
+func ConfigServerURI(i any, k string) ([]string, []error) {
 	return validation.StringStartsWithOneOf("http://", "https://", "git@", "ssh://")(i, k)
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -68,7 +68,7 @@ func (r StaticWebAppCustomDomainResource) Attributes() map[string]*schema.Schema
 	}
 }
 
-func (r StaticWebAppCustomDomainResource) ModelObject() interface{} {
+func (r StaticWebAppCustomDomainResource) ModelObject() any {
 	return &StaticWebAppCustomDomainResource{}
 }
 
@@ -139,7 +139,7 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 					},
 					MinTimeout: 20 * time.Second,
 					Timeout:    time.Until(deadline),
-					Refresh: func() (interface{}, string, error) {
+					Refresh: func() (any, string, error) {
 						domain, err := client.GetStaticSiteCustomDomain(ctx, id)
 						if err != nil {
 							return domain, "Error", fmt.Errorf("retrieving %s: %+v", id, err)

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -66,7 +66,7 @@ func dataSourceSubscription() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client)
 	groupClient := client.Subscription.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

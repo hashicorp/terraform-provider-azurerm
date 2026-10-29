@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -34,12 +34,12 @@ type NextGenerationFirewallVnetLocalRulestackModel struct {
 	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
 	MarketplaceOfferId string                      `tfschema:"marketplace_offer_id"`
 	PlanId             string                      `tfschema:"plan_id"`
-	Tags               map[string]interface{}      `tfschema:"tags"`
+	Tags               map[string]any              `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetLocalRulestackResource{}
 
-func (r NextGenerationFirewallVNetLocalRulestackResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVNetLocalRulestackResource) ModelObject() any {
 	return &NextGenerationFirewallVnetLocalRulestackModel{}
 }
 

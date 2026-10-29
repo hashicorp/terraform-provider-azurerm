@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -56,7 +56,7 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -146,7 +146,7 @@ func (MaintenanceDynamicScopeResource) Attributes() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (MaintenanceDynamicScopeResource) ModelObject() interface{} {
+func (MaintenanceDynamicScopeResource) ModelObject() any {
 	return &MaintenanceDynamicScopeModel{}
 }
 
@@ -389,6 +389,6 @@ func (MaintenanceDynamicScopeResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (MaintenanceDynamicScopeResource) IDValidationFunc() func(interface{}, string) ([]string, []error) {
+func (MaintenanceDynamicScopeResource) IDValidationFunc() func(any, string) ([]string, []error) {
 	return configurationassignments.ValidateConfigurationAssignmentID
 }

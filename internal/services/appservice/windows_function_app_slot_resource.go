@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -81,7 +81,7 @@ var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
 
 var _ sdk.ResourceWithStateMigration = WindowsFunctionAppSlotResource{}
 
-func (r WindowsFunctionAppSlotResource) ModelObject() interface{} {
+func (r WindowsFunctionAppSlotResource) ModelObject() any {
 	return &WindowsFunctionAppSlotModel{}
 }
 

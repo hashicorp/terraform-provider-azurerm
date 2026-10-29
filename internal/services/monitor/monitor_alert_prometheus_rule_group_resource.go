@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -64,7 +64,7 @@ func (r AlertPrometheusRuleGroupResource) ResourceType() string {
 	return "azurerm_monitor_alert_prometheus_rule_group"
 }
 
-func (r AlertPrometheusRuleGroupResource) ModelObject() interface{} {
+func (r AlertPrometheusRuleGroupResource) ModelObject() any {
 	return &AlertPrometheusRuleGroupResourceModel{}
 }
 

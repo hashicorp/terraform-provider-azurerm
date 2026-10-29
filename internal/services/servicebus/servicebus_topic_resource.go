@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -135,7 +135,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	return resourceServiceBusTopicRead(d, meta)
 }
 
-func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -313,7 +313,7 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceServiceBusTopicDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

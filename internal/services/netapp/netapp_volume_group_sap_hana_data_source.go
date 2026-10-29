@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -27,7 +27,7 @@ func (r NetAppVolumeGroupSAPHanaDataSource) ResourceType() string {
 	return "azurerm_netapp_volume_group_sap_hana"
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) ModelObject() interface{} {
+func (r NetAppVolumeGroupSAPHanaDataSource) ModelObject() any {
 	return &models.NetAppVolumeGroupSAPHanaDataSourceModel{}
 }
 

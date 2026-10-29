@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -88,7 +88,7 @@ type FunctionAppAlwaysReady struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
 
-func (r FunctionAppFlexConsumptionResource) ModelObject() interface{} {
+func (r FunctionAppFlexConsumptionResource) ModelObject() any {
 	return &FunctionAppFlexConsumptionModel{}
 }
 

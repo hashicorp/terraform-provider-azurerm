@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -86,7 +86,7 @@ func (r IotCentralApplicationNetworkRuleSetResource) ResourceType() string {
 	return "azurerm_iotcentral_application_network_rule_set"
 }
 
-func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() interface{} {
+func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() any {
 	return &IotCentralApplicationNetworkRuleSetModel{}
 }
 

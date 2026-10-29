@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package pluginsdk
@@ -10,7 +10,7 @@ import (
 
 // NormalizeJson takes a JSON string (as an interface{}), parses it, and returns it
 // as a compact, normalized string. If the input is not a string, it returns an error message.
-func NormalizeJson(jsonString interface{}) string {
+func NormalizeJson(jsonString any) string {
 	if jsonString == nil || jsonString == "" {
 		return ""
 	}
@@ -20,7 +20,7 @@ func NormalizeJson(jsonString interface{}) string {
 		return fmt.Sprintf("Error parsing JSON: expected string, got %T", jsonString)
 	}
 
-	var j interface{}
+	var j any
 
 	if err := json.Unmarshal([]byte(str), &j); err != nil {
 		return fmt.Sprintf("Error parsing JSON: %+v", err)

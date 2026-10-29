@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -55,7 +56,7 @@ func resourceNetworkInterfaceSecurityGroupAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -65,8 +66,8 @@ func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByID(nicId.ID())
-	defer locks.UnlockByID(nicId.ID())
+	locks.ByID(strings.ToLower(nicId.ID()))
+	defer locks.UnlockByID(strings.ToLower(nicId.ID()))
 
 	nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Get("network_security_group_id").(string))
 	if err != nil {
@@ -112,7 +113,7 @@ func resourceNetworkInterfaceSecurityGroupAssociationCreate(d *pluginsdk.Resourc
 	return resourceNetworkInterfaceSecurityGroupAssociationRead(d, meta)
 }
 
-func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +150,7 @@ func resourceNetworkInterfaceSecurityGroupAssociationRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,8 +160,8 @@ func resourceNetworkInterfaceSecurityGroupAssociationDelete(d *pluginsdk.Resourc
 		return err
 	}
 
-	locks.ByID(id.First.ID())
-	defer locks.UnlockByID(id.First.ID())
+	locks.ByID(strings.ToLower(id.First.ID()))
+	defer locks.UnlockByID(strings.ToLower(id.First.ID()))
 
 	read, err := client.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

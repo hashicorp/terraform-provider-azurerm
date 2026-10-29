@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func RemediationName(i interface{}, k string) (warnings []string, errors []error) {
+func RemediationName(i any, k string) (warnings []string, errors []error) {
 	// The service returns error when name of remediation is too long
 	// error: The remediation name cannot be empty and must not exceed '260' characters.
 	// By additional testing, the name of remediation cannot contain the following characters: %^#/\&?.

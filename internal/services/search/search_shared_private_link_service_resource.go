@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package search
@@ -87,7 +87,7 @@ func (r SharedPrivateLinkServiceResource) ResourceType() string {
 	return "azurerm_search_shared_private_link_service"
 }
 
-func (r SharedPrivateLinkServiceResource) ModelObject() interface{} {
+func (r SharedPrivateLinkServiceResource) ModelObject() any {
 	return &SharedPrivateLinkServiceModel{}
 }
 

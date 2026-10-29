@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -66,7 +66,7 @@ func (r JobScheduleResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r JobScheduleResource) ModelObject() interface{} {
+func (r JobScheduleResource) ModelObject() any {
 	return &JobScheduleResourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -129,7 +129,7 @@ func (r LocalRuleStack) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r LocalRuleStack) ModelObject() interface{} {
+func (r LocalRuleStack) ModelObject() any {
 	return &LocalRuleStackModel{}
 }
 

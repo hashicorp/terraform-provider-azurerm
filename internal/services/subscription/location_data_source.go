@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package subscription
@@ -38,7 +38,7 @@ func (r LocationDataSource) ResourceType() string {
 	return "azurerm_location"
 }
 
-func (r LocationDataSource) ModelObject() interface{} {
+func (r LocationDataSource) ModelObject() any {
 	return &LocationDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -22,7 +22,7 @@ var _ sdk.Resource = PostgresqlFlexibleServerBackupResource{}
 
 type PostgresqlFlexibleServerBackupResource struct{}
 
-func (r PostgresqlFlexibleServerBackupResource) ModelObject() interface{} {
+func (r PostgresqlFlexibleServerBackupResource) ModelObject() any {
 	return &PostgresqlFlexibleServerBackupResourceModel{}
 }
 

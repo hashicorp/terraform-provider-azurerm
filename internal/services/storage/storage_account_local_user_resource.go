@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -191,7 +191,7 @@ func (r LocalUserResource) ResourceType() string {
 	return "azurerm_storage_account_local_user"
 }
 
-func (r LocalUserResource) ModelObject() interface{} {
+func (r LocalUserResource) ModelObject() any {
 	return &LocalUserModel{}
 }
 

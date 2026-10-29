@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -40,7 +40,7 @@ var (
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
 
-func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerAvailabilitySetModel{}
 }
 

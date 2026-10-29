@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -180,7 +180,7 @@ func (d DBNodesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DBNodesDataSource) ModelObject() interface{} {
+func (d DBNodesDataSource) ModelObject() any {
 	return &DBNodesDataModel{}
 }
 

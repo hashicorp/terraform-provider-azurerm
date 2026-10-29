@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -35,14 +35,14 @@ type NextGenerationFirewallVNetStrataCloudManagerModel struct {
 	MarketplaceOfferId           string                       `tfschema:"marketplace_offer_id"`
 	PlanId                       string                       `tfschema:"plan_id"`
 	Identity                     []identity.ModelUserAssigned `tfschema:"identity"`
-	Tags                         map[string]interface{}       `tfschema:"tags"`
+	Tags                         map[string]any               `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetStrataCloudManagerResource{}
 
 var _ sdk.ResourceWithCustomizeDiff = NextGenerationFirewallVNetStrataCloudManagerResource{}
 
-func (r NextGenerationFirewallVNetStrataCloudManagerResource) ModelObject() interface{} {
+func (r NextGenerationFirewallVNetStrataCloudManagerResource) ModelObject() any {
 	return &NextGenerationFirewallVNetStrataCloudManagerModel{}
 }
 
