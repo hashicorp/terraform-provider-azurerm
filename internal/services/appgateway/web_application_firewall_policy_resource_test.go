@@ -440,6 +440,21 @@ func TestAccWebApplicationFirewallPolicy_fileUploadEnforcement(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_unknownManagedRuleSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.unknownManagedRuleSet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t WebApplicationFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
@@ -484,6 +499,50 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (WebApplicationFirewallPolicyResource) unknownManagedRuleSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "terraform_data" "rule_sets" {
+  input = [
+    {
+      type    = "OWASP"
+      version = "3.2"
+    }
+  ]
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    dynamic "managed_rule_set" {
+      for_each = terraform_data.rule_sets.output
+
+      content {
+        type    = managed_rule_set.value.type
+        version = managed_rule_set.value.version
+      }
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (WebApplicationFirewallPolicyResource) complete(data acceptance.TestData) string {

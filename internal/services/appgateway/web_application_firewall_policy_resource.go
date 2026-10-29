@@ -445,8 +445,16 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+			if !diff.NewValueKnown("managed_rules.0.managed_rule_set") {
+				return nil
+			}
+
 			primaryRuleSetCount := 0
-			for _, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
+			for i, raw := range diff.Get("managed_rules.0.managed_rule_set").([]any) {
+				if !diff.NewValueKnown(fmt.Sprintf("managed_rules.0.managed_rule_set.%d.type", i)) {
+					return nil
+				}
+
 				ruleSet := raw.(map[string]any)
 				switch ruleSet["type"].(string) {
 				case "OWASP", "Microsoft_DefaultRuleSet":
