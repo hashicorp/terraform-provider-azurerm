@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/resources/search_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search/resources/search_shared_private_link_service"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,8 +38,12 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+<<<<<<< HEAD
 		SearchServiceDatasourceBlobResource{},
 		SharedPrivateLinkServiceResource{},
+=======
+		search_shared_private_link_service.Resource{},
+>>>>>>> 8cce469352 (refactor search)
 	}
 }
 
@@ -48,14 +54,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_search_service": dataSourceSearchService(),
+		"azurerm_search_service": search_service.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_search_service": resourceSearchService(),
+		"azurerm_search_service": search_service.RegisterResource(),
 	}
 }
 
