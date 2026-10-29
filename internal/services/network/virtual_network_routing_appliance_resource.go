@@ -43,10 +43,10 @@ type VirtualNetworkRoutingApplianceResourceModel struct {
 }
 
 type VirtualNetworkRoutingApplianceIPConfigurationModel struct {
-	Name                      string `tfschema:"name"`
-	Primary                   bool   `tfschema:"primary"`
-	PrivateIPAddress          string `tfschema:"private_ip_address"`
-	PrivateIPAllocationMethod string `tfschema:"private_ip_address_allocation"`
+	Name                       string `tfschema:"name"`
+	Primary                    bool   `tfschema:"primary"`
+	PrivateIPAddress           string `tfschema:"private_ip_address"`
+	PrivateIPAddressAllocation string `tfschema:"private_ip_address_allocation"`
 }
 
 func (VirtualNetworkRoutingApplianceResource) ResourceType() string {
@@ -252,7 +252,7 @@ func (VirtualNetworkRoutingApplianceResource) flatten(metadata sdk.ResourceMetaD
 				if configProps := config.Properties; configProps != nil {
 					ipConfiguration.Primary = pointer.From(configProps.Primary)
 					ipConfiguration.PrivateIPAddress = pointer.From(configProps.PrivateIPAddress)
-					ipConfiguration.PrivateIPAllocationMethod = pointer.FromEnum(configProps.PrivateIPAllocationMethod)
+					ipConfiguration.PrivateIPAddressAllocation = pointer.FromEnum(configProps.PrivateIPAllocationMethod)
 				}
 
 				state.IPConfigurations = append(state.IPConfigurations, ipConfiguration)
