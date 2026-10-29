@@ -270,8 +270,10 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_size_in_gb": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// Note: O+C because geo replicas and point-in-time restores inherit the source cluster's storage size when omitted. Computed preserves the API-returned size without planning its removal.
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
