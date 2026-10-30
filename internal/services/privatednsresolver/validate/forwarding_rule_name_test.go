@@ -90,8 +90,6 @@ func TestForwardingRuleName(t *testing.T) {
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q..", v.input)
-
 		_, errors := ForwardingRuleName()(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
