@@ -66,6 +66,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 				if properties.GrafanaConfigurations != nil {
 					state.SMTP = flattenSMTPConfigurationModel(properties.GrafanaConfigurations.Smtp, metadata.ResourceData)
+					state.CsrfAlwaysCheck = flattenCsrfAlwaysCheck(properties.GrafanaConfigurations.Security)
+					state.SnapshotExternalEnabled = flattenSnapshotExternalEnabled(properties.GrafanaConfigurations.Snapshots)
+					state.UnifiedAlertingScreenshotsCaptureEnabled = flattenUnifiedAlertingScreenshotsCaptureEnabled(properties.GrafanaConfigurations.UnifiedAlertingScreenshots)
+					state.UsersConfiguration = flattenUsersConfigurationModel(properties.GrafanaConfigurations.Users)
 				}
 
 				if properties.DeterministicOutboundIP != nil {
