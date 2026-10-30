@@ -65,36 +65,36 @@ type AutoHealCustomAction struct {
 	Parameters string `tfschema:"parameters"`
 }
 
-func autoHealSettingSchemaWindows() *pluginsdk.Schema {
+func AutoHealSettingSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaWindows(),
+				"trigger": AutoHealTriggerSchemaWindows(),
 
-				"action": autoHealActionSchemaWindows(),
+				"action": AutoHealActionSchemaWindows(),
 			},
 		},
 	}
 }
 
-func autoHealSettingSchemaWindowsComputed() *pluginsdk.Schema {
+func AutoHealSettingSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"trigger": autoHealTriggerSchemaWindowsComputed(),
+				"trigger": AutoHealTriggerSchemaWindowsComputed(),
 
-				"action": autoHealActionSchemaWindowsComputed(),
+				"action": AutoHealActionSchemaWindowsComputed(),
 			},
 		},
 	}
 }
 
-func autoHealActionSchemaWindows() *pluginsdk.Schema {
+func AutoHealActionSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -139,7 +139,7 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
-func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
+func AutoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -178,7 +178,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 }
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
-func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
+func AutoHealTriggerSchemaWindows() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -317,7 +317,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 	}
 }
 
-func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
+func AutoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -439,7 +439,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
+func ExpandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
 		return &webapps.AutoHealRules{}
 	}
@@ -543,7 +543,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	return result
 }
 
-func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []AutoHealSettingWindows {
+func FlattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []AutoHealSettingWindows {
 	if autoHealRules == nil {
 		return []AutoHealSettingWindows{}
 	}
