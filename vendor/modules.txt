@@ -1131,6 +1131,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedservers
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/outboundfirewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/restorabledroppeddatabases
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sensitivitylabels
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadadministrators
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadonlyauthentications
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverconnectionpolicies

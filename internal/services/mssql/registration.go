@@ -75,6 +75,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		MssqlDatabaseSensitivityLabelResource{},
 		MsSqlFailoverGroupResource{},
 		MsSqlJobResource{},
 		MsSqlJobScheduleResource{},
@@ -107,6 +108,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		MssqlDatabaseListResource{},
+		MssqlDatabaseSensitivityLabelListResource{},
 		MssqlElasticPoolListResource{},
 		MssqlJobAgentListResource{},
 		MssqlServerListResource{},
