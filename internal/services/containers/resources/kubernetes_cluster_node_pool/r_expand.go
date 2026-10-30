@@ -274,3 +274,13 @@ func expandAgentPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]agen
 	}
 	return &out
 }
+
+func expandAgentPoolGatewayProfile(publicIPPrefixSize int) *agentpools.AgentPoolGatewayProfile {
+	if publicIPPrefixSize == 0 {
+		return nil
+	}
+
+	return &agentpools.AgentPoolGatewayProfile{
+		PublicIPPrefixSize: pointer.To(int64(publicIPPrefixSize)),
+	}
+}

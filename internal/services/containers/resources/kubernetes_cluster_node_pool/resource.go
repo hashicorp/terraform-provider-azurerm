@@ -5,6 +5,7 @@ package kubernetes_cluster_node_pool
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -68,6 +69,28 @@ func RegisterResource() *pluginsdk.Resource {
 			}),
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta any) bool {
 				return old != "" && new == ""
+			}),
+			// Azure rejects moving an existing pool into or out of `Gateway` mode:
+			// "Changing property 'agentPoolProfile.mode' from 'Gateway' to 'User' is not allowed"
+			pluginsdk.ForceNewIfChange("mode", func(ctx context.Context, old, new, meta any) bool {
+				gateway := string(agentpools.AgentPoolModeGateway)
+				return strings.EqualFold(old.(string), gateway) || strings.EqualFold(new.(string), gateway)
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
+				// Validate gateway_public_ip_prefix_size is only set when mode is Gateway.
+				// It's Optional+Computed, so dropping it from the config leaves the previous
+				// value in the plan - consult the raw config to see whether it was really set.
+				rawConfig := d.GetRawConfig()
+				if rawConfig.IsNull() || !rawConfig.IsKnown() {
+					return nil
+				}
+				if v, ok := rawConfig.AsValueMap()["gateway_public_ip_prefix_size"]; ok && !v.IsNull() {
+					if !strings.EqualFold(d.Get("mode").(string), string(agentpools.AgentPoolModeGateway)) {
+						return errors.New("`gateway_public_ip_prefix_size` can only be configured when `mode` is set to `Gateway`")
+					}
+				}
+
+				return nil
 			}),
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 				priority := d.Get("priority").(string)
