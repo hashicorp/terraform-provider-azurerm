@@ -115,6 +115,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resourcegraph"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel"
@@ -224,6 +225,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		redis.Registration{},
 		relay.Registration{},
 		resource.Registration{},
+		resourcegraph.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
 		sentinel.Registration{},
