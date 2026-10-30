@@ -883,6 +883,11 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 							keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 						),
 					},
+					"key_vault_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateKeyVaultID,
+					},
 					"key_vault_network_access": {
 						Type:         pluginsdk.TypeString,
 						Default:      string(managedclusters.KeyVaultNetworkAccessTypesPublic),

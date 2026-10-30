@@ -511,6 +511,11 @@ func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClien
 		KeyVaultNetworkAccess: &kvAccess,
 	}
 
+	if keyVaultId := raw["key_vault_id"].(string); keyVaultId != "" {
+		azureKeyVaultKms.KeyVaultResourceId = pointer.To(keyVaultId)
+		return azureKeyVaultKms, nil
+	}
+
 	// Set Key vault Resource ID in case public access is disabled
 	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
