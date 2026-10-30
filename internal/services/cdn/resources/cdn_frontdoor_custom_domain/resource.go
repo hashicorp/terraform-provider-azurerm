@@ -7,8 +7,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:cdn_frontdoor_profile_id,resource_group_name:cdn_frontdoor_profile_id,profile_name:cdn_frontdoor_profile_id" -test-env-vars "ARM_TEST_DATA_RESOURCE_GROUP,ARM_TEST_DNS_ZONE"
+
+const azurermCdnFrontDoorCustomDomainResourceName = "azurerm_cdn_frontdoor_custom_domain"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,10 +31,11 @@ func RegisterResource() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(12 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := afddomains.ParseCustomDomainID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&afddomains.CustomDomainId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&afddomains.CustomDomainId{}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(frontDoorCustomDomainHostNameCustomizeDiff),
