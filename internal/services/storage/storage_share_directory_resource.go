@@ -221,6 +221,11 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta any) erro
 
 	props, err := client.Get(ctx, id.ShareName, id.DirectoryPath)
 	if err != nil {
+		if response.WasNotFound(props.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state", id)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
