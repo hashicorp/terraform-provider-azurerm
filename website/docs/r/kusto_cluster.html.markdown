@@ -80,6 +80,8 @@ The following arguments are supported:
 
 ~> **Note:** In v3.0 of `azurerm` a new or updated Kusto Cluster will only allow your own tenant by default. Explicit configuration of this setting will change from `trusted_external_tenants = ["MyTenantOnly"]` to `trusted_external_tenants = []`.
 
+~> **Note:** The order of `trusted_external_tenants` is not significant. The provider sorts the trusted tenants returned by the Azure Data Explorer API before storing them in state and compares sorted lists of the configured and existing values to avoid a spurious diff. Referencing by index should be avoided because the API may return a different order for `external_tenants` than the order that is in config.
+
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kusto Cluster should be located. Changing this forces a new Kusto Cluster to be created.
 
 ---

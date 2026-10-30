@@ -4,6 +4,8 @@
 package kusto
 
 import (
+	"slices"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 )
@@ -20,12 +22,12 @@ func expandTrustedExternalTenants(input []any) *[]clusters.TrustedExternalTenant
 	return &output
 }
 
-func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []any {
+func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []string {
 	if input == nil {
-		return []any{}
+		return []string{}
 	}
 
-	output := make([]any, 0)
+	output := make([]string, 0)
 
 	for _, v := range *input {
 		if v.Value == nil {
@@ -34,6 +36,9 @@ func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []an
 
 		output = append(output, *v.Value)
 	}
+
+	// Use the same tenant ordering for refreshes and imports.
+	slices.Sort(output)
 
 	return output
 }
