@@ -205,7 +205,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 
 					id := managedgrafanas.NewGrafanaID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2025-08-01", req.Properties)
+					preflightValidate, err := preflight.NewValidationRequest(pointer.To(model.Location), pointer.To(id), "2025-08-01", req)
 					if err != nil {
 						return fmt.Errorf("constructing preflight validation request: %w", err)
 					}
