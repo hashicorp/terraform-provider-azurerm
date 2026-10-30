@@ -462,7 +462,7 @@ A `customer_managed` block supports the following:
 
 * `kms` - (Required) A `kms` block as defined below.
 
-* `encryption_type` - (Optional) The encryption type used. The only possible value at this time is `KMS`. Defaults to `KMS`. Changing this forces a new resource to be created.
+* `encryption_type` - (Optional) The encryption type used. The only possible value is `KMS`. Defaults to `KMS`. Changing this forces a new resource to be created.
 
 ---
 

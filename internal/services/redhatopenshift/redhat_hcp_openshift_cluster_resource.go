@@ -210,16 +210,6 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
-		/*
-			Once platform managed encryption is implemented, it will be the default, and the etcd block will no longer be required.
-			The schema will need to change in the following ways:
-
-			- Make the `etcd` block optional.
-			- Make `key_management_mode` optional, and make it default to platform managed.
-
-			Note that the implementation plan described above is based on the assumption that platform managed encryption requires
-			no other configuration aside from simply enabling it by setting `key_management_mode` to platform managed.
-		*/
 		"etcd": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
