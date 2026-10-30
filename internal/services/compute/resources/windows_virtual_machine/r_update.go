@@ -350,6 +350,12 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
+		if d.HasChange("os_disk.0.tier") {
+			if err := helpers.ValidateVirtualMachineOSDiskTier(osDiskRaw); err != nil {
+				return err
+			}
+		}
+
 		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) != "" {
 			osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 		}
@@ -575,6 +581,12 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 		}
 
 		log.Printf("[DEBUG] Resized OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.DiskName, id.ResourceGroupName, newSize)
+	}
+
+	if d.HasChange("os_disk.0.tier") {
+		if err := helpers.UpdateVirtualMachineOSDiskTier(ctx, client, meta.(*clients.Client).Compute.DisksClient, *id, d.Get("os_disk.0.tier").(string)); err != nil {
+			return fmt.Errorf("updating the performance tier of the OS Disk for Windows %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("os_disk.0.disk_encryption_set_id") {
