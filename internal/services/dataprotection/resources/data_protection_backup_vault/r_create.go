@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -68,6 +69,22 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]any)),
+	}
+
+	alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
+	if d.Get("alerts_for_all_job_failures_enabled").(bool) {
+		alertsForAllJobFailures = backupvaultresources.AlertsStateEnabled
+	}
+	parameters.Properties.MonitoringSettings = &backupvaultresources.MonitoringSettings{
+		AzureMonitorAlertSettings: &backupvaultresources.AzureMonitorAlertSettings{
+			AlertsForAllJobFailures: pointer.To(alertsForAllJobFailures),
+		},
+	}
+
+	if !features.SixPointOh() {
+		if pluginsdk.IsExplicitlyNullInConfig(d, "alerts_for_all_job_failures_enabled") {
+			parameters.Properties.MonitoringSettings = nil
+		}
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {

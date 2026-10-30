@@ -63,6 +63,16 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) 
 		}
 		d.Set("immutability", string(immutability))
 
+		alertsForAllJobFailures := false
+		if monitoringSetting := model.Properties.MonitoringSettings; monitoringSetting != nil {
+			if alertSettings := monitoringSetting.AzureMonitorAlertSettings; alertSettings != nil {
+				if pointer.From(alertSettings.AlertsForAllJobFailures) == backupvaultresources.AlertsStateEnabled {
+					alertsForAllJobFailures = true
+				}
+			}
+		}
+		d.Set("alerts_for_all_job_failures_enabled", alertsForAllJobFailures)
+
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
 			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
