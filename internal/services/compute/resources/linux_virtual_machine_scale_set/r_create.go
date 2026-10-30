@@ -301,8 +301,22 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = helpers.ExpandVirtualMachineScaleSetOsImageNotificationProfile(v.([]any))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		virtualMachineProfile.ScheduledEventsProfile = helpers.ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]any))
+		terminateNotificationProfile = helpers.ExpandVirtualMachineScaleSetTerminateNotificationProfile(v.([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		virtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]any)

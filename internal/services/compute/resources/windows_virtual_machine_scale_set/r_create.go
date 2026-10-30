@@ -306,8 +306,22 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = helpers.ExpandVirtualMachineScaleSetOsImageNotificationProfile(v.([]any))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		virtualMachineProfile.ScheduledEventsProfile = helpers.ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]any))
+		terminateNotificationProfile = helpers.ExpandVirtualMachineScaleSetTerminateNotificationProfile(v.([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		virtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if v, ok := d.GetOk("user_data"); ok {
