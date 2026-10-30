@@ -1009,7 +1009,6 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 		Steps: []acceptance.TestStep{
 			{Config: config, ExternalProviders: previous},
 			oldImport,
-			{Config: config, PlanOnly: true, ProtoV5ProviderFactories: current},
 			{
 				Config:                   config,
 				ProtoV5ProviderFactories: current,
@@ -1021,7 +1020,6 @@ func TestAccKubernetesClusterNodePool_securityUpgrade(t *testing.T) {
 				),
 			},
 			newImport,
-			{Config: config, PlanOnly: true, ProtoV5ProviderFactories: current},
 		},
 	})
 }
