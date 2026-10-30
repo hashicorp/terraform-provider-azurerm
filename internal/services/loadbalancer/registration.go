@@ -97,5 +97,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		lb_backend_address_pool.ListResource{},
 		lb_probe.ListResource{},
+		lb_rule.ListResource{},
 	}
 }
