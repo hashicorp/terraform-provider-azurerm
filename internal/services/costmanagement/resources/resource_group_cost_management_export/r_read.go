@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
@@ -57,9 +60,15 @@ func (r Resource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("flattening `export_data_storage_location`: %+v", err)
 					}
+					state.Description = pointer.From(props.ExportDescription)
+					state.Location = location.Normalize(pointer.From(model.Location))
 					state.ExportDataStorageLocation = storageLocation
 					state.ExportDataOptions = helpers.FlattenExportDataOptionsToModel(props.Definition)
 					state.FileFormat = pointer.FromEnum(props.Format)
+					state.CompressionMode = pointer.FromEnum(props.CompressionMode)
+					state.PartitionData = pointer.From(props.PartitionData)
+					state.DataOverwriteBehavior = pointer.FromEnum(props.DataOverwriteBehavior)
+					state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
 				}
 			}
 
