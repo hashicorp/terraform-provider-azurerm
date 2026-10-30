@@ -6,9 +6,12 @@ package recoveryservices_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -18,7 +21,6 @@ import (
 
 type BackupProtectedFileShareResource struct{}
 
-// TODO: These tests fail because enabling backup on file shares with no content
 func TestAccBackupProtectedFileShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 	r := BackupProtectedFileShareResource{}
@@ -109,6 +111,26 @@ func TestAccBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedFileShare_stopAndRetainData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
+	r := BackupProtectedFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Keep the container registered until the retained backup has been checked and deleted.
+			Config: r.protectionStopOnDestroy(data),
+			Check:  data.CheckWithClientWithoutResource(r.checkRetainedProtectionStateAndDelete(data)),
+		},
+	})
+}
+
 func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
@@ -120,15 +142,78 @@ func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading Recovery Service Protected File Share (%s): %+v", id.String(), err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	// Soft-deleted items can still be returned by the API until their retention period expires.
+	existing := resp.Model != nil
+	if existing && resp.Model.Properties != nil {
+		if item, ok := resp.Model.Properties.(protecteditems.AzureFileshareProtectedItem); ok {
+			existing = !pointer.From(item.IsScheduledForDeferredDelete)
+		}
+	}
+
+	return pointer.To(existing), nil
 }
 
-func (BackupProtectedFileShareResource) base(data acceptance.TestData) string {
+func (BackupProtectedFileShareResource) checkRetainedProtectionStateAndDelete(data acceptance.TestData) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, _ *pluginsdk.InstanceState) error {
+		resourceGroupName := fmt.Sprintf("acctestRG-backup-%d", data.RandomInteger)
+		vaultName := fmt.Sprintf("acctest-VAULT-%d", data.RandomInteger)
+		fileShareName := fmt.Sprintf("acctest-ss-%d", data.RandomInteger)
+		storageAccountId := commonids.NewStorageAccountID(clients.Account.SubscriptionId, resourceGroupName, fmt.Sprintf("acctest%s", data.RandomString))
+
+		vaultId := backupprotecteditems.NewVaultID(clients.Account.SubscriptionId, resourceGroupName, vaultName)
+		protectedItems, err := clients.RecoveryServices.ProtectedItemsGroupClient.ListComplete(ctx, vaultId, backupprotecteditems.ListOperationOptions{
+			Filter: pointer.To("backupManagementType eq 'AzureStorage'"),
+		})
+		if err != nil {
+			return fmt.Errorf("listing protected items in %s: %+v", vaultId, err)
+		}
+
+		for _, protectedItem := range protectedItems.Items {
+			if protectedItem.Id == nil || protectedItem.Properties == nil {
+				continue
+			}
+
+			fileShare, ok := protectedItem.Properties.(backupprotecteditems.AzureFileshareProtectedItem)
+			if !ok || pointer.From(fileShare.FriendlyName) != fileShareName || !strings.EqualFold(pointer.From(fileShare.SourceResourceId), storageAccountId.ID()) {
+				continue
+			}
+
+			protectedItemId, err := protecteditems.ParseProtectedItemIDInsensitively(pointer.From(protectedItem.Id))
+			if err != nil {
+				return err
+			}
+
+			if err := clients.RecoveryServices.ProtectedItemsClient.DeleteThenPoll(ctx, *protectedItemId); err != nil {
+				return fmt.Errorf("deleting retained protected file share %s: %+v", protectedItemId, err)
+			}
+
+			// Check the response captured before cleanup, including whether the backup was soft-deleted.
+			if pointer.From(fileShare.ProtectionState) != backupprotecteditems.ProtectionStateProtectionStopped {
+				return fmt.Errorf("expected protected file share %q to have protection state ProtectionStopped, got %q", fileShareName, pointer.From(fileShare.ProtectionState))
+			}
+			if pointer.From(fileShare.IsScheduledForDeferredDelete) {
+				return fmt.Errorf("protected file share %q was soft-deleted instead of retained", fileShareName)
+			}
+
+			return nil
+		}
+
+		return fmt.Errorf("could not find retained protected file share %q in %s", fileShareName, vaultId)
+	}
+}
+
+func (t BackupProtectedFileShareResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+%s
+`, t.baseWithoutProvider(data))
+}
+
+func (BackupProtectedFileShareResource) baseWithoutProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%[1]d"
   location = "%[2]s"
@@ -158,6 +243,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
+
+  immutability = "Disabled"
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {
@@ -384,4 +471,24 @@ resource "azurerm_backup_protected_file_share" "test1" {
   backup_policy_id          = azurerm_backup_policy_file_share.test.id
 }
 `, r.baseMultiple(data), data.RandomInteger)
+}
+
+func (r BackupProtectedFileShareResource) protectionStopOnDestroy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    recovery_service {
+      file_share_backup_stop_protection_and_retain_data_on_destroy = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_backup_container_storage_account" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test.id
+}
+`, r.baseWithoutProvider(data))
 }
