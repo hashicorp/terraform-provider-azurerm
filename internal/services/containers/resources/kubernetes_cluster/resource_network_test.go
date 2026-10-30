@@ -587,12 +587,72 @@ func TestAccKubernetesCluster_managedNatGateway(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedNatGatewayConfig(data),
+			Config: r.managedNatGatewayConfig(data, false, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.idle_timeout_in_minutes").HasValue("4"),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.managed_outbound_ip_count").HasValue("1"),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.effective_outbound_ips.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").MatchesRegex(regexp.MustCompile("^(Standard|StandardV2)$")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_managedNatGatewayStandardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedNatGatewayConfig(data, true, "StandardV2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.managedNatGatewayConfig(data, true, "Standard"),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("downgrading .* from `StandardV2` to `Standard` is not supported by AKS"),
+		},
+	})
+}
+
+func TestAccKubernetesCluster_managedNatGatewaySkuRequiresManagedOutboundType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	config := strings.Replace(r.managedNatGatewayConfig(data, true, "StandardV2"), `outbound_type     = "managedNATGateway"`, `outbound_type     = "userAssignedNATGateway"`, 1)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      config,
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("sku.*can only be set when.*managedNATGateway"),
+		},
+	})
+}
+
+func TestAccKubernetesCluster_managedNatGatewaySkuOmitted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedNatGatewayConfig(data, true, "StandardV2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedNatGatewayConfig(data, true, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
 			),
 		},
 		data.ImportStep(),
@@ -2434,7 +2494,14 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) managedNatGatewayConfig(data acceptance.TestData) string {
+func (KubernetesClusterResource) managedNatGatewayConfig(data acceptance.TestData, includeNatGatewayProfile bool, sku string) string {
+	natGatewayProfile := ""
+	if sku != "" {
+		natGatewayProfile = fmt.Sprintf("nat_gateway_profile {\n      sku = %q\n    }", sku)
+	} else if includeNatGatewayProfile {
+		natGatewayProfile = "nat_gateway_profile {}"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2454,7 +2521,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 2
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v6"
     max_pods   = 60
     upgrade_settings {
       max_surge = "10%%"
@@ -2477,9 +2544,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr      = "10.0.0.0/16"
     dns_service_ip    = "10.0.0.10"
     outbound_type     = "managedNATGateway"
+    %s
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, natGatewayProfile)
 }
 
 func (KubernetesClusterResource) natGatewayProfileConfig(data acceptance.TestData, ipCount int, idleTimeOut int) string {
