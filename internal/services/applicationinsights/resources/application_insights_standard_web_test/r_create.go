@@ -147,6 +147,7 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 
 	validationsInput := input[0]
 	rules.ExpectedHTTPStatusCode = pointer.To(validationsInput.ExpectedStatusCode)
+	rules.IgnoreHTTPStatusCode = pointer.To(validationsInput.IgnoreStatusCode)
 
 	// if URL http, sslCheck cannot be enabled - Catch in CustomiseDiff
 	rules.SSLCheck = pointer.To(validationsInput.SSLCheck)
