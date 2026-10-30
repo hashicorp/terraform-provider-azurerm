@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"

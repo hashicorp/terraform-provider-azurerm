@@ -5,9 +5,9 @@ package cdn_frontdoor_route
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
