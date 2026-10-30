@@ -4,7 +4,6 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_pool"
 description: |-
   Manages an Azure Batch pool.
-
 ---
 
 # azurerm_batch_pool
@@ -159,6 +158,8 @@ The following arguments are supported:
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
 
 * `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool as defined below.
+
+* `application_package` - (Optional) One or more `application_package` blocks that describe application package references for the Batch pool as defined below.
 
 ---
 
@@ -472,6 +473,7 @@ A `task_scheduling_policy` block supports the following:
 * `node_fill_type` - (Optional) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
 
 ---
+
 A `security_profile` block supports the following:
 
 * `host_encryption_enabled` - (Optional) Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. This will enable the encryption for all the disks including Resource/Temp disk at host itself. Possible values are `true` and `false`. Changing this forces a new resource to be created.
@@ -523,6 +525,14 @@ A `windows` block supports the following:
 Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
 
 * `enable_automatic_updates` - (Optional) Whether automatic updates are enabled on the virtual machine. Defaults to `true`.
+
+---
+
+A `application_package` block supports the following:
+
+* `id` - (Required) The resource ID of the application package to be deployed to the compute nodes of the pool.
+
+* `version` - (Optional) The version of the application package to deploy. If omitted, the default version of the application package will be deployed. If the default version is not set for the application package, then the request fails.
 
 ---
 

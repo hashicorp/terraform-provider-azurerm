@@ -70,6 +70,12 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 				}
 			}
 
+			if applicationPackage := props.ApplicationPackages; applicationPackage != nil {
+				if err := d.Set("application_package", flattenBatchPoolApplicationPackages(applicationPackage)); err != nil {
+					return fmt.Errorf("flattening `application_package`: %+v", err)
+				}
+			}
+
 			if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
 				taskSchedulingPolicy := make([]any, 0)
 				nodeFillType := make(map[string]any)
