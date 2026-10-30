@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureContainerLinux`, `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019`, `Windows2022` and `Windows2025`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; any other change forces a new resource to be created.
 
-~> **Note:** Changes to or from `AzureContainerLinux` force a new resource. This OS SKU requires Kubernetes version 1.34 or later, a supported Generation 2 VM size, and the cluster's `node_os_upgrade_channel` set to `NodeImage` or `None`. Trusted Launch with Secure Boot and vTPM is required for this OS SKU. Artifact streaming, Pod Sandboxing, and confidential VMs are not supported. See the [Azure Container Linux limitations](https://learn.microsoft.com/azure/aks/create-node-pools#limitations).
+~> **Note:** Changes to or from `AzureContainerLinux` force a new resource. This OS SKU requires Kubernetes version 1.34 or later, a supported Generation 2 VM size, and the cluster's `node_os_upgrade_channel` set to `NodeImage` or `None`. A `security` block with both `secure_boot_enabled` and `vtpm_enabled` set to `true` is required for this OS SKU. Artifact streaming, Pod Sandboxing, and confidential VMs are not supported. See the [Azure Container Linux limitations](https://learn.microsoft.com/azure/aks/create-node-pools#limitations).
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
@@ -149,6 +149,10 @@ The following arguments are supported:
 ~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) until this is fixed in the AKS API.
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `security` - (Optional) A `security` block as documented below.
+
+~> **Note:** Changing either flag in `security` reimages the nodes in this pool and can disrupt workloads.
 
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated.
 
@@ -243,6 +247,18 @@ An `allowed_host_ports` block supports the following:
 * `port_end` - (Optional) Specifies the end of the port range.
 
 * `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
+
+---
+
+A `security` block supports the following:
+
+~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
+
+* `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Node Pool. Defaults to `false`.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Node Pool. Defaults to `false`.
+
+~> **Note:** At least one of `secure_boot_enabled` or `vtpm_enabled` must be specified.
 
 ---
 
@@ -361,4 +377,4 @@ terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2026-05-01
+* `Microsoft.ContainerService` - 2026-07-01

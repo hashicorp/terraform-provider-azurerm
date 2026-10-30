@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share_dataset_blob_storage_test
@@ -12,6 +12,17 @@ import (
 )
 
 type DataShareDatasetBlobStorageDataSource struct{}
+
+func TestAccDataShareDatasetBlobStorageDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")
+	r := DataShareDatasetBlobStorageDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataShareDatasetBlobStorageDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")

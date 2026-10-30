@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic_san_test
@@ -18,6 +18,17 @@ import (
 )
 
 type ElasticSANTestResource struct{}
+
+func TestAccElasticSAN_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")
+	r := ElasticSANTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccElasticSAN_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_san", "test")

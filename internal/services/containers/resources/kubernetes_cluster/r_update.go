@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster
@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -140,6 +140,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			return err
 		}
 		existing.Model.Properties.AddonProfiles = addonProfiles
+
+		// TODO: Migrate `oms_agent` legacy add-on flow to the `azureMonitorProfile.containerInsights` API object
+		// Note: the add-on block (`oms_agent`) supports additional fields that are not exposed in the object, investigate
+		if d.HasChange("oms_agent") {
+			// In API version 2026-06-01 and above, the `containerInsights` settings overlap with the add-on payload, with the former taking precedence which causes perpetual diffs.
+			// For now, remove from payload to ensure add-on values are used, preserving existing behaviour.
+			if props.AzureMonitorProfile != nil {
+				props.AzureMonitorProfile.ContainerInsights = nil
+			}
+		}
 	}
 
 	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
@@ -590,6 +600,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		}
 		agentProfile := helpers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
+		if d.HasChange("default_node_pool.0.security") {
+			if agentProfile.Properties.SecurityProfile == nil {
+				agentProfile.Properties.SecurityProfile = &agentpools.AgentPoolSecurityProfile{
+					EnableSecureBoot: pointer.To(false),
+					EnableVTPM:       pointer.To(false),
+				}
+			}
+			currentNodePoolId := defaultNodePoolId
+			if d.HasChange("default_node_pool.0.name") {
+				oldName, _ := d.GetChange("default_node_pool.0.name")
+				currentNodePoolId = agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, oldName.(string))
+			}
+			existingNodePool, err := nodePoolsClient.Get(ctx, currentNodePoolId)
+			if err != nil && !response.WasNotFound(existingNodePool.HttpResponse) {
+				return fmt.Errorf("retrieving Default Node Pool %s: %+v", currentNodePoolId, err)
+			}
+			if existingNodePool.Model != nil && existingNodePool.Model.Properties != nil && existingNodePool.Model.Properties.SecurityProfile != nil {
+				agentProfile.Properties.SecurityProfile.SshAccess = existingNodePool.Model.Properties.SecurityProfile.SshAccess
+			}
+		}
 
 		// if a users specified a version - confirm that version is supported on the cluster
 		if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {

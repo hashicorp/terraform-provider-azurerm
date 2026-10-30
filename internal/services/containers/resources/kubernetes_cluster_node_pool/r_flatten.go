@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster_node_pool
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -179,12 +179,35 @@ func resourceKubernetesClusterNodePoolFlatten(d *pluginsdk.ResourceData, id *age
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
 		}
 
+		if err := d.Set("security", flattenAgentPoolSecurityProfile(props.SecurityProfile, len(d.Get("security").([]any)) > 0)); err != nil {
+			return fmt.Errorf("setting `security`: %+v", err)
+		}
+
 		if err := tags.FlattenAndSet(d, props.Tags); err != nil {
 			return err
 		}
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile, hasExistingBlock bool) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	secureBootEnabled := pointer.From(input.EnableSecureBoot)
+	vtpmEnabled := pointer.From(input.EnableVTPM)
+	if !hasExistingBlock && !secureBootEnabled && !vtpmEnabled {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"secure_boot_enabled": secureBootEnabled,
+			"vtpm_enabled":        vtpmEnabled,
+		},
+	}
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []any {

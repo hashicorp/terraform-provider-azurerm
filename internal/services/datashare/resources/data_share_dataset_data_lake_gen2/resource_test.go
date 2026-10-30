@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_share_dataset_data_lake_gen2_test
@@ -17,6 +17,17 @@ import (
 )
 
 type DataShareDatasetDataLakeGen2Resource struct{}
+
+func TestAccDataShareDataSetDataLakeGen2_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
+	r := DataShareDatasetDataLakeGen2Resource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicFile(data),
+		},
+	}, "")
+}
 
 func TestAccDataShareDataSetDataLakeGen2_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
