@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created. 
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 
@@ -102,7 +102,7 @@ The `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
-* `primary` - (Optional) Is this the Primary IP Configuration? Must be `true` for the first `ip_configuration` when multiple are specified. Defaults to `false`.
+* `primary` - (Optional) Is this the Primary IP Configuration? Must be `true` for the first `ip_configuration` when multiple are specified.
 
 When `private_ip_address_allocation` is set to `Static` the following fields can be configured:
 
