@@ -114,10 +114,18 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			if err := metadata.DecodeDiff(&app); err != nil {
 				return err
 			}
-			// Ingress traffic weight validations
+
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
 
+				// Ingress session affinity validations
+				if ingress.IsSessionAffinity &&
+					(app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) ||
+						ingress.Transport == string(containerapps.IngressTransportMethodTcp)) {
+					return fmt.Errorf("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`")
+				}
+
+				// Ingress traffic weight validations
 				for i, tw := range ingress.TrafficWeights {
 					if !tw.LatestRevision && tw.RevisionSuffix == "" {
 						return fmt.Errorf("`either ingress.0.traffic_weight.%[1]d.revision_suffix` or `ingress.0.traffic_weight.%[1]d.latest_revision` should be specified", i)
