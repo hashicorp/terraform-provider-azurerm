@@ -7,6 +7,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_consumer_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_device_update_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_device_update_instance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_dps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_dps_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_dps_shared_access_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_endpoint_cosmosdb_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_endpoint_eventhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_endpoint_servicebus_queue"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_endpoint_servicebus_topic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_endpoint_storage_container"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_enrichment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_fallback_route"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_file_upload"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_route"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/resources/iothub_shared_access_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,30 +54,30 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_iothub":                          dataSourceIotHub(),
-		"azurerm_iothub_dps":                      dataSourceIotHubDPS(),
-		"azurerm_iothub_dps_shared_access_policy": dataSourceIotHubDPSSharedAccessPolicy(),
-		"azurerm_iothub_shared_access_policy":     dataSourceIotHubSharedAccessPolicy(),
+		"azurerm_iothub":                          iothub.RegisterDataSource(),
+		"azurerm_iothub_dps":                      iothub_dps.RegisterDataSource(),
+		"azurerm_iothub_dps_shared_access_policy": iothub_dps_shared_access_policy.RegisterDataSource(),
+		"azurerm_iothub_shared_access_policy":     iothub_shared_access_policy.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_iothub":                            resourceIotHub(),
-		"azurerm_iothub_certificate":                resourceIotHubCertificate(),
-		"azurerm_iothub_consumer_group":             resourceIotHubConsumerGroup(),
-		"azurerm_iothub_dps":                        resourceIotHubDPS(),
-		"azurerm_iothub_dps_certificate":            resourceIotHubDPSCertificate(),
-		"azurerm_iothub_dps_shared_access_policy":   resourceIotHubDPSSharedAccessPolicy(),
-		"azurerm_iothub_endpoint_eventhub":          resourceIotHubEndpointEventHub(),
-		"azurerm_iothub_endpoint_servicebus_queue":  resourceIotHubEndpointServiceBusQueue(),
-		"azurerm_iothub_endpoint_servicebus_topic":  resourceIotHubEndpointServiceBusTopic(),
-		"azurerm_iothub_endpoint_storage_container": resourceIotHubEndpointStorageContainer(),
-		"azurerm_iothub_enrichment":                 resourceIotHubEnrichment(),
-		"azurerm_iothub_fallback_route":             resourceIotHubFallbackRoute(),
-		"azurerm_iothub_route":                      resourceIotHubRoute(),
-		"azurerm_iothub_shared_access_policy":       resourceIotHubSharedAccessPolicy(),
+		"azurerm_iothub":                            iothub.RegisterResource(),
+		"azurerm_iothub_certificate":                iothub_certificate.RegisterResource(),
+		"azurerm_iothub_consumer_group":             iothub_consumer_group.RegisterResource(),
+		"azurerm_iothub_dps":                        iothub_dps.RegisterResource(),
+		"azurerm_iothub_dps_certificate":            iothub_dps_certificate.RegisterResource(),
+		"azurerm_iothub_dps_shared_access_policy":   iothub_dps_shared_access_policy.RegisterResource(),
+		"azurerm_iothub_endpoint_eventhub":          iothub_endpoint_eventhub.RegisterResource(),
+		"azurerm_iothub_endpoint_servicebus_queue":  iothub_endpoint_servicebus_queue.RegisterResource(),
+		"azurerm_iothub_endpoint_servicebus_topic":  iothub_endpoint_servicebus_topic.RegisterResource(),
+		"azurerm_iothub_endpoint_storage_container": iothub_endpoint_storage_container.RegisterResource(),
+		"azurerm_iothub_enrichment":                 iothub_enrichment.RegisterResource(),
+		"azurerm_iothub_fallback_route":             iothub_fallback_route.RegisterResource(),
+		"azurerm_iothub_route":                      iothub_route.RegisterResource(),
+		"azurerm_iothub_shared_access_policy":       iothub_shared_access_policy.RegisterResource(),
 	}
 }
 
@@ -69,10 +87,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		IotHubDeviceUpdateAccountResource{},
-		IotHubDeviceUpdateInstanceResource{},
-		IotHubEndpointCosmosDBAccountResource{},
-		IotHubFileUploadResource{},
+		iothub_device_update_account.Resource{},
+		iothub_device_update_instance.Resource{},
+		iothub_endpoint_cosmosdb_account.Resource{},
+		iothub_file_upload.Resource{},
 	}
 }
 
