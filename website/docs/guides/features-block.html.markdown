@@ -68,6 +68,10 @@ provider "azurerm" {
       recover_soft_deleted_key_vaults = true
     }
 
+    kubernetes_cluster {
+      node_pool_name_max_length = 12
+    }
+
     log_analytics_workspace {
       permanently_delete_on_destroy = true
     }
@@ -158,6 +162,8 @@ The `features` block supports the following:
 * `servicebus` - (Optional) A `servicebus` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
+
+* `kubernetes_cluster` - (Optional) A `kubernetes_cluster` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
@@ -268,6 +274,14 @@ The `key_vault` block supports the following:
 * `recover_soft_deleted_hardware_security_module_keys` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
 ~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
+
+---
+
+The `kubernetes_cluster` block supports the following:
+
+* `node_pool_name_max_length` - (Optional) The maximum length accepted by resource validation for Kubernetes node pool names. Must be between `12` and `39`. Applies to default node pools, additional node pools, and temporary rotation names. Defaults to `12`.
+
+~> **Note:** Names longer than 12 characters require prior private AKS enablement for the subscription. This feature only changes provider validation; it does not enable longer names in AKS. The provider accepts a maximum of 39 characters; AKS enforces the subscription's supported maximum, which may be lower.
 
 ---
 

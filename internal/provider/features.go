@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
@@ -133,6 +134,23 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
+					},
+				},
+			},
+		},
+
+		"kubernetes_cluster": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"node_pool_name_max_length": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      12,
+						ValidateFunc: validation.IntBetween(12, 39),
+						Description:  "Maximum length of Kubernetes node pool names, between 12 and 39 characters. Longer names require AKS subscription support. Defaults to `12`.",
 					},
 				},
 			},
@@ -587,6 +605,16 @@ func expandFeatures(input []any) features.UserFeatures {
 			cognitiveRaw := items[0].(map[string]any)
 			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["kubernetes_cluster"]; ok {
+		items := raw.([]any)
+		if len(items) > 0 && items[0] != nil {
+			kubernetesRaw := items[0].(map[string]any)
+			if v, ok := kubernetesRaw["node_pool_name_max_length"]; ok {
+				featuresMap.KubernetesCluster.NodePoolNameMaxLength = v.(int)
 			}
 		}
 	}

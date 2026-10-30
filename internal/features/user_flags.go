@@ -14,6 +14,7 @@ type UserFeatures struct {
 	DatabricksWorkspace      DatabricksWorkspaceFeatures
 	EnhancedValidation       EnhancedValidationFeatures
 	KeyVault                 KeyVaultFeatures
+	KubernetesCluster        KubernetesClusterFeatures
 	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
 	MachineLearning          MachineLearningFeatures
 	ManagedDisk              ManagedDiskFeatures
@@ -28,6 +29,10 @@ type UserFeatures struct {
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
 	ServiceBus               ServiceBusFeatures
+}
+
+type KubernetesClusterFeatures struct {
+	NodePoolNameMaxLength int
 }
 
 type CognitiveAccountFeatures struct {

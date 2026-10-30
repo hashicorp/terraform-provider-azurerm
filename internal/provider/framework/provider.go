@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -333,6 +334,22 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"preflight_location_fallback": schema.StringAttribute{
 										Optional:    true,
 										Description: "The Azure location to use as a fallback when Preflight Validation is enabled and a resource does not specify a location. This is typically used for resources that derive their location from a dependency that has not yet been created.",
+									},
+								},
+							},
+						},
+						"kubernetes_cluster": schema.ListNestedBlock{
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"node_pool_name_max_length": schema.Int64Attribute{
+										Optional:    true,
+										Description: "Maximum length of Kubernetes node pool names, between 12 and 39 characters. Longer names require AKS subscription support. Defaults to `12`.",
+										Validators: []validator.Int64{
+											int64validator.Between(12, 39),
+										},
 									},
 								},
 							},
