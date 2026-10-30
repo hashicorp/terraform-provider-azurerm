@@ -1570,6 +1570,34 @@ func TestAccLinuxFunctionApp_containerAppEnvironmentDapr(t *testing.T) {
 	})
 }
 
+// The Dapr sidecar waits for the application to respond on `app_port`, so this uses the Azure Functions Dapr
+// extension's sample image, which has Dapr triggers and listens on port 3001.
+func TestAccLinuxFunctionApp_containerAppEnvironmentDaprAppPort(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerAppEnvironmentDaprTriggers(data, 3001),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.app_port").HasValue("3001"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.containerAppEnvironmentDaprTriggers(data, 3002),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.0.app_port").HasValue("3002"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxFunctionApp_containerAppEnvironmentDaprRequiresContainerAppEnvironment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -3398,6 +3426,33 @@ func (r LinuxFunctionAppResource) containerAppEnvironmentDapr(data acceptance.Te
 		"  container_app_environment_id = azurerm_container_app_environment.test.id\n"+strings.ReplaceAll(dapr, "%[1]d", strconv.Itoa(data.RandomInteger)),
 		1,
 	)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentDaprTriggers(data acceptance.TestData, appPort int) string {
+	config := r.containerAppEnvironmentDapr(data, "first", fmt.Sprintf(`
+  dapr {
+    app_id   = "acctest-dapr-%%[1]d"
+    app_port = %d
+  }
+`, appPort))
+
+	// the sample's Dapr triggers read these from app settings
+	config = strings.Replace(config,
+		`    ACCEPTANCE_TEST = "first"
+`,
+		`    ACCEPTANCE_TEST  = "first"
+    PubSubName       = "messagebus"
+    StateStoreName   = "statestore"
+    KafkaBindingName = "sample-topic"
+`, 1)
+
+	return strings.Replace(config,
+		`        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"`,
+		`        registry_url = "https://mcr.microsoft.com"
+        image_name   = "daprio/samples/dotnet-azurefunction"
+        image_tag    = "1.0.1"`, 1)
 }
 
 func (r LinuxFunctionAppResource) daprWithServicePlan(data acceptance.TestData) string {
