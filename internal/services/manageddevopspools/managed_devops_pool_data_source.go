@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2026-06-02/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -262,6 +262,14 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
+					"agent_sizes": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
 					"os_disk_storage_account_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -351,15 +359,23 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if model.Identity != nil {
-					flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+					flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %+v", err)
 					}
-					state.Identity = *flattenedIdentity
+
+					if len(flattenedIdentity) > 0 {
+						state.Identity = []identity.ModelUserAssigned{
+							{
+								Type:        flattenedIdentity[0].Type,
+								IdentityIds: flattenedIdentity[0].IdentityIds,
+							},
+						}
+					}
 				}
 
 				if props := model.Properties; props != nil {
-					devCenterProjectId, err := projects.ParseProjectID(props.DevCenterProjectResourceId)
+					devCenterProjectId, err := projects.ParseProjectID(pointer.From(props.DevCenterProjectResourceId))
 					if err != nil {
 						return fmt.Errorf("parsing `dev_center_project_id`: %+v", err)
 					}
