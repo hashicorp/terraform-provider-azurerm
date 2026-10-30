@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -96,12 +97,12 @@ func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) Exists(ctx cont
 func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%d"
-  location = "%s"
+  name     = "acctest-dataprotection-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_mysql_flexible_server" "test" {
-  name                   = "acctest-mysqlfs-%d"
+  name                   = "acctest-mysqlfs-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
@@ -110,18 +111,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name               = "B_Standard_B1ms"
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  soft_delete         = "Off"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[3]s
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
@@ -136,7 +126,7 @@ resource "azurerm_role_assignment" "test2" {
 }
 
 resource "azurerm_data_protection_backup_policy_mysql_flexible_server" "test" {
-  name                            = "acctest-dp-%d"
+  name                            = "acctest-dp-%[1]d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
@@ -149,7 +139,7 @@ resource "azurerm_data_protection_backup_policy_mysql_flexible_server" "test" {
 
   depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, r.templateBackupVault(data))
 }
 
 func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) basic(data acceptance.TestData) string {
@@ -215,4 +205,41 @@ resource "azurerm_data_protection_backup_instance_mysql_flexible_server" "test" 
   backup_policy_id = azurerm_data_protection_backup_policy_mysql_flexible_server.test2.id
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (DataProtectionBackupInstanceMysqlFlexibleServerResource) templateBackupVault(data acceptance.TestData) string {
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  soft_delete         = "Off"
+
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -133,17 +134,7 @@ resource "azurerm_storage_container" "test" {
   storage_account_id = azurerm_storage_account.test.id
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  soft_delete         = "Off"
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[4]s
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
@@ -158,7 +149,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   default_retention_duration = "P4M"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), r.templateBackupVault(data))
 }
 
 func (r DataProtectionBackupInstanceDataLakeStorageResource) templateComplete(data acceptance.TestData) string {
@@ -269,4 +260,41 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
   depends_on = [azurerm_role_assignment.test]
 }
 `, r.templateComplete(data), data.RandomInteger)
+}
+
+func (DataProtectionBackupInstanceDataLakeStorageResource) templateBackupVault(data acceptance.TestData) string {
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  soft_delete         = "Off"
+
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
 }

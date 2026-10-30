@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -94,7 +95,8 @@ func (r DataProtectionBackupPolicyCosmosdbAccountResource) Exists(ctx context.Co
 }
 
 func (r DataProtectionBackupPolicyCosmosdbAccountResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -111,6 +113,34 @@ resource "azurerm_data_protection_backup_vault" "test" {
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
   soft_delete         = "Off"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-dp-cosmos-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-dbv-cosmos-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  soft_delete         = "Off"
+
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
 
   identity {
     type = "SystemAssigned"
