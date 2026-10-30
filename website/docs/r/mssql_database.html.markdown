@@ -189,6 +189,10 @@ The following arguments are supported:
 
 ~> **Note:** The default value for the `enclave_type` field is unset not `Default`.
 
+* `federated_client_id` - (Optional) The Client ID of the multi-tenant Microsoft Entra ID application used to access a customer-managed key in a different tenant.
+
+-> **Note:** The application must have a federated identity credential for the user-assigned managed identity configured in the database's `identity` block. The application's service principal in the Key Vault tenant must have permission to get, wrap and unwrap keys. See the [cross-tenant customer-managed key configuration guide](https://learn.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-database-level-basic-actions) for details.
+
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. Defaults to `true`.
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
@@ -245,7 +249,8 @@ The following arguments are supported:
 
 * `transparent_data_encryption_key_vault_key_id` - (Optional) The fully versioned `Key Vault` `Key` URL (e.g. `'https://<YourVaultName>.vault.azure.net/keys/<YourKeyName>/<YourKeyVersion>`) to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.
 
-~> **Note:** To successfully deploy a `Microsoft SQL Database` in CMK/BYOK TDE the `Key Vault` must have `Soft-delete` and `purge protection` enabled to protect from data loss due to accidental key and/or key vault deletion. The `Key Vault` and the `Microsoft SQL Server` `User Managed Identity Instance` must belong to the same `Azure Active Directory` `tenant`.
+~> **Note:** To successfully deploy a `Microsoft SQL Database` in CMK/BYOK TDE the `Key Vault` must have `Soft-delete` and `purge protection` enabled to protect from data loss due to accidental key and/or key vault deletion.
+
 
 * `transparent_data_encryption_key_automatic_rotation_enabled` - (Optional) Boolean flag to specify whether TDE automatically rotates the encryption Key to latest version or not. Possible values are `true` or `false`. Defaults to `false`.
 
