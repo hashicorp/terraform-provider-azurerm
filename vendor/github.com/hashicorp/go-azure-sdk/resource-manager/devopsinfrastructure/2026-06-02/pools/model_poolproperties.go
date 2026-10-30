@@ -10,7 +10,7 @@ import (
 
 type PoolProperties struct {
 	AgentProfile               AgentProfile          `json:"agentProfile"`
-	DevCenterProjectResourceId string                `json:"devCenterProjectResourceId"`
+	DevCenterProjectResourceId *string               `json:"devCenterProjectResourceId,omitempty"`
 	FabricProfile              FabricProfile         `json:"fabricProfile"`
 	MaximumConcurrency         int64                 `json:"maximumConcurrency"`
 	OrganizationProfile        OrganizationProfile   `json:"organizationProfile"`
@@ -22,7 +22,7 @@ var _ json.Unmarshaler = &PoolProperties{}
 
 func (s *PoolProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		DevCenterProjectResourceId string                `json:"devCenterProjectResourceId"`
+		DevCenterProjectResourceId *string               `json:"devCenterProjectResourceId,omitempty"`
 		MaximumConcurrency         int64                 `json:"maximumConcurrency"`
 		ProvisioningState          *ProvisioningState    `json:"provisioningState,omitempty"`
 		RuntimeConfiguration       *RuntimeConfiguration `json:"runtimeConfiguration,omitempty"`

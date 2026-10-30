@@ -12,8 +12,10 @@ var _ OrganizationProfile = AzureDevOpsOrganizationProfile{}
 
 type AzureDevOpsOrganizationProfile struct {
 	Alias             *string                       `json:"alias,omitempty"`
+	Description       *string                       `json:"description,omitempty"`
 	Organizations     []Organization                `json:"organizations"`
 	PermissionProfile *AzureDevOpsPermissionProfile `json:"permissionProfile,omitempty"`
+	UpdateDescription *bool                         `json:"updateDescription,omitempty"`
 
 	// Fields inherited from OrganizationProfile
 
