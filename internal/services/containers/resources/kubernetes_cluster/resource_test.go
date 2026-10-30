@@ -96,6 +96,22 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_keyVaultKmsVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureKeyVaultKmsVersionless(data, meta.CurrentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_management_service.0.key_vault_id"),
+	})
+}
+
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -979,7 +995,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
 }
 
-func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+func (r KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
 	kmsBlock := ""
 	if enabled {
 		kmsBlock = `
@@ -988,6 +1004,18 @@ func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, cont
   }`
 	}
 
+	return r.azureKeyVaultKmsTemplate(data, controlPlaneVersion, kmsBlock)
+}
+
+func (r KubernetesClusterResource) azureKeyVaultKmsVersionless(data acceptance.TestData, controlPlaneVersion string) string {
+	return r.azureKeyVaultKmsTemplate(data, controlPlaneVersion, `
+  key_management_service {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+    key_vault_id     = azurerm_key_vault.test.id
+  }`)
+}
+
+func (KubernetesClusterResource) azureKeyVaultKmsTemplate(data acceptance.TestData, controlPlaneVersion string, kmsBlock string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1018,6 +1046,12 @@ resource "azurerm_role_assignment" "test_admin" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Key Vault Crypto User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_contributor" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Contributor"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 

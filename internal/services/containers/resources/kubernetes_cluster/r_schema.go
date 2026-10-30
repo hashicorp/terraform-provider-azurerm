@@ -876,9 +876,17 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key_vault_key_id": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.Any(
+							keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+							keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
+						),
+					},
+					"key_vault_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+						Optional:     true,
+						ValidateFunc: commonids.ValidateKeyVaultID,
 					},
 					"key_vault_network_access": {
 						Type:         pluginsdk.TypeString,
