@@ -170,6 +170,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachinescalesets.DiskControllerTypes](diskControllerType.(string))
+	}
+
 	if galleryApplications := helpers.ExpandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]any)); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
 			GalleryApplications: galleryApplications,
