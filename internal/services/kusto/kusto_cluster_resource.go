@@ -5,6 +5,7 @@ package kusto
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -111,7 +112,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"trusted_external_tenants": {
 				// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
-				// The Azure Data Explorer API returns tenants in its own order, so compare the tenant sets.
+				// The Azure Data Explorer API returns tenants in its own order, so compare sorted tenant lists.
 				DiffSuppressFunc: diffSuppressTrustedExternalTenants,
 				Type:             pluginsdk.TypeList,
 				Optional:         true,
@@ -721,25 +722,22 @@ func diffSuppressTrustedExternalTenants(_, _, _ string, d *pluginsdk.ResourceDat
 		return false
 	}
 
-	oldSet := make(map[string]struct{}, len(oldList))
-	for _, tenant := range oldList {
-		oldSet[tenant.(string)] = struct{}{}
-	}
-
-	newSet := make(map[string]struct{}, len(newList))
-	for _, tenant := range newList {
-		newSet[tenant.(string)] = struct{}{}
-	}
-
-	if len(oldSet) != len(newSet) {
+	if len(oldList) != len(newList) {
 		return false
 	}
 
-	for tenant := range oldSet {
-		if _, ok := newSet[tenant]; !ok {
-			return false
-		}
+	// Sort copies so comparison does not mutate state or configuration.
+	oldTenantsSorted := make([]string, len(oldList))
+	for i, tenant := range oldList {
+		oldTenantsSorted[i] = tenant.(string)
 	}
 
-	return true
+	newTenantsSorted := make([]string, len(newList))
+	for i, tenant := range newList {
+		newTenantsSorted[i] = tenant.(string)
+	}
+
+	slices.Sort(oldTenantsSorted)
+	slices.Sort(newTenantsSorted)
+	return slices.Equal(oldTenantsSorted, newTenantsSorted)
 }
