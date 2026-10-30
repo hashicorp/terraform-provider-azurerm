@@ -138,7 +138,7 @@ func (r RelayNamespaceResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Sku: &namespaces.Sku{
 					Name: namespaces.SkuName(model.SkuName),
-					Tier: pointer.To(namespaces.SkuTier(model.SkuName)),
+					Tier: pointer.ToEnum[namespaces.SkuTier](model.SkuName),
 				},
 				Properties: &namespaces.RelayNamespaceProperties{},
 				Tags:       tags.Expand(model.Tags),
@@ -273,7 +273,7 @@ func (r RelayNamespaceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("sku_name") {
 				existingModel.Sku = &namespaces.Sku{
 					Name: namespaces.SkuName(model.SkuName),
-					Tier: pointer.To(namespaces.SkuTier(model.SkuName)),
+					Tier: pointer.ToEnum[namespaces.SkuTier](model.SkuName),
 				}
 			}
 
