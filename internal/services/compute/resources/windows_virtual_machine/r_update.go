@@ -432,6 +432,15 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 		}
 	}
 
+	if d.HasChange("size_properties") {
+		shouldUpdate = true
+		if update.Properties.HardwareProfile == nil {
+			update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{}
+		}
+		sizeProps := d.GetRawConfig().AsValueMap()["size_properties"]
+		update.Properties.HardwareProfile.VMSizeProperties = helpers.ExpandVirtualMachineSizePropertiesFromRawConfig(sizeProps)
+	}
+
 	if d.HasChange("tags") {
 		shouldUpdate = true
 

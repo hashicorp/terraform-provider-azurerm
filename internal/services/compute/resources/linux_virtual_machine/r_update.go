@@ -483,6 +483,15 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		}
 	}
 
+	if d.HasChange("size_properties") {
+		shouldUpdate = true
+		if update.Properties.HardwareProfile == nil {
+			update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{}
+		}
+		sizeProps := d.GetRawConfig().AsValueMap()["size_properties"]
+		update.Properties.HardwareProfile.VMSizeProperties = helpers.ExpandVirtualMachineSizePropertiesFromRawConfig(sizeProps)
+	}
+
 	if d.HasChange("user_data") {
 		shouldUpdate = true
 		update.Properties.UserData = pointer.To(d.Get("user_data").(string))

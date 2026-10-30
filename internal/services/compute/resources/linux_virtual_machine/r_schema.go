@@ -331,6 +331,8 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"size_properties": helpers.VirtualMachineSizePropertiesSchema(),
+
 		"source_image_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,

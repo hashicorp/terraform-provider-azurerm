@@ -82,6 +82,7 @@ func resourceLinuxVirtualMachineFlatten(ctx context.Context, clientsClient *clie
 			d.Set("eviction_policy", pointer.From(props.EvictionPolicy))
 			if profile := props.HardwareProfile; profile != nil {
 				d.Set("size", pointer.From(profile.VMSize))
+				d.Set("size_properties", helpers.FlattenVirtualMachineSizeProperties(profile.VMSizeProperties))
 			}
 
 			extensionsTimeBudget := "PT1H30M"
