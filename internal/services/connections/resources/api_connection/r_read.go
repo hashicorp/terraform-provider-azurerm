@@ -39,6 +39,8 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
+		d.Set("kind", pointer.From(model.Kind))
+
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 

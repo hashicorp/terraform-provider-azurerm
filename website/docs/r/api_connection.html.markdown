@@ -55,6 +55,31 @@ resource "azurerm_api_connection" "example" {
 }
 ```
 
+## Example Usage (V2 — Logic App Standard)
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_managed_api" "example" {
+  name     = "servicebus"
+  location = azurerm_resource_group.example.location
+}
+
+resource "azurerm_api_connection" "example" {
+  name                = "example-connection-v2"
+  resource_group_name = azurerm_resource_group.example.name
+  managed_api_id      = data.azurerm_managed_api.example.id
+  kind                = "V2"
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -68,6 +93,10 @@ The following arguments are supported:
 ---
 
 * `display_name` - (Optional) A display name for this API Connection.
+
+* `kind` - (Optional) The kind of API Connection. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new API Connection to be created.
+
+-> **Note:** `kind = "V2"` is required for use with Logic App Standard. V2 connections expose a `connectionRuntimeUrl` on the Azure resource which Logic App Standard workflows use to connect to managed APIs.
 
 * `parameter_values` - (Optional) A map of parameter values associated with this API Connection.
 

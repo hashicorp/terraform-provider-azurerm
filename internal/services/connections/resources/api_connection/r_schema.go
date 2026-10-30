@@ -39,6 +39,17 @@ func apiConnectionSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "V1",
+			ValidateFunc: validation.StringInSlice([]string{
+				"V1",
+				"V2",
+			}, false),
+		},
+
 		"parameter_values": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
