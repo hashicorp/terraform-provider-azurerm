@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package cognitive_account_project_connection_entra_id
+package helpers
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func cognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectionresource.ConnectionAuthType, resourceType string) sdk.ResourceRunFunc {
+func CognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectionresource.ConnectionAuthType, resourceType string) sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		client := metadata.Client.Cognitive.ProjectConnectionResourceClient
 
@@ -31,7 +31,7 @@ func cognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectio
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if authType, ok := cognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != expectedAuthType {
+		if authType, ok := CognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != expectedAuthType {
 			return fmt.Errorf("connection %s has auth type `%s` and cannot be managed by `%s`", *id, authType, resourceType)
 		}
 
@@ -39,7 +39,7 @@ func cognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectio
 	}
 }
 
-func cognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource) (projectconnectionresource.ConnectionAuthType, bool) {
+func CognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource) (projectconnectionresource.ConnectionAuthType, bool) {
 	if model == nil || model.Properties == nil {
 		return "", false
 	}
@@ -47,12 +47,12 @@ func cognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.
 	return model.Properties.ConnectionPropertiesV2().AuthType, true
 }
 
-func cognitiveAccountProjectConnectionHasExpectedAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource, expectedAuthType projectconnectionresource.ConnectionAuthType) bool {
-	authType, ok := cognitiveAccountProjectConnectionAuthType(model)
+func CognitiveAccountProjectConnectionHasExpectedAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource, expectedAuthType projectconnectionresource.ConnectionAuthType) bool {
+	authType, ok := CognitiveAccountProjectConnectionAuthType(model)
 	return ok && authType == expectedAuthType
 }
 
-func flattenProjectConnectionMetadata(priorMetadata map[string]string, apiMetadata *map[string]string) map[string]string {
+func FlattenAccountProjectConnectionMetadata(priorMetadata map[string]string, apiMetadata *map[string]string) map[string]string {
 	// The API returns additional metadata fields beyond those configured (e.g. `ApiVersion`,
 	// `DeploymentApiVersion`). When prior configuration is known (Read/Update) only the configured
 	// keys are surfaced to avoid diffs; otherwise (import or list) all API metadata fields are returned.

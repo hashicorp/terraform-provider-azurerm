@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/projectconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -21,7 +22,7 @@ var (
 type Resource struct{}
 
 func (r Resource) CustomImporter() sdk.ResourceRunFunc {
-	return cognitiveAccountProjectConnectionImporter(projectconnectionresource.ConnectionAuthTypeAAD, r.ResourceType())
+	return helpers.CognitiveAccountProjectConnectionImporter(projectconnectionresource.ConnectionAuthTypeAAD, r.ResourceType())
 }
 
 func (r Resource) Identity() resourceids.ResourceId {

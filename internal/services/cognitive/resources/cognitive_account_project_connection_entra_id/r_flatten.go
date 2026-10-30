@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/projectconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +27,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *projectconnectionre
 		state.Category = pointer.FromEnum(base.Category)
 		state.Target = pointer.From(base.Target)
 
-		state.Metadata = flattenProjectConnectionMetadata(priorMetadata, base.Metadata)
+		state.Metadata = helpers.FlattenAccountProjectConnectionMetadata(priorMetadata, base.Metadata)
 	}
 
 	return metadata.Encode(&state)

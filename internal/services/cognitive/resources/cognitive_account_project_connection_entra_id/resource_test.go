@@ -88,6 +88,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_aiServicesCategory(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -102,6 +103,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_azureOpenAICategory(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -116,6 +118,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_storageAccountCategory(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -130,6 +133,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_cognitiveSearchCategory(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -144,6 +148,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_cosmosDbCategory(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -158,6 +163,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_databricksCategory(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -172,6 +178,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_apiManagementCategory(t *te
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -186,6 +193,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_appConfigCategory(t *testin
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -200,6 +208,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_cognitiveServiceCategory(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -214,6 +223,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_managedOnlineEndpointCatego
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -228,6 +238,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_microsoftFabricCategory(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -242,6 +253,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_sharepointCategory(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 

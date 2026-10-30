@@ -35,11 +35,11 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if resp.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: properties were nil", *id)
+				return fmt.Errorf("retrieving %s: `properties` were nil", *id)
 			}
 
 			var model CognitiveAccountProjectConnectionEntraIDModel
