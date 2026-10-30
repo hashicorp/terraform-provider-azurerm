@@ -7,11 +7,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
@@ -43,7 +45,17 @@ type ExactVersion struct {
 	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
 	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
-	ApiBaseURL    string
+	ApiBaseURL string
+
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] with logger passed through if set via [SetLogger] earlier.
+	//
+	// Caller is responsible for passing logger to the client via [httpclient.WithLogger]
+	// when overriding defaults.
+	HTTPClient *http.Client
+
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -52,6 +64,10 @@ func (*ExactVersion) IsSourceImpl() isrc.InstallSrcSigil {
 	return isrc.InstallSrcSigil{}
 }
 
+// SetLogger sets [log.Logger] to log internal debug messages.
+//
+// If you override HTTPClient you may also need to pass
+// logger there via [httpclient.WithLogger].
 func (ev *ExactVersion) SetLogger(logger *log.Logger) {
 	ev.logger = logger
 }
@@ -61,6 +77,13 @@ func (ev *ExactVersion) log() *log.Logger {
 		return discardLogger
 	}
 	return ev.logger
+}
+
+func (ev *ExactVersion) httpClient() *http.Client {
+	if ev.HTTPClient == nil {
+		return httpclient.New(httpclient.WithLogger(ev.log()))
+	}
+	return ev.HTTPClient
 }
 
 func (ev *ExactVersion) Validate() error {
@@ -108,11 +131,14 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	}
 	ev.log().Printf("will install into dir at %s", dstDir)
 
+	client := ev.httpClient()
+
 	rels := rjson.NewReleases()
 	if ev.ApiBaseURL != "" {
 		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
+	rels.SetHTTPClient(client)
 	installVersion := ev.Version
 	if ev.Enterprise != nil {
 		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
@@ -127,6 +153,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !ev.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
+		HTTPClient:       client,
 	}
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey

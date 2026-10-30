@@ -210,6 +210,8 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]
 	return cmd
 }
 
+// runTerraformCmdJSON runs a given command that produces a single, static JSON output.
+// This is decoded into the provided v argument.
 func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v interface{}) error {
 	var outbuf = bytes.Buffer{}
 	cmd.Stdout = mergeWriters(cmd.Stdout, &outbuf)
@@ -224,9 +226,11 @@ func (tf *Terraform) runTerraformCmdJSON(ctx context.Context, cmd *exec.Cmd, v i
 	return dec.Decode(v)
 }
 
+// runTerraformCmdJSONLog runs a given command that produces multiple, structured JSON log messages.
+// Due to this it returns an iterator that allows calling code to consume a stream of messages.
 func (tf *Terraform) runTerraformCmdJSONLog(ctx context.Context, cmd *exec.Cmd) iter.Seq[NextMessage] {
 	pr, pw := io.Pipe()
-	tf.SetStdout(pw)
+	cmd.Stdout = mergeWriters(cmd.Stdout, pw)
 
 	emitter := newLogMsgEmitter(pr)
 
