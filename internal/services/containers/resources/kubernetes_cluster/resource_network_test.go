@@ -635,6 +635,30 @@ func TestAccKubernetesCluster_managedNatGatewaySkuRequiresManagedOutboundType(t 
 	})
 }
 
+func TestAccKubernetesCluster_managedNatGatewaySkuOmitted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedNatGatewayConfig(data, true, "StandardV2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedNatGatewayConfig(data, true, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -2497,7 +2521,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 2
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_D2s_v6"
     max_pods   = 60
     upgrade_settings {
       max_surge = "10%%"
