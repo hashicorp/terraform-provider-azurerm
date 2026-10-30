@@ -99,6 +99,7 @@ func flattenCdnFrontDoorSecretParameters(ctx context.Context, input secrets.Secr
 		map[string]any{
 			"expiration_date":           pointer.From(customerCertificate.ExpirationDate),
 			"key_vault_certificate_id":  certificateID,
+			"key_vault_id":              keyVaultId.ID(),
 			"subject_alternative_names": pluginsdk.FlattenSlice(customerCertificate.SubjectAlternativeNames),
 		},
 	}
