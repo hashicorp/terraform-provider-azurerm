@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package app_configuration_test
@@ -12,6 +12,16 @@ import (
 )
 
 type AppConfigurationDataSource struct{}
+
+func TestAccAppConfigurationDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration", "test")
+	r := AppConfigurationDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_configuration", "test")
