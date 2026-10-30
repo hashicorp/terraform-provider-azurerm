@@ -694,6 +694,7 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 			Config: r.otherTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("data.azurerm_managed_disk.test").Key("tags.Hello").HasValue("World"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -701,6 +702,8 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 			Config: r.otherTagsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("data.azurerm_managed_disk.test").Key("tags.Hello").HasValue("Universe"),
+				check.That("data.azurerm_managed_disk.test").Key("tags.Dimension").HasValue("C-137"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -2753,6 +2756,11 @@ resource "azurerm_windows_virtual_machine" "test" {
     Hello = "World"
   }
 }
+
+data "azurerm_managed_disk" "test" {
+  name                = azurerm_windows_virtual_machine.test.os_disk[0].name
+  resource_group_name = azurerm_resource_group.test.name
+}
 `, r.template(data))
 }
 
@@ -2784,9 +2792,14 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-    Hello     = "World"
+    Hello     = "Universe"
     Dimension = "C-137"
   }
+}
+
+data "azurerm_managed_disk" "test" {
+  name                = azurerm_windows_virtual_machine.test.os_disk[0].name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data))
 }
