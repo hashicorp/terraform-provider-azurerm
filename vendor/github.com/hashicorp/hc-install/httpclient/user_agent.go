@@ -5,24 +5,19 @@ package httpclient
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/hc-install/version"
 )
 
-// NewHTTPClient provides a pre-configured http.Client
-// e.g. with relevant User-Agent header
-func NewHTTPClient(logger *log.Logger) *http.Client {
-	rc := retryablehttp.NewClient()
-	rc.Logger = logger
-	client := rc.StandardClient()
-	client.Transport = &userAgentRoundTripper{
-		userAgent: fmt.Sprintf("hc-install/%s", version.Version()),
-		inner:     client.Transport,
+func withUserAgent() Option {
+	return func(c *retryablehttp.Client) {
+		c.HTTPClient.Transport = &userAgentRoundTripper{
+			inner:     c.HTTPClient.Transport,
+			userAgent: fmt.Sprintf("hc-install/%s", version.Version()),
+		}
 	}
-	return client
 }
 
 type userAgentRoundTripper struct {
