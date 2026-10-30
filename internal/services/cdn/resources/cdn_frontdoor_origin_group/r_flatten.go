@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -17,6 +18,15 @@ func resourceCdnFrontDoorOriginGroupFlatten(d *pluginsdk.ResourceData, id *afdor
 
 	if model != nil {
 		if props := model.Properties; props != nil {
+			authentication, err := flattenCdnFrontDoorOriginGroupAuthentication(props.Authentication)
+			if err != nil {
+				return fmt.Errorf("flattening 'authentication': %+v", err)
+			}
+
+			if err := d.Set("authentication", authentication); err != nil {
+				return fmt.Errorf("setting 'authentication': %+v", err)
+			}
+
 			if err := d.Set("health_probe", flattenCdnFrontDoorOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
 				return fmt.Errorf("setting 'health_probe': %+v", err)
 			}
@@ -60,4 +70,27 @@ func flattenCdnFrontDoorOriginGroupHealthProbeParameters(input *afdorigingroups.
 			"request_type":        pointer.FromEnum(input.ProbeRequestType),
 		},
 	}
+}
+
+func flattenCdnFrontDoorOriginGroupAuthentication(input *afdorigingroups.OriginAuthenticationProperties) ([]any, error) {
+	if input == nil || input.Type == nil {
+		return []any{}, nil
+	}
+
+	userAssignedIdentityId := ""
+	if input.UserAssignedIdentity != nil && pointer.From(input.UserAssignedIdentity.Id) != "" {
+		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.UserAssignedIdentity.Id)
+		if err != nil {
+			return nil, err
+		}
+		userAssignedIdentityId = id.ID()
+	}
+
+	return []any{
+		map[string]any{
+			"scope":                     pointer.From(input.Scope),
+			"type":                      pointer.FromEnum(input.Type),
+			"user_assigned_identity_id": userAssignedIdentityId,
+		},
+	}, nil
 }
