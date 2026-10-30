@@ -131,13 +131,11 @@ func (r RelayNamespaceResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			//check is sku name has changed, if so, set the sku in the parameters to update it, haschange for every property that does not have forcenew set to true, otherwise the update will not be called
-			skuTier := namespaces.SkuTier(model.SkuName)
 			parameters := namespaces.RelayNamespace{
 				Location: location.Normalize(model.Location),
 				Sku: &namespaces.Sku{
 					Name: namespaces.SkuName(model.SkuName),
-					Tier: &skuTier,
+					Tier: pointer.To(namespaces.SkuTier(model.SkuName)),
 				},
 				Properties: &namespaces.RelayNamespaceProperties{},
 				Tags:       tags.Expand(model.Tags),
