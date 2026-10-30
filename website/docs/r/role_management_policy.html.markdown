@@ -141,7 +141,7 @@ An `active_assignment_rules` block supports the following:
 * `expire_after` - (Optional) The maximum length of time an assignment can be valid, as an ISO8601 duration. Permitted values: `P15D`, `P30D`, `P90D`, `P180D`, or `P365D`.
 * `require_justification` - (Optional) Is a justification required to create new assignments.
 * `require_multifactor_authentication` - (Optional) Is multi-factor authentication required to create new assignments.
-* `require_ticket_info` - (Optional) Is ticket information required to create new assignments.
+* `require_ticket_info` - (Optional, **Deprecated**) Is ticket information required to create new assignments. Azure does not support this for active assignments and rejects the request when it is set to `true`. This property will be removed in the next major version of the Provider. Use `activation_rules.require_ticket_info` instead.
 
 One of `expiration_required` or `expire_after` must be provided.
 
