@@ -161,7 +161,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
-			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository"},
+			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository", "oci_repository"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_id": {
@@ -282,7 +282,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
-			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository"},
+			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository", "oci_repository"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"bucket_name": {
@@ -346,11 +346,103 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"oci_repository": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository", "oci_repository"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringMatch(regexp.MustCompile(`^oci://.+`), "`url` must start with `oci://`."),
+					},
+
+					"reference_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							FluxOCIReferenceDigest,
+							FluxOCIReferenceSemver,
+							FluxOCIReferenceTag,
+						}, false),
+					},
+
+					"reference_value": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"layer_selector": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"media_type": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"operation": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForOperationType(), false),
+								},
+							},
+						},
+					},
+
+					"local_auth_reference": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ValidateFunc:  validate.LocalAuthReference,
+						ConflictsWith: []string{"oci_repository.0.use_workload_identity"},
+					},
+
+					"service_account_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"use_workload_identity": {
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						ConflictsWith: []string{"oci_repository.0.local_auth_reference"},
+					},
+
+					"tls_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"sync_interval_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      600,
+						ValidateFunc: validation.IntBetween(1, 35791394),
+					},
+
+					"timeout_in_seconds": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      600,
+						ValidateFunc: validation.IntBetween(1, 35791394),
+					},
+				},
+			},
+		},
+
 		"git_repository": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
-			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository"},
+			ExactlyOneOf: []string{"blob_storage", "bucket", "git_repository", "oci_repository"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"url": {
