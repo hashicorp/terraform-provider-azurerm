@@ -64,9 +64,10 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"principal_type": {
