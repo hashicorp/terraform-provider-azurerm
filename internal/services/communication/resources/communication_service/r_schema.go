@@ -46,6 +46,8 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 	}
 }
