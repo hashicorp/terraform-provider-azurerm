@@ -258,6 +258,8 @@ func TestAccServicePlan_appServiceEnvironmentV3(t *testing.T) {
 
 func TestAccServicePlan_appServiceEnvironmentV3memoryIntensive(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	// Memory intensive Isolated v2 SKUs (`I1mv2`-`I5mv2`) are not available in all regions (e.g. `westeurope`)
+	data.Locations.Primary = "eastus2"
 	r := ServicePlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
