@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -97,7 +96,7 @@ func cdnFrontdoorRouteSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(helpers.FrontDoorContentTypes(), false),
+							ValidateFunc: validate.FrontDoorContentType,
 						},
 					},
 				},
