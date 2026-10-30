@@ -18,8 +18,6 @@ Manages a Linux Virtual Machine.
 
 -> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use the [azurerm_virtual_machine](virtual_machine.html) resource instead.
 
--> **Note:** This resource does not support attaching existing OS Disks. You can instead capture an [image](image.html) of the OS Disk or continue to use the [azurerm_virtual_machine](virtual_machine.html) resource instead.
-
 -> **Note:** In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
 !> **Note:** Due to a breaking change in the Azure API the `vm_agent_platform_updates_enabled` field is now a `Read-Only` field that is controlled by the platform. Its value cannot be set, modified, or updated.
@@ -210,7 +208,7 @@ The following arguments are supported:
 
 -> **Note:** One of either `source_image_id` or `source_image_reference` must be set.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
+* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine and the OS Disk it is managing. These tags will not be applied to attached disks that are specified with the `os_managed_disk_id` argument.
 
 * `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
 
