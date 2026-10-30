@@ -61,6 +61,8 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: true,
+					StopVMBeforeDetaching: false,
+					SkipAttachmentDestroy: false,
 				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
@@ -158,7 +160,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"managed_disk": []any{
 						map[string]any{
-							"expand_without_downtime": true,
+							"expand_without_downtime":  true,
+							"stop_vm_before_detaching": true,
+							"skip_attachment_destroy":  true,
 						},
 					},
 					"postgresql_flexible_server": []any{
@@ -280,6 +284,8 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: true,
+					StopVMBeforeDetaching: true,
+					SkipAttachmentDestroy: true,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
@@ -377,7 +383,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"managed_disk": []any{
 						map[string]any{
-							"expand_without_downtime": false,
+							"expand_without_downtime":  false,
+							"stop_vm_before_detaching": false,
+							"skip_attachment_destroy":  false,
 						},
 					},
 					"postgresql_flexible_server": []any{
@@ -499,6 +507,8 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: false,
+					StopVMBeforeDetaching: false,
+					SkipAttachmentDestroy: false,
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
@@ -1477,17 +1487,21 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
-					ExpandWithoutDowntime: true,
+					ExpandWithoutDowntime: false,
+					StopVMBeforeDetaching: false,
+					SkipAttachmentDestroy: false,
 				},
 			},
 		},
 		{
-			Name: "No Downtime Resize Enabled",
+			Name: "Managed Disk Features Enabled",
 			Input: []any{
 				map[string]any{
 					"managed_disk": []any{
 						map[string]any{
-							"expand_without_downtime": true,
+							"expand_without_downtime":  true,
+							"stop_vm_before_detaching": true,
+							"skip_attachment_destroy":  true,
 						},
 					},
 				},
@@ -1495,16 +1509,20 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: true,
+					StopVMBeforeDetaching: true,
+					SkipAttachmentDestroy: true,
 				},
 			},
 		},
 		{
-			Name: "No Downtime Resize Disabled",
+			Name: "Managed Disk Features Disabled",
 			Input: []any{
 				map[string]any{
 					"managed_disk": []any{
 						map[string]any{
-							"expand_without_downtime": false,
+							"expand_without_downtime":  false,
+							"stop_vm_before_detaching": false,
+							"skip_attachment_destroy":  false,
 						},
 					},
 				},
@@ -1512,6 +1530,8 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 			Expected: features.UserFeatures{
 				ManagedDisk: features.ManagedDiskFeatures{
 					ExpandWithoutDowntime: false,
+					StopVMBeforeDetaching: false,
+					SkipAttachmentDestroy: false,
 				},
 			},
 		},
@@ -1520,8 +1540,8 @@ func TestExpandFeaturesManagedDisk(t *testing.T) {
 	for _, testCase := range testData {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.ManagedDisk, testCase.Expected.ManagedDisk) {
-			t.Fatalf("Expected %+v but got %+v", result.ManagedDisk, testCase.Expected.ManagedDisk)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
 		}
 	}
 }

@@ -6,6 +6,7 @@ package virtual_machine_data_disk_attachment
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,6 +25,10 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	id, err := parse.DataDiskID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if meta.(*clients.Client).Features.ManagedDisk.SkipAttachmentDestroy {
+		return nil
 	}
 
 	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
@@ -66,6 +71,14 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	virtualMachine.Model.Resources = nil
 	// fixes #24145
 	virtualMachine.Model.Properties.ApplicationProfile = nil
+
+	if meta.(*clients.Client).Features.ManagedDisk.StopVMBeforeDetaching {
+		options := virtualmachines.DefaultPowerOffOperationOptions()
+		options.SkipShutdown = pointer.To(false)
+		if err := client.PowerOffThenPoll(ctx, virtualMachineId, options); err != nil {
+			return fmt.Errorf("sending Power Off to %s: %+v", virtualMachineId, err)
+		}
+	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("removing %s from Virtual Machine %q : %+v", id, id.VirtualMachineName, err)
