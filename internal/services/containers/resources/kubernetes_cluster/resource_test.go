@@ -145,7 +145,7 @@ func TestAccKubernetesCluster_keyVaultKMSCMKCrossSubscription(t *testing.T) {
 					t.Fatalf("building client: %+v", err)
 				}
 
-				// To properly test `key_vault_id` functionality we need to purge its entry from the cahce
+				// To properly test `key_vault_id` functionality we need to purge its entry from the cache
 				client.KeyVault.Purge(commonids.NewKeyVaultID(data.Subscriptions.Secondary, fmt.Sprintf("acctestRG-aks-alt-%d", data.RandomInteger), fmt.Sprintf("acctest%d", data.RandomInteger)[:24]))
 			},
 			Config: r.azureKeyVaultKmsCrossSubscription(data, meta.CurrentKubernetesVersion, true, true),
