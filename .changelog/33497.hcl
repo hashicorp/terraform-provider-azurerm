@@ -13,6 +13,3 @@ change "new-property" {
 change "resource-fix" {
   body = "`azurerm_linux_function_app_slot` - fix a panic when the parent `azurerm_linux_function_app` is hosted on a Container Apps Environment"
 }
-change "resource-fix" {
-  body = "`azurerm_container_app_environment` - fix an issue where `Delete` could fail to correctly wait for the resource to be deleted"
-}
