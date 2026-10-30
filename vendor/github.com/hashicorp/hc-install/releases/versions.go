@@ -6,10 +6,12 @@ package releases
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	"github.com/hashicorp/hc-install/internal/validators"
 	"github.com/hashicorp/hc-install/product"
@@ -27,6 +29,21 @@ type Versions struct {
 
 	// Install represents configuration for installation of any listed version
 	Install InstallationOptions
+
+	// ApiBaseURL is an optional field that specifies a custom URL to list the product versions from.
+	// If ApiBaseURL is set, versions will be listed from this base URL instead of the default site,
+	// and each listed ExactVersion will also be installed from it.
+	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
+	ApiBaseURL string
+
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] if not set.
+	//
+	// If set, it is also passed through to each listed ExactVersion,
+	// so that installation uses the same client.
+	HTTPClient *http.Client
 }
 
 type InstallationOptions struct {
@@ -40,6 +57,13 @@ type InstallationOptions struct {
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	// during installation
 	ArmoredPublicKey string
+}
+
+func (v *Versions) httpClient() *http.Client {
+	if v.HTTPClient == nil {
+		return httpclient.New()
+	}
+	return v.HTTPClient
 }
 
 func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
@@ -59,6 +83,10 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 	defer cancelFunc()
 
 	r := rjson.NewReleases()
+	if v.ApiBaseURL != "" {
+		r.BaseURL = v.ApiBaseURL
+	}
+	r.SetHTTPClient(v.httpClient())
 	pvs, err := r.ListProductVersions(ctx, v.Product.Name)
 	if err != nil {
 		return nil, err
@@ -87,6 +115,9 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
 			LicenseDir: v.Install.LicenseDir,
+
+			ApiBaseURL: v.ApiBaseURL,
+			HTTPClient: v.HTTPClient,
 
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,

@@ -7,12 +7,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
 
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/hc-install/httpclient"
 	"github.com/hashicorp/hc-install/internal/pubkey"
 	rjson "github.com/hashicorp/hc-install/internal/releasesjson"
 	isrc "github.com/hashicorp/hc-install/internal/src"
@@ -43,7 +45,17 @@ type LatestVersion struct {
 	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
 	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
 	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
-	ApiBaseURL    string
+	ApiBaseURL string
+
+	// HTTPClient represents the client to use for making
+	// all round trips between the library (client) and the server.
+	//
+	// Defaults to [httpclient.New] with logger passed through if set via [SetLogger] earlier.
+	//
+	// Caller is responsible for passing logger to the client via [httpclient.WithLogger]
+	// when overriding defaults.
+	HTTPClient *http.Client
+
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -52,6 +64,10 @@ func (*LatestVersion) IsSourceImpl() isrc.InstallSrcSigil {
 	return isrc.InstallSrcSigil{}
 }
 
+// SetLogger sets [log.Logger] to log internal debug messages.
+//
+// If you override HTTPClient you may also need to pass
+// logger there via [httpclient.WithLogger].
 func (lv *LatestVersion) SetLogger(logger *log.Logger) {
 	lv.logger = logger
 }
@@ -61,6 +77,13 @@ func (lv *LatestVersion) log() *log.Logger {
 		return discardLogger
 	}
 	return lv.logger
+}
+
+func (lv *LatestVersion) httpClient() *http.Client {
+	if lv.HTTPClient == nil {
+		return httpclient.New(httpclient.WithLogger(lv.log()))
+	}
+	return lv.HTTPClient
 }
 
 func (lv *LatestVersion) Validate() error {
@@ -104,11 +127,14 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 	}
 	lv.log().Printf("will install into dir at %s", dstDir)
 
+	client := lv.httpClient()
+
 	rels := rjson.NewReleases()
 	if lv.ApiBaseURL != "" {
 		rels.BaseURL = lv.ApiBaseURL
 	}
 	rels.SetLogger(lv.log())
+	rels.SetHTTPClient(client)
 	versions, err := rels.ListProductVersions(ctx, lv.Product.Name)
 	if err != nil {
 		return "", err
@@ -128,6 +154,7 @@ func (lv *LatestVersion) Install(ctx context.Context) (string, error) {
 		VerifyChecksum:   !lv.SkipChecksumVerification,
 		ArmoredPublicKey: pubkey.DefaultPublicKey,
 		BaseURL:          rels.BaseURL,
+		HTTPClient:       client,
 	}
 	if lv.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = lv.ArmoredPublicKey
