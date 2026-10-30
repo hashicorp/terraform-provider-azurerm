@@ -201,10 +201,24 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
 				encryptionAtHostEnabled := false
-				if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-					encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+				secureBootEnabled := false
+				vtpmEnabled := false
+				if secProfile := profile.SecurityProfile; secProfile != nil {
+					if secProfile.EncryptionAtHost != nil {
+						encryptionAtHostEnabled = *secProfile.EncryptionAtHost
+					}
+					if uefi := secProfile.UefiSettings; uefi != nil {
+						if uefi.SecureBootEnabled != nil {
+							secureBootEnabled = *uefi.SecureBootEnabled
+						}
+						if uefi.VTpmEnabled != nil {
+							vtpmEnabled = *uefi.VTpmEnabled
+						}
+					}
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+				d.Set("secure_boot_enabled", secureBootEnabled)
+				d.Set("vtpm_enabled", vtpmEnabled)
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
