@@ -199,6 +199,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			// Note: O+C because defaults to Ubuntu if using Linux
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(agentpools.OSSKUAzureContainerLinux),
 				string(agentpools.OSSKUAzureLinux),
 				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
@@ -259,6 +260,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Default:      string(agentpools.ScaleDownModeDelete),
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForScaleDownMode(), false),
 		},
+
+		"security": helpers.SchemaNodePoolSecurity("security"),
 
 		"temporary_name_for_rotation": {
 			Type:         pluginsdk.TypeString,

@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster_node_pool/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -47,6 +48,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Schema: resourceKubernetesClusterNodePoolSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
+			helpers.NodePoolSecurityCustomizeDiff("os_sku", "security"),
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta any) bool {
 				oldStr := old.(string)
 				newStr := new.(string)

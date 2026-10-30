@@ -373,7 +373,7 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool. `temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
@@ -425,7 +425,9 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019`, `Windows2022` and `Windows2025`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureContainerLinux`, `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019`, `Windows2022` and `Windows2025`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
+
+~> **Note:** Changes to or from `AzureContainerLinux` require `temporary_name_for_rotation`. This OS SKU requires Kubernetes version 1.34 or later, a supported Generation 2 VM size, and `node_os_upgrade_channel` set to `NodeImage` or `None`. A `security` block with both `secure_boot_enabled` and `vtpm_enabled` set to `true` is required for this OS SKU. Artifact streaming, Pod Sandboxing, and confidential VMs are not supported. See the [Azure Container Linux limitations](https://learn.microsoft.com/azure/aks/create-node-pools#limitations).
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
@@ -434,6 +436,10 @@ A `default_node_pool` block supports the following:
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
 * `scale_down_mode` - (Optional) Specifies the autoscaling behaviour of the Kubernetes Cluster. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
+
+* `security` - (Optional) A `security` block as documented below.
+
+~> **Note:** Changing either flag in `security` reimages the nodes in this pool and can disrupt workloads.
 
 * `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this default Node Pool. `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -809,6 +815,18 @@ An `ingress_application_gateway` block supports the following:
 ~> **Note:** Exactly one of `gateway_id`, `gateway_name`, `subnet_id`, or `subnet_cidr` must be specified.
 
 ~> **Note:** If specifying `ingress_application_gateway` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
+
+---
+
+A `security` block supports the following:
+
+~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
+
+* `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Default Node Pool. Defaults to `false`.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Default Node Pool. Defaults to `false`.
+
+~> **Note:** At least one of `secure_boot_enabled` or `vtpm_enabled` must be specified.
 
 ---
 
