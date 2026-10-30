@@ -7,6 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/resources/redis_cache"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/resources/redis_cache_access_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/resources/redis_cache_access_policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/resources/redis_firewall_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/resources/redis_linked_server"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,16 +42,16 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_redis_cache": dataSourceRedisCache(),
+		"azurerm_redis_cache": redis_cache.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_redis_cache":         resourceRedisCache(),
-		"azurerm_redis_firewall_rule": resourceRedisFirewallRule(),
-		"azurerm_redis_linked_server": resourceRedisLinkedServer(),
+		"azurerm_redis_cache":         redis_cache.RegisterResource(),
+		"azurerm_redis_firewall_rule": redis_firewall_rule.RegisterResource(),
+		"azurerm_redis_linked_server": redis_linked_server.RegisterResource(),
 	}
 }
 
@@ -56,8 +61,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		RedisCacheAccessPolicyAssignmentResource{},
-		RedisCacheAccessPolicyResource{},
+		redis_cache_access_policy_assignment.Resource{},
+		redis_cache_access_policy.Resource{},
 	}
 }
 
@@ -79,7 +84,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		RedisCacheListResource{},
-		RedisFirewallRuleListResource{},
+		redis_cache.ListResource{},
+		redis_firewall_rule.ListResource{},
 	}
 }
