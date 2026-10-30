@@ -85,29 +85,29 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_key` - The primary key for the CosmosDB account.
+* `primary_key` - The primary key for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `secondary_key` - The secondary key for the CosmosDB account.
+* `secondary_key` - The secondary key for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `primary_readonly_key` - The primary read-only Key for the CosmosDB account.
+* `primary_readonly_key` - The primary read-only key for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `secondary_readonly_key` - The secondary read-only key for the CosmosDB account.
+* `secondary_readonly_key` - The secondary read-only key for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB Account.
+* `primary_sql_connection_string` - The primary SQL connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `secondary_sql_connection_string` - The secondary SQL connection string for the CosmosDB Account.
+* `secondary_sql_connection_string` - The secondary SQL connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `primary_readonly_sql_connection_string` - The primary read-only SQL connection string for the CosmosDB account.
+* `primary_readonly_sql_connection_string` - The primary read-only SQL connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `secondary_readonly_sql_connection_string` - The secondary read-only SQL connection string for the CosmosDB account.
+* `secondary_readonly_sql_connection_string` - The secondary read-only SQL connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `primary_mongodb_connection_string` - The primary Mongodb connection string for the CosmosDB account.
+* `primary_mongodb_connection_string` - The primary MongoDB connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `secondary_mongodb_connection_string` - The secondary Mongodb connection string for the CosmosDB account.
+* `secondary_mongodb_connection_string` - The secondary MongoDB connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `primary_readonly_mongodb_connection_string` - The primary readonly Mongodb connection string for the CosmosDB account.
+* `primary_readonly_mongodb_connection_string` - The primary read-only MongoDB connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
-* `secondary_readonly_mongodb_connection_string` - The secondary readonly Mongodb connection string for the CosmosDB account.
+* `secondary_readonly_mongodb_connection_string` - The secondary read-only MongoDB connection string for the CosmosDB account. This is empty when local authentication is disabled.
 
 ## Timeouts
 
