@@ -139,6 +139,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("priority", priority)
 
 				if storageProfile := profile.StorageProfile; storageProfile != nil {
+					d.Set("disk_controller_type", string(pointer.From(storageProfile.DiskControllerType)))
+
 					if err := d.Set("os_disk", helpers.FlattenOrchestratedVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
 						return fmt.Errorf("setting `os_disk`: %w", err)
 					}

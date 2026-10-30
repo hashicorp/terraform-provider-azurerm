@@ -326,6 +326,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.StorageProfile.DataDisks = dataDisks
 	}
 
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(diskControllerType.(string)))
+	}
+
 	if v, ok := d.GetOk("network_interface"); ok {
 		networkInterfaces, err := helpers.ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(v.([]any))
 		if err != nil {
