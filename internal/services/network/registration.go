@@ -44,6 +44,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CustomIpPrefixResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
+		VirtualNetworkRoutingApplianceResource{},
 	}
 }
 
@@ -138,6 +139,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		SubnetListResource{},
 		VirtualNetworkListResource{},
 		VirtualNetworkPeeringListResource{},
+		VirtualNetworkRoutingApplianceListResource{},
 	}
 }
 
