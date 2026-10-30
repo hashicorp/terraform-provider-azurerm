@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package relay
 
 import (
@@ -36,7 +39,7 @@ type RelayNamespaceResourceModel struct {
 	SecondaryKey              string         `tfschema:"secondary_key"`
 }
 
-func (r RelayNamespaceResource) ModelObject() any { //address of an empty model so Encode and Decode know the shape
+func (r RelayNamespaceResource) ModelObject() any {
 	return &RelayNamespaceResourceModel{}
 }
 
@@ -159,7 +162,6 @@ func (r RelayNamespaceResource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Relay.NamespacesClient
 
 			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return fmt.Errorf("parsing namespace ID: %+v", err)
 			}
@@ -217,6 +219,7 @@ func (r RelayNamespaceResource) Delete() sdk.ResourceFunc {
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Relay.NamespacesClient
+
 			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -251,7 +254,6 @@ func (r RelayNamespaceResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Relay.NamespacesClient
 
 			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return fmt.Errorf("parsing namespace ID: %+v", err)
 			}
@@ -268,7 +270,6 @@ func (r RelayNamespaceResource) Update() sdk.ResourceFunc {
 
 			existingModel := *resp.Model
 
-			//check is sku name has changed, if so, set the sku in the parameters to update it, haschange for every property that does not have forcenew set to true, otherwise the update will not be called
 			if metadata.ResourceData.HasChange("sku_name") {
 				existingModel.Sku = &namespaces.Sku{
 					Name: namespaces.SkuName(model.SkuName),
