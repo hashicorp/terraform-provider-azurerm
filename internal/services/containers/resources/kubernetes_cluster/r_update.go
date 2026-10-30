@@ -155,7 +155,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
 		updateCluster = true
 
-		existing.Model.Properties.ApiServerAccessProfile = expandKubernetesClusterAPIAccessProfile(d)
+		existing.Model.Properties.ApiServerAccessProfile = expandKubernetesClusterAPIAccessProfileUpdate(d)
 	}
 
 	if d.HasChange("auto_scaler_profile") {
