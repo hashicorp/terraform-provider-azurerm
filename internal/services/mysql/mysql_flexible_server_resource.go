@@ -63,12 +63,26 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&servers.FlexibleServerId{}),
 		},
 
+		ResourceBehavior: schema.ResourceBehavior{
+			MutableIdentity: true,
+		},
+
 		Schema: map[string]*pluginsdk.Schema{
+			"id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.FlexibleServerName,
+			},
+
+			"rename_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -338,6 +352,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			mysqlFlexibleServerRenameCustomizeDiff,
 			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta any) bool {
 				return new.(int) < old.(int)
 			}),
@@ -514,6 +529,9 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta any) error 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
+			if d.Get("rename_enabled").(bool) {
+				return fmt.Errorf("retrieving %s: server not found with `rename_enabled` set; state has been retained because a rename may have changed its ID. Verify any rename operation and reconcile the confirmed server ID with Terraform state before retrying", *id)
+			}
 			log.Printf("[INFO] Mysql Flexible Server %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -602,6 +620,14 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	id, err := servers.ParseFlexibleServerID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if d.HasChange("name") {
+		return resourceMysqlFlexibleServerRename(ctx, d, meta.(*clients.Client), *id)
+	}
+
+	if d.HasChange("rename_enabled") && !mysqlFlexibleServerHasOtherChanges(d) {
+		return resourceMysqlFlexibleServerRead(d, meta)
 	}
 
 	// failover is only supported when `zone` and `standby_availability_zone` is exchanged
