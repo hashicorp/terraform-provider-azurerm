@@ -105,6 +105,7 @@ provider "azurerm" {
 
     storage {
       data_plane_available = false
+      skip_storing_access_keys = true
     }
 
     subscription {
@@ -331,6 +332,10 @@ The `storage` block supports the following:
 * `data_plane_available` - Should the `azurerm_storage_account` resource use data plane APIs? Defaults to `true`.
 
 -> **Note:** This feature flag is intended for use with `azurerm_storage_account` resources that will not use the `queue_properties` and `static_website` blocks. Setting this to `false` will bypass availability checks.
+
+* `skip_storing_access_keys` - Should the `azurerm_storage_account` resource avoid storing access keys or connection strings in state? Defaults to `false`.
+
+-> **Note:** Enabling this feature removes access keys and connection strings from the current state during refresh. However, previously stored credentials may remain in historical state versions maintained by the configured backend.
 
 ---
 
