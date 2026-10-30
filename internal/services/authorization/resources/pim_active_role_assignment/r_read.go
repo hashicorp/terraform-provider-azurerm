@@ -68,6 +68,9 @@ func (r Resource) Read() sdk.ResourceFunc {
 				state.PrincipalType = pointer.FromEnum(request.Properties.PrincipalType)
 				state.RoleDefinitionId = request.Properties.RoleDefinitionId
 
+				state.Condition = pointer.From(request.Properties.Condition)
+				state.ConditionVersion = pointer.From(request.Properties.ConditionVersion)
+
 				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
 					if len(state.TicketInfo) == 0 {
 						state.TicketInfo = make([]PimActiveRoleAssignmentTicketInfo, 1)

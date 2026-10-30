@@ -57,6 +57,24 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Description: "The justification for this role assignment",
 		},
 
+		"condition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"condition_version"},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"condition_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"condition"},
+			ValidateFunc: validation.StringInSlice([]string{
+				"2.0",
+			}, false),
+		},
+
 		"schedule": {
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
