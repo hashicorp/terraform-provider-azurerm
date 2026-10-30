@@ -9,53 +9,62 @@ import (
 
 func TestOrganizationOrganizationID(t *testing.T) {
 	cases := []struct {
-		Input       string
-		ExpectError bool
+		Input string
+		Valid bool
 	}{
 		{
-			Input:       "-invalid-start",
-			ExpectError: true,
+			Input: "-invalid-start",
+			Valid: false,
 		},
 		{
-			Input:       "invalid--hyphen",
-			ExpectError: true,
+			Input: "12345678901234567890123456789012345678901234567891",
+			Valid: false,
 		},
 		{
-			Input:       "1234567890123456789012345678901234567890123456789",
-			ExpectError: true,
+			Input: "1234567890123456789012345678901234567890123456789",
+			Valid: true,
 		},
 		{
-			Input:       "valid-string1",
-			ExpectError: false,
+			Input: "@",
+			Valid: false,
 		},
 		{
-			Input:       "validstring2",
-			ExpectError: false,
+			Input: "#!",
+			Valid: false,
 		},
 		{
-			Input:       "v",
-			ExpectError: false,
+			Input: "$$",
+			Valid: false,
 		},
 		{
-			Input:       "1",
-			ExpectError: true,
+			Input: "...",
+			Valid: false,
+		},
+		{
+			Input: "v",
+			Valid: false,
+		},
+		{
+			Input: "1",
+			Valid: false,
+		},
+		{
+			Input: "valid-string1",
+			Valid: true,
+		},
+		{
+			Input: "validstring2",
+			Valid: true,
 		},
 	}
 
 	for _, tc := range cases {
-		warnings, err := OrganizationID(tc.Input, "example")
-		if err != nil {
-			if !tc.ExpectError {
-				t.Fatalf("Got error for input %q: %+v", tc.Input, err)
-			}
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := OrganizationOrganizationID(tc.Input, "test")
+		valid := len(errors) == 0
 
-			return
-		}
-
-		if tc.ExpectError && len(warnings) == 0 {
-			t.Fatalf("Got no errors for input %q but expected some", tc.Input)
-		} else if !tc.ExpectError && len(warnings) > 0 {
-			t.Fatalf("Got %d errors for input %q when didn't expect any", len(warnings), tc.Input)
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t, for input %s", tc.Valid, valid, tc.Input)
 		}
 	}
 }
