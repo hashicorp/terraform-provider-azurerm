@@ -160,6 +160,8 @@ An `application_logs` block supports the following:
 
 An `application_stack` block supports the following:
 
+~> **Note:** When an `application_stack` block is specified, exactly one of `docker_image_name`, `dotnet_version`, `go_version`, `java_version`, `node_version`, `php_version`, or `python_version` must be set.
+
 * `docker_image_name` - (Optional) The docker image, including tag, to be used. e.g. `appsvc/staticsite:latest`.
 
 * `docker_registry_url` - (Optional) The URL of the container registry where the `docker_image_name` is located. e.g. `https://index.docker.io` or `https://mcr.microsoft.com`. This value is required with `docker_image_name`.
