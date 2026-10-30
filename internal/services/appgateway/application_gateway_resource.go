@@ -3506,7 +3506,10 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 			}
 
 			matches := make([]any, 0)
-			if match := props.Match; match != nil {
+			protocol := string(pointer.From(props.Protocol))
+			isTcpTlsProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTcp)) ||
+				strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTls))
+			if match := props.Match; match != nil && !isTcpTlsProtocol {
 				matchConfig := map[string]any{}
 				if body := match.Body; body != nil {
 					matchConfig["body"] = *body
@@ -5191,8 +5194,14 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 
 		if isTcpTlsProtocol {
 			hasPath := v["path"].(string) != ""
-			matchConfigs := v["match"].([]any)
-			hasMatch := len(matchConfigs) > 0 && matchConfigs[0] != nil
+			hasMatch := false
+			if matchConfigs := v["match"].([]any); len(matchConfigs) > 0 && matchConfigs[0] != nil {
+				match := matchConfigs[0].(map[string]any)
+				body := match["body"].(string)
+				statusCodes := match["status_code"].([]any)
+				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
+				hasMatch = !defaultMatch
+			}
 			if hasHost || hasPickHost || hasPath || hasMatch {
 				return fmt.Errorf("`host`, `pick_host_name_from_backend_http_settings`, `path`, and `match` cannot be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
 			}
