@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
@@ -295,8 +295,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 			return fmt.Errorf("retrieving available sizes for Linux %s: %+v", id, err)
 		}
 
-		if sizes.Model != nil && sizes.Model.Value != nil {
-			for _, size := range *sizes.Model.Value {
+		if sizes.Model != nil {
+			for _, size := range *sizes.Model {
 				if size.Name == nil {
 					continue
 				}
