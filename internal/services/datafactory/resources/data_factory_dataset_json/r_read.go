@@ -85,6 +85,10 @@ func resourceDataFactoryDatasetJSONRead(d *pluginsdk.ResourceData, meta any) err
 		} else {
 			d.Set("encoding", encodingName)
 		}
+
+		if err := d.Set("compression", helpers.FlattenDataFactoryDatasetCompression(properties.Compression)); err != nil {
+			return fmt.Errorf("setting `compression`: %+v", err)
+		}
 	}
 
 	if folder := jsonTable.Folder; folder != nil {
