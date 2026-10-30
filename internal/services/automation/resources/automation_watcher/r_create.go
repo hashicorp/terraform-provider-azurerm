@@ -44,6 +44,7 @@ func (m Resource) Create() sdk.ResourceFunc {
 			scriptParameters := helpers.ExpandStringInterfaceMap(model.ScriptParameters)
 
 			param := watcher.Watcher{
+				Name: pointer.To(model.Name),
 				Properties: &watcher.WatcherProperties{
 					Description:                 pointer.To(model.Description),
 					ExecutionFrequencyInSeconds: pointer.To(model.ExecutionFrequencyInSeconds),
