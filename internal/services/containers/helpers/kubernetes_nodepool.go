@@ -4,7 +4,6 @@
 package helpers
 
 import (
-	"context"
 	"fmt"
 	"maps"
 	"regexp"
@@ -302,27 +301,6 @@ func SchemaNodePoolSecurity(path string) *pluginsdk.Schema {
 				},
 			},
 		},
-	}
-}
-
-// NodePoolSecurityDiff requires matching configuration for ACL's enabled defaults
-// so refresh does not plan to disable its required security settings.
-func NodePoolSecurityDiff(osSKUPath, securityPath string) pluginsdk.CustomizeDiffFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
-		if !d.NewValueKnown(osSKUPath) || d.Get(osSKUPath).(string) != string(agentpools.OSSKUAzureContainerLinux) {
-			return nil
-		}
-		if !d.NewValueKnown(securityPath) {
-			return nil
-		}
-
-		for _, flag := range []string{"secure_boot_enabled", "vtpm_enabled"} {
-			path := securityPath + ".0." + flag
-			if d.NewValueKnown(path) && !d.Get(path).(bool) {
-				return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
-			}
-		}
-		return nil
 	}
 }
 

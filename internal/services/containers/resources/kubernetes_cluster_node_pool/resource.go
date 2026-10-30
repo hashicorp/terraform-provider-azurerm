@@ -48,7 +48,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Schema: resourceKubernetesClusterNodePoolSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			helpers.NodePoolSecurityDiff("os_sku", "security"),
+			helpers.NodePoolSecurityCustomizeDiff("os_sku", "security"),
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta any) bool {
 				oldStr := old.(string)
 				newStr := new.(string)

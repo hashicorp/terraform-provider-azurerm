@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func TestNodePoolSecurityDiff(t *testing.T) {
+func TestNodePoolSecurityCustomizeDiff(t *testing.T) {
 	securityType := cty.List(cty.Object(map[string]cty.Type{
 		"secure_boot_enabled": cty.Bool,
 		"vtpm_enabled":        cty.Bool,
@@ -65,7 +65,7 @@ func TestNodePoolSecurityDiff(t *testing.T) {
 			}
 			r := &schema.Resource{
 				Schema:        fields,
-				CustomizeDiff: pluginsdk.CustomDiffInSequence(NodePoolSecurityDiff(osSKUPath, securityPath)),
+				CustomizeDiff: pluginsdk.CustomDiffInSequence(NodePoolSecurityCustomizeDiff(osSKUPath, securityPath)),
 			}
 			config := func(osSKU, security cty.Value) *terraform.ResourceConfig {
 				value := cty.ObjectVal(map[string]cty.Value{"os_sku": osSKU, "security": security})

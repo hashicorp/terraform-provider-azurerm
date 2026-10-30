@@ -54,7 +54,7 @@ func RegisterResource() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
-			helpers.NodePoolSecurityDiff("default_node_pool.0.os_sku", "default_node_pool.0.security"),
+			helpers.NodePoolSecurityCustomizeDiff("default_node_pool.0.os_sku", "default_node_pool.0.security"),
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta any) bool {
 				return old != 0 && new == 0
