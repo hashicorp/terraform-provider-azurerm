@@ -4,6 +4,7 @@
 package data_factory
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,6 +30,13 @@ func expandDataFactoryGlobalParameters(input []any) (*map[string]factories.Globa
 		result[name] = factories.GlobalParameterSpecification{
 			Type:  factories.GlobalParameterType(v["type"].(string)),
 			Value: v["value"].(string),
+		}
+
+		if result[name].Type == factories.GlobalParameterTypeArray || result[name].Type == factories.GlobalParameterTypeObject {
+			resultValue := result[name]
+			if err := json.Unmarshal([]byte(v["value"].(string)), &resultValue.Value); err == nil {
+				result[name] = resultValue
+			}
 		}
 	}
 	return &result, nil
