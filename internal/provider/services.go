@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway"
@@ -145,6 +146,7 @@ import (
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	services := []sdk.TypedServiceRegistration{
 		aadb2c.Registration{},
+		apicenter.Registration{},
 		apimanagement.Registration{},
 		appgateway.Registration{},
 		appconfiguration.Registration{},
@@ -254,6 +256,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
+			apicenter.Registration{},
 			apimanagement.Registration{},
 			appgateway.Registration{},
 			appconfiguration.Registration{},
