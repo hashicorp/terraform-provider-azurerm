@@ -74,17 +74,20 @@ func TestAccApiManagementProductPolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("xml_link"),
 		{
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("xml_content").HasValue(r.customPolicyXml()+"\n"),
 			),
 		},
 		{
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"xml_link"},
+			ImportStateVerifyIgnore: []string{"xml_content", "xml_link"},
+			ImportStateCheck:        checkImportedPolicyContent(r.customPolicyXml()),
 		},
 	})
 }
@@ -154,7 +157,7 @@ resource "azurerm_api_management_product_policy" "import" {
 `, r.basic(data))
 }
 
-func (ApiManagementProductPolicyResource) updated(data acceptance.TestData) string {
+func (r ApiManagementProductPolicyResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -189,14 +192,18 @@ resource "azurerm_api_management_product_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   xml_content = <<XML
-<policies>
+%s
+XML
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, r.customPolicyXml())
+}
+
+func (ApiManagementProductPolicyResource) customPolicyXml() string {
+	return `<policies>
   <inbound>
     <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
     <find-and-replace from="xyz" to="abc" />
   </inbound>
-</policies>
-XML
-
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+</policies>`
 }
