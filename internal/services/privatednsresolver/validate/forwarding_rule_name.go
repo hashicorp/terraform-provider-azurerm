@@ -12,7 +12,7 @@ import (
 
 func ForwardingRuleName() pluginsdk.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile(`^(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_])$`),
-		"must be between 1 and 80 characters in length, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods or hyphens",
+		regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_-]{2,79}$`),
+		"must be between 3 and 80 characters in length, begin with a letter, and may contain only letters, numbers, underscores or hyphens",
 	)
 }

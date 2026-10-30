@@ -25,12 +25,12 @@ func TestForwardingRuleName(t *testing.T) {
 		{
 			// starts with a number
 			input:    "1rule",
-			expected: true,
+			expected: false,
 		},
 		{
 			// contains a period
 			input:    "rule.name",
-			expected: true,
+			expected: false,
 		},
 		{
 			// contains a hyphen and underscore
@@ -53,12 +53,12 @@ func TestForwardingRuleName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can't end with a hyphen
+			// can end with a hyphen
 			input:    "rule-",
-			expected: false,
+			expected: true,
 		},
 		{
-			// can't end with a period
+			// contains a period
 			input:    "rule.",
 			expected: false,
 		},
@@ -73,9 +73,14 @@ func TestForwardingRuleName(t *testing.T) {
 			expected: false,
 		},
 		{
+			// three characters
+			input:    "rul",
+			expected: true,
+		},
+		{
 			// one character
 			input:    "r",
-			expected: true,
+			expected: false,
 		},
 		{
 			// 80 characters
