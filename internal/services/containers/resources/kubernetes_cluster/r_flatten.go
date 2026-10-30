@@ -818,3 +818,18 @@ func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.Clust
 		},
 	}
 }
+
+func flattenKubernetesClusterKeyVaultKms(d *pluginsdk.ResourceData, input *managedclusters.ManagedClusterSecurityProfile) []any {
+	azureKeyVaultKms := make([]any, 0)
+
+	if input != nil && input.AzureKeyVaultKms != nil && pointer.From(input.AzureKeyVaultKms.Enabled) {
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]any{
+			"key_vault_key_id": pointer.From(input.AzureKeyVaultKms.KeyId),
+			// The API does not return `key_vault_id`, so we'll preserve what was provided
+			"key_vault_id":             d.Get("key_management_service.0.key_vault_id").(string),
+			"key_vault_network_access": pointer.FromEnum(input.AzureKeyVaultKms.KeyVaultNetworkAccess),
+		})
+	}
+
+	return azureKeyVaultKms
+}

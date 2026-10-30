@@ -275,12 +275,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 			d.Set("workload_identity_enabled", workloadIdentity)
 
-			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
-			if len(azureKeyVaultKms) == 1 {
-				// the Key Vault Resource ID is not returned by the API in all cases, so the configured value is kept
-				azureKeyVaultKms[0].(map[string]any)["key_vault_id"] = d.Get("key_management_service.0.key_vault_id").(string)
-			}
-			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
+			if err := d.Set("key_management_service", flattenKubernetesClusterKeyVaultKms(d, props.SecurityProfile)); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 

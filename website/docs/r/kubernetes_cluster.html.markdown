@@ -491,9 +491,11 @@ A `key_management_service` block supports the following:
 
 * `key_vault_key_id` - (Required) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. A versioned key ID uses the legacy KMS experience, while a versionless key ID uses the new KMS experience with automatic key rotation. For more details, please visit [KMS data encryption concepts](https://learn.microsoft.com/azure/aks/kms-data-encryption-concepts).
 
-* `key_vault_id` - (Optional) The ID of the Key Vault which contains the key. This is required by the new KMS experience (a versionless `key_vault_key_id`). When not specified and `key_vault_network_access` is set to `Private`, the Key Vault is looked up by name in the current subscription.
+* `key_vault_id` - (Optional) The ID of the Key Vault in which the key is located.
 
-* `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. Defaults to `Public`.
+~> **Note:** This must be provided in cross-subscription scenarios when `key_vault_network_access` is set to `Private` or when using the new KMS experience (a versionless `key_vault_key_id`).
+
+* `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. Possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. Defaults to `Public`.
 
 ---
 
