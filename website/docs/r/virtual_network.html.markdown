@@ -71,6 +71,10 @@ The following arguments are supported:
 
 -> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
+* `advertised_gateway_prefixes` - (Optional) A set of CIDR prefixes that Azure gateways advertise to on-premises networks.
+
+~> **Note:** To use advertised gateway prefixes, your virtual network must have a gateway subnet and gateway. Please see the [official documentation](https://learn.microsoft.com/azure/virtual-network/advertised-gateway-prefixes-overview) for more info.
+
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
 -> **Note:** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.
