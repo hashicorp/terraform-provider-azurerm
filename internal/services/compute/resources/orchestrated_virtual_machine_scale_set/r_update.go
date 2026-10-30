@@ -503,6 +503,20 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		OSType:   osType,
 	}
 
+	if d.HasChanges("automatic_zone_rebalancing_enabled", "resilient_virtual_machine_creation_enabled", "resilient_virtual_machine_deletion_enabled") {
+		// a health extension or health_probe_id must be set when automatic_zone_rebalancing_enabled is true,
+		// so when the properties changes in the same update we apply it first, then set the resiliency policy.
+		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
+		if automaticZoneRebalancingEnabled && d.HasChanges("extension") {
+			if err := metaData.PerformUpdate(ctx, update); err != nil {
+				return err
+			}
+		}
+		resilientVMCreationEnabled := d.Get("resilient_virtual_machine_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_virtual_machine_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if err := metaData.PerformUpdate(ctx, update); err != nil {
 		return err
 	}

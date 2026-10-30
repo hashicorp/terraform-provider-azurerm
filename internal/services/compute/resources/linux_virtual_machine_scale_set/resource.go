@@ -84,6 +84,8 @@ func RegisterResource() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			pluginsdk.CustomizeDiffShim(helpers.VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
 		),
 	}
 }

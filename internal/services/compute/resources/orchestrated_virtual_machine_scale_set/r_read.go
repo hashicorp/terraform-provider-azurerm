@@ -87,6 +87,11 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `automatic_instance_repair`: %w", err)
 			}
 
+			automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled := helpers.FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("automatic_zone_rebalancing_enabled", automaticZoneRebalancingEnabled)
+			d.Set("resilient_virtual_machine_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_virtual_machine_deletion_enabled", resilientVMDeletionEnabled)
+
 			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 			proximityPlacementGroupId := ""
 			if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.Id != nil {
