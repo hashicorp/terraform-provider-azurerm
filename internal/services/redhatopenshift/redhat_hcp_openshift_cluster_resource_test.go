@@ -270,6 +270,10 @@ func (t RedhatHcpOpenshiftClusterResource) Exists(ctx context.Context, clients *
 }
 
 func (r RedhatHcpOpenshiftClusterResource) basic(data acceptance.TestData) string {
+	return r.basicWithDependencies(data, "")
+}
+
+func (r RedhatHcpOpenshiftClusterResource) basicWithDependencies(data acceptance.TestData, dependencies string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -330,9 +334,10 @@ resource "azurerm_redhat_hcp_openshift_cluster" "test" {
     azurerm_role_assignment.test,
     azurerm_subnet_network_security_group_association.worker,
     azurerm_subnet_network_security_group_association.vnet_integration,
+%[3]s
   ]
 }
-  `, r.template(data), data.RandomInteger)
+  `, r.template(data), data.RandomInteger, dependencies)
 }
 
 func (r RedhatHcpOpenshiftClusterResource) requiresImport(data acceptance.TestData) string {
