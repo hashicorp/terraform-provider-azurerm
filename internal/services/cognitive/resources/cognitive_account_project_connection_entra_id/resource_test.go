@@ -103,7 +103,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_azureOpenAICategory(t *test
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("metadata"),
 	})
 }
 
@@ -133,7 +133,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_cognitiveSearchCategory(t *
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("metadata"),
 	})
 }
 
@@ -208,7 +208,7 @@ func TestAccCognitiveAccountProjectConnectionEntraID_cognitiveServiceCategory(t 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("metadata"),
 	})
 }
 
