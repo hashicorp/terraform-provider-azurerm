@@ -14,8 +14,8 @@ Use this data source to access information about an existing Application Gateway
 
 ```hcl
 data "azurerm_application_gateway" "example" {
-  name                = "existing-app-gateway"
-  resource_group_name = "existing-resources"
+  name                = "example-app-gateway"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

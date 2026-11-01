@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-version"
@@ -154,6 +155,7 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 // The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The second step uses the locally built provider code.
+// It is skipped when the previous version does not have a resource or data source its config uses yet.
 func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	if len(steps) != 2 {
 		if len(steps) == 1 {
@@ -185,7 +187,8 @@ func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestR
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
@@ -233,7 +236,8 @@ func (td TestData) ResourceSequentialRegressionTest(t *testing.T, testResource t
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
@@ -282,11 +286,53 @@ func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, prev
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
-		Steps:    steps,
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		Steps:      steps,
 	}
 
 	resource.ParallelTest(t, testCase)
+}
+
+// DataSourceSequentialRegressionTest is DataSourceRegressionTest for data sources whose tests cannot run in parallel, because the
+// resources they read are limited to one or two at a time.
+func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		Steps:      steps,
+	}
+
+	resource.Test(t, testCase)
 }
 
 // ResourceRegressionAdditionalStepsTest runs an acceptance test for resource regression scenarios that require multiple steps to set up.
@@ -294,6 +340,7 @@ func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, prev
 // All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
 // For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
 // The final step uses the locally built provider code.
+// It is skipped when the previous version does not have a resource or data source its config uses yet.
 func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
 	l := len(steps)
 	if l < 3 {
@@ -319,7 +366,8 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 	}
 
 	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
 		CheckDestroy: func(s *terraform.State) error {
 			client, err := testclient.BuildWithTestName(t.Name())
 			if err != nil {
@@ -331,6 +379,33 @@ func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResou
 	}
 
 	resource.ParallelTest(t, testCase)
+}
+
+// notInReleaseRegex matches Terraform saying a provider does not have a resource or data source type, which it may break across lines anywhere.
+var notInReleaseRegex = regexp.MustCompile(`does\s+not\s+support\s+(resource\s+type|data\s+source)\s+"`)
+
+// skipWhenNotReleased skips a regression test whose config uses a resource or data source the previous version does not have yet, as there
+// is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing a type
+// is a real failure.
+func skipWhenNotReleased(t *testing.T, steps []TestStep, previousVersion string) resource.ErrorCheckFunc {
+	// the testing library does not say which step failed, so the last step, the local build, flags itself as it starts
+	local := false
+	last := len(steps) - 1
+	setup := steps[last].PreConfig
+	steps[last].PreConfig = func() {
+		local = true
+		if setup != nil {
+			setup()
+		}
+	}
+
+	return func(err error) error {
+		if !local && notInReleaseRegex.MatchString(err.Error()) {
+			t.Skipf("skipping, provider version %q does not have a type this test uses yet: %+v", providerRelease(previousVersion), err)
+		}
+
+		return err
+	}
 }
 
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
