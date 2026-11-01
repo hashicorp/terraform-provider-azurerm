@@ -69,6 +69,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of Database Migration Service.
 
+* `network_interface_id` - The ID of the Network Interface created by Azure for the Database Migration Service.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

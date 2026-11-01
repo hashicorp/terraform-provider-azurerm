@@ -36,6 +36,7 @@ func TestAccDatabaseMigrationService_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_1vCores"),
 			),
@@ -52,6 +53,7 @@ func TestAccDatabaseMigrationService_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_1vCores"),
 				check.That(data.ResourceName).Key("tags.name").HasValue("test"),

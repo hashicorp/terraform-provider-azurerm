@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -42,6 +43,9 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta any) e
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		if props := model.Properties; props != nil {
+			if err := d.Set("network_interface_id", pointer.From(props.VirtualNicId)); err != nil {
+				return fmt.Errorf("setting `network_interface_id`: %+v", err)
+			}
 			d.Set("subnet_id", props.VirtualSubnetId)
 		}
 		d.Set("sku_name", model.Sku.Name)
