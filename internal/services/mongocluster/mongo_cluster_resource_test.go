@@ -138,7 +138,7 @@ func TestAccMongoCluster_pointInTimeRestore(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
-			Config: r.pointInTimeRestore(data),
+			Config:   r.pointInTimeRestore(data),
 			PlanOnly: true,
 		},
 	})
@@ -272,7 +272,7 @@ func TestAccMongoCluster_geoReplicaPremiumSSDv2(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
 		{
-			Config: r.geoReplicaWithStorageType(data, r.sourceWithStorageType(data, "PremiumSSD"), "PremiumSSDv2"),
+			Config:   r.geoReplicaWithStorageType(data, r.sourceWithStorageType(data, "PremiumSSD"), "PremiumSSDv2"),
 			PlanOnly: true,
 		},
 	})
