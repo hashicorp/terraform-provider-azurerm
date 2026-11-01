@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -108,7 +108,7 @@ func resourceSynapseIntegrationRuntimeAzure() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceSynapseIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceDat
 	return resourceSynapseIntegrationRuntimeAzureRead(d, meta)
 }
 
-func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +211,7 @@ func resourceSynapseIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceSynapseIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Synapse.IntegrationRuntimesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

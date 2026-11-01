@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -104,7 +104,7 @@ func (k storageTableDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (k storageTableDataSource) ModelObject() interface{} {
+func (k storageTableDataSource) ModelObject() any {
 	return &TableDataSourceModel{}
 }
 

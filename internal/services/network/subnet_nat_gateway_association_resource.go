@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -56,7 +56,7 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 	}
 }
 
-func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -137,7 +137,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 	return resourceSubnetNatGatewayAssociationRead(d, meta)
 }
 
-func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,7 +182,7 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

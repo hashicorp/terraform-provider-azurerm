@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -354,4 +354,3 @@ resource "azurerm_dns_cname_record" "contoso" {
   ttl                 = 3600
   record              = azurerm_cdn_frontdoor_endpoint.example.host_name
 }
-

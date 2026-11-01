@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -92,7 +92,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) ResourceType() string {
 	return "azurerm_backup_policy_vm_workload"
 }
 
-func (r BackupProtectionPolicyVMWorkloadResource) ModelObject() interface{} {
+func (r BackupProtectionPolicyVMWorkloadResource) ModelObject() any {
 	return &BackupProtectionPolicyVMWorkloadModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -22,6 +22,16 @@ import (
 type WindowsFunctionAppSlotResource struct{}
 
 // Plan types
+
+func TestAccWindowsFunctionAppSlot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionComplete(data),
+		},
+	}, "")
+}
 
 func TestAccWindowsFunctionAppSlot_basicConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
@@ -2705,7 +2715,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r WindowsFunctionAppSlotResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2729,7 +2739,6 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, nodeVersion)
 }
 
-// nolint: unparam
 func (r WindowsFunctionAppSlotResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

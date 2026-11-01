@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -32,7 +32,7 @@ func (r NetworkVirtualApplianceResource) ResourceType() string {
 	return "azurerm_palo_alto_virtual_network_appliance"
 }
 
-func (r NetworkVirtualApplianceResource) ModelObject() interface{} {
+func (r NetworkVirtualApplianceResource) ModelObject() any {
 	return &NetworkVirtualApplianceResourceModel{}
 }
 

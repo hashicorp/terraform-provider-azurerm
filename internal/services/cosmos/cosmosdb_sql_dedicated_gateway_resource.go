@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -36,7 +36,7 @@ func (r CosmosDbSqlDedicatedGatewayResource) ResourceType() string {
 	return "azurerm_cosmosdb_sql_dedicated_gateway"
 }
 
-func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() interface{} {
+func (r CosmosDbSqlDedicatedGatewayResource) ModelObject() any {
 	return &CosmosDbSqlDedicatedGatewayModel{}
 }
 

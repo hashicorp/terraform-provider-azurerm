@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -40,7 +40,7 @@ var _ sdk.ResourceWithUpdate = FunctionAppHybridConnectionResource{}
 
 var _ sdk.ResourceWithCustomImporter = FunctionAppHybridConnectionResource{}
 
-func (r FunctionAppHybridConnectionResource) ModelObject() interface{} {
+func (r FunctionAppHybridConnectionResource) ModelObject() any {
 	return &FunctionAppHybridConnectionModel{}
 }
 

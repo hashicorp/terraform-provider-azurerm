@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -49,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
-func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
+func (d MsSqlFailoverGroupDataSource) ModelObject() any {
 	return &MsSqlFailoverGroupDataSourceModel{}
 }
 

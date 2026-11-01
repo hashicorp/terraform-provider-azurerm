@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -88,7 +88,7 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	namespaceAuthClient := meta.(*clients.Client).ServiceBus.NamespacesAuthClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

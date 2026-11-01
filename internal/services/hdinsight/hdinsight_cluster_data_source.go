@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package hdinsight
@@ -119,7 +119,7 @@ func dataSourceHDInsightSparkCluster() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceHDInsightClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	clustersClient := meta.(*clients.Client).HDInsight.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	configurationsClient := meta.(*clients.Client).HDInsight.Configurations

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -71,7 +71,7 @@ func dataSourceNetAppPool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

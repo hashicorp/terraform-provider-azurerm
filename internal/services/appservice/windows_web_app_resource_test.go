@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -20,6 +20,16 @@ import (
 )
 
 type WindowsWebAppResource struct{}
+
+func TestAccWindowsWebApp_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccWindowsWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
@@ -3267,7 +3277,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, true)
 }
 
-//nolint:unparam
 func (r WindowsWebAppResource) java(data acceptance.TestData, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3293,7 +3302,6 @@ resource "azurerm_windows_web_app" "test" {
 `, r.baseTemplate(data), data.RandomInteger, javaVersion)
 }
 
-//nolint:unparam
 func (r WindowsWebAppResource) healthCheckUpdate(data acceptance.TestData, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

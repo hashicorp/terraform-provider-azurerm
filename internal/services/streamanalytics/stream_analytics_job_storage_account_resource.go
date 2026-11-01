@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 package streamanalytics
 
@@ -27,7 +27,7 @@ type JobStorageAccountModel struct {
 
 var _ sdk.ResourceWithUpdate = JobStorageAccountResource{}
 
-func (r JobStorageAccountResource) ModelObject() interface{} {
+func (r JobStorageAccountResource) ModelObject() any {
 	return &JobStorageAccountModel{}
 }
 

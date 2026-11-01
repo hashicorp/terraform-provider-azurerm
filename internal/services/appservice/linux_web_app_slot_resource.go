@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -73,7 +73,7 @@ var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
 
 var _ sdk.ResourceWithStateMigration = LinuxWebAppSlotResource{}
 
-func (r LinuxWebAppSlotResource) ModelObject() interface{} {
+func (r LinuxWebAppSlotResource) ModelObject() any {
 	return &LinuxWebAppSlotModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -55,7 +55,7 @@ func dataSourceApiManagementGroup() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceApiManagementGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

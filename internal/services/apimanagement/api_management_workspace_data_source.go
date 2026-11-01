@@ -56,7 +56,7 @@ func (d ApiManagementWorkspaceDataSource) Attributes() map[string]*schema.Schema
 	}
 }
 
-func (d ApiManagementWorkspaceDataSource) ModelObject() interface{} {
+func (d ApiManagementWorkspaceDataSource) ModelObject() any {
 	return &ApiManagementWorkspaceDataSourceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -86,7 +86,7 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 	}
 }
 
-func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -145,8 +145,8 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func flattenDataSourcePublicIPs(input []publicipaddresses.PublicIPAddress) []interface{} {
-	results := make([]interface{}, 0)
+func flattenDataSourcePublicIPs(input []publicipaddresses.PublicIPAddress) []any {
+	results := make([]any, 0)
 
 	for _, element := range input {
 		flattenedIPAddress := flattenDataSourcePublicIP(element)

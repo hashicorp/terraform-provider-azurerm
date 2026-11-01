@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package hybridcompute
@@ -34,7 +34,7 @@ func (r ArcMachineResource) ResourceType() string {
 	return "azurerm_arc_machine"
 }
 
-func (r ArcMachineResource) ModelObject() interface{} {
+func (r ArcMachineResource) ModelObject() any {
 	return &ArcMachineResourceModel{}
 }
 

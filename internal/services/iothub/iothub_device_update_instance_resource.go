@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -120,7 +120,7 @@ func (r IotHubDeviceUpdateInstanceResource) ResourceType() string {
 	return "azurerm_iothub_device_update_instance"
 }
 
-func (r IotHubDeviceUpdateInstanceResource) ModelObject() interface{} {
+func (r IotHubDeviceUpdateInstanceResource) ModelObject() any {
 	return &IotHubDeviceUpdateInstanceModel{}
 }
 

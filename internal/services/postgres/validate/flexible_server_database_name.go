@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func FlexibleServerDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
+func FlexibleServerDatabaseName(i any, k string) (warnings []string, errors []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 63),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z-_]`), "must begin with a letter, `-` or `_`"),

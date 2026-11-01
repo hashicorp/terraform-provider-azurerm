@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -62,7 +62,7 @@ func (r AppServiceSourceControlTokenResource) Attributes() map[string]*pluginsdk
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AppServiceSourceControlTokenResource) ModelObject() interface{} {
+func (r AppServiceSourceControlTokenResource) ModelObject() any {
 	return &AppServiceSourceControlTokenModel{}
 }
 

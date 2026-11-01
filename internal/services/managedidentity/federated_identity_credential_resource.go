@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity
@@ -28,7 +28,7 @@ var (
 
 type FederatedIdentityCredentialResource struct{}
 
-func (r FederatedIdentityCredentialResource) ModelObject() interface{} {
+func (r FederatedIdentityCredentialResource) ModelObject() any {
 	return &FederatedIdentityCredentialResourceSchema{}
 }
 

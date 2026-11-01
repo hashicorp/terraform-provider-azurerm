@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfjson
@@ -78,6 +78,10 @@ func (s *State) Validate() error {
 	return nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler for State.
+//
+// As per established convention this method should only ever
+// be invoked *indirectly* via [encoding/json] library.
 func (s *State) UnmarshalJSON(b []byte) error {
 	type rawState State
 	var state rawState

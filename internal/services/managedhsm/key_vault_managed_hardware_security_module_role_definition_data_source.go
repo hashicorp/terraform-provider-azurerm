@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -122,7 +122,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Attributes() map[string]*pluginsdk
 	}
 }
 
-func (k KeyvaultMHSMRoleDefinitionDataSource) ModelObject() interface{} {
+func (k KeyvaultMHSMRoleDefinitionDataSource) ModelObject() any {
 	return &KeyVaultMHSMRoleDefinitionDataSourceModel{}
 }
 

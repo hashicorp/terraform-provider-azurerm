@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -1024,6 +1024,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "17"
   sku_name               = "GP_Standard_D2s_v3"
   storage_type           = "PremiumV2_LRS"
+  storage_mb             = 1049600
   storage_iops           = 3001
   storage_throughput     = 126
   zone                   = "2"

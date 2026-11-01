@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elasticsan
@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/resources/elastic_san"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/resources/elastic_san_volume"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/resources/elastic_san_volume_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/resources/elastic_san_volume_snapshot"
 )
 
 var (
@@ -26,17 +30,17 @@ func (Registration) Name() string {
 
 func (Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ElasticSANDataSource{},
-		ElasticSANVolumeGroupDataSource{},
-		ElasticSANVolumeSnapshotDataSource{},
+		elastic_san.DataSource{},
+		elastic_san_volume_group.DataSource{},
+		elastic_san_volume_snapshot.DataSource{},
 	}
 }
 
 func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ElasticSANResource{},
-		ElasticSANVolumeGroupResource{},
-		ElasticSANVolumeResource{},
+		elastic_san.Resource{},
+		elastic_san_volume_group.Resource{},
+		elastic_san_volume.Resource{},
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -47,7 +47,7 @@ func (r WorkspaceResource) ResourceType() string {
 	return "azurerm_monitor_workspace"
 }
 
-func (r WorkspaceResource) ModelObject() interface{} {
+func (r WorkspaceResource) ModelObject() any {
 	return &WorkspaceResourceModel{}
 }
 

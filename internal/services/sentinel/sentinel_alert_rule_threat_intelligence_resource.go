@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -34,7 +34,7 @@ var (
 	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
 )
 
-func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
+func (a AlertRuleThreatIntelligenceResource) ModelObject() any {
 	return &AlertRuleThreatIntelligenceModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -25,7 +25,7 @@ func GetThroughputFromResult(throughputResponse cosmosdb.ThroughputSettingsGetRe
 	return res.Throughput
 }
 
-func ConvertThroughputFromResourceData(throughput interface{}) *int64 {
+func ConvertThroughputFromResourceData(throughput any) *int64 {
 	return pointer.To(int64(throughput.(int)))
 }
 

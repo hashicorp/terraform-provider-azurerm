@@ -1,13 +1,13 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package preflightvalidation
+package sdk
 
 import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -17,7 +17,7 @@ type PreflightClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewResourceValidationClientClientWithBaseURI(sdkApi sdkEnv.Api) (*PreflightClient, error) {
+func NewResourceValidationClientClientWithBaseURI(sdkApi environments.Api) (*PreflightClient, error) {
 	client, err := resourcemanager.NewClient(sdkApi, "preflightclient", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PreflightClient: %+v", err)

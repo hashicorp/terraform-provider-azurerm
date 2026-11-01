@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -31,6 +31,16 @@ const (
 )
 
 // Plan types
+func TestAccLinuxFunctionApp_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionComplete(data),
+		},
+	}, "")
+}
+
 func TestAccLinuxFunctionApp_basicBasicPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
@@ -1522,6 +1532,23 @@ func TestAccLinuxFunctionApp_appStackPowerShellCore74(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("POWERSHELL|7.4"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_appStackPowerShellCore76(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuBasicPlan, "7.6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("POWERSHELL|7.6"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -3122,7 +3149,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, pythonVersion)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r LinuxFunctionAppResource) appStackJava(data acceptance.TestData, planSku string, javaVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3274,6 +3301,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomInteger)
 }
 
+//nolint:unparam
 func (r LinuxFunctionAppResource) appStackPowerShellCore(data acceptance.TestData, planSku string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4683,7 +4711,6 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-//nolint:unparam
 func (r LinuxFunctionAppResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

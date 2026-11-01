@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -46,7 +46,7 @@ type AlertRuleAnomalyDuplicateResource struct{}
 
 var _ sdk.ResourceWithUpdate = AlertRuleAnomalyDuplicateResource{}
 
-func (r AlertRuleAnomalyDuplicateResource) ModelObject() interface{} {
+func (r AlertRuleAnomalyDuplicateResource) ModelObject() any {
 	return &AlertRuleAnomalyDuplicateModel{}
 }
 

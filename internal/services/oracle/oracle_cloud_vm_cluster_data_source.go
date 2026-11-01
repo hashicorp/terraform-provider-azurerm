@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -455,7 +455,7 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d CloudVmClusterDataSource) ModelObject() interface{} {
+func (d CloudVmClusterDataSource) ModelObject() any {
 	return &CloudVmClusterDataModel{}
 }
 

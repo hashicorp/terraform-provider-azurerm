@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ClusterResourceGroupName(v interface{}, k string) ([]string, []error) {
+func ClusterResourceGroupName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(0, 90),
 		validation.StringDoesNotMatch(regexp.MustCompile(`\.$`), "may not end with a period"),

@@ -12,7 +12,7 @@ import (
 )
 
 func ResourceDnsRecordImporter(recordType recordsets.RecordType) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+	return func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 		resourceId, err := recordsets.ParseRecordTypeID(d.Id())
 		if err != nil {
 			return []*pluginsdk.ResourceData{d}, err

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -47,7 +47,7 @@ func (r HyperVSiteResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r HyperVSiteResource) ModelObject() interface{} {
+func (r HyperVSiteResource) ModelObject() any {
 	return &HyperVSiteModel{}
 }
 
