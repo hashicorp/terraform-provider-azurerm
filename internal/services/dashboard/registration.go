@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard
@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard/resources/dashboard_grafana"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dashboard/resources/dashboard_grafana_managed_private_endpoint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,7 +39,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_dashboard_grafana": dataSourceDashboardGrafana(),
+		"azurerm_dashboard_grafana": dashboard_grafana.RegisterDataSource(),
 	}
 }
 
@@ -54,8 +56,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		DashboardGrafanaResource{},
-		ManagedPrivateEndpointResource{},
+		dashboard_grafana.Resource{},
+		dashboard_grafana_managed_private_endpoint.Resource{},
 	}
 }
 

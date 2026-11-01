@@ -16,8 +16,8 @@ Use this data source to access information about an existing Azure VMware Soluti
 
 ```hcl
 data "azurerm_vmware_private_cloud" "example" {
-  name                = "existing-vmware-private-cloud"
-  resource_group_name = "existing-resgroup"
+  name                = "example-vmware-private-cloud"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
