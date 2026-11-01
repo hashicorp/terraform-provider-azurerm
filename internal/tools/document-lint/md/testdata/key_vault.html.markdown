@@ -67,7 +67,7 @@ resource "azurerm_key_vault" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -16,9 +16,9 @@ Gets information about an existing Front Door (standard/premium) Batch Rule Set.
 
 ```hcl
 data "azurerm_cdn_frontdoor_batch_rule_set" "example" {
-  name                = "existing"
-  profile_name        = "existing-profile"
-  resource_group_name = "existing-resources"
+  name                = "exampleruleset"
+  profile_name        = "example-profile"
+  resource_group_name = "example-resources"
 }
 ```
 

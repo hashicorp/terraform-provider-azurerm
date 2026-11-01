@@ -14,7 +14,7 @@ Use this data source to access information about an existing Policy Assignment.
 
 ```hcl
 data "azurerm_policy_assignment" "example" {
-  name     = "existing"
+  name     = "example-assignment"
   scope_id = data.azurerm_resource_group.example.id
 }
 

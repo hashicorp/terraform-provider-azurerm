@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -50,6 +50,38 @@ func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
 				check.That(data.ResourceName).Key("backup.0.hourly.0.start_time").HasValue("10:00"),
 				check.That(data.ResourceName).Key("backup.0.hourly.0.window_duration").HasValue("12"),
 				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateHourly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hourlyInterval(data, 1),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.interval").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.hourlyInterval(data, 2),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.interval").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.hourlyInterval(data, 4),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.hourly.0.interval").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -514,6 +546,32 @@ resource "azurerm_backup_policy_file_share" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) hourlyInterval(data acceptance.TestData, interval int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Hourly"
+
+    hourly {
+      interval        = %d
+      start_time      = "10:00"
+      window_duration = 12
+    }
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+`, r.template(data), data.RandomInteger, interval)
 }
 
 func (r BackupProtectionPolicyFileShareResource) vaultStandard(data acceptance.TestData) string {
