@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -177,24 +176,24 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Optional:    true,
 							MaxItems:    1,
 							Description: "Specifies the LDAP search scope for the LDAP client.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
 									"group_dn": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringLenBetween(1, 255),
 										Description:  "Specifies the group DN, which overrides the base DN for group lookups.",
 										AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
 									},
 									"group_membership_filter": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringLenBetween(1, 255),
 										Description:  "specifies the custom LDAP search filter to be used when looking up group membership from LDAP server.",
 										AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
 									},
 									"user_dn": {
-										Type:         schema.TypeString,
+										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringLenBetween(1, 255),
 										Description:  "specifies the user DN, which overrides the base DN for user lookups.",
