@@ -10,9 +10,95 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+func TestKubernetesClusterNatGatewaySkuDiff(t *testing.T) {
+	resource := &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"network_profile": {
+				Type: pluginsdk.TypeList, Required: true, MaxItems: 1,
+				Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
+					"outbound_type": {Type: pluginsdk.TypeString, Required: true},
+					"nat_gateway_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						// NOTE: O+C because the test reproduces Azure-populated omitted profiles.
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{Schema: map[string]*pluginsdk.Schema{
+							"sku": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								// NOTE: O+C because the test distinguishes an explicit SKU from a retained Azure value.
+								Computed: true,
+							},
+						}},
+					},
+				}},
+			},
+		},
+		CustomizeDiff: customizeKubernetesClusterNatGatewaySku,
+	}
+	config := func(outbound, sku cty.Value) cty.Value {
+		return cty.ObjectVal(map[string]cty.Value{
+			"network_profile": cty.ListVal([]cty.Value{cty.ObjectVal(map[string]cty.Value{
+				"outbound_type":       outbound,
+				"nat_gateway_profile": cty.ListVal([]cty.Value{cty.ObjectVal(map[string]cty.Value{"sku": sku})}),
+			})}),
+		})
+	}
+	managed := cty.StringVal("managedNATGateway")
+	v2 := cty.StringVal("StandardV2")
+	tests := []struct {
+		name           string
+		outbound       cty.Value
+		sku            cty.Value
+		existing       bool
+		unknownProfile bool
+		wantErr        bool
+	}{
+		{name: "managed SKU", outbound: managed, sku: v2},
+		{name: "invalid outbound type", outbound: cty.StringVal("userAssignedNATGateway"), sku: v2, wantErr: true},
+		{name: "unknown outbound type", outbound: cty.UnknownVal(cty.String), sku: v2},
+		{name: "unknown SKU", outbound: cty.StringVal("loadBalancer"), sku: cty.UnknownVal(cty.String)},
+		{name: "unknown profile", outbound: managed, sku: v2, unknownProfile: true},
+		{name: "null SKU", outbound: cty.StringVal("loadBalancer"), sku: cty.NullVal(cty.String)},
+		{name: "downgrade", outbound: managed, sku: cty.StringVal("Standard"), existing: true, wantErr: true},
+		{name: "outbound-only change with explicit SKU", outbound: cty.StringVal("userAssignedNATGateway"), sku: v2, existing: true, wantErr: true},
+		{name: "outbound change with computed SKU", outbound: cty.StringVal("userAssignedNATGateway"), sku: cty.NullVal(cty.String), existing: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := &terraform.InstanceState{}
+			if test.existing {
+				initialConfig := config(managed, v2)
+				state.RawConfig = initialConfig
+				diff, err := resource.Diff(context.Background(), state, terraform.NewResourceConfigShimmed(initialConfig, resource.CoreConfigSchema()), nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+				state.Attributes, err = diff.Apply(nil, resource.CoreConfigSchema())
+				if err != nil {
+					t.Fatal(err)
+				}
+				state.ID = "test"
+			}
+			state.RawConfig = config(test.outbound, test.sku)
+			if test.unknownProfile {
+				state.RawConfig = cty.ObjectVal(map[string]cty.Value{
+					"network_profile": cty.UnknownVal(resource.CoreConfigSchema().ImpliedType().AttributeType("network_profile")),
+				})
+			}
+			_, err := resource.Diff(context.Background(), state, terraform.NewResourceConfigShimmed(state.RawConfig, resource.CoreConfigSchema()), nil)
+			if (err != nil) != test.wantErr {
+				t.Fatalf("error = %v, want error %t", err, test.wantErr)
+			}
+		})
+	}
+}
 
 func TestKubernetesClusterNatGatewaySkuOmittedAfterStandardV2(t *testing.T) {
 	networkProfile := RegisterResource().Schema["network_profile"].Elem.(*pluginsdk.Resource)
