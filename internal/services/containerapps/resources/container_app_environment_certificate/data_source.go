@@ -24,7 +24,6 @@ type ContainerAppEnvironmentCertificateDataSourceModel struct {
 	Name                 string `tfschema:"name"`
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
-	// Read Only
 	SubjectName         string                     `tfschema:"subject_name"`
 	Issuer              string                     `tfschema:"issuer"`
 	IssueDate           string                     `tfschema:"issue_date"`
