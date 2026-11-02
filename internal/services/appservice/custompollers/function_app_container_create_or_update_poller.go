@@ -186,7 +186,7 @@ func functionAppContainerOperationStatus(response *http.Response) (pollers.Polli
 	response.Body.Close()
 	response.Body = io.NopCloser(bytes.NewReader(body))
 
-	body = bytes.TrimSpace(bytes.TrimPrefix(body, []byte("\xef\xbb\xbf")))
+	body = bytes.TrimSpace(body)
 	if len(body) == 0 {
 		return pollers.PollingStatusSucceeded, nil
 	}
