@@ -4,12 +4,16 @@
 package helpers
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/go-cty/cty"
 )
@@ -96,4 +100,32 @@ func SetFunctionAppContainerSiteConfigDefaults(config *SiteConfigLinuxFunctionAp
 	config.ScmMinTlsVersion = string(webapps.SupportedTlsVersionsOnePointTwo)
 	config.IpRestrictionDefaultAction = string(webapps.DefaultActionAllow)
 	config.ScmIpRestrictionDefaultAction = string(webapps.DefaultActionAllow)
+}
+
+// FunctionAppContainerDeleteRetryInterval is how long to wait between attempts to delete a Container Apps-hosted
+// Function App that Azure is still modifying.
+const FunctionAppContainerDeleteRetryInterval = 15 * time.Second
+
+// IsOperationInProgressConflict returns whether the error is Azure rejecting a change to a site because another
+// operation on it has not finished.
+func IsOperationInProgressConflict(resp *http.Response, err error) bool {
+	return err != nil && response.WasConflict(resp) && strings.Contains(strings.ToLower(err.Error()), "another operation is in progress")
+}
+
+// RetryWhileOperationInProgress calls f until it succeeds, fails with something other than a conflict from an
+// operation still in progress, or ctx ends. Azure runs follow-up operations on a Container Apps-hosted Function App
+// after it has been created, so a delete that comes straight after can be rejected until they have finished.
+func RetryWhileOperationInProgress(ctx context.Context, interval time.Duration, f func() (*http.Response, error)) error {
+	for {
+		resp, err := f()
+		if err == nil || !IsOperationInProgressConflict(resp, err) {
+			return err
+		}
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("%+v (gave up waiting for the operation in progress: %+v)", err, ctx.Err())
+		case <-time.After(interval):
+		}
+	}
 }

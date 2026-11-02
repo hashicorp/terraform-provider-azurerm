@@ -8,6 +8,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -992,7 +993,20 @@ func (r LinuxFunctionAppResource) Delete() sdk.ResourceFunc {
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
 			}
-			if _, err = client.Delete(ctx, *id, delOptions); err != nil {
+			deleteApp := func() (*http.Response, error) {
+				result, err := client.Delete(ctx, *id, delOptions)
+				return result.HttpResponse, err
+			}
+
+			// Azure keeps modifying a Container Apps-hosted Function App for a while after it has been created
+			if metadata.ResourceData.Get("container_app_environment_id").(string) != "" {
+				if err := helpers.RetryWhileOperationInProgress(ctx, helpers.FunctionAppContainerDeleteRetryInterval, deleteApp); err != nil {
+					return fmt.Errorf("deleting Linux %s: %+v", id, err)
+				}
+				return nil
+			}
+
+			if _, err = deleteApp(); err != nil {
 				return fmt.Errorf("deleting Linux %s: %+v", id, err)
 			}
 			return nil
