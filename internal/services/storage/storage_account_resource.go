@@ -36,6 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -284,7 +285,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
@@ -1164,6 +1165,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						keys := sortedKeysFromSlice(storageKindsSupportsSkuTier)
 						return fmt.Errorf("`access_tier` is only available for accounts where `kind` is set to one of: %+v", strings.Join(keys, " / "))
 					}
+				}
+
+				if err := validateCustomerManagedKeyUserAssignedIdentity(d); err != nil {
+					return err
 				}
 
 				if d.HasChange("immutability_policy.0.state") {
@@ -2260,6 +2265,37 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta any) error {
 	return nil
 }
 
+func validateCustomerManagedKeyUserAssignedIdentity(d *pluginsdk.ResourceDiff) error {
+	identityRaw := d.Get("identity").([]any)
+	if len(identityRaw) == 0 || identityRaw[0] == nil {
+		return nil
+	}
+
+	identityType := identityRaw[0].(map[string]any)["type"].(string)
+	if !strings.Contains(identityType, string(identity.TypeUserAssigned)) {
+		return nil
+	}
+
+	cmkRaw, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath("customer_managed_key"))
+	if diags.HasError() || !cmkRaw.IsKnown() || cmkRaw.IsNull() || cmkRaw.LengthInt() == 0 {
+		return nil
+	}
+
+	uaiRaw, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath("customer_managed_key.0.user_assigned_identity_id"))
+	if diags.HasError() {
+		return nil
+	}
+	// Defer to apply time when the value is unknown (e.g. a reference to another resource).
+	if !uaiRaw.IsKnown() {
+		return nil
+	}
+	if uaiRaw.IsNull() || uaiRaw.AsString() == "" {
+		return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be specified when `identity` is `UserAssigned`")
+	}
+
+	return nil
+}
+
 func expandAccountCustomDomain(input []any) *storageaccounts.CustomDomain {
 	if len(input) == 0 {
 		return &storageaccounts.CustomDomain{}
@@ -2313,8 +2349,8 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 	}
 
-	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
-		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
+	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned && expandedIdentity.Type != identity.TypeSystemAssigned {
+		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
 	}
 
 	v := input[0].(map[string]any)
