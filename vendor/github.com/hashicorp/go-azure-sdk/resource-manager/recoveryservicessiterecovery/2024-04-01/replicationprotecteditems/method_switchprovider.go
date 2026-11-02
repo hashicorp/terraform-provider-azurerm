@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) SwitchProvider(ctx context.Context, id 
 
 // SwitchProviderThenPoll performs SwitchProvider then polls until it's completed
 func (c ReplicationProtectedItemsClient) SwitchProviderThenPoll(ctx context.Context, id ReplicationProtectedItemId, input SwitchProviderInput) error {
+	return c.SwitchProviderCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SwitchProviderCallbackThenPoll performs SwitchProvider, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) SwitchProviderCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input SwitchProviderInput, callback func() error) error {
 	result, err := c.SwitchProvider(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing SwitchProvider: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

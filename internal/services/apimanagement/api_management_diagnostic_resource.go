@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -66,42 +66,39 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"sampling_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.FloatBetween(0.0, 100.0),
 			},
 
 			"always_log_errors": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
 			"verbosity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.VerbosityVerbose),
-					string(diagnostic.VerbosityInformation),
-					string(diagnostic.VerbosityError),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForVerbosity(), false),
 			},
 
 			"log_client_ip": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
+			},
+
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 
 			"http_correlation_protocol": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.HTTPCorrelationProtocolNone),
-					string(diagnostic.HTTPCorrelationProtocolLegacy),
-					string(diagnostic.HTTPCorrelationProtocolWThreeC),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForHTTPCorrelationProtocol(), false),
 			},
 
 			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
@@ -113,20 +110,21 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
 			"operation_name_format": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(diagnostic.OperationNameFormatName),
-					string(diagnostic.OperationNameFormatURL),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(diagnostic.PossibleValuesForOperationNameFormat(), false),
 			},
 		},
 
-		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			if _, n := d.GetChange("operation_name_format"); n != "" {
 				if d.Get("identifier") != "applicationinsights" {
 					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 				}
+			}
+
+			if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() && d.Get("identifier") != "applicationinsights" {
+				return fmt.Errorf("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
 			}
 
 			return nil
@@ -134,7 +132,7 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -143,15 +141,17 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	id := diagnostic.NewDiagnosticID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("identifier").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
+			}
 		}
 	}
 
@@ -163,17 +163,16 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
 		if d.Get("identifier") == "applicationinsights" {
-			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+			parameters.Properties.OperationNameFormat = pointer.ToEnum[diagnostic.OperationNameFormat](operationNameFormat.(string))
 		}
 	}
 
-	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+	parameters.Properties.Sampling = nil
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "sampling_percentage") {
 		parameters.Properties.Sampling = &diagnostic.SamplingSettings{
 			SamplingType: pointer.To(diagnostic.SamplingTypeFixed),
-			Percentage:   pointer.To(samplingPercentage.(float64)),
+			Percentage:   pointer.To(d.Get("sampling_percentage").(float64)),
 		}
-	} else {
-		parameters.Properties.Sampling = nil
 	}
 
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
@@ -181,7 +180,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if verbosity, ok := d.GetOk("verbosity"); ok {
-		parameters.Properties.Verbosity = pointer.To(diagnostic.Verbosity(verbosity.(string)))
+		parameters.Properties.Verbosity = pointer.ToEnum[diagnostic.Verbosity](verbosity.(string))
 	}
 
 	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
@@ -190,7 +189,11 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		parameters.Properties.HTTPCorrelationProtocol = pointer.To(diagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
+		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[diagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
+	}
+
+	if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() {
+		parameters.Properties.Metrics = pointer.To(d.Get("metrics_enabled").(bool))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -198,10 +201,10 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	if frontendRequestSet || frontendResponseSet {
 		parameters.Properties.Frontend = &diagnostic.PipelineDiagnosticSettings{}
 		if frontendRequestSet {
-			parameters.Properties.Frontend.Request = expandApiManagementDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+			parameters.Properties.Frontend.Request = expandApiManagementDiagnosticHTTPMessageDiagnostic(frontendRequest.([]any))
 		}
 		if frontendResponseSet {
-			parameters.Properties.Frontend.Response = expandApiManagementDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+			parameters.Properties.Frontend.Response = expandApiManagementDiagnosticHTTPMessageDiagnostic(frontendResponse.([]any))
 		}
 	}
 
@@ -210,10 +213,10 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	if backendRequestSet || backendResponseSet {
 		parameters.Properties.Backend = &diagnostic.PipelineDiagnosticSettings{}
 		if backendRequestSet {
-			parameters.Properties.Backend.Request = expandApiManagementDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+			parameters.Properties.Backend.Request = expandApiManagementDiagnosticHTTPMessageDiagnostic(backendRequest.([]any))
 		}
 		if backendResponseSet {
-			parameters.Properties.Backend.Response = expandApiManagementDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+			parameters.Properties.Backend.Response = expandApiManagementDiagnosticHTTPMessageDiagnostic(backendResponse.([]any))
 		}
 	}
 
@@ -226,7 +229,7 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	return resourceApiManagementDiagnosticRead(d, meta)
 }
 
-func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,6 +262,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == diagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("metrics_enabled", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementDiagnosticHTTPMessageDiagnostic(frontend.Request))
@@ -277,7 +281,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 
 			format := ""
 			if props.OperationNameFormat != nil {
-				format = string(pointer.From(props.OperationNameFormat))
+				format = pointer.FromEnum(props.OperationNameFormat)
 			}
 			d.Set("operation_name_format", format)
 		}
@@ -286,7 +290,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementDiagnosticDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -305,12 +309,12 @@ func resourceApiManagementDiagnosticDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandApiManagementDiagnosticHTTPMessageDiagnostic(input []interface{}) *diagnostic.HTTPMessageDiagnostic {
+func expandApiManagementDiagnosticHTTPMessageDiagnostic(input []any) *diagnostic.HTTPMessageDiagnostic {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 
 	result := &diagnostic.HTTPMessageDiagnostic{
 		Body: &diagnostic.BodyDiagnosticSettings{},
@@ -328,19 +332,19 @@ func expandApiManagementDiagnosticHTTPMessageDiagnostic(input []interface{}) *di
 		result.Headers = pointer.To(headers)
 	}
 
-	result.DataMasking = expandApiManagementDataMasking(v["data_masking"].([]interface{}))
+	result.DataMasking = expandApiManagementDataMasking(v["data_masking"].([]any))
 
 	return result
 }
 
-func flattenApiManagementDiagnosticHTTPMessageDiagnostic(input *diagnostic.HTTPMessageDiagnostic) []interface{} {
-	result := make([]interface{}, 0)
+func flattenApiManagementDiagnosticHTTPMessageDiagnostic(input *diagnostic.HTTPMessageDiagnostic) []any {
+	result := make([]any, 0)
 
 	if input == nil {
 		return result
 	}
 
-	diagnostic := map[string]interface{}{}
+	diagnostic := map[string]any{}
 
 	if input.Body != nil && input.Body.Bytes != nil {
 		diagnostic["body_bytes"] = pointer.From(input.Body.Bytes)
@@ -357,40 +361,40 @@ func flattenApiManagementDiagnosticHTTPMessageDiagnostic(input *diagnostic.HTTPM
 	return result
 }
 
-func expandApiManagementDataMasking(input []interface{}) *diagnostic.DataMasking {
+func expandApiManagementDataMasking(input []any) *diagnostic.DataMasking {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	inputRaw := input[0].(map[string]interface{})
+	inputRaw := input[0].(map[string]any)
 	return &diagnostic.DataMasking{
-		QueryParams: expandApiManagementDataMaskingEntityList(inputRaw["query_params"].([]interface{})),
-		Headers:     expandApiManagementDataMaskingEntityList(inputRaw["headers"].([]interface{})),
+		QueryParams: expandApiManagementDataMaskingEntityList(inputRaw["query_params"].([]any)),
+		Headers:     expandApiManagementDataMaskingEntityList(inputRaw["headers"].([]any)),
 	}
 }
 
-func expandApiManagementDataMaskingEntityList(input []interface{}) *[]diagnostic.DataMaskingEntity {
+func expandApiManagementDataMaskingEntityList(input []any) *[]diagnostic.DataMaskingEntity {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	result := make([]diagnostic.DataMaskingEntity, 0)
 	for _, v := range input {
-		entity := v.(map[string]interface{})
+		entity := v.(map[string]any)
 		result = append(result, diagnostic.DataMaskingEntity{
-			Mode:  pointer.To(diagnostic.DataMaskingMode(entity["mode"].(string))),
+			Mode:  pointer.ToEnum[diagnostic.DataMaskingMode](entity["mode"].(string)),
 			Value: pointer.To(entity["value"].(string)),
 		})
 	}
 	return &result
 }
 
-func flattenApiManagementDataMasking(dataMasking *diagnostic.DataMasking) []interface{} {
+func flattenApiManagementDataMasking(dataMasking *diagnostic.DataMasking) []any {
 	if dataMasking == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	var queryParams, headers []interface{}
+	var queryParams, headers []any
 	if dataMasking.QueryParams != nil {
 		queryParams = flattenApiManagementDataMaskingEntityList(dataMasking.QueryParams)
 	}
@@ -398,23 +402,23 @@ func flattenApiManagementDataMasking(dataMasking *diagnostic.DataMasking) []inte
 		headers = flattenApiManagementDataMaskingEntityList(dataMasking.Headers)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"query_params": queryParams,
 			"headers":      headers,
 		},
 	}
 }
 
-func flattenApiManagementDataMaskingEntityList(dataMaskingList *[]diagnostic.DataMaskingEntity) []interface{} {
+func flattenApiManagementDataMaskingEntityList(dataMaskingList *[]diagnostic.DataMaskingEntity) []any {
 	if dataMaskingList == nil || len(*dataMaskingList) == 0 {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := []interface{}{}
+	result := []any{}
 
 	for _, entity := range *dataMaskingList {
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"mode":  pointer.From(entity.Mode),
 			"value": pointer.From(entity.Value),
 		})

@@ -58,9 +58,20 @@ func (c MachinesClient) AssessPatches(ctx context.Context, id MachineId) (result
 
 // AssessPatchesThenPoll performs AssessPatches then polls until it's completed
 func (c MachinesClient) AssessPatchesThenPoll(ctx context.Context, id MachineId) error {
+	return c.AssessPatchesCallbackThenPoll(ctx, id, nil)
+}
+
+// AssessPatchesCallbackThenPoll performs AssessPatches, runs the optional callback function, then polls until it's completed
+func (c MachinesClient) AssessPatchesCallbackThenPoll(ctx context.Context, id MachineId, callback func() error) error {
 	result, err := c.AssessPatches(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing AssessPatches: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

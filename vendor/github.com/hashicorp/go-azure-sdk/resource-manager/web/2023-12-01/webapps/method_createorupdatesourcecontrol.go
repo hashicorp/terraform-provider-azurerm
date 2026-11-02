@@ -64,9 +64,20 @@ func (c WebAppsClient) CreateOrUpdateSourceControl(ctx context.Context, id commo
 
 // CreateOrUpdateSourceControlThenPoll performs CreateOrUpdateSourceControl then polls until it's completed
 func (c WebAppsClient) CreateOrUpdateSourceControlThenPoll(ctx context.Context, id commonids.AppServiceId, input SiteSourceControl) error {
+	return c.CreateOrUpdateSourceControlCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateSourceControlCallbackThenPoll performs CreateOrUpdateSourceControl, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) CreateOrUpdateSourceControlCallbackThenPoll(ctx context.Context, id commonids.AppServiceId, input SiteSourceControl, callback func() error) error {
 	result, err := c.CreateOrUpdateSourceControl(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateSourceControl: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

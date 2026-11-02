@@ -62,9 +62,20 @@ func (c BackupAndExportClient) Create(ctx context.Context, id FlexibleServerId, 
 
 // CreateThenPoll performs Create then polls until it's completed
 func (c BackupAndExportClient) CreateThenPoll(ctx context.Context, id FlexibleServerId, input BackupAndExportRequest) error {
+	return c.CreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCallbackThenPoll performs Create, runs the optional callback function, then polls until it's completed
+func (c BackupAndExportClient) CreateCallbackThenPoll(ctx context.Context, id FlexibleServerId, input BackupAndExportRequest, callback func() error) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

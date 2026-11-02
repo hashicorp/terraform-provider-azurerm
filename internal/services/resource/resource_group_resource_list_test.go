@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package resource_test
 
 import (
@@ -16,7 +19,7 @@ func TestAccResourceGroup_list_basic(t *testing.T) {
 	r := ResourceGroupResource{}
 	listResourceAddress := "azurerm_resource_group.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -51,8 +54,10 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG1-%[1]d"
+resource "azurerm_resource_group" "test" {
+  count = 3
+
+  name     = "acctestRG${count.index}-%[1]d"
   location = "%[2]s"
 
   tags = {
@@ -60,25 +65,7 @@ resource "azurerm_resource_group" "test1" {
   }
 }
 
-resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[1]d"
-  location = "%[2]s"
-
-  tags = {
-    "query" = "test-%[1]d"
-  }
-}
-
-resource "azurerm_resource_group" "test3" {
-  name     = "acctestRG3-%[1]d"
-  location = "%[2]s"
-
-  tags = {
-    "query" = "test-%[1]d"
-  }
-}
-
-resource "azurerm_resource_group" "test4" {
+resource "azurerm_resource_group" "test-no-tags" {
   name     = "acctestRG4-%[1]d"
   location = "%[2]s"
 }
@@ -87,7 +74,7 @@ resource "azurerm_resource_group" "test4" {
 
 func (r ResourceGroupResource) basicQuery() string {
 	return `
-list "azurerm_network_interface" "list" {
+list "azurerm_resource_group" "list" {
   provider = azurerm
   config {}
 }

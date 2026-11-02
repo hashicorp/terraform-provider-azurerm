@@ -61,9 +61,20 @@ func (c StaticSitesClient) LinkBackend(ctx context.Context, id LinkedBackendId, 
 
 // LinkBackendThenPoll performs LinkBackend then polls until it's completed
 func (c StaticSitesClient) LinkBackendThenPoll(ctx context.Context, id LinkedBackendId, input StaticSiteLinkedBackendARMResource) error {
+	return c.LinkBackendCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LinkBackendCallbackThenPoll performs LinkBackend, runs the optional callback function, then polls until it's completed
+func (c StaticSitesClient) LinkBackendCallbackThenPoll(ctx context.Context, id LinkedBackendId, input StaticSiteLinkedBackendARMResource, callback func() error) error {
 	result, err := c.LinkBackend(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LinkBackend: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

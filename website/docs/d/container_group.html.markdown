@@ -14,8 +14,8 @@ Use this data source to access information about an existing Container Group ins
 
 ```hcl
 data "azurerm_container_group" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-container-group"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -81,4 +81,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerInstance` - 2023-05-01
+* `Microsoft.ContainerInstance` - 2025-09-01

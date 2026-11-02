@@ -37,9 +37,20 @@ func (c FrontDoorsClient) EndpointsPurgeContent(ctx context.Context, id FrontDoo
 
 // EndpointsPurgeContentThenPoll performs EndpointsPurgeContent then polls until it's completed
 func (c FrontDoorsClient) EndpointsPurgeContentThenPoll(ctx context.Context, id FrontDoorId, input PurgeParameters) error {
+	return c.EndpointsPurgeContentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// EndpointsPurgeContentCallbackThenPoll performs EndpointsPurgeContent, runs the optional callback function, then polls until it's completed
+func (c FrontDoorsClient) EndpointsPurgeContentCallbackThenPoll(ctx context.Context, id FrontDoorId, input PurgeParameters, callback func() error) error {
 	result, err := c.EndpointsPurgeContent(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing EndpointsPurgeContent: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(); err != nil {

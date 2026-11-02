@@ -62,9 +62,20 @@ func (c HealthBotsClient) BotsCreate(ctx context.Context, id HealthBotId, input 
 
 // BotsCreateThenPoll performs BotsCreate then polls until it's completed
 func (c HealthBotsClient) BotsCreateThenPoll(ctx context.Context, id HealthBotId, input HealthBot) error {
+	return c.BotsCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BotsCreateCallbackThenPoll performs BotsCreate, runs the optional callback function, then polls until it's completed
+func (c HealthBotsClient) BotsCreateCallbackThenPoll(ctx context.Context, id HealthBotId, input HealthBot, callback func() error) error {
 	result, err := c.BotsCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BotsCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

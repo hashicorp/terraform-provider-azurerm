@@ -62,9 +62,20 @@ func (c ReplicationFabricsClient) ReassociateGateway(ctx context.Context, id Rep
 
 // ReassociateGatewayThenPoll performs ReassociateGateway then polls until it's completed
 func (c ReplicationFabricsClient) ReassociateGatewayThenPoll(ctx context.Context, id ReplicationFabricId, input FailoverProcessServerRequest) error {
+	return c.ReassociateGatewayCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReassociateGatewayCallbackThenPoll performs ReassociateGateway, runs the optional callback function, then polls until it's completed
+func (c ReplicationFabricsClient) ReassociateGatewayCallbackThenPoll(ctx context.Context, id ReplicationFabricId, input FailoverProcessServerRequest, callback func() error) error {
 	result, err := c.ReassociateGateway(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReassociateGateway: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

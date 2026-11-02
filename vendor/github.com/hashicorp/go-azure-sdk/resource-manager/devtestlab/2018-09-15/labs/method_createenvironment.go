@@ -61,9 +61,20 @@ func (c LabsClient) CreateEnvironment(ctx context.Context, id LabId, input LabVi
 
 // CreateEnvironmentThenPoll performs CreateEnvironment then polls until it's completed
 func (c LabsClient) CreateEnvironmentThenPoll(ctx context.Context, id LabId, input LabVirtualMachineCreationParameter) error {
+	return c.CreateEnvironmentCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateEnvironmentCallbackThenPoll performs CreateEnvironment, runs the optional callback function, then polls until it's completed
+func (c LabsClient) CreateEnvironmentCallbackThenPoll(ctx context.Context, id LabId, input LabVirtualMachineCreationParameter, callback func() error) error {
 	result, err := c.CreateEnvironment(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateEnvironment: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

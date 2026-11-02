@@ -1,0 +1,12 @@
+package batchaccount
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type BatchAccountUpdateProperties struct {
+	AllowedAuthenticationModes *[]AuthenticationMode      `json:"allowedAuthenticationModes,omitempty"`
+	AutoStorage                *AutoStorageBaseProperties `json:"autoStorage,omitempty"`
+	Encryption                 *EncryptionProperties      `json:"encryption,omitempty"`
+	NetworkProfile             *NetworkProfile            `json:"networkProfile,omitempty"`
+	PublicNetworkAccess        *PublicNetworkAccessType   `json:"publicNetworkAccess,omitempty"`
+}

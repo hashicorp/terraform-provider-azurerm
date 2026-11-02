@@ -61,9 +61,20 @@ func (c MachineExtensionsUpgradeClient) UpgradeExtensions(ctx context.Context, i
 
 // UpgradeExtensionsThenPoll performs UpgradeExtensions then polls until it's completed
 func (c MachineExtensionsUpgradeClient) UpgradeExtensionsThenPoll(ctx context.Context, id MachineId, input MachineExtensionUpgrade) error {
+	return c.UpgradeExtensionsCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpgradeExtensionsCallbackThenPoll performs UpgradeExtensions, runs the optional callback function, then polls until it's completed
+func (c MachineExtensionsUpgradeClient) UpgradeExtensionsCallbackThenPoll(ctx context.Context, id MachineId, input MachineExtensionUpgrade, callback func() error) error {
 	result, err := c.UpgradeExtensions(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpgradeExtensions: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

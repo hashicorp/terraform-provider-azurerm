@@ -8,3 +8,7 @@ import "strings"
 func normalizeResourceId(resourceId string) string {
 	return strings.TrimRight(resourceId, "/")
 }
+
+func normalizeEndpoint(endpoint string) string {
+	return strings.TrimRight(endpoint, "/")
+}

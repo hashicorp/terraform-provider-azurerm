@@ -13,14 +13,14 @@ Use this data source to access information about existing Public Maintenance Con
 ## Example Usage
 
 ```hcl
-data "azurerm_public_maintenance_configurations" "existing" {
+data "azurerm_public_maintenance_configurations" "example" {
   location    = "West Europe"
   scope       = "SQLManagedInstance"
   recur_every = "Monday-Thursday"
 }
 
 output "name" {
-  value = data.azurerm_public_maintenance_configurations.existing.configs[0].name
+  value = data.azurerm_public_maintenance_configurations.example.configs[0].name
 }
 ```
 

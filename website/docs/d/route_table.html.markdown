@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Route Table exists.
 
-* `route` - One or more `route` blocks as documented below.
+* `route` - One or more `route` blocks as defined below.
 
 * `subnets` - The collection of Subnets associated with this route table.
 
@@ -64,4 +64,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

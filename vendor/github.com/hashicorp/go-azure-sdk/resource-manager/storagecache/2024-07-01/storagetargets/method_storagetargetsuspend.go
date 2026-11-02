@@ -58,9 +58,20 @@ func (c StorageTargetsClient) StorageTargetSuspend(ctx context.Context, id Stora
 
 // StorageTargetSuspendThenPoll performs StorageTargetSuspend then polls until it's completed
 func (c StorageTargetsClient) StorageTargetSuspendThenPoll(ctx context.Context, id StorageTargetId) error {
+	return c.StorageTargetSuspendCallbackThenPoll(ctx, id, nil)
+}
+
+// StorageTargetSuspendCallbackThenPoll performs StorageTargetSuspend, runs the optional callback function, then polls until it's completed
+func (c StorageTargetsClient) StorageTargetSuspendCallbackThenPoll(ctx context.Context, id StorageTargetId, callback func() error) error {
 	result, err := c.StorageTargetSuspend(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing StorageTargetSuspend: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

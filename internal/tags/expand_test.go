@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tags
@@ -9,7 +9,7 @@ import (
 )
 
 func TestExpand(t *testing.T) {
-	testData := make(map[string]interface{})
+	testData := make(map[string]any)
 	testData["key1"] = "value1"
 	testData["key2"] = 21
 	testData["key3"] = "value3"

@@ -61,9 +61,20 @@ func (c VirtualMachinesClient) Resize(ctx context.Context, id VirtualMachineId, 
 
 // ResizeThenPoll performs Resize then polls until it's completed
 func (c VirtualMachinesClient) ResizeThenPoll(ctx context.Context, id VirtualMachineId, input ResizeLabVirtualMachineProperties) error {
+	return c.ResizeCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ResizeCallbackThenPoll performs Resize, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) ResizeCallbackThenPoll(ctx context.Context, id VirtualMachineId, input ResizeLabVirtualMachineProperties, callback func() error) error {
 	result, err := c.Resize(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Resize: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

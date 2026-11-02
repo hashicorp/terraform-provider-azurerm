@@ -8,3 +8,7 @@ const defaultApiVersion = "2018-03-01"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/metricalerts/2018-03-01"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

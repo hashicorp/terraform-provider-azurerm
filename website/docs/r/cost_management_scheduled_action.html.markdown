@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `email_addresses` - (Required) Specifies a list of email addresses that will receive the Scheduled Action.
 
-* `email_subject` - (Required) Subject of the email. Length is limited to 70 characters.
+* `email_subject` - (Required) Subject of the email. Length is limited to 50 characters.
 
 * `end_date` - (Required) The end date and time of the Scheduled Action (UTC).
 
@@ -91,4 +91,4 @@ terraform import azurerm_cost_management_scheduled_action.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement` - 2023-08-01
+* `Microsoft.CostManagement` - 2025-03-01

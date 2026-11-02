@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,49 +6,63 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources"
+	basebackuppolicyresources20260601 "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	BackupVaultClient    *backupvaults.BackupVaultsClient
-	BackupPolicyClient   *backuppolicies.BackupPoliciesClient
-	BackupInstanceClient *backupinstances.BackupInstancesClient
-	ResourceGuardClient  *resourceguards.ResourceGuardsClient
+	BackupVaultClient    *backupvaultresources.BackupVaultResourcesClient
+	BackupPolicyClient   *basebackuppolicyresources.BaseBackupPolicyResourcesClient
+	BackupInstanceClient *backupinstanceresources.BackupInstanceResourcesClient
+	ResourceGuardClient  *resourceguardresources.ResourceGuardResourcesClient
+
+	// Using 2026-06-01 only for resources requiring its new features.
+	// Backup vaults stay on 2025-07-01 because 2026-06-01 requires soft delete to be AlwaysOn,
+	// which would break existing configurations using other soft-delete settings.
+	BackupPolicyClient20260601 *basebackuppolicyresources20260601.BaseBackupPolicyResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	backupVaultClient, err := backupvaults.NewBackupVaultsClientWithBaseURI(o.Environment.ResourceManager)
+	backupVaultClient, err := backupvaultresources.NewBackupVaultResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building BackupVaults client: %+v", err)
+		return nil, fmt.Errorf("building BackupVaultResources client: %+v", err)
 	}
 	o.Configure(backupVaultClient.Client, o.Authorizers.ResourceManager)
 
-	backupPolicyClient, err := backuppolicies.NewBackupPoliciesClientWithBaseURI(o.Environment.ResourceManager)
+	backupPolicyClient, err := basebackuppolicyresources.NewBaseBackupPolicyResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building BackupPolicies client: %+v", err)
+		return nil, fmt.Errorf("building BaseBackupPolicyResources client: %+v", err)
 	}
 	o.Configure(backupPolicyClient.Client, o.Authorizers.ResourceManager)
 
-	backupInstanceClient, err := backupinstances.NewBackupInstancesClientWithBaseURI(o.Environment.ResourceManager)
+	backupInstanceClient, err := backupinstanceresources.NewBackupInstanceResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building BackupInstances client: %+v", err)
 	}
 	o.Configure(backupInstanceClient.Client, o.Authorizers.ResourceManager)
 
-	resourceGuardClient, err := resourceguards.NewResourceGuardsClientWithBaseURI(o.Environment.ResourceManager)
+	resourceGuardClient, err := resourceguardresources.NewResourceGuardResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building ResourceGuards client: %+v", err)
+		return nil, fmt.Errorf("building ResourceGuardResources client: %+v", err)
 	}
 	o.Configure(resourceGuardClient.Client, o.Authorizers.ResourceManager)
+
+	backupPolicyClient20260601, err := basebackuppolicyresources20260601.NewBaseBackupPolicyResourcesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building 2026-06-01 BaseBackupPolicyResources client: %+v", err)
+	}
+	o.Configure(backupPolicyClient20260601.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		BackupVaultClient:    backupVaultClient,
 		BackupPolicyClient:   backupPolicyClient,
 		BackupInstanceClient: backupInstanceClient,
 		ResourceGuardClient:  resourceGuardClient,
+
+		BackupPolicyClient20260601: backupPolicyClient20260601,
 	}, nil
 }

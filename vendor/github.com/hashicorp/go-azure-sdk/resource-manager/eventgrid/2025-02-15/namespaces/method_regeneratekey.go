@@ -62,9 +62,20 @@ func (c NamespacesClient) RegenerateKey(ctx context.Context, id NamespaceId, inp
 
 // RegenerateKeyThenPoll performs RegenerateKey then polls until it's completed
 func (c NamespacesClient) RegenerateKeyThenPoll(ctx context.Context, id NamespaceId, input NamespaceRegenerateKeyRequest) error {
+	return c.RegenerateKeyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RegenerateKeyCallbackThenPoll performs RegenerateKey, runs the optional callback function, then polls until it's completed
+func (c NamespacesClient) RegenerateKeyCallbackThenPoll(ctx context.Context, id NamespaceId, input NamespaceRegenerateKeyRequest, callback func() error) error {
 	result, err := c.RegenerateKey(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RegenerateKey: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

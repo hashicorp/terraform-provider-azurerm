@@ -62,9 +62,20 @@ func (c ReplicationPoliciesClient) Update(ctx context.Context, id ReplicationPol
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c ReplicationPoliciesClient) UpdateThenPoll(ctx context.Context, id ReplicationPolicyId, input UpdatePolicyInput) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c ReplicationPoliciesClient) UpdateCallbackThenPoll(ctx context.Context, id ReplicationPolicyId, input UpdatePolicyInput, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

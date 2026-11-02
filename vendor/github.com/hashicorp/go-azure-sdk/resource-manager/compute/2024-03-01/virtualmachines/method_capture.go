@@ -62,9 +62,20 @@ func (c VirtualMachinesClient) Capture(ctx context.Context, id VirtualMachineId,
 
 // CaptureThenPoll performs Capture then polls until it's completed
 func (c VirtualMachinesClient) CaptureThenPoll(ctx context.Context, id VirtualMachineId, input VirtualMachineCaptureParameters) error {
+	return c.CaptureCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CaptureCallbackThenPoll performs Capture, runs the optional callback function, then polls until it's completed
+func (c VirtualMachinesClient) CaptureCallbackThenPoll(ctx context.Context, id VirtualMachineId, input VirtualMachineCaptureParameters, callback func() error) error {
 	result, err := c.Capture(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Capture: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

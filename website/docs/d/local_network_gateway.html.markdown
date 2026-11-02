@@ -14,8 +14,8 @@ Use this data source to access information about an existing Local Network Gatew
 
 ```hcl
 data "azurerm_local_network_gateway" "example" {
-  name                = "existing-local-network-gateway"
-  resource_group_name = "existing-resources"
+  name                = "example-local-network-gateway"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -69,4 +69,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

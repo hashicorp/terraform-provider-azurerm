@@ -60,9 +60,20 @@ func (c DatabasesClient) ForceLinkToReplicationGroup(ctx context.Context, id Dat
 
 // ForceLinkToReplicationGroupThenPoll performs ForceLinkToReplicationGroup then polls until it's completed
 func (c DatabasesClient) ForceLinkToReplicationGroupThenPoll(ctx context.Context, id DatabaseId, input ForceLinkParameters) error {
+	return c.ForceLinkToReplicationGroupCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ForceLinkToReplicationGroupCallbackThenPoll performs ForceLinkToReplicationGroup, runs the optional callback function, then polls until it's completed
+func (c DatabasesClient) ForceLinkToReplicationGroupCallbackThenPoll(ctx context.Context, id DatabaseId, input ForceLinkParameters, callback func() error) error {
 	result, err := c.ForceLinkToReplicationGroup(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ForceLinkToReplicationGroup: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

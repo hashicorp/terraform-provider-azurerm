@@ -58,9 +58,20 @@ func (c ReplicationRecoveryPlansClient) FailoverCancel(ctx context.Context, id R
 
 // FailoverCancelThenPoll performs FailoverCancel then polls until it's completed
 func (c ReplicationRecoveryPlansClient) FailoverCancelThenPoll(ctx context.Context, id ReplicationRecoveryPlanId) error {
+	return c.FailoverCancelCallbackThenPoll(ctx, id, nil)
+}
+
+// FailoverCancelCallbackThenPoll performs FailoverCancel, runs the optional callback function, then polls until it's completed
+func (c ReplicationRecoveryPlansClient) FailoverCancelCallbackThenPoll(ctx context.Context, id ReplicationRecoveryPlanId, callback func() error) error {
 	result, err := c.FailoverCancel(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing FailoverCancel: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

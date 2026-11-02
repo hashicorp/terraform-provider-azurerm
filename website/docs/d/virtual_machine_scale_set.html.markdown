@@ -14,8 +14,8 @@ Use this data source to access information about an existing Virtual Machine Sca
 
 ```hcl
 data "azurerm_virtual_machine_scale_set" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-scale-set"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -97,11 +97,11 @@ A `network_interface` block exports the following:
 
 * `ip_configuration` - An `ip_configuration` block as defined below.
 
-* `enable_accelerated_networking` - Whether accelerated networking is enabled.
+* `accelerated_networking_enabled` - Whether accelerated networking is enabled.
 
 * `dns_servers` - An array of the DNS servers in use.
 
-* `enable_ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+* `ip_forwarding_enabled` - Whether IP forwarding is enabled on this NIC.
 
 * `network_security_group_id` - The identifier for the network security group.
 
@@ -159,4 +159,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Compute` - 2024-11-01, 2024-03-01, 2023-09-01
+* `Microsoft.Compute` - 2025-04-01, 2024-03-01, 2023-09-01

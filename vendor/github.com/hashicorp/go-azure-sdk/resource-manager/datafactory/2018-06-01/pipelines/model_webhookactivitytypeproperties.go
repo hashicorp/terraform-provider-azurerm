@@ -8,7 +8,7 @@ type WebHookActivityTypeProperties struct {
 	Body                   *interface{}               `json:"body,omitempty"`
 	Headers                *map[string]interface{}    `json:"headers,omitempty"`
 	Method                 WebHookActivityMethod      `json:"method"`
-	ReportStatusOnCallBack *bool                      `json:"reportStatusOnCallBack,omitempty"`
+	ReportStatusOnCallBack *interface{}               `json:"reportStatusOnCallBack,omitempty"`
 	Timeout                *string                    `json:"timeout,omitempty"`
 	Url                    interface{}                `json:"url"`
 }

@@ -63,9 +63,20 @@ func (c AppPlatformClient) EurekaServersUpdatePatch(ctx context.Context, id comm
 
 // EurekaServersUpdatePatchThenPoll performs EurekaServersUpdatePatch then polls until it's completed
 func (c AppPlatformClient) EurekaServersUpdatePatchThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input EurekaServerResource) error {
+	return c.EurekaServersUpdatePatchCallbackThenPoll(ctx, id, input, nil)
+}
+
+// EurekaServersUpdatePatchCallbackThenPoll performs EurekaServersUpdatePatch, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) EurekaServersUpdatePatchCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input EurekaServerResource, callback func() error) error {
 	result, err := c.EurekaServersUpdatePatch(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing EurekaServersUpdatePatch: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

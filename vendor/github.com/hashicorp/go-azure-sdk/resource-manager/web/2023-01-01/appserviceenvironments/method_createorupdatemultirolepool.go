@@ -63,9 +63,20 @@ func (c AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePool(ctx context.Co
 
 // CreateOrUpdateMultiRolePoolThenPoll performs CreateOrUpdateMultiRolePool then polls until it's completed
 func (c AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePoolThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId, input WorkerPoolResource) error {
+	return c.CreateOrUpdateMultiRolePoolCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateMultiRolePoolCallbackThenPoll performs CreateOrUpdateMultiRolePool, runs the optional callback function, then polls until it's completed
+func (c AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePoolCallbackThenPoll(ctx context.Context, id commonids.AppServiceEnvironmentId, input WorkerPoolResource, callback func() error) error {
 	result, err := c.CreateOrUpdateMultiRolePool(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateMultiRolePool: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

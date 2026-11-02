@@ -1,17 +1,25 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_application"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_job"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/resources/batch_pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/batch"
@@ -31,34 +39,20 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	datasources := map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     dataSourceBatchAccount(),
-		"azurerm_batch_application": dataSourceBatchApplication(),
-		"azurerm_batch_pool":        dataSourceBatchPool(),
+	return map[string]*pluginsdk.Resource{
+		"azurerm_batch_account":     batch_account.RegisterDataSource(),
+		"azurerm_batch_application": batch_application.RegisterDataSource(),
+		"azurerm_batch_pool":        batch_pool.RegisterDataSource(),
 	}
-
-	// The batch certificate feature was retired by Azure on 2024-02-29
-	if !features.FivePointOh() {
-		datasources["azurerm_batch_certificate"] = dataSourceBatchCertificate()
-	}
-
-	return datasources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
-		"azurerm_batch_account":     resourceBatchAccount(),
-		"azurerm_batch_application": resourceBatchApplication(),
-		"azurerm_batch_pool":        resourceBatchPool(),
+	return map[string]*pluginsdk.Resource{
+		"azurerm_batch_account":     batch_account.RegisterResource(),
+		"azurerm_batch_application": batch_application.RegisterResource(),
+		"azurerm_batch_pool":        batch_pool.RegisterResource(),
 	}
-
-	// The batch certificate feature was retired by Azure on 2024-02-29
-	if !features.FivePointOh() {
-		resources["azurerm_batch_certificate"] = resourceBatchCertificate()
-	}
-
-	return resources
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
@@ -67,6 +61,29 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		BatchJobResource{},
+		batch_job.Resource{},
+	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		batch_account.ListResource{},
+		batch_application.ListResource{},
 	}
 }

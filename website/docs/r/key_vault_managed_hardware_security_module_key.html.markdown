@@ -26,14 +26,12 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
   admin_object_ids         = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled = false
 
-  active_config {
-    security_domain_certificate = [
-      azurerm_key_vault_certificate.cert[0].id,
-      azurerm_key_vault_certificate.cert[1].id,
-      azurerm_key_vault_certificate.cert[2].id,
-    ]
-    security_domain_quorum = 2
-  }
+  security_domain_key_vault_certificate_ids = [
+    azurerm_key_vault_certificate.cers["1"].id,
+    azurerm_key_vault_certificate.cers["2"].id,
+    azurerm_key_vault_certificate.cers["3"].id,
+  ]
+  security_domain_quorum = 2
 }
 
 // this gives your service principal the HSM Crypto User role which lets you create and destroy hsm keys
@@ -76,7 +74,7 @@ The following arguments are supported:
 
 * `managed_hsm_id` - (Required) Specifies the ID of the Key Vault Managed Hardware Security Module that they key will be owned by. Changing this forces a new resource to be created.
 
-* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Managed Hardware Security Module Key. Possible values are `EC-HSM`, `oct-HSM` and `RSA-HSM`. More details see [HSM-protected keys](https://learn.microsoft.com/en-us/azure/key-vault/keys/about-keys#hsm-protected-keys). Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Managed Hardware Security Module Key. Possible values are `EC-HSM`, `oct-HSM` and `RSA-HSM`. More details see [HSM-protected keys](https://learn.microsoft.com/azure/key-vault/keys/about-keys#hsm-protected-keys). Changing this forces a new resource to be created.
 
 * `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA-HSM` or `oct-HSM`. Changing this forces a new resource to be created.
 
@@ -122,4 +120,4 @@ terraform import azurerm_key_vault_managed_hardware_security_module_key.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KeyVault` - 2023-07-01
+* `Microsoft.KeyVault` - 2026-02-01

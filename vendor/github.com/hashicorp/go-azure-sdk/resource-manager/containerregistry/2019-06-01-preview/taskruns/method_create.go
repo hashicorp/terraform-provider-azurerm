@@ -62,9 +62,20 @@ func (c TaskRunsClient) Create(ctx context.Context, id TaskRunId, input TaskRun)
 
 // CreateThenPoll performs Create then polls until it's completed
 func (c TaskRunsClient) CreateThenPoll(ctx context.Context, id TaskRunId, input TaskRun) error {
+	return c.CreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateCallbackThenPoll performs Create, runs the optional callback function, then polls until it's completed
+func (c TaskRunsClient) CreateCallbackThenPoll(ctx context.Context, id TaskRunId, input TaskRun, callback func() error) error {
 	result, err := c.Create(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Create: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

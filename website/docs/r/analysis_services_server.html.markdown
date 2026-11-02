@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `power_bi_service_enabled` - (Optional) Indicates if the Power BI service is allowed to access or not.
 
+~> **Note:** `power_bi_service_enabled` is required when `ipv4_firewall_rule` is defined.
+
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

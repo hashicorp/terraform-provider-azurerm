@@ -18,7 +18,7 @@ type SapOdpLinkedServiceTypeProperties struct {
 	Password             SecretBase   `json:"password"`
 	Server               *interface{} `json:"server,omitempty"`
 	SncLibraryPath       *interface{} `json:"sncLibraryPath,omitempty"`
-	SncMode              *bool        `json:"sncMode,omitempty"`
+	SncMode              *interface{} `json:"sncMode,omitempty"`
 	SncMyName            *interface{} `json:"sncMyName,omitempty"`
 	SncPartnerName       *interface{} `json:"sncPartnerName,omitempty"`
 	SncQop               *interface{} `json:"sncQop,omitempty"`
@@ -41,7 +41,7 @@ func (s *SapOdpLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		MessageServerService *interface{} `json:"messageServerService,omitempty"`
 		Server               *interface{} `json:"server,omitempty"`
 		SncLibraryPath       *interface{} `json:"sncLibraryPath,omitempty"`
-		SncMode              *bool        `json:"sncMode,omitempty"`
+		SncMode              *interface{} `json:"sncMode,omitempty"`
 		SncMyName            *interface{} `json:"sncMyName,omitempty"`
 		SncPartnerName       *interface{} `json:"sncPartnerName,omitempty"`
 		SncQop               *interface{} `json:"sncQop,omitempty"`

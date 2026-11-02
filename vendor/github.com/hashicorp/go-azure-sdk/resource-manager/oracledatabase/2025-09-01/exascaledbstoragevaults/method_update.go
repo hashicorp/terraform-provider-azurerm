@@ -62,9 +62,20 @@ func (c ExascaleDbStorageVaultsClient) Update(ctx context.Context, id ExascaleDb
 
 // UpdateThenPoll performs Update then polls until it's completed
 func (c ExascaleDbStorageVaultsClient) UpdateThenPoll(ctx context.Context, id ExascaleDbStorageVaultId, input ExascaleDbStorageVaultTagsUpdate) error {
+	return c.UpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateCallbackThenPoll performs Update, runs the optional callback function, then polls until it's completed
+func (c ExascaleDbStorageVaultsClient) UpdateCallbackThenPoll(ctx context.Context, id ExascaleDbStorageVaultId, input ExascaleDbStorageVaultTagsUpdate, callback func() error) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

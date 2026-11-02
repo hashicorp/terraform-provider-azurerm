@@ -50,44 +50,6 @@ func parseContentSourceType(input string) (*ContentSourceType, error) {
 	return &out, nil
 }
 
-type DscConfigurationProvisioningState string
-
-const (
-	DscConfigurationProvisioningStateSucceeded DscConfigurationProvisioningState = "Succeeded"
-)
-
-func PossibleValuesForDscConfigurationProvisioningState() []string {
-	return []string{
-		string(DscConfigurationProvisioningStateSucceeded),
-	}
-}
-
-func (s *DscConfigurationProvisioningState) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseDscConfigurationProvisioningState(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseDscConfigurationProvisioningState(input string) (*DscConfigurationProvisioningState, error) {
-	vals := map[string]DscConfigurationProvisioningState{
-		"succeeded": DscConfigurationProvisioningStateSucceeded,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := DscConfigurationProvisioningState(input)
-	return &out, nil
-}
-
 type DscConfigurationState string
 
 const (
@@ -129,5 +91,43 @@ func parseDscConfigurationState(input string) (*DscConfigurationState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := DscConfigurationState(input)
+	return &out, nil
+}
+
+type ProvisioningState string
+
+const (
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+)
+
+func PossibleValuesForProvisioningState() []string {
+	return []string{
+		string(ProvisioningStateSucceeded),
+	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseProvisioningState(input string) (*ProvisioningState, error) {
+	vals := map[string]ProvisioningState{
+		"succeeded": ProvisioningStateSucceeded,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ProvisioningState(input)
 	return &out, nil
 }

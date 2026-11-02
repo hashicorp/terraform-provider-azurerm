@@ -48,8 +48,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `long_term_retention_policy` block exports the following:
 
-* `immutable_backups_enabled` - Specifies if the backups are immutable.
-
 * `monthly_retention` - The monthly retention policy for an LTR backup in an ISO 8601 format.
 
 * `week_of_year` - The week of year to take the yearly backup.
@@ -76,4 +74,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2023-08-01-preview
+* `Microsoft.Sql` - 2025-01-01

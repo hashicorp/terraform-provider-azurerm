@@ -62,9 +62,20 @@ func (c AppPlatformClient) CustomDomainsUpdate(ctx context.Context, id DomainId,
 
 // CustomDomainsUpdateThenPoll performs CustomDomainsUpdate then polls until it's completed
 func (c AppPlatformClient) CustomDomainsUpdateThenPoll(ctx context.Context, id DomainId, input CustomDomainResource) error {
+	return c.CustomDomainsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CustomDomainsUpdateCallbackThenPoll performs CustomDomainsUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) CustomDomainsUpdateCallbackThenPoll(ctx context.Context, id DomainId, input CustomDomainResource, callback func() error) error {
 	result, err := c.CustomDomainsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CustomDomainsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

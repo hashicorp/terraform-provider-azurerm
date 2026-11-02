@@ -58,9 +58,20 @@ func (c WebAppsClient) InstallSiteExtension(ctx context.Context, id SiteExtensio
 
 // InstallSiteExtensionThenPoll performs InstallSiteExtension then polls until it's completed
 func (c WebAppsClient) InstallSiteExtensionThenPoll(ctx context.Context, id SiteExtensionId) error {
+	return c.InstallSiteExtensionCallbackThenPoll(ctx, id, nil)
+}
+
+// InstallSiteExtensionCallbackThenPoll performs InstallSiteExtension, runs the optional callback function, then polls until it's completed
+func (c WebAppsClient) InstallSiteExtensionCallbackThenPoll(ctx context.Context, id SiteExtensionId, callback func() error) error {
 	result, err := c.InstallSiteExtension(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing InstallSiteExtension: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

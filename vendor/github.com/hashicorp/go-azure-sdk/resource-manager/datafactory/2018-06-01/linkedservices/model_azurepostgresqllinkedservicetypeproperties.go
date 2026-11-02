@@ -10,26 +10,26 @@ import (
 
 type AzurePostgreSqlLinkedServiceTypeProperties struct {
 	AzureCloudType                       *interface{}                  `json:"azureCloudType,omitempty"`
-	CommandTimeout                       *int64                        `json:"commandTimeout,omitempty"`
+	CommandTimeout                       *interface{}                  `json:"commandTimeout,omitempty"`
 	ConnectionString                     *interface{}                  `json:"connectionString,omitempty"`
 	Credential                           *CredentialReference          `json:"credential,omitempty"`
 	Database                             *interface{}                  `json:"database,omitempty"`
 	Encoding                             *interface{}                  `json:"encoding,omitempty"`
 	EncryptedCredential                  *string                       `json:"encryptedCredential,omitempty"`
 	Password                             *AzureKeyVaultSecretReference `json:"password,omitempty"`
-	Port                                 *int64                        `json:"port,omitempty"`
-	ReadBufferSize                       *int64                        `json:"readBufferSize,omitempty"`
+	Port                                 *interface{}                  `json:"port,omitempty"`
+	ReadBufferSize                       *interface{}                  `json:"readBufferSize,omitempty"`
 	Server                               *interface{}                  `json:"server,omitempty"`
 	ServicePrincipalCredentialType       *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
 	ServicePrincipalEmbeddedCert         SecretBase                    `json:"servicePrincipalEmbeddedCert"`
 	ServicePrincipalEmbeddedCertPassword SecretBase                    `json:"servicePrincipalEmbeddedCertPassword"`
 	ServicePrincipalId                   *interface{}                  `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey                  SecretBase                    `json:"servicePrincipalKey"`
-	SslMode                              *int64                        `json:"sslMode,omitempty"`
+	SslMode                              *interface{}                  `json:"sslMode,omitempty"`
 	Tenant                               *interface{}                  `json:"tenant,omitempty"`
-	Timeout                              *int64                        `json:"timeout,omitempty"`
+	Timeout                              *interface{}                  `json:"timeout,omitempty"`
 	Timezone                             *interface{}                  `json:"timezone,omitempty"`
-	TrustServerCertificate               *bool                         `json:"trustServerCertificate,omitempty"`
+	TrustServerCertificate               *interface{}                  `json:"trustServerCertificate,omitempty"`
 	Username                             *interface{}                  `json:"username,omitempty"`
 }
 
@@ -38,23 +38,23 @@ var _ json.Unmarshaler = &AzurePostgreSqlLinkedServiceTypeProperties{}
 func (s *AzurePostgreSqlLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AzureCloudType                 *interface{}                  `json:"azureCloudType,omitempty"`
-		CommandTimeout                 *int64                        `json:"commandTimeout,omitempty"`
+		CommandTimeout                 *interface{}                  `json:"commandTimeout,omitempty"`
 		ConnectionString               *interface{}                  `json:"connectionString,omitempty"`
 		Credential                     *CredentialReference          `json:"credential,omitempty"`
 		Database                       *interface{}                  `json:"database,omitempty"`
 		Encoding                       *interface{}                  `json:"encoding,omitempty"`
 		EncryptedCredential            *string                       `json:"encryptedCredential,omitempty"`
 		Password                       *AzureKeyVaultSecretReference `json:"password,omitempty"`
-		Port                           *int64                        `json:"port,omitempty"`
-		ReadBufferSize                 *int64                        `json:"readBufferSize,omitempty"`
+		Port                           *interface{}                  `json:"port,omitempty"`
+		ReadBufferSize                 *interface{}                  `json:"readBufferSize,omitempty"`
 		Server                         *interface{}                  `json:"server,omitempty"`
 		ServicePrincipalCredentialType *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
 		ServicePrincipalId             *interface{}                  `json:"servicePrincipalId,omitempty"`
-		SslMode                        *int64                        `json:"sslMode,omitempty"`
+		SslMode                        *interface{}                  `json:"sslMode,omitempty"`
 		Tenant                         *interface{}                  `json:"tenant,omitempty"`
-		Timeout                        *int64                        `json:"timeout,omitempty"`
+		Timeout                        *interface{}                  `json:"timeout,omitempty"`
 		Timezone                       *interface{}                  `json:"timezone,omitempty"`
-		TrustServerCertificate         *bool                         `json:"trustServerCertificate,omitempty"`
+		TrustServerCertificate         *interface{}                  `json:"trustServerCertificate,omitempty"`
 		Username                       *interface{}                  `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

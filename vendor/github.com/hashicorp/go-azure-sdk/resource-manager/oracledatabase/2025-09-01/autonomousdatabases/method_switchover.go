@@ -62,9 +62,20 @@ func (c AutonomousDatabasesClient) Switchover(ctx context.Context, id Autonomous
 
 // SwitchoverThenPoll performs Switchover then polls until it's completed
 func (c AutonomousDatabasesClient) SwitchoverThenPoll(ctx context.Context, id AutonomousDatabaseId, input PeerDbDetails) error {
+	return c.SwitchoverCallbackThenPoll(ctx, id, input, nil)
+}
+
+// SwitchoverCallbackThenPoll performs Switchover, runs the optional callback function, then polls until it's completed
+func (c AutonomousDatabasesClient) SwitchoverCallbackThenPoll(ctx context.Context, id AutonomousDatabaseId, input PeerDbDetails, callback func() error) error {
 	result, err := c.Switchover(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Switchover: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

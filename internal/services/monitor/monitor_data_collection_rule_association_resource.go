@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -81,14 +81,13 @@ func (r DataCollectionRuleAssociationResource) IDValidationFunc() pluginsdk.Sche
 	return datacollectionruleassociations.ValidateScopedDataCollectionRuleAssociationID
 }
 
-func (r DataCollectionRuleAssociationResource) ModelObject() interface{} {
+func (r DataCollectionRuleAssociationResource) ModelObject() any {
 	return &DataCollectionRuleAssociationModel{}
 }
 
 func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			metadata.Logger.Info("Decoding state..")
 			var model DataCollectionRuleAssociationModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -97,14 +96,15 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.DataCollectionRuleAssociationsClient
 
 			id := datacollectionruleassociations.NewScopedDataCollectionRuleAssociationID(model.TargetResourceId, model.Name)
-			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			input := datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource{
@@ -141,7 +141,6 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -155,9 +154,9 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-					dataCollectionEndpointId = flattenStringPtr(prop.DataCollectionEndpointId)
-					dataCollectionRuleId = flattenStringPtr(prop.DataCollectionRuleId)
-					description = flattenStringPtr(prop.Description)
+					dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
+					dataCollectionRuleId = pointer.From(prop.DataCollectionRuleId)
+					description = pointer.From(prop.Description)
 				}
 			}
 
@@ -181,7 +180,6 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Monitor.DataCollectionRuleAssociationsClient
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
@@ -238,7 +236,6 @@ func (r DataCollectionRuleAssociationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting %s..", *id)
 			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

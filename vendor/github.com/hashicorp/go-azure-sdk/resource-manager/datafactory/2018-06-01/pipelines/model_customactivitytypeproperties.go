@@ -10,5 +10,5 @@ type CustomActivityTypeProperties struct {
 	FolderPath            *interface{}                   `json:"folderPath,omitempty"`
 	ReferenceObjects      *CustomActivityReferenceObject `json:"referenceObjects,omitempty"`
 	ResourceLinkedService *LinkedServiceReference        `json:"resourceLinkedService,omitempty"`
-	RetentionTimeInDays   *float64                       `json:"retentionTimeInDays,omitempty"`
+	RetentionTimeInDays   *interface{}                   `json:"retentionTimeInDays,omitempty"`
 }

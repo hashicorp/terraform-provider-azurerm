@@ -58,9 +58,20 @@ func (c CosmosDBClient) GremlinResourcesMigrateGremlinDatabaseToAutoscale(ctx co
 
 // GremlinResourcesMigrateGremlinDatabaseToAutoscaleThenPoll performs GremlinResourcesMigrateGremlinDatabaseToAutoscale then polls until it's completed
 func (c CosmosDBClient) GremlinResourcesMigrateGremlinDatabaseToAutoscaleThenPoll(ctx context.Context, id GremlinDatabaseId) error {
+	return c.GremlinResourcesMigrateGremlinDatabaseToAutoscaleCallbackThenPoll(ctx, id, nil)
+}
+
+// GremlinResourcesMigrateGremlinDatabaseToAutoscaleCallbackThenPoll performs GremlinResourcesMigrateGremlinDatabaseToAutoscale, runs the optional callback function, then polls until it's completed
+func (c CosmosDBClient) GremlinResourcesMigrateGremlinDatabaseToAutoscaleCallbackThenPoll(ctx context.Context, id GremlinDatabaseId, callback func() error) error {
 	result, err := c.GremlinResourcesMigrateGremlinDatabaseToAutoscale(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing GremlinResourcesMigrateGremlinDatabaseToAutoscale: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

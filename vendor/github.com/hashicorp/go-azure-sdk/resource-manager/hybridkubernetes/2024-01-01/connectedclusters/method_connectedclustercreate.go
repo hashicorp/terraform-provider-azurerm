@@ -62,9 +62,20 @@ func (c ConnectedClustersClient) ConnectedClusterCreate(ctx context.Context, id 
 
 // ConnectedClusterCreateThenPoll performs ConnectedClusterCreate then polls until it's completed
 func (c ConnectedClustersClient) ConnectedClusterCreateThenPoll(ctx context.Context, id ConnectedClusterId, input ConnectedCluster) error {
+	return c.ConnectedClusterCreateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ConnectedClusterCreateCallbackThenPoll performs ConnectedClusterCreate, runs the optional callback function, then polls until it's completed
+func (c ConnectedClustersClient) ConnectedClusterCreateCallbackThenPoll(ctx context.Context, id ConnectedClusterId, input ConnectedCluster, callback func() error) error {
 	result, err := c.ConnectedClusterCreate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConnectedClusterCreate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -62,9 +62,20 @@ func (c WebPubSubClient) ReplicaSharedPrivateLinkResourcesCreateOrUpdate(ctx con
 
 // ReplicaSharedPrivateLinkResourcesCreateOrUpdateThenPoll performs ReplicaSharedPrivateLinkResourcesCreateOrUpdate then polls until it's completed
 func (c WebPubSubClient) ReplicaSharedPrivateLinkResourcesCreateOrUpdateThenPoll(ctx context.Context, id ReplicaSharedPrivateLinkResourceId, input SharedPrivateLinkResource) error {
+	return c.ReplicaSharedPrivateLinkResourcesCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ReplicaSharedPrivateLinkResourcesCreateOrUpdateCallbackThenPoll performs ReplicaSharedPrivateLinkResourcesCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c WebPubSubClient) ReplicaSharedPrivateLinkResourcesCreateOrUpdateCallbackThenPoll(ctx context.Context, id ReplicaSharedPrivateLinkResourceId, input SharedPrivateLinkResource, callback func() error) error {
 	result, err := c.ReplicaSharedPrivateLinkResourcesCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReplicaSharedPrivateLinkResourcesCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

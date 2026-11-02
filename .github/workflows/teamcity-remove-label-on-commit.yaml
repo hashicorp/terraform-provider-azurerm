@@ -1,0 +1,149 @@
+---
+name: TeamCity Remove Label on Commit
+
+# On new commits to a PR, replaces teamcity-passed/failed/new-failure labels with
+# teamcity-outdated so stale acceptance-test results are not trusted.
+# Pushes that only touch files the test binary is not built from are skipped; the pushed
+# range is compared in a step because the trigger `paths` filter sees the whole PR.
+
+# pull_request_target is used to label only; the PR head is never checked out
+on:  # zizmor: ignore[dangerous-triggers]
+  pull_request_target:
+    types: [synchronize]
+    paths:
+      - 'internal/**'
+      - 'helpers/**'
+      - 'vendor/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.go-version'
+      - 'main.go'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  apply-outdated-label:
+    runs-on: ubuntu-latest
+    env:
+      TEAMCITY_LABELS: teamcity-passed,teamcity-failed,teamcity-new-failure
+      OUTDATED_LABEL: teamcity-outdated
+      PASSED_LABEL: teamcity-passed
+      AFFECTING_PATH_PREFIXES: internal/,helpers/,vendor/,go.mod,go.sum,.go-version,main.go
+    steps:
+      - name: Check whether the push can affect test results
+        id: push
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const affectingPathPrefixes = process.env.AFFECTING_PATH_PREFIXES.split(',').filter(Boolean);
+            const isAffectingPath = (path) => affectingPathPrefixes.some(prefix => path.startsWith(prefix));
+
+            // returns why the push must be treated as a code change, or null if it cannot affect tests
+            const codeChangeReason = async () => {
+              const { before, after } = context.payload;
+              if (!before || !after || /^0+$/.test(before)) {
+                return 'no before/after range in event payload';
+              }
+
+              let files;
+              try {
+                const { data: compare } = await github.rest.repos.compareCommitsWithBasehead({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  basehead: `${before}...${after}`
+                });
+                files = compare.files || [];
+              } catch (error) {
+                return `could not compare ${before.slice(0, 7)}...${after.slice(0, 7)}: ${error.message}`;
+              }
+
+              if (files.length === 0) {
+                return 'compare returned no changed files';
+              }
+              if (files.length >= 300) {
+                return `compare returned ${files.length} files and may be truncated`; // the compare API returns at most 300
+              }
+
+              const affectingPath = files.flatMap(file => [file.filename, file.previous_filename]).find(path => path && isAffectingPath(path));
+              return affectingPath ? `push changes ${affectingPath}` : null;
+            };
+
+            const reason = await codeChangeReason();
+            core.info(reason ? `Treating push as a code change: ${reason}` : 'Push only changes files that cannot affect test results');
+            core.setOutput('affects_tests', String(reason !== null));
+
+      - name: Check for TeamCity labels and apply outdated label
+        if: (steps.push.outputs.affects_tests || 'true') == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const teamcityLabels = process.env.TEAMCITY_LABELS.split(',');
+            const outdatedLabel = process.env.OUTDATED_LABEL;
+            const passedLabel = process.env.PASSED_LABEL;
+
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+
+            const labelNames = labels.map(label => label.name);
+            const hasTeamCityLabel = teamcityLabels.some(label => labelNames.includes(label));
+            const hasOutdatedLabel = labelNames.includes(outdatedLabel);
+            const hasPassedLabel = labelNames.includes(passedLabel);
+
+            if (hasTeamCityLabel) {
+              const foundLabels = teamcityLabels.filter(label => labelNames.includes(label));
+              core.info(`Found TeamCity labels: ${foundLabels.join(', ')}`);
+
+              if (!hasOutdatedLabel) {
+                core.info(`Applying "${outdatedLabel}" label to PR #${context.payload.pull_request.number}`);
+
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.payload.pull_request.number,
+                    labels: [outdatedLabel]
+                  });
+
+                  core.info(`Successfully applied "${outdatedLabel}" label`);
+                } catch (error) {
+                  core.error(`Failed to apply "${outdatedLabel}" label: ${error.message}`);
+                  throw error;
+                }
+              } else {
+                core.info(`Label "${outdatedLabel}" already exists on PR #${context.payload.pull_request.number}`);
+              }
+
+              // Remove passed label if it exists
+              if (hasPassedLabel) {
+                core.info(`Removing "${passedLabel}" label from PR #${context.payload.pull_request.number}`);
+
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.payload.pull_request.number,
+                    name: passedLabel
+                  });
+
+                  core.info(`Successfully removed "${passedLabel}" label`);
+                } catch (error) {
+                  if (error.status === 404) {
+                    core.warning(`Label "${passedLabel}" was not found on PR #${context.payload.pull_request.number}`);
+                  } else {
+                    core.error(`Failed to remove "${passedLabel}" label: ${error.message}`);
+                    throw error;
+                  }
+                }
+              }
+            } else {
+              core.info(`No TeamCity labels found on PR #${context.payload.pull_request.number}`);
+            }

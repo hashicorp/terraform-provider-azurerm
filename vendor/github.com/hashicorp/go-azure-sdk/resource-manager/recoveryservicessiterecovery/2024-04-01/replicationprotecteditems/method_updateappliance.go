@@ -62,9 +62,20 @@ func (c ReplicationProtectedItemsClient) UpdateAppliance(ctx context.Context, id
 
 // UpdateApplianceThenPoll performs UpdateAppliance then polls until it's completed
 func (c ReplicationProtectedItemsClient) UpdateApplianceThenPoll(ctx context.Context, id ReplicationProtectedItemId, input UpdateApplianceForReplicationProtectedItemInput) error {
+	return c.UpdateApplianceCallbackThenPoll(ctx, id, input, nil)
+}
+
+// UpdateApplianceCallbackThenPoll performs UpdateAppliance, runs the optional callback function, then polls until it's completed
+func (c ReplicationProtectedItemsClient) UpdateApplianceCallbackThenPoll(ctx context.Context, id ReplicationProtectedItemId, input UpdateApplianceForReplicationProtectedItemInput, callback func() error) error {
 	result, err := c.UpdateAppliance(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing UpdateAppliance: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

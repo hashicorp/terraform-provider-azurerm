@@ -62,9 +62,20 @@ func (c RedisClient) AccessPolicyCreateUpdate(ctx context.Context, id AccessPoli
 
 // AccessPolicyCreateUpdateThenPoll performs AccessPolicyCreateUpdate then polls until it's completed
 func (c RedisClient) AccessPolicyCreateUpdateThenPoll(ctx context.Context, id AccessPolicyId, input RedisCacheAccessPolicy) error {
+	return c.AccessPolicyCreateUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// AccessPolicyCreateUpdateCallbackThenPoll performs AccessPolicyCreateUpdate, runs the optional callback function, then polls until it's completed
+func (c RedisClient) AccessPolicyCreateUpdateCallbackThenPoll(ctx context.Context, id AccessPolicyId, input RedisCacheAccessPolicy, callback func() error) error {
 	result, err := c.AccessPolicyCreateUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing AccessPolicyCreateUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

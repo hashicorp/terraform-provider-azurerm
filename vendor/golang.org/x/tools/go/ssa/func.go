@@ -390,6 +390,12 @@ func (f *Function) finishBody() {
 	// clear out other function state (keep consistent with buildParamsOnly)
 	f.subst = nil
 
+	// Release the package's type information, unless
+	// instances of f will later be built from it.
+	if !f.isGenericOrigin() {
+		f.info = nil
+	}
+
 	numberRegisters(f) // uses f.namedRegisters
 }
 
@@ -668,7 +674,11 @@ func WriteFunction(buf *bytes.Buffer, f *Function) {
 			continue
 		}
 		n, _ := fmt.Fprintf(buf, "%d:", b.Index)
+		// (|predecessors|, |successors|, immediate dominator)
 		bmsg := fmt.Sprintf("%s P:%d S:%d", b.Comment, len(b.Preds), len(b.Succs))
+		if b.Idom() != nil {
+			bmsg = fmt.Sprintf("%s idom:%d", bmsg, b.Idom().Index)
+		}
 		fmt.Fprintf(buf, "%*s%s\n", punchcard-1-n-len(bmsg), "", bmsg)
 
 		if false { // CFG debugging
@@ -829,4 +839,11 @@ func returnExit(fn *Function, pos token.Pos) *exit {
 	}
 	fn.exits = append(fn.exits, e)
 	return e
+}
+
+// isGenericOrigin reports whether f is an uninstantiated generic
+// function or a method of an uninstantiated generic type.
+func (f *Function) isGenericOrigin() bool {
+	return (f.typeparams.Len() > 0 && len(f.typeargs) == 0) ||
+		(f.recvtypeparams.Len() > 0 && len(f.recvtypeargs) == 0)
 }

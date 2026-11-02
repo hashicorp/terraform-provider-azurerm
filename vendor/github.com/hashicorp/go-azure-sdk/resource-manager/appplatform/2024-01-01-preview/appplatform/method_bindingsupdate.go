@@ -62,9 +62,20 @@ func (c AppPlatformClient) BindingsUpdate(ctx context.Context, id BindingId, inp
 
 // BindingsUpdateThenPoll performs BindingsUpdate then polls until it's completed
 func (c AppPlatformClient) BindingsUpdateThenPoll(ctx context.Context, id BindingId, input BindingResource) error {
+	return c.BindingsUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// BindingsUpdateCallbackThenPoll performs BindingsUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) BindingsUpdateCallbackThenPoll(ctx context.Context, id BindingId, input BindingResource, callback func() error) error {
 	result, err := c.BindingsUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing BindingsUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

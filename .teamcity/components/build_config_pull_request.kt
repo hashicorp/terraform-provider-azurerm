@@ -21,9 +21,13 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             steps {
                 var packageName = "\"%SERVICES%\""
 
+                SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTestsForPullRequest(packageName)
+                PostTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -39,9 +43,13 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()
+                TerraformProviderMirror()
                 ReadOnlySettings()
+                GoCache()
+                BuildStartTime()
 
                 text("SERVICES", "portal")
+                text("env.SCHEDULE_MATCHES", "true")
             }
         }
     }

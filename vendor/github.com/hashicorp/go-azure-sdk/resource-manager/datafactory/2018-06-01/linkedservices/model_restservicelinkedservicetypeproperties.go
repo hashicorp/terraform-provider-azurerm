@@ -16,7 +16,7 @@ type RestServiceLinkedServiceTypeProperties struct {
 	ClientId                             *interface{}                  `json:"clientId,omitempty"`
 	ClientSecret                         SecretBase                    `json:"clientSecret"`
 	Credential                           *CredentialReference          `json:"credential,omitempty"`
-	EnableServerCertificateValidation    *bool                         `json:"enableServerCertificateValidation,omitempty"`
+	EnableServerCertificateValidation    *interface{}                  `json:"enableServerCertificateValidation,omitempty"`
 	EncryptedCredential                  *string                       `json:"encryptedCredential,omitempty"`
 	Password                             SecretBase                    `json:"password"`
 	Resource                             *interface{}                  `json:"resource,omitempty"`
@@ -42,7 +42,7 @@ func (s *RestServiceLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) err
 		AzureCloudType                    *interface{}                  `json:"azureCloudType,omitempty"`
 		ClientId                          *interface{}                  `json:"clientId,omitempty"`
 		Credential                        *CredentialReference          `json:"credential,omitempty"`
-		EnableServerCertificateValidation *bool                         `json:"enableServerCertificateValidation,omitempty"`
+		EnableServerCertificateValidation *interface{}                  `json:"enableServerCertificateValidation,omitempty"`
 		EncryptedCredential               *string                       `json:"encryptedCredential,omitempty"`
 		Resource                          *interface{}                  `json:"resource,omitempty"`
 		Scope                             *interface{}                  `json:"scope,omitempty"`

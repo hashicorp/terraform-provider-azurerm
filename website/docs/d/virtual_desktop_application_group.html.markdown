@@ -14,8 +14,8 @@ Use this data source to access information about an existing Application Group.
 
 ```hcl
 data "azurerm_virtual_desktop_application_group" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-application-group"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -61,4 +61,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DesktopVirtualization` - 2024-04-03
+* `Microsoft.DesktopVirtualization` - 2025-10-10

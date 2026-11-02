@@ -13,9 +13,9 @@ type ConcurLinkedServiceTypeProperties struct {
 	ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 	Password              SecretBase   `json:"password"`
-	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
+	UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 	Username              interface{}  `json:"username"`
 }
 
@@ -26,9 +26,9 @@ func (s *ConcurLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		ClientId              interface{}  `json:"clientId"`
 		ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
-		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
+		UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 		Username              interface{}  `json:"username"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

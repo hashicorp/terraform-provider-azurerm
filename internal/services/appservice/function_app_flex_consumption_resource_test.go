@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -18,6 +18,16 @@ import (
 )
 
 type FunctionAppFlexConsumptionResource struct{}
+
+func TestAccFunctionAppFlexConsumption_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccFunctionAppFlexConsumption_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
@@ -632,7 +642,7 @@ func TestAccFunctionAppFlexConsumption_vNetIntegrationWithVnetProperties(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_subnetWithVnetProperties(data),
+			Config: r.vNetIntegration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -1683,16 +1693,16 @@ resource "azurerm_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r FunctionAppFlexConsumptionResource) vNetIntegration_subnetWithVnetProperties(data acceptance.TestData) string {
+func (r FunctionAppFlexConsumptionResource) vNetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+%[1]s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
+  name                = "acctest-vnet-%[2]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1720,8 +1730,16 @@ resource "azurerm_subnet" "test1" {
   }
 }
 
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "FC1"
+}
+
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                      = "acctest-LFA-%d"
+  name                      = "acctest-LFA-%[2]d"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   service_plan_id           = azurerm_service_plan.test.id
@@ -1740,7 +1758,28 @@ resource "azurerm_function_app_flex_consumption" "test" {
     vnet_route_all_enabled = true
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_function_app_flex_consumption" "test2" {
+  name                      = "acctest-LFA2-%[2]d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test2.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.test.primary_access_key
+  runtime_name                = "node"
+  runtime_version             = "22"
+  maximum_instance_count      = 100
+  instance_memory_in_mb       = 2048
+
+  site_config {
+    vnet_route_all_enabled = true
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {
@@ -1787,7 +1826,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestblobforfc"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1832,7 +1871,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }
 
 func (FunctionAppFlexConsumptionResource) templateEnabledAiDetector(data acceptance.TestData) string {
@@ -1859,7 +1898,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestblobforfc"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1904,5 +1943,5 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+	`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }

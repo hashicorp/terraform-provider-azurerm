@@ -59,6 +59,23 @@ func NewValueMarks(marks ...any) ValueMarks {
 	return ret
 }
 
+// Insert adds each of the values produced by the given sequence to the
+// [ValueMarks] set, if it isn't already present.
+//
+// All values produced by the sequence must be valid to use as marks, or this
+// function will panic.
+func (m ValueMarks) Insert(seq iter.Seq[any]) {
+	for mark := range seq {
+		m[mark] = struct{}{}
+	}
+}
+
+// Has returns true if the given value is in the [ValueMarks] set.
+func (m ValueMarks) Has(mark any) bool {
+	_, ok := m[mark]
+	return ok
+}
+
 // Equal returns true if the receiver and the given ValueMarks both contain
 // the same marks.
 func (m ValueMarks) Equal(o ValueMarks) bool {

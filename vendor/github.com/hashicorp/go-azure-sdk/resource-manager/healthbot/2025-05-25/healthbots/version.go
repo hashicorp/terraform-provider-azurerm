@@ -8,3 +8,7 @@ const defaultApiVersion = "2025-05-25"
 func userAgent() string {
 	return "hashicorp/go-azure-sdk/healthbots/2025-05-25"
 }
+
+func AzureAPIVersion() string {
+	return defaultApiVersion
+}

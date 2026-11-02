@@ -11,7 +11,7 @@ import (
 var _ CompressionReadSettings = ZipDeflateReadSettings{}
 
 type ZipDeflateReadSettings struct {
-	PreserveZipFileNameAsFolder *bool `json:"preserveZipFileNameAsFolder,omitempty"`
+	PreserveZipFileNameAsFolder *interface{} `json:"preserveZipFileNameAsFolder,omitempty"`
 
 	// Fields inherited from CompressionReadSettings
 

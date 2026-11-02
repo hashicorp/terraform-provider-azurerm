@@ -62,9 +62,20 @@ func (c AppServiceEnvironmentsClient) CreateOrUpdateWorkerPool(ctx context.Conte
 
 // CreateOrUpdateWorkerPoolThenPoll performs CreateOrUpdateWorkerPool then polls until it's completed
 func (c AppServiceEnvironmentsClient) CreateOrUpdateWorkerPoolThenPoll(ctx context.Context, id WorkerPoolId, input WorkerPoolResource) error {
+	return c.CreateOrUpdateWorkerPoolCallbackThenPoll(ctx, id, input, nil)
+}
+
+// CreateOrUpdateWorkerPoolCallbackThenPoll performs CreateOrUpdateWorkerPool, runs the optional callback function, then polls until it's completed
+func (c AppServiceEnvironmentsClient) CreateOrUpdateWorkerPoolCallbackThenPoll(ctx context.Context, id WorkerPoolId, input WorkerPoolResource, callback func() error) error {
 	result, err := c.CreateOrUpdateWorkerPool(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateWorkerPool: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

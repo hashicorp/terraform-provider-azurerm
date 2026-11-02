@@ -62,9 +62,20 @@ func (c RedisResourcesClient) RedisUpdate(ctx context.Context, id RediId, input 
 
 // RedisUpdateThenPoll performs RedisUpdate then polls until it's completed
 func (c RedisResourcesClient) RedisUpdateThenPoll(ctx context.Context, id RediId, input RedisUpdateParameters) error {
+	return c.RedisUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// RedisUpdateCallbackThenPoll performs RedisUpdate, runs the optional callback function, then polls until it's completed
+func (c RedisResourcesClient) RedisUpdateCallbackThenPoll(ctx context.Context, id RediId, input RedisUpdateParameters, callback func() error) error {
 	result, err := c.RedisUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing RedisUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -199,6 +199,14 @@ func TestValidateManagedEnvironmentName(t *testing.T) {
 		},
 		{
 			Input: "TooLonghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghija",
+		},
+		{
+			Input: "98",
+			Valid: true,
+		},
+		{
+			Input: "42canhavenumbersatstart01",
+			Valid: true,
 		},
 		{
 			Input: "a--a",

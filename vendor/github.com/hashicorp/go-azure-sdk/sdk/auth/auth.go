@@ -137,6 +137,7 @@ func NewAuthorizerFromCredentials(ctx context.Context, c Credentials, api enviro
 			ClientId:                        c.ClientID,
 			CustomManagedIdentityEndpoint:   c.CustomManagedIdentityEndpoint,
 			CustomManagedIdentityAPIVersion: c.CustomManagedIdentityAPIVersion,
+			CustomManagedIdentityHeaders:    c.CustomManagedIdentityHeaders,
 		}
 		a, err := NewManagedIdentityAuthorizer(ctx, opts)
 		if err != nil {

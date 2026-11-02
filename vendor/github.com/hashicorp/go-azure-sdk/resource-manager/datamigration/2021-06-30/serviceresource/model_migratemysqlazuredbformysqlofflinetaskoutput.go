@@ -26,9 +26,9 @@ func (s BaseMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl) MigrateMySqlAzureD
 
 var _ MigrateMySqlAzureDbForMySqlOfflineTaskOutput = RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl{}
 
-// RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl struct {
 	migrateMySqlAzureDbForMySqlOfflineTaskOutput BaseMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl
 	Type                                         string
@@ -37,6 +37,10 @@ type RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl struct {
 
 func (s RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl) MigrateMySqlAzureDbForMySqlOfflineTaskOutput() BaseMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl {
 	return s.migrateMySqlAzureDbForMySqlOfflineTaskOutput
+}
+
+func (s RawMigrateMySqlAzureDbForMySqlOfflineTaskOutputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalMigrateMySqlAzureDbForMySqlOfflineTaskOutputImplementation(input []byte) (MigrateMySqlAzureDbForMySqlOfflineTaskOutput, error) {

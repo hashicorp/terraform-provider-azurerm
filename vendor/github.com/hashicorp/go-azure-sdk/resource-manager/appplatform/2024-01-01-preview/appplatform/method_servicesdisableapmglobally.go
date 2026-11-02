@@ -62,9 +62,20 @@ func (c AppPlatformClient) ServicesDisableApmGlobally(ctx context.Context, id co
 
 // ServicesDisableApmGloballyThenPoll performs ServicesDisableApmGlobally then polls until it's completed
 func (c AppPlatformClient) ServicesDisableApmGloballyThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ApmReference) error {
+	return c.ServicesDisableApmGloballyCallbackThenPoll(ctx, id, input, nil)
+}
+
+// ServicesDisableApmGloballyCallbackThenPoll performs ServicesDisableApmGlobally, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) ServicesDisableApmGloballyCallbackThenPoll(ctx context.Context, id commonids.SpringCloudServiceId, input ApmReference, callback func() error) error {
 	result, err := c.ServicesDisableApmGlobally(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ServicesDisableApmGlobally: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

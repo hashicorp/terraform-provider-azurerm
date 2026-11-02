@@ -25,9 +25,9 @@ func (s BasePlannedFailoverProviderSpecificFailoverInputImpl) PlannedFailoverPro
 
 var _ PlannedFailoverProviderSpecificFailoverInput = RawPlannedFailoverProviderSpecificFailoverInputImpl{}
 
-// RawPlannedFailoverProviderSpecificFailoverInputImpl is returned when the Discriminated Value doesn't match any of the defined types
-// NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
-// and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
+// RawPlannedFailoverProviderSpecificFailoverInputImpl is returned when the Discriminated Value doesn't match any of the defined types.
+// It can also be used as a Request Payload to provide a raw JSON payload, which is useful
+// for preserving arbitrary/extensible JSON properties across a round-trip.
 type RawPlannedFailoverProviderSpecificFailoverInputImpl struct {
 	plannedFailoverProviderSpecificFailoverInput BasePlannedFailoverProviderSpecificFailoverInputImpl
 	Type                                         string
@@ -36,6 +36,10 @@ type RawPlannedFailoverProviderSpecificFailoverInputImpl struct {
 
 func (s RawPlannedFailoverProviderSpecificFailoverInputImpl) PlannedFailoverProviderSpecificFailoverInput() BasePlannedFailoverProviderSpecificFailoverInputImpl {
 	return s.plannedFailoverProviderSpecificFailoverInput
+}
+
+func (s RawPlannedFailoverProviderSpecificFailoverInputImpl) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Values)
 }
 
 func UnmarshalPlannedFailoverProviderSpecificFailoverInputImplementation(input []byte) (PlannedFailoverProviderSpecificFailoverInput, error) {

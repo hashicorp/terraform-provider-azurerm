@@ -105,7 +105,7 @@ A `request` block supports the following:
 
 * `http_verb` - (Optional) Which HTTP verb to use for the call. Options are 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', and 'OPTIONS'. Defaults to `GET`.
 
-* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependend requests be enabled? Defaults to `true`.
+* `parse_dependent_requests_enabled` - (Optional) Should the parsing of dependent requests be enabled? Defaults to `true`.
 
 ---
 
@@ -118,6 +118,11 @@ A `validation_rules` block supports the following:
 * `ssl_cert_remaining_lifetime` - (Optional) The number of days of SSL certificate validity remaining for the checked endpoint. If the certificate has a shorter remaining lifetime left, the test will fail. This number should be between 1 and 365.
 
 * `ssl_check_enabled` - (Optional) Should the SSL check be enabled?
+
+* `ignore_status_code` - (Optional) Should status code of the response be ignored? Defaults to `false`.
+* 
+
+-> **Note:** When `ignore_status_code` is set, the `expected_status_code`  will be ignored.
 
 ## Attributes Reference
 

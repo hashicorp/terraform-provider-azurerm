@@ -57,9 +57,20 @@ func (c AppPlatformClient) DeploymentsStart(ctx context.Context, id DeploymentId
 
 // DeploymentsStartThenPoll performs DeploymentsStart then polls until it's completed
 func (c AppPlatformClient) DeploymentsStartThenPoll(ctx context.Context, id DeploymentId) error {
+	return c.DeploymentsStartCallbackThenPoll(ctx, id, nil)
+}
+
+// DeploymentsStartCallbackThenPoll performs DeploymentsStart, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DeploymentsStartCallbackThenPoll(ctx context.Context, id DeploymentId, callback func() error) error {
 	result, err := c.DeploymentsStart(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing DeploymentsStart: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

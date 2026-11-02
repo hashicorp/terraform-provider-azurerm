@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ApiManagementProductPolicyResource struct{}
+
+func TestAccApiManagementProductPolicy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
+	r := ApiManagementProductPolicyResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccApiManagementProductPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
@@ -126,7 +136,7 @@ resource "azurerm_api_management_product_policy" "test" {
   product_id          = azurerm_api_management_product.test.product_id
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
+  xml_link            = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/refs/heads/main/internal/services/apimanagement/testdata/api_management_policy_test.xml"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

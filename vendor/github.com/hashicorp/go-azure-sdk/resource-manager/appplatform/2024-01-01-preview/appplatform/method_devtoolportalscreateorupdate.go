@@ -62,9 +62,20 @@ func (c AppPlatformClient) DevToolPortalsCreateOrUpdate(ctx context.Context, id 
 
 // DevToolPortalsCreateOrUpdateThenPoll performs DevToolPortalsCreateOrUpdate then polls until it's completed
 func (c AppPlatformClient) DevToolPortalsCreateOrUpdateThenPoll(ctx context.Context, id DevToolPortalId, input DevToolPortalResource) error {
+	return c.DevToolPortalsCreateOrUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// DevToolPortalsCreateOrUpdateCallbackThenPoll performs DevToolPortalsCreateOrUpdate, runs the optional callback function, then polls until it's completed
+func (c AppPlatformClient) DevToolPortalsCreateOrUpdateCallbackThenPoll(ctx context.Context, id DevToolPortalId, input DevToolPortalResource, callback func() error) error {
 	result, err := c.DevToolPortalsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing DevToolPortalsCreateOrUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

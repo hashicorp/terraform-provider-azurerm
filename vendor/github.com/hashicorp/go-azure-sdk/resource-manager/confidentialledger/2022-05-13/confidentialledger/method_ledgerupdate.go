@@ -62,9 +62,20 @@ func (c ConfidentialLedgerClient) LedgerUpdate(ctx context.Context, id LedgerId,
 
 // LedgerUpdateThenPoll performs LedgerUpdate then polls until it's completed
 func (c ConfidentialLedgerClient) LedgerUpdateThenPoll(ctx context.Context, id LedgerId, input ConfidentialLedger) error {
+	return c.LedgerUpdateCallbackThenPoll(ctx, id, input, nil)
+}
+
+// LedgerUpdateCallbackThenPoll performs LedgerUpdate, runs the optional callback function, then polls until it's completed
+func (c ConfidentialLedgerClient) LedgerUpdateCallbackThenPoll(ctx context.Context, id LedgerId, input ConfidentialLedger, callback func() error) error {
 	result, err := c.LedgerUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LedgerUpdate: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {

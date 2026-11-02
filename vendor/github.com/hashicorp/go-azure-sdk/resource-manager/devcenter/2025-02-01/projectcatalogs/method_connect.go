@@ -56,9 +56,20 @@ func (c ProjectCatalogsClient) Connect(ctx context.Context, id CatalogId) (resul
 
 // ConnectThenPoll performs Connect then polls until it's completed
 func (c ProjectCatalogsClient) ConnectThenPoll(ctx context.Context, id CatalogId) error {
+	return c.ConnectCallbackThenPoll(ctx, id, nil)
+}
+
+// ConnectCallbackThenPoll performs Connect, runs the optional callback function, then polls until it's completed
+func (c ProjectCatalogsClient) ConnectCallbackThenPoll(ctx context.Context, id CatalogId, callback func() error) error {
 	result, err := c.Connect(ctx, id)
 	if err != nil {
 		return fmt.Errorf("performing Connect: %+v", err)
+	}
+
+	if callback != nil {
+		if err := callback(); err != nil {
+			return fmt.Errorf("executing callback function: %+v", err)
+		}
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
