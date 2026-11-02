@@ -3,7 +3,10 @@
 
 package validate
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestProtocolWithPort(t *testing.T) {
 	testCases := []struct {
@@ -138,5 +141,26 @@ func TestProtocol_nonString(t *testing.T) {
 	}
 	if _, errors := ProtocolWithPort(80, "protocol_ports"); len(errors) == 0 {
 		t.Fatal("Expected an error for a non-string input to ProtocolWithPort")
+	}
+}
+
+func TestProtocol_errorMessageListsStandaloneValues(t *testing.T) {
+	for _, input := range []string{"", "TCP", "anything"} {
+		_, errors := Protocol(input, "protocol")
+		if len(errors) != 1 {
+			t.Fatalf("Expected 1 error for %q but got %d", input, len(errors))
+		}
+		if msg := errors[0].Error(); !strings.Contains(msg, "`any`") || !strings.Contains(msg, "`application-default`") {
+			t.Fatalf("Expected the error for %q to mention `any` and `application-default`, got: %s", input, msg)
+		}
+	}
+
+	// `protocol_ports` entries don't accept these values, so the message shouldn't suggest them
+	_, errors := ProtocolWithPort("TCP", "protocol_ports")
+	if len(errors) != 1 {
+		t.Fatalf("Expected 1 error but got %d", len(errors))
+	}
+	if msg := errors[0].Error(); strings.Contains(msg, "`any`") {
+		t.Fatalf("Expected the `ProtocolWithPort` error not to mention `any`, got: %s", msg)
 	}
 }

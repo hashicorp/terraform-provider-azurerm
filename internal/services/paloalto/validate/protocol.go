@@ -26,6 +26,11 @@ func Protocol(input any, k string) (warnings []string, errors []error) {
 		return
 	}
 
+	if !strings.Contains(v, ":") {
+		errors = append(errors, fmt.Errorf("expected %s to be `any`, `application-default`, or a two part string separated by a `:`, e.g. `TCP:80` or `TCP:1024-1206`, got %q", k, v))
+		return
+	}
+
 	return ProtocolWithPort(input, k)
 }
 
