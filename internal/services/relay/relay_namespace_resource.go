@@ -225,7 +225,6 @@ func (r RelayNamespaceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
 			log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
 			poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
 				resp, err := client.Get(pollerCtx, *id)
