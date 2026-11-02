@@ -163,7 +163,7 @@ func (r RelayNamespaceResource) Read() sdk.ResourceFunc {
 
 			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing namespace ID: %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
@@ -178,7 +178,10 @@ func (r RelayNamespaceResource) Read() sdk.ResourceFunc {
 			var state RelayNamespaceResourceModel
 
 			state.Name = id.NamespaceName
-			state.ResourceGroupName = id.ResourceGroupName
+			state := RelayNamespaceResourceModel{
+				Name: id.NamespaceName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
 
 			model := resp.Model
 			if model == nil {
@@ -282,7 +285,7 @@ func (r RelayNamespaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, existingModel); err != nil {
-				return fmt.Errorf("creating %s: %+v", *id, err)
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
