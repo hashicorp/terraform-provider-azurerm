@@ -175,29 +175,22 @@ func (r RelayNamespaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var state RelayNamespaceResourceModel
-
-			state.Name = id.NamespaceName
 			state := RelayNamespaceResourceModel{
-				Name: id.NamespaceName,
+				Name:              id.NamespaceName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
+			if model := resp.Model; model != nil {
+				state.Location = model.Location
+				state.Tags = tags.Flatten(model.Tags)
 
-			props := model.Properties
-			if props == nil {
-				return fmt.Errorf("retrieving %s: properties were nil", id)
-			}
+				if sku := model.Sku; sku != nil {
+					state.SkuName = string(sku.Name)
+				}
 
-			state.Location = location.Normalize(model.Location)
-			state.MetricID = pointer.From(props.MetricId)
-			state.Tags = tags.Flatten(model.Tags)
-			if model.Sku != nil {
-				state.SkuName = string(model.Sku.Name)
+				if props := resp.Model.Properties; props != nil {
+					state.MetricID = pointer.From(props.MetricId)
+				}
 			}
 
 			authRuleId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, "RootManageSharedAccessKey")
@@ -228,7 +221,7 @@ func (r RelayNamespaceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -258,12 +251,16 @@ func (r RelayNamespaceResource) Update() sdk.ResourceFunc {
 
 			id, err := namespaces.ParseNamespaceID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing namespace ID: %+v", err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
-			if err != nil || resp.Model == nil {
+			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
 			var model RelayNamespaceResourceModel
