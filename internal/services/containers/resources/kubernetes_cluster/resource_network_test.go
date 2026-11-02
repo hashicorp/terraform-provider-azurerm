@@ -645,6 +645,7 @@ func TestAccKubernetesCluster_managedNatGatewaySkuOmitted(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+				check.That(data.ResourceName).Key("run_command_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -653,6 +654,16 @@ func TestAccKubernetesCluster_managedNatGatewaySkuOmitted(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Force a cluster PUT while the SKU is omitted, since omission alone can be a no-op.
+			Config: strings.Replace(r.managedNatGatewayConfig(data, true, ""), "  default_node_pool {", "  run_command_enabled = false\n\n  default_node_pool {", 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
+				check.That(data.ResourceName).Key("run_command_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
