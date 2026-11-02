@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -817,4 +817,19 @@ func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.Clust
 			"force_upgrade_enabled": pointer.From(input.OverrideSettings.ForceUpgrade),
 		},
 	}
+}
+
+func flattenKubernetesClusterKeyVaultKms(d *pluginsdk.ResourceData, input *managedclusters.ManagedClusterSecurityProfile) []any {
+	azureKeyVaultKms := make([]any, 0)
+
+	if input != nil && input.AzureKeyVaultKms != nil && pointer.From(input.AzureKeyVaultKms.Enabled) {
+		azureKeyVaultKms = append(azureKeyVaultKms, map[string]any{
+			"key_vault_key_id": pointer.From(input.AzureKeyVaultKms.KeyId),
+			// The API does not return `key_vault_id`, so we'll preserve what was provided
+			"key_vault_id":             d.Get("key_management_service.0.key_vault_id").(string),
+			"key_vault_network_access": pointer.FromEnum(input.AzureKeyVaultKms.KeyVaultNetworkAccess),
+		})
+	}
+
+	return azureKeyVaultKms
 }
