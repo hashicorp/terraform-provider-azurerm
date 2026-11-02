@@ -338,6 +338,9 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
+				// Azure does not return these for Container Apps-hosted Function Apps, so they match the
+				// values set by the `azurerm_linux_function_app` resource.
+				helpers.SetFunctionAppContainerSiteConfigDefaults(siteConfig)
 
 				containerAppSettingsResp, err := client.ListApplicationSettings(ctx, id)
 				if err != nil {
@@ -463,18 +466,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Availability = pointer.FromEnum(props.AvailabilityState)
 
-					// Container Apps-hosted Function Apps are handled entirely by the early
-					// Container Apps dispatch above, so `props.ManagedEnvironmentId` is
-					// guaranteed empty here.
-					serverFarmId := pointer.From(props.ServerFarmId)
-					if serverFarmId == "" {
-						return fmt.Errorf("determining Service Plan ID for Linux %s: Service Plan ID was empty", id)
-					}
-					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(serverFarmId)
-					if err != nil {
-						return err
-					}
-					state.ServicePlanId = servicePlanId.ID()
+					state.ServicePlanId = pointer.From(props.ServerFarmId)
 
 					state.Enabled = pointer.From(props.Enabled)
 					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)

@@ -65,6 +65,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 -> **Note:** When the Function App is hosted on a Container App Environment, Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled`, so these are always `true`, `Optional`, `true`, `true` and `true` respectively.
 
+-> **Note:** When the Function App is hosted on a Container App Environment, Azure does not return `ftps_state`, `load_balancing_mode`, `managed_pipeline_mode`, `minimum_tls_version`, `scm_minimum_tls_version`, `ip_restriction_default_action` or `scm_ip_restriction_default_action` in the `site_config` block, so these are always `Disabled`, `LeastRequests`, `Integrated`, `1.2`, `1.2`, `Allow` and `Allow` respectively.
+
 * `content_share_force_disabled` - Are the settings for linking the Function App to storage suppressed?
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.

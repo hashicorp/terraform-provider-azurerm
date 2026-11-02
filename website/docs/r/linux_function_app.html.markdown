@@ -118,6 +118,8 @@ When `container_app_environment_id` is specified, the Function App runs as a con
 
 * Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` for these Function Apps, so they are always set to their default values (`true`, `Optional`, `true`, `true` and `true` respectively) in the state and do not reflect changes made outside of Terraform.
 
+* Azure does not return `ftps_state`, `load_balancing_mode`, `managed_pipeline_mode`, `minimum_tls_version`, `scm_minimum_tls_version`, `ip_restriction_default_action` or `scm_ip_restriction_default_action` in `site_config` for these Function Apps, so they are always set to their default values (`Disabled`, `LeastRequests`, `Integrated`, `1.2`, `1.2`, `Allow` and `Allow` respectively) in the state and do not reflect changes made outside of Terraform.
+
 ## Arguments Reference
 
 The following arguments are supported:
