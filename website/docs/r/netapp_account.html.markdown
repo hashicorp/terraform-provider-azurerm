@@ -89,7 +89,7 @@ The `active_directory` block supports the following:
 
 * `backup_users` - (Optional) A list of Active Directory users to be added to the built-in Backup Operators active directory group. Maximum of 255 users are allowed.
 
-* `dc_connection_encryption_enabled` - (Optional) If enabled, the connection between Active Directory and SMB server will be encrypted. Defaults to `false`.
+* `domain_controller_connection_encryption_enabled` - (Optional) If enabled, the connection between Active Directory and SMB server will be encrypted. Defaults to `false`.
 
 * `kerberos_ad_name` - (Optional) Name of the active directory machine.
 
@@ -97,7 +97,7 @@ The `active_directory` block supports the following:
 
 ~> **Note:** If you plan on using **Kerberos** volumes, both `ad_name` and `kdc_ip` are required in order to create the volume.
 
-* `ldap_client_preferred_server_ips` - (Optional) Specifies the preferred LDAP server IPs for the LDAP client. Maximum of 2 `IPv4` addresses are allowed.
+* `ldap_client_preferred_servers` - (Optional) Specifies the preferred LDAP server IPs for the LDAP client. Maximum of 2 `IPv4` addresses are allowed.
 
 * `ldap_over_tls_enabled` - (Optional) Specifies whether or not the LDAP traffic needs to be secured via TLS. Defaults to `false`.
 

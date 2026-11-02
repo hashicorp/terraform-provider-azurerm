@@ -156,13 +156,13 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Default:     false,
 							Description: "Specifies whether or not the LDAP traffic needs to be signed.",
 						},
-						"dc_connection_encryption_enabled": {
+						"domain_controller_connection_encryption_enabled": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
 							Description: "Specifies if traffic between the Domain Controller and SMB server is encrypted.",
 						},
-						"ldap_client_preferred_server_ips": {
+						"ldap_client_preferred_servers": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 2,
@@ -484,8 +484,8 @@ func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirector
 			LdapOverTLS:                   pointer.To(v["ldap_over_tls_enabled"].(bool)),
 			ServerRootCACertificate:       pointer.To(v["server_root_ca_certificate"].(string)),
 			LdapSigning:                   pointer.To(v["ldap_signing_enabled"].(bool)),
-			EncryptDCConnections:          pointer.To(v["dc_connection_encryption_enabled"].(bool)),
-			PreferredServersForLdapClient: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(v["ldap_client_preferred_server_ips"].([]any)), ",")),
+			EncryptDCConnections:          pointer.To(v["domain_controller_connection_encryption_enabled"].(bool)),
+			PreferredServersForLdapClient: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(v["ldap_client_preferred_servers"].([]any)), ",")),
 		}
 
 		var searchScope map[string]any
@@ -554,12 +554,12 @@ func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, pre
 			"ldap_over_tls_enabled":             v.LdapOverTLS,
 			"server_root_ca_certificate":        prevCaCert,
 			"ldap_signing_enabled":              v.LdapSigning,
-			"dc_connection_encryption_enabled":  v.EncryptDCConnections,
-			"ldap_client_preferred_server_ips":  pluginsdk.FlattenStringSliceWithDelimiter(v.PreferredServersForLdapClient, ","),
-			"administrator_users":               pluginsdk.FlattenSlice(v.Administrators),
-			"backup_users":                      pluginsdk.FlattenSlice(v.BackupOperators),
-			"security_users":                    pluginsdk.FlattenSlice(v.SecurityOperators),
-			"ldap_search_scope":                 flattenNetAppLdapSearchScope(v.LdapSearchScope),
+			"domain_controller_connection_encryption_enabled": v.EncryptDCConnections,
+			"ldap_client_preferred_servers":                   pluginsdk.FlattenStringSliceWithDelimiter(v.PreferredServersForLdapClient, ","),
+			"administrator_users":                             pluginsdk.FlattenSlice(v.Administrators),
+			"backup_users":                                    pluginsdk.FlattenSlice(v.BackupOperators),
+			"security_users":                                  pluginsdk.FlattenSlice(v.SecurityOperators),
+			"ldap_search_scope":                               flattenNetAppLdapSearchScope(v.LdapSearchScope),
 		},
 	}
 }
