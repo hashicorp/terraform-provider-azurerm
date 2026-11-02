@@ -6,6 +6,7 @@ package kubernetes_cluster_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -764,12 +765,24 @@ func TestAccKubernetesCluster_osSkuAzureContainerLinux(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSkuAzureContainerLinux(data),
+			Config: r.osSkuAzureContainerLinux(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_osSkuAzureContainerLinuxSecurityDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.osSkuAzureContainerLinux(data, false),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
+		},
 	})
 }
 
@@ -3247,7 +3260,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
 }
 
-func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData) string {
+func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled bool) string {
 	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3278,8 +3291,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     os_sku     = "AzureContainerLinux"
 
     security {
-      secure_boot_enabled = true
-      vtpm_enabled        = true
+      secure_boot_enabled = %t
+      vtpm_enabled        = %t
     }
 
     upgrade_settings {
@@ -3291,7 +3304,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, securityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {

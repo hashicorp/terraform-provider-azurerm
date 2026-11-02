@@ -1126,12 +1126,24 @@ func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinux(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSkuAzureContainerLinux(data),
+			Config: r.osSkuAzureContainerLinux(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinuxSecurityDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.osSkuAzureContainerLinux(data, false),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.secure_boot_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
+		},
 	})
 }
 
@@ -3398,7 +3410,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSku)
 }
 
-func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled bool) string {
 	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3444,15 +3456,15 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
 
   security {
-    secure_boot_enabled = true
-    vtpm_enabled        = true
+    secure_boot_enabled = %t
+    vtpm_enabled        = %t
   }
 
   upgrade_settings {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, securityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterNodePoolResource) dedicatedHost(data acceptance.TestData) string {

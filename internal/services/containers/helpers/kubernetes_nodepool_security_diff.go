@@ -11,21 +11,51 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// NodePoolSecurityCustomizeDiff requires explicit Azure Container Linux security settings
-// so a plan after refresh cannot try to disable the required flags.
-func NodePoolSecurityCustomizeDiff(osSKUPath, securityPath string) pluginsdk.CustomizeDiffFunc {
+func NodePoolSecurityCustomizeDiff(nodePoolPath string) pluginsdk.CustomizeDiffFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
-		if !d.NewValueKnown(osSKUPath) || d.Get(osSKUPath).(string) != string(agentpools.OSSKUAzureContainerLinux) {
+		rawConfig := d.GetRawConfig()
+		if !rawConfig.IsKnown() || rawConfig.IsNull() {
 			return nil
 		}
-		if !d.NewValueKnown(securityPath) {
+
+		prefix := ""
+		if nodePoolPath != "" {
+			nodePools := rawConfig.AsValueMap()[nodePoolPath]
+			if !nodePools.IsKnown() || nodePools.IsNull() || nodePools.LengthInt() == 0 {
+				return nil
+			}
+			rawConfig = nodePools.AsValueSlice()[0]
+			if !rawConfig.IsKnown() || rawConfig.IsNull() {
+				return nil
+			}
+			prefix = nodePoolPath + ".0."
+		}
+
+		config := rawConfig.AsValueMap()
+		osSKU := config["os_sku"]
+		if !osSKU.IsKnown() || osSKU.IsNull() || osSKU.AsString() != string(agentpools.OSSKUAzureContainerLinux) {
+			return nil
+		}
+
+		security := config["security"]
+		if !security.IsKnown() {
+			return nil
+		}
+		if security.IsNull() || security.LengthInt() == 0 {
+			return fmt.Errorf("`%ssecurity.0.secure_boot_enabled` must be set to `true` when `%sos_sku` is `AzureContainerLinux`", prefix, prefix)
+		}
+		security = security.AsValueSlice()[0]
+		if !security.IsKnown() {
 			return nil
 		}
 
 		for _, flag := range []string{"secure_boot_enabled", "vtpm_enabled"} {
-			path := securityPath + ".0." + flag
-			if d.NewValueKnown(path) && !d.Get(path).(bool) {
-				return fmt.Errorf("`%s` must be set to `true` when `%s` is `AzureContainerLinux`", path, osSKUPath)
+			if security.IsNull() {
+				return fmt.Errorf("`%ssecurity.0.%s` must be set to `true` when `%sos_sku` is `AzureContainerLinux`", prefix, flag, prefix)
+			}
+			value := security.AsValueMap()[flag]
+			if value.IsKnown() && (value.IsNull() || !value.True()) {
+				return fmt.Errorf("`%ssecurity.0.%s` must be set to `true` when `%sos_sku` is `AzureContainerLinux`", prefix, flag, prefix)
 			}
 		}
 		return nil
