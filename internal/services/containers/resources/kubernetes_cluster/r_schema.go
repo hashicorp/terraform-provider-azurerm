@@ -1092,6 +1092,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 					"nat_gateway_profile": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
+						ForceNew: true,
 						Optional: true,
 						Computed: true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Resource{
@@ -1100,14 +1101,12 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Default:      4,
-									ForceNew:     true,
 									ValidateFunc: validation.IntBetween(4, 120),
 								},
 								"managed_outbound_ip_count": {
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									Computed:     true, // azignore:AZS007 - pre-existing violation
-									ForceNew:     true,
 									ValidateFunc: validation.IntBetween(1, 100),
 								},
 								"sku": {

@@ -4,22 +4,16 @@
 package kubernetes_cluster_test
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
@@ -622,7 +616,7 @@ func TestAccKubernetesCluster_managedNatGatewayStandardV2(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:             strings.Replace(r.managedNatGatewayConfig(data, true, "StandardV2"), `sku = "StandardV2"`, "sku = \"StandardV2\"\n      idle_timeout_in_minutes = 5", 1),
+			Config:             r.managedNatGatewayConfig(data, true, "Standard"),
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: true,
 			ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -630,21 +624,6 @@ func TestAccKubernetesCluster_managedNatGatewayStandardV2(t *testing.T) {
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
 				},
 			},
-		},
-		{
-			Config:             strings.Replace(r.managedNatGatewayConfig(data, true, "StandardV2"), `sku = "StandardV2"`, "sku = \"StandardV2\"\n      managed_outbound_ip_count = 2", 1),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: true,
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PostApplyPostRefresh: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
-		},
-		{
-			Config:      r.managedNatGatewayConfig(data, true, "Standard"),
-			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("downgrading .* from `StandardV2` to `Standard` is not supported by AKS"),
 		},
 	})
 }
@@ -685,25 +664,6 @@ func TestAccKubernetesCluster_managedNatGatewaySkuOmitted(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func TestAccKubernetesCluster_managedNatGatewaySkuUpgrade(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.managedNatGatewayConfig(data, false, ""),
-			Check:  data.CheckWithClient(r.checkNatGatewaySku(managedclusters.ManagedClusterNATGatewaySkuStandard)),
-		},
-		{
-			Config: r.managedNatGatewayConfig(data, true, "StandardV2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClient(r.checkNatGatewaySku(managedclusters.ManagedClusterNATGatewaySkuStandardVTwo)),
-				check.That(data.ResourceName).Key("network_profile.0.nat_gateway_profile.0.sku").HasValue("StandardV2"),
-			),
-		},
-	}, "= 5.12.0")
 }
 
 func TestAccKubernetesCluster_userAssignedNatGateway(t *testing.T) {
@@ -2539,28 +2499,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesClusterResource) checkNatGatewaySku(expected managedclusters.ManagedClusterNATGatewaySku) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-		defer cancel()
-		id, err := commonids.ParseKubernetesClusterID(state.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Containers.KubernetesClustersClient.Get(ctx, *id)
-		if err != nil {
-			return err
-		}
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.NetworkProfile == nil || resp.Model.Properties.NetworkProfile.NatGatewayProfile == nil || resp.Model.Properties.NetworkProfile.NatGatewayProfile.Sku == nil {
-			return fmt.Errorf("Kubernetes Cluster %s has no managed NAT Gateway SKU", id)
-		}
-		if actual := *resp.Model.Properties.NetworkProfile.NatGatewayProfile.Sku; actual != expected {
-			return fmt.Errorf("Kubernetes Cluster %s has managed NAT Gateway SKU %q; expected %q", id, actual, expected)
-		}
-		return nil
-	}
 }
 
 func (KubernetesClusterResource) managedNatGatewayConfig(data acceptance.TestData, includeNatGatewayProfile bool, sku string) string {

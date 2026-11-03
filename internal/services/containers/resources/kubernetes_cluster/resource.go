@@ -157,9 +157,6 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta any) bool {
 				return len(old.([]any)) > 0
 			}),
-			pluginsdk.ForceNewIfChange("network_profile.0.nat_gateway_profile", func(ctx context.Context, old, new, meta any) bool {
-				return len(old.([]any)) != len(new.([]any))
-			}),
 			customizeKubernetesClusterNatGatewaySku,
 			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 				outboundType := d.Get("network_profile.0.outbound_type").(string)
@@ -208,24 +205,11 @@ func RegisterResource() *pluginsdk.Resource {
 	return resource
 }
 
-func validateKubernetesClusterNatGatewaySkuChange(old, new string) error {
-	if old == string(managedclusters.ManagedClusterNATGatewaySkuStandardVTwo) && new == string(managedclusters.ManagedClusterNATGatewaySkuStandard) {
-		return fmt.Errorf("downgrading `network_profile.0.nat_gateway_profile.0.sku` from `StandardV2` to `Standard` is not supported by AKS")
-	}
-	return nil
-}
-
 func customizeKubernetesClusterNatGatewaySku(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	key := "network_profile.0.nat_gateway_profile.0.sku"
 	outboundKey := "network_profile.0.outbound_type"
 	if !d.NewValueKnown(key) {
 		return nil
-	}
-	if d.HasChange(key) {
-		old, new := d.GetChange(key)
-		if err := validateKubernetesClusterNatGatewaySkuChange(old.(string), new.(string)); err != nil {
-			return err
-		}
 	}
 	if !d.NewValueKnown(outboundKey) || d.Get(key).(string) == "" || d.Get(outboundKey).(string) == string(managedclusters.OutboundTypeManagedNATGateway) {
 		return nil
