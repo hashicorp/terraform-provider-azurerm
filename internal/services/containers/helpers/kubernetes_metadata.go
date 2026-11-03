@@ -24,8 +24,10 @@ var aksMetadataCache sync.Map
 // retrieved dynamically from Azure for a specific location.
 type AKSTestMetadata struct {
 	OlderKubernetesVersion        string
+	OldestKubernetesVersion       string
 	CurrentKubernetesVersion      string
 	OlderKubernetesVersionAlias   string
+	OldestKubernetesVersionAlias  string
 	CurrentKubernetesVersionAlias string
 	PreviousMeshRevision          string
 	LatestMeshRevision            string
@@ -86,20 +88,20 @@ func ObtainAKSMetadata(loc string) (AKSTestMetadata, error) {
 		return AKSTestMetadata{}, fmt.Errorf("expected at least 2 non-preview Kubernetes versions in %q, got %d", norm, len(parsedVersions))
 	}
 
+	oldestK8s := parsedVersions[0]
 	olderK8s := parsedVersions[len(parsedVersions)-2]
 	currK8s := parsedVersions[len(parsedVersions)-1]
 
-	var olderAlias, currAlias string
-	if len(olderK8s.Segments()) >= 2 {
-		olderAlias = fmt.Sprintf("%d.%d", olderK8s.Segments()[0], olderK8s.Segments()[1])
-	} else {
-		olderAlias = olderK8s.String()
+	alias := func(i *version.Version) string {
+		if seg := i.Segments(); len(seg) >= 2 {
+			return fmt.Sprintf("%d.%d", seg[0], seg[1])
+		}
+		return i.String()
 	}
-	if len(currK8s.Segments()) >= 2 {
-		currAlias = fmt.Sprintf("%d.%d", currK8s.Segments()[0], currK8s.Segments()[1])
-	} else {
-		currAlias = currK8s.String()
-	}
+
+	oldestAlias := alias(oldestK8s)
+	olderAlias := alias(olderK8s)
+	currAlias := alias(currK8s)
 
 	// 2. Query Service Mesh revisions for location
 	meshResult, err := client.Containers.KubernetesClustersClient.ListMeshRevisionProfilesComplete(ctx, locId)
@@ -154,8 +156,10 @@ func ObtainAKSMetadata(loc string) (AKSTestMetadata, error) {
 
 	metadata := AKSTestMetadata{
 		OlderKubernetesVersion:        olderK8s.String(),
+		OldestKubernetesVersion:       oldestK8s.String(),
 		CurrentKubernetesVersion:      currK8s.String(),
 		OlderKubernetesVersionAlias:   olderAlias,
+		OldestKubernetesVersionAlias:  oldestAlias,
 		CurrentKubernetesVersionAlias: currAlias,
 		PreviousMeshRevision:          parsedMeshRevisions[len(parsedMeshRevisions)-2].raw,
 		LatestMeshRevision:            parsedMeshRevisions[len(parsedMeshRevisions)-1].raw,
