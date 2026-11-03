@@ -449,6 +449,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
+	// disabling infrastructure encryption is not supported by the API and is rejected in CustomizeDiff
+	if d.HasChange("kms_infrastructure_encryption_enabled") && d.Get("kms_infrastructure_encryption_enabled").(bool) {
+		updateCluster = true
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.KubernetesResourceObjectEncryptionProfile = expandKubernetesClusterKmsInfrastructureEncryption()
+	}
+
 	if d.HasChanges("custom_ca_trust_certificates_base64") {
 		updateCluster = true
 		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]any)

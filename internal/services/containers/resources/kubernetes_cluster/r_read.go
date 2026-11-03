@@ -279,6 +279,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
+			d.Set("kms_infrastructure_encryption_enabled", flattenKubernetesClusterKmsInfrastructureEncryption(props.SecurityProfile))
+
 			// adminProfile is only available for RBAC enabled clusters with AAD and local account is not disabled
 			var adminKubeConfigRaw *string
 			adminKubeConfig := make([]any, 0)
