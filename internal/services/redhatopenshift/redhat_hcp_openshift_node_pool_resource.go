@@ -1,8 +1,6 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "managed_cluster_name:hcp_openshift_cluster_id,resource_group_name:hcp_openshift_cluster_id,subscription_id:hcp_openshift_cluster_id
-
 package redhatopenshift
 
 import (
@@ -402,15 +400,19 @@ func (r RedHatHcpOpenShiftNodePool) Read() sdk.ResourceFunc {
 		if resp.Model == nil {
 			return fmt.Errorf("retrieving %s: `model` was nil", id)
 		}
-		state, err := flattenHcpOpenShiftNodePool(*id, *resp.Model)
-		if err != nil {
-			return err
-		}
-		if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-			return err
-		}
-		return metadata.Encode(state)
+		return r.flatten(metadata, *id, *resp.Model)
 	}}
+}
+
+func (r RedHatHcpOpenShiftNodePool) flatten(metadata sdk.ResourceMetaData, id nodepools.NodePoolId, model nodepools.NodePool) error {
+	state, err := flattenHcpOpenShiftNodePool(id, model)
+	if err != nil {
+		return err
+	}
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+		return err
+	}
+	return metadata.Encode(state)
 }
 
 func (r RedHatHcpOpenShiftNodePool) Delete() sdk.ResourceFunc {
