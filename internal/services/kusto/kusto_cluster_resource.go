@@ -5,6 +5,7 @@ package kusto
 
 import (
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -699,6 +700,35 @@ func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExten
 	return output
 }
 
+func expandTrustedExternalTenants(input []any) *[]clusters.TrustedExternalTenant {
+	output := make([]clusters.TrustedExternalTenant, 0)
+
+	for _, v := range input {
+		output = append(output, clusters.TrustedExternalTenant{
+			Value: pointer.To(v.(string)),
+		})
+	}
+
+	return &output
+}
+
+func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []any {
+	if input == nil {
+		return []any{}
+	}
+	output := make([]any, 0)
+
+	for _, v := range *input {
+		if v.Value == nil {
+			continue
+		}
+
+		output = append(output, *v.Value)
+	}
+
+	return output
+}
+
 func diffSuppressTrustedExternalTenants(_, _, _ string, d *pluginsdk.ResourceData) bool {
 	if d == nil || d.Id() == "" {
 		return false
@@ -739,5 +769,5 @@ func diffSuppressTrustedExternalTenants(_, _, _ string, d *pluginsdk.ResourceDat
 
 	slices.Sort(oldTenantsSorted)
 	slices.Sort(newTenantsSorted)
-	return slices.Equal(oldTenantsSorted, newTenantsSorted)
+	return reflect.DeepEqual(oldTenantsSorted, newTenantsSorted)
 }
