@@ -2,21 +2,21 @@
 
 In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on.
 
-This document defines standards for resource and data source reference documentation in `website\docs\r` and `website\docs\d`. It does not define standards for other documentation types such as `guides`, `functions`, `actions`, `upgrade guides`, or `list` pages.
+This document defines standards for resource and data source reference documentation in `website/docs/r` and `website/docs/d`. It does not define standards for other documentation types such as `guides`, `functions`, `actions`, `upgrade guides`, or `list` pages.
 
 This page will grow over time, and suggestions are welcome!
 
 ## Documentation Locations
 
-Resource and data source reference documentation is located under the `website\docs` directory in the repository. This documentation is split between `resources` and `data sources` which are kept in different sub-directories of the `website\docs` directory.
+Resource and data source reference documentation is located under the `website/docs` directory in the repository. This documentation is split between `resources` and `data sources` which are kept in different sub-directories of the `website/docs` directory.
 
-- Resource documentation is in the `website\docs\r` directory.
-- Data source documentation is in the `website\docs\d` directory.
+- Resource documentation is in the `website/docs/r` directory.
+- Data source documentation is in the `website/docs/d` directory.
 
 Reference documentation should follow the name of the Terraform resource or data source it is documenting.
 
-- If you are documenting the resource `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website\docs\r` directory.
-- If you are documenting the data source `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website\docs\d` directory.
+- If you are documenting the resource `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website/docs/r` directory.
+- If you are documenting the data source `azurerm_example` the documentation should be named `example.html.markdown` and placed in the `website/docs/d` directory.
 
 ## Front Matter
 
@@ -50,14 +50,50 @@ description: |-
 
 ## Examples
 
-Each resource/data source must include an example, general guidelines for examples are as follows:
+Each resource and data source needs an example showing how to use it.
 
-- Examples MUST be functional, meaning that if a user copies the example and runs `terraform plan`, no errors should be returned.
-- Generally the resource instance name should simply be `example`. e.g. `resource "azurerm_resource_group" "example"`.
-- All name arguments within the example configuration should use simple example values that match the resource being defined. Where naming restrictions and field validation allow, prefer values prefixed with `example-`. If a field's validation or naming restrictions do not allow that pattern, use the simplest valid value for that field. Avoid overly complex naming, and ensure any naming restrictions and validation are followed. e.g. `name = example-resource-group`.
-- Avoid multiple examples unless a specific configuration is particularly difficult to configure. If there are many complex examples to document, consider using the `examples` folder in the repository instead.
-- Examples don't need to include every argument, generally the same configuration as the basic acceptance test will suffice (including any resource dependencies, such as the configuration from the template).
-- Resource/Data Source examples should not define a `terraform` or `provider` block.
+- Name the instance `example`, as in `resource "azurerm_resource_group" "example"`.
+- One example is enough. Larger or unusual configurations belong in the `examples` folder of the repository.
+- Do not include `terraform` or `provider` blocks.
+
+### Resources
+
+- The example must plan cleanly when copied as-is, so declare everything it references.
+- Include what the basic acceptance test does, dependencies included. Not every argument is needed.
+- Name things `example-...` where validation allows, otherwise the simplest valid value. A storage account is `examplestorageacct` because its name must be 3 to 24 lowercase letters and numbers.
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resource-group"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestorageacct"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+```
+
+### Data Sources
+
+- The example looks up something that already exists. Do not create it in the example.
+- Include only the arguments needed to find it, plus an output showing the result.
+- Name the looked-up things `example-...`, the same as in resource examples.
+
+```hcl
+data "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  virtual_network_name = "example-virtual-network"
+  resource_group_name  = "example-resource-group"
+}
+
+output "subnet_id" {
+  value = data.azurerm_subnet.example.id
+}
+```
 
 ## Code Fences
 
@@ -65,7 +101,7 @@ The following conventions apply to code fences:
 
 - Use the most specific code fence language that matches the snippet.
 - Terraform configuration should use `hcl` code fences. Do not use `terraform` code fences for HCL configuration blocks.
-- Keep Terraform examples copy/pasteable and self-contained.
+- Keep Terraform examples copy/pasteable.
 
 ## Arguments
 
@@ -214,27 +250,7 @@ A `block_attribute` block exports the following:
 
 ## Notes
 
-Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.
-
-In the past, there have been different approaches to how notes were formatted, some examples are:
-
-- Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
-- Capitalization differences, e.g. `Note:` vs `NOTE:`.
-- Whether or not a colon is included, e.g. `Note:` vs `Note`.
-
-Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
-
-Breaking changes have previously been added as notes to the resource documentation.
-These should no longer be included. Instead, follow these guidelines:
-
-- Breaking changes in a minor version should be added to the top of the changelog.
-- Breaking changes in a major version should be added to the upgrade guide.
-
-> We may revisit the guidelines above and/or add a specific place in the documentation for all breaking changes in minor versions.
-
-<!--
-    - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
--->
+Every note is `-> **Note:**`, `~> **Note:**` or `!> **Note:**`, picked by how serious it is. Breaking changes do not go in notes: minor-version ones go at the top of the changelog, major-version ones in the upgrade guide.
 
 ### Informational Note
 

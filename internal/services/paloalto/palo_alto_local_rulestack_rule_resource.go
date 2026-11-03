@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -153,12 +153,9 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.Any(
-				validate.ProtocolWithPort,
-				validation.StringInSlice([]string{protocolApplicationDefault}, false),
-			),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.Protocol,
 			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware_test
@@ -119,7 +119,7 @@ func (VmwarePrivateCloudResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
   # In Vmware acctest, please disable correlation request id, else the continuous operations like update or delete will not be triggered
-  # issue https://github.com/Azure/azure-rest-api-specs/issues/14086 
+  # issue https://github.com/Azure/azure-rest-api-specs/issues/14086
   disable_correlation_request_id = true
 }
 

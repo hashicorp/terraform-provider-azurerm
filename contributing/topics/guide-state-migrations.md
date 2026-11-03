@@ -36,23 +36,23 @@ We will step through an example on how to add a state migration for a made up re
 
    ```go
    package migration
-   
+
    import (
        "context"
-       
+
        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
    )
-   
+
    type CapybaraV0ToV1 struct{}
-   
+
    func (CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
        return map[string]*pluginsdk.Schema{
            // TODO implement me!
        }
    }
-   
+
    func (CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-       return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+       return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
            // TODO implement me!
            return nil, nil
        }
@@ -80,29 +80,29 @@ We will step through an example on how to add a state migration for a made up re
 
    ```go
    package migration
-   
+
    import (
        "context"
        "log"
-   
+
        "github.com/hashicorp/go-azure-sdk/resource-manager/animals/2023-11-01/capybaras"
        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
    )
-   
+
    type CapybaraV0ToV1 struct{}
-   
+
    func (s CapybaraV0ToV1) Schema() map[string]*pluginsdk.Schema {
        return map[string]*pluginsdk.Schema{
            "name": {
                Type:     pluginsdk.TypeString,
                Required: true,
            },
-   
+
            "cuteness": {
                Type:     pluginsdk.TypeInt,
                Required: true,
            },
-   
+
            "pet_names": {
                Type:     pluginsdk.TypeList,
                Optional: true,
@@ -112,15 +112,15 @@ We will step through an example on how to add a state migration for a made up re
            },
        }
    }
-   
+
    func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-       return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+       return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
            oldId := rawState["id"].(string)
            parsed, err := capybaras.ParseCapybaraIDInsensitively(oldId)
            if err != nil {
                return nil, err
            }
-   
+
            newId := parsed.ID()
            log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
            rawState["id"] = newId
@@ -133,31 +133,31 @@ We will step through an example on how to add a state migration for a made up re
 
    ```go
    package animal
-   
+
    import (
        "context"
        "fmt"
        "time"
-       
+
        "github.com/hashicorp/go-azure-sdk/resource-manager/animals/2023-11-01/capybaras"
        "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
        "github.com/hashicorp/terraform-provider-azurerm/internal/services/animals/migration"
        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
    )
-   
+
    type CapybaraResource struct{}
-   
+
    var (
        _ sdk.ResourceWithStateMigration = CapybaraResource{}
    )
-   
+
    type CapybaraResourceModel struct {
        Name       string   `tfschema:"name"`
-       Cuteness   string   `tfschema:"cuteness"`
+       Cuteness   int      `tfschema:"cuteness"`
        PetNames   []string `tfschema:"pet_names"`
-   
+
    }
-   
+
    func (r CapybaraResource) StateUpgraders() sdk.StateUpgradeData {
        return sdk.StateUpgradeData{
            SchemaVersion: 1, // This field references the version which the state migration updates the schema to i.e. v0 -> v1
@@ -166,9 +166,9 @@ We will step through an example on how to add a state migration for a made up re
            },
        }
    }
-   
+
    // The rest of the resource e.g. Create/Update/Read/Delete methods have been omitted for brevity
-   
+
    ```
 
 ## Testing
@@ -183,7 +183,7 @@ To add a state migration test for the CapybaraResource state migration example a
 
    ```go
    package animal_test
-   
+
    import (
        "fmt"
        "testing"
@@ -196,10 +196,10 @@ To add a state migration test for the CapybaraResource state migration example a
    func TestAccCapybara_V0ToV1_5420(t *testing.T) {
        data := acceptance.BuildTestData(t, "azurerm_capybara", "test")
        r := CapybaraResource{}
-   
+
        data.ResourceRegressionTest(t, r, []acceptance.TestStep{
         // TODO: add a setup test step using the initial version of the schema
-   
+
         // TODO: add a migration test step using the final version of the schema
     }, "5.42.0")
    }
@@ -211,7 +211,7 @@ To add a state migration test for the CapybaraResource state migration example a
 
    ```go
    package animal_test
-   
+
    import (
        "fmt"
        "testing"
@@ -224,7 +224,7 @@ To add a state migration test for the CapybaraResource state migration example a
    func TestAccCapybara_V0ToV1_5420(t *testing.T) {
        data := acceptance.BuildTestData(t, "azurerm_capybara", "test")
        r := CapybaraResource{}
-   
+
        data.ResourceRegressionTest(t, r, []acceptance.TestStep{
         {
             Config: r.basicV0(data),
@@ -252,7 +252,7 @@ To add a state migration test for the CapybaraResource state migration example a
 
    ```go
    package animal_test
-   
+
    import (
        "fmt"
        "testing"
@@ -266,7 +266,7 @@ To add a state migration test for the CapybaraResource state migration example a
    func TestAccCapybara_V0ToV1_5420(t *testing.T) {
        data := acceptance.BuildTestData(t, "azurerm_capybara", "test")
        r := CapybaraResource{}
-   
+
        data.ResourceRegressionTest(t, r, []acceptance.TestStep{
             {
                 Config: r.basicV0(data),

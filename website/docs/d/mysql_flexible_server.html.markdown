@@ -14,8 +14,8 @@ Use this data source to access information about an existing MySQL Flexible Serv
 
 ```hcl
 data "azurerm_mysql_flexible_server" "example" {
-  name                = "existingMySqlFlexibleServer"
-  resource_group_name = "existingResGroup"
+  name                = "example-mysql-flexible-server"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
