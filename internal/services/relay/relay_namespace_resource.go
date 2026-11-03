@@ -225,17 +225,6 @@ func (r RelayNamespaceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
-			poller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
-				resp, err := client.Get(pollerCtx, *id)
-				return resp.HttpResponse, err
-			}, &custompollers.EventualConsistencyPollerOptions{
-				Interval:         15 * time.Second,
-				TargetStatusCode: pointer.To(http.StatusNotFound),
-			})
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-			}
 
 			return nil
 		},
