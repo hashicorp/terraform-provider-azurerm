@@ -205,54 +205,27 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"administrator_users": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							MaxItems: 255,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.All(
-									validation.StringIsNotEmpty,
-									validation.None(
-										map[string]func(any, string) ([]string, []error){
-											"Email Address": validation.IsEmailAddress,
-											"Object ID":     validation.IsUUID,
-										},
-									),
-								),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.ActiveDirectoryUserName,
 							},
 							Description: "Domain users to be added to the built-in Administrators active directory group.",
 						},
 						"backup_users": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							MaxItems: 255,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.All(
-									validation.StringIsNotEmpty,
-									validation.None(
-										map[string]func(any, string) ([]string, []error){
-											"Email Address": validation.IsEmailAddress,
-											"Object ID":     validation.IsUUID,
-										},
-									),
-								),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.ActiveDirectoryUserName,
 							},
 							Description: "Domain users to be added to the built-in Backup Operators active directory group.",
 						},
 						"security_users": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
-							MaxItems: 255,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.All(
-									validation.StringIsNotEmpty,
-									validation.None(
-										map[string]func(any, string) ([]string, []error){
-											"Email Address": validation.IsEmailAddress,
-											"Object ID":     validation.IsUUID,
-										},
-									),
-								),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.ActiveDirectoryUserName,
 							},
 							Description: "Domain users to be given SeSecurityPrivilege privilege.",
 						},
