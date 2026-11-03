@@ -58,17 +58,17 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 		return
 	}
 
-	resource := Resource{}
+	listedResource := Resource{}
 
 	parentID, err := packageresource.ParseRuntimeEnvironmentID(data.RuntimeEnvironmentId.ValueString())
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Automation Runtime Environment ID for `%s`", resource.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Automation Runtime Environment ID for `%s`", listedResource.ResourceType()), err)
 		return
 	}
 
 	resp, err := client.ListByRuntimeEnvironmentComplete(ctx, *parentID)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", listedResource.ResourceType()), err)
 		return
 	}
 
@@ -78,15 +78,15 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			result.DisplayName = pointer.From(item.Name)
 			id, err := packageresource.ParsePackageIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing ID for `%s`", resource.ResourceType()), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing ID for `%s`", listedResource.ResourceType()), err)
 				return
 			}
 
-			meta := sdk.NewResourceMetaData(metadata.Client, resource)
+			meta := sdk.NewResourceMetaData(metadata.Client, listedResource)
 			meta.SetID(id)
 
-			if err := resource.flatten(meta, id, &item); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", resource.ResourceType()), err)
+			if err := listedResource.flatten(meta, id, &item); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", listedResource.ResourceType()), err)
 				return
 			}
 

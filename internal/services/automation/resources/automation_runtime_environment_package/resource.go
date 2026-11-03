@@ -12,10 +12,7 @@ import (
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:automation_runtime_environment_id,resource_group_name:automation_runtime_environment_id,automation_account_name:automation_runtime_environment_id,runtime_environment_name:automation_runtime_environment_id" -test-expect-non-empty=true
 
-var (
-	_ sdk.ResourceWithIdentity = Resource{}
-	_ sdk.Resource             = Resource{}
-)
+var _ sdk.ResourceWithIdentity = Resource{}
 
 func (r Resource) Identity() resourceids.ResourceId {
 	return &packageresource.PackageId{}
