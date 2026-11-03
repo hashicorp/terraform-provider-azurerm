@@ -99,19 +99,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// Property is read-write and mutable after creation. Azure will set a default activation message if not provided.
-		// Designing this as a read-only because after activation, this property is no longer returned by the API --
-		// creating a potentially confusing plan diff.
+		// Property is writable at / after creation. Azure will set a default activation message if not provided. Designing
+		// this as a read-only: after activation, this property is no longer returned by the API, creating a potentially
+		// confusing plan diff.
 		"activation_message": {
-			Type: pluginsdk.TypeString,
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		// Property is read-write and mutable after creation. Maximum value and default if not specified is 7 days from
-		// creation. Designing this as a read-only because after activation, this property is no longer returned by the
-		// API -- creating a potentially confusing plan diff.
+		// Property is writable at / after creation. Maximum value and default if not specified is 7 days from
+		// creation. Designing this as a read-only: after activation, this property is no longer returned by the
+		// API, creating a potentially confusing plan diff.
 		"expiration_time_if_not_activated": {
-			Type: pluginsdk.TypeString,
-			
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"readiness_state": {
