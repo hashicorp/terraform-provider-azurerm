@@ -321,6 +321,8 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 			Default:  false,
 		},
 
+		"os_image_notification": helpers.VirtualMachineScaleSetOsImageNotificationSchema(),
+
 		"termination_notification": helpers.VirtualMachineScaleSetTerminationNotificationSchema(),
 
 		"zones": commonschema.ZonesMultipleOptional(),

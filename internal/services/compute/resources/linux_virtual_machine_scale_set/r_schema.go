@@ -299,6 +299,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"spot_restore": helpers.VirtualMachineScaleSetSpotRestorePolicySchema(),
 
+		"os_image_notification": helpers.VirtualMachineScaleSetOsImageNotificationSchema(),
+
 		"termination_notification": helpers.VirtualMachineScaleSetTerminationNotificationSchema(),
 
 		"zones": commonschema.ZonesMultipleOptional(),

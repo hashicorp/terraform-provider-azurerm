@@ -263,9 +263,22 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
+	var osImageNotificationProfile *virtualmachinescalesets.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachinescalesets.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		osImageNotificationProfile = helpers.ExpandVirtualMachineScaleSetOsImageNotificationProfile(d.Get("os_image_notification").([]any))
+	}
+
 	if d.HasChange("termination_notification") {
-		notificationRaw := d.Get("termination_notification").([]any)
-		updateProps.VirtualMachineProfile.ScheduledEventsProfile = helpers.ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
+		terminateNotificationProfile = helpers.ExpandVirtualMachineScaleSetTerminateNotificationProfile(d.Get("termination_notification").([]any))
+	}
+
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		updateProps.VirtualMachineProfile.ScheduledEventsProfile = &virtualmachinescalesets.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("encryption_at_host_enabled") {
