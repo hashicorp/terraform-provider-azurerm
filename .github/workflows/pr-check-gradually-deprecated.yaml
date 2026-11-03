@@ -45,10 +45,12 @@ jobs:
     if: ${{ failure() }}
     uses: $/.github/workflows/pr-comment-failure.yaml
     permissions:
+      issues: write
       pull-requests: write
   comment-outdated-on-pass:
     needs: test
     if: ${{ success() }}
     uses: $/.github/workflows/pr-comment-failure-outdated.yaml
     permissions:
+      issues: write
       pull-requests: write

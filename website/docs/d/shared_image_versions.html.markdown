@@ -53,7 +53,7 @@ A `images` block exports the following:
 
 * `id` - The ID of this Shared Image Version.
 
-* `target_region` - One or more `target_region` blocks as documented below.
+* `target_region` - One or more `target_region` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the Shared Image.
 
