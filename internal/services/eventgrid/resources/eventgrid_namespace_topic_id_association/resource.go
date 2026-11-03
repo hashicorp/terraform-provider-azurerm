@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+//go:generate go run ../../../../tools/generator-tests resourceidentity -parent-id "eventgrid_namespace_id"
+
 var _ sdk.ResourceWithIdentity = Resource{}
 
 type Resource struct{}
