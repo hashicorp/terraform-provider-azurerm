@@ -181,7 +181,7 @@ func (r RelayNamespaceResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
 
 				if sku := model.Sku; sku != nil {
