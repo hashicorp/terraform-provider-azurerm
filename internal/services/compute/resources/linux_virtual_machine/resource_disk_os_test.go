@@ -849,7 +849,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   tags = {
-	testtag = "%s"
+    testtag = "%s"
   }
 }
 `, r.template(data), data.RandomInteger, tag)

@@ -968,7 +968,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   tags = {
-	testtag = "%s"
+    testtag = "%s"
   }
 }
 `, r.template(data), tag)
