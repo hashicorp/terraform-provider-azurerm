@@ -205,7 +205,7 @@ The following arguments are supported:
 
 -> **Note:** One of either `source_image_id` or `source_image_reference` must be set.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine and the OS Disk it is managing. These tags will not be applied to attached disks that are specified with the `os_managed_disk_id` argument.
+* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine and the OS Disk it is managing. These tags will not be applied to attached disks that are specified with the `os_managed_disk_id` argument or to ephemeral disks.
 
 * `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
 
