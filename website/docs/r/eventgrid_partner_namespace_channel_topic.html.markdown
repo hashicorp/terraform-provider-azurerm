@@ -147,3 +147,9 @@ Event Grid Partner Namespace Channels for Partner Topics can be imported using t
 ```shell
 terraform import azurerm_eventgrid_partner_namespace_channel_topic.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.EventGrid/partnerNamespaces/example-namespace/channels/example-channel
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventGrid` - 2025-02-15
