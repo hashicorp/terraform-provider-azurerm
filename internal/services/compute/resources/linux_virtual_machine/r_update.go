@@ -462,8 +462,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		tagsRaw := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(tagsRaw)
 
-		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) == "" {
-			// only keep the disk tags in sync with the VM tags if the OS disk is managed by the VM (i.e. not attached)
+		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) == "" && !hasEphemeralOSDisk {
+			// only keep the disk tags in sync with the VM tags if the OS disk is managed by the VM (i.e. not attached or ephemeral)
 			shouldUpdateDiskTags = true
 		}
 	}
