@@ -5,7 +5,7 @@ package helpers
 
 import "strings"
 
-func trimURLScheme(input string) string {
+func TrimURLScheme(input string) string {
 	schemes := []string{
 		"https://",
 		"http://",

@@ -85,9 +85,9 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Optional: true,
 				},
 
-				"application_stack": linuxApplicationStackSchema(),
+				"application_stack": LinuxApplicationStackSchema(),
 
-				"auto_heal_setting": autoHealSettingSchemaLinux(),
+				"auto_heal_setting": AutoHealSettingSchemaLinux(),
 
 				"container_registry_use_managed_identity": {
 					Type:     pluginsdk.TypeBool,
@@ -336,14 +336,14 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
-				"application_stack": windowsApplicationStackSchema(),
+				"application_stack": WindowsApplicationStackSchema(),
 
 				"app_command_line": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
 
-				"auto_heal_setting": autoHealSettingSchemaWindows(),
+				"auto_heal_setting": AutoHealSettingSchemaWindows(),
 
 				"auto_swap_slot_name": {
 					Type:         pluginsdk.TypeString,
@@ -508,7 +508,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 
 				"handler_mapping": HandlerMappingSchema(),
 
-				"virtual_application": virtualApplicationsSchema(),
+				"virtual_application": VirtualApplicationsSchema(),
 
 				"vnet_route_all_enabled": {
 					Type:        pluginsdk.TypeBool,
@@ -661,7 +661,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 
 	if len(s.AutoHealSettings) == 1 {
 		expanded.AutoHealEnabled = pointer.To(true)
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
 	return expanded, nil
@@ -830,7 +830,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 		if len(s.AutoHealSettings) != 0 {
 			expanded.AutoHealEnabled = pointer.To(true)
 		}
-		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
 	return &expanded, nil
@@ -839,7 +839,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfig) {
 	s.AlwaysOn = pointer.From(appSiteSlotConfig.AlwaysOn)
 	s.AppCommandLine = pointer.From(appSiteSlotConfig.AppCommandLine)
-	s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules)
+	s.AutoHealSettings = FlattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules)
 	s.AutoSwapSlotName = pointer.From(appSiteSlotConfig.AutoSwapSlotName)
 	s.ContainerRegistryMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
 	s.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors)
@@ -883,7 +883,7 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 		var linuxAppStack ApplicationStackLinux
 		s.LinuxFxVersion = *appSiteSlotConfig.LinuxFxVersion
 		// Decode the string to docker values
-		linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+		linuxAppStack = DecodeApplicationStackLinux(s.LinuxFxVersion)
 		s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
 }
@@ -914,7 +914,7 @@ func (s *SiteConfigLinuxWebAppSlot) DecodeDockerAppStack(input map[string]string
 		applicationStack.DockerRegistryPassword = v
 	}
 
-	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	registryHost := TrimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
@@ -939,8 +939,8 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-	expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
-	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
+	expanded.HandlerMappings = ExpandHandlerMapping(s.HandlerMapping)
+	expanded.VirtualApplications = ExpandVirtualApplications(s.VirtualApplications)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
@@ -1060,7 +1060,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 
 	if len(s.AutoHealSettings) != 0 {
 		expanded.AutoHealEnabled = pointer.To(true)
-		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 	return expanded, nil
 }
@@ -1155,15 +1155,15 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.handler_mapping") {
-		expanded.HandlerMappings = expandHandlerMappingForUpdate(s.HandlerMapping)
+		expanded.HandlerMappings = ExpandHandlerMappingForUpdate(s.HandlerMapping)
 	} else {
-		expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
+		expanded.HandlerMappings = ExpandHandlerMapping(s.HandlerMapping)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
-		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(s.VirtualApplications)
+		expanded.VirtualApplications = ExpandVirtualApplicationsForUpdate(s.VirtualApplications)
 	} else {
-		expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
+		expanded.VirtualApplications = ExpandVirtualApplications(s.VirtualApplications)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
@@ -1250,7 +1250,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 		if len(s.AutoHealSettings) != 0 {
 			expanded.AutoHealEnabled = pointer.To(true)
 		}
-		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
+		expanded.AutoHealRules = ExpandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
@@ -1267,7 +1267,7 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 
 	s.AlwaysOn = pointer.From(appSiteSlotConfig.AlwaysOn)
 	s.AppCommandLine = pointer.From(appSiteSlotConfig.AppCommandLine)
-	s.AutoHealSettings = flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules)
+	s.AutoHealSettings = FlattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules)
 	s.AutoSwapSlotName = pointer.From(appSiteSlotConfig.AutoSwapSlotName)
 	s.ContainerRegistryUserMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
 	s.Cors = FlattenCorsSettings(appSiteSlotConfig.Cors)
@@ -1290,8 +1290,8 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.ScmUseMainIpRestriction = pointer.From(appSiteSlotConfig.ScmIPSecurityRestrictionsUseMain)
 	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
 	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
-	s.HandlerMapping = flattenHandlerMapping(appSiteSlotConfig.HandlerMappings)
-	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications, s.AlwaysOn)
+	s.HandlerMapping = FlattenHandlerMapping(appSiteSlotConfig.HandlerMappings)
+	s.VirtualApplications = FlattenVirtualApplications(appSiteSlotConfig.VirtualApplications, s.AlwaysOn)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
 	s.IpRestrictionDefaultAction = pointer.FromEnum(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction)
@@ -1376,7 +1376,7 @@ func (s *SiteConfigWindowsWebAppSlot) DecodeDockerAppStack(input map[string]stri
 		applicationStack.DockerRegistryPassword = v
 	}
 
-	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
+	registryHost := TrimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
