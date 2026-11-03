@@ -150,7 +150,14 @@ func TestAccLinuxVirtualMachine_diskOSEphemeralDefault(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSEphemeralDefault(data),
+			Config: r.diskOSEphemeralDefault(data, "one"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.diskOSEphemeralDefault(data, "two"), // verify vm tag update skipped for ephemeral os disk
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -806,7 +813,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.diskOSDiskDiskEncryptionSetResource(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) diskOSEphemeralDefault(data acceptance.TestData) string {
+func (r LinuxVirtualMachineResource) diskOSEphemeralDefault(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -840,8 +847,12 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  tags = {
+	testtag = "%s"
+  }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, tag)
 }
 
 func (r LinuxVirtualMachineResource) diskOSEphemeralSpot(data acceptance.TestData) string {

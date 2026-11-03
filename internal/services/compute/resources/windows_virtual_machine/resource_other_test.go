@@ -707,6 +707,14 @@ func TestAccWindowsVirtualMachine_otherTags(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password"),
+		{
+			Config: r.otherTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("data.azurerm_managed_disk.test").Key("tags.Hello").HasValue("World"),
+				check.That("data.azurerm_managed_disk.test").Key("tags.Dimension").DoesNotExist(),
+			),
+		},
 	})
 }
 

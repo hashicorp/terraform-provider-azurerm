@@ -150,7 +150,14 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralDefault(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSEphemeralDefault(data),
+			Config: r.diskOSEphemeralDefault(data, "one"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.diskOSEphemeralDefault(data, "two"), // verify vm tag update skipped for ephemeral os disk
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -928,7 +935,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.diskOSDiskDiskEncryptionSetResource(data))
 }
 
-func (r WindowsVirtualMachineResource) diskOSEphemeralDefault(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) diskOSEphemeralDefault(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -959,8 +966,12 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+  tags = {
+	testtag = "%s"
+  }
 }
-`, r.template(data))
+`, r.template(data), tag)
 }
 
 func (r WindowsVirtualMachineResource) diskOSEphemeralSpot(data acceptance.TestData) string {
