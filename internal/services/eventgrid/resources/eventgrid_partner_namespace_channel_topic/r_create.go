@@ -40,8 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			topic := config.PartnerTopic[0]
 			properties := channels.ChannelProperties{
-				ChannelType:          pointer.To(channels.ChannelTypePartnerTopic),
-				MessageForActivation: pointer.To(config.ActivationMessage),
+				ChannelType: pointer.To(channels.ChannelTypePartnerTopic),
 				PartnerTopicInfo: &channels.PartnerTopicInfo{
 					AzureSubscriptionId: pointer.To(topic.SubscriptionId),
 					ResourceGroupName:   pointer.To(topic.ResourceGroupName),

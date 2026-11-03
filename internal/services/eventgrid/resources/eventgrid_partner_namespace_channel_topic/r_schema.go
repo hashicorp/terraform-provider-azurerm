@@ -28,13 +28,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			),
 		},
 		"partner_namespace_id": commonschema.ResourceIDReferenceRequiredForceNew(&channels.PartnerNamespaceId{}),
-		"activation_message": {
-			Type: pluginsdk.TypeString,
-			// Not required by the API, but when omitted Azure generates a default longer than 256 characters which cannot be round-tripped.
-			// API bug: https://github.com/Azure/azure-rest-api-specs/issues/37280
-			Required:     true,
-			ValidateFunc: validation.StringLenBetween(1, 256),
-		},
 		"partner_topic": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -106,11 +99,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		// Property is read-write and mutable after creation. Azure will set a default activation message if not provided.
+		// Designing this as a read-only because after activation, this property is no longer returned by the API --
+		// creating a potentially confusing plan diff.
+		"activation_message": {
+			Type: pluginsdk.TypeString,
+			Computed: true,
+		},
+		// Property is read-write and mutable after creation. Maximum value and default if not specified is 7 days from
+		// creation. Designing this as a read-only because after activation, this property is no longer returned by the
+		// API -- creating a potentially confusing plan diff.
 		"expiration_time_if_not_activated": {
 			Type: pluginsdk.TypeString,
-			// Property is read-write and mutable after creation. Maximum value and default if not specified is 7 days from
-			// creation. Designing this as a read-only because after activation, this property is no longer returned by the
-			// API -- creating a potentially confusing plan diff.
+			
 			Computed: true,
 		},
 		"readiness_state": {

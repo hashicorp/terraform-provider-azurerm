@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/channels"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -37,14 +36,17 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if props.ChannelType == nil || *props.ChannelType != channels.ChannelTypePartnerTopic || props.PartnerTopicInfo == nil {
 				return fmt.Errorf("%s is not a Partner Topic channel", *id)
 			}
-			if metadata.ResourceData.HasChange("activation_message") {
-				props.MessageForActivation = pointer.To(config.ActivationMessage)
-			}
 			if metadata.ResourceData.HasChange("event_type") {
 				props.PartnerTopicInfo.EventTypeInfo = expandChannelTopicEventTypes(config.EventTypes)
 			}
+
+			// The default activation exceeds the API's max length validation of 256 and causes problem if included
+			// https://github.com/Azure/azure-rest-api-specs/issues/37280
+			props.MessageForActivation = nil
+
 			props.ProvisioningState = nil
 			props.ReadinessState = nil
+
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}

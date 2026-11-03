@@ -182,8 +182,6 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     source              = "Contoso.Accounts.User1"
   }
 
-  activation_message = "Please activate this topic."
-
   depends_on = [azapi_resource.partner_configuration]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
@@ -203,8 +201,6 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     subscription_id     = "%s"
     source              = "Contoso.Accounts.User1"
   }
-
-  activation_message = "Please activate this topic."
 
   event_type {
     name              = "Contoso.OrderCreated"
@@ -234,8 +230,6 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     source              = "Contoso.Accounts.User1"
   }
 
-  activation_message = "Updated activation message."
-
   event_type {
     name              = "Contoso.OrderCreated"
     display_name      = "Order created"
@@ -264,7 +258,6 @@ func (r EventgridPartnerNamespaceChannelTopicResource) requiresImport(data accep
 resource "azurerm_eventgrid_partner_namespace_channel_topic" "import" {
   name                 = azurerm_eventgrid_partner_namespace_channel_topic.test.name
   partner_namespace_id = azurerm_eventgrid_partner_namespace_channel_topic.test.partner_namespace_id
-  activation_message   = azurerm_eventgrid_partner_namespace_channel_topic.test.activation_message
 
   partner_topic {
     name                = azurerm_eventgrid_partner_namespace_channel_topic.test.partner_topic[0].name

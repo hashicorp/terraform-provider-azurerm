@@ -57,8 +57,6 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "example" {
   name                 = "example-channel"
   partner_namespace_id = azurerm_eventgrid_partner_namespace.partner.id
 
-  activation_message = "Activate this topic to receive order events."
-
   partner_topic {
     # Destination details supplied by the subscriber.
     name                = "example-partner-topic"
@@ -86,8 +84,6 @@ The following arguments are supported:
 * `name` - (Required) The name of the Channel. Must be between 3 and 50 characters and contain only letters, numbers and hyphens. The name must be unique within the Azure region. Changing this forces a new resource to be created.
 
 * `partner_namespace_id` - (Required) The ID of the Event Grid Partner Namespace in which to create the Channel. Changing this forces a new resource to be created.
-
-* `activation_message` - (Required) A message providing context to the subscriber when activating the associated Partner Topic. Must be between 1 and 256 characters.
 
 * `partner_topic` - (Required) A `partner_topic` block as defined below.
 
@@ -127,7 +123,9 @@ In addition to the Arguments listed above, the following Attributes are exported
 
 * `id` - The ID of the Event Grid Partner Namespace Channel.
 
-* `expiration_time_if_not_activated` - The RFC3339 expiration timestamp for the Channel and its associated Partner Topic if the Partner Topic has never been activated. Azure defaults this to seven days after creation.
+* `activation_message` - The Azure-generated message providing context to the subscriber when activating the associated Partner Topic.
+
+* `expiration_time_if_not_activated` - The RFC3339 expiration timestamp for activation, the channel will be deleted if not activated by this time.
 
 * `readiness_state` - The readiness state of the associated Partner Topic, such as `NeverActivated` or `Activated`.
 
