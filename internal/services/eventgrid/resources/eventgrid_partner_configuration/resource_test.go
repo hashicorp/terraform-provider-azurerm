@@ -97,6 +97,35 @@ func TestAccEventGridPartnerConfiguration_update(t *testing.T) {
 	})
 }
 
+func TestAccEventGridPartnerConfiguration_withoutPartnerName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
+	r := EventGridPartnerConfigurationsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutPartnerName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withoutPartnerName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridPartnerConfigurationsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupID(state.ID)
 	if err != nil {
@@ -163,6 +192,35 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
 
   tags = {
     "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, expiryTime)
+}
+
+func (EventGridPartnerConfigurationsTestResource) withoutPartnerName(data acceptance.TestData) string {
+	expiryTime := time.Now().UTC().Add(7 * 24 * time.Hour).Format(time.RFC3339)
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventgrid_partner_registration" "test" {
+  name                = "acctest-egpr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_eventgrid_partner_configuration" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+
+  partner_authorization {
+    partner_registration_id              = azurerm_eventgrid_partner_registration.test.partner_registration_id
+    authorization_expiration_time_in_utc = "%[3]s"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, expiryTime)

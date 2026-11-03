@@ -32,7 +32,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 					"partner_name": &schema.Schema{
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"authorization_expiration_time_in_utc": &schema.Schema{

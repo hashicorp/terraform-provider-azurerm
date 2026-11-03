@@ -52,7 +52,7 @@ The following arguments are supported:
 
 A `partner_authorization` block supports the following:
 
-* `partner_name` - (Required) The partner name.
+* `partner_name` - (Optional) The name of a verified partner.
 
 * `partner_registration_id` - (Required) The immutable id of the corresponding partner registration.
 
