@@ -770,7 +770,7 @@ A `nat_gateway_profile` block supports the following:
 
 * `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the managed nat gateway. Must be between `4` and `120` inclusive. Defaults to `4`. Changing this forces a new resource to be created.
 
-* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `16` inclusive. Changing this forces a new resource to be created.
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `100` inclusive. Changing this forces a new resource to be created.
 
 * `sku` - (Optional) The SKU of the managed NAT Gateway. Possible values are `Standard` and `StandardV2`. When creating a cluster, AKS defaults to `StandardV2` where available and `Standard` otherwise. When managing an existing cluster, omitting this field retains its current SKU. An existing `Standard` gateway can be upgraded to `StandardV2` in place. AKS does not support downgrading from `StandardV2` to `Standard`. SKU availability is region dependent. This can only be set when `outbound_type` is `managedNATGateway`.
 

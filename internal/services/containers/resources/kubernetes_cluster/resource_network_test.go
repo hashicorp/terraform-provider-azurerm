@@ -13,6 +13,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -619,6 +621,26 @@ func TestAccKubernetesCluster_managedNatGatewayStandardV2(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:             strings.Replace(r.managedNatGatewayConfig(data, true, "StandardV2"), `sku = "StandardV2"`, "sku = \"StandardV2\"\n      idle_timeout_in_minutes = 5", 1),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPostRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
+		{
+			Config:             strings.Replace(r.managedNatGatewayConfig(data, true, "StandardV2"), `sku = "StandardV2"`, "sku = \"StandardV2\"\n      managed_outbound_ip_count = 2", 1),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPostRefresh: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+		},
 		{
 			Config:      r.managedNatGatewayConfig(data, true, "Standard"),
 			PlanOnly:    true,

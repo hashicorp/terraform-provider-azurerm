@@ -1108,7 +1108,7 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 									Optional:     true,
 									Computed:     true, // azignore:AZS007 - pre-existing violation
 									ForceNew:     true,
-									ValidateFunc: validation.IntBetween(1, 16),
+									ValidateFunc: validation.IntBetween(1, 100),
 								},
 								"sku": {
 									Type:     pluginsdk.TypeString,
