@@ -320,8 +320,9 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"managed_resource_group": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C - If this field is omitted, Azure returns a randomly generated value.
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -415,7 +416,6 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"channel_group": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Default:  "stable",
 						ValidateFunc: validation.StringInSlice([]string{
 							"nightly",
@@ -431,6 +431,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"api": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - If this block is omitted, Azure returns the default visibility setting along with the computed URL.
 			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -463,6 +464,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"autoscaling": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - If this block is omitted, Azure returns all of the autoscaling settings with their respective default values.
 			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -497,6 +499,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_image_registry": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - If this block is omitted, Azure returns the cluster image registry state with the default value.
 			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
@@ -523,6 +526,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"dns": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - If this block is omitted, Azure returns a randomly generated base domain prefix along with the computed base domain.
 			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
@@ -535,6 +539,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 					"base_domain_prefix": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// NOTE: O+C - If this field is omitted, Azure returns a randomly generated value.
 						Computed: true,
 						ValidateFunc: validation.All(
 							validation.StringLenBetween(1, 15),
@@ -576,6 +581,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"ingress": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - If this block is omitted, Azure returns the ingress type with its default value.
 			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
@@ -594,6 +600,7 @@ func (r RedHatHcpOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 		"network": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C - If this block is omitted, Azure returns all of the network settings with their respective default values.
 			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
@@ -791,7 +798,7 @@ func (r RedHatHcpOpenShiftCluster) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("node_drain_timeout_minutes") {
 				parameters.Properties.NodeDrainTimeoutMinutes = pointer.To(state.NodeDrainTimeoutMinutes)
 			}
-			if metadata.ResourceData.HasChange("platform.0.operators_authentication") || metadata.ResourceData.HasChange("platform.0.container_registry") {
+			if metadata.ResourceData.HasChanges("platform.0.operators_authentication", "platform.0.container_registry") {
 				parameters.Properties.Platform = expandHcpOpenShiftClusterPlatform(state.Platform)
 			}
 			if metadata.ResourceData.HasChange("version") {
@@ -1077,7 +1084,7 @@ func expandHcpOpenShiftClusterContainerRegistry(input []HcpOpenShiftClusterConta
 
 func flattenHcpOpenShiftClusterContainerRegistry(input *hcpopenshiftclusters.ContainerRegistryProfile) ([]HcpOpenShiftClusterContainerRegistryProfile, error) {
 	if input == nil || input.ManagedIdentity == nil {
-		return nil, nil
+		return []HcpOpenShiftClusterContainerRegistryProfile{}, nil
 	}
 
 	id, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.ManagedIdentity)
@@ -1132,7 +1139,7 @@ func flattenHcpOpenShiftClusterOperatorsAuthentication(input *hcpopenshiftcluste
 
 func flattenHcpOpenShiftClusterUserAssignedIdentityMap(input map[string]string) (map[string]string, error) {
 	if input == nil {
-		return nil, nil
+		return map[string]string{}, nil
 	}
 
 	result := make(map[string]string, 0)

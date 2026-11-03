@@ -12,7 +12,7 @@ Manages an Azure Red Hat OpenShift with Hosted Control Planes Node Pool.
 
 The node pool inherits its location from the parent HCP cluster.
 
-~> **Caution:** The ARO HCP service currently does not support deleting the last node pool in a cluster. When destroying a configuration containing an HCP cluster, its dependencies, and one or more node pools, Terraform cannot delete the last node pool, preventing it from completing the destruction of the cluster and its dependencies. Before running `terraform destroy`, remove all of the cluster's node pools from Terraform state using `terraform state rm`, or apply `removed` blocks for the node pools with `lifecycle { destroy = false }`. Both workarounds leave the node pools in Azure so they can be deleted as part of deleting the parent cluster.
+~> **Note:** The ARO HCP service currently does not support deleting the last node pool in a cluster. When destroying a configuration containing an HCP cluster, its dependencies, and one or more node pools, Terraform cannot delete the last node pool, preventing it from completing the destruction of the cluster and its dependencies. Before running `terraform destroy`, remove all of the cluster's node pools from Terraform state using `terraform state rm`, or apply `removed` blocks for the node pools with `lifecycle { destroy = false }`. Both workarounds leave the node pools in Azure so they can be deleted as part of deleting the parent cluster.
 
 ## Example Usage
 
@@ -81,7 +81,7 @@ A `platform` block supports the following:
 A `version` block supports the following:
 
 * `id` - (Required) The OpenShift version in `X.Y.Z` format with an optional pre-release suffix.
-* `channel_group` - (Optional) The channel group. Possible values are `nightly`, `candidate`, `fast`, and `stable`. Defaults to `stable`. Changing this forces a new resource to be created.
+* `channel_group` - (Optional) The channel group. Possible values are `nightly`, `candidate`, `fast`, and `stable`. Defaults to `stable`.
 
 ---
 
@@ -101,10 +101,10 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the node pool.
+* `create` - (Defaults to 1 hour) Used when creating the node pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the node pool.
-* `update` - (Defaults to 60 minutes) Used when updating the node pool.
-* `delete` - (Defaults to 60 minutes) Used when deleting the node pool.
+* `update` - (Defaults to 1 hour) Used when updating the node pool.
+* `delete` - (Defaults to 1 hour) Used when deleting the node pool.
 
 ## Import
 
@@ -113,3 +113,9 @@ Node Pools can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redhat_hcp_openshift_node_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.RedHatOpenShift/hcpOpenShiftClusters/example-cluster/nodePools/workers
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RedHatOpenShift` - 2026-10-01

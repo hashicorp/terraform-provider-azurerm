@@ -572,7 +572,7 @@ A `version` block supports the following:
 
 * `id` - (Required) The desired X.Y version of the cluster control plane.
 
-* `channel_group` - (Optional) The name of the set to which this version belongs. Each version belongs to only a single set. Possible values are `nightly`, `candidate`, `fast` and `stable`. Defaults to `stable`. Changing this forces a new resource to be created.
+* `channel_group` - (Optional) The name of the set to which this version belongs. Each version belongs to only a single set. Possible values are `nightly`, `candidate`, `fast` and `stable`. Defaults to `stable`.
 
 ## Attributes Reference
 
@@ -604,10 +604,10 @@ A `platform` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
+* `create` - (Defaults to 1 hour) Used when creating the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
-* `update` - (Defaults to 60 minutes) Used when updating the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
+* `update` - (Defaults to 1 hour) Used when updating the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
+* `delete` - (Defaults to 1 hour) Used when deleting the Azure Red Hat OpenShift with Hosted Control Planes Cluster.
 
 ## Import
 

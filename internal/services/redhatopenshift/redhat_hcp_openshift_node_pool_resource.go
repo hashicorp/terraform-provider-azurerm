@@ -143,6 +143,7 @@ func (r RedHatHcpOpenShiftNodePool) Arguments() map[string]*pluginsdk.Schema {
 					"os_disk": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						// NOTE: O+C - If this block is omitted, Azure still returns the default values for the fields that have them.
 						Computed: true,
 						ForceNew: true,
 						MaxItems: 1,
@@ -175,8 +176,9 @@ func (r RedHatHcpOpenShiftNodePool) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C - If this field is omitted, Azure populates it with the parent HCP cluster's worker subnet ID and returns that.
 						Computed:     true,
 						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
@@ -202,7 +204,6 @@ func (r RedHatHcpOpenShiftNodePool) Arguments() map[string]*pluginsdk.Schema {
 					"channel_group": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						ForceNew: true,
 						Default:  "stable",
 						ValidateFunc: validation.StringInSlice([]string{
 							"nightly",
@@ -261,9 +262,9 @@ func (r RedHatHcpOpenShiftNodePool) Arguments() map[string]*pluginsdk.Schema {
 		"replicas": {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
-			Computed:      true,
 			ConflictsWith: []string{"auto_scaling"},
 			ValidateFunc:  validation.IntAtLeast(0),
+			Default:       0,
 		},
 
 		"taints": {
@@ -345,11 +346,8 @@ func (r RedHatHcpOpenShiftNodePool) Create() sdk.ResourceFunc {
 		if err != nil {
 			return err
 		}
-		if _, ok := metadata.ResourceData.GetOkExists("replicas"); !ok {
+		if metadata.ResourceData.GetRawConfig().GetAttr("replicas").IsNull() {
 			parameters.Properties.Replicas = nil
-		}
-		if _, ok := metadata.ResourceData.GetOkExists("platform.0.enable_encryption_at_host"); !ok {
-			parameters.Properties.Platform.EnableEncryptionAtHost = nil
 		}
 		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
