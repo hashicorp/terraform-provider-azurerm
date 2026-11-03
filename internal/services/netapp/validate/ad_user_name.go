@@ -1,8 +1,6 @@
 package validate
 
 import (
-	"regexp"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -12,6 +10,6 @@ import (
 func ActiveDirectoryUserName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 255),
-		validation.StringDoesNotMatch(regexp.MustCompile(`@+|\\+`), `must not contain characters "@" or "\"`),
+		validation.StringDoesNotContainAny(`@\\`),
 	)(v, k)
 }
