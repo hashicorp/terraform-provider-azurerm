@@ -37,23 +37,23 @@ As a result we add two new properties to the schema, `password_wo` and `password
 	Type:          pluginsdk.TypeString,
 	Optional:      true,
 	Sensitive:     true,
-	ConflictsWith: []string{"password_wo"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+	ConflictsWith: []string{"password_wo"}, // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
 },
 
 "password_wo": {
-	Type:          pluginsdk.TypeString, 
+	Type:          pluginsdk.TypeString,
 	Optional:      true,
-	WriteOnly:     true, 
-	RequiredWith:  []string{"password_wo_version"} // this must be set to ensure the "trigger" property is provided with the wo attribute 
-	ConflictsWith: []string{"password"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
-}
+	WriteOnly:     true,
+	RequiredWith:  []string{"password_wo_version"}, // this must be set to ensure the "trigger" property is provided with the wo attribute
+	ConflictsWith: []string{"password"},            // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+},
 
 "password_wo_version": {
 	Type:         pluginsdk.TypeInt,
 	Optional:     true,
-	RequiredWith: []string{"password_wo"} // this must be set to ensure the "trigger" property is provided with the wo attribute
-	ValidateFunc: validation.IntAtLeast(1) // in SDKv2, `0` will be set into state regardless, prevent users from setting version to `0` so we can properly track changes
-}
+	RequiredWith: []string{"password_wo"},  // this must be set to ensure the "trigger" property is provided with the wo attribute
+	ValidateFunc: validation.IntAtLeast(1), // in SDKv2, `0` will be set into state regardless, prevent users from setting version to `0` so we can properly track changes
+},
 
 ... // omitted for brevity
 ```
@@ -67,18 +67,18 @@ func (SomeDatabase) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			... // omitted for brevity
-			
+
 			// use the GetWriteOnly helper to retrieve the WO attribute
 			woPassword, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "password_wo", cty.String)
 			if err != nil {
 				return err
 			}
-			
+
 			// set it in the payload if the WO attribute is not null
 			if !woPassword.IsNull() {
 			    payload.Properties.Password = woPassword.AsString()
 			}
-			
+
 			... // omitted for brevity
 		}
 	}
@@ -97,7 +97,7 @@ func (SomeDatabase) Read() sdk.ResourceFunc {
 			// but we do need to retrieve the value for the trigger attribute from the config and set that into
 			// state to prevent a perma diff
 			state.PasswordWOVersion = metadata.ResourceData.Get("password_wo_version").(int)
-			
+
 			... // omitted for brevity
 		}
 	}
@@ -118,13 +118,13 @@ func (SomeDatabase) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				
+
 				// set it in the payload if the WO attribute is not null
 				if !woPassword.IsNull() {
 					payload.Properties.Password = woPassword.AsString()
 				}
 			}
-			
+
 			... // omitted for brevity
 		}
 	}

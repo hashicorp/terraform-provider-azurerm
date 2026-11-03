@@ -50,10 +50,10 @@ jobs:
       examples: ${{ steps.filter.outputs.examples }}
       vendor: ${{ steps.filter.outputs.vendor }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
@@ -84,10 +84,10 @@ jobs:
     if: needs.paths-filter.outputs.vendor == 'true' || needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       - run: make depscheck
@@ -130,10 +130,10 @@ jobs:
   copyright:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       # make builds the license-eye version pinned in .tools/go.mod
@@ -178,10 +178,10 @@ jobs:
     if: needs.paths-filter.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       # make builds the golangci-lint and terrafmt versions pinned in .tools/go.mod on demand
@@ -227,7 +227,7 @@ jobs:
     if: needs.paths-filter.outputs.scripts == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
       - name: Run ShellCheck
@@ -272,7 +272,7 @@ jobs:
     needs: paths-filter
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
       # make downloads the typos version pinned in GNUmakefile into .tools
@@ -318,10 +318,10 @@ jobs:
     if: needs.paths-filter.outputs.website == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       - run: make website-lint
@@ -365,10 +365,10 @@ jobs:
   document-validate:
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: ./.go-version
       - run: make document-validate
@@ -420,10 +420,10 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       - name: Build Provider
@@ -473,17 +473,17 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       # The azproviderlint/tfproviderlint module plugins require a custom-built golangci-lint
       # binary (see .tools/.custom-gcl.yml); cache .tools/bin so it is only rebuilt when the
       # pins (.tools/go.mod for golangci-lint, .custom-gcl.yml for the plugins) change. make
       # rebuilds the binary when it is missing or older than either file.
-      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .tools/bin
           key: golangci-with-modules-${{ hashFiles('.tools/go.mod', '.tools/go.sum', '.tools/.custom-gcl.yml') }}
@@ -540,10 +540,10 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       - run: make gencheck
@@ -594,10 +594,10 @@ jobs:
     runs-on: custom-linux-xl
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           cache-dependency-path: go.mod
           go-version-file: ./.go-version
@@ -662,10 +662,10 @@ jobs:
       (needs.website-lint.result == 'success' || needs.website-lint.result == 'skipped')
     runs-on: custom-linux-small
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       - run: make validate-examples

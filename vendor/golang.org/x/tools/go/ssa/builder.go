@@ -89,27 +89,25 @@ import (
 	"golang.org/x/tools/internal/versions"
 )
 
-type opaqueType struct{ name string }
-
-func (t *opaqueType) String() string         { return t.name }
-func (t *opaqueType) Underlying() types.Type { return t }
-
 var (
 	varOk    = newVar("ok", tBool)
 	varIndex = newVar("index", tInt)
 
 	// Type constants.
-	tBool       = types.Typ[types.Bool]
-	tByte       = types.Typ[types.Byte]
-	tRune       = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
-	tInt        = types.Typ[types.Int]
-	tInvalid    = types.Typ[types.Invalid]
-	tString     = types.Typ[types.String]
-	tUntypedNil = types.Typ[types.UntypedNil]
+	tBool          = types.Typ[types.Bool]
+	tByte          = types.Typ[types.Byte]
+	tRune          = types.Universe.Lookup("rune").Type() // prints as "rune" (Typ[Rune] is same as Int32)
+	tInt           = types.Typ[types.Int]
+	tInvalid       = types.Typ[types.Invalid]
+	tString        = types.Typ[types.String]
+	tUntypedNil    = types.Typ[types.UntypedNil]
+	tUnsafePointer = types.Typ[types.UnsafePointer]
+	tRangeIter     = ssaNamedType("rangeIter", tUnsafePointer)  // the type of all "range" iterators
+	tDeferStack    = ssaNamedType("deferStack", tUnsafePointer) // the type of a "deferStack" from ssa:deferstack()
+	tEface         = types.NewInterfaceType(nil, nil).Complete()
 
-	tRangeIter  = &opaqueType{"iter"}                         // the type of all "range" iterators
-	tDeferStack = types.NewPointer(&opaqueType{"deferStack"}) // the type of a "deferStack" from ssa:deferstack()
-	tEface      = types.NewInterfaceType(nil, nil).Complete()
+	// Fake package for fake ssa types.
+	ssaFakeTypesPackage = types.NewPackage("$ssa", "ssa")
 
 	// SSA Value constants.
 	vZero     = intConst(0)
@@ -128,6 +126,11 @@ var (
 		sig:  types.NewSignatureType(nil, nil, nil, nil, typesinternal.TupleOf(tDeferStack), false),
 	}
 )
+
+func ssaNamedType(name string, underlying types.Type) *types.Named {
+	obj := types.NewTypeName(token.NoPos, ssaFakeTypesPackage, name, nil)
+	return types.NewNamed(obj, underlying, nil)
+}
 
 // builder holds state associated with the package currently being built.
 // Its methods contain all the logic for AST-to-SSA conversion.
@@ -169,9 +172,12 @@ func (b *builder) enqueue(fn *Function) {
 // This should include any functions that may be built by other
 // builders.
 func (b *builder) waitForSharedFunction(fn *Function) {
-	if fn.buildshared != nil { // maybe need to wait?
-		s := b.shared()
-		s.addEdge(fn.buildshared)
+	// Check whether fn is already built before calling b.shared(),
+	// which allocates a task and a channel that b.iterate() would
+	// then have to close and wait on. The common case, a lookup of
+	// a method that was created and built long ago, needs neither.
+	if t := fn.buildshared; t != nil && !t.isTransitivelyDone() { // maybe need to wait?
+		b.shared().addEdge(t)
 	}
 }
 
@@ -641,11 +647,13 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			info:           fn.info,
 			goversion:      fn.goversion,
 			build:          (*builder).buildFromSyntax,
-			topLevelOrigin: nil,           // use anonIdx to lookup an anon instance's origin.
-			typeparams:     fn.typeparams, // share the parent's type parameters.
-			typeargs:       fn.typeargs,   // share the parent's type arguments.
-			subst:          fn.subst,      // share the parent's type substitutions.
-			uniq:           fn.uniq,       // start from parent's unique values
+			topLevelOrigin: nil,               // use anonIdx to lookup an anon instance's origin.
+			recvtypeparams: fn.recvtypeparams, // share the parent's receiver type parameters.
+			recvtypeargs:   fn.recvtypeargs,   // share the parent's receiver type arguments.
+			typeparams:     fn.typeparams,     // share the parent's type parameters.
+			typeargs:       fn.typeargs,       // share the parent's type arguments.
+			subst:          fn.subst,          // share the parent's type substitutions.
+			uniq:           fn.uniq,           // start from parent's unique values
 		}
 		fn.AnonFuncs = append(fn.AnonFuncs, anon)
 		// Build anon immediately, as it may cause fn's locals to escape.
@@ -1135,8 +1143,8 @@ func (b *builder) setCall(fn *Function, e *ast.CallExpr, c *CallCommon) {
 	b.setCallFunc(fn, e, c)
 
 	// Then append the other actual parameters.
-	sig, _ := typeparams.CoreType(fn.typeOf(e.Fun)).(*types.Signature)
-	if sig == nil {
+	sig, ok := typeparams.CoreType(fn.typeOf(e.Fun)).(*types.Signature)
+	if !ok {
 		panic(fmt.Sprintf("no signature for call of %s", e.Fun))
 	}
 	c.Args = b.emitCallArgs(fn, sig, e, c.Args)
@@ -1193,21 +1201,7 @@ func (b *builder) localValueSpec(fn *Function, spec *ast.ValueSpec) {
 // Note the similarity with localValueSpec.
 func (b *builder) assignStmt(fn *Function, lhss, rhss []ast.Expr, isDef bool) {
 	// Side effects of all LHSs and RHSs must occur in left-to-right order.
-	lvals := make([]lvalue, len(lhss))
-	isZero := make([]bool, len(lhss))
-	for i, lhs := range lhss {
-		var lval lvalue = blank{}
-		if !isBlankIdent(lhs) {
-			if isDef {
-				if obj, ok := fn.info.Defs[lhs.(*ast.Ident)].(*types.Var); ok {
-					emitLocalVar(fn, obj)
-					isZero[i] = true
-				}
-			}
-			lval = b.addr(fn, lhs, false) // non-escaping
-		}
-		lvals[i] = lval
-	}
+	lvals, isZero := b.assignLHS(fn, lhss, isDef)
 	if len(lhss) == len(rhss) {
 		// Simple assignment:   x     = f()        (!isDef)
 		// Parallel assignment: x, y  = f(), g()   (!isDef)
@@ -1227,6 +1221,46 @@ func (b *builder) assignStmt(fn *Function, lhss, rhss []ast.Expr, isDef bool) {
 		for i, lval := range lvals {
 			lval.store(fn, emitExtract(fn, tuple, i))
 		}
+	}
+}
+
+func (b *builder) assignLHS(fn *Function, lhss []ast.Expr, isDef bool) ([]lvalue, []bool) {
+	lvals := make([]lvalue, len(lhss))
+	isZero := make([]bool, len(lhss))
+	for i, lhs := range lhss {
+		var lval lvalue = blank{}
+		if !isBlankIdent(lhs) {
+			if isDef {
+				if obj, ok := fn.info.Defs[lhs.(*ast.Ident)].(*types.Var); ok {
+					emitLocalVar(fn, obj)
+					isZero[i] = true
+				}
+			}
+			lval = b.addr(fn, lhs, false) // non-escaping
+		}
+		lvals[i] = lval
+	}
+	return lvals, isZero
+}
+
+// assignSelectRecvStmt emits a receive assignment from a single-case select.
+// Unlike an ordinary assignment, its (single expression) right-hand side is
+// evaluated and the receive is performed before its left-hand side is evaluated.
+func (b *builder) assignSelectRecvStmt(fn *Function, assign *ast.AssignStmt) {
+	var values []Value
+	if len(assign.Lhs) == 1 {
+		values = append(values, b.expr(fn, assign.Rhs[0]))
+	} else {
+		tuple := b.exprN(fn, assign.Rhs[0])
+		emitDebugRef(fn, assign.Rhs[0], tuple, false)
+		for i := range assign.Lhs {
+			values = append(values, emitExtract(fn, tuple, i))
+		}
+	}
+
+	lvals, _ := b.assignLHS(fn, assign.Lhs, assign.Tok == token.DEFINE)
+	for i, lval := range lvals {
+		lval.store(fn, values[i])
 	}
 }
 
@@ -1631,7 +1665,11 @@ func (b *builder) selectStmt(fn *Function, s *ast.SelectStmt, label *lblock) {
 	if len(s.Body.List) == 1 {
 		clause := s.Body.List[0].(*ast.CommClause)
 		if clause.Comm != nil {
-			b.stmt(fn, clause.Comm)
+			if recvAssign, ok := clause.Comm.(*ast.AssignStmt); ok {
+				b.assignSelectRecvStmt(fn, recvAssign)
+			} else {
+				b.stmt(fn, clause.Comm)
+			}
 			done := fn.newBasicBlock("select.done")
 			if label != nil {
 				label._break = done
@@ -2535,6 +2573,8 @@ func (b *builder) rangeFunc(fn *Function, x Value, rng *ast.RangeStmt, label *lb
 		goversion:      fn.goversion,
 		build:          (*builder).buildYieldFunc,
 		topLevelOrigin: nil,
+		recvtypeparams: fn.recvtypeparams,
+		recvtypeargs:   fn.recvtypeargs,
 		typeparams:     fn.typeparams,
 		typeargs:       fn.typeargs,
 		subst:          fn.subst,
@@ -2939,6 +2979,9 @@ func (b *builder) buildParamsOnly(fn *Function) {
 
 	// clear out other function state (keep consistent with finishBody)
 	fn.subst = nil
+	if !fn.isGenericOrigin() {
+		fn.info = nil
+	}
 }
 
 // buildFromSyntax builds fn.Body from fn.syntax, which must be non-nil.
@@ -3014,9 +3057,9 @@ func (b *builder) buildYieldFunc(fn *Function) {
 		fn.lblocks[label] = &lblock{
 			label:     label,
 			resolved:  true,
-			_goto:     ycont,
 			_continue: ycont,
-			// `break label` statement targets fn.parent.targets._break
+			// `goto label` searches the parent lblock, and
+			// `break label` targets fn.parent.targets._break.
 		}
 	}
 	fn.targets = &targets{

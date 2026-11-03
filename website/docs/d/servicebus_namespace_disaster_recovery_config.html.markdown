@@ -14,7 +14,7 @@ Use this data source to access information about an existing Service Bus Disaste
 
 ```hcl
 data "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
-  name         = "existing"
+  name         = "example-alias"
   namespace_id = "example-namespace-id"
 }
 

@@ -29,15 +29,122 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"reflect"
 	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"go.yaml.in/yaml/v4"
 )
+
+// debugBodyLimit is the maximum number of body bytes rendered in a debug dump.
+// Anything larger is truncated with a "(truncated, N bytes total)" suffix.
+const debugBodyLimit = 16 * 1024
+
+// debugSummaryBodyLimit is the maximum number of body bytes rendered in a
+// compact one-line request/response summary. Keeps the per-attempt match log
+// readable when there are many interactions to compare against.
+const debugSummaryBodyLimit = 80
+
+// summarizeBody returns a single-line, bounded rendering of the given body for
+// inclusion in a compact request/response summary. Newlines are collapsed and
+// the result is truncated to debugSummaryBodyLimit bytes.
+func summarizeBody(b string) string {
+	if b == "" {
+		return ""
+	}
+	s := strings.ReplaceAll(b, "\n", `\n`)
+	s = strings.ReplaceAll(s, "\r", `\r`)
+	if len(s) > debugSummaryBodyLimit {
+		s = s[:debugSummaryBodyLimit] + "..."
+	}
+
+	return s
+}
+
+// formatBody returns a human-readable rendering of the given body bytes for
+// inclusion in a debug dump. Binary content is replaced with a "<binary, N
+// bytes>" placeholder so that the trace stays readable in a text-based slog
+// handler.
+func formatBody(b []byte) string {
+	if len(b) == 0 {
+		return ""
+	}
+	if !isPrintable(b) {
+		return fmt.Sprintf("<binary, %d bytes>", len(b))
+	}
+	if len(b) > debugBodyLimit {
+		return fmt.Sprintf("%s\n(truncated, %d bytes total)", b[:debugBodyLimit], len(b))
+	}
+
+	return string(b)
+}
+
+// isPrintable reports whether b is safe to render as text in a debug trace:
+// it must be valid UTF-8 and contain no control characters other than the
+// whitespace runes commonly found in HTTP payloads (tab, LF, CR).
+func isPrintable(b []byte) bool {
+	if !utf8.Valid(b) {
+		return false
+	}
+	for _, r := range string(b) {
+		switch r {
+		case '\t', '\n', '\r':
+			continue
+		}
+		if !unicode.IsPrint(r) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// dumpHTTPRequest renders an [*http.Request] in wire format for inclusion in a
+// debug trace. The request body is consumed and replaced with a fresh reader
+// so subsequent code (the matcher, the round-tripper) can still read it.
+func dumpHTTPRequest(r *http.Request) string {
+	if r.Body == nil || r.Body == http.NoBody {
+		dump, err := httputil.DumpRequest(r, false)
+		if err != nil {
+			return fmt.Sprintf("<dump error: %v>", err)
+		}
+
+		return string(dump)
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return fmt.Sprintf("<body read error: %v>", err)
+	}
+	r.Body = io.NopCloser(bytes.NewReader(body))
+	dump, err := httputil.DumpRequest(r, false)
+	if err != nil {
+		return fmt.Sprintf("<dump error: %v>", err)
+	}
+
+	return fmt.Sprintf("%s\n%s", dump, formatBody(body))
+}
+
+// dumpCassetteRequest renders a recorded [Request] in a wire-format-like form
+// for visual diffing against an [*http.Request] dumped via [dumpHTTPRequest].
+func dumpCassetteRequest(req Request) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s %s %s\n", req.Method, req.URL, req.Proto)
+	fmt.Fprintf(&b, "Host: %s\n", req.Host)
+	if err := req.Headers.Write(&b); err != nil {
+		fmt.Fprintf(&b, "<header write error: %v>\n", err)
+	}
+	b.WriteString("\n")
+	b.WriteString(formatBody([]byte(req.Body)))
+
+	return b.String()
+}
 
 const (
 	// CassetteFormatVersion is the supported cassette version.
@@ -85,6 +192,14 @@ type Request struct {
 	Method string `yaml:"method"`
 }
 
+// String implements [fmt.Stringer]. It renders the recorded request as a
+// compact, single-line summary suitable for inclusion in a debug log
+// attribute. The body is bounded and stripped of newlines so it fits cleanly
+// in a key=value line.
+func (r Request) String() string {
+	return fmt.Sprintf("%s %s body=%q", r.Method, r.URL, summarizeBody(r.Body))
+}
+
 // Response represents a server response as recorded in the cassette file.
 type Response struct {
 	Proto            string      `yaml:"proto"`
@@ -109,6 +224,13 @@ type Response struct {
 
 	// Response duration
 	Duration time.Duration `yaml:"duration"`
+}
+
+// String implements [fmt.Stringer]. It renders the recorded response as a
+// compact, single-line summary suitable for inclusion in a debug log
+// attribute.
+func (r Response) String() string {
+	return fmt.Sprintf("%d body=%q", r.Code, summarizeBody(r.Body))
 }
 
 // Interaction type contains a pair of request/response for a single HTTP
@@ -279,7 +401,7 @@ func (m *defaultMatcher) bodyMatches(r *http.Request, i Request) bool {
 			return false
 		}
 
-		r.Body = io.NopCloser(bytes.NewBuffer(buffer.Bytes()))
+		r.Body = io.NopCloser(bytes.NewReader(buffer.Bytes()))
 		if buffer.String() != i.Body {
 			return false
 		}
@@ -372,7 +494,7 @@ var DefaultMatcher = NewDefaultMatcher()
 
 // Cassette represents a cassette containing recorded interactions.
 type Cassette struct {
-	sync.Mutex `yaml:"-"`
+	mu sync.Mutex `yaml:"-"`
 
 	// Name of the cassette
 	Name string `yaml:"-"`
@@ -402,6 +524,10 @@ type Cassette struct {
 
 	// MarshalFunc is a custom marshal func.
 	MarshalFunc MarshalFunc `yaml:"-"`
+
+	// DebugLogger is an [slog.Logger] which is used to emit debug events.
+	// To enable debugging, see [recorder.WithDebugWriter] option.
+	DebugLogger *slog.Logger `yaml:"-"`
 }
 
 // New creates a new empty cassette
@@ -415,6 +541,7 @@ func New(name string) *Cassette {
 		ReplayableInteractions: false,
 		IsNew:                  true,
 		nextInteractionId:      0,
+		DebugLogger:            slog.New(slog.DiscardHandler),
 	}
 
 	return c
@@ -448,11 +575,16 @@ func LoadWithFS(name string, fs FS) (*Cassette, error) {
 
 // AddInteraction appends a new interaction to the cassette
 func (c *Cassette) AddInteraction(i *Interaction) {
-	c.Lock()
-	defer c.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	i.ID = c.nextInteractionId
 	c.nextInteractionId += 1
 	c.Interactions = append(c.Interactions, i)
+	c.debug("interaction added",
+		"id", i.ID,
+		"request", i.Request,
+		"response", i.Response,
+	)
 }
 
 // GetInteraction retrieves a recorded request/response interaction
@@ -460,26 +592,57 @@ func (c *Cassette) GetInteraction(r *http.Request) (*Interaction, error) {
 	return c.getInteraction(r)
 }
 
+// debug emits a debug event
+func (c *Cassette) debug(msg string, args ...any) {
+	c.DebugLogger.Debug(msg, args...)
+}
+
 // getInteraction searches for the interaction corresponding to the given HTTP
 // request, by using the configured [MatcherFunc].
 func (c *Cassette) getInteraction(r *http.Request) (*Interaction, error) {
-	c.Lock()
-	defer c.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if r.Body == nil {
 		// causes an error in the matcher when we try to do r.ParseForm if r.Body is nil
 		// r.ParseForm returns missing form body error
 		r.Body = http.NoBody
 	}
+	c.debug("matching request",
+		"method", r.Method,
+		"url", r.URL,
+		"host", r.Host,
+		"dump", dumpHTTPRequest(r),
+	)
 	replayed := 0
 	for _, i := range c.Interactions {
 		if i.replayed {
 			replayed++
 		}
-		if (c.ReplayableInteractions || !i.replayed) && c.Matcher(r, i.Request) {
+		eligible := c.ReplayableInteractions || !i.replayed
+		matched := eligible && c.Matcher(r, i.Request)
+		attrs := []any{
+			"id", i.ID,
+			"already_replayed", i.replayed,
+			"eligible", eligible,
+			"matched", matched,
+			"request", i.Request,
+		}
+		if !matched && eligible {
+			attrs = append(attrs, "dump", dumpCassetteRequest(i.Request))
+		}
+		c.debug("match attempt", attrs...)
+		if matched {
 			i.replayed = true
+			c.debug("match found",
+				"id", i.ID,
+				"request", i.Request,
+			)
+
 			return i, nil
 		}
 	}
+	c.debug("no match", "already_replayed_count", replayed)
+
 	return nil, ErrInteractionNotFound
 }
 
@@ -490,8 +653,9 @@ func (c *Cassette) Save() error {
 
 // SaveWithFS writes the cassette data on abstract filesystem for future re-use
 func (c *Cassette) SaveWithFS(fs FS) error {
-	c.Lock()
-	defer c.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.debug("saving cassette", "interaction_count", len(c.Interactions))
 
 	// Filter out interactions which should be discarded. While discarding
 	// interactions we should also fix the interaction IDs, so that we don't
@@ -499,7 +663,9 @@ func (c *Cassette) SaveWithFS(fs FS) error {
 	nextId := 0
 	interactions := make([]*Interaction, 0)
 	for _, i := range c.Interactions {
-		if !i.DiscardOnSave {
+		if i.DiscardOnSave {
+			c.debug("discarding interaction", "id", i.ID)
+		} else {
 			i.ID = nextId
 			interactions = append(interactions, i)
 			nextId += 1
@@ -515,5 +681,11 @@ func (c *Cassette) SaveWithFS(fs FS) error {
 
 	// Honor the YAML structure specification
 	// http://www.yaml.org/spec/1.2/spec.html#id2760395
-	return fs.WriteFile(c.File, append([]byte("---\n"), data...))
+	payload := append([]byte("---\n"), data...)
+	if err := fs.WriteFile(c.File, payload); err != nil {
+		return err
+	}
+	c.debug("cassette saved", "bytes_written", len(payload), "interactions_saved", len(c.Interactions))
+
+	return nil
 }

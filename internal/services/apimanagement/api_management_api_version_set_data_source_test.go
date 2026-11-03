@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -12,6 +12,16 @@ import (
 )
 
 type ApiManagementApiVersionSetDataSource struct{}
+
+func TestAccDataSourceApiManagementApiVersionSet_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api_version_set", "test")
+	r := ApiManagementApiVersionSetDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceApiManagementApiVersionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api_version_set", "test")
