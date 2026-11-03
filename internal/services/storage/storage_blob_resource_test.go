@@ -98,6 +98,22 @@ func TestAccStorageBlob_blockEmptyAzureADAuth(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_blockEmptyStorageAccountInAnotherSubscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	// No import step: importing looks the Storage Account up in the provider's own subscription.
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blockEmptyStorageAccountInAnotherSubscription(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_container_id").MatchesOtherKey(check.That("azurerm_storage_container.test").Key("id")),
+			),
+		},
+	})
+}
+
 func TestAccStorageBlob_blockEmptyMetaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
@@ -548,6 +564,15 @@ func (r StorageBlobResource) Exists(ctx context.Context, client *clients.Client,
 		account = &storageclient.AccountDetails{
 			StorageAccountId: commonids.NewStorageAccountID(client.Account.SubscriptionId, "", id.AccountId.AccountName),
 		}
+	} else if containerIdRaw := state.Attributes["storage_container_id"]; containerIdRaw != "" {
+		containerId, err := commonids.ParseStorageContainerID(containerIdRaw)
+		if err != nil {
+			return nil, err
+		}
+		account, err = client.Storage.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		var err error
 		account, err = client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
@@ -740,6 +765,48 @@ resource "azurerm_storage_blob" "test" {
   type                 = "Block"
 }
 `, r.template(data, "private"))
+}
+
+func (r StorageBlobResource) blockEmptyStorageAccountInAnotherSubscription(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azurerm-alt" {
+  subscription_id = "%s"
+  tenant_id       = "%s"
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  provider = azurerm-alt
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  provider                 = azurerm-alt
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  provider              = azurerm-alt
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                 = "example.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Block"
+}
+`, data.Client().SubscriptionIDAlt, data.Client().TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageBlobResource) blockEmptyMetaData(data acceptance.TestData) string {
