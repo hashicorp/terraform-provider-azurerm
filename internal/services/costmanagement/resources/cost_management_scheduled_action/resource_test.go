@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cost_management_scheduled_action_test
@@ -18,6 +18,17 @@ import (
 )
 
 type CostManagementScheduledAction struct{}
+
+func TestAccCostManagementScheduledAction_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.daily(data),
+		},
+	}, "")
+}
 
 func TestAccCostManagementScheduledAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")

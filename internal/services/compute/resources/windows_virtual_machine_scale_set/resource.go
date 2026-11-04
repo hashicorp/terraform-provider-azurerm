@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine_scale_set
@@ -91,7 +91,9 @@ func RegisterResource() *pluginsdk.Resource {
 
 				return nil
 			}),
-
+      
+      pluginsdk.CustomizeDiffShim(helpers.VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
+      
 			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) bool {
 				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
 				oldZones, _ := d.GetChange("zones")

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package linux_virtual_machine_scale_set
@@ -75,6 +75,12 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"automatic_os_upgrade_policy": helpers.VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
 		"automatic_instance_repair": helpers.VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+
+		"automatic_zone_rebalancing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"boot_diagnostics": helpers.BootDiagnosticsSchema(),
 

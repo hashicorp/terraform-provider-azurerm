@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package orchestrated_virtual_machine_scale_set
@@ -112,6 +112,12 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		// identical for both uniform and flex mode VMSS's
 		"automatic_instance_repair": helpers.VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
+		"automatic_zone_rebalancing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"boot_diagnostics": helpers.BootDiagnosticsSchema(),
 
 		"capacity_reservation_group_id": {
@@ -215,6 +221,18 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"capacity_reservation_group_id",
 			},
+		},
+
+		"resilient_virtual_machine_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"resilient_virtual_machine_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"rolling_upgrade_policy": helpers.VirtualMachineScaleSetRollingUpgradePolicySchema(),
