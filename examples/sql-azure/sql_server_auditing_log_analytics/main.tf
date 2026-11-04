@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -36,12 +36,8 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
     category = "SQLSecurityAuditEvents"
   }
 
-  metric {
-    category = "AllMetrics"
-  }
-
   lifecycle {
-    ignore_changes = [enabled_log, metric]
+    ignore_changes = [enabled_log]
   }
 }
 

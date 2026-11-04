@@ -198,7 +198,7 @@ The `policy_settings` block supports the following:
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie validity lifetime in minutes. The user is challenged after the lifetime expires. Accepted values are in the range `5` to `1440`. Defaults to `30`.
 
-* `file_upload_enforcement` - (Optional) - Whether the firewall should block a request with upload size greater then `file_upload_limit_in_mb`.
+* `file_upload_enforcement` - (Optional) - Whether the firewall should block a request with upload size greater then `file_upload_limit_in_mb`. Defaults to `true`.
 
 ---
 
@@ -317,4 +317,4 @@ terraform import azurerm_web_application_firewall_policy.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

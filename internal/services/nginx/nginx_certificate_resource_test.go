@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx_test
@@ -230,7 +230,7 @@ resource "azurerm_nginx_deployment" "test" {
   location            = azurerm_resource_group.test.location
 
   identity {
-    type         = "UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 

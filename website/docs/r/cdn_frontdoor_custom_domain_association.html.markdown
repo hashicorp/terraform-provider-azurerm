@@ -151,4 +151,4 @@ terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cdn` - 2025-04-15
+* `Microsoft.Cdn` - 2025-12-01

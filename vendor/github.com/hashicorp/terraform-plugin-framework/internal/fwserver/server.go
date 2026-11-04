@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fwserver
@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 )
 
 // Server implements the framework provider server. Protocol specific
@@ -51,6 +52,26 @@ type Server struct {
 	// [provider.ConfigureResponse.ActionData] field value which is passed
 	// to [action.ConfigureRequest.ProviderData].
 	ActionConfigureData any
+
+	// StateStoreProviderData is provider-defined data, clients, etc. that is
+	// passed to [statestore.InitializeRequest.ProviderData].
+	//
+	// As state stores have a dedicated ConfigureStateStore RPC with their
+	// own configuration to consume, this value is not passed to [statestore.ConfigureRequest.StateStoreData]
+	// automatically, but must be explicitly set to [statestore.InitializeResponse.StateStoreData].
+	StateStoreProviderData any
+
+	// StateStoreConfigureData is configured data from [statestore.InitializeResponse.StateStoreData]
+	// and the determined server capabilities (returned from ConfigureStateStore RPC).
+	//
+	// The configured data should be used to populate [statestore.ConfigureRequest.StateStoreData] prior to executing
+	// any [statestore.StateStore] methods, and the server capabilities should be used to receive/send the right chunk sizes during
+	// the ReadStateBytes and WriteStateBytes RPCs.
+	//
+	// MAINTAINER NOTE: While it's possible for a provider to contain multiple state store implementations, it's not possible
+	// for a Terraform configuration to use multiple state stores simultaneously, so it's safe to only store a single field of
+	// configure data for the entire provider.
+	StateStoreConfigureData StateStoreConfigureData
 
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
@@ -250,6 +271,29 @@ type Server struct {
 	// resourceBehaviorsMutex is a mutex to protect concurrent resourceBehaviors
 	// access from race conditions.
 	resourceBehaviorsMutex sync.Mutex
+
+	// statestoreSchemas is the cached StateStore Schemas for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the StateStore.Schema() method.
+	statestoreSchemas map[string]fwschema.Schema
+
+	// statestoreSchemasMutex is a mutex to protect concurrent statestoreSchemas
+	// access from race conditions.
+	statestoreSchemasMutex sync.RWMutex
+
+	// statestoreFuncs is the cached StateStore functions for RPCs that need to
+	// access statestores. If not found, it will be fetched from the
+	// Provider.StateStore() method.
+	statestoreFuncs map[string]func() statestore.StateStore
+
+	// statestoreFuncsDiags is the cached Diagnostics obtained while populating
+	// statestoreFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching statestoreFuncs.
+	statestoreFuncsDiags diag.Diagnostics
+
+	// statestoreFuncsMutex is a mutex to protect concurrent statestoreFuncs
+	// access from race conditions.
+	statestoreFuncsMutex sync.Mutex
 }
 
 // DataSource returns the DataSource for a given type name.

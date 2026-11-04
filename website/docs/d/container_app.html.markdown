@@ -289,6 +289,8 @@ An `ingress` block exports the following:
 
 * `ip_security_restriction` - One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
 
+* `session_affinity_enabled`- Is session affinity enabled.
+
 * `target_port` - The target port on the container for the Ingress traffic.
 
 * `traffic_weight` - A `traffic_weight` block as detailed below.
@@ -359,7 +361,7 @@ A `dapr` block exports the following:
 
 A `registry` block exports the following:
 
-* `server` - The hostname for the Container Registry.
+* `server` - The FQDN for the Container Registry.
 
 * `identity` - Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
 

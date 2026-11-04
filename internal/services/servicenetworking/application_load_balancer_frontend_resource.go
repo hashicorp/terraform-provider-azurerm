@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package servicenetworking
@@ -24,10 +24,10 @@ import (
 type FrontendsResource struct{}
 
 type FrontendsModel struct {
-	Name                      string                 `tfschema:"name"`
-	ApplicationLoadBalancerId string                 `tfschema:"application_load_balancer_id"`
-	Fqdn                      string                 `tfschema:"fully_qualified_domain_name"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	Name                      string         `tfschema:"name"`
+	ApplicationLoadBalancerId string         `tfschema:"application_load_balancer_id"`
+	Fqdn                      string         `tfschema:"fully_qualified_domain_name"`
+	Tags                      map[string]any `tfschema:"tags"`
 }
 
 var _ sdk.Resource = FrontendsResource{}
@@ -61,7 +61,7 @@ func (f FrontendsResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (f FrontendsResource) ModelObject() interface{} {
+func (f FrontendsResource) ModelObject() any {
 	return &FrontendsModel{}
 }
 

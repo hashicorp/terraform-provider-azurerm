@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -167,7 +167,7 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DbSystemShapesDataSource) ModelObject() interface{} {
+func (d DbSystemShapesDataSource) ModelObject() any {
 	return &DbSystemShapesModel{}
 }
 

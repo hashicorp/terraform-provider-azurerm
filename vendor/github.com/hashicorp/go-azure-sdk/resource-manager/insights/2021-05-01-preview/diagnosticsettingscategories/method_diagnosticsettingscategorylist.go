@@ -16,7 +16,24 @@ import (
 type DiagnosticSettingsCategoryListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DiagnosticSettingsCategoryResourceCollection
+	Model        *[]DiagnosticSettingsCategoryResource
+}
+
+type DiagnosticSettingsCategoryListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []DiagnosticSettingsCategoryResource
+}
+
+type DiagnosticSettingsCategoryListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DiagnosticSettingsCategoryListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // DiagnosticSettingsCategoryList ...
@@ -27,6 +44,7 @@ func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryList(ctx c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DiagnosticSettingsCategoryListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/diagnosticSettingsCategories", id.ID()),
 	}
 
@@ -36,7 +54,7 @@ func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryList(ctx c
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,11 +63,44 @@ func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryList(ctx c
 		return
 	}
 
-	var model DiagnosticSettingsCategoryResourceCollection
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]DiagnosticSettingsCategoryResource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// DiagnosticSettingsCategoryListComplete retrieves all the results into a single object
+func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryListComplete(ctx context.Context, id commonids.ScopeId) (DiagnosticSettingsCategoryListCompleteResult, error) {
+	return c.DiagnosticSettingsCategoryListCompleteMatchingPredicate(ctx, id, DiagnosticSettingsCategoryResourceOperationPredicate{})
+}
+
+// DiagnosticSettingsCategoryListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c DiagnosticSettingsCategoriesClient) DiagnosticSettingsCategoryListCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, predicate DiagnosticSettingsCategoryResourceOperationPredicate) (result DiagnosticSettingsCategoryListCompleteResult, err error) {
+	items := make([]DiagnosticSettingsCategoryResource, 0)
+
+	resp, err := c.DiagnosticSettingsCategoryList(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = DiagnosticSettingsCategoryListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

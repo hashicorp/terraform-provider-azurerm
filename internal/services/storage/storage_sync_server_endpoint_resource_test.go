@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -18,7 +18,7 @@ import (
 
 type StorageSyncServerEndpointResource struct{}
 
-func TestAccStorageSyncServerEndpointSequential(t *testing.T) {
+func TestAccStorageSyncServerEndpoint_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"storageSyncServerEndpoint": {
 			"basic":            testAccStorageSyncServerEndpoint_basic,
@@ -228,9 +228,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "acctest-share-%[1]d"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "acctest-share-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 
   acl {
     id = "GhostedRecall"

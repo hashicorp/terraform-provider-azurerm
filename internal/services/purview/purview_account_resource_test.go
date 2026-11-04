@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package purview_test
@@ -19,7 +19,7 @@ import (
 
 type PurviewAccountResource struct{}
 
-func TestAccPurviewAccountSequential(t *testing.T) {
+func TestAccPurviewAccount_sequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"purviewAccount": {
 			"basic":                        testAccPurviewAccount_basic,

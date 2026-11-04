@@ -25,8 +25,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_aaaa_record" "test" {
   name                = "test"
-  zone_name           = azurerm_private_dns_zone.test.name
-  resource_group_name = azurerm_resource_group.example.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
   ttl                 = 300
   records             = ["fd5d:70bc:930e:d008:0000:0000:0000:7334", "fd5d:70bc:930e:d008::7335"]
 }
@@ -38,9 +37,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the DNS A Record. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
-
-* `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `private_dns_zone_id` - (Required) Specifies the ID of the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 

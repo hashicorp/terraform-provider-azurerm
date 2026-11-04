@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package markdown
@@ -29,8 +29,7 @@ func (s *FrontMatterSection) GetContent() []string {
 
 func (s *FrontMatterSection) SetHeading(line string) {
 	s.heading = Heading{
-		Level: 0,
-		Text:  line,
+		Text: line,
 	}
 }
 

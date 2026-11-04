@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,17 +6,17 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/backupvaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/buckets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/netappaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshotpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/buckets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshotpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

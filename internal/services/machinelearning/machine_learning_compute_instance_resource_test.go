@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -205,10 +205,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "test-vlink"
-  resource_group_name   = azurerm_resource_group.test.name
-  private_dns_zone_name = azurerm_private_dns_zone.test.name
-  virtual_network_id    = azurerm_virtual_network.test.id
+  name                = "test-vlink"
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  virtual_network_id  = azurerm_virtual_network.test.id
 }
 
 resource "azurerm_private_endpoint" "test" {

@@ -47,6 +47,11 @@ service/app-service:
   - any-glob-to-any-file:
     - internal/services/appservice/**/*
 
+service/application-gateway:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/appgateway/**/*
+
 service/application-insights:
 - changed-files:
   - any-glob-to-any-file:
@@ -244,6 +249,11 @@ service/event-hubs:
   - any-glob-to-any-file:
     - internal/services/eventhub/**/*
 
+service/express-route:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/expressroute/**/*
+
 service/extended-location:
 - changed-files:
   - any-glob-to-any-file:
@@ -414,6 +424,16 @@ service/network-function:
   - any-glob-to-any-file:
     - internal/services/networkfunction/**/*
 
+service/network-gateway:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/networkgateway/**/*
+
+service/network-manager:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/networkmanager/**/*
+
 service/nginx:
 - changed-files:
   - any-glob-to-any-file:
@@ -428,11 +448,6 @@ service/oracle:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/oracle/**/*
-
-service/orbital:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/orbital/**/*
 
 service/paloalto:
 - changed-files:
@@ -489,7 +504,6 @@ service/redis:
   - any-glob-to-any-file:
     - internal/services/managedredis/**/*
     - internal/services/redis/**/*
-    - internal/services/redisenterprise/**/*
 
 service/relay:
 - changed-files:
@@ -600,6 +614,11 @@ service/virtual-desktops:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/desktopvirtualization/**/*
+
+service/virtual-wan:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/virtualwan/**/*
 
 service/vmware:
 - changed-files:

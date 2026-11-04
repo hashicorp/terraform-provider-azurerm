@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -17,6 +17,8 @@ import (
 )
 
 type BackupProtectionPolicyVMResource struct{}
+
+type BackupPolicyVmResource = BackupProtectionPolicyVMResource
 
 func TestAccBackupProtectionPolicyVM_policyTypeDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
@@ -710,7 +712,7 @@ resource "azurerm_backup_policy_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// nolint: unparam
+//nolint:unparam
 func (r BackupProtectionPolicyVMResource) basicHourly(data acceptance.TestData, policyType string) string {
 	return fmt.Sprintf(`
 %s

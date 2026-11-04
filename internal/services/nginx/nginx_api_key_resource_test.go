@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx_test
@@ -180,6 +180,10 @@ resource "azurerm_nginx_deployment" "test" {
   sku                 = "standardv3_Monthly"
   capacity            = 10
   location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
