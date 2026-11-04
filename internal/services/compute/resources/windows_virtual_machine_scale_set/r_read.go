@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine_scale_set
@@ -103,7 +103,8 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta a
 				d.Set("spot_restore", helpers.FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
 
-			resilientVMCreationEnabled, resilientVMDeletionEnabled := helpers.FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled := helpers.FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("automatic_zone_rebalancing_enabled", automaticZoneRebalancingEnabled)
 			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
 			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 

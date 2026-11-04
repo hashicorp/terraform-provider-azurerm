@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # Follows https://learn.microsoft.com/azure-stack/hci/deploy/deployment-prep-active-directory
@@ -23,7 +23,7 @@ for ($count = 0; $count -lt 6; $count++) {
         $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
         $domainShort = $domainFqdn.Split(".")[0]
         $cred = New-Object System.Management.Automation.PSCredential -ArgumentList "$domainShort\$username", $secpasswd
-        
+
         if ($authType -eq "CredSSP") {
             try {
                 Enable-WSManCredSSP -Role Client -DelegateComputer $ip -Force
@@ -32,7 +32,7 @@ for ($count = 0; $count -lt 6; $count++) {
                 echo "Enable-WSManCredSSP failed"
             }
         }
-        
+
         $session = New-PSSession -ComputerName $ip -Port $port -Authentication $authType -Credential $cred
         if ($ifdeleteadou) {
             Invoke-Command -Session $session -ScriptBlock {
@@ -48,12 +48,12 @@ for ($count = 0; $count -lt 6; $count++) {
                     }
                     if ($ou) {
                         Set-ADOrganizationalUnit -Identity $ouname -ProtectedFromAccidentalDeletion $false
-                        $ou | Remove-ADOrganizationalUnit -Recursive -Confirm:$False 
+                        $ou | Remove-ADOrganizationalUnit -Recursive -Confirm:$False
                         echo "Deleted adou: $ouname"
                     }
                 }
             }
-            
+
         }
         $deploymentSecPasswd = ConvertTo-SecureString $deploymentUserPassword -AsPlainText -Force
         $lcmCred = New-Object System.Management.Automation.PSCredential -ArgumentList $deploymentUserName, $deploymentSecPasswd
