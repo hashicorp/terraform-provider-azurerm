@@ -6,6 +6,7 @@ package eventgrid_partner_configuration_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -126,6 +127,19 @@ func TestAccEventGridPartnerConfiguration_withoutPartnerName(t *testing.T) {
 	})
 }
 
+func TestAccEventGridPartnerConfiguration_withoutPartnerIdentifiers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
+	r := EventGridPartnerConfigurationsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withoutPartnerIdentifiers(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("at least one of `partner_registration_id` or `partner_name` must be provided in `partner_authorization\\.0`"),
+		},
+	})
+}
+
 func (EventGridPartnerConfigurationsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupID(state.ID)
 	if err != nil {
@@ -224,4 +238,23 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, expiryTime)
+}
+
+func (EventGridPartnerConfigurationsTestResource) withoutPartnerIdentifiers(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_partner_configuration" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+
+  partner_authorization {}
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
