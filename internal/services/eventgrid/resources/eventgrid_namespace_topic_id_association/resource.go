@@ -27,3 +27,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) Identity() resourceids.ResourceId {
 	return &namespaces.NamespaceId{}
 }
+
+func (r Resource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
+}
