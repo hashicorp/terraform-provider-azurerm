@@ -152,6 +152,10 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
+
+		// Reuse connections across all clients and provider configurations.
+		// go-vcr below replaces it for recorded tests.
+		Transport: sharedTransport,
 	}
 
 	// go-vcr integration
