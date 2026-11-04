@@ -218,7 +218,7 @@ func TestAccCdnFrontDoorCustomDomain_mtlsNullCompatibility(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.cipherSuitesTls12Multiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClient(r.mtlsSettingsNotSet),
