@@ -107,13 +107,10 @@ func (r RelayHybridConnectionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			requireClientAuthorization := model.RequiresClientAuthorization
-			userMetadata := model.UserMetadata
-
 			parameters := hybridconnections.HybridConnection{
 				Properties: &hybridconnections.HybridConnectionProperties{
-					RequiresClientAuthorization: &requireClientAuthorization,
-					UserMetadata:                &userMetadata,
+					RequiresClientAuthorization: pointer.To(model.RequiresClientAuthorization),
+					UserMetadata:                pointer.To(model.UserMetadata),
 				},
 			}
 
