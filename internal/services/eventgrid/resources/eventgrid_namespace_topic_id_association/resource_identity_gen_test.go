@@ -17,7 +17,7 @@ func TestAccEventgridNamespaceTopicIdAssociation_resourceIdentity(t *testing.T) 
 	r := EventgridNamespaceTopicIdAssociationResource{}
 
 	checkedFields := map[string]struct{}{
-		"name":                {},
+		"namespace_name":      {},
 		"resource_group_name": {},
 		"subscription_id":     {},
 	}
@@ -27,7 +27,7 @@ func TestAccEventgridNamespaceTopicIdAssociation_resourceIdentity(t *testing.T) 
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_eventgrid_namespace_topic_id_association.test", checkedFields),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventgrid_namespace_topic_id_association.test", tfjsonpath.New("name"), tfjsonpath.New("eventgrid_namespace_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventgrid_namespace_topic_id_association.test", tfjsonpath.New("namespace_name"), tfjsonpath.New("eventgrid_namespace_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventgrid_namespace_topic_id_association.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("eventgrid_namespace_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_eventgrid_namespace_topic_id_association.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("eventgrid_namespace_id")),
 			},
