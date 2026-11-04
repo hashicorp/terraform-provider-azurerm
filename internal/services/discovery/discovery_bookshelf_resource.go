@@ -298,35 +298,42 @@ func (r DiscoveryBookshelfResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			state := DiscoveryBookshelfModel{
-				Name:              id.BookshelfName,
-				ResourceGroupName: id.ResourceGroupName,
-				Location:          location.Normalize(resp.Model.Location),
-				Tags:              pointer.From(resp.Model.Tags),
-			}
-
-			if props := resp.Model.Properties; props != nil {
-				state.LogAnalyticsClusterId = pointer.From(props.LogAnalyticsClusterId)
-				state.ManagedResourceGroupName = pointer.From(props.ManagedResourceGroup)
-				state.PrivateEndpointSubnetId = pointer.From(props.PrivateEndpointSubnetId)
-				state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == bookshelves.PublicNetworkAccessEnabled
-				state.SearchSubnetId = pointer.From(props.SearchSubnetId)
-				state.Uri = pointer.From(props.BookshelfUri)
-				state.WorkloadIdentityIds = flattenDiscoveryBookshelfWorkloadIdentities(props.WorkloadIdentities)
-				state.ManagedOnBehalfOfBrokerResourceIds = flattenDiscoveryBookshelfMoboBrokerResourceIds(props.ManagedOnBehalfOfConfiguration)
-
-				if pointer.From(props.CustomerManagedKeys) == bookshelves.CustomerManagedKeysEnabled {
-					state.CustomerManagedKey = flattenDiscoveryBookshelfCustomerManagedKey(props.KeyVaultProperties)
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r DiscoveryBookshelfResource) flatten(metadata sdk.ResourceMetaData, id *bookshelves.BookshelfId, model *bookshelves.Bookshelf) error {
+	state := DiscoveryBookshelfModel{
+		Name:              id.BookshelfName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		if props := model.Properties; props != nil {
+			state.LogAnalyticsClusterId = pointer.From(props.LogAnalyticsClusterId)
+			state.ManagedResourceGroupName = pointer.From(props.ManagedResourceGroup)
+			state.PrivateEndpointSubnetId = pointer.From(props.PrivateEndpointSubnetId)
+			state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == bookshelves.PublicNetworkAccessEnabled
+			state.SearchSubnetId = pointer.From(props.SearchSubnetId)
+			state.Uri = pointer.From(props.BookshelfUri)
+			state.WorkloadIdentityIds = flattenDiscoveryBookshelfWorkloadIdentities(props.WorkloadIdentities)
+			state.ManagedOnBehalfOfBrokerResourceIds = flattenDiscoveryBookshelfMoboBrokerResourceIds(props.ManagedOnBehalfOfConfiguration)
+
+			if pointer.From(props.CustomerManagedKeys) == bookshelves.CustomerManagedKeysEnabled {
+				state.CustomerManagedKey = flattenDiscoveryBookshelfCustomerManagedKey(props.KeyVaultProperties)
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r DiscoveryBookshelfResource) Update() sdk.ResourceFunc {
