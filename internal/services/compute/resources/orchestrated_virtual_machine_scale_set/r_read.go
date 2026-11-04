@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package orchestrated_virtual_machine_scale_set
@@ -86,6 +86,11 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			if err := d.Set("automatic_instance_repair", helpers.FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
 				return fmt.Errorf("setting `automatic_instance_repair`: %w", err)
 			}
+
+			automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled := helpers.FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("automatic_zone_rebalancing_enabled", automaticZoneRebalancingEnabled)
+			d.Set("resilient_virtual_machine_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_virtual_machine_deletion_enabled", resilientVMDeletionEnabled)
 
 			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 			proximityPlacementGroupId := ""

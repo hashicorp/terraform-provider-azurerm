@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_redis_access_policy_assignment_test
@@ -12,6 +12,17 @@ import (
 )
 
 type ManagedRedisAccessPolicyAssignmentDataSource struct{}
+
+func TestAccManagedRedisAccessPolicyAssignmentDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis_access_policy_assignment", "test")
+	r := ManagedRedisAccessPolicyAssignmentDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccManagedRedisAccessPolicyAssignmentDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_redis_access_policy_assignment", "test")
