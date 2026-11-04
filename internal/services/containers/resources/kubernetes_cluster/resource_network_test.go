@@ -2543,10 +2543,13 @@ func (KubernetesClusterResource) checkNatGatewaySku(expected managedclusters.Man
 
 func (KubernetesClusterResource) managedNatGatewayConfig(data acceptance.TestData, includeNatGatewayProfile bool, sku string) string {
 	natGatewayProfile := ""
-	if sku != "" {
-		natGatewayProfile = fmt.Sprintf("nat_gateway_profile {\n      sku = %q\n    }", sku)
-	} else if includeNatGatewayProfile {
+	if includeNatGatewayProfile {
 		natGatewayProfile = "nat_gateway_profile {}"
+		if sku != "" {
+			natGatewayProfile = fmt.Sprintf(`nat_gateway_profile {
+      sku = %q
+    }`, sku)
+		}
 	}
 
 	return fmt.Sprintf(`
