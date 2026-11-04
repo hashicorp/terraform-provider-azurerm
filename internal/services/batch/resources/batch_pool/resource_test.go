@@ -2726,7 +2726,6 @@ resource "azurerm_batch_pool" "test" {
     sku       = "22_04-lts"
     version   = "latest"
   }
-
 }
 `, BatchPoolResource{}.template(data), data.RandomString, data.RandomString)
 }
