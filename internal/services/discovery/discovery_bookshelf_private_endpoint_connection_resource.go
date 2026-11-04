@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties name -compare-values subscription_id:bookshelf_id,resource_group_name:bookshelf_id,bookshelf_name:bookshelf_id
+
 var (
 	_ sdk.ResourceWithUpdate   = DiscoveryBookshelfPrivateEndpointConnectionResource{}
 	_ sdk.ResourceWithIdentity = DiscoveryBookshelfPrivateEndpointConnectionResource{}
