@@ -14,7 +14,7 @@ Use this data source to access information about an existing Consumption Budget 
 
 ```hcl
 data "azurerm_consumption_budget_resource_group" "example" {
-  name              = "existing"
+  name              = "example-budget"
   resource_group_id = azurerm_resource_group.example.id
 }
 

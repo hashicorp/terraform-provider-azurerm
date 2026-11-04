@@ -5,5 +5,5 @@ package skus
 
 type ResourceSkuZoneDetails struct {
 	Capabilities *[]ResourceSkuCapabilities `json:"capabilities,omitempty"`
-	Name         *[]string                  `json:"name,omitempty"`
+	Name         *[]string                  `json:"Name,omitempty"`
 }

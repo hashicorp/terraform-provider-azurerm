@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/resources/frontdoor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/resources/frontdoor_custom_https_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/resources/frontdoor_firewall_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/resources/frontdoor_rules_engine"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,10 +45,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_frontdoor":                            resourceFrontDoor(),
-		"azurerm_frontdoor_custom_https_configuration": resourceFrontDoorCustomHTTPSConfiguration(),
-		"azurerm_frontdoor_firewall_policy":            resourceFrontDoorFirewallPolicy(),
-		"azurerm_frontdoor_rules_engine":               resourceFrontDoorRulesEngine(),
+		"azurerm_frontdoor":                            frontdoor.RegisterResource(),
+		"azurerm_frontdoor_custom_https_configuration": frontdoor_custom_https_configuration.RegisterResource(),
+		"azurerm_frontdoor_firewall_policy":            frontdoor_firewall_policy.RegisterResource(),
+		"azurerm_frontdoor_rules_engine":               frontdoor_rules_engine.RegisterResource(),
 	}
 }
 

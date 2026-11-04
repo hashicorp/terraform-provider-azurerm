@@ -202,7 +202,7 @@ A `service_fabric_cluster` block supports the following:
 
 * `server_certificate_thumbprints` - (Optional) A list of thumbprints of the server certificates of the Service Fabric cluster.
 
-* `server_x509_name` - (Optional) One or more `server_x509_name` blocks as documented below.
+* `server_x509_name` - (Optional) One or more `server_x509_name` blocks as defined below.
 
 ---
 
