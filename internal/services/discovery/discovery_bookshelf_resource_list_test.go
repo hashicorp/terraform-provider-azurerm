@@ -21,7 +21,6 @@ func TestAccDiscoveryBookshelf_list(t *testing.T) {
 	r := DiscoveryBookshelfResource{}
 	listResourceAddress := "azurerm_discovery_bookshelf.list"
 
-	// each Bookshelf consumes the full default model deployment quota, so only one is provisioned here
 	expectedIdentity := map[string]knownvalue.Check{
 		"name":                knownvalue.StringExact(fmt.Sprintf("acctest-%s", data.RandomString)),
 		"resource_group_name": knownvalue.StringExact(fmt.Sprintf("acctestrg-%d", data.RandomInteger)),
