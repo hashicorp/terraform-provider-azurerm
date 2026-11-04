@@ -4,6 +4,7 @@
 package data_protection_backup_instance_blob_storage
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,21 +12,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	client := meta.(*clients.Client).DataProtection.BackupInstanceClient20260601
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -75,7 +75,13 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		},
 	}
 
-	if v, ok := d.GetOk("storage_account_container_names"); ok {
+	if d.Get("auto_protection_enabled").(bool) {
+		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
+			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
+				expandBlobBackupAutoProtection(d.Get("excluded_container_name_prefixes").(*pluginsdk.Set).List()),
+			},
+		}
+	} else if v, ok := d.GetOk("storage_account_container_names"); ok {
 		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
 			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
 				backupinstanceresources.BlobBackupDatasourceParameters{
@@ -106,7 +112,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection), "UpdatingProtection"},
 		Target:     []string{string(backupinstanceresources.StatusProtectionConfigured)},
-		Refresh:    helpers.PolicyProtectionStateRefreshFunc(ctx, client, id),
+		Refresh:    protectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
 	}
@@ -116,4 +122,18 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	}
 
 	return resourceDataProtectionBackupInstanceBlobStorageRead(d, meta)
+}
+
+func protectionStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (any, string, error) {
+		res, err := client.BackupInstancesGet(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
+		}
+		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.ProtectionStatus == nil || res.Model.Properties.ProtectionStatus.Status == nil {
+			return nil, "", fmt.Errorf("reading DataProtection BackupInstance (%q) protection status: %+v", id, err)
+		}
+
+		return res, string(*res.Model.Properties.ProtectionStatus.Status), nil
+	}
 }

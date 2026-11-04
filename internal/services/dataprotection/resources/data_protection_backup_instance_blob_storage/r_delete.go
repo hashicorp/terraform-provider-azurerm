@@ -6,14 +6,14 @@ package data_protection_backup_instance_blob_storage
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	client := meta.(*clients.Client).DataProtection.BackupInstanceClient20260601
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
