@@ -921,11 +921,13 @@ func flattenHcpOpenShiftClusterApi(input *hcpopenshiftclusters.ApiProfile) []Hcp
 	if input == nil {
 		return []HcpOpenShiftClusterApiProfile{}
 	}
-	return []HcpOpenShiftClusterApiProfile{{
-		Url:             input.Url,
-		Visibility:      pointer.FromEnum(input.Visibility),
-		AuthorizedCidrs: pointer.From(input.AuthorizedCidrs),
-	}}
+	return []HcpOpenShiftClusterApiProfile{
+		{
+			Url:             input.Url,
+			Visibility:      pointer.FromEnum(input.Visibility),
+			AuthorizedCidrs: pointer.From(input.AuthorizedCidrs),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterAutoscaling(input []HcpOpenShiftClusterAutoscalingProfile) *hcpopenshiftclusters.ClusterAutoscalingProfile {
@@ -944,12 +946,14 @@ func flattenHcpOpenShiftClusterAutoscaling(input *hcpopenshiftclusters.ClusterAu
 	if input == nil {
 		return []HcpOpenShiftClusterAutoscalingProfile{}
 	}
-	return []HcpOpenShiftClusterAutoscalingProfile{{
-		MaxNodesTotal:               pointer.From(input.MaxNodesTotal),
-		MaxPodGracePeriodSeconds:    pointer.From(input.MaxPodGracePeriodSeconds),
-		MaxNodeProvisionTimeSeconds: pointer.From(input.MaxNodeProvisionTimeSeconds),
-		PodPriorityThreshold:        pointer.From(input.PodPriorityThreshold),
-	}}
+	return []HcpOpenShiftClusterAutoscalingProfile{
+		{
+			MaxNodesTotal:               pointer.From(input.MaxNodesTotal),
+			MaxPodGracePeriodSeconds:    pointer.From(input.MaxPodGracePeriodSeconds),
+			MaxNodeProvisionTimeSeconds: pointer.From(input.MaxNodeProvisionTimeSeconds),
+			PodPriorityThreshold:        pointer.From(input.PodPriorityThreshold),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterDns(input []HcpOpenShiftClusterDnsProfile) *hcpopenshiftclusters.DnsProfile {
@@ -965,10 +969,12 @@ func flattenHcpOpenShiftClusterDns(input *hcpopenshiftclusters.DnsProfile) []Hcp
 	if input == nil {
 		return []HcpOpenShiftClusterDnsProfile{}
 	}
-	return []HcpOpenShiftClusterDnsProfile{{
-		BaseDomain:       pointer.From(input.BaseDomain),
-		BaseDomainPrefix: pointer.From(input.BaseDomainPrefix),
-	}}
+	return []HcpOpenShiftClusterDnsProfile{
+		{
+			BaseDomain:       pointer.From(input.BaseDomain),
+			BaseDomainPrefix: pointer.From(input.BaseDomainPrefix),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterNetwork(input []HcpOpenShiftClusterNetworkProfile) *hcpopenshiftclusters.NetworkProfile {
@@ -988,13 +994,15 @@ func flattenHcpOpenShiftClusterNetwork(input *hcpopenshiftclusters.NetworkProfil
 	if input == nil {
 		return []HcpOpenShiftClusterNetworkProfile{}
 	}
-	return []HcpOpenShiftClusterNetworkProfile{{
-		NetworkType: pointer.FromEnum(input.NetworkType),
-		PodCidr:     pointer.From(input.PodCidr),
-		ServiceCidr: pointer.From(input.ServiceCidr),
-		MachineCidr: pointer.From(input.MachineCidr),
-		HostPrefix:  pointer.From(input.HostPrefix),
-	}}
+	return []HcpOpenShiftClusterNetworkProfile{
+		{
+			NetworkType: pointer.FromEnum(input.NetworkType),
+			PodCidr:     pointer.From(input.PodCidr),
+			ServiceCidr: pointer.From(input.ServiceCidr),
+			MachineCidr: pointer.From(input.MachineCidr),
+			HostPrefix:  pointer.From(input.HostPrefix),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterIngress(input []HcpOpenShiftClusterIngressProfile) *hcpopenshiftclusters.IngressProfile {
@@ -1010,7 +1018,11 @@ func flattenHcpOpenShiftClusterIngress(input *hcpopenshiftclusters.IngressProfil
 	if input == nil {
 		return []HcpOpenShiftClusterIngressProfile{}
 	}
-	return []HcpOpenShiftClusterIngressProfile{{Type: pointer.FromEnum(input.Type)}}
+	return []HcpOpenShiftClusterIngressProfile{
+		{
+			Type: pointer.FromEnum(input.Type),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterPlatform(input []HcpOpenShiftClusterPlatformProfile) hcpopenshiftclusters.PlatformProfile {
@@ -1061,16 +1073,18 @@ func flattenHcpOpenShiftClusterPlatform(input *hcpopenshiftclusters.PlatformProf
 		return nil, fmt.Errorf("flattening `container_registry`: %+v", err)
 	}
 
-	return []HcpOpenShiftClusterPlatformProfile{{
-		ContainerRegistry:       containerRegistry,
-		ManagedResourceGroup:    pointer.From(input.ManagedResourceGroup),
-		SubnetId:                subnetId.ID(),
-		VnetIntegrationSubnetId: vnetIntegrationSubnetId.ID(),
-		OutboundType:            pointer.FromEnum(input.OutboundType),
-		NetworkSecurityGroupId:  networkSecurityGroupId.ID(),
-		OperatorsAuthentication: operatorsAuthentication,
-		IssuerUrl:               input.IssuerURL,
-	}}, nil
+	return []HcpOpenShiftClusterPlatformProfile{
+		{
+			ContainerRegistry:       containerRegistry,
+			ManagedResourceGroup:    pointer.From(input.ManagedResourceGroup),
+			SubnetId:                subnetId.ID(),
+			VnetIntegrationSubnetId: vnetIntegrationSubnetId.ID(),
+			OutboundType:            pointer.FromEnum(input.OutboundType),
+			NetworkSecurityGroupId:  networkSecurityGroupId.ID(),
+			OperatorsAuthentication: operatorsAuthentication,
+			IssuerUrl:               input.IssuerURL,
+		},
+	}, nil
 }
 
 func expandHcpOpenShiftClusterContainerRegistry(input []HcpOpenShiftClusterContainerRegistryProfile) *hcpopenshiftclusters.ContainerRegistryProfile {
@@ -1091,7 +1105,11 @@ func flattenHcpOpenShiftClusterContainerRegistry(input *hcpopenshiftclusters.Con
 	if err != nil {
 		return nil, fmt.Errorf("parsing `managed_identity`: %+v", err)
 	}
-	return []HcpOpenShiftClusterContainerRegistryProfile{{ManagedIdentity: id.ID()}}, nil
+	return []HcpOpenShiftClusterContainerRegistryProfile{
+		{
+			ManagedIdentity: id.ID(),
+		},
+	}, nil
 }
 
 func expandHcpOpenShiftClusterOperatorsAuthentication(input []HcpOpenShiftClusterOperatorsAuthentication) hcpopenshiftclusters.OperatorsAuthenticationProfile {
@@ -1128,13 +1146,17 @@ func flattenHcpOpenShiftClusterOperatorsAuthentication(input *hcpopenshiftcluste
 		return nil, fmt.Errorf("parsing `service_managed_identity`: %+v", err)
 	}
 
-	return []HcpOpenShiftClusterOperatorsAuthentication{{
-		UserAssignedIdentities: []HcpOpenShiftClusterUserAssignedIdentities{{
-			ControlPlaneOperators:  controlPlaneOperators,
-			DataPlaneOperators:     dataPlaneOperators,
-			ServiceManagedIdentity: serviceManagedIdentity.ID(),
-		}},
-	}}, nil
+	return []HcpOpenShiftClusterOperatorsAuthentication{
+		{
+			UserAssignedIdentities: []HcpOpenShiftClusterUserAssignedIdentities{
+				{
+					ControlPlaneOperators:  controlPlaneOperators,
+					DataPlaneOperators:     dataPlaneOperators,
+					ServiceManagedIdentity: serviceManagedIdentity.ID(),
+				},
+			},
+		},
+	}, nil
 }
 
 func flattenHcpOpenShiftClusterUserAssignedIdentityMap(input map[string]string) (map[string]string, error) {
@@ -1166,7 +1188,11 @@ func flattenHcpOpenShiftClusterImageRegistry(input *hcpopenshiftclusters.Cluster
 	if input == nil {
 		return []HcpOpenShiftClusterImageRegistryProfile{}
 	}
-	return []HcpOpenShiftClusterImageRegistryProfile{{State: pointer.FromEnum(input.State)}}
+	return []HcpOpenShiftClusterImageRegistryProfile{
+		{
+			State: pointer.FromEnum(input.State),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterVersion(input []HcpOpenShiftClusterVersionProfile) hcpopenshiftclusters.VersionProfile {
@@ -1183,10 +1209,12 @@ func flattenHcpOpenShiftClusterVersion(input *hcpopenshiftclusters.VersionProfil
 	if input == nil {
 		return []HcpOpenShiftClusterVersionProfile{}
 	}
-	return []HcpOpenShiftClusterVersionProfile{{
-		Id:           input.Id,
-		ChannelGroup: pointer.From(input.ChannelGroup),
-	}}
+	return []HcpOpenShiftClusterVersionProfile{
+		{
+			Id:           input.Id,
+			ChannelGroup: pointer.From(input.ChannelGroup),
+		},
+	}
 }
 
 func expandHcpOpenShiftClusterImageDigestMirrors(input []HcpOpenShiftClusterImageDigestMirror) *[]hcpopenshiftclusters.ImageDigestMirror {
@@ -1262,17 +1290,25 @@ func flattenHcpOpenShiftClusterEtcd(input *hcpopenshiftclusters.EtcdProfile) []H
 			EncryptionType: pointer.FromEnum(customerManaged.EncryptionType),
 		}
 		if customerManaged.Kms != nil {
-			flattenedCustomerManaged.Kms = []HcpOpenShiftClusterKmsEncryption{{
-				VaultName:    customerManaged.Kms.VaultName,
-				KeyVaultType: pointer.FromEnum(customerManaged.Kms.KeyVaultType),
-				Visibility:   string(customerManaged.Kms.Visibility),
-				ActiveKey: []HcpOpenShiftClusterKmsKey{{
-					Name:    customerManaged.Kms.ActiveKey.Name,
-					Version: customerManaged.Kms.ActiveKey.Version,
-				}},
-			}}
+			flattenedCustomerManaged.Kms = []HcpOpenShiftClusterKmsEncryption{
+				{
+					VaultName:    customerManaged.Kms.VaultName,
+					KeyVaultType: pointer.FromEnum(customerManaged.Kms.KeyVaultType),
+					Visibility:   string(customerManaged.Kms.Visibility),
+					ActiveKey: []HcpOpenShiftClusterKmsKey{
+						{
+							Name:    customerManaged.Kms.ActiveKey.Name,
+							Version: customerManaged.Kms.ActiveKey.Version,
+						},
+					},
+				},
+			}
 		}
 		dataEncryption.CustomerManaged = []HcpOpenShiftClusterCustomerManagedEncryption{flattenedCustomerManaged}
 	}
-	return []HcpOpenShiftClusterEtcdProfile{{DataEncryption: []HcpOpenShiftClusterEtcdDataEncryptionProfile{dataEncryption}}}
+	return []HcpOpenShiftClusterEtcdProfile{
+		{
+			DataEncryption: []HcpOpenShiftClusterEtcdDataEncryptionProfile{dataEncryption},
+		},
+	}
 }

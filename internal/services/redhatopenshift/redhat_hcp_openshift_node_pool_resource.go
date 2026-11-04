@@ -77,22 +77,25 @@ type HcpOpenShiftNodePoolTaint struct {
 }
 
 func (r RedHatHcpOpenShiftNodePool) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{Timeout: 5 * time.Minute, Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		diff := metadata.ResourceDiff
-		minPath, maxPath := "auto_scaling.0.min", "auto_scaling.0.max"
-		if diff.NewValueKnown(minPath) && diff.NewValueKnown(maxPath) && diff.Get(minPath).(int) > diff.Get(maxPath).(int) {
-			return fmt.Errorf("`auto_scaling.min` must not exceed `auto_scaling.max`")
-		}
-		zonePath := "platform.0.availability_zone"
-		if diff.NewValueKnown(zonePath) && diff.Get(zonePath).(string) == "" {
-			for _, path := range []string{minPath, maxPath} {
-				if diff.NewValueKnown(path) && diff.Get(path).(int) > 200 {
-					return fmt.Errorf("`%s` must not exceed 200 when `platform.availability_zone` is not specified", path)
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			diff := metadata.ResourceDiff
+			minPath, maxPath := "auto_scaling.0.min", "auto_scaling.0.max"
+			if diff.NewValueKnown(minPath) && diff.NewValueKnown(maxPath) && diff.Get(minPath).(int) > diff.Get(maxPath).(int) {
+				return fmt.Errorf("`auto_scaling.min` must not exceed `auto_scaling.max`")
+			}
+			zonePath := "platform.0.availability_zone"
+			if diff.NewValueKnown(zonePath) && diff.Get(zonePath).(string) == "" {
+				for _, path := range []string{minPath, maxPath} {
+					if diff.NewValueKnown(path) && diff.Get(path).(int) > 200 {
+						return fmt.Errorf("`%s` must not exceed 200 when `platform.availability_zone` is not specified", path)
+					}
 				}
 			}
-		}
-		return nil
-	}}
+			return nil
+		},
+	}
 }
 
 func (r RedHatHcpOpenShiftNodePool) Arguments() map[string]*pluginsdk.Schema {
@@ -313,95 +316,104 @@ func (r RedHatHcpOpenShiftNodePool) Identity() resourceids.ResourceId {
 }
 
 func (r RedHatHcpOpenShiftNodePool) Create() sdk.ResourceFunc {
-	return sdk.ResourceFunc{Timeout: 60 * time.Minute, Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		var config RedHatHcpOpenShiftNodePoolModel
-		if err := metadata.Decode(&config); err != nil {
-			return fmt.Errorf("decoding: %+v", err)
-		}
-		parent, err := hcpopenshiftclusters.ParseHcpOpenShiftClusterID(config.ClusterId)
-		if err != nil {
-			return err
-		}
-		id := nodepools.NewNodePoolID(parent.SubscriptionId, parent.ResourceGroupName, parent.HcpOpenShiftClusterName, config.Name)
-		client := metadata.Client.RedHatOpenShift.NodePoolsClient
-		if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config RedHatHcpOpenShiftNodePoolModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			parent, err := hcpopenshiftclusters.ParseHcpOpenShiftClusterID(config.ClusterId)
+			if err != nil {
+				return err
 			}
-		}
-		cluster, err := metadata.Client.RedHatOpenShift.HcpOpenShiftClustersClient.Get(ctx, *parent)
-		if err != nil {
-			return fmt.Errorf("retrieving parent %s: %+v", parent, err)
-		}
-		if cluster.Model == nil {
-			return fmt.Errorf("retrieving parent %s: `model` was nil", parent)
-		}
-		parameters, err := expandHcpOpenShiftNodePool(config, cluster.Model.Location)
-		if err != nil {
-			return err
-		}
-		if metadata.ResourceData.GetRawConfig().GetAttr("replicas").IsNull() {
-			parameters.Properties.Replicas = nil
-		}
-		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
-		metadata.SetID(id)
-		return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
-	}}
+			id := nodepools.NewNodePoolID(parent.SubscriptionId, parent.ResourceGroupName, parent.HcpOpenShiftClusterName, config.Name)
+			client := metadata.Client.RedHatOpenShift.NodePoolsClient
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
+			}
+			cluster, err := metadata.Client.RedHatOpenShift.HcpOpenShiftClustersClient.Get(ctx, *parent)
+			if err != nil {
+				return fmt.Errorf("retrieving parent %s: %+v", parent, err)
+			}
+			if cluster.Model == nil {
+				return fmt.Errorf("retrieving parent %s: `model` was nil", parent)
+			}
+			parameters, err := expandHcpOpenShiftNodePool(config, cluster.Model.Location)
+			if err != nil {
+				return err
+			}
+			if metadata.ResourceData.GetRawConfig().GetAttr("replicas").IsNull() {
+				parameters.Properties.Replicas = nil
+			}
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *parameters, metadata.SetIDAndIdentityCallback(&id)); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+			metadata.SetID(id)
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
+		},
+	}
 }
 
 func (r RedHatHcpOpenShiftNodePool) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{Timeout: 60 * time.Minute, Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := nodepools.ParseNodePoolID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-		var config RedHatHcpOpenShiftNodePoolModel
-		if err := metadata.Decode(&config); err != nil {
-			return fmt.Errorf("decoding: %+v", err)
-		}
-		client := metadata.Client.RedHatOpenShift.NodePoolsClient
-		existing, err := client.Get(ctx, *id)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-		if existing.Model == nil {
-			return fmt.Errorf("retrieving %s: `model` was nil", id)
-		}
-		parameters, err := expandHcpOpenShiftNodePool(config, existing.Model.Location)
-		if err != nil {
-			return err
-		}
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-		return nil
-	}}
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := nodepools.ParseNodePoolID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			var config RedHatHcpOpenShiftNodePoolModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			client := metadata.Client.RedHatOpenShift.NodePoolsClient
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			parameters, err := expandHcpOpenShiftNodePool(config, existing.Model.Location)
+			if err != nil {
+				return err
+			}
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+			return nil
+		},
+	}
 }
 
 func (r RedHatHcpOpenShiftNodePool) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{Timeout: 5 * time.Minute, Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := nodepools.ParseNodePoolID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-		resp, err := metadata.Client.RedHatOpenShift.NodePoolsClient.Get(ctx, *id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return metadata.MarkAsGone(id)
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := nodepools.ParseNodePoolID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
 			}
-			return fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-		if resp.Model == nil {
-			return fmt.Errorf("retrieving %s: `model` was nil", id)
-		}
-		return r.flatten(metadata, *id, *resp.Model)
-	}}
+			resp, err := metadata.Client.RedHatOpenShift.NodePoolsClient.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			return r.flatten(metadata, *id, *resp.Model)
+		},
+	}
 }
 
 func (r RedHatHcpOpenShiftNodePool) flatten(metadata sdk.ResourceMetaData, id nodepools.NodePoolId, model nodepools.NodePool) error {
@@ -416,16 +428,19 @@ func (r RedHatHcpOpenShiftNodePool) flatten(metadata sdk.ResourceMetaData, id no
 }
 
 func (r RedHatHcpOpenShiftNodePool) Delete() sdk.ResourceFunc {
-	return sdk.ResourceFunc{Timeout: 60 * time.Minute, Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := nodepools.ParseNodePoolID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-		if err := metadata.Client.RedHatOpenShift.NodePoolsClient.DeleteThenPoll(ctx, *id); err != nil {
-			return fmt.Errorf("deleting %s: %+v", id, err)
-		}
-		return nil
-	}}
+	return sdk.ResourceFunc{
+		Timeout: 60 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := nodepools.ParseNodePoolID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			if err := metadata.Client.RedHatOpenShift.NodePoolsClient.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+			return nil
+		},
+	}
 }
 
 func expandHcpOpenShiftNodePool(input RedHatHcpOpenShiftNodePoolModel, parentLocation string) (*nodepools.NodePool, error) {
@@ -436,7 +451,10 @@ func expandHcpOpenShiftNodePool(input RedHatHcpOpenShiftNodePoolModel, parentLoc
 	props := &nodepools.NodePoolProperties{
 		AutoRepair:              pointer.To(input.AutoRepair),
 		NodeDrainTimeoutMinutes: pointer.To(input.NodeDrainTimeoutMinutes),
-		Platform:                nodepools.NodePoolPlatformProfile{VMSize: platform.VMSize, EnableEncryptionAtHost: pointer.To(platform.EnableEncryptionAtHost)},
+		Platform: nodepools.NodePoolPlatformProfile{
+			VMSize:                 platform.VMSize,
+			EnableEncryptionAtHost: pointer.To(platform.EnableEncryptionAtHost),
+		},
 	}
 	if platform.SubnetId != "" {
 		props.Platform.SubnetId = pointer.To(platform.SubnetId)
@@ -445,12 +463,18 @@ func expandHcpOpenShiftNodePool(input RedHatHcpOpenShiftNodePoolModel, parentLoc
 		props.Platform.AvailabilityZone = pointer.To(platform.AvailabilityZone)
 	}
 	if len(input.AutoScaling) > 0 {
-		props.AutoScaling = &nodepools.NodePoolAutoScaling{Min: pointer.To(input.AutoScaling[0].Min), Max: pointer.To(input.AutoScaling[0].Max)}
+		props.AutoScaling = &nodepools.NodePoolAutoScaling{
+			Min: pointer.To(input.AutoScaling[0].Min),
+			Max: pointer.To(input.AutoScaling[0].Max),
+		}
 	} else {
 		props.Replicas = pointer.To(input.Replicas)
 	}
 	if len(input.Version) > 0 {
-		props.Version = &nodepools.NodePoolVersionProfile{Id: input.Version[0].Id, ChannelGroup: pointer.To(input.Version[0].ChannelGroup)}
+		props.Version = &nodepools.NodePoolVersionProfile{
+			Id:           input.Version[0].Id,
+			ChannelGroup: pointer.To(input.Version[0].ChannelGroup),
+		}
 	}
 	if len(platform.OsDisk) > 0 {
 		disk := platform.OsDisk[0]
@@ -475,20 +499,36 @@ func expandHcpOpenShiftNodePool(input RedHatHcpOpenShiftNodePoolModel, parentLoc
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
-		labels = append(labels, nodepools.Label{Key: key, Value: pointer.To(input.Labels[key])})
+		labels = append(labels, nodepools.Label{
+			Key:   key,
+			Value: pointer.To(input.Labels[key]),
+		})
 	}
 	props.Labels = &labels
 	taints := make([]nodepools.Taint, 0, len(input.Taints))
 	for _, taint := range input.Taints {
-		taints = append(taints, nodepools.Taint{Key: taint.Key, Value: pointer.To(taint.Value), Effect: nodepools.Effect(taint.Effect)})
+		taints = append(taints, nodepools.Taint{
+			Key:    taint.Key,
+			Value:  pointer.To(taint.Value),
+			Effect: nodepools.Effect(taint.Effect),
+		})
 	}
 	props.Taints = &taints
-	return &nodepools.NodePool{Location: location.Normalize(parentLocation), Properties: props, Tags: pointer.To(input.Tags)}, nil
+	return &nodepools.NodePool{
+		Location:   location.Normalize(parentLocation),
+		Properties: props,
+		Tags:       pointer.To(input.Tags),
+	}, nil
 }
 
 func flattenHcpOpenShiftNodePool(id nodepools.NodePoolId, input nodepools.NodePool) (*RedHatHcpOpenShiftNodePoolModel, error) {
 	parent := hcpopenshiftclusters.NewHcpOpenShiftClusterID(id.SubscriptionId, id.ResourceGroupName, id.HcpOpenShiftClusterName)
-	state := &RedHatHcpOpenShiftNodePoolModel{Name: id.NodePoolName, ClusterId: parent.ID(), Tags: pointer.From(input.Tags), Labels: make(map[string]string)}
+	state := &RedHatHcpOpenShiftNodePoolModel{
+		Name:      id.NodePoolName,
+		ClusterId: parent.ID(),
+		Tags:      pointer.From(input.Tags),
+		Labels:    make(map[string]string),
+	}
 	if props := input.Properties; props != nil {
 		platform := HcpOpenShiftNodePoolPlatform{
 			VMSize:                 props.Platform.VMSize,
@@ -506,10 +546,20 @@ func flattenHcpOpenShiftNodePool(id nodepools.NodePoolId, input nodepools.NodePo
 			platform.SubnetId = parsed.ID()
 		}
 		if props.AutoScaling != nil {
-			state.AutoScaling = []HcpOpenShiftNodePoolAutoscaling{{Min: pointer.From(props.AutoScaling.Min), Max: pointer.From(props.AutoScaling.Max)}}
+			state.AutoScaling = []HcpOpenShiftNodePoolAutoscaling{
+				{
+					Min: pointer.From(props.AutoScaling.Min),
+					Max: pointer.From(props.AutoScaling.Max),
+				},
+			}
 		}
 		if props.Version != nil {
-			state.Version = []HcpOpenShiftNodePoolVersion{{Id: props.Version.Id, ChannelGroup: pointer.From(props.Version.ChannelGroup)}}
+			state.Version = []HcpOpenShiftNodePoolVersion{
+				{
+					Id:           props.Version.Id,
+					ChannelGroup: pointer.From(props.Version.ChannelGroup),
+				},
+			}
 		}
 		if disk := props.Platform.OsDisk; disk != nil {
 			encryptionSetId := pointer.From(disk.EncryptionSetId)
@@ -520,14 +570,25 @@ func flattenHcpOpenShiftNodePool(id nodepools.NodePoolId, input nodepools.NodePo
 				}
 				encryptionSetId = parsed.ID()
 			}
-			platform.OsDisk = []HcpOpenShiftNodePoolOsDisk{{SizeGb: pointer.From(disk.SizeGiB), DiskStorageAccountType: pointer.FromEnum(disk.DiskStorageAccountType), DiskType: pointer.FromEnum(disk.DiskType), EncryptionSetId: encryptionSetId}}
+			platform.OsDisk = []HcpOpenShiftNodePoolOsDisk{
+				{
+					SizeGb:                 pointer.From(disk.SizeGiB),
+					DiskStorageAccountType: pointer.FromEnum(disk.DiskStorageAccountType),
+					DiskType:               pointer.FromEnum(disk.DiskType),
+					EncryptionSetId:        encryptionSetId,
+				},
+			}
 		}
 		state.Platform = []HcpOpenShiftNodePoolPlatform{platform}
 		for _, label := range pointer.From(props.Labels) {
 			state.Labels[label.Key] = pointer.From(label.Value)
 		}
 		for _, taint := range pointer.From(props.Taints) {
-			state.Taints = append(state.Taints, HcpOpenShiftNodePoolTaint{Key: taint.Key, Value: pointer.From(taint.Value), Effect: string(taint.Effect)})
+			state.Taints = append(state.Taints, HcpOpenShiftNodePoolTaint{
+				Key:    taint.Key,
+				Value:  pointer.From(taint.Value),
+				Effect: string(taint.Effect),
+			})
 		}
 	}
 	return state, nil
