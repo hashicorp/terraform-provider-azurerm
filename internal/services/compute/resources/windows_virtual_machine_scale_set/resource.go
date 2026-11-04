@@ -91,9 +91,9 @@ func RegisterResource() *pluginsdk.Resource {
 
 				return nil
 			}),
-      
-      pluginsdk.CustomizeDiffShim(helpers.VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
-      
+
+			pluginsdk.CustomizeDiffShim(helpers.VirtualMachineScaleSetAutomaticZoneRebalancingCustomizeDiff),
+
 			pluginsdk.ForceNewIf("capacity_reservation_group_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) bool {
 				oldCRG, _ := d.GetChange("capacity_reservation_group_id")
 				oldZones, _ := d.GetChange("zones")
