@@ -1126,12 +1126,16 @@ func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinux(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSkuAzureContainerLinux(data, true),
+			Config: r.osSkuAzureContainerLinux(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.osSkuAzureContainerLinux(data, false, false),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.secure_boot_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
+		},
 	})
 }
 
@@ -1141,7 +1145,7 @@ func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinuxSecurityDisabled(t
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.osSkuAzureContainerLinux(data, false),
+			Config:      r.osSkuAzureContainerLinux(data, false, true),
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.secure_boot_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
 		},
 	})
@@ -3410,7 +3414,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSku)
 }
 
-func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled bool) string {
+func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled, includeOSSKU bool) string {
+	osSKU := ""
+	if includeOSSKU {
+		osSKU = `os_sku = "AzureContainerLinux"`
+	}
+
 	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3452,8 +3461,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v4"
-  os_sku                = "AzureContainerLinux"
   node_count            = 1
+  %s
 
   security {
     secure_boot_enabled = %t
@@ -3464,7 +3473,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, securityEnabled, securityEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, osSKU, securityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterNodePoolResource) dedicatedHost(data acceptance.TestData) string {

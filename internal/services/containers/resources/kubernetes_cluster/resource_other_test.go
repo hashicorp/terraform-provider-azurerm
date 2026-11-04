@@ -765,12 +765,16 @@ func TestAccKubernetesCluster_osSkuAzureContainerLinux(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSkuAzureContainerLinux(data, true),
+			Config: r.osSkuAzureContainerLinux(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.osSkuAzureContainerLinux(data, false, false),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
+		},
 	})
 }
 
@@ -780,7 +784,7 @@ func TestAccKubernetesCluster_osSkuAzureContainerLinuxSecurityDisabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.osSkuAzureContainerLinux(data, false),
+			Config:      r.osSkuAzureContainerLinux(data, false, true),
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
 		},
 	})
@@ -3260,7 +3264,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
 }
 
-func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled bool) string {
+func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled, includeOSSKU bool) string {
+	osSKU := ""
+	if includeOSSKU {
+		osSKU = `os_sku = "AzureContainerLinux"`
+	}
+
 	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3288,7 +3297,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_D2s_v4"
-    os_sku     = "AzureContainerLinux"
+    %s
 
     security {
       secure_boot_enabled = %t
@@ -3304,7 +3313,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, securityEnabled, securityEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, osSKU, securityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {

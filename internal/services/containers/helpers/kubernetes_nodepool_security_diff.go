@@ -20,8 +20,14 @@ func NodePoolSecurityCustomizeDiff(nodePoolPath string) pluginsdk.CustomizeDiffF
 
 	return func(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
 		rawConfig := d.GetRawConfig()
+		if !rawConfig.IsKnown() || rawConfig.IsNull() {
+			return nil
+		}
 		osSKU, err := ctyhelpers.ConstructCtyPath(prefix + "os_sku").Apply(rawConfig)
-		if err != nil || !osSKU.IsKnown() || osSKU.IsNull() || osSKU.AsString() != string(agentpools.OSSKUAzureContainerLinux) {
+		if err != nil {
+			return fmt.Errorf("retrieving `%sos_sku` from configuration: %+v", prefix, err)
+		}
+		if !osSKU.IsKnown() || d.Get(prefix+"os_sku").(string) != string(agentpools.OSSKUAzureContainerLinux) {
 			return nil
 		}
 
