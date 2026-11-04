@@ -1112,7 +1112,6 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 								"sku": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									ForceNew: true,
 									// NOTE: O+C AKS has a region-specific default, and omitting this field must preserve an existing cluster's SKU
 									Computed:     true,
 									ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForManagedClusterNATGatewaySku(), false),

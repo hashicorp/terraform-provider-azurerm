@@ -211,6 +211,12 @@ func customizeKubernetesClusterNatGatewaySku(ctx context.Context, d *schema.Reso
 	if !d.NewValueKnown(key) {
 		return nil
 	}
+	if d.HasChange(key) {
+		old, new := d.GetChange(key)
+		if old == string(managedclusters.ManagedClusterNATGatewaySkuStandardVTwo) && new == string(managedclusters.ManagedClusterNATGatewaySkuStandard) {
+			return fmt.Errorf("downgrading `network_profile.0.nat_gateway_profile.0.sku` from `StandardV2` to `Standard` is not supported by AKS")
+		}
+	}
 	if !d.NewValueKnown(outboundKey) || d.Get(key).(string) == "" || d.Get(outboundKey).(string) == string(managedclusters.OutboundTypeManagedNATGateway) {
 		return nil
 	}
