@@ -37,7 +37,6 @@ func TestAccDiscoveryBookshelfPrivateEndpointConnection_list(t *testing.T) {
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 1),
 					querycheck.ExpectIdentity(listResourceAddress, map[string]knownvalue.Check{
-						// the service appends a generated GUID to the Private Endpoint name
 						"name":                knownvalue.StringRegexp(regexp.MustCompile(fmt.Sprintf(`^acctestpe-%d\.`, data.RandomInteger))),
 						"bookshelf_name":      knownvalue.StringExact(fmt.Sprintf("acctest-%s", data.RandomString)),
 						"resource_group_name": knownvalue.StringExact(fmt.Sprintf("acctestrg-%d", data.RandomInteger)),
