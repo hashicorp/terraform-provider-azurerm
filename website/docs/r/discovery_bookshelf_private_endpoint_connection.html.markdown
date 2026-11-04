@@ -72,6 +72,10 @@ resource "azurerm_discovery_bookshelf" "example" {
   private_endpoint_subnet_id = azurerm_subnet.private_endpoint.id
   search_subnet_id           = azurerm_subnet.search.id
   workload_identity_ids      = [azurerm_user_assigned_identity.example.id]
+
+  tags = {
+    indexSize = "small"
+  }
 }
 
 data "azurerm_discovery_bookshelf_private_link_resources" "example" {
@@ -129,7 +133,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Microsoft Discovery Bookshelf Private Endpoint Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Discovery Bookshelf Private Endpoint Connection.

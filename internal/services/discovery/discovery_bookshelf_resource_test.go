@@ -103,7 +103,7 @@ func TestAccDiscoveryBookshelf_customerManagedKeyRequiresLogAnalyticsCluster(t *
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.customerManagedKeyWithoutLogAnalyticsCluster(data),
-			ExpectError: regexp.MustCompile("all of `customer_managed_key,log_analytics_cluster_id` must be specified"),
+			ExpectError: regexp.MustCompile("Missing required argument"),
 		},
 	})
 }
@@ -176,7 +176,7 @@ func (r DiscoveryBookshelfResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_discovery_bookshelf" "test" {
-  name                       = "acctest-%[2]d"
+  name                       = "acctest-%[2]s"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   private_endpoint_subnet_id = azurerm_subnet.private_endpoint.id
@@ -187,7 +187,7 @@ resource "azurerm_discovery_bookshelf" "test" {
     indexSize = "small"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString)
 }
 
 func (r DiscoveryBookshelfResource) requiresImport(data acceptance.TestData) string {
@@ -211,7 +211,7 @@ func (r DiscoveryBookshelfResource) complete(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_discovery_bookshelf" "test" {
-  name                          = "acctest-%[2]d"
+  name                          = "acctest-%[2]s"
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   private_endpoint_subnet_id    = azurerm_subnet.private_endpoint.id
@@ -224,7 +224,7 @@ resource "azurerm_discovery_bookshelf" "test" {
     indexSize   = "small"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString)
 }
 
 func (r DiscoveryBookshelfResource) customerManagedKeyWithoutLogAnalyticsCluster(data acceptance.TestData) string {
@@ -232,7 +232,7 @@ func (r DiscoveryBookshelfResource) customerManagedKeyWithoutLogAnalyticsCluster
 %[1]s
 
 resource "azurerm_discovery_bookshelf" "test" {
-  name                       = "acctest-%[2]d"
+  name                       = "acctest-%[2]s"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   private_endpoint_subnet_id = azurerm_subnet.private_endpoint.id
@@ -246,8 +246,8 @@ resource "azurerm_discovery_bookshelf" "test" {
   customer_managed_key {
     identity_client_id = "00000000-0000-0000-0000-000000000000"
     key_name           = "acctestkey"
-    key_vault_uri      = "https://acctestkv-%[2]d.vault.azure.net/"
+    key_vault_uri      = "https://acctestkv-%[2]s.vault.azure.net/"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString)
 }

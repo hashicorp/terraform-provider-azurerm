@@ -198,7 +198,6 @@ func (r DiscoveryBookshelfResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			// the Update API can't enable or disable customer managed keys, nor unset a pinned key version
 			oldCMK, newCMK := diff.GetChange("customer_managed_key")
 			if len(oldCMK.([]interface{})) != len(newCMK.([]interface{})) {
 				return diff.ForceNew("customer_managed_key")
