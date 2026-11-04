@@ -45,6 +45,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		RelayNamespaceResource{},
+		RelayHybridConnectionResource{},
 	}
 }
 
@@ -56,7 +57,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the untyped Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),
 		"azurerm_relay_hybrid_connection_authorization_rule": resourceRelayHybridConnectionAuthorizationRule(),
 		"azurerm_relay_namespace_authorization_rule":         resourceRelayNamespaceAuthorizationRule(),
 	}
