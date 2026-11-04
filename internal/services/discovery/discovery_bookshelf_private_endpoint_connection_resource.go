@@ -199,35 +199,41 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Read() sdk.Resource
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			state := DiscoveryBookshelfPrivateEndpointConnectionModel{
-				Name:        id.PrivateEndpointConnectionName,
-				BookshelfId: bookshelfprivateendpointconnections.NewBookshelfID(id.SubscriptionId, id.ResourceGroupName, id.BookshelfName).ID(),
-			}
-
-			if props := resp.Model.Properties; props != nil {
-				state.GroupIds = pointer.From(props.GroupIds)
-
-				if privateEndpoint := props.PrivateEndpoint; privateEndpoint != nil && privateEndpoint.Id != nil {
-					privateEndpointId, err := privateendpoints.ParsePrivateEndpointIDInsensitively(*privateEndpoint.Id)
-					if err != nil {
-						return err
-					}
-					state.PrivateEndpointId = privateEndpointId.ID()
-				}
-
-				connectionState := props.PrivateLinkServiceConnectionState
-				state.ActionsRequired = pointer.From(connectionState.ActionsRequired)
-				state.Description = pointer.From(connectionState.Description)
-				state.Status = string(pointer.From(connectionState.Status))
-			}
-
-			if err := metadata.Encode(&state); err != nil {
-				return fmt.Errorf("encoding: %+v", err)
-			}
-
-			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r DiscoveryBookshelfPrivateEndpointConnectionResource) flatten(metadata sdk.ResourceMetaData, id *bookshelfprivateendpointconnections.BookshelfPrivateEndpointConnectionId, model *bookshelfprivateendpointconnections.BookshelfPrivateEndpointConnection) error {
+	state := DiscoveryBookshelfPrivateEndpointConnectionModel{
+		Name:        id.PrivateEndpointConnectionName,
+		BookshelfId: bookshelfprivateendpointconnections.NewBookshelfID(id.SubscriptionId, id.ResourceGroupName, id.BookshelfName).ID(),
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			state.GroupIds = pointer.From(props.GroupIds)
+
+			if privateEndpoint := props.PrivateEndpoint; privateEndpoint != nil && privateEndpoint.Id != nil {
+				privateEndpointId, err := privateendpoints.ParsePrivateEndpointIDInsensitively(*privateEndpoint.Id)
+				if err != nil {
+					return err
+				}
+				state.PrivateEndpointId = privateEndpointId.ID()
+			}
+
+			connectionState := props.PrivateLinkServiceConnectionState
+			state.ActionsRequired = pointer.From(connectionState.ActionsRequired)
+			state.Description = pointer.From(connectionState.Description)
+			state.Status = string(pointer.From(connectionState.Status))
+		}
+	}
+
+	if err := metadata.Encode(&state); err != nil {
+		return fmt.Errorf("encoding: %+v", err)
+	}
+
+	return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 }
 
 func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Update() sdk.ResourceFunc {
