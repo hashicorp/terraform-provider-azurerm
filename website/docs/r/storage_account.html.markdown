@@ -182,6 +182,8 @@ The following arguments are supported:
 
 * `allowed_copy_scope` - (Optional) The permitted scope for copy operations between storage accounts. Possible values are `AAD`, `PrivateLink` and `All`.
 
+* `zone_placement_policy` - (Optional) Specifies the zonal placement policy for the storage account. Possible values are `Any` and `None`. When set to `Any`, Azure selects a specific availability zone in which the storage account resides, allowing co-location of compute and storage to reduce latency. This is primarily intended for use with Azure Files (`account_kind` set to `FileStorage` with `account_tier` of `Premium`). For more information, see the [Microsoft documentation](https://learn.microsoft.com/azure/storage/files/zonal-placement).
+
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
 -> **Note:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
