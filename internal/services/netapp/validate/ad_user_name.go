@@ -13,6 +13,6 @@ import (
 func ActiveDirectoryUserName(v any, k string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 255),
-		validation.StringDoesNotContainAny(`@\\`),
+		validation.StringDoesNotContainAny(`@\`),
 	)(v, k)
 }

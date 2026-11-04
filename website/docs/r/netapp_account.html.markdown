@@ -83,11 +83,11 @@ The `active_directory` block supports the following:
 
 * `password` - (Required) The password associated with the `username`.
 
-* `administrator_users` - (Optional) A list of Active Directory users to be added to the built-in Administrators active directory group. Usernames cannot contain the characters "@" or "\" and can be up to `255` characters long.
+* `administrator_users` - (Optional) A list of Active Directory users to be added to the built-in Administrators active directory group. Usernames cannot contain the characters `@` or `\` and can be up to `255` characters long.
 
 * `aes_encryption_enabled` - (Optional) If enabled, AES encryption will be enabled for SMB communication. Defaults to `false`.
 
-* `backup_users` - (Optional) A list of Active Directory users to be added to the built-in Backup Operators active directory group. Usernames cannot contain the characters "@" or "\" and can be up to `255` characters long.
+* `backup_users` - (Optional) A list of Active Directory users to be added to the built-in Backup Operators active directory group. Usernames cannot contain the characters `@` or `\` and can be up to `255` characters long.
 
 * `domain_controller_connection_encryption_enabled` - (Optional) If enabled, the connection between Active Directory and SMB server will be encrypted. Defaults to `false`.
 
@@ -109,7 +109,7 @@ The `active_directory` block supports the following:
 
 * `organizational_unit` - (Optional) The Organizational Unit (OU) within Active Directory where machines will be created. If blank, defaults to `CN=Computers`.
 
-* `security_users` - (Optional) A list of Active Directory users to be given SeSecurityPrivilege privilege. Usernames cannot contain the characters "@" or "\" and can be up to `255` characters long.
+* `security_users` - (Optional) A list of Active Directory users to be given SeSecurityPrivilege privilege. Usernames cannot contain the characters `@` or `\` and can be up to `255` characters long.
 
 * `server_root_ca_certificate` - (Optional) When LDAP over SSL/TLS is enabled, the LDAP client is required to have a *base64 encoded Active Directory Certificate Service's self-signed root CA certificate*, this optional parameter is used only for dual protocol with LDAP user-mapping volumes. Required if `ldap_over_tls_enabled` is set to `true`.
 
