@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -1298,7 +1298,7 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 	for k, v := range oMap {
 		if _, ok := cMap[k]; !ok {
 			remove[k] = v
-			break
+			continue
 		}
 
 		addOrUpdate[k] = v

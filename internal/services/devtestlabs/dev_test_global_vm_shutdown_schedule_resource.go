@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package devtestlabs
@@ -111,7 +111,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	vmId, err := commonids.ParseVirtualMachineID(vmID)
+	vmId, err := commonids.ParseVirtualMachineIDInsensitively(vmID)
 	if err != nil {
 		return err
 	}
