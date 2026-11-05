@@ -239,7 +239,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"database_format": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			Default:      managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoTwo,
+			Default:      managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoFive,
 			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForManagedInstanceDatabaseFormat(), false),
 		},
 
@@ -380,8 +380,8 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			// Once the `AlwaysUpToDate` is enabled, you can't go back to `SQLServer2022` update policy.
-			if oldVal, newVal := rd.GetChange("database_format"); oldVal.(string) == string(managedinstances.ManagedInstanceDatabaseFormatAlwaysUpToDate) && newVal.(string) == string(managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoTwo) {
+			// Once the `AlwaysUpToDate` is enabled, you can't go back to `SQLServer2025` update policy.
+			if oldVal, newVal := rd.GetChange("database_format"); oldVal.(string) == string(managedinstances.ManagedInstanceDatabaseFormatAlwaysUpToDate) && newVal.(string) == string(managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoFive) {
 				if err := rd.ForceNew("database_format"); err != nil {
 					return err
 				}
