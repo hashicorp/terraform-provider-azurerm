@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package orbitalplanetarycomputer
+package geo_catalog
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type GeoCatalogListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(GeoCatalogListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (GeoCatalogListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = GeoCatalogResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (GeoCatalogListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(GeoCatalogResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (GeoCatalogListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.OrbitalPlanetaryComputer.GeoCatalogsClient
 
 	var data sdk.DefaultListModel
@@ -45,7 +45,7 @@ func (GeoCatalogListResource) List(ctx context.Context, request list.ListRequest
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := GeoCatalogResource{}
+	r := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():

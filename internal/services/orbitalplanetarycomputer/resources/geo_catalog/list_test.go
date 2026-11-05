@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package orbitalplanetarycomputer_test
+package geo_catalog_test
 
 import (
 	"context"

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbitalplanetarycomputer/resources/geo_catalog"
 )
 
 type Registration struct{}
@@ -27,7 +28,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		GeoCatalogResource{},
+		geo_catalog.Resource{},
 	}
 }
 
@@ -59,6 +60,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		&GeoCatalogListResource{},
+		&geo_catalog.ListResource{},
 	}
 }
