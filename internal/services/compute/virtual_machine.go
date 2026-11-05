@@ -695,11 +695,13 @@ func expandVirtualMachineSizePropertiesFromRawConfig(sizeProps cty.Value) *virtu
 
 	out := &virtualmachines.VMSizeProperties{}
 	configMap := config.AsValueMap()
-	if v, _ := pluginsdk.GoValueFromTerraformValue[int](configMap["vcpu_available"]); v != nil && *v > 0 {
-		out.VCPUsAvailable = pointer.To(int64(*v))
+	if v := configMap["vcpu_available"]; v.IsKnown() && !v.IsNull() {
+		value, _ := v.AsBigFloat().Int64()
+		out.VCPUsAvailable = pointer.To(value)
 	}
-	if v, _ := pluginsdk.GoValueFromTerraformValue[int](configMap["vcpu_per_core"]); v != nil && *v > 0 {
-		out.VCPUsPerCore = pointer.To(int64(*v))
+	if v := configMap["vcpu_per_core"]; v.IsKnown() && !v.IsNull() {
+		value, _ := v.AsBigFloat().Int64()
+		out.VCPUsPerCore = pointer.To(value)
 	}
 	return out
 }
