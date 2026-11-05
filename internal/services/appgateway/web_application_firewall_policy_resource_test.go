@@ -462,27 +462,12 @@ func TestAccWebApplicationFirewallPolicy_invalidManagedRuleSets(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.invalidManagedRuleSets(data, `
-    managed_rule_set {
-      type    = "Microsoft_BotManagerRuleSet"
-      version = "1.0"
-    }
-`),
+			Config:      r.botManagerRuleSetOnly(data),
 			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`managed_rules.0.managed_rule_set` must contain exactly one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")),
 		},
 		{
-			Config: r.invalidManagedRuleSets(data, `
-    managed_rule_set {
-      type    = "OWASP"
-      version = "3.2"
-    }
-
-    managed_rule_set {
-      type    = "Microsoft_DefaultRuleSet"
-      version = "2.1"
-    }
-`),
+			Config:      r.multiplePrimaryRuleSets(data),
 			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`managed_rules.0.managed_rule_set` must contain exactly one primary rule set with `type` of `OWASP` or `Microsoft_DefaultRuleSet`")),
 		},
@@ -579,7 +564,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (WebApplicationFirewallPolicyResource) invalidManagedRuleSets(data acceptance.TestData, managedRuleSets string) string {
+func (WebApplicationFirewallPolicyResource) botManagerRuleSetOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -596,10 +581,44 @@ resource "azurerm_web_application_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
 
   managed_rules {
-%[3]s
+    managed_rule_set {
+      type    = "Microsoft_BotManagerRuleSet"
+      version = "1.0"
+    }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, managedRuleSets)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (WebApplicationFirewallPolicyResource) multiplePrimaryRuleSets(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+    }
+
+    managed_rule_set {
+      type    = "Microsoft_DefaultRuleSet"
+      version = "2.1"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (WebApplicationFirewallPolicyResource) complete(data acceptance.TestData) string {
