@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -21,6 +21,18 @@ import (
 // (@jackofallops) Note: These tests require a valid GitHub token for ARM_GITHUB_ACCESS_TOKEN. This token needs the `repo` and `workflow` permissions on the referenced repositories.
 
 type AppServiceGitHubTokenResource struct{}
+
+func TestAccSourceControlGitHubToken_regressionTest(t *testing.T) {
+	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	data := acceptance.BuildTestData(t, "azurerm_source_control_token", "test")
+	r := AppServiceGitHubTokenResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(token),
+		},
+	}, "")
+}
 
 func TestAccSourceControlGitHubToken_basic(t *testing.T) {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
