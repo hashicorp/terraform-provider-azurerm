@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -27,7 +27,7 @@ func (r ResourceDeploymentScriptAzureCliResource) ResourceType() string {
 	return "azurerm_resource_deployment_script_azure_cli"
 }
 
-func (r ResourceDeploymentScriptAzureCliResource) ModelObject() interface{} {
+func (r ResourceDeploymentScriptAzureCliResource) ModelObject() any {
 	return &ResourceDeploymentScriptAzureCliModel{}
 }
 
@@ -80,7 +80,7 @@ func (r ResourceDeploymentScriptAzureCliResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+			identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]any))
 			if err != nil {
 				return err
 			}

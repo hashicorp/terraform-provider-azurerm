@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
@@ -90,7 +90,7 @@ func (r CosmosDBDataConnectionResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r CosmosDBDataConnectionResource) ModelObject() interface{} {
+func (r CosmosDBDataConnectionResource) ModelObject() any {
 	return &CosmosDBDataConnectionModel{}
 }
 

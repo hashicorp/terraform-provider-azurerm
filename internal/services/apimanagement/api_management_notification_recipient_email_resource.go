@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -37,18 +37,10 @@ func (r ApiManagementNotificationRecipientEmailResource) Arguments() map[string]
 		},
 
 		"notification_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(notificationrecipientemail.NotificationNameAccountClosedPublisher),
-				string(notificationrecipientemail.NotificationNameBCC),
-				string(notificationrecipientemail.NotificationNameNewApplicationNotificationMessage),
-				string(notificationrecipientemail.NotificationNameNewIssuePublisherNotificationMessage),
-				string(notificationrecipientemail.NotificationNamePurchasePublisherNotificationMessage),
-				string(notificationrecipientemail.NotificationNameQuotaLimitApproachingPublisherNotificationMessage),
-				string(notificationrecipientemail.NotificationNameRequestPublisherNotificationMessage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(notificationrecipientemail.PossibleValuesForNotificationName(), false),
 		},
 
 		"email": {
@@ -64,7 +56,7 @@ func (r ApiManagementNotificationRecipientEmailResource) Attributes() map[string
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ApiManagementNotificationRecipientEmailResource) ModelObject() interface{} {
+func (r ApiManagementNotificationRecipientEmailResource) ModelObject() any {
 	return &ApiManagementNotificationRecipientEmailModel{}
 }
 

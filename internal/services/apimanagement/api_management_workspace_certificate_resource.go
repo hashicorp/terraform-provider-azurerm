@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -42,7 +42,7 @@ func (r ApiManagementWorkspaceCertificateResource) ResourceType() string {
 	return "azurerm_api_management_workspace_certificate"
 }
 
-func (r ApiManagementWorkspaceCertificateResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceCertificateResource) ModelObject() any {
 	return &ApiManagementWorkspaceCertificateModel{}
 }
 

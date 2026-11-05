@@ -92,7 +92,7 @@ resource "azurerm_subnet_network_security_group_association" "untrust" {
 resource "azurerm_palo_alto_local_rulestack" "example" {
   name                = "example-rulestack"
   resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.locatio
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "example" {

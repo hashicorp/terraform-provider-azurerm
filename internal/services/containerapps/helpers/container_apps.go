@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -152,6 +152,7 @@ type Ingress struct {
 	CustomDomains          []CustomDomain          `tfschema:"custom_domain"`
 	IsExternal             bool                    `tfschema:"external_enabled"`
 	FQDN                   string                  `tfschema:"fqdn"`
+	IsSessionAffinity      bool                    `tfschema:"session_affinity_enabled"`
 	TargetPort             int64                   `tfschema:"target_port"`
 	ExposedPort            int64                   `tfschema:"exposed_port"`
 	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
@@ -250,6 +251,13 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 
 				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
 
+				"session_affinity_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Is session affinity enabled.",
+				},
+
 				"target_port": {
 					Type:         pluginsdk.TypeInt,
 					Required:     true,
@@ -275,14 +283,10 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"client_certificate_mode": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.IngressClientCertificateModeAccept),
-						string(containerapps.IngressClientCertificateModeRequire),
-						string(containerapps.IngressClientCertificateModeIgnore),
-					}, false),
-					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressClientCertificateMode(), false),
+					Description:  "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
 			},
 		},
@@ -363,6 +367,12 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 
 				"ip_security_restriction": ContainerAppIngressIpSecurityRestrictionComputed(),
 
+				"session_affinity_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is session affinity enabled.",
+				},
+
 				"target_port": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -401,26 +411,25 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	ingress := input[0]
 	result := &containerapps.Ingress{
 		AllowInsecure:          pointer.To(ingress.AllowInsecure),
-		CustomDomains:          expandContainerAppIngressCustomDomain(ingress.CustomDomains),
+		CustomDomains:          ExpandContainerAppIngressCustomDomain(ingress.CustomDomains),
 		External:               pointer.To(ingress.IsExternal),
 		Fqdn:                   pointer.To(ingress.FQDN),
+		StickySessions:         ExpandContainerAppIngressStickySessions(ingress.IsSessionAffinity),
 		TargetPort:             pointer.To(ingress.TargetPort),
 		ExposedPort:            pointer.To(ingress.ExposedPort),
-		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
-		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
-		CorsPolicy:             expandCorsPolicy(ingress.Cors),
+		Traffic:                ExpandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
+		IPSecurityRestrictions: ExpandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
+		CorsPolicy:             ExpandCorsPolicy(ingress.Cors),
 	}
-	transport := containerapps.IngressTransportMethod(ingress.Transport)
-	result.Transport = &transport
+	result.Transport = pointer.ToEnum[containerapps.IngressTransportMethod](ingress.Transport)
 	if ingress.ClientCertificateMode != "" {
-		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
-		result.ClientCertificateMode = &clientCertificateMode
+		result.ClientCertificateMode = pointer.ToEnum[containerapps.IngressClientCertificateMode](ingress.ClientCertificateMode)
 	}
 
 	return result
 }
 
-func expandCorsPolicy(inputList []Cors) *containerapps.CorsPolicy {
+func ExpandCorsPolicy(inputList []Cors) *containerapps.CorsPolicy {
 	if len(inputList) == 0 {
 		return nil
 	}
@@ -445,7 +454,7 @@ func expandCorsPolicy(inputList []Cors) *containerapps.CorsPolicy {
 	return &result
 }
 
-func flattenCorsPolicy(input *containerapps.CorsPolicy) []Cors {
+func FlattenCorsPolicy(input *containerapps.CorsPolicy) []Cors {
 	outputList := make([]Cors, 0)
 	if input == nil {
 		return outputList
@@ -471,13 +480,14 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 	ingress := *input
 	result := Ingress{
 		AllowInsecure:          pointer.From(ingress.AllowInsecure),
-		CustomDomains:          flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
+		CustomDomains:          FlattenContainerAppIngressCustomDomain(ingress.CustomDomains),
 		IsExternal:             pointer.From(ingress.External),
 		FQDN:                   pointer.From(ingress.Fqdn),
+		IsSessionAffinity:      FlattenContainerAppIngressStickySessions(ingress.StickySessions),
 		TargetPort:             pointer.From(ingress.TargetPort),
 		ExposedPort:            pointer.From(ingress.ExposedPort),
-		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
-		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
+		TrafficWeights:         FlattenContainerAppIngressTraffic(ingress.Traffic, appName),
+		IpSecurityRestrictions: FlattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
 	}
 
 	if ingress.Transport != nil {
@@ -489,7 +499,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 	}
 
 	if ingress.CorsPolicy != nil {
-		result.Cors = flattenCorsPolicy(ingress.CorsPolicy)
+		result.Cors = FlattenCorsPolicy(ingress.CorsPolicy)
 	}
 
 	return []Ingress{result}
@@ -529,7 +539,7 @@ func ContainerAppIngressCustomDomainSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapps.CustomDomain {
+func ExpandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapps.CustomDomain {
 	if len(input) == 0 {
 		return nil
 	}
@@ -540,8 +550,7 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 			Name:          v.Name,
 			CertificateId: pointer.To(v.CertificateId),
 		}
-		bindingType := containerapps.BindingType(v.CertBinding)
-		customDomain.BindingType = &bindingType
+		customDomain.BindingType = pointer.ToEnum[containerapps.BindingType](v.CertBinding)
 
 		result = append(result, customDomain)
 	}
@@ -549,7 +558,7 @@ func expandContainerAppIngressCustomDomain(input []CustomDomain) *[]containerapp
 	return &result
 }
 
-func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain) []CustomDomain {
+func FlattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain) []CustomDomain {
 	if input == nil {
 		return []CustomDomain{}
 	}
@@ -572,7 +581,11 @@ func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 	return result
 }
 
-func flattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
+func FlattenContainerAppIngressStickySessions(input *containerapps.IngressStickySessions) bool {
+	return input != nil && pointer.FromEnum(input.Affinity) == string(containerapps.AffinitySticky)
+}
+
+func FlattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
 	if input == nil {
 		return []IpSecurityRestriction{}
 	}
@@ -749,7 +762,19 @@ func ContainerAppIngressTrafficWeightComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]containerapps.TrafficWeight {
+func ExpandContainerAppIngressStickySessions(input bool) *containerapps.IngressStickySessions {
+	result := containerapps.IngressStickySessions{}
+
+	if input {
+		result.Affinity = pointer.To(containerapps.AffinitySticky)
+	} else {
+		result.Affinity = pointer.To(containerapps.AffinityNone)
+	}
+
+	return &result
+}
+
+func ExpandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]containerapps.TrafficWeight {
 	if len(input) == 0 {
 		return nil
 	}
@@ -776,7 +801,7 @@ func expandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]
 	return &result
 }
 
-func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, appName string) []TrafficWeight {
+func FlattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, appName string) []TrafficWeight {
 	if input == nil {
 		return []TrafficWeight{}
 	}
@@ -795,7 +820,7 @@ func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 	return result
 }
 
-func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapps.IPSecurityRestrictionRule {
+func ExpandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapps.IPSecurityRestrictionRule {
 	if input == nil {
 		return &[]containerapps.IPSecurityRestrictionRule{}
 	}
@@ -840,14 +865,11 @@ func ContainerDaprSchema() *pluginsdk.Schema {
 				},
 
 				"app_protocol": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  string(containerapps.AppProtocolHTTP),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerapps.AppProtocolHTTP),
-						string(containerapps.AppProtocolGrpc),
-					}, false),
-					Description: "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(containerapps.AppProtocolHTTP),
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAppProtocol(), false),
+					Description:  "The protocol for the app. Possible values include `http` and `grpc`. Defaults to `http`.",
 				},
 			},
 		},
@@ -894,12 +916,10 @@ func ExpandContainerAppDapr(input []Dapr) *containerapps.Dapr {
 		}
 	}
 
-	appProtocol := containerapps.AppProtocol(dapr.AppProtocol)
-
 	return &containerapps.Dapr{
 		AppId:       pointer.To(dapr.AppId),
 		AppPort:     pointer.To(dapr.AppPort),
-		AppProtocol: &appProtocol,
+		AppProtocol: pointer.ToEnum[containerapps.AppProtocol](dapr.AppProtocol),
 		Enabled:     pointer.To(true),
 	}
 }
@@ -1026,9 +1046,10 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"volume": ContainerVolumeSchema(),
 
 				"revision_suffix": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Computed:    true, // Note: O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
+					Computed:    true,
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
 
@@ -1109,9 +1130,9 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 
 	config := input[0]
 	template := &containerapps.Template{
-		Containers:     expandContainerAppContainers(config.Containers),
-		InitContainers: expandInitContainerAppContainers(config.InitContainers),
-		Volumes:        expandContainerAppVolumes(config.Volumes),
+		Containers:     ExpandContainerAppContainers(config.Containers),
+		InitContainers: ExpandInitContainerAppContainers(config.InitContainers),
+		Volumes:        ExpandContainerAppVolumes(config.Volumes),
 	}
 
 	if config.MaxReplicas != 0 {
@@ -1146,7 +1167,7 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.PollingInterval = pointer.To(config.PollingInterval)
 	}
 
-	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
+	if rules := config.ExpandContainerAppScaleRules(); len(rules) != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
@@ -1168,11 +1189,11 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		return []ContainerTemplate{}
 	}
 	result := ContainerTemplate{
-		Containers:             flattenContainerAppContainers(input.Containers),
-		InitContainers:         flattenInitContainerAppContainers(input.InitContainers),
+		Containers:             FlattenContainerAppContainers(input.Containers),
+		InitContainers:         FlattenInitContainerAppContainers(input.InitContainers),
 		Suffix:                 pointer.From(input.RevisionSuffix),
 		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
-		Volumes:                flattenContainerAppVolumes(input.Volumes),
+		Volumes:                FlattenContainerAppVolumes(input.Volumes),
 	}
 
 	if scale := input.Scale; scale != nil {
@@ -1180,7 +1201,7 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		result.MinReplicas = pointer.From(scale.MinReplicas)
 		result.CooldownPeriod = pointer.From(scale.CooldownPeriod)
 		result.PollingInterval = pointer.From(scale.PollingInterval)
-		result.flattenContainerAppScaleRules(scale.Rules)
+		result.FlattenContainerAppScaleRules(scale.Rules)
 	}
 
 	return []ContainerTemplate{result}
@@ -1483,7 +1504,7 @@ func InitContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandInitContainerAppContainers(input []BaseContainer) *[]containerapps.BaseContainer {
+func ExpandInitContainerAppContainers(input []BaseContainer) *[]containerapps.BaseContainer {
 	if input == nil {
 		return nil
 	}
@@ -1491,7 +1512,7 @@ func expandInitContainerAppContainers(input []BaseContainer) *[]containerapps.Ba
 	result := make([]containerapps.BaseContainer, 0)
 	for _, v := range input {
 		container := containerapps.BaseContainer{
-			Env:   expandInitContainerEnvVar(v),
+			Env:   ExpandInitContainerEnvVar(v),
 			Image: pointer.To(v.Image),
 			Name:  pointer.To(v.Name),
 			Resources: &containerapps.ContainerResources{
@@ -1499,7 +1520,7 @@ func expandInitContainerAppContainers(input []BaseContainer) *[]containerapps.Ba
 				EphemeralStorage: pointer.To(v.EphemeralStorage),
 				Memory:           pointer.To(v.Memory),
 			},
-			VolumeMounts: expandContainerVolumeMounts(v.VolumeMounts),
+			VolumeMounts: ExpandContainerVolumeMounts(v.VolumeMounts),
 		}
 		if len(v.Args) != 0 {
 			container.Args = pointer.To(v.Args)
@@ -1514,7 +1535,7 @@ func expandInitContainerAppContainers(input []BaseContainer) *[]containerapps.Ba
 	return &result
 }
 
-func flattenInitContainerAppContainers(input *[]containerapps.BaseContainer) []BaseContainer {
+func FlattenInitContainerAppContainers(input *[]containerapps.BaseContainer) []BaseContainer {
 	if input == nil || len(*input) == 0 {
 		return []BaseContainer{}
 	}
@@ -1525,8 +1546,8 @@ func flattenInitContainerAppContainers(input *[]containerapps.BaseContainer) []B
 			Image:        pointer.From(v.Image),
 			Args:         pointer.From(v.Args),
 			Command:      pointer.From(v.Command),
-			Env:          flattenContainerEnvVar(v.Env),
-			VolumeMounts: flattenContainerVolumeMounts(v.VolumeMounts),
+			Env:          FlattenContainerEnvVar(v.Env),
+			VolumeMounts: FlattenContainerVolumeMounts(v.VolumeMounts),
 		}
 
 		if resources := v.Resources; resources != nil {
@@ -1540,7 +1561,7 @@ func flattenInitContainerAppContainers(input *[]containerapps.BaseContainer) []B
 	return result
 }
 
-func expandContainerAppContainers(input []Container) *[]containerapps.Container {
+func ExpandContainerAppContainers(input []Container) *[]containerapps.Container {
 	if input == nil {
 		return nil
 	}
@@ -1548,16 +1569,16 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 	result := make([]containerapps.Container, 0)
 	for _, v := range input {
 		container := containerapps.Container{
-			Env:    expandContainerEnvVar(v),
+			Env:    ExpandContainerEnvVar(v),
 			Image:  pointer.To(v.Image),
 			Name:   pointer.To(v.Name),
-			Probes: expandContainerProbes(v),
+			Probes: ExpandContainerProbes(v),
 			Resources: &containerapps.ContainerResources{
 				Cpu:              pointer.To(v.CPU),
 				EphemeralStorage: pointer.To(v.EphemeralStorage),
 				Memory:           pointer.To(v.Memory),
 			},
-			VolumeMounts: expandContainerVolumeMounts(v.VolumeMounts),
+			VolumeMounts: ExpandContainerVolumeMounts(v.VolumeMounts),
 		}
 		if len(v.Args) != 0 {
 			container.Args = pointer.To(v.Args)
@@ -1572,7 +1593,7 @@ func expandContainerAppContainers(input []Container) *[]containerapps.Container 
 	return &result
 }
 
-func flattenContainerAppContainers(input *[]containerapps.Container) []Container {
+func FlattenContainerAppContainers(input *[]containerapps.Container) []Container {
 	if input == nil || len(*input) == 0 {
 		return []Container{}
 	}
@@ -1583,18 +1604,18 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 			Image:        pointer.From(v.Image),
 			Args:         pointer.From(v.Args),
 			Command:      pointer.From(v.Command),
-			Env:          flattenContainerEnvVar(v.Env),
-			VolumeMounts: flattenContainerVolumeMounts(v.VolumeMounts),
+			Env:          FlattenContainerEnvVar(v.Env),
+			VolumeMounts: FlattenContainerVolumeMounts(v.VolumeMounts),
 		}
 		if v.Probes != nil {
 			for _, p := range *v.Probes {
 				switch *p.Type {
 				case containerapps.TypeLiveness:
-					container.LivenessProbe = flattenContainerAppLivenessProbe(p)
+					container.LivenessProbe = FlattenContainerAppLivenessProbe(p)
 				case containerapps.TypeReadiness:
-					container.ReadinessProbe = flattenContainerAppReadinessProbe(p)
+					container.ReadinessProbe = FlattenContainerAppReadinessProbe(p)
 				case containerapps.TypeStartup:
-					container.StartupProbe = flattenContainerAppStartupProbe(p)
+					container.StartupProbe = FlattenContainerAppStartupProbe(p)
 				}
 			}
 		}
@@ -1690,7 +1711,7 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume {
+func ExpandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume {
 	if input == nil {
 		return nil
 	}
@@ -1705,8 +1726,7 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			volume.StorageName = pointer.To(v.StorageName)
 		}
 		if v.StorageType != "" {
-			storageType := containerapps.StorageType(v.StorageType)
-			volume.StorageType = &storageType
+			volume.StorageType = pointer.ToEnum[containerapps.StorageType](v.StorageType)
 		}
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
@@ -1717,7 +1737,7 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 	return &volumes
 }
 
-func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume {
+func FlattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume {
 	if input == nil || len(*input) == 0 {
 		return []ContainerVolume{}
 	}
@@ -1806,7 +1826,7 @@ func ContainerVolumeMountSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.VolumeMount {
+func ExpandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.VolumeMount {
 	if input == nil {
 		return nil
 	}
@@ -1823,7 +1843,7 @@ func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.
 	return &volumeMounts
 }
 
-func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []ContainerVolumeMount {
+func FlattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []ContainerVolumeMount {
 	if input == nil || len(*input) == 0 {
 		return []ContainerVolumeMount{}
 	}
@@ -1904,7 +1924,7 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
+func ExpandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
 	if len(input.Env) == 0 {
 		return &envs
@@ -1926,7 +1946,7 @@ func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.Environment
 	return &envs
 }
 
-func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
+func ExpandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
 	if len(input.Env) == 0 {
 		return &envs
@@ -1948,7 +1968,7 @@ func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 	return &envs
 }
 
-func flattenContainerEnvVar(input *[]containerapps.EnvironmentVar) []ContainerEnvVar {
+func FlattenContainerEnvVar(input *[]containerapps.EnvironmentVar) []ContainerEnvVar {
 	if input == nil || len(*input) == 0 {
 		return []ContainerEnvVar{}
 	}
@@ -2011,9 +2031,10 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 				},
 
 				"path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Computed:    true,
 					Description: "The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2166,10 +2187,9 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containerapps.ContainerAppProbe {
-	probeType := containerapps.TypeReadiness
+func ExpandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containerapps.ContainerAppProbe {
 	result := containerapps.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(containerapps.TypeReadiness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -2179,12 +2199,11 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2208,7 +2227,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	return result
 }
 
-func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
+func FlattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
 		InitialDelay:     pointer.From(input.InitialDelaySeconds),
@@ -2293,9 +2312,10 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 				},
 
 				"path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Computed:    true,
 					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2434,10 +2454,9 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
-	probeType := containerapps.TypeLiveness
+func ExpandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
 	result := containerapps.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(containerapps.TypeLiveness),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -2446,12 +2465,11 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2475,7 +2493,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	return result
 }
 
-func flattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []ContainerAppLivenessProbe {
+func FlattenContainerAppLivenessProbe(input containerapps.ContainerAppProbe) []ContainerAppLivenessProbe {
 	result := make([]ContainerAppLivenessProbe, 0)
 	probe := ContainerAppLivenessProbe{
 		InitialDelay:     pointer.From(input.InitialDelaySeconds),
@@ -2558,9 +2576,10 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 				},
 
 				"path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Computed:    true, // Note: O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because O+C Needs to remain computed as this has a variable default and since it is part of a list we cannot diffsuppress it.
+					Computed:    true,
 					Description: "The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.",
 				},
 
@@ -2695,10 +2714,9 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
-	probeType := containerapps.TypeStartup
+func ExpandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
 	result := containerapps.ContainerAppProbe{
-		Type:                &probeType,
+		Type:                pointer.To(containerapps.TypeStartup),
 		InitialDelaySeconds: pointer.To(input.InitialDelay),
 		PeriodSeconds:       pointer.To(input.Interval),
 		TimeoutSeconds:      pointer.To(input.Timeout),
@@ -2707,12 +2725,11 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 
 	switch p := strings.ToUpper(input.Transport); p {
 	case "HTTP", "HTTPS":
-		scheme := containerapps.Scheme(p)
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
 			Port:   input.Port,
-			Scheme: &scheme,
+			Scheme: pointer.ToEnum[containerapps.Scheme](p),
 		}
 		if input.Headers != nil {
 			headers := make([]containerapps.ContainerAppProbeHTTPGetHTTPHeadersInlined, 0)
@@ -2736,7 +2753,7 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 	return result
 }
 
-func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
+func FlattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
 		InitialDelay:     pointer.From(input.InitialDelaySeconds),
@@ -2781,19 +2798,19 @@ type HttpHeader struct {
 	Value string `tfschema:"value"`
 }
 
-func expandContainerProbes(input Container) *[]containerapps.ContainerAppProbe {
+func ExpandContainerProbes(input Container) *[]containerapps.ContainerAppProbe {
 	probes := make([]containerapps.ContainerAppProbe, 0)
 
 	if len(input.LivenessProbe) == 1 {
-		probes = append(probes, expandContainerAppLivenessProbe(input.LivenessProbe[0]))
+		probes = append(probes, ExpandContainerAppLivenessProbe(input.LivenessProbe[0]))
 	}
 
 	if len(input.ReadinessProbe) == 1 {
-		probes = append(probes, expandContainerAppReadinessProbe(input.ReadinessProbe[0]))
+		probes = append(probes, ExpandContainerAppReadinessProbe(input.ReadinessProbe[0]))
 	}
 
 	if len(input.StartupProbe) == 1 {
-		probes = append(probes, expandContainerAppStartupProbe(input.StartupProbe[0]))
+		probes = append(probes, ExpandContainerAppStartupProbe(input.StartupProbe[0]))
 	}
 
 	return &probes
@@ -2994,21 +3011,21 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 
 	if metadata.ResourceData.HasChange("template.0.container.0.liveness_probe") {
 		newLivenessRaw := metadata.ResourceData.Get("template.0.container.0.liveness_probe")
-		if newLiveness, ok := newLivenessRaw.([]interface{}); ok && len(newLiveness) > 0 {
+		if newLiveness, ok := newLivenessRaw.([]any); ok && len(newLiveness) > 0 {
 			hasLiveness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.readiness_probe") {
 		newReadinessRaw := metadata.ResourceData.Get("template.0.container.0.readiness_probe")
-		if newReadiness, ok := newReadinessRaw.([]interface{}); ok && len(newReadiness) > 0 {
+		if newReadiness, ok := newReadinessRaw.([]any); ok && len(newReadiness) > 0 {
 			hasReadiness = true
 		}
 	}
 
 	if metadata.ResourceData.HasChange("template.0.container.0.startup_probe") {
 		newStartupRaw := metadata.ResourceData.Get("template.0.container.0.startup_probe")
-		if newStartup, ok := newStartupRaw.([]interface{}); ok && len(newStartup) > 0 {
+		if newStartup, ok := newStartupRaw.([]any); ok && len(newStartup) > 0 {
 			hasStartup = true
 		}
 	}
@@ -3149,7 +3166,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"activemq", "artemis-queue", "kafka", "pulsar", "aws-cloudwatch",
 						"aws-dynamodb", "aws-dynamodb-streams", "aws-kinesis-stream", "aws-sqs-queue",
-						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-eventhub",
+						"azure-app-insights", "azure-blob", "azure-data-explorer", "azure-durabletask-scheduler", "azure-eventhub",
 						"azure-log-analytics", "azure-monitor", "azure-pipelines", "azure-servicebus",
 						"azure-queue", "cassandra", "cpu", "cron", "datadog", "elasticsearch", "external",
 						"external-push", "gcp-stackdriver", "gcp-storage", "gcp-pubsub", "graphite", "http",
@@ -3158,7 +3175,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						"openstack-metric", "openstack-swift", "postgresql", "predictkube", "prometheus",
 						"rabbitmq", "redis", "redis-cluster", "redis-sentinel", "redis-streams",
 						"redis-cluster-streams", "redis-sentinel-streams", "selenium-grid",
-						"solace-event-queue", "github-runner",
+						"solace-event-queue", "github-runner", "temporal",
 					}, false), // Note - this can be any KEDA compatible source in a user's environment
 				},
 
@@ -3426,7 +3443,7 @@ type ScaleRuleAuthentication struct {
 	TriggerParam string `tfschema:"trigger_parameter"`
 }
 
-func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.ScaleRule {
+func (c *ContainerTemplate) ExpandContainerAppScaleRules() []containerapps.ScaleRule {
 	if len(c.AzureQueueScaleRules) == 0 && len(c.CustomScaleRules) == 0 && len(c.HTTPScaleRules) == 0 && len(c.TCPScaleRules) == 0 {
 		return nil
 	}
@@ -3529,7 +3546,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 	return result
 }
 
-func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps.ScaleRule) {
+func (c *ContainerTemplate) FlattenContainerAppScaleRules(input *[]containerapps.ScaleRule) {
 	if input != nil && len(*input) != 0 {
 		rules := *input
 		azureQueueScaleRules := make([]AzureQueueScaleRule, 0)

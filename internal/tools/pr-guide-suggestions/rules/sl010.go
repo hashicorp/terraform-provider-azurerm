@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package rules
@@ -30,6 +30,7 @@ var abbreviations = map[string]string{
 	"lb":            "load_balancer",
 	"waf":           "web_application_firewall",
 	"sec":           "seconds",
+	"auth":          "authentication",
 	"addr":          "address",
 	"msg":           "message",
 	"num":           "number",

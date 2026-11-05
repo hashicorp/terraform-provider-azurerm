@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup_test
@@ -34,10 +34,8 @@ func TestAccManagementGroupSubscriptionAssociation_sequential(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})

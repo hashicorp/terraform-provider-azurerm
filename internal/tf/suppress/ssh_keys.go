@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package suppress
@@ -47,7 +47,7 @@ func NormalizeSSHKey(input string) (*string, error) {
 	output = strings.ReplaceAll(output, "\r", "")
 
 	lines := make([]string, 0)
-	for _, line := range strings.Split(output, "\n") {
+	for line := range strings.SplitSeq(output, "\n") {
 		lines = append(lines, strings.TrimSpace(line))
 	}
 

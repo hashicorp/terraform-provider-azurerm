@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -28,6 +28,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		CosmosDbMongoRoleDefinitionResource{},
 		CosmosDbMongoUserDefinitionResource{},
 		CosmosDbPostgreSQLClusterResource{},
 		CosmosDbPostgreSQLCoordinatorConfigurationResource{},
@@ -35,7 +36,6 @@ func (r Registration) Resources() []sdk.Resource {
 		CosmosDbPostgreSQLNodeConfigurationResource{},
 		CosmosDbPostgreSQLRoleResource{},
 		CosmosDbSqlDedicatedGatewayResource{},
-		CosmosDbMongoRoleDefinitionResource{},
 	}
 }
 

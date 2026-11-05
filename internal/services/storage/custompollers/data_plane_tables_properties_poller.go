@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -32,13 +32,11 @@ func (d *DataPlaneTablesPropertiesPoller) Poll(ctx context.Context) (*pollers.Po
 	resp, err := d.client.GetServiceProperties(ctx)
 	if err != nil {
 		return nil, pollers.PollingFailedError{
-			Message:      fmt.Sprintf("retrieving Table Service Properties: %+v", err),
-			HttpResponse: nil,
+			Message: fmt.Sprintf("retrieving Table Service Properties: %+v", err),
 		}
 	}
 	if resp == nil {
 		return &pollers.PollResult{
-			HttpResponse: nil,
 			PollInterval: 10 * time.Second,
 			Status:       pollers.PollingStatusInProgress,
 		}, nil
@@ -46,14 +44,12 @@ func (d *DataPlaneTablesPropertiesPoller) Poll(ctx context.Context) (*pollers.Po
 
 	if tablePropertiesMatch(*resp, d.expected) {
 		return &pollers.PollResult{
-			HttpResponse: nil,
 			PollInterval: 10 * time.Second,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
 	}
 
 	return &pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 10 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}, nil

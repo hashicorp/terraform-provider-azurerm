@@ -22,7 +22,7 @@ data "azurerm_key_vault_managed_hardware_security_module_key" "example" {
   name           = azurerm_key_vault_managed_hardware_security_module_key.example.name
 }
 
-output "hsm-key-vesrion" {
+output "hsm-key-version" {
   value = data.azurerm_key_vault_managed_hardware_security_module_key.example.version
 }
 ```

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -1047,7 +1047,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
-	// nolint: dupword
+	//nolint:dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

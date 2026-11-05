@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -36,9 +36,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_netapp_account":         dataSourceNetAppAccount(),
 		"azurerm_netapp_pool":            dataSourceNetAppPool(),
-		"azurerm_netapp_volume":          dataSourceNetAppVolume(),
 		"azurerm_netapp_snapshot":        dataSourceNetAppSnapshot(),
 		"azurerm_netapp_snapshot_policy": dataSourceNetAppSnapshotPolicy(),
+		"azurerm_netapp_volume":          dataSourceNetAppVolume(),
 	}
 }
 
@@ -46,37 +46,37 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_netapp_account":         resourceNetAppAccount(),
 		"azurerm_netapp_pool":            resourceNetAppPool(),
-		"azurerm_netapp_volume":          resourceNetAppVolume(),
 		"azurerm_netapp_snapshot":        resourceNetAppSnapshot(),
 		"azurerm_netapp_snapshot_policy": resourceNetAppSnapshotPolicy(),
+		"azurerm_netapp_volume":          resourceNetAppVolume(),
 	}
 }
 
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		NetAppVolumeGroupSAPHanaDataSource{},
-		NetAppVolumeQuotaRuleDataSource{},
 		NetAppAccountEncryptionDataSource{},
-		NetAppBackupVaultDataSource{},
 		NetAppBackupPolicyDataSource{},
-		NetAppVolumeGroupOracleDataSource{},
+		NetAppBackupVaultDataSource{},
 		NetAppVolumeBucketDataSource{},
 		NetAppVolumeBucketWithServerDataSource{},
+		NetAppVolumeGroupOracleDataSource{},
+		NetAppVolumeGroupSAPHanaDataSource{},
+		NetAppVolumeQuotaRuleDataSource{},
 	}
 }
 
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		NetAppVolumeGroupSAPHanaResource{},
-		NetAppVolumeQuotaRuleResource{},
 		NetAppAccountEncryptionResource{},
-		NetAppBackupVaultResource{},
 		NetAppBackupPolicyResource{},
-		NetAppVolumeGroupOracleResource{},
+		NetAppBackupVaultResource{},
 		NetAppVolumeBucketResource{},
 		NetAppVolumeBucketWithServerResource{},
+		NetAppVolumeGroupOracleResource{},
+		NetAppVolumeGroupSAPHanaResource{},
+		NetAppVolumeQuotaRuleResource{},
 	}
 }
 

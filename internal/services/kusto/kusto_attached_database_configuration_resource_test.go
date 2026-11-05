@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -99,9 +100,7 @@ func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("response model is empty")
 	}
 
-	exists := resp.Model.Properties != nil
-
-	return &exists, nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r KustoAttachedDatabaseConfigurationResource) basic(data acceptance.TestData) string {

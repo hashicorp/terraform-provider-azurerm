@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -446,7 +446,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 	}
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() interface{} {
+func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() any {
 	return &AutonomousDatabaseCloneFromBackupDataSourceModel{}
 }
 

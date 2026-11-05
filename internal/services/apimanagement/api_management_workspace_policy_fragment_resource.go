@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -34,7 +34,7 @@ func (r ApiManagementWorkspacePolicyFragmentResource) ResourceType() string {
 	return "azurerm_api_management_workspace_policy_fragment"
 }
 
-func (r ApiManagementWorkspacePolicyFragmentResource) ModelObject() interface{} {
+func (r ApiManagementWorkspacePolicyFragmentResource) ModelObject() any {
 	return &ApiManagementWorkspacePolicyFragmentModel{}
 }
 
