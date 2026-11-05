@@ -42,7 +42,7 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) ResourceType() stri
 	return "azurerm_discovery_bookshelf_private_endpoint_connection"
 }
 
-func (r DiscoveryBookshelfPrivateEndpointConnectionResource) ModelObject() interface{} {
+func (r DiscoveryBookshelfPrivateEndpointConnectionResource) ModelObject() any {
 	return &DiscoveryBookshelfPrivateEndpointConnectionModel{}
 }
 
@@ -80,8 +80,9 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Arguments() map[str
 		},
 
 		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because the service returns the private endpoint's request message as the description when none is set
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -157,7 +158,7 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Create() sdk.Resour
 			payload := *existing
 			payload.Properties = &bookshelfprivateendpointconnections.PrivateEndpointConnectionProperties{
 				PrivateLinkServiceConnectionState: bookshelfprivateendpointconnections.PrivateLinkServiceConnectionState{
-					Status: pointer.To(bookshelfprivateendpointconnections.PrivateEndpointServiceConnectionStatus(model.Status)),
+					Status: pointer.ToEnum[bookshelfprivateendpointconnections.PrivateEndpointServiceConnectionStatus](model.Status),
 				},
 			}
 
@@ -225,7 +226,7 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) flatten(metadata sd
 			connectionState := props.PrivateLinkServiceConnectionState
 			state.ActionsRequired = pointer.From(connectionState.ActionsRequired)
 			state.Description = pointer.From(connectionState.Description)
-			state.Status = string(pointer.From(connectionState.Status))
+			state.Status = pointer.FromEnum(connectionState.Status)
 		}
 	}
 
@@ -267,7 +268,7 @@ func (r DiscoveryBookshelfPrivateEndpointConnectionResource) Update() sdk.Resour
 			}
 
 			if metadata.ResourceData.HasChange("status") {
-				payload.Properties.PrivateLinkServiceConnectionState.Status = pointer.To(bookshelfprivateendpointconnections.PrivateEndpointServiceConnectionStatus(model.Status))
+				payload.Properties.PrivateLinkServiceConnectionState.Status = pointer.ToEnum[bookshelfprivateendpointconnections.PrivateEndpointServiceConnectionStatus](model.Status)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

@@ -60,7 +60,7 @@ func (r DiscoveryBookshelfResource) ResourceType() string {
 	return "azurerm_discovery_bookshelf"
 }
 
-func (r DiscoveryBookshelfResource) ModelObject() interface{} {
+func (r DiscoveryBookshelfResource) ModelObject() any {
 	return &DiscoveryBookshelfModel{}
 }
 
@@ -199,7 +199,7 @@ func (r DiscoveryBookshelfResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			oldCMK, newCMK := diff.GetChange("customer_managed_key")
-			if len(oldCMK.([]interface{})) != len(newCMK.([]interface{})) {
+			if len(oldCMK.([]any)) != len(newCMK.([]any)) {
 				return diff.ForceNew("customer_managed_key")
 			}
 
