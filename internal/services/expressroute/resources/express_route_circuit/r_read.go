@@ -63,6 +63,8 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) error 
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
 			d.Set("rate_limiting_enabled", props.EnableDirectPortRateLimit)
+			d.Set("activation_key", props.ActivationKey)
+			d.Set("partner_account_id", props.PartnerAccountId)
 
 			if serviceProviderProps := props.ServiceProviderProperties; serviceProviderProps != nil {
 				d.Set("service_provider_name", serviceProviderProps.ServiceProviderName)

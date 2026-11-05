@@ -98,6 +98,25 @@ func expressRouteCircuitSchema() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"activation_key": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C when `partner_account_id` is specified, the API generates the activation key for the circuit
+			Computed:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"partner_account_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C when `activation_key` is specified, the API populates the partner account ID from the activation key
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"service_provider_provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

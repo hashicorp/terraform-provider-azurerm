@@ -64,6 +64,14 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta any) erro
 		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
 	}
 
+	if v, ok := d.GetOk("activation_key"); ok {
+		erc.Properties.ActivationKey = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("partner_account_id"); ok {
+		erc.Properties.PartnerAccountId = pointer.To(v.(string))
+	}
+
 	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 	if _, ok := d.GetOk("express_route_port_id"); ok {
 		erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}

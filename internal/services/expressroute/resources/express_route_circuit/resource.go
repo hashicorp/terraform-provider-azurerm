@@ -5,6 +5,7 @@ package express_route_circuit
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuits"
@@ -29,6 +30,7 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta any) bool {
 				return new.(int) < old.(int)
 			}),
+			validateExpressRouteCircuitMultiCloudProperties,
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -40,4 +42,20 @@ func RegisterResource() *pluginsdk.Resource {
 
 		Schema: expressRouteCircuitSchema(),
 	}
+}
+
+func validateExpressRouteCircuitMultiCloudProperties(_ context.Context, diff *pluginsdk.ResourceDiff, _ any) error {
+	multiCloudTier := string(expressroutecircuits.ExpressRouteCircuitSkuTierMultiCloud)
+	if !diff.NewValueKnown("sku.0.tier") || diff.Get("sku.0.tier").(string) == multiCloudTier {
+		return nil
+	}
+
+	rawConfig := diff.GetRawConfig().AsValueMap()
+	for _, field := range []string{"activation_key", "partner_account_id"} {
+		if v, ok := rawConfig[field]; ok && !v.IsNull() {
+			return fmt.Errorf("`%s` can only be specified when `sku.0.tier` is set to `%s`", field, multiCloudTier)
+		}
+	}
+
+	return nil
 }

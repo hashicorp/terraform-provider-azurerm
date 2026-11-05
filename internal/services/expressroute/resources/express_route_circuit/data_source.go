@@ -37,6 +37,17 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"activation_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"partner_account_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"peerings": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -156,6 +167,8 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta any) erro
 
 			d.Set("service_key", props.ServiceKey)
 			d.Set("service_provider_provisioning_state", pointer.FromEnum(props.ServiceProviderProvisioningState))
+			d.Set("activation_key", props.ActivationKey)
+			d.Set("partner_account_id", props.PartnerAccountId)
 
 			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
 				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
