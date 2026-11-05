@@ -6,7 +6,7 @@ package express_route_circuit_authorization
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitauthorizations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuitauthorizations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
