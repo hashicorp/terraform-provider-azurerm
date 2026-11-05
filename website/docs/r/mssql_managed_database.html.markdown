@@ -72,6 +72,10 @@ The following arguments are supported:
 
 * `short_term_retention_days` - (Optional) The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 
+* `short_term_retention_immutability_locked` - (Optional) Whether to lock the immutability of backups governed by the short term retention policy. Defaults to `false`. Changing this from `true` to `false` forces a new resource to be created.
+
+-> **Note:** Setting `short_term_retention_immutability_locked` to `false` does not disable default backup immutability. More information on automatic backup immutability can be found in the [Microsoft documentation](https://learn.microsoft.com/azure/azure-sql/automatic-backup-immutability).
+
 * `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created. Conflicts with `recover_database_id`.
 
 * `recover_database_id` - (Optional) The ID of the Recoverable Managed Database from which to perform a cross-region / recovery restore. Changing this forces a new resource to be created. Conflicts with `point_in_time_restore`.

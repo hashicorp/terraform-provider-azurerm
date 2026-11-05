@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -26,13 +26,14 @@ import (
 )
 
 type MsSqlManagedDatabaseModel struct {
-	Name                    string                    `tfschema:"name"`
-	ManagedInstanceId       string                    `tfschema:"managed_instance_id"`
-	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
-	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
-	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
-	RecoverDatabaseId       string                    `tfschema:"recover_database_id"`
-	Tags                    map[string]string         `tfschema:"tags"`
+	Name                                 string                    `tfschema:"name"`
+	ManagedInstanceId                    string                    `tfschema:"managed_instance_id"`
+	LongTermRetentionPolicy              []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
+	ShortTermRetentionDays               int64                     `tfschema:"short_term_retention_days"`
+	ShortTermRetentionImmutabilityLocked bool                      `tfschema:"short_term_retention_immutability_locked"`
+	PointInTimeRestore                   []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	RecoverDatabaseId                    string                    `tfschema:"recover_database_id"`
+	Tags                                 map[string]string         `tfschema:"tags"`
 }
 
 type LongTermRetentionPolicy struct {
@@ -48,8 +49,9 @@ type PointInTimeRestore struct {
 }
 
 var (
-	_ sdk.Resource           = MsSqlManagedDatabaseResource{}
-	_ sdk.ResourceWithUpdate = MsSqlManagedDatabaseResource{}
+	_ sdk.Resource                  = MsSqlManagedDatabaseResource{}
+	_ sdk.ResourceWithUpdate        = MsSqlManagedDatabaseResource{}
+	_ sdk.ResourceWithCustomizeDiff = MsSqlManagedDatabaseResource{}
 )
 
 type MsSqlManagedDatabaseResource struct{}
@@ -140,6 +142,12 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      7,
 		},
 
+		"short_term_retention_immutability_locked": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"point_in_time_restore": {
 			Type:          schema.TypeList,
 			Optional:      true,
@@ -179,6 +187,22 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r MsSqlManagedDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r MsSqlManagedDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if oldVal, newVal := rd.GetChange("short_term_retention_immutability_locked"); oldVal.(bool) && !newVal.(bool) {
+				// the service does not support unlock.
+				if err := rd.ForceNew("short_term_retention_immutability_locked"); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
 }
 
 func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
@@ -256,9 +280,25 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ShortTermRetentionDays > 0 {
+				if model.ShortTermRetentionImmutabilityLocked {
+					existingPolicy, err := shortTermRetentionClient.Get(ctx, id)
+					if err != nil {
+						return fmt.Errorf("retrieving Short Term Retention Policy for %s: %+v", id, err)
+					}
+
+					var immutabilityStatus managedbackupshorttermretentionpolicies.ImmutabilityStatus
+					if existingPolicy.Model != nil && existingPolicy.Model.Properties != nil {
+						immutabilityStatus = pointer.From(existingPolicy.Model.Properties.ImmutabilityStatus)
+					}
+					if immutabilityStatus != managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled {
+						return fmt.Errorf("`short_term_retention_immutability_locked` cannot be set to `true` when `immutabilityStatus` is %q (must be %q)", immutabilityStatus, managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled)
+					}
+				}
+
 				shortTermRetentionPolicy := managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicy{
 					Properties: &managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays:    pointer.To(model.ShortTermRetentionDays),
+						LockImmutability: pointer.To(model.ShortTermRetentionImmutabilityLocked),
 					},
 				}
 				if err = shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicy); err != nil {
@@ -321,10 +361,26 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if d.HasChange("short_term_retention_days") {
+			if d.HasChanges("short_term_retention_days", "short_term_retention_immutability_locked") {
+				if d.HasChange("short_term_retention_immutability_locked") && model.ShortTermRetentionImmutabilityLocked {
+					existingPolicy, err := shortTermRetentionClient.Get(ctx, id)
+					if err != nil {
+						return fmt.Errorf("retrieving Short Term Retention Policy for %s: %+v", id, err)
+					}
+
+					var immutabilityStatus managedbackupshorttermretentionpolicies.ImmutabilityStatus
+					if existingPolicy.Model != nil && existingPolicy.Model.Properties != nil {
+						immutabilityStatus = pointer.From(existingPolicy.Model.Properties.ImmutabilityStatus)
+					}
+					if immutabilityStatus != managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled {
+						return fmt.Errorf("`short_term_retention_immutability_locked` cannot be set to `true` when `immutabilityStatus` is %q (must be %q)", immutabilityStatus, managedbackupshorttermretentionpolicies.ImmutabilityStatusEnabled)
+					}
+				}
+
 				shortTermRetentionPolicy := managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicy{
 					Properties: &managedbackupshorttermretentionpolicies.ManagedBackupShortTermRetentionPolicyProperties{
-						RetentionDays: pointer.To(model.ShortTermRetentionDays),
+						RetentionDays:    pointer.To(model.ShortTermRetentionDays),
+						LockImmutability: pointer.To(model.ShortTermRetentionImmutabilityLocked),
 					},
 				}
 				if err = shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicy); err != nil {
@@ -391,6 +447,7 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 
 			if shortTermRetentionResp.Model != nil && shortTermRetentionResp.Model.Properties != nil {
 				model.ShortTermRetentionDays = pointer.From(shortTermRetentionResp.Model.Properties.RetentionDays)
+				model.ShortTermRetentionImmutabilityLocked = pointer.From(shortTermRetentionResp.Model.Properties.ImmutabilityStatus) == managedbackupshorttermretentionpolicies.ImmutabilityStatusLocked
 			}
 
 			d := metadata.ResourceData

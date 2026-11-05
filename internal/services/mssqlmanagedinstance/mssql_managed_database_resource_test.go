@@ -100,6 +100,35 @@ func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedDatabase_shortTermRetentionImmutability(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.shortTermRetentionImmutability(data, false, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.shortTermRetentionImmutability(data, true, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.shortTermRetentionImmutability(data, true, 2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlManagedDatabase_withPartialRetentionPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
 	r := MsSqlManagedDatabase{}
@@ -264,6 +293,19 @@ resource "azurerm_mssql_managed_database" "test" {
 
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) shortTermRetentionImmutability(data acceptance.TestData, locked bool, retentionDays int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  name                                     = "acctest-%[2]d"
+  managed_instance_id                      = azurerm_mssql_managed_instance.test.id
+  short_term_retention_days                = %[4]d
+  short_term_retention_immutability_locked = %[3]t
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger, locked, retentionDays)
 }
 
 func (r MsSqlManagedDatabase) withPartialRetentionPolicies(data acceptance.TestData, retention string) string {
