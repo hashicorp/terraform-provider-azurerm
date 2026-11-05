@@ -6,6 +6,7 @@ package oracle_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -177,8 +178,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_workload                      = "APEX"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
-  character_set                    = "AL32UTF8"
-  national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
 }
