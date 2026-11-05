@@ -236,7 +236,7 @@ func (r VirtualDesktopApplicationResource) appAttachPackage(data acceptance.Test
 		fileShareConfig += fmt.Sprintf(`
 resource "azurerm_storage_share_file" "test%[1]d" {
   name              = "%[2]s"
-  source            = "${path.module}/testdata/%[2]s"
+  source            = "${path.module}/../../testdata/%[2]s"
   storage_share_url = azurerm_storage_share.test.url
 }
 `, i, cimFileName)
