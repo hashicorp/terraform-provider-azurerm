@@ -6,6 +6,7 @@ package kubernetes_cluster_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -48,13 +49,6 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
-	// API defaults cannot distinguish an omitted block from an explicit false/false block.
-	disabledSecurityImport := data.ImportBlockWithIDStep(true)
-	disabledSecurityImport.ImportPlanChecks = resource.ImportPlanChecks{
-		PreApply: []plancheck.PlanCheck{
-			plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-		},
-	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,11 +63,8 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 secure_boot_enabled = false
 vtpm_enabled        = false
 `, "initial"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
+			ExpectError: regexp.MustCompile("at least one of .* must be set to `true`"),
 		},
-		disabledSecurityImport,
 		{
 			Config: r.defaultNodePoolSecurity(data, true, `
 secure_boot_enabled = true
@@ -117,14 +108,12 @@ vtpm_enabled = true
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, true, `
-secure_boot_enabled = false
-vtpm_enabled        = false
-`, "updated"),
+			Config: r.defaultNodePoolSecurity(data, false, "", "updated"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 

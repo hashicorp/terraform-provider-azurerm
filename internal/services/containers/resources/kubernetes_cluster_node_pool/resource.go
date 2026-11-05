@@ -49,6 +49,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
 			helpers.NodePoolSecurityCustomizeDiff(""),
+			helpers.NodePoolSecurityEnabledCustomizeDiff("security"),
 			pluginsdk.ForceNewIfChange("os_sku", func(ctx context.Context, old, new, meta any) bool {
 				oldStr := old.(string)
 				newStr := new.(string)
