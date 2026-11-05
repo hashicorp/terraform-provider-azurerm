@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
@@ -10,6 +10,7 @@ var services = mapOf(
         "apicenter" to "ApiCenter",
         "appconfiguration" to "App Configuration",
         "appservice" to "AppService",
+        "appgateway" to "Application Gateway",
         "applicationinsights" to "Application Insights",
         "arcresourcebridge" to "Arc Resource Bridge",
         "arckubernetes" to "ArcKubernetes",
@@ -54,6 +55,7 @@ var services = mapOf(
         "elasticsan" to "ElasticSan",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
+        "expressroute" to "ExpressRoute",
         "extendedlocation" to "ExtendedLocation",
         "fabric" to "Fabric",
         "firewall" to "Firewall",
@@ -91,6 +93,8 @@ var services = mapOf(
         "netapp" to "NetApp",
         "network" to "Network",
         "networkfunction" to "Network Function",
+        "networkgateway" to "Network Gateway",
+        "networkmanager" to "Network Manager",
         "newrelic" to "New Relic",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
@@ -130,6 +134,7 @@ var services = mapOf(
         "codesigning" to "Trusted Signing",
         "vmware" to "VMware",
         "videoindexer" to "VideoIndexer",
+        "virtualwan" to "Virtual WAN",
         "web" to "Web",
         "workloads" to "Workloads"
 )

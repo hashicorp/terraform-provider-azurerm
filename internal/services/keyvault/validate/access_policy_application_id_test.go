@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,8 +7,7 @@ package validate
 
 import "testing"
 
-// lintignore:AT003 // unit test for a generated Resource ID whose Type Name begins with `Acc`
-func TestAccessPolicyApplicationID(t *testing.T) {
+func TestValidateAccessPolicyApplicationID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
