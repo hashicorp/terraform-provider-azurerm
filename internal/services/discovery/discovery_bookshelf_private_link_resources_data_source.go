@@ -34,7 +34,7 @@ func (r DiscoveryBookshelfPrivateLinkResourcesDataSource) ResourceType() string 
 	return "azurerm_discovery_bookshelf_private_link_resources"
 }
 
-func (r DiscoveryBookshelfPrivateLinkResourcesDataSource) ModelObject() interface{} {
+func (r DiscoveryBookshelfPrivateLinkResourcesDataSource) ModelObject() any {
 	return &DiscoveryBookshelfPrivateLinkResourcesModel{}
 }
 
