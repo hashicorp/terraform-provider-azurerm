@@ -5,7 +5,7 @@ package validate
 
 import "github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 
-func ResourceGuardVaultCriticalOperationExclusionList() func(interface{}, string) ([]string, []error) {
+func ResourceGuardVaultCriticalOperationExclusionList() func(any, string) ([]string, []error) {
 	return validation.StringInSlice([]string{
 		"Microsoft.DataProtection/backupVaults/backupInstances/delete",
 		"Microsoft.DataProtection/backupVaults/backupInstances/restore/action",
