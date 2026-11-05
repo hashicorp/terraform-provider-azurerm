@@ -65,6 +65,14 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	td.resourceTest(t, testResource, steps, nil)
+}
+
+func (td TestData) ResourceTestAdditionalCLIOptions(t *testing.T, testResource types.TestResource, steps []TestStep, cliOpts *resource.AdditionalCLIOptions) {
+	td.resourceTest(t, testResource, steps, cliOpts)
+}
+
+func (td TestData) resourceTest(t *testing.T, testResource types.TestResource, steps []TestStep, cliOpts *resource.AdditionalCLIOptions) {
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
 
 	newSteps := make([]TestStep, 0)
@@ -91,8 +99,10 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 			}
 			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
-		Steps: steps,
+		Steps:                steps,
+		AdditionalCLIOptions: cliOpts,
 	}
+
 	td.runAcceptanceTest(t, testCase)
 }
 
