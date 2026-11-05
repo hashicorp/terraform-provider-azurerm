@@ -5,8 +5,8 @@ package express_route_circuit_peering
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuitpeerings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuitpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
