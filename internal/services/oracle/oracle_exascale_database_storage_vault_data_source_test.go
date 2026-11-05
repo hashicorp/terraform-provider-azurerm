@@ -14,7 +14,7 @@ import (
 
 type ExascaleDatabasetorageVaultDataSource struct{}
 
-func TestDbStorageVaultDataSource_basic(t *testing.T) {
+func TestAccDbStorageVaultDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, fmt.Sprintf("data.%[1]s", oracle.ExascaleDatabaseStorageVaultDataSource{}.ResourceType()), "test")
 	r := ExascaleDatabasetorageVaultDataSource{}
 

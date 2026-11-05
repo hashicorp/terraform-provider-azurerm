@@ -31,7 +31,7 @@ func (a CloudVmClusterResource) Exists(ctx context.Context, client *clients.Clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestCloudVmClusterResource_basic(t *testing.T) {
+func TestAccCloudVmClusterResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func TestCloudVmClusterResource_basic(t *testing.T) {
 	})
 }
 
-func TestCloudVmClusterResource_complete(t *testing.T) {
+func TestAccCloudVmClusterResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -59,7 +59,7 @@ func TestCloudVmClusterResource_complete(t *testing.T) {
 	})
 }
 
-func TestCloudVmClusterResource_requiresImport(t *testing.T) {
+func TestAccCloudVmClusterResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -73,7 +73,7 @@ func TestCloudVmClusterResource_requiresImport(t *testing.T) {
 	})
 }
 
-func TestCloudVmClusterResource_update(t *testing.T) {
+func TestAccCloudVmClusterResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

@@ -7,6 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_alexa"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_direct_line_speech"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_directline"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_email"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_facebook"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_line"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_ms_teams"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_slack"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_sms"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channel_web_chat"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_channels_registration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_service_azure_bot"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/bot_web_app"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/resources/healthbot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,7 +43,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AzureBotServiceResource{},
+		bot_service_azure_bot.Resource{},
 	}
 }
 
@@ -52,20 +67,20 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_bot_channel_alexa":              resourceBotChannelAlexa(),
-		"azurerm_bot_channel_direct_line_speech": resourceBotChannelDirectLineSpeech(),
-		"azurerm_bot_channel_directline":         resourceBotChannelDirectline(),
-		"azurerm_bot_channel_email":              resourceBotChannelEmail(),
-		"azurerm_bot_channel_facebook":           resourceBotChannelFacebook(),
-		"azurerm_bot_channel_line":               resourceBotChannelLine(),
-		"azurerm_bot_channel_ms_teams":           resourceBotChannelMsTeams(),
-		"azurerm_bot_channel_slack":              resourceBotChannelSlack(),
-		"azurerm_bot_channel_sms":                resourceBotChannelSMS(),
-		"azurerm_bot_channel_web_chat":           resourceBotChannelWebChat(),
-		"azurerm_bot_channels_registration":      resourceBotChannelsRegistration(),
-		"azurerm_bot_connection":                 resourceArmBotConnection(),
-		"azurerm_bot_web_app":                    resourceBotWebApp(),
-		"azurerm_healthbot":                      resourceHealthbotService(),
+		"azurerm_bot_channel_alexa":              bot_channel_alexa.RegisterResource(),
+		"azurerm_bot_channel_direct_line_speech": bot_channel_direct_line_speech.RegisterResource(),
+		"azurerm_bot_channel_directline":         bot_channel_directline.RegisterResource(),
+		"azurerm_bot_channel_email":              bot_channel_email.RegisterResource(),
+		"azurerm_bot_channel_facebook":           bot_channel_facebook.RegisterResource(),
+		"azurerm_bot_channel_line":               bot_channel_line.RegisterResource(),
+		"azurerm_bot_channel_ms_teams":           bot_channel_ms_teams.RegisterResource(),
+		"azurerm_bot_channel_slack":              bot_channel_slack.RegisterResource(),
+		"azurerm_bot_channel_sms":                bot_channel_sms.RegisterResource(),
+		"azurerm_bot_channel_web_chat":           bot_channel_web_chat.RegisterResource(),
+		"azurerm_bot_channels_registration":      bot_channels_registration.RegisterResource(),
+		"azurerm_bot_connection":                 bot_connection.RegisterResource(),
+		"azurerm_bot_web_app":                    bot_web_app.RegisterResource(),
+		"azurerm_healthbot":                      healthbot.RegisterResource(),
 	}
 }
 

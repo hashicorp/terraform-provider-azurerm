@@ -83,7 +83,7 @@ A `schedule` block supports the following:
 
 * `minutes` - (Optional) Minutes of the hour on which the trigger is scheduled.
 
-* `monthly` - (Optional) A `monthly` block as documented below, which specifies the days of the month on which the trigger is scheduled. The value can be specified only with a monthly frequency.
+* `monthly` - (Optional) A `monthly` block as defined below, which specifies the days of the month on which the trigger is scheduled. The value can be specified only with a monthly frequency.
 
 ---
 

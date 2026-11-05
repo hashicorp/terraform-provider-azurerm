@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/resources/billing_enrollment_account_scope"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/resources/billing_mca_account_scope"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/resources/billing_mpa_account_scope"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,9 +38,9 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_billing_enrollment_account_scope": dataSourceBillingEnrollmentAccountScope(),
-		"azurerm_billing_mca_account_scope":        dataSourceBillingMCAAccountScope(),
-		"azurerm_billing_mpa_account_scope":        dataSourceBillingMPAAccountScope(),
+		"azurerm_billing_enrollment_account_scope": billing_enrollment_account_scope.RegisterDataSource(),
+		"azurerm_billing_mca_account_scope":        billing_mca_account_scope.RegisterDataSource(),
+		"azurerm_billing_mpa_account_scope":        billing_mpa_account_scope.RegisterDataSource(),
 	}
 }
 

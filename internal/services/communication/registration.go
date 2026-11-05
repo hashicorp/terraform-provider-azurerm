@@ -7,6 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/resources/communication_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/resources/communication_service_email_domain_association"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/resources/email_communication_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/resources/email_communication_service_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/resources/email_communication_service_domain_sender_username"
 )
 
 type Registration struct{}
@@ -34,17 +39,17 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		CommunicationServiceDataSource{},
+		communication_service.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		CommunicationServiceResource{},
-		EmailCommunicationServiceDomainResource{},
-		EmailCommunicationServiceDomainSenderUsernameResource{},
-		EmailCommunicationServiceResource{},
-		EmailDomainAssociationResource{},
+		communication_service.Resource{},
+		email_communication_service_domain.Resource{},
+		email_communication_service_domain_sender_username.Resource{},
+		email_communication_service.Resource{},
+		communication_service_email_domain_association.Resource{},
 	}
 }
 

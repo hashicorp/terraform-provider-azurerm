@@ -1,0 +1,286 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package networkmanager
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/scopeconnections"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+type ManagerScopeConnectionModel struct {
+	Name             string `tfschema:"name"`
+	NetworkManagerId string `tfschema:"network_manager_id"`
+	ConnectionState  string `tfschema:"connection_state"`
+	Description      string `tfschema:"description"`
+	ResourceId       string `tfschema:"target_scope_id"`
+	TenantId         string `tfschema:"tenant_id"`
+}
+
+type ManagerScopeConnectionResource struct{}
+
+var _ sdk.ResourceWithUpdate = ManagerScopeConnectionResource{}
+
+func (r ManagerScopeConnectionResource) ResourceType() string {
+	return "azurerm_network_manager_scope_connection"
+}
+
+func (r ManagerScopeConnectionResource) ModelObject() any {
+	return &ManagerScopeConnectionModel{}
+}
+
+func (r ManagerScopeConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return scopeconnections.ValidateScopeConnectionID
+}
+
+func (r ManagerScopeConnectionResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"network_manager_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: scopeconnections.ValidateNetworkManagerID,
+		},
+
+		"target_scope_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"tenant_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	}
+}
+
+func (r ManagerScopeConnectionResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"connection_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+}
+
+func (r ManagerScopeConnectionResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model ManagerScopeConnectionModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			client := metadata.Client.NetworkManager.ScopeConnections
+			networkManagerId, err := scopeconnections.ParseNetworkManagerID(model.NetworkManagerId)
+			if err != nil {
+				return err
+			}
+
+			id := scopeconnections.NewScopeConnectionID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
+			}
+
+			scopeConnection := scopeconnections.ScopeConnection{
+				Properties: &scopeconnections.ScopeConnectionProperties{},
+			}
+
+			if model.Description != "" {
+				scopeConnection.Properties.Description = &model.Description
+			}
+
+			if model.ResourceId != "" {
+				scopeConnection.Properties.ResourceId = &model.ResourceId
+			}
+
+			if model.TenantId != "" {
+				scopeConnection.Properties.TenantId = &model.TenantId
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id, scopeConnection); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r ManagerScopeConnectionResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetworkManager.ScopeConnections
+
+			id, err := scopeconnections.ParseScopeConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model ManagerScopeConnectionModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
+
+			if metadata.ResourceData.HasChange("description") {
+				if model.Description != "" {
+					properties.Description = &model.Description
+				}
+			}
+
+			if metadata.ResourceData.HasChange("target_scope_id") {
+				if model.ResourceId != "" {
+					properties.ResourceId = &model.ResourceId
+				}
+			}
+
+			if metadata.ResourceData.HasChange("tenant_id") {
+				if model.TenantId != "" {
+					properties.TenantId = &model.TenantId
+				}
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r ManagerScopeConnectionResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetworkManager.ScopeConnections
+
+			id, err := scopeconnections.ParseScopeConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			properties := existing.Model.Properties
+
+			state := ManagerScopeConnectionModel{
+				Name:             id.ScopeConnectionName,
+				NetworkManagerId: scopeconnections.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
+			}
+
+			if properties.ConnectionState != nil {
+				state.ConnectionState = string(*properties.ConnectionState)
+			}
+
+			if properties.Description != nil {
+				state.Description = *properties.Description
+			}
+
+			if properties.ResourceId != nil {
+				state.ResourceId = *properties.ResourceId
+			}
+
+			if properties.TenantId != nil {
+				state.TenantId = *properties.TenantId
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r ManagerScopeConnectionResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NetworkManager.ScopeConnections
+
+			id, err := scopeconnections.ParseScopeConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			// https://github.com/Azure/azure-rest-api-specs/issues/23188
+			// confirm the connection is fully deleted
+			poller := custompollers.NewEventualConsistencyPoller(3, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, *id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         3 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+			}
+			return nil
+		},
+	}
+}

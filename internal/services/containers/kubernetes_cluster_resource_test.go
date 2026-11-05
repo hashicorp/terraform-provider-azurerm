@@ -21,20 +21,14 @@ import (
 
 type KubernetesClusterResource struct{}
 
-var (
-	olderKubernetesVersion        = "1.34.3"
-	currentKubernetesVersion      = "1.35.1"
-	olderKubernetesVersionAlias   = "1.34"
-	currentKubernetesVersionAlias = "1.35"
-)
-
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.hostEncryption(data, currentKubernetesVersion),
+			Config: r.hostEncryption(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
@@ -60,17 +54,18 @@ func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.runCommand(data, currentKubernetesVersion, true),
+			Config: r.runCommand(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("run_command_enabled").HasValue("true"),
 			),
 		},
 		{
-			Config: r.runCommand(data, currentKubernetesVersion, false),
+			Config: r.runCommand(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("run_command_enabled").HasValue("false"),
@@ -82,16 +77,17 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, true),
+			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, false),
+			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -102,10 +98,11 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageProfile(data, currentKubernetesVersion),
+			Config: r.storageProfile(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -116,10 +113,11 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
+			Config: r.workloadAutoscalerProfileKeda(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
@@ -127,7 +125,7 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, false),
+			Config: r.workloadAutoscalerProfileKeda(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
@@ -140,10 +138,11 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, true),
+			Config: r.imageCleanerSecurityProfile(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("true"),
@@ -151,7 +150,7 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 			),
 		},
 		{
-			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, false),
+			Config: r.imageCleanerSecurityProfile(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("false"),
@@ -163,17 +162,18 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, true),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, meta.CurrentKubernetesVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false),
+			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, meta.CurrentKubernetesVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -228,16 +228,17 @@ func TestAccKubernetesCluster_nodeProvisioningProfileUpdate(t *testing.T) {
 func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.edgeZone(data, currentKubernetesVersion, "Test1"),
+			Config: r.edgeZone(data, meta.CurrentKubernetesVersion, "Test1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.edgeZone(data, currentKubernetesVersion, "Test2"),
+			Config: r.edgeZone(data, meta.CurrentKubernetesVersion, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -388,10 +389,11 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 	dnsPrefix := fmt.Sprintf("1stCluster%d", data.RandomInteger)
 
 	r := KubernetesClusterResource{}
+	meta := getAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dnsPrefix(data, currentKubernetesVersion),
+			Config: r.dnsPrefix(data, meta.CurrentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dns_prefix").HasValue(dnsPrefix),
@@ -567,6 +569,7 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
 }
 
 func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
+	meta, _ := obtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 %s
 
@@ -601,7 +604,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     outbound_type  = %q
   }
 }
-  `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, currentKubernetesVersionAlias, "10%", outboundType)
+  `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersionAlias, "10%", outboundType)
 }
 
 func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {

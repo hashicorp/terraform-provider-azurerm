@@ -46,10 +46,10 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
         // PremiumV2 tier is only available in certain locations `East US 2`, `Australia East`, `Germany West Central`, `Korea Central`, `Norway East` and `UK South`
-        "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
+        "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("germanywestcentral", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true), maxConcurrentBuilds = 1),
+        "appservice" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("germanywestcentral", "westus2", "eastus2", true), maxConcurrentBuilds = 1),
 
         // Arc Kubernetes Provisioned Cluster is only available in certain locations
         "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
@@ -108,7 +108,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("southeastasia", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
-        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
+        "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false), disableTriggers = true),
 
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1),
@@ -213,7 +213,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "vmware" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),
+        "web" to testConfiguration(daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),
 
         // Workloads has quota available in certain locations
         "workloads" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus", "westeurope", "francecentral", false))

@@ -19,7 +19,7 @@ import (
 
 type CosmosDbPostgreSQLFirewallRuleResource struct{}
 
-func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
+func TestAccCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}
 
@@ -34,7 +34,7 @@ func TestCosmosDbPostgreSQLFirewallRule_basic(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
+func TestAccCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}
 	startIPAddress := "10.0.17.62"
@@ -53,7 +53,7 @@ func TestCosmosDbPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestCosmosDbPostgreSQLFirewallRule_update(t *testing.T) {
+func TestAccCosmosDbPostgreSQLFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_postgresql_firewall_rule", "test")
 	r := CosmosDbPostgreSQLFirewallRuleResource{}
 

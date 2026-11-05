@@ -734,8 +734,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// Note: O+C because AKS assigns a Kubernetes version when not specified
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsNotEmpty,
+				DiffSuppressFunc: suppressKubernetesVersionDiff,
 			},
 
 			"linux_profile": {

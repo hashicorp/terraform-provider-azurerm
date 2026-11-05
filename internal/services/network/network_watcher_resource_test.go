@@ -84,6 +84,8 @@ func TestAccNetworkWatcher_sequential(t *testing.T) {
 			"tags":                    testAccNetworkWatcherFlowLog_tags,
 			"cannotCreateNewWithNSG":  testAccNetworkWatcherFlowLog_cannotCreateNewWithNSG,
 			"update":                  testAccNetworkWatcherFlowLog_update,
+			"list":                    testAccNetworkWatcherFlowLog_listByNetworkWatcherID,
+			"identity":                testAccNetworkWatcherFlowLog_resourceIdentity,
 		},
 	}
 

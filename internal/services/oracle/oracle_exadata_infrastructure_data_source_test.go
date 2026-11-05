@@ -14,7 +14,7 @@ import (
 
 type ExadataInfraDataSource struct{}
 
-func TestExadataInfraDataSource_basic(t *testing.T) {
+func TestAccExadataInfraDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraDataSource{}.ResourceType(), "test")
 	r := ExadataInfraDataSource{}
 

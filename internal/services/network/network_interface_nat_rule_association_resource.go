@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -80,8 +81,8 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 
 	ipConfigId := commonids.NewNetworkInterfaceIPConfigurationID(networkInterfaceId.SubscriptionId, networkInterfaceId.ResourceGroupName, networkInterfaceId.NetworkInterfaceName, d.Get("ip_configuration_name").(string))
 
-	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
@@ -232,8 +233,8 @@ func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData,
 
 	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(networkInterfaceId.ID()))
+	defer locks.UnlockByID(strings.ToLower(networkInterfaceId.ID()))
 
 	read, err := client.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

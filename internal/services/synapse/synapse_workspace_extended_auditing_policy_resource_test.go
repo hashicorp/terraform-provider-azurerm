@@ -93,7 +93,7 @@ func TestAccSynapseWorkspaceExtendedAuditingPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccSynapseWorkspaceExtendedAuditingPolicy_storageAccBehindFireWall(t *testing.T) {
+func TestAccSynapseWorkspaceExtendedAuditingPolicy_storageAccountBehindFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace_extended_auditing_policy", "test")
 	r := SynapseWorkspaceExtendedAuditingPolicyResource{}
 

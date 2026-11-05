@@ -10,6 +10,7 @@ e.g. service folder that we can't get based on `(Registration).Name()` or `(Regi
 
 // WorkaroundServiceNameToDirectory provides a mapping from `(Registration).Name()` to the service directory
 var WorkaroundServiceNameToDirectory = map[string]string{
+	"Application Gateway":             "appgateway",
 	"Cognitive Services":              "cognitive",
 	"CosmosDB":                        "cosmos",
 	"Trusted Signing":                 "codesigning",

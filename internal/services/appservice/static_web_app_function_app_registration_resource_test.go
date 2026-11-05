@@ -20,7 +20,17 @@ import (
 
 type StaticWebAppFunctionAppRegistrationResource struct{}
 
-func TestStaticWebAppFunctionAppRegistrationResource_basic(t *testing.T) {
+func TestAccStaticWebAppFunctionAppRegistrationResource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app_function_app_registration", "test")
+	r := StaticWebAppFunctionAppRegistrationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
+
+func TestAccStaticWebAppFunctionAppRegistrationResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app_function_app_registration", "test")
 	r := StaticWebAppFunctionAppRegistrationResource{}
 
@@ -35,7 +45,7 @@ func TestStaticWebAppFunctionAppRegistrationResource_basic(t *testing.T) {
 	})
 }
 
-func TestStaticWebAppFunctionAppRegistrationResource_multipleExpectError(t *testing.T) {
+func TestAccStaticWebAppFunctionAppRegistrationResource_multipleExpectError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app_function_app_registration", "test")
 	r := StaticWebAppFunctionAppRegistrationResource{}
 
@@ -54,7 +64,7 @@ func TestStaticWebAppFunctionAppRegistrationResource_multipleExpectError(t *test
 	})
 }
 
-func TestStaticWebAppFunctionAppRegistrationResource_requiresImport(t *testing.T) {
+func TestAccStaticWebAppFunctionAppRegistrationResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app_function_app_registration", "test")
 	r := StaticWebAppFunctionAppRegistrationResource{}
 

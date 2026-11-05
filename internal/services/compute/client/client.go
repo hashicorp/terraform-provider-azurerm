@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
@@ -49,6 +50,7 @@ type Client struct {
 	// TODO: @tombuildsstuff: investigate _if_ that's possible given Compute uses a myriad of API Versions
 	AvailabilitySetsClient                      *availabilitysets.AvailabilitySetsClient
 	CapacityReservationsClient                  *capacityreservations.CapacityReservationsClient
+	CapacityReservationClient                   *capacityreservation.CapacityReservationClient
 	CapacityReservationGroupsClient             *capacityreservationgroups.CapacityReservationGroupsClient
 	DedicatedHostsClient                        *dedicatedhosts.DedicatedHostsClient
 	DedicatedHostGroupsClient                   *dedicatedhostgroups.DedicatedHostGroupsClient
@@ -86,6 +88,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building AvailabilitySets client: %+v", err)
 	}
 	o.Configure(availabilitySetsClient.Client, o.Authorizers.ResourceManager)
+
+	capacityReservationClient, err := capacityreservation.NewCapacityReservationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building CapacityReservations client: %+v", err)
+	}
+	o.Configure(capacityReservationClient.Client, o.Authorizers.ResourceManager)
 
 	capacityReservationsClient, err := capacityreservations.NewCapacityReservationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -269,6 +277,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AvailabilitySetsClient:                      availabilitySetsClient,
+		CapacityReservationClient:                   capacityReservationClient,
 		CapacityReservationsClient:                  capacityReservationsClient,
 		CapacityReservationGroupsClient:             capacityReservationGroupsClient,
 		DedicatedHostsClient:                        dedicatedHostsClient,

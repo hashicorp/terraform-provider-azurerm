@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/resources/trusted_signing_account"
 )
 
 type Registration struct{}
@@ -35,14 +36,14 @@ func (r Registration) WebsiteCategories() []string {
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		TrustedSigningAccountDataSource{},
+		trusted_signing_account.DataSource{},
 	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		TrustedSigningAccountResource{},
+		trusted_signing_account.Resource{},
 	}
 }
 

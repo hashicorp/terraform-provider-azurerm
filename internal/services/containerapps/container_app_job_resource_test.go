@@ -35,6 +35,16 @@ func (r ContainerAppJobResource) Exists(ctx context.Context, client *clients.Cli
 	return pointer.To(true), nil
 }
 
+func TestAccContainerAppJob_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccContainerAppJob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}

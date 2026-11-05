@@ -276,6 +276,13 @@ func testAccNetworkWatcherFlowLog_version(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.versionConfig(data, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

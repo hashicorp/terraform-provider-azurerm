@@ -7,6 +7,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_account"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_connection"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_connection_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_connection_classic_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_connection_service_principal"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_connection_type"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_credential"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_dsc_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_dsc_nodeconfiguration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_hybrid_runbook_worker"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_hybrid_runbook_worker_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_job_schedule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_module"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_powershell72_module"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_python3_package"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_runbook"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_runtime_environment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_runtime_environment_package"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_schedule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_source_control"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_variable_bool"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_variable_datetime"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_variable_int"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_variable_object"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_variable_string"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_variables"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_watcher"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_webhook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -20,22 +49,22 @@ var (
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		AutomationRunbookDataSource{},
-		AutomationVariablesDataSource{},
+		automation_runbook.DataSource{},
+		automation_variables.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AutomationConnectionTypeResource{},
-		AutomationRuntimeEnvironmentPackageResource{},
-		AutomationRuntimeEnvironmentResource{},
-		HybridRunbookWorkerGroupResource{},
-		HybridRunbookWorkerResource{},
-		PowerShell72ModuleResource{},
-		Python3PackageResource{},
-		SourceControlResource{},
-		WatcherResource{},
+		automation_connection_type.Resource{},
+		automation_runtime_environment_package.Resource{},
+		automation_runtime_environment.Resource{},
+		automation_hybrid_runbook_worker_group.Resource{},
+		automation_hybrid_runbook_worker.Resource{},
+		automation_powershell72_module.Resource{},
+		automation_python3_package.Resource{},
+		automation_source_control.Resource{},
+		automation_watcher.Resource{},
 	}
 }
 
@@ -58,37 +87,37 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_automation_account":           dataSourceAutomationAccount(),
-		"azurerm_automation_variable_bool":     dataSourceAutomationVariableBool(),
-		"azurerm_automation_variable_datetime": dataSourceAutomationVariableDateTime(),
-		"azurerm_automation_variable_int":      dataSourceAutomationVariableInt(),
-		"azurerm_automation_variable_object":   dataSourceAutomationVariableObject(),
-		"azurerm_automation_variable_string":   dataSourceAutomationVariableString(),
+		"azurerm_automation_account":           automation_account.RegisterDataSource(),
+		"azurerm_automation_variable_bool":     automation_variable_bool.RegisterDataSource(),
+		"azurerm_automation_variable_datetime": automation_variable_datetime.RegisterDataSource(),
+		"azurerm_automation_variable_int":      automation_variable_int.RegisterDataSource(),
+		"azurerm_automation_variable_object":   automation_variable_object.RegisterDataSource(),
+		"azurerm_automation_variable_string":   automation_variable_string.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_automation_account":                        resourceAutomationAccount(),
-		"azurerm_automation_certificate":                    resourceAutomationCertificate(),
-		"azurerm_automation_connection":                     resourceAutomationConnection(),
-		"azurerm_automation_connection_certificate":         resourceAutomationConnectionCertificate(),
-		"azurerm_automation_connection_classic_certificate": resourceAutomationConnectionClassicCertificate(),
-		"azurerm_automation_connection_service_principal":   resourceAutomationConnectionServicePrincipal(),
-		"azurerm_automation_credential":                     resourceAutomationCredential(),
-		"azurerm_automation_dsc_configuration":              resourceAutomationDscConfiguration(),
-		"azurerm_automation_dsc_nodeconfiguration":          resourceAutomationDscNodeConfiguration(),
-		"azurerm_automation_job_schedule":                   resourceAutomationJobSchedule(),
-		"azurerm_automation_module":                         resourceAutomationModule(),
-		"azurerm_automation_runbook":                        resourceAutomationRunbook(),
-		"azurerm_automation_schedule":                       resourceAutomationSchedule(),
-		"azurerm_automation_variable_bool":                  resourceAutomationVariableBool(),
-		"azurerm_automation_variable_datetime":              resourceAutomationVariableDateTime(),
-		"azurerm_automation_variable_int":                   resourceAutomationVariableInt(),
-		"azurerm_automation_variable_object":                resourceAutomationVariableObject(),
-		"azurerm_automation_variable_string":                resourceAutomationVariableString(),
-		"azurerm_automation_webhook":                        resourceAutomationWebhook(),
+		"azurerm_automation_account":                        automation_account.RegisterResource(),
+		"azurerm_automation_certificate":                    automation_certificate.RegisterResource(),
+		"azurerm_automation_connection":                     automation_connection.RegisterResource(),
+		"azurerm_automation_connection_certificate":         automation_connection_certificate.RegisterResource(),
+		"azurerm_automation_connection_classic_certificate": automation_connection_classic_certificate.RegisterResource(),
+		"azurerm_automation_connection_service_principal":   automation_connection_service_principal.RegisterResource(),
+		"azurerm_automation_credential":                     automation_credential.RegisterResource(),
+		"azurerm_automation_dsc_configuration":              automation_dsc_configuration.RegisterResource(),
+		"azurerm_automation_dsc_nodeconfiguration":          automation_dsc_nodeconfiguration.RegisterResource(),
+		"azurerm_automation_job_schedule":                   automation_job_schedule.RegisterResource(),
+		"azurerm_automation_module":                         automation_module.RegisterResource(),
+		"azurerm_automation_runbook":                        automation_runbook.RegisterResource(),
+		"azurerm_automation_schedule":                       automation_schedule.RegisterResource(),
+		"azurerm_automation_variable_bool":                  automation_variable_bool.RegisterResource(),
+		"azurerm_automation_variable_datetime":              automation_variable_datetime.RegisterResource(),
+		"azurerm_automation_variable_int":                   automation_variable_int.RegisterResource(),
+		"azurerm_automation_variable_object":                automation_variable_object.RegisterResource(),
+		"azurerm_automation_variable_string":                automation_variable_string.RegisterResource(),
+		"azurerm_automation_webhook":                        automation_webhook.RegisterResource(),
 	}
 }
 
@@ -110,6 +139,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		AutomationAccountListResource{},
+		automation_account.ListResource{},
 	}
 }

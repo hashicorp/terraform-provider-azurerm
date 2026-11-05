@@ -31,7 +31,7 @@ func (a ExascaleDatabaseStorageVaultResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestDbStorageVaultResource_basic(t *testing.T) {
+func TestAccDbStorageVaultResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -45,7 +45,7 @@ func TestDbStorageVaultResource_basic(t *testing.T) {
 	})
 }
 
-func TestDbStorageVaultResource_complete(t *testing.T) {
+func TestAccDbStorageVaultResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -59,7 +59,7 @@ func TestDbStorageVaultResource_complete(t *testing.T) {
 	})
 }
 
-func TestDbStorageVaultResource_update(t *testing.T) {
+func TestAccDbStorageVaultResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -87,7 +87,7 @@ func TestDbStorageVaultResource_update(t *testing.T) {
 	})
 }
 
-func TestDbStorageVaultResource_requiresImport(t *testing.T) {
+func TestAccDbStorageVaultResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExascaleDatabaseStorageVaultResource{}.ResourceType(), "test")
 	r := ExascaleDatabaseStorageVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

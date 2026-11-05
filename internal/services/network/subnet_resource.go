@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -194,6 +196,8 @@ func resourceSubnet() *pluginsdk.Resource {
 						},
 					},
 				},
+				// Temporary solution, see function notes for detail.
+				DiffSuppressFunc: subnetServiceEndpointDiffSuppress,
 			},
 
 			"service_endpoint_policy_ids": {
@@ -1028,4 +1032,68 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 		}
 		return nil, "", fmt.Errorf("unable to read provisioning state")
 	}
+}
+
+// subnetServiceEndpointDiffSuppress is a TEMPORARY solution to suppress diffs for a service endpoint list where the
+// individual entries have no change, and only the order of endpoints is different.
+// The Azure API will not persist an order change, which results in an infinite diff loop if order was the only change.
+// This function should be removed when the SDK v2 supports this feature for TypeList natively.
+func subnetServiceEndpointDiffSuppress(_, _, _ string, d *schema.ResourceData) bool {
+	if d == nil {
+		return false
+	}
+
+	listKey := "service_endpoint"
+
+	oldRaw, newRaw := d.GetChange(listKey)
+	if oldRaw == nil || newRaw == nil {
+		return false
+	}
+
+	oldList, okOld := oldRaw.([]any)
+	newList, okNew := newRaw.([]any)
+	if !okOld || !okNew {
+		return false
+	}
+
+	if len(oldList) != len(newList) {
+		return false
+	}
+
+	type endpointItem struct {
+		service           string
+		networkIdentifier string
+	}
+
+	canonicalize := func(rawList []any) []endpointItem {
+		items := make([]endpointItem, 0, len(rawList))
+		for _, raw := range rawList {
+			m, ok := raw.(map[string]any)
+			if !ok {
+				continue
+			}
+			item := endpointItem{}
+			if s, ok := m["service"].(string); ok {
+				item.service = s
+			}
+			if ni, ok := m["network_identifier"].(string); ok {
+				item.networkIdentifier = ni
+			}
+			items = append(items, item)
+		}
+
+		sort.Slice(items, func(i, j int) bool {
+			if items[i].service != items[j].service {
+				return items[i].service < items[j].service
+			}
+			return items[i].networkIdentifier < items[j].networkIdentifier
+		})
+
+		return items
+	}
+
+	canonicalOld := canonicalize(oldList)
+	canonicalNew := canonicalize(newList)
+
+	return reflect.DeepEqual(canonicalOld, canonicalNew)
 }

@@ -14,7 +14,7 @@ import (
 
 type CloudVmClusterDataSource struct{}
 
-func TestCloudVmClusterDataSource_basic(t *testing.T) {
+func TestAccCloudVmClusterDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.CloudVmClusterDataSource{}.ResourceType(), "test")
 	r := CloudVmClusterDataSource{}
 

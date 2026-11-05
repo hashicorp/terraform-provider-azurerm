@@ -13,6 +13,16 @@ import (
 
 type StaticWebAppDataSource struct{}
 
+func TestAccAzureStaticWebAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_static_web_app", "test")
+	r := StaticWebAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccAzureStaticWebAppDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_static_web_app", "test")
 	r := StaticWebAppDataSource{}

@@ -7,6 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/billing_account_cost_management_export"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/cost_anomaly_alert"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/cost_management_scheduled_action"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/resource_group_cost_management_export"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/resource_group_cost_management_view"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/subscription_cost_management_export"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/resources/subscription_cost_management_view"
 )
 
 type Registration struct{}
@@ -26,13 +33,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		AnomalyAlertResource{},
-		BillingAccountCostManagementExportResource{},
-		CostManagementScheduledActionResource{},
-		ResourceGroupCostManagementExportResource{},
-		ResourceGroupCostManagementViewResource{},
-		SubscriptionCostManagementExportResource{},
-		SubscriptionCostManagementViewResource{},
+		cost_anomaly_alert.Resource{},
+		billing_account_cost_management_export.Resource{},
+		cost_management_scheduled_action.Resource{},
+		resource_group_cost_management_export.Resource{},
+		resource_group_cost_management_view.Resource{},
+		subscription_cost_management_export.Resource{},
+		subscription_cost_management_view.Resource{},
 	}
 }
 

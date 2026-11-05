@@ -13,7 +13,7 @@ import (
 
 type DBNodesDataSource struct{}
 
-func TestDBNodesDataSource_basic(t *testing.T) {
+func TestAccDBNodesDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_nodes", "test")
 	r := DBNodesDataSource{}
 

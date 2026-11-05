@@ -13,7 +13,7 @@ import (
 
 func TestAccDataSourceBackendAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -27,7 +27,7 @@ func TestAccDataSourceBackendAddressPool_basic(t *testing.T) {
 
 func TestAccDataSourceBackendAddressPool_gatewayComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
-	r := LoadBalancerBackendAddressPool{}
+	r := LbBackendAddressPoolResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -39,7 +39,7 @@ func TestAccDataSourceBackendAddressPool_gatewayComplete(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerBackendAddressPool) dataSourceBasic(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) dataSourceBasic(data acceptance.TestData) string {
 	resource := r.basicSkuBasic(data)
 	return fmt.Sprintf(`
 %s
@@ -51,7 +51,7 @@ data "azurerm_lb_backend_address_pool" "test" {
 `, resource)
 }
 
-func (r LoadBalancerBackendAddressPool) dataSourceGatewaySkuComplete(data acceptance.TestData) string {
+func (r LbBackendAddressPoolResource) dataSourceGatewaySkuComplete(data acceptance.TestData) string {
 	resource := r.gatewaySkuComplete(data)
 	return fmt.Sprintf(`
 %s

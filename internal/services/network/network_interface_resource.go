@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -268,8 +269,8 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta any) error {
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(id.ID()))
+	defer locks.UnlockByID(strings.ToLower(id.ID()))
 
 	if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
 		properties.AuxiliaryMode = pointer.ToEnum[networkinterfaces.NetworkInterfaceAuxiliaryMode](auxiliaryMode.(string))
@@ -344,8 +345,8 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(id.ID()))
+	defer locks.UnlockByID(strings.ToLower(id.ID()))
 
 	// first get the existing one so that we can pull things as needed
 	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
@@ -565,8 +566,8 @@ func resourceNetworkInterfaceDelete(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByID(strings.ToLower(id.ID()))
+	defer locks.UnlockByID(strings.ToLower(id.ID()))
 
 	existing, err := client.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {

@@ -111,7 +111,7 @@ func resourceDevTestGlobalVMShutdownScheduleCreateUpdate(d *pluginsdk.ResourceDa
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	vmId, err := commonids.ParseVirtualMachineID(vmID)
+	vmId, err := commonids.ParseVirtualMachineIDInsensitively(vmID)
 	if err != nil {
 		return err
 	}
