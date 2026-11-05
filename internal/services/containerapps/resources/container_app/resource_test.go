@@ -607,6 +607,42 @@ func TestAccContainerAppResource_maxInactiveRevisionsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_ingressStickySessionsValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ingressStickySessionsValidation(data, "Multiple", true),
+			ExpectError: regexp.MustCompile("session affinity requires `Single` `revision_mode` and an ingress `transport` of `auto`, `http`, or `http2`"),
+		},
+	})
+}
+
+func TestAccContainerAppResource_ingressStickySessionsSticky(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingressStickySessionsValidation(data, "Single", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.session_affinity_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ingressStickySessionsValidation(data, "Multiple", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.session_affinity_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -2975,6 +3011,40 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, trafficBlock)
+}
+
+func (r ContainerAppResource) ingressStickySessionsValidation(data acceptance.TestData, revision string, affinity bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "%[3]s"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    session_affinity_enabled   = %[4]t
+    target_port                = 5000
+    transport                  = "http"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, revision, affinity)
 }
 
 func (r ContainerAppResource) secretBasic(data acceptance.TestData) string {

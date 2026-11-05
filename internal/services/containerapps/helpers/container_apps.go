@@ -152,6 +152,7 @@ type Ingress struct {
 	CustomDomains          []CustomDomain          `tfschema:"custom_domain"`
 	IsExternal             bool                    `tfschema:"external_enabled"`
 	FQDN                   string                  `tfschema:"fqdn"`
+	IsSessionAffinity      bool                    `tfschema:"session_affinity_enabled"`
 	TargetPort             int64                   `tfschema:"target_port"`
 	ExposedPort            int64                   `tfschema:"exposed_port"`
 	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
@@ -249,6 +250,13 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
+
+				"session_affinity_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Is session affinity enabled.",
+				},
 
 				"target_port": {
 					Type:         pluginsdk.TypeInt,
@@ -359,6 +367,12 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 
 				"ip_security_restriction": ContainerAppIngressIpSecurityRestrictionComputed(),
 
+				"session_affinity_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Is session affinity enabled.",
+				},
+
 				"target_port": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -400,6 +414,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		CustomDomains:          ExpandContainerAppIngressCustomDomain(ingress.CustomDomains),
 		External:               pointer.To(ingress.IsExternal),
 		Fqdn:                   pointer.To(ingress.FQDN),
+		StickySessions:         ExpandContainerAppIngressStickySessions(ingress.IsSessionAffinity),
 		TargetPort:             pointer.To(ingress.TargetPort),
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                ExpandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
@@ -468,6 +483,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		CustomDomains:          FlattenContainerAppIngressCustomDomain(ingress.CustomDomains),
 		IsExternal:             pointer.From(ingress.External),
 		FQDN:                   pointer.From(ingress.Fqdn),
+		IsSessionAffinity:      FlattenContainerAppIngressStickySessions(ingress.StickySessions),
 		TargetPort:             pointer.From(ingress.TargetPort),
 		ExposedPort:            pointer.From(ingress.ExposedPort),
 		TrafficWeights:         FlattenContainerAppIngressTraffic(ingress.Traffic, appName),
@@ -563,6 +579,10 @@ func FlattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 	}
 
 	return result
+}
+
+func FlattenContainerAppIngressStickySessions(input *containerapps.IngressStickySessions) bool {
+	return input != nil && pointer.FromEnum(input.Affinity) == string(containerapps.AffinitySticky)
 }
 
 func FlattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
@@ -740,6 +760,18 @@ func ContainerAppIngressTrafficWeightComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+}
+
+func ExpandContainerAppIngressStickySessions(input bool) *containerapps.IngressStickySessions {
+	result := containerapps.IngressStickySessions{}
+
+	if input {
+		result.Affinity = pointer.To(containerapps.AffinitySticky)
+	} else {
+		result.Affinity = pointer.To(containerapps.AffinityNone)
+	}
+
+	return &result
 }
 
 func ExpandContainerAppIngressTraffic(input []TrafficWeight, appName string) *[]containerapps.TrafficWeight {
@@ -3143,7 +3175,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						"openstack-metric", "openstack-swift", "postgresql", "predictkube", "prometheus",
 						"rabbitmq", "redis", "redis-cluster", "redis-sentinel", "redis-streams",
 						"redis-cluster-streams", "redis-sentinel-streams", "selenium-grid",
-						"solace-event-queue", "github-runner",
+						"solace-event-queue", "github-runner", "temporal",
 					}, false), // Note - this can be any KEDA compatible source in a user's environment
 				},
 
