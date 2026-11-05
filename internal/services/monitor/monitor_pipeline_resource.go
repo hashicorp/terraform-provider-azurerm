@@ -46,7 +46,7 @@ func (r MonitorPipelineResource) Identity() resourceids.ResourceId {
 	return &pipelinegroups.PipelineGroupId{}
 }
 
-func (r MonitorPipelineResource) ModelObject() interface{} {
+func (r MonitorPipelineResource) ModelObject() any {
 	return &MonitorPipelineResourceModel{}
 }
 
