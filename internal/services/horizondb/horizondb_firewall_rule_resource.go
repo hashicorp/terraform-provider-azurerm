@@ -59,7 +59,7 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type: pluginsdk.TypeString, Required: true, ForceNew: true,
 			ValidateFunc: validation.All(
-				validation.StringLenBetween(1, 128),
+				validation.StringLenBetween(1, 80),
 				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]$`), "must contain only alphanumeric characters and hyphens and start and end with an alphanumeric character"),
 			),
 		},
