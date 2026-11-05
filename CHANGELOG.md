@@ -1,3 +1,32 @@
+## 5.12.0 (October 29, 2026)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_relay_namespace` ([#33656](https://github.com/hashicorp/terraform-provider-azurerm/issues/33656))
+
+ENHANCEMENTS:
+
+* dependencies: `datadog` - update API version to `2025-06-11` ([#33098](https://github.com/hashicorp/terraform-provider-azurerm/issues/33098))
+* dependencies: `go-azure-sdk` - update to `v0.20261027.1151402` ([#33734](https://github.com/hashicorp/terraform-provider-azurerm/issues/33734))
+* dependencies: `golang.org/x/crypto` - update to `0.58.0` ([#33743](https://github.com/hashicorp/terraform-provider-azurerm/issues/33743))
+* dependencies: `golang.org/x/net` - update to `0.62.0` ([#33743](https://github.com/hashicorp/terraform-provider-azurerm/issues/33743))
+* dependencies: `golang.org/x/sync` - update to `0.24.0` ([#33743](https://github.com/hashicorp/terraform-provider-azurerm/issues/33743))
+* dependencies: `golang.org/x/sys` - update to `0.49.0` ([#33743](https://github.com/hashicorp/terraform-provider-azurerm/issues/33743))
+* dependencies: `golang.org/x/text` - update to `0.43.0` ([#33743](https://github.com/hashicorp/terraform-provider-azurerm/issues/33743))
+* dependencies: `golang.org/x/tools` - update to `0.51.0` ([#33743](https://github.com/hashicorp/terraform-provider-azurerm/issues/33743))
+* `azurerm_application_insights_standard_web_test` - add support for the `ignore_status_code` property ([#29357](https://github.com/hashicorp/terraform-provider-azurerm/issues/29357))
+* `azurerm_container_app_job` - add `azure-durabletask-scheduler` as a valid value for the `event_trigger_config.scale.rules.custom_rule_type` property ([#33722](https://github.com/hashicorp/terraform-provider-azurerm/issues/33722))
+* `azurerm_container_app` - add `azure-durabletask-scheduler` as a valid value for the `template.custom_scale_rule.custom_rule_type` property ([#33722](https://github.com/hashicorp/terraform-provider-azurerm/issues/33722))
+* `azurerm_mssql_managed_database` - add support for cross-region / recovery restore via `recover_database_id` ([#33713](https://github.com/hashicorp/terraform-provider-azurerm/issues/33713))
+* `azurerm_postgresql_flexible_server` - add support for the `ads_v6` SKUs and the missing `ds_v6` sizes in `sku_name` ([#33706](https://github.com/hashicorp/terraform-provider-azurerm/issues/33706))
+
+BUG FIXES:
+
+* List Resource: `azurerm_ip_group` - fix listing when Azure returns resource IDs with inconsistent casing ([#33716](https://github.com/hashicorp/terraform-provider-azurerm/issues/33716))
+* `azurerm_api_management_diagnostic` - correctly send `sampling_percentage` when set to `0` ([#33718](https://github.com/hashicorp/terraform-provider-azurerm/issues/33718))
+* `azurerm_lb_backend_address_pool_address` - handle a missing parent backend address pool during refresh ([#33719](https://github.com/hashicorp/terraform-provider-azurerm/issues/33719))
+* `azurerm_logic_app_standard` - correctly remove all deleted `app_settings` in a single apply ([#33698](https://github.com/hashicorp/terraform-provider-azurerm/issues/33698))
+
 ## 5.11.0 (October 23, 2026)
 
 FEATURES:
