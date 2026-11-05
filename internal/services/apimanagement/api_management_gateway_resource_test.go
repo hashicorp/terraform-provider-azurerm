@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ApiManagementGatewayResource struct{}
+
+func TestAccApiManagementGateway_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway", "test")
+	r := ApiManagementGatewayResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "test description", "test location"),
+		},
+	}, "")
+}
 
 func TestAccApiManagementGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway", "test")

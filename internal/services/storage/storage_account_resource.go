@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -113,7 +113,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.KindBlobStorage),
 					string(storageaccounts.KindBlockBlobStorage),
 					string(storageaccounts.KindFileStorage),
 					string(storageaccounts.KindStorageVTwo),
@@ -1129,10 +1128,18 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					accountKind, changedKind := d.GetChange("account_kind")
 					// Don't do the check for create case.
 					if accountKind != "" {
-						// Prevent ForceNew on `StorageV2` -> `Storage`, this would fail as GPv1 accounts can no longer be provisioned
-						// Azure is automatically migrating accounts in October due to this retirement.
-						if accountKind == string(storageaccounts.KindStorageVTwo) && changedKind == string(storageaccounts.KindStorage) {
-							return fmt.Errorf("`account_kind` of type `%[1]s` has been retired by Azure, changing from `%[2]s` to `%[1]s` is no longer possible. For additional information, see https://learn.microsoft.com/azure/storage/common/general-purpose-version-1-account-migration-overview#retirement-timeline-and-key-milestones", storageaccounts.KindStorage, storageaccounts.KindStorageVTwo)
+						if !features.SixPointOh() {
+							// Prevent ForceNew on `StorageV2` -> `Storage`, this would fail as GPv1 accounts can no longer be provisioned
+							// Prevent ForceNew on `StorageV2` -> `BlobStorage`, this would fail as legacy Blob accounts can no longer be provisioned
+							// Azure is automatically migrating accounts in October due to this retirement.
+							if accountKind == string(storageaccounts.KindStorageVTwo) && (changedKind == string(storageaccounts.KindStorage) || changedKind == string(storageaccounts.KindBlobStorage)) {
+								url := "https://learn.microsoft.com/azure/storage/common/general-purpose-version-1-account-migration-overview#retirement-timeline-and-key-milestones"
+								if changedKind == string(storageaccounts.KindBlobStorage) {
+									url = "https://learn.microsoft.com/azure/storage/common/legacy-blob-storage-account-migration-overview#retirement-timeline-and-key-milestones"
+								}
+
+								return fmt.Errorf("`account_kind` of type `%[1]s` has been retired by Azure, changing from `%[2]s` to `%[1]s` is no longer possible. For additional information, see %[3]s", changedKind, storageaccounts.KindStorageVTwo, url)
+							}
 						}
 
 						if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
@@ -1250,7 +1257,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						return nil, nil
 					}
 
-					if v == string(storageaccounts.KindStorage) {
+					if v == string(storageaccounts.KindStorage) || v == string(storageaccounts.KindBlobStorage) {
 						return []string{fmt.Sprintf("type `%s` has been retired by Azure and will be removed in v6.0 of the AzureRM provider", v)}, nil
 					}
 
@@ -1447,7 +1454,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 	encryptionRaw := d.Get("customer_managed_key").([]any)
-	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType, provisionedBillingModelVersion)
 	if err != nil {
 		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 	}
@@ -1669,7 +1676,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 		tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 		encryptionRaw := d.Get("customer_managed_key").([]any)
-		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType, provisionedBillingModelVersion)
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
@@ -2276,7 +2283,7 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []any {
 	return output
 }
 
-func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
+func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType, billingModel string) (*storageaccounts.Encryption, error) {
 	if !features.SixPointOh() {
 		if accountKind == storageaccounts.KindStorage {
 			if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
@@ -2302,8 +2309,8 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		}, nil
 	}
 
-	if accountTier != storageaccounts.SkuTierPremium && accountKind != storageaccounts.KindStorageVTwo {
-		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
+	if accountTier != storageaccounts.SkuTierPremium && accountKind != storageaccounts.KindStorageVTwo && (accountKind != storageaccounts.KindFileStorage || billingModel != "V2") {
+		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2`, account tier `Premium`, or account kind `FileStorage` with billing model `V2`")
 	}
 
 	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
