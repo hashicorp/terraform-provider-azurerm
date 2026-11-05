@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `route` - (Optional) List of `route` objects representing routes as defined below. Each object accepts the arguments documented below.
+* `route` - (Optional) List of `route` objects representing routes as defined below. Each object accepts the arguments defined below.
 
 -> **Note:** Since `route` can be configured both inline and via the separate `azurerm_route` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 

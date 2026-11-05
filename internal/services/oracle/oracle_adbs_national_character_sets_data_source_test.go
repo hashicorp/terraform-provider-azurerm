@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -12,7 +12,7 @@ import (
 
 type AdbsNCharSetsDataSource struct{}
 
-func TestAdbsNCharSetsDataSource_basic(t *testing.T) {
+func TestAccAdbsNCharSetsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_adbs_national_character_sets", "test")
 	r := AdbsNCharSetsDataSource{}
 

@@ -42,7 +42,7 @@ You will need to enable HTTPS proxy support (usually by adding a certificate to 
 
 ```shell
 $ http_proxy=http://localhost:8888 https_proxy=http://localhost:8888 terraform apply
-$ http_proxy=http://localhost:8888 https_proxy=http://localhost:8888 make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m' 
+$ http_proxy=http://localhost:8888 https_proxy=http://localhost:8888 make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='60m'
 ```
 
 ## Debugger (delve)
