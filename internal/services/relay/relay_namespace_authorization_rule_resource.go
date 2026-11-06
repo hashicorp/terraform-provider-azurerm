@@ -59,9 +59,10 @@ func (r RelayNamespaceAuthorizationRuleResource) Arguments() map[string]*plugins
 		},
 
 		"namespace_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(6, 50),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
