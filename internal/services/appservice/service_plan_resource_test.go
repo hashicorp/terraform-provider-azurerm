@@ -660,8 +660,7 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "asedelegation"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }
@@ -721,8 +720,7 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "asedelegation"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }
@@ -782,8 +780,7 @@ resource "azurerm_subnet" "test" {
   delegation {
     name = "asedelegation"
     service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      name = "Microsoft.Web/hostingEnvironments"
     }
   }
 }

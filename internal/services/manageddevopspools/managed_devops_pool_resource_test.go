@@ -305,9 +305,6 @@ resource "azurerm_subnet" "test" {
     name = "devops-infrastructure-delegation"
     service_delegation {
       name = "Microsoft.DevOpsInfrastructure/pools"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action"
-      ]
     }
   }
 }`, data.RandomInteger, data.RandomInteger)
