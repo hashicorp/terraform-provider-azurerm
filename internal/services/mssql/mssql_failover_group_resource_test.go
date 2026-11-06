@@ -108,6 +108,35 @@ func TestAccMsSqlFailoverGroup_update(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlFailoverGroup_secondaryType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
+	r := MsSqlFailoverGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.secondaryType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("secondary_type"),
+		{
+			Config: r.secondaryTypeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("secondary_type"),
+		{
+			Config: r.secondaryType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("secondary_type"),
+	})
+}
+
 func TestAccMsSqlFailoverGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_failover_group", "test")
 	r := MsSqlFailoverGroupResource{}
@@ -140,7 +169,7 @@ func (r MsSqlFailoverGroupResource) Exists(ctx context.Context, client *clients.
 	return pointer.To(true), nil
 }
 
-func (r MsSqlFailoverGroupResource) template(data acceptance.TestData) string {
+func (r MsSqlFailoverGroupResource) template(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,11 +201,53 @@ resource "azurerm_mssql_server" "test_secondary" {
 resource "azurerm_mssql_database" "test" {
   name        = "acctestdb%[1]d"
   server_id   = azurerm_mssql_server.test_primary.id
-  sku_name    = "S1"
+  sku_name    = "%[4]s"
   collation   = "SQL_Latin1_General_CP1_CI_AS"
   max_size_gb = "200"
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, skuName)
+}
+
+func (r MsSqlFailoverGroupResource) secondaryType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_failover_group" "test" {
+  name           = "acctestsfg%[2]d"
+  server_id      = azurerm_mssql_server.test_primary.id
+  secondary_type = "Geo"
+
+  partner_server {
+    id = azurerm_mssql_server.test_secondary.id
+  }
+
+  read_write_endpoint_failover_policy {
+    mode          = "Automatic"
+    grace_minutes = 60
+  }
+}
+`, r.template(data, "GP_Gen5_2"), data.RandomInteger)
+}
+
+func (r MsSqlFailoverGroupResource) secondaryTypeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_failover_group" "test" {
+  name           = "acctestsfg%[2]d"
+  server_id      = azurerm_mssql_server.test_primary.id
+  secondary_type = "Standby"
+
+  partner_server {
+    id = azurerm_mssql_server.test_secondary.id
+  }
+
+  read_write_endpoint_failover_policy {
+    mode          = "Automatic"
+    grace_minutes = 60
+  }
+}
+`, r.template(data, "GP_Gen5_2"), data.RandomInteger)
 }
 
 func (r MsSqlFailoverGroupResource) automaticFailover(data acceptance.TestData) string {
@@ -196,7 +267,7 @@ resource "azurerm_mssql_failover_group" "test" {
     grace_minutes = 60
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, "S1"), data.RandomInteger)
 }
 
 func (r MsSqlFailoverGroupResource) manualFailover(data acceptance.TestData) string {
@@ -215,7 +286,7 @@ resource "azurerm_mssql_failover_group" "test" {
     mode = "Manual"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, "S1"), data.RandomInteger)
 }
 
 func (r MsSqlFailoverGroupResource) automaticFailoverWithDatabases(data acceptance.TestData) string {
@@ -241,7 +312,7 @@ resource "azurerm_mssql_failover_group" "test" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, "S1"), data.RandomInteger)
 }
 
 func (r MsSqlFailoverGroupResource) manualFailoverWithDatabases(data acceptance.TestData) string {
@@ -266,7 +337,7 @@ resource "azurerm_mssql_failover_group" "test" {
     database    = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, "S1"), data.RandomInteger)
 }
 
 func (r MsSqlFailoverGroupResource) requiresImport(data acceptance.TestData) string {
