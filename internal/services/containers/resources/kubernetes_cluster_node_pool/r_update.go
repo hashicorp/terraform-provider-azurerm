@@ -204,6 +204,20 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]any))
 	}
 
+	if d.HasChange("security") {
+		securityProfile := expandAgentPoolSecurityProfile(d.Get("security").([]any))
+		if securityProfile == nil {
+			securityProfile = &agentpools.AgentPoolSecurityProfile{
+				EnableSecureBoot: pointer.To(false),
+				EnableVTPM:       pointer.To(false),
+			}
+		}
+		if props.SecurityProfile != nil {
+			securityProfile.SshAccess = props.SecurityProfile.SshAccess
+		}
+		props.SecurityProfile = securityProfile
+	}
+
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 		props.AvailabilityZones = &zones
