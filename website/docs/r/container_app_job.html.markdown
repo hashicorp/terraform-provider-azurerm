@@ -336,7 +336,7 @@ A `secret` block supports the following:
 
 A `registry` block supports the following:
 
-* `identity` - (Optional) A Managed Identity to use to authenticate with Azure Container Registry.
+* `identity` - (Optional) The Managed Identity used to pull images from the Container Registry. `System` and `system-environment` refer to the Container App Job's and Container App Environment's System Assigned Managed Identities, respectively. User Assigned Managed Identities are referenced by Resource ID.
 
 * `username` - (Optional) The username to use to authenticate with Azure Container Registry.
 
