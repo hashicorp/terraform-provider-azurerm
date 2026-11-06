@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2024-04-05/guestconfigurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -17,6 +18,7 @@ import (
 type Client struct {
 	AssignmentsClient                   *policyassignments.PolicyAssignmentsClient
 	GuestConfigurationAssignmentsClient *guestconfigurationassignments.GuestConfigurationAssignmentsClient
+	PolicyDefinitionsClient             *policydefinitions.PolicyDefinitionsClient
 	PolicySetDefinitionsClient          *policysetdefinitions.PolicySetDefinitionsClient
 	RemediationsClient                  *remediations.RemediationsClient
 
@@ -38,6 +40,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Guest Configuration Assignments Client:  %+v", err)
 	}
 	o.Configure(guestConfigurationAssignmentsClient.Client, o.Authorizers.ResourceManager)
+
+	policyDefinitionsClient, err := policydefinitions.NewPolicyDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Definitions client: %+v", err)
+	}
+	o.Configure(policyDefinitionsClient.Client, o.Authorizers.ResourceManager)
 
 	policySetDefinitionsClient, err := policysetdefinitions.NewPolicySetDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -64,6 +72,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AssignmentsClient:                   assignmentsClient,
 		GuestConfigurationAssignmentsClient: guestConfigurationAssignmentsClient,
+		PolicyDefinitionsClient:             policyDefinitionsClient,
 		PolicySetDefinitionsClient:          policySetDefinitionsClient,
 		RemediationsClient:                  remediationsClient,
 
