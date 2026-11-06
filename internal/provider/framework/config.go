@@ -583,6 +583,13 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			for _, rp := range additionalResourceProvidersToRegister {
 				additionalProviders.Add(rp)
 			}
+
+			if f.EnhancedValidation.ResourceProviders {
+				if err := resourceproviders.ValidateSupported(additionalProviders); err != nil {
+					diags.AddError("validating `resource_providers_to_register`", err.Error())
+					return
+				}
+			}
 		}
 	}
 
