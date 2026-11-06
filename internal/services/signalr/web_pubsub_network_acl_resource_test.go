@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
@@ -122,6 +123,78 @@ func TestAccWebPubsubNetworkACL_updateMultiplePrivateEndpoints(t *testing.T) {
 	})
 }
 
+func TestAccWebPubsubNetworkACL_ipRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_network_acl", "test")
+	r := WebPubsubNetworkACLResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipRulesRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsubNetworkACL_ipRulesClearedOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_network_acl", "test")
+	r := WebPubsubNetworkACLResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// "destroy" must clear the IP rules from the parent Web PubSub rather than leave them behind
+			Config: r.template(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(r.ipRulesClearedFromParent, "azurerm_web_pubsub.test"),
+			),
+		},
+	})
+}
+
+func (r WebPubsubNetworkACLResource) ipRulesClearedFromParent(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	id, err := webpubsub.ParseWebPubSubID(state.Attributes["id"])
+	if err != nil {
+		return err
+	}
+
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	resp, err := clients.SignalR.WebPubSubClient.WebPubSub.Get(ctx2, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if acls := props.NetworkACLs; acls != nil && acls.IPRules != nil && len(*acls.IPRules) > 0 {
+				return fmt.Errorf("expected `ip_rule`s to be cleared from %s after destroying the network ACL, but found %d", *id, len(*acls.IPRules))
+			}
+		}
+	}
+
+	return nil
+}
+
 func (r WebPubsubNetworkACLResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseWebPubSubID(state.ID)
 	if err != nil {
@@ -208,6 +281,16 @@ resource "azurerm_web_pubsub_network_acl" "test" {
     allowed_request_types = ["ClientConnection"]
   }
 
+  ip_rule {
+    action   = "Allow"
+    ip_range = "10.0.1.0/24"
+  }
+
+  ip_rule {
+    action   = "Allow"
+    ip_range = "AzureFrontDoor.Backend"
+  }
+
   private_endpoint {
     id                    = azurerm_private_endpoint.test.id
     allowed_request_types = ["ClientConnection"]
@@ -230,6 +313,46 @@ resource "azurerm_web_pubsub_network_acl" "test" {
   }
 
   depends_on = [azurerm_web_pubsub.test]
+}
+`, r.template(data))
+}
+
+func (r WebPubsubNetworkACLResource) ipRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub_network_acl" "test" {
+  web_pubsub_id  = azurerm_web_pubsub.test.id
+  default_action = "Deny"
+
+  public_network {
+    allowed_request_types = ["ClientConnection"]
+  }
+
+  ip_rule {
+    action   = "Allow"
+    ip_range = "10.0.1.0/24"
+  }
+
+  ip_rule {
+    action   = "Allow"
+    ip_range = "AzureFrontDoor.Backend"
+  }
+}
+`, r.template(data))
+}
+
+func (r WebPubsubNetworkACLResource) ipRulesRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub_network_acl" "test" {
+  web_pubsub_id  = azurerm_web_pubsub.test.id
+  default_action = "Deny"
+
+  public_network {
+    allowed_request_types = ["ClientConnection"]
+  }
 }
 `, r.template(data))
 }

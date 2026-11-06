@@ -64,6 +64,11 @@ resource "azurerm_web_pubsub_network_acl" "example" {
     denied_request_types = ["ClientConnection"]
   }
 
+  ip_rule {
+    action   = "Deny"
+    ip_range = "10.0.1.0/24"
+  }
+
   private_endpoint {
     id                   = azurerm_private_endpoint.example.id
     denied_request_types = ["RESTAPI", "ClientConnection"]
@@ -85,6 +90,8 @@ The following arguments are supported:
 
 * `public_network` - (Required) A `public_network` block as defined below.
 
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
 * `private_endpoint` - (Optional) A `private_endpoint` block as defined below.
 
 ---
@@ -96,6 +103,14 @@ A `public_network` block supports the following:
 * `denied_request_types` - (Optional) The denied request types for the public network. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
 -> **Note:** When `default_action` is `Allow`, `allowed_request_types`cannot be set. When `default_action` is `Deny`, `denied_request_types`cannot be set.
+
+---
+
+An `ip_rule` block supports the following:
+
+* `action` - (Required) The action to take for the matched IP rule. Possible values are `Allow` and `Deny`.
+
+* `ip_range` - (Required) The value to match for this rule. This can be an IP address, a CIDR range, or a [service tag](https://learn.microsoft.com/azure/virtual-network/service-tags-overview).
 
 ---
 
