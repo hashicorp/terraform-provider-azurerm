@@ -221,6 +221,11 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta any) erro
 
 	props, err := client.Get(ctx, id.ShareName, id.DirectoryPath)
 	if err != nil {
+		if response.WasNotFound(props.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state", id)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
@@ -258,7 +263,11 @@ func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta any) er
 		return fmt.Errorf("building File Share Client: %v", err)
 	}
 
-	if _, err = client.Delete(ctx, id.ShareName, id.DirectoryPath); err != nil {
+	resp, err := client.Delete(ctx, id.ShareName, id.DirectoryPath)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 
