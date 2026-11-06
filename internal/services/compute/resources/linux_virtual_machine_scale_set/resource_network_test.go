@@ -93,6 +93,13 @@ func TestAccLinuxVirtualMachineScaleSet_networkAuxiliary(t *testing.T) {
 		},
 		data.ImportStep("admin_password"),
 		{
+			Config: r.networkAuxiliaryAcceleratedConnectionsR1Sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
 			Config: r.networkAuxiliaryNone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -710,6 +717,50 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     accelerated_networking_enabled = true
     auxiliary_mode                 = "AcceleratedConnections"
     auxiliary_sku                  = "A1"
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) networkAuxiliaryAcceleratedConnectionsR1Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_D3_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name                           = "example"
+    primary                        = true
+    accelerated_networking_enabled = true
+    auxiliary_mode                 = "AcceleratedConnections"
+    auxiliary_sku                  = "R1"
 
     ip_configuration {
       name      = "internal"
