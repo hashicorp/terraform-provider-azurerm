@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/outboundfirewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/restorabledroppeddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sensitivitylabels"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadadministrators"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serverconnectionpolicies"
@@ -67,6 +68,7 @@ type Client struct {
 	OutboundFirewallRulesClient                        *outboundfirewallrules.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *replicationlinks.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *restorabledroppeddatabases.RestorableDroppedDatabasesClient
+	SensitivityLabelsClient                            *sensitivitylabels.SensitivityLabelsClient
 	ServerAzureADAdministratorsClient                  *serverazureadadministrators.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *serverazureadonlyauthentications.ServerAzureADOnlyAuthenticationsClient
 	ServerConnectionPoliciesClient                     *serverconnectionpolicies.ServerConnectionPoliciesClient
@@ -211,6 +213,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(restorableDroppedDatabasesClient.Client, o.Authorizers.ResourceManager)
 
+	sensitivityLabelsClient, err := sensitivitylabels.NewSensitivityLabelsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Sensitivity Labels Client: %+v", err)
+	}
+	o.Configure(sensitivityLabelsClient.Client, o.Authorizers.ResourceManager)
+
 	serverAzureADAdministratorsClient, err := serverazureadadministrators.NewServerAzureADAdministratorsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Server Azure Active Directory Administrators Client: %+v", err)
@@ -331,6 +339,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		LongTermRetentionPoliciesClient:                    longTermRetentionPoliciesClient,
 		ReplicationLinksClient:                             replicationLinksClient,
 		RestorableDroppedDatabasesClient:                   restorableDroppedDatabasesClient,
+		SensitivityLabelsClient:                            sensitivityLabelsClient,
 		ServerAzureADAdministratorsClient:                  serverAzureADAdministratorsClient,
 		ServerAzureADOnlyAuthenticationsClient:             serverAzureADOnlyAuthenticationsClient,
 		ServerConnectionPoliciesClient:                     serverConnectionPoliciesClient,
