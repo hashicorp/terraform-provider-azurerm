@@ -64,6 +64,12 @@ func (r Resource) Read() sdk.ResourceFunc {
 					}
 
 					state.GitRepository = gitRepositoryValue
+					ociRepositoryValue, err := flattenOCIRepositoryDefinitionModel(properties.OciRepository)
+					if err != nil {
+						return err
+					}
+
+					state.OCIRepository = ociRepositoryValue
 					state.Kustomizations = flattenKustomizationDefinitionModel(properties.Kustomizations)
 					state.Namespace = pointer.From(properties.Namespace)
 					state.Scope = pointer.FromEnum(properties.Scope)
@@ -81,6 +87,12 @@ const (
 	FluxGitCommit       string = "commit"
 	FluxGitReferenceTag string = "tag"
 	FluxGitSemverRange  string = "semver"
+)
+
+const (
+	FluxOCIReferenceDigest string = "digest"
+	FluxOCIReferenceSemver string = "semver"
+	FluxOCIReferenceTag    string = "tag"
 )
 
 const (

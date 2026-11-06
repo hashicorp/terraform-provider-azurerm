@@ -74,6 +74,20 @@ func TestAccKubernetesFluxConfiguration_complete(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesFluxConfiguration_ociRepository(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ociRepository(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesFluxConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
 	r := KubernetesFluxConfigurationResource{}
@@ -437,6 +451,36 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   kustomizations {
     name       = "kustomization-2"
     depends_on = ["kustomization-1"]
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesFluxConfigurationResource) ociRepository(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+  scope      = "cluster"
+
+  oci_repository {
+    url                      = "oci://ghcr.io/stefanprodan/manifests/podinfo"
+    reference_type           = "tag"
+    reference_value          = "latest"
+    sync_interval_in_seconds = 800
+    timeout_in_seconds       = 800
+  }
+
+  kustomizations {
+    name = "kustomization-1"
   }
 
   depends_on = [
