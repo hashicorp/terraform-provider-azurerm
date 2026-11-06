@@ -328,7 +328,6 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"secure_boot_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"source_image_id": {
@@ -365,7 +364,7 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 		"vtpm_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
+			ForceNew: false,
 		},
 
 		"platform_fault_domain": {
