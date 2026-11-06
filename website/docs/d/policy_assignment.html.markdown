@@ -37,6 +37,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Policy Assignment.
 
+* `definition_version` - The version of the policy definition being used.
+
 * `description` - The description of this Policy Assignment.
 
 * `display_name` - The display name of this Policy Assignment.
@@ -87,4 +89,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Authorization` - 2022-06-01
+* `Microsoft.Authorization` - 2025-01-01
