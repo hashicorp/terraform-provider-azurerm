@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/gallery_application"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/gallery_application_version"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/image"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/image_builder_template"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/images"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/linux_virtual_machine"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/linux_virtual_machine_scale_set"
@@ -135,6 +136,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		gallery_application.Resource{},
 		gallery_application_version.Resource{},
+		image_builder_template.Resource{},
 		virtual_machine_gallery_application_assignment.Resource{},
 		virtual_machine_implicit_data_disk_from_source.Resource{},
 		virtual_machine_restore_point_collection.Resource{},

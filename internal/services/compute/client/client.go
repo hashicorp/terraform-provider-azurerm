@@ -40,6 +40,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetrollingupgrades"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/imagebuilder/2024-02-01/virtualmachineimagetemplate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -80,6 +81,7 @@ type Client struct {
 	VirtualMachineScaleSetRollingUpgradesClient *virtualmachinescalesetrollingupgrades.VirtualMachineScaleSetRollingUpgradesClient
 	VirtualMachineScaleSetVMsClient             *virtualmachinescalesetvms.VirtualMachineScaleSetVMsClient
 	VirtualMachineImagesClient                  *virtualmachineimages.VirtualMachineImagesClient
+	VirtualMachineImageTemplateClient           *virtualmachineimagetemplate.VirtualMachineImageTemplateClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -275,6 +277,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(vmImageClient.Client, o.Authorizers.ResourceManager)
 
+	vmImageTemplateClient, err := virtualmachineimagetemplate.NewVirtualMachineImageTemplateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VirtualMachineImages client: %+v", err)
+	}
+	o.Configure(vmImageTemplateClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AvailabilitySetsClient:                      availabilitySetsClient,
 		CapacityReservationClient:                   capacityReservationClient,
@@ -308,6 +316,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualMachineScaleSetRollingUpgradesClient: virtualMachineScaleSetRollingUpgradesClient,
 		VirtualMachineScaleSetVMsClient:             virtualMachineScaleSetVMsClient,
 		VirtualMachineImagesClient:                  vmImageClient,
+		VirtualMachineImageTemplateClient:           vmImageTemplateClient,
 	}, nil
 }
 
