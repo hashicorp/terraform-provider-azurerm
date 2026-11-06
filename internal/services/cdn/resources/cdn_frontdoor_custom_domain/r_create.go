@@ -38,7 +38,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta any)
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_custom_domain", id.ID())
+			return tf.ImportAsExistsError(azurermCdnFrontDoorCustomDomainResourceName, id.ID())
 		}
 	}
 
@@ -62,11 +62,14 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta any)
 
 	props.Properties.TlsSettings = tlsSettings
 
-	if err := client.AFDCustomDomainsCreateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.AFDCustomDomainsCreateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
