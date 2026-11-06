@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package computefleet
+package compute_fleet
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ComputeFleetListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(ComputeFleetListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (ComputeFleetListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(ComputeFleetResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (ComputeFleetListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = ComputeFleetResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (ComputeFleetListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.ComputeFleet.ComputeFleetClient
 
 	var data sdk.DefaultListModel
@@ -45,7 +45,7 @@ func (ComputeFleetListResource) List(ctx context.Context, request list.ListReque
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := ComputeFleetResource{}
+	r := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
