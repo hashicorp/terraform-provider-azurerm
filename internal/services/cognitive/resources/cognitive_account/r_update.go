@@ -60,6 +60,14 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
+	if d.HasChange("custom_question_answering_search_service_id") {
+		apiProps.QnaAzureSearchEndpointId = pointer.To(d.Get("custom_question_answering_search_service_id").(string))
+	}
+
+	if d.HasChange("custom_question_answering_search_service_key") {
+		apiProps.QnaAzureSearchEndpointKey = pointer.To(d.Get("custom_question_answering_search_service_key").(string))
+	}
+
 	props := cognitiveservicesaccounts.Account{
 		Sku:  &sku,
 		Kind: pointer.To(d.Get("kind").(string)),
