@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ApiManagementApiOperationTagResource struct{}
+
+func TestAccApiManagementApiOperationTag_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")
+	r := ApiManagementApiOperationTagResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccApiManagementApiOperationTag_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_tag", "test")

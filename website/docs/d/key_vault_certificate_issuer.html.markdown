@@ -19,7 +19,7 @@ data "azurerm_key_vault" "example" {
 }
 
 data "azurerm_key_vault_certificate_issuer" "example" {
-  name         = "existing"
+  name         = "example-issuer"
   key_vault_id = data.azurerm_key_vault.example.id
 }
 
