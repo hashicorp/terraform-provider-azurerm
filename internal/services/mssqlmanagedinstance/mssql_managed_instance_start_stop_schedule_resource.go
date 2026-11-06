@@ -6,13 +6,16 @@ package mssqlmanagedinstance
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/startstopmanagedinstanceschedules"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,7 +40,10 @@ type ScheduleItemModel struct {
 
 type MsSqlManagedInstanceStartStopScheduleResource struct{}
 
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceStartStopScheduleResource{}
+var (
+	_ sdk.ResourceWithUpdate         = MsSqlManagedInstanceStartStopScheduleResource{}
+	_ sdk.ResourceWithStateMigration = MsSqlManagedInstanceStartStopScheduleResource{}
+)
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) ResourceType() string {
 	return "azurerm_mssql_managed_instance_start_stop_schedule"
@@ -51,8 +57,21 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) IDValidationFunc() plugin
 	return validate.ManagedInstanceStartStopScheduleID
 }
 
+func (r MsSqlManagedInstanceStartStopScheduleResource) StateUpgraders() sdk.StateUpgradeData {
+	if !features.SixPointOh() {
+		return sdk.StateUpgradeData{}
+	}
+
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.MsSqlManagedInstanceStartStopScheduleV0ToV1{},
+		},
+	}
+}
+
 func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	arguments := map[string]*pluginsdk.Schema{
 		"managed_instance_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -66,7 +85,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 		},
 
 		"schedule": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -105,6 +124,43 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Arguments() map[string]*p
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
+
+	if !features.SixPointOh() {
+		arguments["schedule"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"start_day": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(startstopmanagedinstanceschedules.PossibleValuesForDayOfWeek(), false),
+					},
+
+					"start_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"stop_day": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(startstopmanagedinstanceschedules.PossibleValuesForDayOfWeek(), false),
+					},
+
+					"stop_time": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return arguments
 }
 
 func (r MsSqlManagedInstanceStartStopScheduleResource) Attributes() map[string]*pluginsdk.Schema {
@@ -270,6 +326,17 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if !features.SixPointOh() {
+				var existing SqlManagedInstanceStartStopScheduleModel
+				if err := metadata.Decode(&existing); err != nil {
+					return fmt.Errorf("decoding: %+v", err)
+				}
+
+				// Azure reorders schedules as their next execution times change. Preserve the
+				// list order only when all entries still match, so actual changes remain visible.
+				state.Schedule = preserveScheduleItemOrder(state.Schedule, existing.Schedule)
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -330,4 +397,24 @@ func flattenScheduleItemModelArray(inputList []startstopmanagedinstanceschedules
 		outputList = append(outputList, output)
 	}
 	return outputList
+}
+
+func preserveScheduleItemOrder(actual, existing []ScheduleItemModel) []ScheduleItemModel {
+	if len(actual) != len(existing) {
+		return actual
+	}
+
+	counts := make(map[ScheduleItemModel]int, len(actual))
+	for _, item := range actual {
+		counts[item]++
+	}
+
+	for _, item := range existing {
+		if counts[item] == 0 {
+			return actual
+		}
+		counts[item]--
+	}
+
+	return slices.Clone(existing)
 }
