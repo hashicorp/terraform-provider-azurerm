@@ -79,6 +79,20 @@ func TestAccDataSourceCosmosDBAccount_mongoDBConnectionString(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceCosmosDBAccount_localAuthenticationDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountDataSourceResource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.localAuthenticationDisabled(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_credentialsEmpty(data),
+			),
+		},
+	})
+}
+
 func (c CosmosDBAccountDataSourceResource) basic(data acceptance.TestData) string {
 	return c.dataConfig(CosmosDBAccountResource{}.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelBoundedStaleness))
 }
@@ -93,6 +107,10 @@ func (c CosmosDBAccountDataSourceResource) globalDocumentDB(data acceptance.Test
 
 func (c CosmosDBAccountDataSourceResource) mongoDB(data acceptance.TestData) string {
 	return c.dataConfig(CosmosDBAccountResource{}.basicMongoDB(data, cosmosdb.DefaultConsistencyLevelStrong))
+}
+
+func (c CosmosDBAccountDataSourceResource) localAuthenticationDisabled(data acceptance.TestData) string {
+	return c.dataConfig(CosmosDBAccountResource{}.basicWithLocalAuthenticationDisabled(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual))
 }
 
 func (c CosmosDBAccountDataSourceResource) dataConfig(baseConfig string) string {
