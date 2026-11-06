@@ -99,6 +99,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"csrf_always_check": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"deterministic_outbound_ip_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -153,7 +159,39 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(managedgrafanas.PossibleValuesForSize(), false),
 		},
 
+		"snapshot_external_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"tags": commonschema.Tags(),
+
+		"unified_alerting_screenshots_capture_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"users": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"editors_can_admin": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"viewers_can_edit": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 
 		"zone_redundancy_enabled": {
 			Type:     pluginsdk.TypeBool,
