@@ -213,6 +213,11 @@ service/digital-twins:
   - any-glob-to-any-file:
     - internal/services/digitaltwins/**/*
 
+service/discovery:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/discovery/**/*
+
 service/dns:
 - changed-files:
   - any-glob-to-any-file:

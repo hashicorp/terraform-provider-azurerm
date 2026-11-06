@@ -117,6 +117,9 @@ service/devtestlabs:
 service/digital-twins:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_digital_twins_((.|\n)*)###'
 
+service/discovery:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_discovery_bookshelf((.|\n)*)###'
+
 service/dns:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(dns_|private_dns_a_record\W+|private_dns_aaaa_record\W+|private_dns_cname_record\W+|private_dns_mx_record\W+|private_dns_ptr_record\W+|private_dns_soa_record\W+|private_dns_srv_record\W+|private_dns_txt_record\W+|private_dns_zone\W+|private_dns_zone_virtual_network_link\W+)((.|\n)*)###'
 
