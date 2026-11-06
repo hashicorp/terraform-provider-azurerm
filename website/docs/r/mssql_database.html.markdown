@@ -177,6 +177,8 @@ The following arguments are supported:
 
 -> **Note:** When configuring a secondary database, please be aware of the constraints for the `sku_name` property, as noted below, for both the primary and secondary databases. The `sku_name` of the secondary database may be inadvertently changed to match that of the primary when an incompatible combination of SKUs is detected by the provider.
 
+* `catalog_collation` - (Optional) Specifies the collation of the database's metadata catalog. Possible values are `DATABASE_DEFAULT` and `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
+
 * `collation` - (Optional) Specifies the collation of the database. Changing this forces a new resource to be created.
 
 * `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
