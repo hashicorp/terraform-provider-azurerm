@@ -122,6 +122,14 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
+
+	osDiskTier := d.Get("os_disk.0.tier").(string)
+	if osDiskTier != "" {
+		if err := helpers.ValidateVirtualMachineOSDiskTier(osDiskRaw); err != nil {
+			return err
+		}
+	}
+
 	securityEncryptionType := ""
 	if !osDiskIsImported {
 		securityEncryptionType = osDiskRaw[0].(map[string]any)["security_encryption_type"].(string)
@@ -416,6 +424,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta any) er
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	if osDiskTier != "" {
+		if err := helpers.UpdateVirtualMachineOSDiskTier(ctx, client, meta.(*clients.Client).Compute.DisksClient, id, osDiskTier); err != nil {
+			return fmt.Errorf("setting the performance tier of the OS Disk for Windows %s: %+v", id, err)
+		}
 	}
 
 	return resourceWindowsVirtualMachineRead(d, meta)
