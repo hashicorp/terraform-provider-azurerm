@@ -78,11 +78,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	enableOIDC := getEnvBoolIfValueAbsent(data.UseOIDC, "ARM_USE_OIDC") || getEnvBoolIfValueAbsent(data.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY")
 	auxTenants := getEnvListOfStringsIfAbsent(data.AuxiliaryTenantIds, "ARM_AUXILIARY_TENANT_IDS", ";")
 
-	oidcReqURL := getEnvStringsOrDefault(data.OIDCRequestURL, []string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"}, "")
-	oidcReqToken := getEnvStringsOrDefault(data.OIDCRequestToken, []string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"}, "")
+	oidcReqURL := getEnvStringsIfValueAbsent(data.OIDCRequestURL, []string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"})
+	oidcReqToken := getEnvStringsIfValueAbsent(data.OIDCRequestToken, []string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"})
 
 	// ARM_OIDC_AZURE_SERVICE_CONNECTION_ID is to be compatible with `azapi` provider.
-	adoPipelineServiceConnectionID := getEnvStringsOrDefault(data.ADOPipelineServiceConnectionID, []string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, "")
+	adoPipelineServiceConnectionID := getEnvStringsIfValueAbsent(data.ADOPipelineServiceConnectionID, []string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"})
 
 	authConfig := &auth.Credentials{
 		Environment:        *env,
@@ -103,6 +103,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		CustomManagedIdentityEndpoint:   getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 		CustomManagedIdentityAPIVersion: getEnvStringOrDefault(data.MSIAPIVersion, "ARM_MSI_API_VERSION", ""),
+		CustomManagedIdentityHeaders:    managedIdentityHeaders(data),
 
 		AzureCliSubscriptionIDHint: subscriptionId,
 
@@ -599,4 +600,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	}
 
 	p.Client = client
+}
+
+func managedIdentityHeaders(data *ProviderModel) map[string][]string {
+	return clients.ManagedIdentityHeaders(
+		getEnvStringOrDefault(data.MSICustomHeaderName, "ARM_MSI_CUSTOM_HEADER_NAME", "X-IDENTITY-HEADER"),
+		getEnvStringsIfValueAbsent(data.MSICustomHeaderValue, []string{"ARM_MSI_CUSTOM_HEADER_VALUE", "IDENTITY_HEADER"}),
+	)
 }
