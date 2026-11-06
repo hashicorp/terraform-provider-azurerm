@@ -181,10 +181,15 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 					}
 
 					osDiskPlacement := ""
-					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
-						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
+					var managedDisk *pool.ManagedDisk
+					if config.OsDisk != nil {
+						if config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
+							osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
+						}
+						managedDisk = config.OsDisk.ManagedDisk
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+					d.Set("managed_disk", flattenBatchPoolManagedDisk(managedDisk))
 
 					if config.SecurityProfile != nil {
 						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
