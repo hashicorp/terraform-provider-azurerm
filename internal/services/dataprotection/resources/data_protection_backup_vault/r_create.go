@@ -5,10 +5,12 @@ package data_protection_backup_vault
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -27,11 +29,12 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	encryptionEnabledWithSystemAssignedIdentity := false
 	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
+	existing, err := client.BackupVaultsGet(ctx, id)
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.BackupVaultsGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
@@ -39,6 +42,14 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return tf.ImportAsExistsError("azurerm_data_protection_backup_vault", id.ID())
+			}
+		}
+	} else {
+		if securitySettings := existing.Model.Properties.SecuritySettings; securitySettings != nil {
+			if encryptionSettings := securitySettings.EncryptionSettings; encryptionSettings != nil {
+				if kekIdentity := encryptionSettings.KekIdentity; kekIdentity != nil && *kekIdentity.IdentityType == backupvaultresources.IdentityTypeSystemAssigned {
+					encryptionEnabledWithSystemAssignedIdentity = true
+				}
 			}
 		}
 	}
@@ -85,6 +96,19 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
 
+	if v, ok := d.GetOk("encryption_settings"); ok {
+		if encryptionEnabledWithSystemAssignedIdentity {
+			log.Printf("[INFO] Customer Managed Keys settings in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource will overwrite settings of `azurerm_data_protection_backup_vault_customer_managed_key` resource. If `azurerm_data_protection_backup_vault_customer_managed_key` resource exists in Terraform configurations, please remove it to avoid confusion.")
+		}
+
+		encryptionSettings, err := expandBackupVaultEncryptionSettings(v.([]any))
+		if err != nil {
+			return err
+		}
+
+		parameters.Properties.SecuritySettings.EncryptionSettings = encryptionSettings
+	}
+
 	if d.IsNewResource() {
 		if err := client.BackupVaultsCreateOrUpdateCallbackThenPoll(ctx, id, parameters, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions(), sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
@@ -122,4 +146,36 @@ func expandBackupVaultDppIdentityDetails(input []any) (*backupvaultresources.Dpp
 	}
 
 	return &identity, nil
+}
+
+func expandBackupVaultEncryptionSettings(input []any) (*backupvaultresources.EncryptionSettings, error) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	v := input[0].(map[string]any)
+	output := &backupvaultresources.EncryptionSettings{
+		KekIdentity: &backupvaultresources.CmkKekIdentity{
+			IdentityId:   pointer.To(v["identity_id"].(string)),
+			IdentityType: pointer.To(backupvaultresources.IdentityTypeUserAssigned),
+		},
+		State: pointer.To(backupvaultresources.EncryptionStateEnabled),
+	}
+
+	keyId, err := keyvault.ParseNestedItemID(v["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	output.KeyVaultProperties = &backupvaultresources.CmkKeyVaultProperties{
+		KeyUri: pointer.To(keyId.ID()),
+	}
+
+	if v["infrastructure_encryption_enabled"].(bool) {
+		output.InfrastructureEncryption = pointer.To(backupvaultresources.InfrastructureEncryptionStateEnabled)
+	} else {
+		output.InfrastructureEncryption = pointer.To(backupvaultresources.InfrastructureEncryptionStateDisabled)
+	}
+
+	return output, nil
 }

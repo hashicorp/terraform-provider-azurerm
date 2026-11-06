@@ -52,6 +52,25 @@ func RegisterResource() *pluginsdk.Resource {
 				return old.(string) == string(backupvaultresources.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaultresources.SoftDeleteStateAlwaysOn)
 			}),
 
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, oldRaw, newRaw, meta any) bool {
+				oldPopulated := false
+				newPopulated := false
+
+				if old := oldRaw.([]any); len(old) > 0 && old[0] != nil {
+					oldPopulated = len(old[0].(map[string]any)) > 0
+				}
+
+				if new := newRaw.([]any); len(new) > 0 && new[0] != nil {
+					newPopulated = len(new[0].(map[string]any)) > 0
+				}
+
+				return oldPopulated && !newPopulated
+			}),
+
+			pluginsdk.ForceNewIfChange("encryption_settings.0.infrastructure_encryption_enabled", func(ctx context.Context, old, new, meta any) bool {
+				return old.(bool) != new.(bool)
+			}),
+
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 				redundancy := d.Get("redundancy").(string)
 				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
