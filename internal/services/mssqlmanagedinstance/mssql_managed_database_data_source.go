@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/managedbackupshorttermretentionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -18,13 +19,14 @@ import (
 )
 
 type MsSqlManagedDatabaseDataSourceModel struct {
-	Name                    string                    `tfschema:"name"`
-	ResourceGroupName       string                    `tfschema:"resource_group_name"`
-	ManagedInstanceName     string                    `tfschema:"managed_instance_name"`
-	ManagedInstanceId       string                    `tfschema:"managed_instance_id"`
-	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
-	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
-	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	Name                                 string                    `tfschema:"name"`
+	ResourceGroupName                    string                    `tfschema:"resource_group_name"`
+	ManagedInstanceName                  string                    `tfschema:"managed_instance_name"`
+	ManagedInstanceId                    string                    `tfschema:"managed_instance_id"`
+	LongTermRetentionPolicy              []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
+	ShortTermRetentionDays               int64                     `tfschema:"short_term_retention_days"`
+	ShortTermRetentionImmutabilityLocked bool                      `tfschema:"short_term_retention_immutability_locked"`
+	PointInTimeRestore                   []PointInTimeRestore      `tfschema:"point_in_time_restore"`
 }
 
 var _ sdk.DataSource = MsSqlManagedDatabaseDataSource{}
@@ -105,6 +107,11 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 		},
 
+		"short_term_retention_immutability_locked": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"point_in_time_restore": {
 			Type:     schema.TypeList,
 			Computed: true,
@@ -175,6 +182,7 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 
 			if shortTermRetentionResp.Model != nil && shortTermRetentionResp.Model.Properties != nil {
 				model.ShortTermRetentionDays = pointer.From(shortTermRetentionResp.Model.Properties.RetentionDays)
+				model.ShortTermRetentionImmutabilityLocked = pointer.From(shortTermRetentionResp.Model.Properties.ImmutabilityStatus) == managedbackupshorttermretentionpolicies.ImmutabilityStatusLocked
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("point_in_time_restore"); ok {

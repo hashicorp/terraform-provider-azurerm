@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies"
@@ -39,6 +38,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/virtualnetworkrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"

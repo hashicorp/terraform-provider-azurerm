@@ -4,5 +4,7 @@ package managedbackupshorttermretentionpolicies
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedBackupShortTermRetentionPolicyProperties struct {
-	RetentionDays *int64 `json:"retentionDays,omitempty"`
+	ImmutabilityStatus *ImmutabilityStatus `json:"immutabilityStatus,omitempty"`
+	LockImmutability   *bool               `json:"lockImmutability,omitempty"`
+	RetentionDays      *int64              `json:"retentionDays,omitempty"`
 }
