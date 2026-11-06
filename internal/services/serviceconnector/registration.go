@@ -32,6 +32,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AppServiceConnectorResource{},
 		FunctionAppConnectorResource{},
+		KubernetesClusterConnectorResource{},
 		SpringCloudConnectorResource{},
 	}
 }
