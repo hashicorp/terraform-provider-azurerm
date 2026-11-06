@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Node Pool which should be created within the Kubernetes Cluster. Changing this forces a new resource to be created.
 
+~> **Note:** Names must begin with a lowercase letter and contain only lowercase letters and numbers. Linux node pool names have a default maximum length of 12 characters. Longer names require prior private AKS enablement for the subscription. Configure `node_pool_name_max_length` in the provider's [`features.kubernetes_cluster` block](../guides/features-block.html#node_pool_name_max_length) to extend resource validation. The provider accepts a maximum of 39 characters; AKS enforces the subscription's supported maximum, which may be lower.
+
 ~> **Note:** A Windows Node Pool cannot have a `name` longer than 6 characters.
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster where this Node Pool should exist. Changing this forces a new resource to be created.
@@ -148,7 +150,7 @@ The following arguments are supported:
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
-* `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated.
+* `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated. The same naming restrictions as `name` apply.
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this property requires specifying `temporary_name_for_rotation`.
 
