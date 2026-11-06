@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type RelayNamespaceAuthorizationRuleResource struct{}
@@ -51,9 +52,10 @@ func (r RelayNamespaceAuthorizationRuleResource) IDValidationFunc() pluginsdk.Sc
 func (r RelayNamespaceAuthorizationRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(6, 50),
 		},
 
 		"namespace_name": {
@@ -91,16 +93,19 @@ func (r RelayNamespaceAuthorizationRuleResource) Attributes() map[string]*plugin
 			Computed:  true,
 			Sensitive: true,
 		},
+
 		"primary_key": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
+
 		"secondary_connection_string": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
+
 		"secondary_key": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
