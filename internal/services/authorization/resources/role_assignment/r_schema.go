@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -70,15 +71,11 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"User",
-				"Group",
-				"ServicePrincipal",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(roleassignments.PossibleValuesForPrincipalType(), false),
 		},
 
 		"skip_service_principal_aad_check": {
