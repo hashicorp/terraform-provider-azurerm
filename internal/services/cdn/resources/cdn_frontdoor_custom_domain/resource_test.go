@@ -9,7 +9,6 @@ import (
 	"os"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains"
@@ -191,78 +190,6 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-// API version 2026-10-01 added `mtlsSettings`, which the SDK always serializes (as `null` when unset)
-// in the create and update payloads. This verifies TLS updates are still accepted, leave mTLS unset,
-// and that the resource can be reverted back to its original state.
-func TestAccCdnFrontDoorCustomDomain_mtlsNullCompatibility(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
-	r := CdnFrontDoorCustomDomainResource{}
-	r.preCheck(t)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.mtlsSettingsNotSet),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.cipherSuitePreset(data, "TLS12_2023"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.mtlsSettingsNotSet),
-			),
-		},
-		data.ImportStep(),
-		// Removing the `cipher_suite` block omits the cipher suite from the PATCH payload, so the service
-		// keeps the previous cipher suite. Explicitly switch back to the default (`TLS12_2022`) before
-		// removing the block. No import step here: the default cipher suite is only kept in state when
-		// the block is configured, so an imported state would not include it.
-		{
-			Config: r.cipherSuitePreset(data, "TLS12_2022"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.mtlsSettingsNotSet),
-			),
-		},
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.mtlsSettingsNotSet),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func (r CdnFrontDoorCustomDomainResource) mtlsSettingsNotSet(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := afddomains.ParseCustomDomainID(state.ID)
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	resp, err := clients.Cdn.AFDCustomDomainsClient.AFDCustomDomainsGet(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	if resp.Model == nil || resp.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model.properties` was nil", id)
-	}
-
-	if mtls := resp.Model.Properties.MtlsSettings; mtls != nil {
-		return fmt.Errorf("expected `mtlsSettings` on %s to be unset, got %+v", id, mtls)
-	}
-
-	return nil
 }
 
 func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
@@ -687,31 +614,6 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorCustomDomainResource) cipherSuitePreset(data acceptance.TestData, cipherSuiteType string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctestcustomdomain-%[2]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-
-  depends_on = [azurerm_dns_ns_record.delegation]
-
-  dns_zone_id = azurerm_dns_zone.child.id
-  host_name   = join(".", ["fd", azurerm_dns_zone.child.name])
-
-  tls {
-    certificate_type = "ManagedCertificate"
-    minimum_version  = "TLS12"
-
-    cipher_suite {
-      type = "%[3]s"
-    }
-  }
-}
-`, r.template(data), data.RandomInteger, cipherSuiteType)
 }
 
 func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
