@@ -130,6 +130,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		Count: pointer.To(int64(count)),
 	}
 
+	profile.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
+
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
 		profile.GpuInstanceProfile = pointer.ToEnum[agentpools.GPUInstanceProfile](gpuInstanceProfile)
 	}

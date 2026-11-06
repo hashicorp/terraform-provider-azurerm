@@ -75,6 +75,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta any
 		props.KubeletDiskType = pointer.ToEnum[agentpools.KubeletDiskType](d.Get("kubelet_disk_type").(string))
 	}
 
+	if d.HasChange("gateway_public_ip_prefix_size") {
+		props.GatewayProfile = expandAgentPoolGatewayProfile(d.Get("gateway_public_ip_prefix_size").(int))
+	}
+
 	if d.HasChange("linux_os_config") {
 		linuxOSConfigRaw := d.Get("linux_os_config").([]any)
 		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
