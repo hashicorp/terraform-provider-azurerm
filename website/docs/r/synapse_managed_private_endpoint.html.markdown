@@ -91,7 +91,7 @@ The following arguments are supported:
 
 ---
 
-* `fully_qualified_domain_names` - (Optional) A list of fully qualified domain names to assign to the Synapse Private Endpoint. Changing this forces a new resource to be created.
+* `fully_qualified_domain_names` - (Optional) A list of fully qualified domain names to assign to the Synapse Private Endpoint. When omitted, the provider uses the domain names returned by Azure. Changing a configured value forces a new resource to be created.
 
 ~> **Note:** `fully_qualified_domain_names` must be specified when the `target_resource_id` is a Private Link Service.
 
