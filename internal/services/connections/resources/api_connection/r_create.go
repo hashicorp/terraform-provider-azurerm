@@ -44,6 +44,7 @@ func resourceApiConnectionCreate(d *schema.ResourceData, meta any) error {
 	}
 	location := location.Normalize(managedAppId.LocationName)
 	model := connections.ApiConnectionDefinition{
+		Kind:     pointer.To(d.Get("kind").(string)),
 		Location: pointer.To(location),
 		Properties: &connections.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
