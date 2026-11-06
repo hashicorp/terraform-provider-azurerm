@@ -1,0 +1,76 @@
+package api_center_deployment
+
+import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func (r Resource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		//"api_center_api_id": {
+		//	Type:         pluginsdk.TypeString,
+		//	Required:     true,
+		//	ForceNew:     true,
+		//	ValidateFunc: apis.ValidateApiID,
+		//},
+
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.Name(),
+		},
+		"api_center_api_definition_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: apidefinitions.ValidateDefinitionID,
+		},
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 500),
+		},
+		"environment_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: environments.ValidateEnvironmentID,
+		},
+		"server": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"runtime_uri": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+					},
+				},
+			},
+		},
+		"state": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentState(), false),
+		},
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// O+C if display name is not set, it will default to the name of the deployment
+			Computed:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+	}
+}
+
+func (r Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}

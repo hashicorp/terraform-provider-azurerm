@@ -364,6 +364,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		aadb2c.Registration{},
 		advisor.Registration{},
 		analysisservices.Registration{},
+		apicenter.Registration{},
 		apimanagement.Registration{},
 		appgateway.Registration{},
 		appconfiguration.Registration{},

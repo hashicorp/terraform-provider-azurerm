@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package apicenter_test
+package api_center_environment_test
 
 import (
 	"context"
@@ -27,6 +27,7 @@ func TestAccApiCenterEnvironment_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").MatchesOtherKey(check.That(data.ResourceName).Key("name")),
 			),
 		},
 		data.ImportStep(),
@@ -116,7 +117,6 @@ provider "azurerm" {
 resource "azurerm_api_center_environment" "test" {
   name                  = "test"
   api_center_service_id = azurerm_api_center_service.test.id
-  title                 = "testtitle"
   environment_type      = "testing"
   description           = "testing environment"
 }`, template)
@@ -134,7 +134,7 @@ provider "azurerm" {
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
   api_center_service_id  = azurerm_api_center_service.test.id
-  title                  = "testtitle"
+  display_name           = "testtitle"
   environment_type       = "testing"
   description            = "testing environment"
   development_portal_uri = "https://developer.com"
@@ -157,7 +157,7 @@ provider "azurerm" {
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
   api_center_service_id  = azurerm_api_center_service.test.id
-  title                  = "testtitle"
+  display_name           = "testtitle"
   environment_type       = "testing"
   description            = "testing environment 2"
   development_portal_uri = "https://developer2.com"
@@ -176,7 +176,7 @@ func (ApiCenterEnvironmentResource) requiresImport(data acceptance.TestData) str
 resource "azurerm_api_center_environment" "import" {
   name                  = azurerm_api_center_environment.test.name
   api_center_service_id = azurerm_api_center_environment.test.api_center_service_id
-  title                 = azurerm_api_center_environment.test.title
+  display_name          = azurerm_api_center_environment.test.display_name
   environment_type      = azurerm_api_center_environment.test.environment_type
 }
 `, template)

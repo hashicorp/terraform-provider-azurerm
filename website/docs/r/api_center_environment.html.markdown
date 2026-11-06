@@ -35,7 +35,6 @@ resource "azurerm_api_center_service" "example" {
 resource "azurerm_api_center_environment" "example" {
   name                   = "test"
   api_center_service_id  = azurerm_api_center_service.example.id
-  title                  = "exampletitle"
   environment_type       = "testing"
   description            = "example environment"
   development_portal_uri = "https://developer.com"
@@ -53,7 +52,7 @@ The following arguments are supported:
 
 * `api_center_service_id` - (Required) The ID of the API Center Service where this API Center Environment should exist. Changing this forces a new API Center Environment to be created.
 
-* `title` - (Required) Title of this API Center Environment. Changing this forces a new API Center Environment to be created.
+* `display_name` - (Optional) Display name of this API Center Environment. Defaults to the value of `name`.
 
 * `environment_type` - (Required) Type of this API Center Environment. Possible values are `development`, `testing`, `staging` and `production`. Changing this forces a new API Center Environment to be created.
 
