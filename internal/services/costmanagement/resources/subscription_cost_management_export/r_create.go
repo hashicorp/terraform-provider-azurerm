@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
@@ -60,7 +62,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				status = exports.StatusTypeInactive
 			}
 
+			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(config.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			props := exports.Export{
+				Location: pointer.To(config.Description),
+				Identity: expandedIdentity,
 				Properties: &exports.ExportProperties{
 					Schedule: &exports.ExportSchedule{
 						Recurrence: pointer.ToEnum[exports.RecurrenceType](config.RecurrenceType),
@@ -70,9 +79,13 @@ func (r Resource) Create() sdk.ResourceFunc {
 						},
 						Status: &status,
 					},
-					DeliveryInfo: *deliveryInfo,
-					Format:       pointer.ToEnum[exports.FormatType](config.FileFormat),
-					Definition:   *definition,
+					DeliveryInfo:          *deliveryInfo,
+					Format:                pointer.ToEnum[exports.FormatType](config.FileFormat),
+					Definition:            *definition,
+					ExportDescription:     pointer.To(config.Description),
+					CompressionMode:       pointer.ToEnum[exports.CompressionModeType](config.CompressionMode),
+					PartitionData:         pointer.To(config.PartitionData),
+					DataOverwriteBehavior: pointer.ToEnum[exports.DataOverwriteBehaviorType](config.DataOverwriteBehavior),
 				},
 			}
 
