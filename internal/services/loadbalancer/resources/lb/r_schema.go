@@ -8,12 +8,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const loadBalancerBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU load balancers is no longer permitted following its retirement. For more information, see https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance"
+
 func lbSchema() map[string]*pluginsdk.Schema {
+	skuValidateFunc := validation.StringInSlice([]string{
+		string(loadbalancers.LoadBalancerSkuNameStandard),
+		string(loadbalancers.LoadBalancerSkuNameGateway),
+	}, false)
+	if !features.SixPointOh() {
+		skuValidateFunc = validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false)
+	}
+
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -32,7 +43,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
+			ValidateFunc: skuValidateFunc,
 		},
 
 		"sku_tier": {

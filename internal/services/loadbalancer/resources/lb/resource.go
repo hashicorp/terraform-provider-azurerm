@@ -5,12 +5,15 @@ package lb
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,6 +39,16 @@ func RegisterResource() *pluginsdk.Resource {
 		Schema: lbSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+				if !features.SixPointOh() {
+					sku := d.Get("sku").(string)
+					if strings.EqualFold(sku, string(loadbalancers.LoadBalancerSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "edge_zone", "sku", "sku_tier", "frontend_ip_configuration") {
+						return errors.New(loadBalancerBasicSkuCreateDeprecationMessage)
+					}
+				}
+
+				return nil
+			}),
 			pluginsdk.ForceNewIf("frontend_ip_configuration", func(ctx context.Context, d *schema.ResourceDiff, meta any) bool {
 				old, new := d.GetChange("frontend_ip_configuration")
 				switch {
