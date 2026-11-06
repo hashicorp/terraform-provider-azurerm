@@ -51,6 +51,21 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("retrieving Orchestrated %s: `properties` was nil", id)
 	}
 
+	if d.HasChange("zone_balance") {
+		zoneBalance := d.Get("zone_balance").(bool)
+		if zoneBalance && len(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())) == 0 {
+			return fmt.Errorf("`zone_balance` can only be set to `true` when availability zones are specified")
+		}
+
+		// `zoneBalance` is not part of the Update (PATCH) model, so it is changed by sending the existing
+		// model back with the new value, which is what the Azure CLI does for `az vmss update`. This does
+		// not change any instances.
+		existing.Model.Properties.ZoneBalance = pointer.To(zoneBalance)
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating `zone_balance` for Orchestrated %s: %w", id, err)
+		}
+	}
+
 	if !isLegacy {
 		if existing.Model.Properties.VirtualMachineProfile == nil {
 			return fmt.Errorf("retrieving Orchestrated %s: `Properties.VirtualMachineProfile` was nil", id)
