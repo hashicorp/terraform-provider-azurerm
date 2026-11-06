@@ -529,7 +529,7 @@ A `windows_configuration` block supports the following:
 
 * `time_zone` - (Optional) Specifies the time zone of the windows virtual machine. Changing this forces a new resource to be created.
 
-* `virtal_machine_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the windows virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
+* `virtual_machine_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the windows virtual machine in the Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
