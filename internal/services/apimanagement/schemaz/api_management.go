@@ -6,6 +6,8 @@ package schemaz
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -419,8 +421,11 @@ func FlattenApiManagementOperationParameterExampleContract(input map[string]apio
 		return []any{}, nil
 	}
 
-	outputs := make([]any, 0)
-	for k, v := range input {
+	// `input` is a map, so its iteration order is non-deterministic - since `example` is a `TypeList` (order-sensitive)
+	// this would otherwise produce a perpetual diff. Sort by name (the map key) to keep the order stable.
+	outputs := make([]any, 0, len(input))
+	for _, k := range slices.Sorted(maps.Keys(input)) {
+		v := input[k]
 		output := map[string]any{}
 
 		output["name"] = k
