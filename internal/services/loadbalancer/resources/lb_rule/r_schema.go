@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
+func loadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
