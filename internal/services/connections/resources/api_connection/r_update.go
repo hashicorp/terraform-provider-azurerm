@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -46,8 +47,24 @@ func resourceApiConnectionUpdate(d *schema.ResourceData, meta any) error {
 	// so we remove `NonSecretParameterValues` from the request to avoid conflicting parameters.
 	// this is fixed in later (preview) versions of the API but these don't have an API spec available.
 	props.NonSecretParameterValues = nil
+
+	if d.HasChange("kind") {
+		existing.Model.Kind = pointer.To(d.Get("kind").(string))
+	}
+
 	if d.HasChange("parameter_values") {
 		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]any))
+	}
+
+	if d.HasChange("parameter_value_type") {
+		props.ParameterValueType = nil
+		if v := d.Get("parameter_value_type").(string); v != "" {
+			props.ParameterValueType = pointer.To(v)
+		}
+	}
+
+	if d.HasChange("parameter_value_set") {
+		props.ParameterValueSet = expandParameterValueSet(d.Get("parameter_value_set").([]any))
 	}
 
 	if d.HasChange("tags") {
