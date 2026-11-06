@@ -461,6 +461,10 @@ func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.T
 
 func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
+		"azapi": {
+			VersionConstraint: "=2.13.0",
+			Source:            "registry.terraform.io/Azure/azapi",
+		},
 		"azuread": {
 			VersionConstraint: "=3.4.0",
 			Source:            "registry.terraform.io/hashicorp/azuread",
