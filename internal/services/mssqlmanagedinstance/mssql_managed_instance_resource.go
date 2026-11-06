@@ -239,7 +239,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"database_format": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			Default:      managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoTwo,
+			Default:      managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoFive,
 			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForManagedInstanceDatabaseFormat(), false),
 		},
 

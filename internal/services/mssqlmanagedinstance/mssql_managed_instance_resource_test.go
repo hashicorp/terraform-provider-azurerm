@@ -124,6 +124,13 @@ func TestAccMsSqlManagedInstance_databaseFormat(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.databaseFormat(data, "SQLServer2025"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
