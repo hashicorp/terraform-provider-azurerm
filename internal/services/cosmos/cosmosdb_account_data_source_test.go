@@ -62,6 +62,23 @@ func TestAccDataSourceCosmosDBAccount_globalDocumentDBConnectionString(t *testin
 	})
 }
 
+func TestAccDataSourceCosmosDBAccount_cassandraDBConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountDataSourceResource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.mongoDB(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("primary_cassandra_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_cassandra_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_readonly_cassandra_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_readonly_cassandra_connection_string").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceCosmosDBAccount_mongoDBConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountDataSourceResource{}
