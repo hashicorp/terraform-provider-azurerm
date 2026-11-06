@@ -87,7 +87,7 @@ The following arguments are supported:
 * `auto_mitigate` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `true`.
 * `description` - (Optional) The description of this Metric Alert.
 * `frequency` - (Optional) The evaluation frequency of this Metric Alert, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT15M`, `PT30M` and `PT1H`. Defaults to `PT1M`.
-* `severity` - (Optional) The severity of this Metric Alert. Possible values are `0`, `1`, `2`, `3` and `4`. Defaults to `3`.
+* `severity` - (Optional) The severity of this Metric Alert. Possible numeric values are `0`, `1`, `2`, `3` and `4`. Possible string values are `critical`, `error`, `warning`, `informational`, and `verbose`. Defaults to `3`.
 * `target_resource_type` - (Optional) The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource.
 
 -> **Note:** This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
