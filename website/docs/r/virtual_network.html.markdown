@@ -131,7 +131,9 @@ The `subnet` block supports:
 
 * `name` - (Required) The name of the subnet.
 
-* `address_prefixes` - (Required) The address prefixes to use for the subnet.
+* `address_prefixes` - (Optional) The address prefixes to use for the subnet. Conflicts with `ip_address_pool`.
+
+* `ip_address_pool` - (Optional) An `ip_address_pool` block as defined above. Conflicts with `address_prefixes`.
 
 * `security_group` - (Optional) The Network Security Group to associate with the subnet. (Referenced by `id`, i.e. `azurerm_network_security_group.example.id`)
 
@@ -210,6 +212,14 @@ The `ip_address_pool` block exports:
 The `subnet` block exports:
 
 * `id` - The ID of this subnet.
+
+* `ip_address_pool` - An `ip_address_pool` block as defined below.
+
+---
+
+The subnet `ip_address_pool` block exports:
+
+* `allocated_ip_address_prefixes` - The list of IP address prefixes allocated to the subnet.
 
 ## Timeouts
 

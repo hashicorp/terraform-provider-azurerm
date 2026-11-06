@@ -59,6 +59,8 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 
 		Schema: resourceVirtualNetworkSchema(),
 
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkSubnetValidateAddressPrefixOrIPAddressPool),
+
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualNetworkId{}),
 		},
@@ -212,11 +214,44 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 					"address_prefixes": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
+						Optional: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"ip_address_pool": {
+						Type:       pluginsdk.TypeList,
+						Optional:   true,
+						MaxItems:   1,
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: ipampools.ValidateIPamPoolID,
+								},
+
+								"number_of_ip_addresses": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^[1-9]\d*$`),
+										"`number_of_ip_addresses` must be a string that represents a positive number",
+									),
+								},
+
+								"allocated_ip_address_prefixes": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
 						},
 					},
 
@@ -766,13 +801,20 @@ func expandVirtualNetworkSubnets(ctx context.Context, client virtualnetworks.Vir
 			subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 		}
 
-		addressPrefixes := make([]string, 0)
-		for _, prefix := range subnet["address_prefixes"].([]any) {
-			addressPrefixes = append(addressPrefixes, prefix.(string))
-		}
+		if addressPrefixesRaw, ok := subnet["address_prefixes"].([]any); ok && len(addressPrefixesRaw) > 0 {
+			addressPrefixes := make([]string, 0)
+			for _, prefix := range addressPrefixesRaw {
+				addressPrefixes = append(addressPrefixes, prefix.(string))
+			}
 
-		subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
-		subnetObj.Properties.AddressPrefix = nil
+			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+			subnetObj.Properties.AddressPrefix = nil
+			subnetObj.Properties.IPamPoolPrefixAllocations = nil
+		} else if ipPoolRaw, ok := subnet["ip_address_pool"].([]any); ok && len(ipPoolRaw) > 0 {
+			subnetObj.Properties.IPamPoolPrefixAllocations = expandVirtualNetworkSubnetIPAddressPool(ipPoolRaw)
+			subnetObj.Properties.AddressPrefix = nil
+			subnetObj.Properties.AddressPrefixes = nil
+		}
 
 		privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 		privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
@@ -839,12 +881,20 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 				subnetObj.Properties = &virtualnetworks.SubnetPropertiesFormat{}
 			}
 
-			addressPrefixes := make([]string, 0)
-			for _, prefix := range subnet["address_prefixes"].([]any) {
-				addressPrefixes = append(addressPrefixes, prefix.(string))
-			}
+			if addressPrefixesRaw, ok := subnet["address_prefixes"].([]any); ok && len(addressPrefixesRaw) > 0 {
+				addressPrefixes := make([]string, 0)
+				for _, prefix := range addressPrefixesRaw {
+					addressPrefixes = append(addressPrefixes, prefix.(string))
+				}
 
-			subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+				subnetObj.Properties.AddressPrefixes = pointer.To(addressPrefixes)
+				subnetObj.Properties.AddressPrefix = nil
+				subnetObj.Properties.IPamPoolPrefixAllocations = nil
+			} else if ipPoolRaw, ok := subnet["ip_address_pool"].([]any); ok && len(ipPoolRaw) > 0 {
+				subnetObj.Properties.IPamPoolPrefixAllocations = expandVirtualNetworkSubnetIPAddressPool(ipPoolRaw)
+				subnetObj.Properties.AddressPrefix = nil
+				subnetObj.Properties.AddressPrefixes = nil
+			}
 
 			privateEndpointNetworkPolicies := virtualnetworks.VirtualNetworkPrivateEndpointNetworkPolicies(subnet["private_endpoint_network_policies"].(string))
 			privateLinkServiceNetworkPolicies := virtualnetworks.VirtualNetworkPrivateLinkServiceNetworkPoliciesDisabled
@@ -963,7 +1013,53 @@ func expandVirtualNetworkIPAddressPool(input []any) *[]virtualnetworks.IPamPoolP
 	return &outputs
 }
 
+func expandVirtualNetworkSubnetIPAddressPool(input []any) *[]virtualnetworks.IPamPoolPrefixAllocation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	outputs := make([]virtualnetworks.IPamPoolPrefixAllocation, 0)
+	for _, v := range input {
+		ipPoolRaw := v.(map[string]any)
+		output := virtualnetworks.IPamPoolPrefixAllocation{}
+
+		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
+			output.NumberOfIPAddresses = pointer.To(v.(string))
+		}
+
+		if v, ok := ipPoolRaw["id"]; ok {
+			output.Pool = &virtualnetworks.IPamPoolPrefixAllocationPool{
+				Id: pointer.To(v.(string)),
+			}
+		}
+
+		outputs = append(outputs, output)
+	}
+
+	return &outputs
+}
+
 func flattenVirtualNetworkIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixAllocation) []any {
+	if input == nil {
+		return []any{}
+	}
+
+	outputs := make([]any, 0)
+	for _, v := range *input {
+		output := map[string]any{
+			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
+			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
+		}
+		if v.Pool != nil {
+			output["id"] = pointer.From(v.Pool.Id)
+		}
+		outputs = append(outputs, output)
+	}
+
+	return outputs
+}
+
+func flattenVirtualNetworkSubnetIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixAllocation) []any {
 	if input == nil {
 		return []any{}
 	}
@@ -1036,14 +1132,20 @@ func flattenVirtualNetworkSubnets(input *[]virtualnetworks.Subnet) (*pluginsdk.S
 					}
 				}
 
-				if props.AddressPrefixes == nil {
-					if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
-						output["address_prefixes"] = []string{*props.AddressPrefix}
-					} else {
-						output["address_prefixes"] = []string{}
-					}
+				if props.IPamPoolPrefixAllocations != nil && len(*props.IPamPoolPrefixAllocations) > 0 {
+					output["ip_address_pool"] = flattenVirtualNetworkSubnetIPAddressPool(props.IPamPoolPrefixAllocations)
+					output["address_prefixes"] = nil
 				} else {
-					output["address_prefixes"] = props.AddressPrefixes
+					if props.AddressPrefixes == nil {
+						if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
+							output["address_prefixes"] = []string{*props.AddressPrefix}
+						} else {
+							output["address_prefixes"] = []string{}
+						}
+					} else {
+						output["address_prefixes"] = props.AddressPrefixes
+					}
+					output["ip_address_pool"] = nil
 				}
 				output["delegation"] = flattenVirtualNetworkSubnetDelegation(props.Delegations)
 				output["default_outbound_access_enabled"] = pointer.From(props.DefaultOutboundAccess)
@@ -1303,4 +1405,41 @@ func VirtualNetworkProvisioningStateRefreshFunc(ctx context.Context, client *vir
 		}
 		return res, "", fmt.Errorf("polling for %s: %+v", id, err)
 	}
+}
+
+func resourceVirtualNetworkSubnetValidateAddressPrefixOrIPAddressPool(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+	if v, ok := d.GetOk("subnet"); ok {
+		subnets := v.(*pluginsdk.Set).List()
+		for i, subnetRaw := range subnets {
+			subnet := subnetRaw.(map[string]any)
+
+			hasAddressPrefixes := false
+			if addressPrefixes, ok := subnet["address_prefixes"].([]any); ok && len(addressPrefixes) > 0 {
+				hasAddressPrefixes = true
+			}
+
+			hasIPAddressPool := false
+			if ipAddressPool, ok := subnet["ip_address_pool"].([]any); ok && len(ipAddressPool) > 0 {
+				hasIPAddressPool = true
+			}
+
+			if hasAddressPrefixes && hasIPAddressPool {
+				subnetName := "unknown"
+				if name, ok := subnet["name"].(string); ok {
+					subnetName = name
+				}
+				return fmt.Errorf("subnet %d (%q): only one of `address_prefixes` or `ip_address_pool` can be specified", i, subnetName)
+			}
+
+			if !hasAddressPrefixes && !hasIPAddressPool {
+				subnetName := "unknown"
+				if name, ok := subnet["name"].(string); ok {
+					subnetName = name
+				}
+				return fmt.Errorf("subnet %d (%q): one of `address_prefixes` or `ip_address_pool` must be specified", i, subnetName)
+			}
+		}
+	}
+
+	return nil
 }
