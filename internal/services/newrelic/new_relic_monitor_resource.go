@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -27,24 +27,24 @@ const (
 )
 
 type NewRelicMonitorModel struct {
-	Name                  string                         `tfschema:"name"`
-	ResourceGroupName     string                         `tfschema:"resource_group_name"`
-	AccountCreationSource monitors.AccountCreationSource `tfschema:"account_creation_source"`
-	AccountId             string                         `tfschema:"account_id"`
-	IngestionKey          string                         `tfschema:"ingestion_key"`
-	Location              string                         `tfschema:"location"`
-	OrganizationId        string                         `tfschema:"organization_id"`
-	OrgCreationSource     monitors.OrgCreationSource     `tfschema:"org_creation_source"`
-	PlanData              []PlanDataModel                `tfschema:"plan"`
-	UserId                string                         `tfschema:"user_id"`
-	UserInfo              []UserInfoModel                `tfschema:"user"`
+	Name                  string                                         `tfschema:"name"`
+	ResourceGroupName     string                                         `tfschema:"resource_group_name"`
+	AccountCreationSource newrelicmonitorresources.AccountCreationSource `tfschema:"account_creation_source"`
+	AccountId             string                                         `tfschema:"account_id"`
+	IngestionKey          string                                         `tfschema:"ingestion_key"`
+	Location              string                                         `tfschema:"location"`
+	OrganizationId        string                                         `tfschema:"organization_id"`
+	OrgCreationSource     newrelicmonitorresources.OrgCreationSource     `tfschema:"org_creation_source"`
+	PlanData              []PlanDataModel                                `tfschema:"plan"`
+	UserId                string                                         `tfschema:"user_id"`
+	UserInfo              []UserInfoModel                                `tfschema:"user"`
 }
 
 type PlanDataModel struct {
-	EffectiveDate string             `tfschema:"effective_date"`
-	BillingCycle  string             `tfschema:"billing_cycle"`
-	PlanDetails   string             `tfschema:"plan_id"`
-	UsageType     monitors.UsageType `tfschema:"usage_type"`
+	EffectiveDate string                             `tfschema:"effective_date"`
+	BillingCycle  string                             `tfschema:"billing_cycle"`
+	PlanDetails   string                             `tfschema:"plan_id"`
+	UsageType     newrelicmonitorresources.UsageType `tfschema:"usage_type"`
 }
 
 type UserInfoModel struct {
@@ -67,7 +67,7 @@ func (r NewRelicMonitorResource) ModelObject() any {
 }
 
 func (r NewRelicMonitorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return monitors.ValidateMonitorID
+	return newrelicmonitorresources.ValidateMonitorID
 }
 
 func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
@@ -128,8 +128,8 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						Default:      string(monitors.UsageTypePAYG),
-						ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForUsageType(), false),
+						Default:      string(newrelicmonitorresources.UsageTypePAYG),
+						ValidateFunc: validation.StringInSlice(newrelicmonitorresources.PossibleValuesForUsageType(), false),
 					},
 				},
 			},
@@ -177,8 +177,8 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Default:      string(monitors.AccountCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForAccountCreationSource(), false),
+			Default:      string(newrelicmonitorresources.AccountCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(newrelicmonitorresources.PossibleValuesForAccountCreationSource(), false),
 		},
 
 		"account_id": {
@@ -211,8 +211,8 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Default:      string(monitors.OrgCreationSourceLIFTR),
-			ValidateFunc: validation.StringInSlice(monitors.PossibleValuesForOrgCreationSource(), false),
+			Default:      string(newrelicmonitorresources.OrgCreationSourceLIFTR),
+			ValidateFunc: validation.StringInSlice(newrelicmonitorresources.PossibleValuesForOrgCreationSource(), false),
 		},
 
 		"user_id": {
@@ -239,10 +239,10 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.NewRelic.MonitorsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := newrelicmonitorresources.NewMonitorID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id)
+				existing, err := client.MonitorsGet(ctx, id)
 				if err != nil && !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
 				}
@@ -252,9 +252,9 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			properties := &monitors.NewRelicMonitorResource{
+			properties := &newrelicmonitorresources.NewRelicMonitorResource{
 				Location: location.Normalize(model.Location),
-				Properties: monitors.MonitorProperties{
+				Properties: newrelicmonitorresources.MonitorProperties{
 					AccountCreationSource:     &model.AccountCreationSource,
 					NewRelicAccountProperties: expandNewRelicAccountPropertiesModel(&model),
 					OrgCreationSource:         &model.OrgCreationSource,
@@ -269,10 +269,12 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			}
 			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
 			if identityValue.Type != identity.TypeNone {
-				properties.Identity = identityValue
+				properties.Identity = &identity.LegacySystemAndUserAssignedMap{
+					Type: identityValue.Type,
+				}
 			}
 
-			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
+			if err := client.MonitorsCreateOrUpdateCallbackThenPoll(ctx, id, *properties, metadata.SetIDCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)
@@ -288,12 +290,12 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NewRelic.MonitorsClient
 
-			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
+			id, err := newrelicmonitorresources.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.MonitorsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -316,7 +318,16 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+				var identityValue *identity.SystemAssigned
+				if model.Identity != nil {
+					identityValue = &identity.SystemAssigned{
+						Type:        model.Identity.Type,
+						PrincipalId: model.Identity.PrincipalId,
+						TenantId:    model.Identity.TenantId,
+					}
+				}
+
+				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(identityValue)); err != nil {
 					return fmt.Errorf("setting `identity`: %+v", err)
 				}
 
@@ -356,7 +367,7 @@ func (r NewRelicMonitorResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NewRelic.MonitorsClient
-			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
+			id, err := newrelicmonitorresources.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -370,7 +381,7 @@ func (r NewRelicMonitorResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting: `user` not found")
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id, monitors.DeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {
+			if err = client.MonitorsDeleteThenPoll(ctx, *id, newrelicmonitorresources.MonitorsDeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -379,8 +390,8 @@ func (r NewRelicMonitorResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandNewRelicAccountPropertiesModel(model *NewRelicMonitorModel) *monitors.NewRelicAccountProperties {
-	output := monitors.NewRelicAccountProperties{}
+func expandNewRelicAccountPropertiesModel(model *NewRelicMonitorModel) *newrelicmonitorresources.NewRelicAccountProperties {
+	output := newrelicmonitorresources.NewRelicAccountProperties{}
 	containsValue := false
 
 	accountInfo := expandAccountInfoModel(model)
@@ -407,8 +418,8 @@ func expandNewRelicAccountPropertiesModel(model *NewRelicMonitorModel) *monitors
 	return &output
 }
 
-func expandAccountInfoModel(model *NewRelicMonitorModel) *monitors.AccountInfo {
-	output := monitors.AccountInfo{}
+func expandAccountInfoModel(model *NewRelicMonitorModel) *newrelicmonitorresources.AccountInfo {
+	output := newrelicmonitorresources.AccountInfo{}
 	containsValue := false
 
 	if model.AccountId != "" {
@@ -428,22 +439,22 @@ func expandAccountInfoModel(model *NewRelicMonitorModel) *monitors.AccountInfo {
 	return &output
 }
 
-func expandOrganizationInfoModel(model *NewRelicMonitorModel) *monitors.OrganizationInfo {
+func expandOrganizationInfoModel(model *NewRelicMonitorModel) *newrelicmonitorresources.OrganizationInfo {
 	if model.OrganizationId == "" {
 		return nil
 	}
 
-	return &monitors.OrganizationInfo{
+	return &newrelicmonitorresources.OrganizationInfo{
 		OrganizationId: &model.OrganizationId,
 	}
 }
 
-func expandPlanDataModel(inputList []PlanDataModel) *monitors.PlanData {
+func expandPlanDataModel(inputList []PlanDataModel) *newrelicmonitorresources.PlanData {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := &inputList[0]
-	output := monitors.PlanData{
+	output := newrelicmonitorresources.PlanData{
 		BillingCycle:  &input.BillingCycle,
 		EffectiveDate: &input.EffectiveDate,
 		UsageType:     &input.UsageType,
@@ -455,12 +466,12 @@ func expandPlanDataModel(inputList []PlanDataModel) *monitors.PlanData {
 	return &output
 }
 
-func expandUserInfoModel(inputList []UserInfoModel) *monitors.UserInfo {
+func expandUserInfoModel(inputList []UserInfoModel) *newrelicmonitorresources.UserInfo {
 	if len(inputList) == 0 {
 		return nil
 	}
 	input := &inputList[0]
-	output := monitors.UserInfo{}
+	output := newrelicmonitorresources.UserInfo{}
 
 	if input.EmailAddress != "" {
 		output.EmailAddress = &input.EmailAddress
@@ -481,7 +492,7 @@ func expandUserInfoModel(inputList []UserInfoModel) *monitors.UserInfo {
 	return &output
 }
 
-func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
+func flattenPlanDataModel(input *newrelicmonitorresources.PlanData) []PlanDataModel {
 	var outputList []PlanDataModel
 	if input == nil {
 		return []PlanDataModel{}
@@ -506,7 +517,7 @@ func flattenPlanDataModel(input *monitors.PlanData) []PlanDataModel {
 	return append(outputList, output)
 }
 
-func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
+func flattenUserInfoModel(input *newrelicmonitorresources.UserInfo) []UserInfoModel {
 	var outputList []UserInfoModel
 	if input == nil {
 		return []UserInfoModel{}
