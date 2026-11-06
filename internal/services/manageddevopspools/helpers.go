@@ -550,27 +550,11 @@ func flattenDaySchedule(input map[string]int64) []DayScheduleModel {
 }
 
 func flattenAzureDevOpsOrganizationToModel(input pools.AzureDevOpsOrganizationProfile) []AzureDevOpsOrganizationModel {
-	organizationModel := AzureDevOpsOrganizationModel{
-		Organizations: flattenOrganizationsToModel(input.Organizations),
+	return []AzureDevOpsOrganizationModel{
+		{
+			Organizations: flattenOrganizationsToModel(input.Organizations),
+		},
 	}
-
-	if input.PermissionProfile != nil {
-		permission := AzureDevOpsPermissionModel{
-			Kind: string(input.PermissionProfile.Kind),
-		}
-
-		if input.PermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts {
-			adminAccounts := AzureDevOpsAdministratorAccountsModel{
-				Groups: pointer.From(input.PermissionProfile.Groups),
-				Users:  pointer.From(input.PermissionProfile.Users),
-			}
-			permission.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{adminAccounts}
-		}
-
-		organizationModel.Permission = []AzureDevOpsPermissionModel{permission}
-	}
-
-	return []AzureDevOpsOrganizationModel{organizationModel}
 }
 
 func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel {
