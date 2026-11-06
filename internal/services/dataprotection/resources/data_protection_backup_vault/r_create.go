@@ -81,6 +81,15 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	if v, ok := d.GetOk("cross_subscription_restore"); ok {
+		if parameters.Properties.FeatureSettings == nil {
+			parameters.Properties.FeatureSettings = &backupvaultresources.FeatureSettings{}
+		}
+		parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings = &backupvaultresources.CrossSubscriptionRestoreSettings{
+			State: pointer.ToEnum[backupvaultresources.CrossSubscriptionRestoreState](v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("retention_duration_in_days"); ok {
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
