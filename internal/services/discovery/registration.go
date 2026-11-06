@@ -31,14 +31,11 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{
-		DiscoveryBookshelfPrivateLinkResourcesDataSource{},
-	}
+	return []sdk.DataSource{}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		DiscoveryBookshelfPrivateEndpointConnectionResource{},
 		DiscoveryBookshelfResource{},
 	}
 }
@@ -62,6 +59,5 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		DiscoveryBookshelfListResource{},
-		DiscoveryBookshelfPrivateEndpointConnectionListResource{},
 	}
 }
