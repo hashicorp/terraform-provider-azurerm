@@ -337,6 +337,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `additional_location` - Zero or more `additional_location` blocks as defined below.
 
+* `custom_domain_verification_id` - The Base64 Encoded DER Certificate required to verify domain ownership for custom domain verification. This value is subscription-scoped — all API Management instances in the same subscription share the same identifier.
+
 * `gateway_url` - The URL of the Gateway for the API Management Service.
 
 * `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
