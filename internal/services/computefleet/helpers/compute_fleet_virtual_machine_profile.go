@@ -979,8 +979,7 @@ func ParseUsernameFromAuthorizedKeysPath(input string) *string {
 
 	for i, k := range keys {
 		if k == "username" {
-			value := values[i]
-			return &value
+			return &values[i]
 		}
 	}
 

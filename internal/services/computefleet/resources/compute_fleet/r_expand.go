@@ -297,7 +297,7 @@ func (r Resource) expandExtensionModel(inputList []ExtensionModel, timeBudget st
 		}
 
 		if v.ProtectedSettingsJson != "" {
-			protectedSettingsValue := make(map[string]interface{})
+			protectedSettingsValue := make(map[string]any)
 			if err := json.Unmarshal([]byte(v.ProtectedSettingsJson), &protectedSettingsValue); err != nil {
 				return nil, fmt.Errorf("unmarshaling `protected_settings_json`: %+v", err)
 			}
@@ -313,7 +313,7 @@ func (r Resource) expandExtensionModel(inputList []ExtensionModel, timeBudget st
 		}
 
 		if v.SettingsJson != "" {
-			result := make(map[string]interface{})
+			result := make(map[string]any)
 			if err := json.Unmarshal([]byte(v.SettingsJson), &result); err != nil {
 				return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
 			}

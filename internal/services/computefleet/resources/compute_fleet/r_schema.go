@@ -455,7 +455,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				"minimum_capacity",
 			}
 			oldSpotCapacity, _ := metadata.ResourceDiff.GetChange("spot_capacity")
-			if len(oldSpotCapacity.([]interface{})) > 0 {
+			if len(oldSpotCapacity.([]any)) > 0 {
 				if len(state.SpotCapacity) == 0 {
 					metadata.ResourceDiff.ForceNew("spot_capacity")
 				}
@@ -481,7 +481,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				"minimum_starting_capacity",
 			}
 			oldOnDemandCapacity, _ := metadata.ResourceDiff.GetChange("on_demand_capacity")
-			if len(oldOnDemandCapacity.([]interface{})) > 0 {
+			if len(oldOnDemandCapacity.([]any)) > 0 {
 				if len(state.OnDemandCapacity) == 0 {
 					metadata.ResourceDiff.ForceNew("on_demand_capacity")
 				}
@@ -533,7 +533,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			virtualMachineSizesProfileNames := make([]interface{}, len(state.VirtualMachineSizesProfile))
+			virtualMachineSizesProfileNames := make([]any, len(state.VirtualMachineSizesProfile))
 			for i, v := range state.VirtualMachineSizesProfile {
 				virtualMachineSizesProfileNames[i] = v.Name
 			}

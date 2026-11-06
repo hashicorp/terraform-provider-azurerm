@@ -240,6 +240,6 @@ type VirtualMachineSizeProfileModel struct {
 	Rank int64  `tfschema:"rank"`
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ComputeFleetResourceModel{}
 }

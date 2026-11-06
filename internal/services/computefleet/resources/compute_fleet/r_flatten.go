@@ -477,16 +477,16 @@ func (r Resource) flattenAdditionalUnAttendContentModel(inputList *[]fleets.Addi
 		output := AdditionalUnattendContentModel{
 			Setting: pointer.FromEnum(input.SettingName),
 		}
-		existing := make([]interface{}, 0)
+		existing := make([]any, 0)
 		if v, ok := d.GetOk("virtual_machine_profile.0.os_profile.0.windows_configuration.0.additional_unattend_content"); ok {
-			existing = v.([]interface{})
+			existing = v.([]any)
 		}
 
 		// content isn't returned by the API since it's sensitive data so we need to pull from the state file.
 		content := ""
 		if len(existing) > i {
 			existingVal := existing[i]
-			existingRaw, ok := existingVal.(map[string]interface{})
+			existingRaw, ok := existingVal.(map[string]any)
 			if ok {
 				contentRaw, ok := existingRaw["xml"]
 				if ok {

@@ -8,9 +8,9 @@ import (
 	"fmt"
 )
 
-func Xml(i interface{}, k string) (warnings []string, errors []error) {
+func Xml(i any, k string) (warnings []string, errors []error) {
 	v := i.(string)
-	if err := xml.Unmarshal([]byte(v), new(interface{})); err != nil {
+	if err := xml.Unmarshal([]byte(v), new(any)); err != nil {
 		errors = append(errors, fmt.Errorf("%q is not valid XML: %+v", k, err))
 	}
 
