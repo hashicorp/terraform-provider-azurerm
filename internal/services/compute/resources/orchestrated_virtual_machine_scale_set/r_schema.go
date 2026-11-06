@@ -268,7 +268,6 @@ func orchestratedVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 		"zone_balance": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 			Default:  false,
 		},
 
