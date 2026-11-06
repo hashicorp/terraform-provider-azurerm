@@ -4,10 +4,15 @@
 package pim_eligible_role_assignment
 
 import (
+	"context"
+	"errors"
 	"regexp"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -176,5 +181,26 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:    true,
 			Description: "Type of principal to which the role will be assigned",
 		},
+	}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			roleDefinitionId := rd.Get("role_definition_id").(string)
+			scope := rd.Get("scope").(string)
+			if strings.HasPrefix(roleDefinitionId, "/providers") && strings.HasPrefix(scope, "/subscriptions") {
+				return errors.New("when `scope` is a subscription or resource, `role_definition_id` must include the subscription id part")
+			}
+
+			if strings.HasPrefix(roleDefinitionId, "/subscriptions") && strings.HasPrefix(scope, "/providers/Microsoft.Management/managementGroups") {
+				return errors.New("when `scope` is a management group, `role_definition_id` must NOT include the subscription id part")
+			}
+
+			return nil
+		},
+		Timeout: 30 * time.Minute,
 	}
 }
