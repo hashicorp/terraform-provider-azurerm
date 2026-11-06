@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -43,11 +44,6 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 		props := model.Properties
-
-		if len(props.StorageSettings) > 0 {
-			d.Set("datastore_type", pointer.FromEnum(props.StorageSettings[0].DatastoreType))
-			d.Set("redundancy", pointer.FromEnum(props.StorageSettings[0].Type))
-		}
 
 		immutability := backupvaultresources.ImmutabilityStateDisabled
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
@@ -82,9 +78,51 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta any) 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}
+
+		if !features.SixPointOh() {
+			datastoreType, redundancy := flattenBackupVaultStorageSettingsLegacy(props.StorageSettings, d.Get("datastore_type").(string))
+			d.Set("datastore_type", datastoreType)
+			d.Set("redundancy", redundancy)
+			return pluginsdk.SetResourceIdentityData(d, id)
+		}
+
+		if err := d.Set("storage_setting", flattenBackupVaultStorageSettings(props.StorageSettings)); err != nil {
+			return fmt.Errorf("setting `storage_setting`: %+v", err)
+		}
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func flattenBackupVaultStorageSettings(input []backupvaultresources.StorageSetting) []any {
+	result := make([]any, 0, len(input))
+	for _, setting := range input {
+		result = append(result, map[string]any{
+			"datastore_type": pointer.FromEnum(setting.DatastoreType),
+			"redundancy":     pointer.FromEnum(setting.Type),
+		})
+	}
+	return result
+}
+
+func flattenBackupVaultStorageSettingsLegacy(input []backupvaultresources.StorageSetting, currentDatastoreType string) (string, string) {
+	if len(input) == 0 {
+		return "", ""
+	}
+
+	setting := input[0]
+	// Preserve an existing store selection when it is still present in Azure.
+	// Without prior state, prefer ArchiveStore over its required VaultStore companion.
+	for _, candidate := range input {
+		if currentDatastoreType != "" && pointer.FromEnum(candidate.DatastoreType) == currentDatastoreType {
+			return pointer.FromEnum(candidate.DatastoreType), pointer.FromEnum(candidate.Type)
+		}
+		if pointer.From(candidate.DatastoreType) == backupvaultresources.StorageSettingStoreTypesArchiveStore {
+			setting = candidate
+		}
+	}
+
+	return pointer.FromEnum(setting.DatastoreType), pointer.FromEnum(setting.Type)
 }
 
 func flattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]any, error) {
