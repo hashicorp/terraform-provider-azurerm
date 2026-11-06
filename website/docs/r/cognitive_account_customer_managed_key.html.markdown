@@ -106,6 +106,8 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Cognitive Account.
 
+~> **Note:** The `key_vault_key_id` must be a versioned Key Vault Key ID. Versionless key IDs are not supported.
+
 * `identity_client_id` - (Optional) The Client ID of the User Assigned Identity that has access to the key. This property only needs to be specified when there're multiple identities attached to the Cognitive Account.
 
 ## Attributes Reference
