@@ -6,7 +6,6 @@ package container_group
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
@@ -25,22 +24,16 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	existing, err := client.ContainerGroupsGet(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("reading %s: %v", id, err)
-	}
-	if existing.Model == nil {
-		return fmt.Errorf("reading %s: `model` was nil", id)
-	}
-
-	model := *existing.Model
-
-	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
+	if d.HasChange("identity") || d.HasChange("container") {
+		existing, err := client.ContainerGroupsGet(ctx, *id)
 		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
+			return fmt.Errorf("reading %s: %v", id, err)
 		}
-		model.Identity = expandedIdentity
+		if existing.Model == nil {
+			return fmt.Errorf("reading %s: `model` was nil", id)
+		}
+
+		model := *existing.Model
 
 		// As API doesn't return the value of StorageAccountKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
 		addedEmptyDirs := map[string]bool{}
@@ -48,7 +41,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 		if err != nil {
 			return err
 		}
-		_, _, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
+		containers, _, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
 		if err != nil {
 			return err
 		}
@@ -59,14 +52,25 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 		if containerGroupVolumes != nil {
 			containerGroupVolumes = append(containerGroupVolumes, containerVolumes...)
 		}
-		model.Properties.Volumes = pointer.To(containerGroupVolumes)
+		model.Properties.Volumes = new(containerGroupVolumes)
 
 		// As API doesn't return the value of WorkspaceKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
 		if diagnostics := expandContainerGroupDiagnostics(d.Get("diagnostics").([]any)); diagnostics != nil && diagnostics.LogAnalytics != nil {
 			model.Properties.Diagnostics.LogAnalytics.WorkspaceKey = diagnostics.LogAnalytics.WorkspaceKey
 		}
 
-		// As Update API doesn't support to update identity, so it has to use CreateOrUpdate API to update identity
+		if d.HasChange("identity") {
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			model.Identity = expandedIdentity
+		}
+
+		if d.HasChange("container") {
+			model.Properties.Containers = containers
+		}
+
 		if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
