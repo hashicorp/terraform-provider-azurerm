@@ -263,7 +263,11 @@ func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta any) er
 		return fmt.Errorf("building File Share Client: %v", err)
 	}
 
-	if _, err = client.Delete(ctx, id.ShareName, id.DirectoryPath); err != nil {
+	resp, err := client.Delete(ctx, id.ShareName, id.DirectoryPath)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 
