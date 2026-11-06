@@ -537,6 +537,12 @@ func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClien
 	return azureKeyVaultKms, nil
 }
 
+func expandKubernetesClusterKmsInfrastructureEncryption() *managedclusters.KubernetesResourceObjectEncryptionProfile {
+	return &managedclusters.KubernetesResourceObjectEncryptionProfile{
+		InfrastructureEncryption: pointer.To(managedclusters.InfrastructureEncryptionEnabled),
+	}
+}
+
 func expandKubernetesClusterMaintenanceConfigurationDefault(input []any) *maintenanceconfigurations.MaintenanceConfigurationProperties {
 	if len(input) == 0 {
 		return nil
