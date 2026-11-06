@@ -5,7 +5,6 @@ package data_factory_dataset_binary
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -186,25 +185,25 @@ func dataFactoryDatasetBinarySchema() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					// TarGZip, GZip, ZipDeflate
 					"level": {
-						Type:     pluginsdk.TypeString,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"dynamic_level_enabled": {
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Optimal",
-							"Fastest",
-						}, false),
+						Default:  false,
 					},
 					// SFTP Specific field
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							helpers.TypeBasicDatasetCompressionTypeBZip2,
-							helpers.TypeBasicDatasetCompressionTypeDeflate,
-							helpers.TypeBasicDatasetCompressionTypeGZip,
-							helpers.TypeBasicDatasetCompressionTypeTar,
-							helpers.TypeBasicDatasetCompressionTypeTarGZip,
-							helpers.TypeBasicDatasetCompressionTypeZipDeflate,
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"dynamic_type_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},

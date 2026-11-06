@@ -110,6 +110,36 @@ func dataFactoryDatasetJsonSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+		// JSON Dataset Specific Field
+		"compression": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"level": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"dynamic_level_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"dynamic_type_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 
 		// JSON Dataset Specific Field
 		"encoding": {
