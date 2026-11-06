@@ -11,41 +11,56 @@ import (
 )
 
 func WebAppExample(subscriptionId string) map[string]any {
-	exampleJSON := `{"parameters": {
-    "subscriptionId": "34adfa4f-cedf-4dc0-ba29-b6d1a69ab345",
-    "resourceGroupName": "testrg123",
-    "name": "sitef6141",
-    "api-version": "2024-11-01",
-    "siteEnvelope": {
-      "kind": "app",
-      "location": "westeurope",
-      "properties": {
-        "serverFarmId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp"
-      }
-    }
-  }
-}
-`
-	return normaliseExample(exampleJSON, subscriptionId)
+	return map[string]any{
+		"kind":     "app",
+		"location": "northeurope",
+		"properties": map[string]any{
+			"serverFarmId": fmt.Sprintf("/subscriptions/%s/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp", subscriptionId),
+		},
+	}
 }
 
-func VirtualNetworkExampleMissingRequiredProperty(subscriptionId string) map[string]any {
-	exampleJSON := `{"parameters": {
-    "api-version": "2024-01-01",
-    "subscriptionId": "00000000-0000-0000-0000-000000000000",
-    "resourceGroupName": "rg1",
-    "virtualNetworkName": "test-vnet",
-    "parameters": {
-      "properties": {
-        "addressSpace": {},
-        "flowTimeoutInMinutes": 10
-      },
-      "location": "westeurope"
-    }
-  }
+func AppServicePlanP0V4Example() map[string]any {
+	return map[string]any{
+		"location": "westus2",
+		"sku":      map[string]any{"name": "P0V4"},
+		"properties": map[string]any{
+			"reserved":       true,
+			"perSiteScaling": true,
+		},
+	}
 }
-`
-	return normaliseExample(exampleJSON, subscriptionId)
+
+func AppServicePlanF1Example() map[string]any {
+	return map[string]any{
+		"location": "westus2",
+		"sku":      map[string]any{"name": "F1"},
+		"properties": map[string]any{
+			"reserved": true,
+		},
+	}
+}
+
+func VirtualNetworkExample() map[string]any {
+	return map[string]any{
+		"location": "northeurope",
+		"properties": map[string]any{
+			"addressSpace": map[string]any{
+				"addressPrefixes": []string{"10.0.0.0/16"},
+			},
+			"flowTimeoutInMinutes": 10,
+		},
+	}
+}
+
+func VirtualNetworkExampleMissingRequiredProperty() map[string]any {
+	return map[string]any{
+		"location": "northeurope",
+		"properties": map[string]any{
+			"addressSpace":         map[string]any{},
+			"flowTimeoutInMinutes": 10,
+		},
+	}
 }
 
 // ContainerAppExample - Example in spec is broken, leaving this case here to fix later
