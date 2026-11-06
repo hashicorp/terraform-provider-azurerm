@@ -217,6 +217,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta any
 		resourceIDsToLock = append(resourceIDsToLock, podSubnetID.ID())
 	}
 
+	if podIPAllocationMode, ok := d.GetOk("pod_ip_allocation_mode"); ok {
+		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode.(string))
+	}
+
 	if nodeSubnetID != nil {
 		// Lock the node subnet and its vnet to avoid a race condition with AKS setting
 		// vnet ownership across node pools that share the same virtual network.
