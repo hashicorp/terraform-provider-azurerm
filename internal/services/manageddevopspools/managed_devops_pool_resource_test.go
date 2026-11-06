@@ -7,10 +7,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2026-06-02/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -150,7 +151,7 @@ func TestAccManagedDevOpsPool_CompleteWithPermission(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("azure_devops_organization.0.permission"),
 	})
 }
 
@@ -167,7 +168,35 @@ func TestAccManagedDevOpsPool_creatorOnlyPermission(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("azure_devops_organization.0.permission"),
+	})
+}
+
+func TestAccManagedDevOpsPool_skuNameMixError(t *testing.T) {
+	requiresBasicEnvVars(t)
+
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.skuNameMixError(data),
+			ExpectError: regexp.MustCompile("`virtual_machine_scale_set_fabric.0.agent_sizes` property must be set when `virtual_machine_scale_set_fabric.0.sku_name` property is set to `Mix`"),
+		},
+	})
+}
+
+func TestAccManagedDevOpsPool_skuNameNotMixError(t *testing.T) {
+	requiresBasicEnvVars(t)
+
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.skuNameNotMixError(data),
+			ExpectError: regexp.MustCompile("`virtual_machine_scale_set_fabric.0.sku_name` property must be set to `Mix` when `virtual_machine_scale_set_fabric.0.agent_sizes` property is set"),
+		},
 	})
 }
 
@@ -793,6 +822,96 @@ resource "azurerm_managed_devops_pool" "test" {
   ]
 }
 `, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"), os.Getenv("ARM_MANAGED_DEVOPS_ADMIN_EMAIL"))
+}
+
+func (r ManagedDevOpsPoolResource) skuNameMixError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_devops_pool" "test" {
+  name                = "acctest-pool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  maximum_concurrency   = 2
+  dev_center_project_id = azurerm_dev_center_project.test.id
+
+  azure_devops_organization {
+    organization {
+      parallelism = 2
+      url         = "%s"
+    }
+  }
+
+  stateless_agent {}
+
+  virtual_machine_scale_set_fabric {
+    image {
+      id      = data.azurerm_platform_image.test.id
+      aliases = ["marketplace image"]
+      buffer  = "0"
+    }
+    image {
+      aliases               = ["well known image", "22.04 version"]
+      well_known_image_name = "ubuntu-24.04/latest"
+      buffer                = "100"
+    }
+
+    sku_name = "Mix"
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
+}
+
+func (r ManagedDevOpsPoolResource) skuNameNotMixError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_devops_pool" "test" {
+  name                = "acctest-pool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  maximum_concurrency   = 2
+  dev_center_project_id = azurerm_dev_center_project.test.id
+
+  azure_devops_organization {
+    organization {
+      parallelism = 2
+      url         = "%s"
+    }
+  }
+
+  stateless_agent {}
+
+  virtual_machine_scale_set_fabric {
+    image {
+      id      = data.azurerm_platform_image.test.id
+      aliases = ["marketplace image"]
+      buffer  = "0"
+    }
+    image {
+      aliases               = ["well known image", "22.04 version"]
+      well_known_image_name = "ubuntu-24.04/latest"
+      buffer                = "100"
+    }
+
+    sku_name = "Standard_B1s"
+    agent_sizes = [
+      "Standard_B1s",
+      "Standard_B1ms"
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL"))
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {

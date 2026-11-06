@@ -8,7 +8,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2026-06-02/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -345,10 +345,19 @@ func expandVirtualMachineScaleSetFabricModel(input []VirtualMachineScaleSetFabri
 	}
 
 	fabricProfile := input[0]
+	vmSizes := make([]pools.VMSize, 0)
+	for _, agentSize := range fabricProfile.AgentSizes {
+		vmSizes = append(vmSizes, pools.VMSize{
+			Name: pointer.To(agentSize),
+		})
+	}
 	vmssFabricProfile := pools.VMSSFabricProfile{
-		Images:         expandImageModel(fabricProfile.Images),
-		OsProfile:      expandSecurityModel(fabricProfile.Security),
-		Sku:            pools.DevOpsAzureSku{Name: fabricProfile.SkuName},
+		Images:    expandImageModel(fabricProfile.Images),
+		OsProfile: expandSecurityModel(fabricProfile.Security),
+		Sku: pools.DevOpsAzureSku{
+			Name:    fabricProfile.SkuName,
+			VMSizes: pointer.To(vmSizes),
+		},
 		StorageProfile: expandStorageModel(fabricProfile.OsDiskStorageAccountType, fabricProfile.Storage),
 	}
 
@@ -550,27 +559,11 @@ func flattenDaySchedule(input map[string]int64) []DayScheduleModel {
 }
 
 func flattenAzureDevOpsOrganizationToModel(input pools.AzureDevOpsOrganizationProfile) []AzureDevOpsOrganizationModel {
-	organizationModel := AzureDevOpsOrganizationModel{
-		Organizations: flattenOrganizationsToModel(input.Organizations),
+	return []AzureDevOpsOrganizationModel{
+		{
+			Organizations: flattenOrganizationsToModel(input.Organizations),
+		},
 	}
-
-	if input.PermissionProfile != nil {
-		permission := AzureDevOpsPermissionModel{
-			Kind: string(input.PermissionProfile.Kind),
-		}
-
-		if input.PermissionProfile.Kind == pools.AzureDevOpsPermissionTypeSpecificAccounts {
-			adminAccounts := AzureDevOpsAdministratorAccountsModel{
-				Groups: pointer.From(input.PermissionProfile.Groups),
-				Users:  pointer.From(input.PermissionProfile.Users),
-			}
-			permission.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{adminAccounts}
-		}
-
-		organizationModel.Permission = []AzureDevOpsPermissionModel{permission}
-	}
-
-	return []AzureDevOpsOrganizationModel{organizationModel}
 }
 
 func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel {
@@ -589,9 +582,19 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 }
 
 func flattenVirtualMachineScaleSetFabricToModel(input pools.VMSSFabricProfile) []VirtualMachineScaleSetFabricModel {
+	agentSizes := make([]string, 0)
+	if input.Sku.VMSizes != nil {
+		for _, vmSize := range pointer.From(input.Sku.VMSizes) {
+			if vmSize.Name != nil {
+				agentSizes = append(agentSizes, pointer.From(vmSize.Name))
+			}
+		}
+	}
+
 	vmssFabricModel := VirtualMachineScaleSetFabricModel{
 		Images:                   flattenImagesToModel(input.Images),
 		SkuName:                  input.Sku.Name,
+		AgentSizes:               agentSizes,
 		OsDiskStorageAccountType: flattenOsDiskStorageAccountType(input.StorageProfile),
 		Security:                 flattenSecurityToModel(input.OsProfile),
 		Storage:                  flattenStorageToModel(input.StorageProfile),
