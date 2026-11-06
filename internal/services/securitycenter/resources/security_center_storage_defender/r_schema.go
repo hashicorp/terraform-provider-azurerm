@@ -1,0 +1,58 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package security_center_storage_defender
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func (s Resource) Arguments() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"storage_account_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+		},
+
+		"override_subscription_settings_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"malware_scanning_on_upload_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"malware_scanning_on_upload_cap_gb_per_month": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  -1,
+			ValidateFunc: validation.Any(
+				validation.IntAtLeast(1),
+				validation.IntInSlice([]int{-1}),
+			),
+		},
+
+		"sensitive_data_discovery_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"scan_results_event_grid_topic_id": commonschema.ResourceIDReferenceOptional(&topics.TopicId{}),
+	}
+}
+
+func (s Resource) Attributes() map[string]*schema.Schema {
+	return map[string]*schema.Schema{}
+}
