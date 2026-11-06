@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/availability_set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/capacity_reservation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/capacity_reservation_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/compute_skus"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/dedicated_host"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/dedicated_host_group"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/resources/disk_access"
@@ -126,6 +127,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		compute_skus.DataSource{},
 		managed_disks.DataSource{},
 		orchestrated_virtual_machine_scale_set.DataSource{},
 	}
