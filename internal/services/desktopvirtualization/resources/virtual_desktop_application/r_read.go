@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/applicationgroup"
@@ -50,6 +51,12 @@ func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta any) 
 		d.Set("show_in_portal", props.ShowInPortal)
 		d.Set("icon_path", props.IconPath)
 		d.Set("icon_index", props.IconIndex)
+		d.Set("msix_package_application_id", props.MsixPackageApplicationId)
+		d.Set("msix_package_family_name", props.MsixPackageFamilyName)
+
+		if props.ApplicationType != nil {
+			d.Set("application_type", pointer.FromEnum(props.ApplicationType))
+		}
 	}
 
 	return nil
