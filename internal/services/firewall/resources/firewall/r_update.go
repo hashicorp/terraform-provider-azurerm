@@ -140,6 +140,12 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
+	if autoscale, ok := d.GetOk("autoscale"); ok {
+		parameters.Properties.AutoscaleConfiguration = expandFirewallAutoscaleConfiguration(autoscale.([]any))
+	} else if !d.IsNewResource() && d.HasChange("autoscale") {
+		parameters.Properties.AutoscaleConfiguration = &azurefirewalls.AzureFirewallAutoscaleConfiguration{}
+	}
+
 	if policyId, ok := d.GetOk("firewall_policy_id"); ok {
 		id, _ := firewallpolicies.ParseFirewallPolicyID(policyId.(string))
 		locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)

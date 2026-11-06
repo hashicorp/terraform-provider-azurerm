@@ -4,6 +4,8 @@
 package firewall
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/azurefirewalls"
@@ -35,6 +37,19 @@ func RegisterResource() *pluginsdk.Resource {
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&azurefirewalls.AzureFirewallId{}),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+			if v, ok := d.GetOk("autoscale"); ok {
+				autoscale := v.([]any)
+				if len(autoscale) == 1 && autoscale[0] != nil {
+					configuration := autoscale[0].(map[string]any)
+					if configuration["maximum_capacity"].(int) < configuration["minimum_capacity"].(int) {
+						return fmt.Errorf("`autoscale.maximum_capacity` (%d) must be greater than or equal to `autoscale.minimum_capacity` (%d)", configuration["maximum_capacity"].(int), configuration["minimum_capacity"].(int))
+					}
+				}
+			}
+			return nil
+		}),
 
 		Schema: firewallSchema(),
 	}
