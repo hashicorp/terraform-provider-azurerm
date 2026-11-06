@@ -97,5 +97,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		ServiceBusNamespaceCustomerManagedKeyListResource{},
 		ServiceBusNamespaceListResource{},
 		ServiceBusQueueListResource{},
+		ServiceBusTopicListResource{},
 	}
 }
