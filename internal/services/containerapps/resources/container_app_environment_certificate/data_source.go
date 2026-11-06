@@ -24,13 +24,13 @@ type ContainerAppEnvironmentCertificateDataSourceModel struct {
 	Name                 string `tfschema:"name"`
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
-	// Read Only
-	SubjectName    string         `tfschema:"subject_name"`
-	Issuer         string         `tfschema:"issuer"`
-	IssueDate      string         `tfschema:"issue_date"`
-	ExpirationDate string         `tfschema:"expiration_date"`
-	Thumbprint     string         `tfschema:"thumbprint"`
-	Tags           map[string]any `tfschema:"tags"`
+	SubjectName         string                     `tfschema:"subject_name"`
+	Issuer              string                     `tfschema:"issuer"`
+	IssueDate           string                     `tfschema:"issue_date"`
+	ExpirationDate      string                     `tfschema:"expiration_date"`
+	Thumbprint          string                     `tfschema:"thumbprint"`
+	CertificateKeyVault []CertificateKeyVaultModel `tfschema:"certificate_key_vault"`
+	Tags                map[string]any             `tfschema:"tags"`
 }
 
 var _ sdk.DataSource = DataSource{}
@@ -65,6 +65,23 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"certificate_key_vault": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"identity": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"key_vault_secret_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
 		"subject_name": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -137,6 +154,15 @@ func (r DataSource) Read() sdk.ResourceFunc {
 					cert.ExpirationDate = pointer.From(props.ExpirationDate)
 					cert.Thumbprint = pointer.From(props.Thumbprint)
 					cert.SubjectName = pointer.From(props.SubjectName)
+
+					if kvProps := props.CertificateKeyVaultProperties; kvProps != nil {
+						cert.CertificateKeyVault = []CertificateKeyVaultModel{
+							{
+								Identity:         pointer.From(kvProps.Identity),
+								KeyVaultSecretId: pointer.From(kvProps.KeyVaultURL),
+							},
+						}
+					}
 				}
 			}
 
