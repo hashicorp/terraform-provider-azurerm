@@ -4,6 +4,7 @@
 package cdn_frontdoor_origin_group
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,6 +58,33 @@ func cdnFrontdoorOriginGroupSchema() map[string]*pluginsdk.Schema {
 		},
 
 		// Optional
+		"authentication": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"type": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(afdorigingroups.PossibleValuesForOriginAuthenticationType(), false),
+					},
+
+					"scope": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
+		},
+
 		"health_probe": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

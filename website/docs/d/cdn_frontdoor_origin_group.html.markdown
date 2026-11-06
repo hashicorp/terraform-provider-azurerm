@@ -38,11 +38,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cdn_frontdoor_profile_id` - Specifies the ID of the Front Door Profile within which this Front Door Origin Group exists.
 
+* `authentication` - An `authentication` block as defined below.
+
 * `health_probe` - A `health_probe` block as defined below.
 
 * `load_balancing` - A `load_balancing` block as defined below.
 
 * `session_affinity_enabled` - Specifies whether session affinity is enabled on this host.
+
+---
+
+An `authentication` block exports the following:
+
+* `type` - The type of managed identity Front Door uses to authenticate with the origins in this Origin Group.
+
+* `scope` - The scope (audience) of the access token requested by Front Door.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used to authenticate with the origins.
 
 ---
 
