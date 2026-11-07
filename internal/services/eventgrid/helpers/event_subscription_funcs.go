@@ -16,7 +16,7 @@ func ExpandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 	deliveryMappings := ExpandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]any))
 
 	if val, ok := d.GetOk("azure_alert_monitor"); ok && len(val.([]any)) == 1 {
-		return expandEventGridEventSubscriptionAzureAlertMonitor(d.Get("azure_alert_monitor").([]any))
+		return ExpandEventGridEventSubscriptionAzureAlertMonitor(d.Get("azure_alert_monitor").([]any))
 	}
 
 	if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]any)) == 1 {

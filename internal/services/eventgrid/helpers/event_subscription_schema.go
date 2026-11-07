@@ -169,6 +169,16 @@ func EventSubscriptionSchemaAzureAlertMonitorEndpoint(conflictsWith []string) *p
 	}
 }
 
+func EventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:          pluginsdk.TypeString,
+		Optional:      true,
+		Computed:      true, // azignore:AZS007 - pre-existing violation
+		ConflictsWith: conflictsWith,
+		ValidateFunc:  eventhubs.ValidateEventhubID,
+	}
+}
+
 func EventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
