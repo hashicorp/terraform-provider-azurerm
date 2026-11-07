@@ -134,7 +134,7 @@ func EventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 	}
 }
 
-func eventSubscriptionSchemaAzureAlertMonitorEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func EventSubscriptionSchemaAzureAlertMonitorEndpoint(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
@@ -166,16 +166,6 @@ func eventSubscriptionSchemaAzureAlertMonitorEndpoint(conflictsWith []string) *p
 				},
 			},
 		},
-	}
-}
-
-func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeString,
-		Optional:      true,
-		Computed:      true, // azignore:AZS007 - pre-existing violation
-		ConflictsWith: conflictsWith,
-		ValidateFunc:  eventhubs.ValidateEventhubID,
 	}
 }
 
