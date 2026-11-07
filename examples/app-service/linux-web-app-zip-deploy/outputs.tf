@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 output "app_name" {
@@ -16,4 +16,3 @@ output "app_uptime" {
 output "app_healthcheck_endpoint" {
   value = "https://${azurerm_linux_web_app.example.default_hostname}/health"
 }
-
