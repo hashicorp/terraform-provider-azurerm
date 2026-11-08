@@ -140,9 +140,9 @@ The following arguments are supported:
 
 -> **Note:** This can only be `true` when `account_tier` is `Standard` and `account_kind` is `StorageV2`, or `account_tier` is `Premium` and `account_kind` is `BlockBlobStorage`. Additionally, the `is_hns_enabled` is `true` and `account_replication_type` must be `LRS` or `RAGRS`.
 
-* `custom_domain` - (Optional) A `custom_domain` block as documented below.
+* `custom_domain` - (Optional) A `custom_domain` block as defined below.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
 ~> **Note:** It's possible to define a Customer Managed Key both within either the `customer_managed_key` block or by using the [`azurerm_storage_account_customer_managed_key`](storage_account_customer_managed_key.html) resource. However, it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since these will conflict. When using the `azurerm_storage_account_customer_managed_key` resource, you will need to use `ignore_changes` on the `customer_managed_key` block.
 
@@ -154,7 +154,7 @@ The following arguments are supported:
 
 ~> **Note:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
 
-* `network_rules` - (Optional) A `network_rules` block as documented below.
+* `network_rules` - (Optional) A `network_rules` block as defined below.
 
 * `large_file_share_enabled` - (Optional) Are Large File Shares Enabled? Defaults to `false`.
 
@@ -163,6 +163,8 @@ The following arguments are supported:
 * `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
 
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
+
+* `smb_oauth_enabled` - (Optional) Whether managed identities can access SMB Azure file shares using OAuth. Defaults to `false`.
 
 * `routing` - (Optional) A `routing` block as defined below.
 
@@ -261,7 +263,7 @@ A `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
-~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
+~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `FileStorage` with `provisioned_billing_model_version` set to `V2`, or `account_tier` set to `Premium`, and the identity type is `UserAssigned`.
 
 ---
 

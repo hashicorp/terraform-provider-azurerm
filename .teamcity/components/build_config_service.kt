@@ -6,7 +6,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     val environment = environment
     val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, maxConcurrentBuilds: Int, maxConcurrentBuildsPerBranch: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean, runWithBetaVersion: Boolean) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, parallelism: Int, maxConcurrentBuilds: Int, maxConcurrentBuildsPerBranch: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean, runWithBetaVersion: Boolean) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
             id(uniqueID(providerName, runWithBetaVersion))
@@ -26,6 +26,8 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 SetBuildStartTime()
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadTerraformProviders(packageName)
+                PrepareGoCache(packageName)
                 RunAcceptanceTests(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
@@ -37,19 +39,20 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
-                BuildCacheFeature()
             }
 
             params {
                 TerraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
                 TerraformAcceptanceTestsFlag()
                 TerraformCoreBinaryTesting()
+                TerraformProviderMirror()
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
                 GoCache()
                 BuildStartTime()
                 text("DAYS_OF_WEEK", daysOfWeek)
+                text("DISABLE_TRIGGERS", disableTriggers.toString())
                 text("env.SCHEDULE_MATCHES", "true")
                 text("env.IS_NIGHTLY_RUN", "false")
             }

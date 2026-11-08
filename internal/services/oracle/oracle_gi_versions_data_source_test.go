@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -12,7 +12,7 @@ import (
 
 type GiVersionsDataSource struct{}
 
-func TestGiVersionsDataSource_basic(t *testing.T) {
+func TestAccGiVersionsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
 	r := GiVersionsDataSource{}
 
@@ -26,7 +26,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestGiVersionsDataSource_complete(t *testing.T) {
+func TestAccGiVersionsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
 	r := GiVersionsDataSource{}
 
