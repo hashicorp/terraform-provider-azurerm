@@ -830,8 +830,6 @@ A `security` block supports the following:
 
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Default Node Pool. Defaults to `false`.
 
-~> **Note:** At least one of `secure_boot_enabled` or `vtpm_enabled` must be set to `true`. Omit the `security` block to disable both settings.
-
 ---
 
 A `service_mesh_profile` block supports the following:
