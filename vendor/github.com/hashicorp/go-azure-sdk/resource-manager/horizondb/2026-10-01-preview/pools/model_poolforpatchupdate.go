@@ -5,5 +5,4 @@ package pools
 
 type PoolForPatchUpdate struct {
 	Properties *PoolPropertiesForPatchUpdate `json:"properties,omitempty"`
-	Tags       *map[string]string            `json:"tags,omitempty"`
 }

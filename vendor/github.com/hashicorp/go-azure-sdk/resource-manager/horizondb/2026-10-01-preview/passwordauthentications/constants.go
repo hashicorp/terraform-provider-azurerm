@@ -58,6 +58,7 @@ const (
 	ProvisioningStateInProgress   ProvisioningState = "InProgress"
 	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
 	ProvisioningStateSucceeded    ProvisioningState = "Succeeded"
+	ProvisioningStateUpdating     ProvisioningState = "Updating"
 )
 
 func PossibleValuesForProvisioningState() []string {
@@ -67,6 +68,7 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateInProgress),
 		string(ProvisioningStateProvisioning),
 		string(ProvisioningStateSucceeded),
+		string(ProvisioningStateUpdating),
 	}
 }
 
@@ -90,6 +92,7 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 		"inprogress":   ProvisioningStateInProgress,
 		"provisioning": ProvisioningStateProvisioning,
 		"succeeded":    ProvisioningStateSucceeded,
+		"updating":     ProvisioningStateUpdating,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
