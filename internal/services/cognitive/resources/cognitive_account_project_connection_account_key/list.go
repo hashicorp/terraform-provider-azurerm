@@ -1,40 +1,63 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package cognitive
+package cognitive_account_project_connection_account_key
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/projectconnectionresource"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveAccountProjectConnectionAccountKeyListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(CognitiveAccountProjectConnectionAccountKeyListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (CognitiveAccountProjectConnectionAccountKeyListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(CognitiveAccountProjectConnectionAccountKeyResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (CognitiveAccountProjectConnectionAccountKeyListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = CognitiveAccountProjectConnectionAccountKeyResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (CognitiveAccountProjectConnectionAccountKeyListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
-	response.Schema = cognitiveAccountProjectConnectionListResourceConfigSchema()
+func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = cognitiveAccountProjectConnectionAccountKeyListResourceConfigSchema()
 }
 
-func (CognitiveAccountProjectConnectionAccountKeyListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+type cognitiveAccountProjectConnectionAccountKeyListModel struct {
+	CognitiveAccountProjectId types.String `tfsdk:"cognitive_account_project_id"`
+}
+
+func cognitiveAccountProjectConnectionAccountKeyListResourceConfigSchema() schema.Schema {
+	return schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"cognitive_account_project_id": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{
+						Func: projectconnectionresource.ValidateProjectID,
+					},
+				},
+			},
+		},
+	}
+}
+
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Cognitive.ProjectConnectionResourceClient
 
-	var data cognitiveAccountProjectConnectionListModel
+	var data cognitiveAccountProjectConnectionAccountKeyListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -84,7 +107,7 @@ func (CognitiveAccountProjectConnectionAccountKeyListResource) List(ctx context.
 			result := request.NewListResult(listCtx)
 			result.DisplayName = pointer.From(connection.Name)
 
-			r := CognitiveAccountProjectConnectionAccountKeyResource{}
+			r := Resource{}
 			meta := sdk.NewResourceMetaData(metadata.Client, r)
 			meta.SetID(connectionId)
 

@@ -1,7 +1,7 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cognitive_test
+package cognitive_account_project_connection_account_key_test
 
 import (
 	"testing"

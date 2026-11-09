@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package cognitive_test
+package cognitive_account_project_connection_account_key_test
 
 import (
 	"context"
@@ -170,7 +170,7 @@ func (r CognitiveAccountProjectConnectionAccountKeyResource) Exists(ctx context.
 func (r CognitiveAccountProjectConnectionAccountKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cognitive-pak-%[1]d"
+  name     = "acctestRG-cognitive-pc-%[1]d"
   location = "%[2]s"
 }
 
@@ -189,7 +189,7 @@ resource "azurerm_cognitive_account" "test" {
 }
 
 resource "azurerm_cognitive_account_project" "test" {
-  name                 = "acctest-%[1]d"
+  name                 = "acctest-proj-%[1]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   location             = azurerm_resource_group.test.location
 
@@ -200,22 +200,16 @@ resource "azurerm_cognitive_account_project" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CognitiveAccountProjectConnectionAccountKeyResource) templateWithProvider(data acceptance.TestData) string {
+func (r CognitiveAccountProjectConnectionAccountKeyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
-`, r.template(data))
-}
-
-func (r CognitiveAccountProjectConnectionAccountKeyResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctsa%[3]s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -235,7 +229,7 @@ resource "azurerm_cognitive_account_project_connection_account_key" "test" {
     Location   = azurerm_storage_account.test.location
   }
 }
-`, r.templateWithProvider(data), data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r CognitiveAccountProjectConnectionAccountKeyResource) requiresImport(data acceptance.TestData) string {
@@ -258,30 +252,16 @@ resource "azurerm_cognitive_account_project_connection_account_key" "import" {
 `, r.basic(data))
 }
 
-func (r CognitiveAccountProjectConnectionAccountKeyResource) metadataWithoutResourceId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cognitive_account_project_connection_account_key" "test" {
-  name                         = "acctest-conn-%[2]d"
-  cognitive_account_project_id = azurerm_cognitive_account_project.test.id
-  category                     = "AzureStorageAccount"
-  target                       = "https://example.com"
-  account_key                  = "example"
-
-  metadata = {
-    ApiType = "Azure"
-  }
-}
-`, r.templateWithProvider(data), data.RandomInteger)
-}
-
 func (r CognitiveAccountProjectConnectionAccountKeyResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_storage_account" "test2" {
-  name                     = "acctsb%[3]s"
+  name                     = "acctestsb%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -301,5 +281,27 @@ resource "azurerm_cognitive_account_project_connection_account_key" "test" {
     Location   = azurerm_storage_account.test2.location
   }
 }
-`, r.templateWithProvider(data), data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r CognitiveAccountProjectConnectionAccountKeyResource) metadataWithoutResourceId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_project_connection_account_key" "test" {
+  name                         = "acctest-conn-%[2]d"
+  cognitive_account_project_id = azurerm_cognitive_account_project.test.id
+  category                     = "AzureStorageAccount"
+  target                       = "https://example.com"
+  account_key                  = "example"
+
+  metadata = {
+    ApiType = "Azure"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
