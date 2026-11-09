@@ -153,9 +153,9 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
 
-		// Reuse connections across all clients and provider configurations.
-		// go-vcr below replaces it for recorded tests.
-		Transport: sharedTransport,
+		// Reuse Resource Manager connections across all clients and provider
+		// configurations. go-vcr below takes precedence for recorded tests.
+		ResourceManagerTransport: sharedTransport,
 	}
 
 	// go-vcr integration

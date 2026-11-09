@@ -71,7 +71,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Managed Private Endpoints Client: %+v", err)
 	}
-	o.Configure(managedPrivateEndpointsClient.Client, o.Authorizers.Synapse)
+	o.ConfigureDataPlane(managedPrivateEndpointsClient.Client, o.Authorizers.Synapse)
 
 	// TODO: migrate to go-azure-sdk
 	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

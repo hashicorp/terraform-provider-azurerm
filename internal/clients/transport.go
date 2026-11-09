@@ -12,7 +12,8 @@ import (
 )
 
 // sharedTransport is the process-wide http.RoundTripper used by every
-// go-azure-sdk client built by this provider.
+// go-azure-sdk Resource Manager client built by this provider. Data-plane
+// clients (common.ClientOptions.ConfigureDataPlane) do not use it.
 //
 // Without it, go-azure-sdk creates a new http.Transport for every request,
 // so no connection is ever reused and each ARM call opens a new TCP+TLS

@@ -56,7 +56,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Jobs client: %+v", err)
 	}
-	o.Configure(jobsClient.Client, o.Authorizers.BatchManagement)
+	o.ConfigureDataPlane(jobsClient.Client, o.Authorizers.BatchManagement)
 
 	return &Client{
 		AccountClient:     accountClient,
