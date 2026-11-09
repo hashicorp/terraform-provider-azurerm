@@ -31,12 +31,23 @@ func CognitiveAccountProjectConnectionImporter(expectedAuthType projectconnectio
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
-		if authType, ok := CognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != expectedAuthType {
-			return fmt.Errorf("connection %s has auth type `%s` and cannot be managed by `%s`", *id, authType, resourceType)
+		if err := ValidateCognitiveAccountProjectConnectionAuthType(resp.Model, expectedAuthType, resourceType); err != nil {
+			return fmt.Errorf("importing %s: %+v", *id, err)
 		}
 
 		return nil
 	}
+}
+
+func ValidateCognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource, expectedAuthType projectconnectionresource.ConnectionAuthType, resourceType string) error {
+	authType, ok := CognitiveAccountProjectConnectionAuthType(model)
+	if !ok {
+		return fmt.Errorf("retrieving connection properties for `%s`: properties were nil", resourceType)
+	}
+	if authType != expectedAuthType {
+		return fmt.Errorf("connection has auth type `%s` and cannot be managed by `%s`", authType, resourceType)
+	}
+	return nil
 }
 
 func CognitiveAccountProjectConnectionAuthType(model *projectconnectionresource.ConnectionPropertiesV2BasicResource) (projectconnectionresource.ConnectionAuthType, bool) {
