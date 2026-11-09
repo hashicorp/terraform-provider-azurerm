@@ -56,7 +56,7 @@ A `partner_authorization` block supports the following:
 
 * `partner_registration_id` - (Optional) The immutable id of the corresponding partner registration.
 
--> **Note:** At least one of `partner_name` or `partner_registration_id` must be provided in each `partner_authorization` block.
+~> **Note:** At least one of `partner_name` or `partner_registration_id` must be provided in each `partner_authorization` block.
 
 * `authorization_expiration_time_in_utc` - (Optional) Expiration time of the partner authorization. Value should be in RFC 3339 format in UTC time zone, for example: "2025-02-04T00:00:00Z".
 
