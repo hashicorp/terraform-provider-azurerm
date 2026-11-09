@@ -45,6 +45,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"snapshot_resource_group_name": commonschema.ResourceGroupName(),
 
+		"user_assigned_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		},
+
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

@@ -213,6 +213,10 @@ The following arguments are supported:
 
 * `backup_datasource_parameters` - (Optional) A `backup_datasource_parameters` block as defined below. Changing this forces a new resource to be created.
 
+* `user_assigned_identity_id` - (Optional) The ID of the User Assigned Managed Identity used by the Backup Vault for backup and restore operations on the Kubernetes Cluster.
+
+-> **Note:** The User Assigned Managed Identity must be assigned to the Backup Vault. When `user_assigned_identity_id` is omitted, the Backup Vault's System Assigned Managed Identity is used. The selected identity must have the required permissions on the Kubernetes Cluster and related resources for backup and restore operations.
+
 ---
 
 A `backup_datasource_parameters` block supports the following:
@@ -245,6 +249,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Instance Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance Kubernetes Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Backup Instance Kubernetes Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Backup Instance Kubernetes Cluster.
 
 ## Import

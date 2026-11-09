@@ -28,6 +28,22 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			var identityDetails *backupinstanceresources.IdentityDetails
+			if model.UserAssignedIdentityId != "" {
+				identityId, err := commonids.ParseUserAssignedIdentityID(model.UserAssignedIdentityId)
+				if err != nil {
+					return err
+				}
+				identityDetails = &backupinstanceresources.IdentityDetails{
+					UseSystemAssignedIdentity:  pointer.To(false),
+					UserAssignedIdentityArmURL: pointer.To(identityId.ID()),
+				}
+			} else {
+				identityDetails = &backupinstanceresources.IdentityDetails{
+					UseSystemAssignedIdentity:  pointer.To(true),
+				}
+			}
+
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
 			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
@@ -63,6 +79,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			snapshotResourceGroupId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
+					IdentityDetails: identityDetails,
 					DataSourceInfo: backupinstanceresources.Datasource{
 						DatasourceType:   pointer.To("Microsoft.ContainerService/managedClusters"),
 						ObjectType:       pointer.To("Datasource"),

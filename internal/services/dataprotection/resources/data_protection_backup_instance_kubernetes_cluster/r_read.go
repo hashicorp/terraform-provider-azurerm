@@ -52,6 +52,16 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.KubernetesClusterId = properties.DataSourceInfo.ResourceID
 					state.ProtectionState = pointer.FromEnum(properties.CurrentProtectionState)
 
+					if identityDetails := properties.IdentityDetails; identityDetails != nil && !pointer.From(identityDetails.UseSystemAssignedIdentity) {
+						if identityId := pointer.From(identityDetails.UserAssignedIdentityArmURL); identityId != "" {
+							parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(identityId)
+							if err != nil {
+								return err
+							}
+							state.UserAssignedIdentityId = parsed.ID()
+						}
+					}
+
 					if policyParameters := properties.PolicyInfo.PolicyParameters; policyParameters != nil {
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {
 							if dsp := pointer.From(dataStorePara); len(dsp) > 0 {
