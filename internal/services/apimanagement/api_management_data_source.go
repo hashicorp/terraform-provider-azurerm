@@ -292,12 +292,13 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta any) error {
 		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(model.Sku.Name), "V2") {
 			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
-			if err != nil {
-				if !response.WasForbidden(tenantAccessInformationContract.HttpResponse) {
-					return fmt.Errorf("retrieving tenant access properties for %s: %+v", id, err)
-				}
-			} else {
+			switch {
+			case err == nil:
 				tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
+			case wasDirectManagementApiDisabled(tenantAccessInformationContract.HttpResponse, err):
+				tenantAccess = flattenApiManagementTenantAccessSettings(tenantaccess.AccessInformationSecretsContract{Enabled: pointer.To(false)})
+			case !response.WasForbidden(tenantAccessInformationContract.HttpResponse):
+				return fmt.Errorf("retrieving tenant access properties for %s: %+v", id, err)
 			}
 		}
 		if err := d.Set("tenant_access", tenantAccess); err != nil {
