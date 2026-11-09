@@ -14,8 +14,8 @@ Use this data source to access information about an existing VPN Gateway within 
 
 ```hcl
 data "azurerm_vpn_gateway" "example" {
-  name                = "existing-local-vpn_gateway"
-  resource_group_name = "existing-vpn_gateway"
+  name                = "example-vpn-gateway"
+  resource_group_name = "example-resources"
 }
 
 output "azurerm_vpn_gateway_id" {
@@ -105,4 +105,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

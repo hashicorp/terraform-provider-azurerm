@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -56,9 +56,9 @@ func (r Registration) Resources() []sdk.Resource {
 		ServicePlanResource{},
 		SourceControlResource{},
 		SourceControlSlotResource{},
-		StaticWebAppResource{},
 		StaticWebAppCustomDomainResource{},
 		StaticWebAppFunctionAppRegistrationResource{},
+		StaticWebAppResource{},
 		WebAppActiveSlotResource{},
 		WebAppHybridConnectionResource{},
 		WindowsFunctionAppResource{},
@@ -69,7 +69,9 @@ func (r Registration) Resources() []sdk.Resource {
 }
 
 func (r Registration) Actions() []func() action.Action {
-	return []func() action.Action{}
+	return []func() action.Action{
+		newWebAppSetSlotDistributionAction,
+	}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {

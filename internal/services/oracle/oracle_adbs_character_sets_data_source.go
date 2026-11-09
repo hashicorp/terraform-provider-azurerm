@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -49,7 +49,7 @@ func (d AdbsCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d AdbsCharSetsDataSource) ModelObject() interface{} {
+func (d AdbsCharSetsDataSource) ModelObject() any {
 	return &AdbsCharSetsModel{}
 }
 

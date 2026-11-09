@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -19,6 +19,16 @@ import (
 )
 
 type ApiManagementLoggerResource struct{}
+
+func TestAccApiManagementLogger_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Logger from Terraform test", "false"),
+		},
+	}, "")
+}
 
 func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
@@ -678,11 +688,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                          = "acctestappinsights-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  application_type              = "other"
-  local_authentication_disabled = true
+  name                         = "acctestappinsights-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  application_type             = "other"
+  local_authentication_enabled = false
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -742,11 +752,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                          = "acctestappinsights-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  application_type              = "other"
-  local_authentication_disabled = true
+  name                         = "acctestappinsights-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  application_type             = "other"
+  local_authentication_enabled = false
 }
 
 resource "azurerm_api_management" "test" {
@@ -797,11 +807,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                          = "acctestappinsights-%[1]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  application_type              = "other"
-  local_authentication_disabled = true
+  name                         = "acctestappinsights-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  application_type             = "other"
+  local_authentication_enabled = false
 }
 
 resource "azurerm_user_assigned_identity" "test" {

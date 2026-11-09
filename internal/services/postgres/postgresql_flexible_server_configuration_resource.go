@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -6,12 +6,14 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,6 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "name" -compare-values "flexible_server_name:server_id,resource_group_name:server_id" -test-params "backslash_quote,on"
+
+const azurePostgresqlFlexibleServerConfigurationResourceName = "azurerm_postgresql_flexible_server_configuration"
 
 func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -34,10 +40,11 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := configurations.ParseConfigurationID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&configurations.ConfigurationId{}),
+		},
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&configurations.ConfigurationId{}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -63,7 +70,7 @@ func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -85,10 +92,13 @@ func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.UpdateCallbackThenPoll(ctx, id, props, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := client.UpdateCallbackThenPoll(ctx, id, props, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
@@ -112,8 +122,7 @@ func resourceFlexibleServerConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	return resourceFlexibleServerConfigurationRead(d, meta)
 }
 
-func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,18 +151,25 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("making Read request for %s: %+v", id, err)
 	}
 
-	d.Set("name", id.ConfigurationName)
-	d.Set("server_id", configurations.NewFlexibleServerID(subscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID())
-
-	if resp.Model != nil && resp.Model.Properties != nil {
-		d.Set("value", resp.Model.Properties.Value)
-	}
-
-	return nil
+	return resourcePostgresqlFlexibleServerConfigurationFlatten(d, id, resp.Model)
 }
 
-func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePostgresqlFlexibleServerConfigurationFlatten(d *pluginsdk.ResourceData, id *configurations.ConfigurationId, model *configurations.Configuration) error {
+	d.Set("name", id.ConfigurationName)
+	d.Set("server_id", configurations.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID())
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("value", props.Value)
+		}
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
+func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
+	serverClient := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -162,10 +178,21 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	// if the server has already been deleted, we don't need to do anything
 	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
-	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
-		return nil
+
+	server, err := serverClient.Get(ctx, serverID)
+	if err != nil {
+		if response.WasNotFound(server.HttpResponse) {
+			// if the server has already been deleted, we don't need to do anything
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", serverID, err)
+	}
+
+	isReplica, primaryId := false, ""
+	if server.Model != nil && server.Model.Properties != nil {
+		isReplica = slices.Contains([]servers.ReplicationRole{servers.ReplicationRoleAsyncReplica, servers.ReplicationRoleGeoAsyncReplica}, pointer.From(server.Model.Properties.ReplicationRole))
+		primaryId = pointer.From(server.Model.Properties.SourceServerResourceId)
 	}
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
@@ -179,6 +206,26 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	defaultValue := ""
 	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.DefaultValue != nil {
 		defaultValue = *resp.Model.Properties.DefaultValue
+	}
+
+	// If the targeted server is a replica and the configuration item is one of the below, we'll reset the value to be equal to
+	// that of the primary, otherwise Azure may return a validation error as these items cannot be less than the primary config (and the default could be).
+	// reference: https://learn.microsoft.com/azure/postgresql/read-replica/concepts-read-replicas#scale
+	if isReplica && primaryId != "" && slices.Contains([]string{"max_connections", "max_prepared_transactions", "max_locks_per_transaction", "max_wal_senders", "max_worker_processes"}, id.ConfigurationName) {
+		pID, err := servers.ParseFlexibleServerIDInsensitively(primaryId)
+		if err != nil {
+			return err
+		}
+
+		primaryConfigurationID := configurations.NewConfigurationID(pID.SubscriptionId, pID.ResourceGroupName, pID.FlexibleServerName, id.ConfigurationName)
+		primaryConfig, err := client.Get(ctx, primaryConfigurationID)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", primaryConfigurationID, err)
+		}
+
+		if primaryConfig.Model != nil && primaryConfig.Model.Properties != nil && primaryConfig.Model.Properties.Value != nil {
+			defaultValue = *primaryConfig.Model.Properties.Value
+		}
 	}
 
 	props := configurations.ConfigurationForUpdate{

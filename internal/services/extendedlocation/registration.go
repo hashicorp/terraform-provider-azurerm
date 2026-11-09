@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package extendedlocation
@@ -6,8 +6,8 @@ package extendedlocation
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/resources/extended_location_custom_location"
 )
 
 type Registration struct{}
@@ -29,20 +29,13 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ExtendedLocationCustomLocationDataSource{},
+		extended_location_custom_location.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if !features.FivePointOh() {
-		return []sdk.Resource{
-			CustomLocationResource{}, // this resource is renamed and should be removed in 5.0
-			ExtendedLocationCustomLocationResource{},
-		}
-	}
-
 	return []sdk.Resource{
-		ExtendedLocationCustomLocationResource{},
+		extended_location_custom_location.Resource{},
 	}
 }
 

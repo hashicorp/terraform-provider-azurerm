@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package main
@@ -17,9 +17,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/tools/go/ast/astutil"
-
 	"github.com/hashicorp/go-hclog"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 var logger hclog.Logger

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -69,7 +69,7 @@ func (r AutonomousDatabaseBackupResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AutonomousDatabaseBackupResource) ModelObject() interface{} {
+func (r AutonomousDatabaseBackupResource) ModelObject() any {
 	return &AutonomousDatabaseBackupResourceModel{}
 }
 
@@ -123,7 +123,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
-					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.Type)),
+					BackupType:            pointer.ToEnum[autonomousdatabasebackups.AutonomousDatabaseBackupType](model.Type),
 				},
 			}
 
@@ -161,8 +161,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if backup == nil {
-				err := metadata.MarkAsGone(id)
-				if err != nil {
+				if err := metadata.MarkAsGone(id); err != nil {
 					return err
 				}
 				return nil

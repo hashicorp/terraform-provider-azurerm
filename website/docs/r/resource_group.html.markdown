@@ -33,7 +33,7 @@ The following arguments are supported:
 
 ---
 
-* `managed_by` - (Optional) The ID of the resource or application that manages this Resource Group.
+* `managed_by` - (Optional) The ID of the resource or application that manages this Resource Group. Changing this forces a new Resource Group to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 

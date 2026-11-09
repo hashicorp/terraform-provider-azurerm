@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto_test
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	localrules "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -155,6 +155,27 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.basicProtocolRange(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicProtocolAny(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicProtocolPortsRange(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -165,7 +186,7 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 }
 
 func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := localrules.ParseLocalRuleID(state.ID)
+	id, err := localrulesresources.ParseLocalRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -255,6 +276,93 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   applications = ["any"]
 
   protocol_ports = ["TCP:8080", "TCP:8081"]
+
+  destination {
+    cidrs = ["any"]
+  }
+
+  source {
+    cidrs = ["any"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LocalRuleResource) basicProtocolRange(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+
+  applications = ["any"]
+
+  protocol = "TCP:8080-8090"
+
+  destination {
+    cidrs = ["any"]
+  }
+
+  source {
+    cidrs = ["any"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LocalRuleResource) basicProtocolAny(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+
+  applications = ["any"]
+
+  protocol = "any"
+
+  destination {
+    cidrs = ["any"]
+  }
+
+  source {
+    cidrs = ["any"]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LocalRuleResource) basicProtocolPortsRange(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_local_rulestack_rule" "test" {
+  name         = "testacc-palr-%[2]d"
+  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
+  priority     = 100
+  action       = "Allow"
+
+  applications = ["any"]
+
+  protocol_ports = ["TCP:8080-8090", "UDP:5000-5100", "TCP:443"]
 
   destination {
     cidrs = ["any"]

@@ -245,7 +245,7 @@ A `private_link` block supports the following:
 
 ~> **Note:** At this time the Private Link Endpoint **must be approved manually** - for more information and region availability please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
 
-!> **Note:** Origin support for direct private endpoint connectivity is limited to `Storage (Azure Blobs)`, `Storage (Static Web Sites)`, `App Services`, `internal load balancers`, `Azure Container Apps (preview)` and `Azure API Management`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
+!> **Note:** Origin support for direct private endpoint connectivity is limited to `Storage (Azure Blobs)`, `Storage (Static Web Sites)`, `App Services`, `internal load balancers`, `Azure Container Apps` and `Azure API Management`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
 
 !> **Note:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service.
 

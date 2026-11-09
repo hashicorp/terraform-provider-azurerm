@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `encryption_key` - The key vault encryption key.
 
-* `system_assigned_identity_principal_id` - The ID of the System Assigned Manged Identity.
+* `system_assigned_identity_principal_id` - The ID of the System Assigned Managed Identity.
 
 * `user_assigned_identity_id` - The ID of the User Assigned Managed Identity.
 
@@ -58,4 +58,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2026-01-01
+* `Microsoft.NetApp` - 2026-05-01

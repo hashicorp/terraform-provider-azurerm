@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -7,10 +7,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
@@ -63,7 +65,30 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+	td.resourceTest(t, testResource, steps, nil)
+}
+
+func (td TestData) ResourceTestAdditionalCLIOptions(t *testing.T, testResource types.TestResource, steps []TestStep, cliOpts *resource.AdditionalCLIOptions) {
+	td.resourceTest(t, testResource, steps, cliOpts)
+}
+
+func (td TestData) resourceTest(t *testing.T, testResource types.TestResource, steps []TestStep, cliOpts *resource.AdditionalCLIOptions) {
 	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	newSteps := make([]TestStep, 0)
+	for _, step := range steps {
+		// This block adds a check to make sure tests aren't recreating a resource
+		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
+			step.ConfigPlanChecks = resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+				},
+			}
+		}
+
+		newSteps = append(newSteps, step)
+	}
+	steps = newSteps
 
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
@@ -74,8 +99,10 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 			}
 			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
-		Steps: steps,
+		Steps:                steps,
+		AdditionalCLIOptions: cliOpts,
 	}
+
 	td.runAcceptanceTest(t, testCase)
 }
 
@@ -133,12 +160,268 @@ func (td TestData) ResourceSequentialTest(t *testing.T, testResource types.TestR
 	td.runAcceptanceSequentialTest(t, testCase)
 }
 
+// ResourceRegressionTest runs an acceptance test for resource regression.
+// It expects one or two steps. If only one step is supplied it will be duplicated for the 2nd verification step resulting in an identical config being set for the locally built resource.
+// The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
+// For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
+// The second step uses the locally built provider code.
+// It is skipped when the previous version does not have a resource or data source its config uses yet.
+func (td TestData) ResourceRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.BuildWithTestName(t.Name())
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps: steps,
+	}
+
+	resource.ParallelTest(t, testCase)
+}
+
+// ResourceSequentialRegressionTest is ResourceRegressionTest for resources whose tests cannot run in
+// parallel - e.g. subscription-level singletons (provider/feature registrations) where concurrent
+// tests using the same Azure resource collide.
+func (td TestData) ResourceSequentialRegressionTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.BuildWithTestName(t.Name())
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps: steps,
+	}
+
+	resource.Test(t, testCase)
+}
+
+// DataSourceRegressionTest runs an acceptance test for data source regression - the data source equivalent of ResourceRegressionTest.
+// It expects one or two steps. If only one step is supplied it will be duplicated for the 2nd verification step resulting in an identical config being set for the locally built provider.
+// The first step uses a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
+// The second step uses the locally built provider code. As data sources create nothing there is no destroy check.
+func (td TestData) DataSourceRegressionTest(t *testing.T, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		Steps:      steps,
+	}
+
+	resource.ParallelTest(t, testCase)
+}
+
+// DataSourceSequentialRegressionTest is DataSourceRegressionTest for data sources whose tests cannot run in parallel, because the
+// resources they read are limited to one or two at a time.
+func (td TestData) DataSourceSequentialRegressionTest(t *testing.T, steps []TestStep, previousVersion string) {
+	if len(steps) != 2 {
+		if len(steps) == 1 {
+			// duplicate step[0] for second stage - this is all that _should_ be required for breaking change testing
+			steps = append(steps, steps[0])
+			// the duplicated verification step must not re-run step[0]'s PreConfig - that is setup
+			// (e.g. unregistering a leftover provider/feature registration) which would tear down
+			// the resource the first step just created out from under the verification step
+			steps[1].PreConfig = nil
+		} else {
+			t.Fatal("expected exactly 2 steps for Regression test. Setup and Check")
+		}
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	steps[0].ExternalProviders = td.externalProviders()
+	steps[0].ExternalProviders["azurerm"] = resource.ExternalProvider{
+		VersionConstraint: providerRelease([]string{previousVersion}...),
+		Source:            "hashicorp/azurerm",
+	}
+
+	steps[1].ExternalProviders = td.externalProviders()
+	steps[1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		Steps:      steps,
+	}
+
+	resource.Test(t, testCase)
+}
+
+// ResourceRegressionAdditionalStepsTest runs an acceptance test for resource regression scenarios that require multiple steps to set up.
+// It expects multiple steps (3 or more), for regression testing with 1 or 2 steps, use ResourceRegressionTest.
+// All steps except the final step use a specified previous provider version constraint. If an empty string is supplied, the test will use the version in ./version/VERSION from the root of the project
+// For StateMigration testing, this should be the last version that has the previous `SchemaVersion` value.
+// The final step uses the locally built provider code.
+// It is skipped when the previous version does not have a resource or data source its config uses yet.
+func (td TestData) ResourceRegressionAdditionalStepsTest(t *testing.T, testResource types.TestResource, steps []TestStep, previousVersion string) {
+	l := len(steps)
+	if l < 3 {
+		t.Fatalf("expected at least 3 steps, got %d. For tests with less than 3 steps, use `ResourceRegressionTest`", l)
+	}
+
+	os.Setenv("TF_ACC_REFRESH_AFTER_APPLY", "true")
+
+	for i := range steps[:l-1] {
+		steps[i].ExternalProviders = td.externalProviders()
+		steps[i].ExternalProviders["azurerm"] = resource.ExternalProvider{
+			VersionConstraint: providerRelease([]string{previousVersion}...),
+			Source:            "hashicorp/azurerm",
+		}
+	}
+
+	steps[l-1].ExternalProviders = td.externalProviders()
+	steps[l-1].ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm", "azurerm-alt")
+	steps[l-1].ConfigPlanChecks = resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
+		},
+	}
+
+	testCase := resource.TestCase{
+		PreCheck:   func() { PreCheck(t) },
+		ErrorCheck: skipWhenNotReleased(t, steps, previousVersion),
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testclient.BuildWithTestName(t.Name())
+			if err != nil {
+				return fmt.Errorf("building client: %+v", err)
+			}
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
+		},
+		Steps: steps,
+	}
+
+	resource.ParallelTest(t, testCase)
+}
+
+// notInReleaseRegex matches Terraform saying a provider does not have a resource or data source type, which it may break across lines anywhere.
+var notInReleaseRegex = regexp.MustCompile(`does\s+not\s+support\s+(resource\s+type|data\s+source)\s+"`)
+
+// skipWhenNotReleased skips a regression test whose config uses a resource or data source the previous version does not have yet, as there
+// is nothing to compare against until it is released. Only the steps run on the previous version count: the local build not knowing a type
+// is a real failure.
+func skipWhenNotReleased(t *testing.T, steps []TestStep, previousVersion string) resource.ErrorCheckFunc {
+	// the testing library does not say which step failed, so the last step, the local build, flags itself as it starts
+	local := false
+	last := len(steps) - 1
+	setup := steps[last].PreConfig
+	steps[last].PreConfig = func() {
+		local = true
+		if setup != nil {
+			setup()
+		}
+	}
+
+	return func(err error) error {
+		if !local && notInReleaseRegex.MatchString(err.Error()) {
+			t.Skipf("skipping, provider version %q does not have a type this test uses yet: %+v", providerRelease(previousVersion), err)
+		}
+
+		return err
+	}
+}
+
 func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
 	for group, m := range tests {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})

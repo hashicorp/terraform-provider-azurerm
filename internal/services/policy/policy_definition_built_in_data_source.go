@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// dataSourceArmPolicyDefinitionBuiltIn read built-in policy definition only
-func dataSourceArmPolicyDefinitionBuiltIn() *pluginsdk.Resource {
+// dataSourcePolicyDefinitionBuiltIn read built-in policy definition only
+func dataSourcePolicyDefinitionBuiltIn() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: policyDefinitionReadFunc(true),
 

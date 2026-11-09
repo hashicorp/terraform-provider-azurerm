@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package pluginsdk
@@ -127,8 +127,7 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 				return fmt.Errorf("%q cannot be empty", name)
 			}
 
-			err := identity.Set(name, value)
-			if err != nil {
+			if err := identity.Set(name, value); err != nil {
 				return fmt.Errorf("error setting id: %+v", err)
 			}
 

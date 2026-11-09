@@ -128,6 +128,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** For more information about Automatic Instance Repair, please refer to the [product documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
 
+* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`. Requires `zones` to be set. When set to `true`, a `health_probe_id` or a health extension must be configured.
+
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
@@ -146,7 +148,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `disable_password_authentication` - (Optional) Should Password Authentication be disabled on this Virtual Machine Scale Set? Defaults to `true`.
 
--> **Note:** In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).
+-> **Note:** In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see here for more information](https://learn.microsoft.com/azure/virtual-machines/linux/create-ssh-keys-detailed#ssh-keys-use-and-benefits).
 
 -> **Note:** When a `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
@@ -196,15 +198,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to. Changing this forces a new resource to be created.
 
-* `resilient_vm_creation_enabled` - (Optional) Should resilient VM creation be enabled? When enabled, the service will attempt to create VMs in alternative fault domains or zones if the primary location fails during creation. Defaults to `false`.
+* `resilient_vm_creation_enabled` - (Optional) Whether `resilient VM creation` is enabled. Defaults to `false`.
 
--> **Note:** `resilient_vm_creation_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
+-> **Note:** When enabled, the service attempts to create Virtual Machines in alternative fault domains or zones if the primary location fails during creation.
 
-* `resilient_vm_deletion_enabled` - (Optional) Should resilient VM deletion be enabled? When enabled, the service will use a more resilient deletion process that attempts to gracefully handle failures during VM termination. Defaults to `false`.
+* `resilient_vm_deletion_enabled` - (Optional) Whether `resilient VM deletion` is enabled. Defaults to `false`.
 
--> **Note:** `resilient_vm_deletion_enabled` is currently not supported in the `austriaeast`, `belgiumcentral`, `centraluseuap`, `chilecentral`, `indonesiacentral`, `israelnorthwest`, `malaysiawest`, `mexicocentral`, `newzealandnorth`, `southcentralus2`, `southindia`, `southeastus3`, `southwestus`, `eastasia`, `eastus`, `southcentralus`, `southeastasia`, and `westeurope` regions.
+-> **Note:** When enabled, the service uses a more resilient deletion process that attempts to gracefully handle failures during Virtual Machine termination.
 
-* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
+* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** `rolling_upgrade_policy` is required for `Rolling`, optional for `Automatic`, and cannot be specified for `Manual`. When omitted with `Automatic`, Azure sets this block to its default values.
 
 * `scale_in` - (Optional) A `scale_in` block as defined below.
 
@@ -264,9 +268,9 @@ An `admin_ssh_key` block supports the following:
 
 An `automatic_os_upgrade_policy` block supports the following:
 
-* `disable_automatic_rollback` - (Required) Should automatic rollbacks be disabled?
+* `automatic_rollback_enabled` - (Required) Whether automatic rollbacks are enabled.
 
-* `enable_automatic_os_upgrade` - (Required) Should OS Upgrades automatically be applied to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available?
+* `automatic_os_upgrade_enabled` - (Required) Whether to apply OS Upgrades automatically to Scale Set instances in a rolling fashion when a newer version of the OS Image becomes available.
 
 ---
 
@@ -340,7 +344,7 @@ A `diff_disk_settings` block supports the following:
 
 * `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
 
-* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
+* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk`, `ResourceDisk` and `NvmeDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
 
 ---
 
@@ -458,9 +462,9 @@ A `network_interface` block supports the following:
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
-* `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
 
-* `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Does this Network Interface support IP Forwarding? Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 
@@ -495,8 +499,6 @@ An `os_disk` block supports the following:
 * `security_encryption_type` - (Optional) Encryption Type when the Virtual Machine Scale Set is Confidential VMSS. Possible values are `VMGuestStateOnly` and `DiskWithVMGuestState`. Changing this forces a new resource to be created.
 
 -> **Note:** `vtpm_enabled` must be set to `true` when `security_encryption_type` is specified.
-
--> **Note:** `encryption_at_host_enabled` cannot be set to `true` when `security_encryption_type` is set to `DiskWithVMGuestState`.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 

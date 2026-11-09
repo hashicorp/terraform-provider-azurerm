@@ -29,7 +29,7 @@ resource "azurerm_api_management" "example" {
 }
 
 data "azurerm_api_management_workspace" "example" {
-  name              = "existing"
+  name              = "example-workspace"
   api_management_id = azurerm_api_management.example.id
 }
 
@@ -51,6 +51,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the API Management Workspace.
+
+* `description` - The description of the API Management Workspace.
 
 * `display_name` - The display name of the API Management Workspace.
 

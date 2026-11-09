@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
 
-* `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
+* `bgp_settings` - (Optional) A `bgp_settings` block which is defined below. In this block the BGP specific settings can be defined.
 
 * `custom_route` - (Optional) A `custom_route` block as defined below. Specifies a custom routes address space for a virtual network gateway and a VpnClient.
 
@@ -166,7 +166,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is defined below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 
@@ -215,7 +215,7 @@ The `vpn_client_configuration` block supports:
 * `aad_tenant` - (Optional) AzureAD Tenant URL
 
 * `aad_audience` - (Optional) The client id of the Azure VPN application.
-    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
@@ -368,4 +368,4 @@ terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

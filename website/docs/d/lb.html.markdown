@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Load Balancer.
 
-* `frontend_ip_configuration` - A `frontend_ip_configuration` block as documented below.
+* `frontend_ip_configuration` - A `frontend_ip_configuration` block as defined below.
 
 * `location` - The Azure location where the Load Balancer exists.
 
@@ -71,4 +71,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2023-09-01
+* `Microsoft.Network` - 2025-07-01

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package features
@@ -44,7 +44,6 @@ type EnhancedValidationFeatures struct {
 type VirtualMachineFeatures struct {
 	DetachImplicitDataDiskOnDeletion bool
 	DeleteOSDiskOnDeletion           bool
-	GracefulShutdown                 bool // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       bool
 }
 

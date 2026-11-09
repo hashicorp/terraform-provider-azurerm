@@ -16,6 +16,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"errors"
+	"fmt"
 	"hash"
 	"io"
 
@@ -256,6 +257,9 @@ func pbes2CipherFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher
 	if err != nil {
 		return nil, nil, err
 	}
+	if len(iv) != block.BlockSize() {
+		return nil, nil, fmt.Errorf("pkcs12: invalid IV length in PBES2 encryption scheme (IV length %d does not match block size %d)", len(iv), block.BlockSize())
+	}
 	return block, iv, nil
 }
 
@@ -311,6 +315,7 @@ func makePBES2Parameters(rand io.Reader, salt []byte, iterations int) ([]byte, e
 	}
 	kdfparams.Iterations = iterations
 	kdfparams.Prf.Algorithm = oidHmacWithSHA256
+	kdfparams.Prf.Parameters = asn1.NullRawValue
 
 	var params pbes2Params
 	params.Kdf.Algorithm = oidPBKDF2

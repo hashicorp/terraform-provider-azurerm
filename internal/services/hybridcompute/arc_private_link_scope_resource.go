@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package hybridcompute
@@ -55,7 +55,7 @@ func (a ArcPrivateLinkScopeResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (a ArcPrivateLinkScopeResource) ModelObject() interface{} {
+func (a ArcPrivateLinkScopeResource) ModelObject() any {
 	return &PrivateLinkScopeModel{}
 }
 
