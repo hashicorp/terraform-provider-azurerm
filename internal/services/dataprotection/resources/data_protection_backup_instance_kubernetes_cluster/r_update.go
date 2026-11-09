@@ -65,6 +65,8 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
+			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
+			// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/41986
 			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, *id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
 				backupinstanceresources.CurrentProtectionStateUpdatingProtection,
 			})
