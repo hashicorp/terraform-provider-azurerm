@@ -40,7 +40,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			} else {
 				identityDetails = &backupinstanceresources.IdentityDetails{
-					UseSystemAssignedIdentity:  pointer.To(true),
+					UseSystemAssignedIdentity: pointer.To(true),
 				}
 			}
 
