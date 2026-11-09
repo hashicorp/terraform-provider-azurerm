@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAccFrontDoorFirewallPolicy_validateName(t *testing.T) {
+func TestFrontDoorFirewallPolicy_validateName(t *testing.T) {
 	cases := []struct {
 		Name        string
 		Input       string

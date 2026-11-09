@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managed_redis_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ManagedRedisResource struct{}
+
+func TestAccManagedRedis_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccManagedRedis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
