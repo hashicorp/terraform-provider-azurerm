@@ -37,9 +37,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"category": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(projectconnectionresource.ConnectionCategoryAIServices),
 				string(projectconnectionresource.ConnectionCategoryApiManagement),
