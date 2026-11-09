@@ -75,7 +75,13 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		},
 	}
 
-	if v, ok := d.GetOk("storage_account_container_names"); ok {
+	if d.Get("auto_protection_enabled").(bool) {
+		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
+			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
+				expandBlobBackupAutoProtection(d.Get("excluded_container_name_prefixes").(*pluginsdk.Set).List()),
+			},
+		}
+	} else if v, ok := d.GetOk("storage_account_container_names"); ok {
 		parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
 			BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
 				backupinstanceresources.BlobBackupDatasourceParameters{
