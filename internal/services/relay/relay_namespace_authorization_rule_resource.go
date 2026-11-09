@@ -55,14 +55,14 @@ func (r RelayNamespaceAuthorizationRuleResource) Arguments() map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(6, 50),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"namespace_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(6, 50),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -228,7 +228,7 @@ func (r RelayNamespaceAuthorizationRuleResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err = client.DeleteAuthorizationRule(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
