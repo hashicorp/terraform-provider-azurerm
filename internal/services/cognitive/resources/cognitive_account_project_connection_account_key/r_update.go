@@ -52,10 +52,9 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("unexpected properties type for %s", *id)
 			}
 
-			if metadata.ResourceData.HasChange("account_key") {
-				props.Credentials = &projectconnectionresource.ConnectionAccountKey{
-					Key: pointer.To(model.AccountKey),
-				}
+			// GET omits credentials, but every PUT requires them, even when the key is unchanged.
+			props.Credentials = &projectconnectionresource.ConnectionAccountKey{
+				Key: pointer.To(model.AccountKey),
 			}
 
 			if metadata.ResourceData.HasChange("target") {
