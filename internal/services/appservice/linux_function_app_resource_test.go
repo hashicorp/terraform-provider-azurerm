@@ -3510,6 +3510,12 @@ resource "azurerm_container_app_environment" "test" {
   name                = "acctest-CAEnv%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  # some regions add a Consumption profile that the environment resource would otherwise try to remove
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 
 resource "azurerm_linux_function_app" "test" {
