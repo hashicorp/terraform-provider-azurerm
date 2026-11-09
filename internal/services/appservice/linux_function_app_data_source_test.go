@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -13,6 +13,16 @@ import (
 )
 
 type LinuxFunctionAppDataSource struct{}
+
+func TestAccLinuxFunctionAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.standardComplete(data),
+		},
+	}, "")
+}
 
 func TestAccLinuxFunctionAppDataSource_standardComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_linux_function_app", "test")
