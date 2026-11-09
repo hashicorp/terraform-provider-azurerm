@@ -36,6 +36,8 @@ The following arguments are supported:
 
 * `hub_profile` - (Optional) A `hub_profile` block as defined below. Changing this forces a new Kubernetes Fleet Manager to be created.
 
+~> **Note:** While `hub_profile` was deprecated, the provider accepted the block but did not send it to Azure. If an existing hubless Fleet still has that block in its configuration, upgrading to this version plans to replace the Fleet to create a hub. To keep the Fleet hubless, remove the block from configuration and review the resulting plan.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Kubernetes Fleet Manager.
 
 ---

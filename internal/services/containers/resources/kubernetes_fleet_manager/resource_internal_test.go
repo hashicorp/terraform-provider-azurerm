@@ -226,6 +226,7 @@ func TestKubernetesFleetManagerHubProfileDiff(t *testing.T) {
 		name           string
 		privateCluster bool
 		hub            map[string]any
+		hublessState   bool
 		updateTags     bool
 		replacementKey string
 	}{
@@ -267,6 +268,7 @@ func TestKubernetesFleetManagerHubProfileDiff(t *testing.T) {
 			},
 			replacementKey: "hub_profile.0.agent_profile.0.virtual_machine_size",
 		},
+		{name: "configure hub on existing hubless Fleet", hublessState: true, hub: map[string]any{"dns_prefix": "fleet-test"}, replacementKey: "hub_profile.#"},
 		{name: "remove entire hub", replacementKey: "hub_profile.#"},
 	}
 
@@ -300,6 +302,13 @@ func TestKubernetesFleetManagerHubProfileDiff(t *testing.T) {
 			}
 			if !testCase.privateCluster {
 				state.Attributes["hub_profile.0.dns_prefix"] = "fleet-test"
+			}
+			if testCase.hublessState {
+				for key := range state.Attributes {
+					if strings.HasPrefix(key, "hub_profile.") {
+						delete(state.Attributes, key)
+					}
+				}
 			}
 			phase := "initial"
 			if testCase.updateTags {
