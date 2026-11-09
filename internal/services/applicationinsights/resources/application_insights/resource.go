@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package application_insights
@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/resources/application_insights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -test-name basicForResourceIdentity
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
