@@ -164,6 +164,8 @@ The following arguments are supported:
 
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
+* `smb_oauth_enabled` - (Optional) Whether managed identities can access SMB Azure file shares using OAuth. Defaults to `false`.
+
 * `routing` - (Optional) A `routing` block as defined below.
 
 * `queue_encryption_key_type` - (Optional) The encryption type of the queue service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
@@ -259,7 +261,7 @@ A `customer_managed_key` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) The ID of a user assigned identity.
 
-~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `account_tier` set to `Premium`. `user_assigned_identity_id` is required when the identity type is `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** `customer_managed_key` can only be set when the `account_kind` is set to `StorageV2` or `FileStorage` with `provisioned_billing_model_version` set to `V2`, or `account_tier` set to `Premium`. `user_assigned_identity_id` is required when the identity type is `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ~> **Note:** When using a `SystemAssigned` identity, the Storage Account must already exist and its identity must have permission to access the key before adding the `customer_managed_key` block. This also applies to imported Storage Accounts. To enable customer-managed keys when creating a new Storage Account, use a `UserAssigned` identity. Alternatively, use the `azurerm_storage_account_customer_managed_key` resource to configure the key after the Storage Account and its key permissions have been created.
 
