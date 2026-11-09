@@ -64,7 +64,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"metadata": {
 			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
