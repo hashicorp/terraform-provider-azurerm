@@ -6,6 +6,7 @@ package relay
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -198,7 +199,7 @@ func (r RelayHybridConnectionAuthorizationRuleResource) Read() sdk.ResourceFunc 
 
 			keysResp, err := client.ListKeys(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("listing keys for %s: %+v", *id, err)
+				log.Printf("[WARN] listing keys for %s: %+v\n", *id, err)
 			}
 
 			state := RelayHybridConnectionAuthorizationRuleResourceModel{
@@ -257,19 +258,34 @@ func (r RelayHybridConnectionAuthorizationRuleResource) Update() sdk.ResourceFun
 				return err
 			}
 
-			var model RelayHybridConnectionAuthorizationRuleResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
+			resp, err := client.GetAuthorizationRule(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			parameters := hybridconnections.AuthorizationRule{
-				Name: pointer.To(model.Name),
-				Properties: &hybridconnections.AuthorizationRuleProperties{
-					Rights: expandHybridConnectionAuthorizationRuleRights(metadata.ResourceData),
-				},
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			if _, err := client.CreateOrUpdateAuthorizationRule(ctx, *id, parameters); err != nil {
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
+			existingModel := *resp.Model
+
+			if metadata.ResourceData.HasChange("listen") {
+				existingModel.Properties.Rights = expandHybridConnectionAuthorizationRuleRights(metadata.ResourceData)
+			}
+
+			if metadata.ResourceData.HasChange("manage") {
+				existingModel.Properties.Rights = expandHybridConnectionAuthorizationRuleRights(metadata.ResourceData)
+			}
+
+			if metadata.ResourceData.HasChange("send") {
+				existingModel.Properties.Rights = expandHybridConnectionAuthorizationRuleRights(metadata.ResourceData)
+			}
+
+			if _, err := client.CreateOrUpdateAuthorizationRule(ctx, *id, existingModel); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
