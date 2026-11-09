@@ -4,11 +4,42 @@
 package cdn_frontdoor_custom_domain
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+func resourceCdnFrontDoorCustomDomainFlatten(d *pluginsdk.ResourceData, id *afddomains.CustomDomainId, model *afddomains.AFDDomain) error {
+	d.Set("name", id.CustomDomainName)
+	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("host_name", props.HostName)
+
+			if err := d.Set("dns_zone_id", flattenAfdDNSZoneResourceReference(props.AzureDnsZone)); err != nil {
+				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
+			}
+
+			includeDefaultCipherSuite := resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d)
+			if err := d.Set("tls", flattenAfdDomainHttpsParameters(props.TlsSettings, includeDefaultCipherSuite)); err != nil {
+				return fmt.Errorf("setting `tls`: %+v", err)
+			}
+
+			if validationProps := props.ValidationProperties; validationProps != nil {
+				d.Set("expiration_date", validationProps.ExpirationDate)
+				d.Set("validation_token", validationProps.ValidationToken)
+			}
+		}
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
 
 func flattenAfdDomainHttpsParameters(input *afddomains.AFDDomainHTTPSParameters, includeDefaultCipherSuite bool) []any {
 	if input == nil {

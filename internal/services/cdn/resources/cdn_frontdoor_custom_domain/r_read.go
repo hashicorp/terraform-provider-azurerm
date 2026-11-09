@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -36,30 +35,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta any) e
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.CustomDomainName)
-	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
-
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("host_name", props.HostName)
-
-			if err := d.Set("dns_zone_id", flattenAfdDNSZoneResourceReference(props.AzureDnsZone)); err != nil {
-				return fmt.Errorf("setting `dns_zone_id`: %+v", err)
-			}
-
-			includeDefaultCipherSuite := resourceCdnFrontDoorCustomDomainCipherSuiteConfigured(d)
-			if err := d.Set("tls", flattenAfdDomainHttpsParameters(props.TlsSettings, includeDefaultCipherSuite)); err != nil {
-				return fmt.Errorf("setting `tls`: %+v", err)
-			}
-
-			if validationProps := props.ValidationProperties; validationProps != nil {
-				d.Set("expiration_date", validationProps.ExpirationDate)
-				d.Set("validation_token", validationProps.ValidationToken)
-			}
-		}
-	}
-
-	return nil
+	return resourceCdnFrontDoorCustomDomainFlatten(d, id, resp.Model)
 }
 
 // Front Door currently rejects the DHE TLS 1.2 suites exposed by the SDK helper.
