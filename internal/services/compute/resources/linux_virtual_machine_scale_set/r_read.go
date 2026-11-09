@@ -102,7 +102,8 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta any
 				d.Set("spot_restore", helpers.FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
 
-			resilientVMCreationEnabled, resilientVMDeletionEnabled := helpers.FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled := helpers.FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("automatic_zone_rebalancing_enabled", automaticZoneRebalancingEnabled)
 			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
 			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
