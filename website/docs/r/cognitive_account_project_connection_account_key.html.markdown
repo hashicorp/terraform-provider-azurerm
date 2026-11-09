@@ -71,7 +71,7 @@ resource "azurerm_cognitive_account_project_connection_account_key" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Cognitive Services Project Connection. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Cognitive Services Project Connection. Must be between 3 and 33 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes, or underscores. Changing this forces a new resource to be created.
 
 * `cognitive_account_project_id` - (Required) The ID of the Cognitive Services Project. Changing this forces a new resource to be created.
 
@@ -84,6 +84,8 @@ The following arguments are supported:
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
 ~> **Note:** The `metadata` map must include a non-empty `ResourceId` value. To check any additional metadata returned by Azure, create an equivalent connection in the Foundry portal and inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
+
+-> **Note:** Service-added `ApiVersion` and `DeploymentApiVersion` metadata keys are excluded during import and list discovery. Other metadata keys are retained.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 

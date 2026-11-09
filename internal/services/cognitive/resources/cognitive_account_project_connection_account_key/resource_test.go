@@ -30,7 +30,22 @@ func TestAccCognitiveAccountProjectConnectionAccountKey_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("account_key", "metadata"),
+		data.ImportStep("account_key"),
+	})
+}
+
+func TestAccCognitiveAccountProjectConnectionAccountKey_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_project_connection_account_key", "test")
+	r := CognitiveAccountProjectConnectionAccountKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key"),
 	})
 }
 
@@ -60,21 +75,35 @@ func TestAccCognitiveAccountProjectConnectionAccountKey_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("account_key", "metadata"),
+		data.ImportStep("account_key"),
 		{
-			Config: r.updated(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("account_key", "metadata"),
+		data.ImportStep("account_key"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("account_key", "metadata"),
+		data.ImportStep("account_key"),
+		{
+			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key"),
 	})
 }
 
@@ -195,6 +224,31 @@ resource "azurerm_cognitive_account_project_connection_account_key" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r CognitiveAccountProjectConnectionAccountKeyResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_cognitive_account_project_connection_account_key" "test" {
+  name                         = "acctest-conn-%[2]d"
+  cognitive_account_project_id = azurerm_cognitive_account_project.test.id
+  category                     = "AzureStorageAccount"
+  target                       = azurerm_storage_account.test.primary_blob_endpoint
+  account_key                  = azurerm_storage_account.test.primary_access_key
+
+  metadata = {
+    ApiType     = "Azure"
+    ResourceId  = azurerm_storage_account.test.id
+    Location    = azurerm_storage_account.test.location
+    CustomLabel = "acceptance-test"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CognitiveAccountProjectConnectionAccountKeyResource) updated(data acceptance.TestData) string {

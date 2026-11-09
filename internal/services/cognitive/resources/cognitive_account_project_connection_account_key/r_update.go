@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/projectconnectionresource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -24,6 +25,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			projectId := projectconnectionresource.NewProjectID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ProjectName)
+			locks.ByID(projectId.ID())
+			defer locks.UnlockByID(projectId.ID())
+
 			resp, err := client.ProjectConnectionsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -32,6 +37,11 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
+			
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` were nil", *id)
+			}
+
 
 			var model CognitiveAccountProjectConnectionAccountKeyModel
 			if err := metadata.Decode(&model); err != nil {

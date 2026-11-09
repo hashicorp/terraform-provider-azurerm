@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/projectconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/helpers"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -30,6 +31,10 @@ func (r Resource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if authType, ok := helpers.CognitiveAccountProjectConnectionAuthType(resp.Model); ok && authType != projectconnectionresource.ConnectionAuthTypeAccountKey {
+				return fmt.Errorf("connection %s has auth type `%s` and cannot be managed by `%s`", *id, authType, r.ResourceType())
 			}
 
 			var currentState CognitiveAccountProjectConnectionAccountKeyModel
