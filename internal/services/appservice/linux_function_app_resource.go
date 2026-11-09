@@ -998,15 +998,9 @@ func (r LinuxFunctionAppResource) Delete() sdk.ResourceFunc {
 				return result.HttpResponse, err
 			}
 
-			// Azure keeps modifying a Container Apps-hosted Function App for a while after it has been created
-			if metadata.ResourceData.Get("container_app_environment_id").(string) != "" {
-				if err := helpers.RetryWhileOperationInProgress(ctx, helpers.FunctionAppContainerDeleteRetryInterval, deleteApp); err != nil {
-					return fmt.Errorf("deleting Linux %s: %+v", id, err)
-				}
-				return nil
-			}
-
-			if _, err = deleteApp(); err != nil {
+			// Azure keeps modifying a Container Apps-hosted Function App for a while after it has been created, so
+			// a delete straight afterwards can be rejected until that has finished. Only that conflict is retried.
+			if err := helpers.RetryWhileOperationInProgress(ctx, helpers.FunctionAppContainerDeleteRetryInterval, deleteApp); err != nil {
 				return fmt.Errorf("deleting Linux %s: %+v", id, err)
 			}
 			return nil

@@ -24,7 +24,9 @@ func TestIsOperationInProgressConflict(t *testing.T) {
 		expected bool
 	}{
 		{name: "operation in progress", status: http.StatusConflict, err: errors.New(operationInProgressMessage), expected: true},
-		{name: "different casing", status: http.StatusConflict, err: errors.New("ANOTHER OPERATION IS IN PROGRESS"), expected: true},
+		{name: "different casing", status: http.StatusConflict, err: errors.New("ANOTHER OPERATION IS IN PROGRESS. OPERATIONNAME: CONTAINERAPPUPDATESITECONFIG"), expected: true},
+		{name: "operation in progress on a site that is not hosted on Container Apps", status: http.StatusConflict, err: errors.New(`Cannot modify this site because another operation is in progress. Details: Id: 1, OperationName: Create`), expected: false},
+		{name: "operation in progress with no operation name", status: http.StatusConflict, err: errors.New("Cannot modify this site because another operation is in progress"), expected: false},
 		{name: "a different conflict", status: http.StatusConflict, err: errors.New("Server farm cannot be deleted because it has web apps assigned to it"), expected: false},
 		{name: "same text without a conflict status", status: http.StatusBadRequest, err: errors.New(operationInProgressMessage), expected: false},
 		{name: "no error", status: http.StatusConflict, err: nil, expected: false},

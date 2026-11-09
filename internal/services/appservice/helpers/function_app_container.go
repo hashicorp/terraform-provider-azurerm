@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"sort"
@@ -106,10 +107,16 @@ func SetFunctionAppContainerSiteConfigDefaults(config *SiteConfigLinuxFunctionAp
 // Function App that Azure is still modifying.
 const FunctionAppContainerDeleteRetryInterval = 15 * time.Second
 
-// IsOperationInProgressConflict returns whether the error is Azure rejecting a change to a site because another
-// operation on it has not finished.
+// IsOperationInProgressConflict returns whether the error is Azure rejecting a change to a Container Apps-hosted
+// site because another of its operations (named `ContainerApp...`) has not finished. Conflicts for other operations,
+// such as on an App Service Plan hosted site, are not matched so that they are still reported straight away.
 func IsOperationInProgressConflict(resp *http.Response, err error) bool {
-	return err != nil && response.WasConflict(resp) && strings.Contains(strings.ToLower(err.Error()), "another operation is in progress")
+	if err == nil || !response.WasConflict(resp) {
+		return false
+	}
+
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "another operation is in progress") && strings.Contains(message, "operationname: containerapp")
 }
 
 // RetryWhileOperationInProgress calls f until it succeeds, fails with something other than a conflict from an
@@ -121,6 +128,8 @@ func RetryWhileOperationInProgress(ctx context.Context, interval time.Duration, 
 		if err == nil || !IsOperationInProgressConflict(resp, err) {
 			return err
 		}
+
+		log.Printf("[DEBUG] Another operation is in progress, retrying in %s: %+v", interval, err)
 
 		select {
 		case <-ctx.Done():
