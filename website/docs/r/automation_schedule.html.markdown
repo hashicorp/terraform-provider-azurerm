@@ -48,11 +48,13 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Schedule is created. Changing this forces a new resource to be created.
 
-* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+* `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Minute`, `Day`, `Hour`, `Week`, or `Month`.
 
 * `description` - (Optional) A description for this Schedule.
 
-* `interval` - (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+* `interval` - (Optional) The number of `frequency`s between runs. Only valid when frequency is `Minute`, `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+
+~> **Note:** `interval` must be set to at least `15` when `frequency` is `Minute`.
 
 * `start_time` - (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 
@@ -64,7 +66,7 @@ The following arguments are supported:
 
 * `month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
-* `monthly_occurrence` - (Optional) One `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields documented below.
+* `monthly_occurrence` - (Optional) One `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields defined below.
 
 ---
 

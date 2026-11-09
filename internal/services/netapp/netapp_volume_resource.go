@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -471,6 +471,15 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"unix_permissions": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because Azure returns a default of `0770` for some volume types, while others reject this default value with a 400 when sent to the API
+				// unexpected status 400 (400 Bad Request) with error: InvalidInputUnixPermissionForNtfsSecurityStyleVolume: Unix permissions are not allowed for specified volume configuration, Create SMB or dual protocol volume with NTFS security style, without unix permissions.
+				Computed:     true,
+				ValidateFunc: validation.StringLenBetween(4, 4),
+			},
 		},
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i any) error {
 			// Validate large volume and storage_quota_in_gb based on Azure NetApp Files requirements
@@ -842,6 +851,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
 	}
 
+	if unixPerms := d.Get("unix_permissions").(string); unixPerms != "" {
+		parameters.Properties.UnixPermissions = pointer.To(unixPerms)
+	}
+
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -1009,6 +1022,10 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
+	if d.HasChange("unix_permissions") {
+		update.Properties.UnixPermissions = pointer.To(d.Get("unix_permissions").(string))
+	}
+
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]any)
 		update.Tags = tags.Expand(tagsRaw)
@@ -1104,6 +1121,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta any) error {
 		d.Set("large_volume_enabled", props.IsLargeVolume)
 		d.Set("breakthrough_mode_enabled", pointer.From(props.BreakthroughMode) == volumes.BreakthroughModeEnabled)
 		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
+		d.Set("unix_permissions", pointer.From(props.UnixPermissions))
 
 		if pointer.From(props.CoolAccess) {
 			// enums returned from the API are inconsistent so normalize them here
