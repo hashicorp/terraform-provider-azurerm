@@ -1369,6 +1369,30 @@ func TestAccKubernetesClusterNodePool_parallelPodSubnet(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_updateVmSizeInPlace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateVmSizeInPlace(data, "Standard_D4ds_v6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_size").HasValue("Standard_D4ds_v6"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateVmSizeInPlace(data, "Standard_D8ds_v6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_size").HasValue("Standard_D8ds_v6"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOriginal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -2019,6 +2043,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 }
 `, r.templateConfig(data), numberOfAgents)
+}
+
+func (r KubernetesClusterNodePoolResource) updateVmSizeInPlace(data acceptance.TestData, vmSize string) string {
+	return strings.ReplaceAll(r.manualScaleVMSkuConfig(data, vmSize), "  temporary_name_for_rotation = \"temporal\"\n", "")
 }
 
 func (r KubernetesClusterNodePoolResource) manualScaleVMSkuConfig(data acceptance.TestData, sku string) string {
