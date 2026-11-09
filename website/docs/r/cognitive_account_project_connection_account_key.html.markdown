@@ -77,19 +77,11 @@ The following arguments are supported:
 
 * `account_key` - (Required) The account key used for authentication.
 
-* `category` - (Required) The category of the connection. Changing this forces a new resource to be created.
-
--> **Note:** The only possible value is `AzureStorageAccount`.
-
-* `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
-
-~> **Note:** The `metadata` map must include a non-empty `ResourceId` value. To check any additional metadata returned by Azure, create an equivalent connection in the Foundry portal and inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
-
--> **Note:** Service-added `ApiVersion` and `DeploymentApiVersion` metadata keys are excluded during import and list discovery. Other metadata keys are retained.
+* `category` - (Required) The category of the connection. Possible values are `AIServices`, `ApiManagement`, `AppConfig`, `AzureOpenAI`, `AzureStorageAccount`, `CognitiveSearch`, `CognitiveService`, `CosmosDb`, `Databricks`, `ManagedOnlineEndpoint`, `MicrosoftFabric`, and `Sharepoint`. Changing this forces a new resource to be created.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
-~> **Note:** `target` must be an absolute HTTP or HTTPS URL.
+* `metadata` - (Optional) A mapping of metadata key-value pairs for the connection.
 
 ## Attributes Reference
 

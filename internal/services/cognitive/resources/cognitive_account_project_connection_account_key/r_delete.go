@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2026-03-01/projectconnectionresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/helpers"
 )
 
 func (r Resource) Delete() sdk.ResourceFunc {
@@ -27,8 +29,20 @@ func (r Resource) Delete() sdk.ResourceFunc {
 			projectId := projectconnectionresource.NewProjectID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ProjectName)
 			locks.ByID(projectId.ID())
 			defer locks.UnlockByID(projectId.ID())
-			
-			if _, err := client.ProjectConnectionsDelete(ctx, *id); err != nil {
+
+			resp, err := client.ProjectConnectionsGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if !helpers.CognitiveAccountProjectConnectionHasExpectedAuthType(resp.Model, projectconnectionresource.ConnectionAuthTypeAccountKey) {
+				return fmt.Errorf("connection %s does not have auth type `AccountKey` and cannot be deleted by `%s`", *id, r.ResourceType())
+			}
+
+			if resp, err := client.ProjectConnectionsDelete(ctx, *id); err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

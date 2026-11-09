@@ -40,21 +40,34 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice([]string{string(projectconnectionresource.ConnectionCategoryAzureStorageAccount)}, false),
-		},
-
-		"metadata": {
-			Type:     pluginsdk.TypeMap,
-			Required: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
+			ValidateFunc: validation.StringInSlice([]string{
+				string(projectconnectionresource.ConnectionCategoryAIServices),
+				string(projectconnectionresource.ConnectionCategoryApiManagement),
+				string(projectconnectionresource.ConnectionCategoryAppConfig),
+				string(projectconnectionresource.ConnectionCategoryAzureOpenAI),
+				string(projectconnectionresource.ConnectionCategoryAzureStorageAccount),
+				string(projectconnectionresource.ConnectionCategoryCognitiveService),
+				string(projectconnectionresource.ConnectionCategoryCognitiveSearch),
+				string(projectconnectionresource.ConnectionCategoryCosmosDb),
+				string(projectconnectionresource.ConnectionCategoryDatabricks),
+				string(projectconnectionresource.ConnectionCategoryManagedOnlineEndpoint),
+				string(projectconnectionresource.ConnectionCategoryMicrosoftFabric),
+				string(projectconnectionresource.ConnectionCategorySharepoint),
+			}, false),
 		},
 
 		"target": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+		},
+
+		"metadata": {
+			Type:     pluginsdk.TypeMap,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
 }
