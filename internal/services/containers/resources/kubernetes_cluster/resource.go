@@ -207,20 +207,6 @@ func RegisterResource() *pluginsdk.Resource {
 
 func customizeKubernetesClusterNatGatewaySku(ctx context.Context, d *schema.ResourceDiff, meta any) error {
 	key := "network_profile.0.nat_gateway_profile.0.sku"
-	outboundKey := "network_profile.0.outbound_type"
-	if !d.NewValueKnown(key) {
-		return nil
-	}
-	if d.HasChange(key) {
-		old, new := d.GetChange(key)
-		if old == string(managedclusters.ManagedClusterNATGatewaySkuStandardVTwo) && new == string(managedclusters.ManagedClusterNATGatewaySkuStandard) {
-			return fmt.Errorf("downgrading `network_profile.0.nat_gateway_profile.0.sku` from `StandardV2` to `Standard` is not supported by AKS")
-		}
-	}
-	if !d.NewValueKnown(outboundKey) || d.Get(key).(string) == "" || d.Get(outboundKey).(string) == string(managedclusters.OutboundTypeManagedNATGateway) {
-		return nil
-	}
-	// Only a configured SKU restricts outbound_type; an omitted computed SKU is read from Azure.
 	config := d.GetRawConfig()
 	if !config.IsKnown() || config.IsNull() {
 		return nil
@@ -242,7 +228,21 @@ func customizeKubernetesClusterNatGatewaySku(ctx context.Context, d *schema.Reso
 		return nil
 	}
 	sku := natProfile.GetAttr("sku")
-	if !sku.IsKnown() || sku.IsNull() {
+	if sku.IsNull() {
+		return nil
+	}
+	if sku.IsKnown() && d.HasChange(key) {
+		old, _ := d.GetChange(key)
+		if old == string(managedclusters.ManagedClusterNATGatewaySkuStandardVTwo) && sku.AsString() == string(managedclusters.ManagedClusterNATGatewaySkuStandard) {
+			return fmt.Errorf("downgrading `network_profile.0.nat_gateway_profile.0.sku` from `StandardV2` to `Standard` is not supported by AKS")
+		}
+	}
+
+	outboundType := profile.GetAttr("outbound_type")
+	if !outboundType.IsKnown() {
+		return nil
+	}
+	if !outboundType.IsNull() && outboundType.AsString() == string(managedclusters.OutboundTypeManagedNATGateway) {
 		return nil
 	}
 	return fmt.Errorf("`network_profile.0.nat_gateway_profile.0.sku` can only be set when `network_profile.0.outbound_type` is `%s`", managedclusters.OutboundTypeManagedNATGateway)
