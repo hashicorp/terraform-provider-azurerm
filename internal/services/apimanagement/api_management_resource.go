@@ -908,8 +908,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-		if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
-			return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+		if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+			if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
+				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+			}
 		}
 	}
 
@@ -1127,8 +1129,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
 			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-			if _, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
-				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+			if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+				if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
+					return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+				}
 			}
 		}
 	}
@@ -1278,10 +1282,16 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error
 
 			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
-			if err != nil {
+			var tenantAccess []any
+			switch {
+			case err == nil:
+				tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
+			case wasDirectManagementApiDisabled(tenantAccessInformationContract.HttpResponse, err):
+				tenantAccess = flattenApiManagementTenantAccessSettings(tenantaccess.AccessInformationSecretsContract{Enabled: pointer.To(false)})
+			default:
 				return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
 			}
-			if err := d.Set("tenant_access", flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)); err != nil {
+			if err := d.Set("tenant_access", tenantAccess); err != nil {
 				return fmt.Errorf("setting `tenant_access`: %+v", err)
 			}
 		} else {
@@ -2077,6 +2087,11 @@ func flattenApiManagementTenantAccessSettings(input tenantaccess.AccessInformati
 	result["secondary_key"] = pointer.From(input.SecondaryKey)
 
 	return []any{result}
+}
+
+// The service rejects every `tenant/access` operation with a 405 once the retired direct management API is disabled for the instance
+func wasDirectManagementApiDisabled(resp *http.Response, err error) bool {
+	return response.WasStatusCode(resp, http.StatusMethodNotAllowed) && strings.Contains(err.Error(), "Direct management API is disabled")
 }
 
 func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apimanagementservice.CertificateConfiguration) []any {
