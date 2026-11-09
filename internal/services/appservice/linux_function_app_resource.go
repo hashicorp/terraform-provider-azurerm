@@ -650,7 +650,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			if managedEnvironmentId == nil {
-				if err = createOrUpdateLinuxFunctionApp(ctx, client, id, siteEnvelope, false, nil); err != nil {
+				if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 					return fmt.Errorf("creating Linux %s: %+v", id, err)
 				}
 			}
