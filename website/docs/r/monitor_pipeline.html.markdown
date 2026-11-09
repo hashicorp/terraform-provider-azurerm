@@ -14,6 +14,8 @@ Manages an Azure Monitor pipeline.
 
 ## Example Usage
 
+-> **Note:** A complete example that provisions an Arc-enabled Kubernetes cluster and its Azure Monitor pipeline prerequisites can be found in [the `examples/azure-monitoring/monitor-pipeline` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/azure-monitoring/monitor-pipeline).
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
@@ -106,7 +108,7 @@ resource "azurerm_monitor_pipeline" "example" {
   location               = azurerm_resource_group.example.location
   custom_location_id     = data.azurerm_extended_location_custom_location.example.id
   persistent_volume_name = "example-monitor-pipeline-pv"
-  replicas               = 1
+  replica_count          = 1
 
   execution_placement_constraint {
     capability = "gpu-enabled"
@@ -203,7 +205,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key_source {
+      private_key {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -220,7 +222,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key_source {
+      private_key {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -246,8 +248,6 @@ resource "azurerm_monitor_pipeline" "example" {
   }
 }
 ```
-
--> **Note:** A complete example that provisions an Arc-enabled Kubernetes cluster and its Azure Monitor pipeline prerequisites can be found in [the `examples/azure-monitoring/monitor-pipeline` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/azure-monitoring/monitor-pipeline).
 
 ## Arguments Reference
 
@@ -279,9 +279,9 @@ The following arguments are supported:
 
 * `persistent_volume_name` - (Optional) The name of the Kubernetes persistent volume mounted for durable storage. Changing this forces a new resource to be created.
 
-* `replicas` - (Optional) The number of replicas of the Azure Monitor pipeline instance.
+* `replica_count` - (Optional) The number of replicas of the Azure Monitor pipeline instance.
 
--> **Note:** `replicas` must be at least `1`.
+-> **Note:** `replica_count` must be at least `1`.
 
 * `syslog_receiver` - (Optional) One or more `syslog_receiver` blocks as defined below.
 
@@ -337,18 +337,6 @@ A `batch_processor` block supports the following:
 
 ---
 
-An `execution_placement_constraint` block supports the following:
-
-* `capability` - (Required) The capability or attribute key used to match compute unit properties.
-
-* `operator` - (Required) The match operator to use for this constraint. Possible values are `DoesNotExist`, `Exists`, `In`, and `NotIn`.
-
-* `values` - (Optional) A list of values to match against.
-
-~> **Note:** `values` must be non-empty when `operator` is `In` or `NotIn`, and empty or omitted when `operator` is `Exists` or `DoesNotExist`.
-
----
-
 A `certificate` block supports the following:
 
 * `location` - (Required) The location of the TLS certificate source.
@@ -369,11 +357,15 @@ A `client_certificate_authority` block supports the following:
 
 ---
 
-A `private_key_source` block supports the following:
+An `execution_placement_constraint` block supports the following:
 
-* `location` - (Required) The location of the private key source.
+* `capability` - (Required) The capability or attribute key used to match compute unit properties.
 
-* `sub_location` - (Required) The sub-location within the private key source.
+* `operator` - (Required) The match operator to use for this constraint. Possible values are `DoesNotExist`, `Exists`, `In`, and `NotIn`.
+
+* `values` - (Optional) A list of values to match against.
+
+~> **Note:** `values` must be non-empty when `operator` is `In` or `NotIn`, and empty or omitted when `operator` is `Exists` or `DoesNotExist`.
 
 ---
 
@@ -426,6 +418,14 @@ An `otlp_receiver` block supports the following:
 * `tls_configuration_name` - (Optional) The name of the `tls_configuration` block to secure this receiver with. When not specified, the default TLS configuration is used.
 
 ~> **Note:** `tls_configuration_name` must reference the `name` of a `tls_configuration` block defined on this resource. It must be between 4 and 33 characters, contain only letters, numbers, and hyphens, and must not start or end with a hyphen.
+
+---
+
+A `private_key` block supports the following:
+
+* `location` - (Required) The location of the private key source.
+
+* `sub_location` - (Required) The sub-location within the private key source.
 
 ---
 
@@ -509,7 +509,7 @@ A `tls_certificate` block supports the following:
 
 * `certificate` - (Required) A `certificate` block as defined above.
 
-* `private_key_source` - (Required) A `private_key_source` block as defined above.
+* `private_key` - (Required) A `private_key` block as defined above.
 
 ---
 

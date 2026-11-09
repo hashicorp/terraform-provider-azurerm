@@ -67,7 +67,7 @@ type MonitorPipelineResourceModel struct {
 	MicrosoftSyslogProcessor            []PipelineMicrosoftSyslogProcessorModel            `tfschema:"microsoft_syslog_processor"`
 	OtlpReceiver                        []PipelineOtlpReceiverModel                        `tfschema:"otlp_receiver"`
 	PersistentVolumeName                string                                             `tfschema:"persistent_volume_name"`
-	Replicas                            int64                                              `tfschema:"replicas"`
+	ReplicaCount                        int64                                              `tfschema:"replica_count"`
 	SyslogReceiver                      []PipelineSyslogReceiverModel                      `tfschema:"syslog_receiver"`
 	TlsConfiguration                    []PipelineTlsConfigurationModel                    `tfschema:"tls_configuration"`
 	TransformLanguageProcessor          []PipelineTransformLanguageProcessorModel          `tfschema:"transform_language_processor"`
@@ -149,8 +149,8 @@ type PipelineCertificateSourceModel struct {
 }
 
 type PipelineTlsCertificateModel struct {
-	Certificate      []PipelineCertificateSourceModel `tfschema:"certificate"`
-	PrivateKeySource []PipelinePrivateKeySourceModel  `tfschema:"private_key_source"`
+	Certificate []PipelineCertificateSourceModel `tfschema:"certificate"`
+	PrivateKey  []PipelinePrivateKeySourceModel  `tfschema:"private_key"`
 }
 
 type PipelineSchemaMapModel struct {
@@ -472,7 +472,7 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"replicas": {
+		"replica_count": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
@@ -580,7 +580,7 @@ func (r MonitorPipelineResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem:     pipelineCertificateSourceSchema(),
 								},
 
-								"private_key_source": {
+								"private_key": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
 									MaxItems: 1,
@@ -947,7 +947,7 @@ func (r MonitorPipelineResource) Create() sdk.ResourceFunc {
 					Exporters:          expandPipelineAzureMonitorWorkspaceLogExporters(model.AzureMonitorWorkspaceLogExporter),
 					Processors:         expandPipelineProcessors(model),
 					Receivers:          expandPipelineReceivers(model),
-					Replicas:           pointer.ToOrNil(model.Replicas),
+					Replicas:           pointer.ToOrNil(model.ReplicaCount),
 					Service:            expandPipelineService(model.LogPipeline, model.PersistentVolumeName),
 				},
 				Tags: pointer.To(model.Tags),
@@ -1032,8 +1032,8 @@ func (r MonitorPipelineResource) Update() sdk.ResourceFunc {
 				payload.Properties.Receivers = mergePipelineReceivers(payload.Properties.Receivers, expandPipelineReceivers(model), changedTypes)
 			}
 
-			if metadata.ResourceData.HasChange("replicas") {
-				payload.Properties.Replicas = pointer.ToOrNil(model.Replicas)
+			if metadata.ResourceData.HasChange("replica_count") {
+				payload.Properties.Replicas = pointer.ToOrNil(model.ReplicaCount)
 			}
 
 			if metadata.ResourceData.HasChanges("log_pipeline", "persistent_volume_name") {
@@ -1105,7 +1105,7 @@ func (r MonitorPipelineResource) flatten(metadata sdk.ResourceMetaData, id *pipe
 			state.AzureMonitorWorkspaceLogExporter = flattenPipelineAzureMonitorWorkspaceLogExporters(props.Exporters)
 			flattenPipelineProcessors(props.Processors, &state)
 			flattenPipelineReceivers(props.Receivers, &state)
-			state.Replicas = pointer.From(props.Replicas)
+			state.ReplicaCount = pointer.From(props.Replicas)
 			flattenPipelineService(props.Service, &state)
 			state.TlsConfiguration = flattenPipelineTlsConfigurations(props.TlsConfigurations)
 		}
@@ -1529,10 +1529,10 @@ func expandPipelineTlsConfigurations(input []PipelineTlsConfigurationModel) *[]p
 			if len(certificate.Certificate) > 0 {
 				certificateWithKey.Certificate = *expandPipelineCertificateSource(certificate.Certificate[0])
 			}
-			if len(certificate.PrivateKeySource) > 0 {
+			if len(certificate.PrivateKey) > 0 {
 				certificateWithKey.PrivateKey = pipelinegroups.PrivateKeySource{
-					Location:    certificate.PrivateKeySource[0].Location,
-					SubLocation: certificate.PrivateKeySource[0].SubLocation,
+					Location:    certificate.PrivateKey[0].Location,
+					SubLocation: certificate.PrivateKey[0].SubLocation,
 					Type:        pipelinegroups.PrivateKeySourceTypeKubernetesSecret,
 				}
 			}
@@ -1572,7 +1572,7 @@ func flattenPipelineTlsConfigurations(input *[]pipelinegroups.TlsConfiguration) 
 		if v.TlsCertificate != nil {
 			tlsConfiguration.TlsCertificate = []PipelineTlsCertificateModel{{
 				Certificate: flattenPipelineCertificateSource(&v.TlsCertificate.Certificate),
-				PrivateKeySource: []PipelinePrivateKeySourceModel{{
+				PrivateKey: []PipelinePrivateKeySourceModel{{
 					Location:    v.TlsCertificate.PrivateKey.Location,
 					SubLocation: v.TlsCertificate.PrivateKey.SubLocation,
 				}},

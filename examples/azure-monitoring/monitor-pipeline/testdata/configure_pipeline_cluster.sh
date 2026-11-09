@@ -28,8 +28,11 @@ kubectl wait --for=condition=Ready certificate/arc-amp-client-root-ca -n cert-ma
 
 for pair in 'arc-amp-root-ca arc-amp-root-ca-current' 'arc-amp-client-root-ca arc-amp-client-root-ca-current'; do
   set -- $pair
+  kubectl label secret -n cert-manager "$1" "microsoft-certmanagement.clusterextensions.azure.com/ac-rotation-active=$1" --overwrite
   kubectl get secret -n cert-manager "$1" -o json | python3 -c "import json,sys; d=json.load(sys.stdin); d['metadata']={'name':'$2','namespace':'cert-manager'}; print(json.dumps(d))" | kubectl apply -f -
 done
+
+kubectl wait --for=condition=Synced bundle/arc-amp-trust-bundle bundle/arc-amp-client-trust-bundle --timeout=300s
 
 kubectl create namespace "$PIPELINE_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 

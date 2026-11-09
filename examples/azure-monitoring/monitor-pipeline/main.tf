@@ -76,7 +76,7 @@ resource "azurerm_kubernetes_cluster" "example" {
   default_node_pool {
     name       = "system"
     node_count = 1
-    vm_size    = "Standard_D4s_v3"
+    vm_size    = "Standard_D4as_v7"
   }
 
   identity {
@@ -308,7 +308,7 @@ resource "azurerm_monitor_pipeline" "example" {
   location               = azurerm_resource_group.example.location
   custom_location_id     = azurerm_extended_location_custom_location.example.id
   persistent_volume_name = "example-monitor-pipeline-pv"
-  replicas               = 1
+  replica_count          = 1
 
   execution_placement_constraint {
     capability = "gpu-enabled"
@@ -407,7 +407,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key_source {
+      private_key {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -424,7 +424,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key_source {
+      private_key {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }

@@ -88,6 +88,13 @@ func TestAccMonitorPipeline_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.withoutOptionalBlocks(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -167,7 +174,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "system"
     node_count = 1
-    vm_size    = "Standard_D4s_v3"
+    vm_size    = "Standard_D4as_v7"
   }
 
   identity {
@@ -223,7 +230,7 @@ resource "azurerm_arc_kubernetes_cluster_extension" "cert_manager" {
 # Keep this name short: the operator chart derives a Kubernetes Service name as
 # "<name>-pipeline-operator-metrics-service", which must fit the 63-char DNS label limit.
 resource "azurerm_arc_kubernetes_cluster_extension" "pipeline" {
-  name              = "acctpipe%[1]d"
+  name              = "acctestpipe%[1]d"
   cluster_id        = azurerm_arc_kubernetes_cluster.test.id
   extension_type    = "microsoft.monitor.pipelinecontroller"
   release_train     = "Preview"
@@ -260,7 +267,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name               = "pipeline"
+  name               = "acctest-pipeline"
   storage_account_id = azurerm_storage_account.test.id
   quota              = 5
 }
@@ -313,7 +320,7 @@ resource "local_file" "pipeline_persistent_volume" {
 # persistent_volume_name reference.
 resource "terraform_data" "cluster_prereqs" {
   provisioner "local-exec" {
-    command = "export PATH=\"$HOME/go/bin:$PATH\"; bash testdata/configure_pipeline_cluster.sh && kubectl label nodes --all gpu-enabled=true high-memory=true node-type=dedicated --overwrite && kubectl create configmap server-tls-cert-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=tls-updated.crt=\"$PIPELINE_TLS_CERT\" --dry-run=client -o yaml | kubectl apply -f - && kubectl create secret generic server-tls-key-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=tls-updated.key=\"$PIPELINE_TLS_KEY\" --dry-run=client -o yaml | kubectl apply -f -"
+    command = "export PATH=\"$HOME/go/bin:$PATH\"; bash testdata/configure_pipeline_cluster.sh && kubectl label nodes --all gpu-enabled=true high-memory=true node-type=dedicated --overwrite && kubectl create configmap server-tls-cert-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=tls-updated.crt=\"$PIPELINE_TLS_CERT\" --dry-run=client -o yaml | kubectl apply -f - && kubectl create secret generic server-tls-key-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=tls-updated.key=\"$PIPELINE_TLS_KEY\" --dry-run=client -o yaml | kubectl apply -f - && kubectl create configmap client-ca-bundle-updated --namespace \"$PIPELINE_NAMESPACE\" --from-literal=ca-updated.crt=\"$CLIENT_CA_CERT\" --dry-run=client -o yaml | kubectl apply -f -"
 
     environment = {
       KUBECONFIG                        = %[3]q
@@ -341,7 +348,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
-  name         = "PipelineTestData%[1]d_CL"
+  name         = "acctestPipeline%[1]d_CL"
   workspace_id = azurerm_log_analytics_workspace.test.id
 
   column {
@@ -375,7 +382,7 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "test" {
 }
 
 resource "azurerm_log_analytics_workspace_table_custom_log" "updated" {
-  name         = "PipelineUpdatedData%[1]d_CL"
+  name         = "acctestPipelineUpdated%[1]d_CL"
   workspace_id = azurerm_log_analytics_workspace.test.id
 
   column {
@@ -383,11 +390,23 @@ resource "azurerm_log_analytics_workspace_table_custom_log" "updated" {
     type = "dateTime"
   }
   column {
+    name = "Message"
+    type = "string"
+  }
+  column {
     name = "MessageUpdated"
     type = "string"
   }
   column {
+    name = "ResourceColumnUpd"
+    type = "string"
+  }
+  column {
     name = "ResourceColumnUpdV2"
+    type = "string"
+  }
+  column {
+    name = "ScopeColumnUpd"
     type = "string"
   }
   column {
@@ -483,11 +502,23 @@ resource "azurerm_monitor_data_collection_rule" "updated" {
       type = "datetime"
     }
     column {
+      name = "Message"
+      type = "string"
+    }
+    column {
       name = "MessageUpdated"
       type = "string"
     }
     column {
+      name = "ResourceColumnUpd"
+      type = "string"
+    }
+    column {
       name = "ResourceColumnUpdV2"
+      type = "string"
+    }
+    column {
+      name = "ScopeColumnUpd"
       type = "string"
     }
     column {
@@ -598,7 +629,7 @@ resource "azurerm_monitor_pipeline" "import" {
 `, r.basic(data))
 }
 
-func (r MonitorPipelineResource) complete(data acceptance.TestData) string {
+func (r MonitorPipelineResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -621,7 +652,7 @@ resource "azurerm_monitor_pipeline" "test" {
   location               = azurerm_resource_group.test.location
   custom_location_id     = azurerm_extended_location_custom_location.test.id
   persistent_volume_name = "acctest-pipeline-pv"
-  replicas               = 1
+  replica_count          = 1
 
   execution_placement_constraint {
     capability = "gpu-enabled"
@@ -717,7 +748,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key_source {
+      private_key {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -734,7 +765,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key_source {
+      private_key {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -766,24 +797,26 @@ resource "azurerm_monitor_pipeline" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// update reuses the same template() dependencies as complete() and only changes values on
-// the azurerm_monitor_pipeline resource itself, so the update test exercises an
-// in-place update of the pipeline group without recreating the Arc cluster/extensions.
-func (r MonitorPipelineResource) update(data acceptance.TestData) string {
+func (r MonitorPipelineResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 locals {
-  workspace_logs_exporter_name           = "acctest-exporter"
+  workspace_logs_exporter_name           = "acctest-exporter-updated"
   workspace_logs_exporter_secondary_name = "acctest-exporter-2"
-  batch_processor_name                   = "acctest-batch-processor"
-  transform_processor_name               = "acctest-transform-processor"
-  cef_processor_name                     = "acctest-cef-processor"
-  syslog_processor_name                  = "acctest-syslog-processor"
-  syslog_receiver_name                   = "acctest-receiver"
+  batch_processor_name                   = "acctest-batch-processor-updated"
+  batch_processor_secondary_name         = "acctest-batch-processor-2"
+  transform_processor_name               = "acctest-transform-processor-upd"
+  transform_processor_secondary_name     = "acctest-transform-processor-2"
+  cef_processor_name                     = "acctest-cef-processor-updated"
+  cef_processor_secondary_name           = "acctest-cef-processor-2"
+  syslog_processor_name                  = "acctest-syslog-processor-updated"
+  syslog_processor_secondary_name        = "acctest-syslog-processor-2"
+  syslog_receiver_name                   = "acctest-receiver-updated"
   syslog_receiver_secondary_name         = "acctest-receiver-2"
-  otlp_receiver_name                     = "acctest-otlp-receiver"
-  tls_configuration_name                 = "acctest-tls-config"
+  otlp_receiver_name                     = "acctest-otlp-receiver-updated"
+  otlp_receiver_secondary_name           = "acctest-otlp-receiver-2"
+  tls_configuration_name                 = "acctest-tls-config-2"
   mtls_configuration_name                = "acctest-mtls-config"
   server_only_configuration_name         = "acctest-server-only-tls-config"
 }
@@ -794,7 +827,18 @@ resource "azurerm_monitor_pipeline" "test" {
   location               = azurerm_resource_group.test.location
   custom_location_id     = azurerm_extended_location_custom_location.test.id
   persistent_volume_name = "acctest-pipeline-pv"
-  replicas               = 2
+  replica_count          = 2
+
+  execution_placement_constraint {
+    capability = "high-memory"
+    operator   = "In"
+    values     = ["true"]
+  }
+  execution_placement_constraint {
+    capability = "node-type"
+    operator   = "NotIn"
+    values     = ["high-cpu"]
+  }
 
   azure_monitor_workspace_log_exporter {
     name = local.workspace_logs_exporter_name
@@ -813,13 +857,25 @@ resource "azurerm_monitor_pipeline" "test" {
           from = "time_unix_nano"
           to   = "TimeGenerated"
         }
+        record_map {
+          from = "Message"
+          to   = "Message"
+        }
+        resource_map {
+          from = "ResourceColumnV2"
+          to   = "ResourceColumnUpdV2"
+        }
         resource_map {
           from = "ResourceColumn"
-          to   = "ResourceColumnUpdV2"
+          to   = "ResourceColumnUpd"
+        }
+        scope_map {
+          from = "ScopeColumnV2"
+          to   = "ScopeColumnUpdV2"
         }
         scope_map {
           from = "ScopeColumn"
-          to   = "ScopeColumnUpdV2"
+          to   = "ScopeColumnUpd"
         }
       }
     }
@@ -855,17 +911,36 @@ resource "azurerm_monitor_pipeline" "test" {
     timeout_in_milliseconds = 150000
   }
 
+  batch_processor {
+    name                    = local.batch_processor_secondary_name
+    batch_size              = 2048
+    timeout_in_milliseconds = 100000
+  }
+
   transform_language_processor {
     name                = local.transform_processor_name
     transform_statement = "source | extend FooColumn = 'baz'"
+  }
+
+  transform_language_processor {
+    name                = local.transform_processor_secondary_name
+    transform_statement = "source | extend SecondaryColumn = 'secondary'"
   }
 
   microsoft_common_security_log_processor {
     name = local.cef_processor_name
   }
 
+  microsoft_common_security_log_processor {
+    name = local.cef_processor_secondary_name
+  }
+
   microsoft_syslog_processor {
     name = local.syslog_processor_name
+  }
+
+  microsoft_syslog_processor {
+    name = local.syslog_processor_secondary_name
   }
 
   syslog_receiver {
@@ -878,8 +953,14 @@ resource "azurerm_monitor_pipeline" "test" {
 
   otlp_receiver {
     name                   = local.otlp_receiver_name
-    tls_configuration_name = local.mtls_configuration_name
+    tls_configuration_name = local.server_only_configuration_name
     endpoint               = "0.0.0.0:4318"
+  }
+
+  otlp_receiver {
+    name                   = local.otlp_receiver_secondary_name
+    tls_configuration_name = local.tls_configuration_name
+    endpoint               = "0.0.0.0:4320"
   }
 
   syslog_receiver {
@@ -893,20 +974,20 @@ resource "azurerm_monitor_pipeline" "test" {
     mode = "mutualTls"
 
     client_certificate_authority {
-      location     = "client-ca-bundle"
-      sub_location = "ca.crt"
-      type         = "kubernetesSecret"
+      location     = "client-ca-bundle-updated"
+      sub_location = "ca-updated.crt"
+      type         = "kubernetesConfigMap"
     }
 
     tls_certificate {
       certificate {
-        location     = "pipeline-tls-cert"
-        sub_location = "tls.crt"
-        type         = "kubernetesSecret"
+        location     = "server-tls-cert-updated"
+        sub_location = "tls-updated.crt"
+        type         = "kubernetesConfigMap"
       }
-      private_key_source {
-        location     = "pipeline-tls-cert"
-        sub_location = "tls.key"
+      private_key {
+        location     = "server-tls-key-updated"
+        sub_location = "tls-updated.key"
       }
     }
   }
@@ -916,9 +997,9 @@ resource "azurerm_monitor_pipeline" "test" {
     mode = "mutualTls"
 
     client_certificate_authority {
-      location     = "client-ca-bundle"
-      sub_location = "ca.crt"
-      type         = "kubernetesSecret"
+      location     = "client-ca-bundle-updated"
+      sub_location = "ca-updated.crt"
+      type         = "kubernetesConfigMap"
     }
 
     tls_certificate {
@@ -927,7 +1008,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls-updated.crt"
         type         = "kubernetesConfigMap"
       }
-      private_key_source {
+      private_key {
         location     = "server-tls-key-updated"
         sub_location = "tls-updated.key"
       }
@@ -940,16 +1021,16 @@ resource "azurerm_monitor_pipeline" "test" {
   }
 
   log_pipeline {
-    name       = "acctest-pipeline"
+    name       = "acctest-pipeline-updated"
     exporters  = [local.workspace_logs_exporter_name, local.workspace_logs_exporter_secondary_name]
     receivers  = [local.syslog_receiver_name, local.syslog_receiver_secondary_name]
-    processors = [local.batch_processor_name, local.syslog_processor_name]
+    processors = [local.batch_processor_name, local.cef_processor_name, local.syslog_processor_name]
   }
 
   log_pipeline {
-    name       = "acctest-otlp-pipeline"
+    name       = "acctest-otlp-pipeline-updated"
     exporters  = [local.workspace_logs_exporter_name]
-    receivers  = [local.otlp_receiver_name]
+    receivers  = [local.otlp_receiver_name, local.otlp_receiver_secondary_name]
     processors = [local.transform_processor_name]
   }
 
@@ -957,12 +1038,63 @@ resource "azurerm_monitor_pipeline" "test" {
     name       = "acctest-secondary-pipeline"
     exporters  = [local.workspace_logs_exporter_secondary_name]
     receivers  = [local.syslog_receiver_secondary_name]
-    processors = [local.batch_processor_name]
+    processors = [local.batch_processor_secondary_name, local.cef_processor_secondary_name, local.syslog_processor_secondary_name, local.transform_processor_secondary_name]
   }
 
   tags = {
     environment = "staging"
     updated     = "true"
+  }
+
+  depends_on = [
+    terraform_data.cluster_prereqs,
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MonitorPipelineResource) withoutOptionalBlocks(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_pipeline" "test" {
+  name                   = "acctest-mp-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  custom_location_id     = azurerm_extended_location_custom_location.test.id
+  persistent_volume_name = "acctest-pipeline-pv"
+  replica_count          = 1
+
+  azure_monitor_workspace_log_exporter {
+    name = "acctest-exporter"
+
+    api {
+      data_collection_endpoint_url      = azurerm_monitor_data_collection_endpoint.test.logs_ingestion_endpoint
+      data_collection_rule_immutable_id = azurerm_monitor_data_collection_rule.test.immutable_id
+      stream                            = "Custom-${azurerm_log_analytics_workspace_table_custom_log.test.name}"
+
+      schema {
+        record_map {
+          from = "body"
+          to   = "Message"
+        }
+        record_map {
+          from = "time_unix_nano"
+          to   = "TimeGenerated"
+        }
+      }
+    }
+  }
+
+  syslog_receiver {
+    name     = "acctest-receiver"
+    endpoint = "0.0.0.0:514"
+  }
+
+  log_pipeline {
+    name      = "acctest-pipeline"
+    exporters = ["acctest-exporter"]
+    receivers = ["acctest-receiver"]
   }
 
   depends_on = [
