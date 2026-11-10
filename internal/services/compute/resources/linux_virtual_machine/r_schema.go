@@ -159,7 +159,33 @@ func linuxVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsBase64,
 			ConflictsWith: []string{
+				"custom_data_wo",
 				"os_managed_disk_id",
+			},
+		},
+
+		"custom_data_wo": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			WriteOnly:    true,
+			ValidateFunc: validate.CustomDataWriteOnly,
+			RequiredWith: []string{
+				"custom_data_wo_version",
+			},
+			ConflictsWith: []string{
+				"custom_data",
+				"os_managed_disk_id",
+			},
+		},
+
+		"custom_data_wo_version": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// `custom_data_wo` can't be `ForceNew` as it's `WriteOnly`, so its version replaces the Virtual Machine instead
+			ForceNew:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			RequiredWith: []string{
+				"custom_data_wo",
 			},
 		},
 
