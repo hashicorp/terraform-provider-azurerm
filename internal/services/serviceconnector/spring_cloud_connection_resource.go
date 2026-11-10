@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package serviceconnector
@@ -88,7 +88,7 @@ func (r SpringCloudConnectorResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r SpringCloudConnectorResource) ModelObject() interface{} {
+func (r SpringCloudConnectorResource) ModelObject() any {
 	return &SpringCloudConnectorResourceModel{}
 }
 

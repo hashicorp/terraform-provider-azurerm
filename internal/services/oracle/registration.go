@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -28,6 +28,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		AutonomousDatabaseBackupsDataSource{},
 		AutonomousDatabaseCloneFromBackupDataSource{},
 		AutonomousDatabaseCloneFromDatabaseDataSource{},
+		AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{},
 		AutonomousDatabaseRegularDataSource{},
 		CloudVmClusterDataSource{},
 		DatabaseVersionsDataSource{},
@@ -46,6 +47,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AutonomousDatabaseBackupResource{},
 		AutonomousDatabaseCloneFromBackupResource{},
 		AutonomousDatabaseCloneFromDatabaseResource{},
+		AutonomousDatabaseCrossRegionDisasterRecoveryResource{},
 		AutonomousDatabaseRegularResource{},
 		CloudVmClusterResource{},
 		ExadataInfraResource{},

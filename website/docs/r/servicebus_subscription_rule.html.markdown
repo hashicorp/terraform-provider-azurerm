@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `sql_filter` - (Optional) Represents a filter written in SQL language-based syntax that to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `SqlFilter`.
 
-* `correlation_filter` - (Optional) A `correlation_filter` block as documented below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
+* `correlation_filter` - (Optional) A `correlation_filter` block as defined below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
 
 * `action` - (Optional) Represents set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.
 
@@ -164,4 +164,4 @@ terraform import azurerm_servicebus_subscription_rule.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus` - 2024-01-01
+* `Microsoft.ServiceBus` - 2026-01-01

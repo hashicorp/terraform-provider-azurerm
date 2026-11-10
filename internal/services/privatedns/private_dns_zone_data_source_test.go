@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns_test
@@ -55,7 +55,7 @@ func TestAccDataSourcePrivateDNSZone_withoutResourceGroupName(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone.test"
 
 	// This test is split across multiple test steps to avoid an API race
-	// condition that occures when running multiple test cases in parallel
+	// condition that occurs when running multiple test cases in parallel
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.template(data),

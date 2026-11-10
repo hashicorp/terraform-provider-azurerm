@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -324,7 +324,7 @@ func (RedisCacheV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (RedisCacheV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := redis.ParseRediIDInsensitively(oldIdRaw)
 		if err != nil {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package md
@@ -67,7 +67,7 @@ func extractFieldFromLine(line string) (field *model.Field) {
 	field = &model.Field{
 		Content: line,
 	}
-	// if defautl exists
+	// if default exists
 	field.Default = getDefaultValue(line)
 	field.ForceNew = isForceNew(line)
 
@@ -158,8 +158,8 @@ func extractFieldFromLine(line string) (field *model.Field) {
 
 func extractBlockNames(line string) (res []string) {
 	if blockHeadReg.MatchString(line) {
-		idx := strings.Index(line, "block")
-		names := codeReg.FindAllString(line[:idx], -1)
+		before, _, _ := strings.Cut(line, "block")
+		names := codeReg.FindAllString(before, -1)
 		for idx, val := range names {
 			names[idx] = strings.Trim(val, "`'")
 		}

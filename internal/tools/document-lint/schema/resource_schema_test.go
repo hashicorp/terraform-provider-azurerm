@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema_test
@@ -6,12 +6,12 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/resources/automation_watcher"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 )
 
 func TestResourceFile(t *testing.T) {
-	p := automation.WatcherResource{}
+	p := automation_watcher.Resource{}
 	t.Log(schema.FileForResource(p.Read().Func))
 
 	// inspect schema

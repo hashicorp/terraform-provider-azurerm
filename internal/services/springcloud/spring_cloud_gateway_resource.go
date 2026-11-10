@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -94,7 +94,7 @@ func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
 }
 
-func (s SpringCloudGatewayResource) ModelObject() interface{} {
+func (s SpringCloudGatewayResource) ModelObject() any {
 	return &SpringCloudGatewayModel{}
 }
 

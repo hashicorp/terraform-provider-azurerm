@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -58,7 +58,7 @@ func resourceSentinelDataConnectorAzureSecurityCenter() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceSentinelDataConnectorAzureSecurityCenterCreate(d *pluginsdk.Resourc
 	return resourceSentinelDataConnectorAzureSecurityCenterRead(d, meta)
 }
 
-func resourceSentinelDataConnectorAzureSecurityCenterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureSecurityCenterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceSentinelDataConnectorAzureSecurityCenterRead(d *pluginsdk.ResourceD
 	return nil
 }
 
-func resourceSentinelDataConnectorAzureSecurityCenterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureSecurityCenterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

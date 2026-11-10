@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package videoindexer
@@ -102,7 +102,7 @@ func (r AccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r AccountResource) ModelObject() interface{} {
+func (r AccountResource) ModelObject() any {
 	return &AccountModel{}
 }
 
@@ -330,7 +330,7 @@ func (AccountResource) flatten(metadata sdk.ResourceMetaData, id *accounts.Accou
 				return fmt.Errorf("flattening `storage`: %+v", err)
 			}
 
-			state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+			state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 		}
 	}
 

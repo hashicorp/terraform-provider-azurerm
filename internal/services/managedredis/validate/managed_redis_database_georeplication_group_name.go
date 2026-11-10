@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ManagedRedisDatabaseGeoreplicationGroupName(val interface{}, argName string) ([]string, []error) {
+func ManagedRedisDatabaseGeoreplicationGroupName(val any, argName string) ([]string, []error) {
 	return validation.All(
 		validation.StringLenBetween(1, 63),
 		validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9-]+$`), "can only contain letters, numbers, and hyphens"),

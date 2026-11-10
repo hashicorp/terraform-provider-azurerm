@@ -155,7 +155,7 @@ A `certificate_key_vault` block supports the following:
 
 * `identity` - (Optional) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity. Defaults to `System`. Changing this forces a new resource to be created.
 
-~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
+~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
 
 * `key_vault_secret_id` - (Required) The ID of the Key Vault Secret containing the certificate. Changing this forces a new resource to be created.
 

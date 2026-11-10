@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -31,7 +31,7 @@ func (r LogAnalyticsWorkspaceOnboardResource) ResourceType() string {
 	return "azurerm_sentinel_log_analytics_workspace_onboarding"
 }
 
-func (r LogAnalyticsWorkspaceOnboardResource) ModelObject() interface{} {
+func (r LogAnalyticsWorkspaceOnboardResource) ModelObject() any {
 	return &SecurityInsightsSentinelOnboardingStateModel{}
 }
 

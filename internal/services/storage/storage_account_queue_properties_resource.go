@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -70,29 +70,18 @@ var defaultCorsProperties = queues.Cors{
 }
 
 var defaultHourMetricsProperties = queues.MetricsConfig{
-	Version: "1.0",
-	Enabled: false,
-	RetentionPolicy: queues.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: queues.RetentionPolicy{},
 }
 
 var defaultMinuteMetricsProperties = queues.MetricsConfig{
-	Version: "1.0",
-	Enabled: false,
-	RetentionPolicy: queues.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: queues.RetentionPolicy{},
 }
 
 var defaultLoggingProperties = queues.LoggingConfig{
-	Version: "1.0",
-	Delete:  false,
-	Read:    false,
-	Write:   false,
-	RetentionPolicy: queues.RetentionPolicy{
-		Enabled: false,
-	},
+	Version:         "1.0",
+	RetentionPolicy: queues.RetentionPolicy{},
 }
 
 func (s AccountQueuePropertiesResource) Arguments() map[string]*pluginsdk.Schema {
@@ -256,7 +245,7 @@ func (s AccountQueuePropertiesResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (s AccountQueuePropertiesResource) ModelObject() interface{} {
+func (s AccountQueuePropertiesResource) ModelObject() any {
 	return &AccountQueuePropertiesModel{}
 }
 
@@ -663,27 +652,16 @@ func (s AccountQueuePropertiesResource) Update() sdk.ResourceFunc {
 func DefaultValueForAccountQueueProperties() queues.StorageServiceProperties {
 	return queues.StorageServiceProperties{
 		Logging: &queues.LoggingConfig{
-			Version: "1.0",
-			Delete:  false,
-			Read:    false,
-			Write:   false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: queues.RetentionPolicy{},
 		},
 		HourMetrics: &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: queues.RetentionPolicy{},
 		},
 		MinuteMetrics: &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
+			Version:         "1.0",
+			RetentionPolicy: queues.RetentionPolicy{},
 		},
 		Cors: &queues.Cors{
 			CorsRule: []queues.CorsRule{},

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -498,16 +498,16 @@ type alternateSubscription struct {
 }
 
 func getAltSubscription() *alternateSubscription {
-	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altSubscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
 	altTenantID := os.Getenv("ARM_TENANT_ID")
 
-	if altSubscriptonID == "" || altTenantID == "" {
+	if altSubscriptionID == "" || altTenantID == "" {
 		return nil
 	}
 
 	return &alternateSubscription{
 		tenant_id:       altTenantID,
-		subscription_id: altSubscriptonID,
+		subscription_id: altSubscriptionID,
 	}
 }
 

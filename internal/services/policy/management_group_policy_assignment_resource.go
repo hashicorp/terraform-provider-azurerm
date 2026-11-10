@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -45,7 +45,7 @@ type ManagementGroupAssignmentModel struct {
 	ResourceSelectors    []assignmentResourceSelectorModel          `tfschema:"resource_selectors"`
 }
 
-func (r ManagementGroupAssignmentResource) ModelObject() interface{} {
+func (r ManagementGroupAssignmentResource) ModelObject() any {
 	return &ManagementGroupAssignmentModel{}
 }
 

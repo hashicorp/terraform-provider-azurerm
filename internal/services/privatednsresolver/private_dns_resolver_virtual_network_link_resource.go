@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package privatednsresolver
@@ -32,7 +32,7 @@ func (r PrivateDNSResolverVirtualNetworkLinkResource) ResourceType() string {
 	return "azurerm_private_dns_resolver_virtual_network_link"
 }
 
-func (r PrivateDNSResolverVirtualNetworkLinkResource) ModelObject() interface{} {
+func (r PrivateDNSResolverVirtualNetworkLinkResource) ModelObject() any {
 	return &PrivateDNSResolverVirtualNetworkLinkModel{}
 }
 

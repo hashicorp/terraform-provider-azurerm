@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package testclient
@@ -64,10 +64,6 @@ func BuildWithTestName(testName string) (*clients.Client, error) {
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
-			EnableAuthenticatingUsingAzureCLI:          false,
-			EnableAuthenticatingUsingManagedIdentity:   false,
-			EnableAuthenticationUsingOIDC:              false,
-			EnableAuthenticationUsingGitHubOIDC:        false,
 		}
 
 		clientBuilder := clients.ClientBuilder{

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -130,7 +130,7 @@ func (r SourceControlResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r SourceControlResource) ModelObject() interface{} {
+func (r SourceControlResource) ModelObject() any {
 	return &SourceControlModel{}
 }
 
@@ -255,7 +255,7 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 				state = SourceControlModel{
 					AppID:                     id.ID(),
-					SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
+					SCMType:                   pointer.FromEnum(siteConfig.Model.Properties.ScmType),
 					RepoURL:                   pointer.From(props.RepoURL),
 					Branch:                    pointer.From(props.Branch),
 					ManualIntegration:         pointer.From(props.IsManualIntegration),

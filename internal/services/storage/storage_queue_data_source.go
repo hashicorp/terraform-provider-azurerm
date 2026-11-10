@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -47,7 +47,7 @@ func dataSourceStorageQueue() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta any) error {
 	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

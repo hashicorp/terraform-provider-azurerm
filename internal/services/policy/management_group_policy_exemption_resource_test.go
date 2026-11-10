@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
+	managementGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -88,7 +88,7 @@ func (r ManagementGroupPolicyExemptionResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	managementGroupId, err := managmentGroupParse.ManagementGroupID(id.ResourceId)
+	managementGroupId, err := managementGroupParse.ManagementGroupID(id.ResourceId)
 	if err != nil {
 		return nil, err
 	}

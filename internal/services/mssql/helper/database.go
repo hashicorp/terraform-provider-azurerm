@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helper
@@ -82,7 +82,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 		filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", linkDatabase.ServerName)
 		listOptions := resources.ListOperationOptions{
-			Expand: nil,
 			Filter: pointer.To(filter),
 			Top:    pointer.To(int64(100)),
 		}

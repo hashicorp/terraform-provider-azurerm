@@ -9,3 +9,6 @@ breaking-change:
 
 ai-assisted:
   - '- \[\s?(x|X)\s?\] AI Assisted.*'
+
+no-changelog-needed:
+  - '- \[\s?(x|X)\s?\] This change does not require a changelog entry.*'

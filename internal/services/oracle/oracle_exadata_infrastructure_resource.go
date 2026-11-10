@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -199,7 +199,7 @@ func (ExadataInfraResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ExadataInfraResource) ModelObject() interface{} {
+func (ExadataInfraResource) ModelObject() any {
 	return &ExadataInfraResource{}
 }
 

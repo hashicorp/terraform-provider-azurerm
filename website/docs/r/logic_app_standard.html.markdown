@@ -162,11 +162,11 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Logic App. Defaults to `~4`.
 
-* `virtual_network_subnet_id` - (Optional) The subnet ID which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
+* `virtual_network_subnet_id` - (Optional) The subnet ID which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously.
 
-~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
+~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#permissions)
 
 * `vnet_content_share_enabled` - (Optional) Specifies whether allow routing traffic between the Logic App and Storage Account content share through a virtual network. Defaults to `false`.
 

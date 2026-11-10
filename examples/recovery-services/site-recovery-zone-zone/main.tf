@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "secondary" {
   location = var.location
 }
 
-// Source Vritual Machine
+// Source Virtual Machine
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   resource_group_name = azurerm_resource_group.primary.name

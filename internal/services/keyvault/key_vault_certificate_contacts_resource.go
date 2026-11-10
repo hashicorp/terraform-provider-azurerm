@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -78,7 +78,7 @@ func (r KeyVaultCertificateContactsResource) ResourceType() string {
 	return "azurerm_key_vault_certificate_contacts"
 }
 
-func (r KeyVaultCertificateContactsResource) ModelObject() interface{} {
+func (r KeyVaultCertificateContactsResource) ModelObject() any {
 	return &KeyVaultCertificateContactsResourceModel{}
 }
 

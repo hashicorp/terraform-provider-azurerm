@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -75,7 +75,7 @@ type WindowsFunctionAppDataSourceModel struct {
 
 var _ sdk.DataSource = WindowsFunctionAppDataSource{}
 
-func (d WindowsFunctionAppDataSource) ModelObject() interface{} {
+func (d WindowsFunctionAppDataSource) ModelObject() any {
 	return &WindowsFunctionAppDataSourceModel{}
 }
 
@@ -315,7 +315,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 					}
 					functionApp.ServicePlanId = servicePlanId.ID()
 					functionApp.Enabled = pointer.From(props.Enabled)
-					functionApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					functionApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					functionApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					functionApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)

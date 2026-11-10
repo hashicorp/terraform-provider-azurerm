@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -16,13 +16,6 @@ var _ resourceids.Id = EnrollmentBillingScopeId{}
 type EnrollmentBillingScopeId struct {
 	BillingAccountName    string
 	EnrollmentAccountName string
-}
-
-func NewEnrollmentBillingScopeID(billingAccountName, enrollmentAccountName string) EnrollmentBillingScopeId {
-	return EnrollmentBillingScopeId{
-		BillingAccountName:    billingAccountName,
-		EnrollmentAccountName: enrollmentAccountName,
-	}
 }
 
 func (id EnrollmentBillingScopeId) String() string {

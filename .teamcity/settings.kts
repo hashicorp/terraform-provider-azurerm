@@ -1,6 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 
-version = "2025.11"
+version = "2026.1"
 
 var clientId = DslContext.getParameter("clientId", "")
 var clientSecret = DslContext.getParameter("clientSecret", "")
@@ -21,7 +21,7 @@ var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
 var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-provider-azurerm")
 var gitPat = DslContext.getParameter("gitPat", "")
 var teamcityToken = DslContext.getParameter("teamcityToken", "")
-var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_FIVEPOINTZERO_BETA")
+var betaVersionEnvVar = DslContext.getParameter("betaVersionEnvVar", "env.ARM_SIXPOINTZERO_BETA")
 var labelSuccess = DslContext.getParameter("labelSuccess", "teamcity-passed")
 var labelFailure = DslContext.getParameter("labelFailure", "teamcity-failed")
 var labelOutdated = DslContext.getParameter("labelOutdated", "teamcity-outdated")

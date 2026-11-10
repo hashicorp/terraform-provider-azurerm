@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `billing_type` - The type of billing for the AAD B2C tenant. Possible values include: `MAU` or `Auths`.
 
-* `data_residency_location` - Location in which the B2C tenant is hosted and data resides. See [official docs](https://aka.ms/B2CDataResidenc) for more information.
+* `data_residency_location` - Location in which the B2C tenant is hosted and data resides. See [official docs](https://aka.ms/B2CDataResidency) for more information.
 
 * `effective_start_date` - The date from which the billing type took effect. May not be populated until after the first billing cycle.
 

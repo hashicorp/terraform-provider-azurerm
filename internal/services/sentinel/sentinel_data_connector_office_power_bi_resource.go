@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -60,7 +60,7 @@ func (r DataConnectorOfficePowerBIResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_power_bi"
 }
 
-func (r DataConnectorOfficePowerBIResource) ModelObject() interface{} {
+func (r DataConnectorOfficePowerBIResource) ModelObject() any {
 	return &DataConnectorOfficePowerBIModel{}
 }
 

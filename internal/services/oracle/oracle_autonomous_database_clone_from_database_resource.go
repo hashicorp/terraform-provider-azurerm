@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -6,6 +6,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -238,7 +239,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Attributes() map[string]*plug
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AutonomousDatabaseCloneFromDatabaseResource) ModelObject() interface{} {
+func (AutonomousDatabaseCloneFromDatabaseResource) ModelObject() any {
 	return &AutonomousDatabaseCloneFromDatabaseResourceModel{}
 }
 
@@ -451,10 +452,8 @@ func (AutonomousDatabaseCloneFromDatabaseResource) CustomizeDiff() sdk.ResourceF
 				return fmt.Errorf("unsupported source workload: %s", sourceWorkload)
 			}
 
-			for _, target := range targets {
-				if dbWorkload == target {
-					return nil
-				}
+			if slices.Contains(targets, dbWorkload) {
+				return nil
 			}
 
 			return fmt.Errorf("invalid workload: %s->%s not allowed", sourceWorkload, dbWorkload)

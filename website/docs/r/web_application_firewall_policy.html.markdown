@@ -208,6 +208,8 @@ The `managed_rules` block supports the following:
 
 * `managed_rule_set` - (Required) One or more `managed_rule_set` block defined below.
 
+~> **Note:** Exactly one `managed_rule_set` block must have a `type` of `OWASP` or `Microsoft_DefaultRuleSet`. A `Microsoft_BotManagerRuleSet` does not count as a primary rule set.
+
 ---
 
 The `exclusion` block supports the following:
@@ -317,4 +319,4 @@ terraform import azurerm_web_application_firewall_policy.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -60,7 +60,7 @@ func resourceSentinelDataConnectorAwsCloudTrail() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +124,7 @@ func resourceSentinelDataConnectorAwsCloudTrailCreateUpdate(d *pluginsdk.Resourc
 	return resourceSentinelDataConnectorAwsCloudTrailRead(d, meta)
 }
 
-func resourceSentinelDataConnectorAwsCloudTrailRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAwsCloudTrailRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func resourceSentinelDataConnectorAwsCloudTrailRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceSentinelDataConnectorAwsCloudTrailDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAwsCloudTrailDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -76,7 +76,7 @@ func (r CustomDomainSignalrServiceResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CustomDomainSignalrServiceResource) ModelObject() interface{} {
+func (r CustomDomainSignalrServiceResource) ModelObject() any {
 	return &CustomDomainSignalrServiceModel{}
 }
 

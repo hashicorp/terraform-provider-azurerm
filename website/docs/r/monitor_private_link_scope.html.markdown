@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `ingestion_access_mode` - (Optional) The default ingestion access mode for the associated private endpoints in scope. Possible values are `Open` and `PrivateOnly`. Defaults to `Open`.
 
-* `query_access_mode` - (Optional) The default query access mode for hte associated private endpoints in scope. Possible values are `Open` and `PrivateOnly`. Defaults to `Open`.
+* `query_access_mode` - (Optional) The default query access mode for the associated private endpoints in scope. Possible values are `Open` and `PrivateOnly`. Defaults to `Open`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Monitor Private Link Scope.
 

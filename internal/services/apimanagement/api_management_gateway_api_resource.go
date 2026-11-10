@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -60,7 +60,7 @@ func resourceApiManagementGatewayApi() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayApisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,7 +102,7 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceApiManagementGatewayApiRead(d, meta)
 }
 
-func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayApisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayApiDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayApisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

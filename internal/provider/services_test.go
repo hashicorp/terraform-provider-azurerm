@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -154,8 +154,7 @@ func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
 
 			var walkModel func(reflect.Type, map[string]*pluginsdk.Schema)
 			walkModel = func(modelType reflect.Type, schema map[string]*pluginsdk.Schema) {
-				for i := 0; i < modelType.NumField(); i++ {
-					field := modelType.Field(i)
+				for field := range modelType.Fields() {
 					property, ok := field.Tag.Lookup("tfschema")
 					if !ok || property == "" {
 						// This is tested for elsewhere, so we can ignore it here
