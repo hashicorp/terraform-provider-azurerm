@@ -637,11 +637,15 @@ func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privateClusterWithPrivateDNSZoneConfig(data, true),
+			Config: r.privateClusterWithPrivateDNSZoneConfig(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
+		},
+		{
+			Config:   r.privateClusterWithPrivateDNSZoneConfig(data, true, true),
+			PlanOnly: true,
 		},
 		data.ImportStep(),
 	})
@@ -2722,7 +2726,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) privateClusterWithPrivateDNSZoneConfig(data acceptance.TestData, enablePrivateCluster bool) string {
+func (KubernetesClusterResource) privateClusterWithPrivateDNSZoneConfig(data acceptance.TestData, enablePrivateCluster bool, uppercaseDNSZoneName bool) string {
+	privateDNSZoneID := "azurerm_private_dns_zone.test.id"
+	if uppercaseDNSZoneName {
+		privateDNSZoneID = "replace(azurerm_private_dns_zone.test.id, azurerm_private_dns_zone.test.name, upper(azurerm_private_dns_zone.test.name))"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2756,7 +2765,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   dns_prefix              = "acctestaks%d"
   private_cluster_enabled = %t
-  private_dns_zone_id     = azurerm_private_dns_zone.test.id
+  private_dns_zone_id     = %s
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -2794,7 +2803,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enablePrivateCluster, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enablePrivateCluster, privateDNSZoneID, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) privateClusterWithPrivateDNSZoneAndServicePrincipalConfig(data acceptance.TestData, enablePrivateCluster bool) string {
