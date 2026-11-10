@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # Set to "echo " to print commands instead of running them
@@ -7,9 +7,15 @@ debug="${debug:-}"
 
 echo "Preparing changelog for release..."
 
+changeloggy="./.tools/bin/changeloggy"
+if [[ ! -x "${changeloggy}" ]]; then
+  echo "Error: ${changeloggy} not found; run \`make release-changelog\` instead, which builds it first" >&2
+  exit 1
+fi
+
 echo "Generating changelog..."
 # shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
-output="$(${debug}./.tools/bin/changeloggy generate)"
+output="$(${debug}${changeloggy} generate)"
 echo "${output}"
 
 RELEASE="$(echo "${output}" | sed -E -n 's/^Generated v?([0-9][0-9.]*) .*/\1/p')"

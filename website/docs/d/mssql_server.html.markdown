@@ -14,8 +14,8 @@ Use this data source to access information about an existing Microsoft SQL Serve
 
 ```hcl
 data "azurerm_mssql_server" "example" {
-  name                = "existingMsSqlServer"
-  resource_group_name = "existingResGroup"
+  name                = "example-mssql-server"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

@@ -315,6 +315,7 @@ func makePBES2Parameters(rand io.Reader, salt []byte, iterations int) ([]byte, e
 	}
 	kdfparams.Iterations = iterations
 	kdfparams.Prf.Algorithm = oidHmacWithSHA256
+	kdfparams.Prf.Parameters = asn1.NullRawValue
 
 	var params pbes2Params
 	params.Kdf.Algorithm = oidPBKDF2
