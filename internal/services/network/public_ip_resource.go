@@ -146,6 +146,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 				// NOTE: O+C Azure assigns an IP address when one is not specified
 				Computed:     true,
 				ForceNew:     true,
+				RequiredWith: []string{"public_ip_prefix_id"},
 				ValidateFunc: validation.IsIPAddress,
 			},
 
@@ -153,7 +154,6 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				RequiredWith: []string{"ip_address"},
 				ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 			},
 
