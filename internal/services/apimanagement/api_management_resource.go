@@ -909,6 +909,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 		if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+			// skip error if direct management API is disabled and tenant access is not enabled
 			if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
 				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
 			}
@@ -1130,6 +1131,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
 			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
 			if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+				// skip error if direct management API is disabled and tenant access is not enabled
 				if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
 					return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
 				}
@@ -2091,7 +2093,7 @@ func flattenApiManagementTenantAccessSettings(input tenantaccess.AccessInformati
 
 // The service rejects every `tenant/access` operation with a 405 once the retired direct management API is disabled for the instance
 func wasDirectManagementApiDisabled(resp *http.Response, err error) bool {
-	return response.WasStatusCode(resp, http.StatusMethodNotAllowed) && strings.Contains(err.Error(), "Direct management API is disabled")
+	return response.WasStatusCode(resp, http.StatusMethodNotAllowed) && strings.Contains(strings.ToLower(err.Error()), "direct management api is disabled")
 }
 
 func flattenAPIManagementCertificates(d *pluginsdk.ResourceData, inputs *[]apimanagementservice.CertificateConfiguration) []any {
