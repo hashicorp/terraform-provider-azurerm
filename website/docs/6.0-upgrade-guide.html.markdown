@@ -100,6 +100,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The `account_kind` property no longer accepts the `BlobStorage` and `Storage` values.
 * The deprecated `public_network_access_enabled` property has been removed.
 
+### `azurerm_oracle_autonomous_database`
+
+* The deprecated `data_storage_size_in_tbs` property has been removed in favour of the required `data_storage_size_in_gbs` property. Replace the TB value with its value multiplied by `1024`; for example, replace `data_storage_size_in_tbs = 1` with `data_storage_size_in_gbs = 1024`.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
