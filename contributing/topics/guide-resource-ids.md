@@ -12,9 +12,8 @@ Each Resource ID type comes with 3 functions:
 * `Parse{Name}ID` parses an existing ID string into the struct
 * `Validate{Name}ID` checks that a string is a well-formed ID. It is the `ValidateFunc` for any Argument that takes a Resource ID in Resources and Data Sources alike, and Resources also use it for `terraform import`
 
-Resources build the ID with `New{Name}ID` in Create and parse it from state with `Parse{Name}ID` everywhere else. 
-
-Data Sources depend on their Arguments. If the user supplies `name` and `resource_group_name`, build the ID with `New{Name}ID`. If the user supplies a full ID such as `storage_account_id`, validate it with `Validate{Name}ID` and parse it with `Parse{Name}ID`.
+`Resources` build the ID with `New{Name}ID` in Create and parse it from state with `Parse{Name}ID` everywhere else. 
+`Data Sources` depend on their Arguments. If the user supplies `name` and `resource_group_name`, build the ID with `New{Name}ID`. If the user supplies a full ID such as `storage_account_id`, validate it with `Validate{Name}ID` and parse it with `Parse{Name}ID`.
 
 ```go
 // when the Arguments are the individual values
