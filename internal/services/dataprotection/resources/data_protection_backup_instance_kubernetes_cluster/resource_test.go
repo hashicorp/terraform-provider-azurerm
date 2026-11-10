@@ -71,12 +71,12 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_complete(t *testing.T)
 	})
 }
 
-func TestAccDataProtectionBackupInstanceKubernetesCluster_update(t *testing.T) {
+func TestAccDataProtectionBackupInstanceKubernetesCluster_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
 	r := DataProtectionBackupInstanceKubernetesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeWithIdentity(data),
+			Config: r.completeWithUserAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,13 +84,6 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.completeWithIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -255,36 +248,6 @@ resource "azurerm_role_assignment" "test_vault_data_operator_on_snap_rg" {
   principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
 
-resource "azurerm_role_assignment" "test_vault_uai_read_on_cluster" {
-  scope                = azurerm_kubernetes_cluster.test.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_role_assignment" "test_vault_uai_read_on_snap_rg" {
-  scope                = azurerm_resource_group.snap.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_role_assignment" "test_vault_uai_data_contributor_on_storage" {
-  scope                = azurerm_storage_account.test.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_role_assignment" "test_vault_uai_snapshot_contributor_on_snap_rg" {
-  scope                = azurerm_resource_group.snap.id
-  role_definition_name = "Disk Snapshot Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_role_assignment" "test_vault_uai_data_operator_on_snap_rg" {
-  scope                = azurerm_resource_group.snap.id
-  role_definition_name = "Data Operator for Managed Disks"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
 resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
   name                = "acctest-paks-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -324,11 +287,6 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
     azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
     azurerm_role_assignment.test_vault_data_contributor_on_storage,
-    azurerm_role_assignment.test_vault_uai_read_on_cluster,
-    azurerm_role_assignment.test_vault_uai_read_on_snap_rg,
-    azurerm_role_assignment.test_vault_uai_data_contributor_on_storage,
-    azurerm_role_assignment.test_vault_uai_snapshot_contributor_on_snap_rg,
-    azurerm_role_assignment.test_vault_uai_data_operator_on_snap_rg,
   ]
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -367,6 +325,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
 }
 
 func (r DataProtectionBackupInstanceKubernetesClusterResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -384,7 +343,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
     cluster_scoped_resources_enabled = true
     included_namespaces              = ["test-included-namespaces"]
     included_resource_types          = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                  = ["kubernetes.io/metadata.name:test"]
+    label_selectors                  = ["kubernetes.io/metadata.name=test"]
     volume_snapshot_enabled          = false
   }
 
@@ -398,12 +357,55 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
     azurerm_role_assignment.test_vault_data_contributor_on_storage,
   ]
 }
-`, r.template(data), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterResource) completeWithIdentity(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) completeWithUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+resource "azurerm_role_assignment" "test_uai_read_on_cluster" {
+  scope                = azurerm_kubernetes_cluster.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_uai_read_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_uai_data_contributor_on_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_uai_snapshot_contributor_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Disk Snapshot Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_uai_data_operator_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Data Operator for Managed Disks"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+// Confirm with the Service Team that we should wait for role propagation before creating the backup instance
+resource "time_sleep" "wait_for_role_propagations" {
+  create_duration = "120s"
+
+  depends_on = [
+    azurerm_role_assignment.test_uai_read_on_cluster,
+    azurerm_role_assignment.test_uai_read_on_snap_rg,
+    azurerm_role_assignment.test_uai_data_contributor_on_storage,
+    azurerm_role_assignment.test_uai_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_uai_data_operator_on_snap_rg,
+  ]
+}
 
 resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
   name                         = "acctest-iaks-%[2]d"
@@ -412,8 +414,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.test.id
   kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
   snapshot_resource_group_name = azurerm_resource_group.snap.name
-
-  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
 
   backup_datasource_parameters {
     excluded_namespaces              = ["test-excluded-namespaces"]
@@ -421,18 +422,12 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
     cluster_scoped_resources_enabled = true
     included_namespaces              = ["test-included-namespaces"]
     included_resource_types          = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                  = ["kubernetes.io/metadata.name:test"]
+    label_selectors                  = ["kubernetes.io/metadata.name=test"]
     volume_snapshot_enabled          = false
   }
 
   depends_on = [
-    azurerm_role_assignment.test_extension_and_storage_account_permission,
-    azurerm_role_assignment.test_vault_msi_read_on_cluster,
-    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
-    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
-    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
-    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
-    azurerm_role_assignment.test_vault_data_contributor_on_storage,
+    time_sleep.wait_for_role_propagations
   ]
 }
 `, r.template(data), data.RandomInteger)
