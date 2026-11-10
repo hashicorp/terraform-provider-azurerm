@@ -35,7 +35,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			locks.ByID(projectId.ID())
 			defer locks.UnlockByID(projectId.ID())
-			
+
 			id := projectconnectionresource.NewProjectConnectionID(projectId.SubscriptionId, projectId.ResourceGroupName, projectId.AccountName, projectId.ProjectName, model.Name)
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.ProjectConnectionsGet(ctx, id)
