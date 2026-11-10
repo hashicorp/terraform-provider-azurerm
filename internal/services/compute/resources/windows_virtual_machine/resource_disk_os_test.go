@@ -720,6 +720,10 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "2016-Datacenter"
     version   = "latest"
   }
+
+  tags = {
+    DiskSize = "%[2]d"
+  }
 }
 `, r.template(data), size)
 }

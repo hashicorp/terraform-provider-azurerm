@@ -590,6 +590,10 @@ resource "azurerm_linux_virtual_machine" "test" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  tags = {
+    DiskSize = "%[3]d"
+  }
 }
 `, r.template(data), data.RandomInteger, size)
 }
