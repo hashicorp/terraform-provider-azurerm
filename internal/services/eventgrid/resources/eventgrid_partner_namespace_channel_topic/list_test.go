@@ -24,14 +24,10 @@ func TestAccEventGridPartnerNamespaceChannelTopic_list(t *testing.T) {
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"azapi": {
-				VersionConstraint: "=2.13.0",
-				Source:            "registry.terraform.io/Azure/azapi",
-			},
-		},
 		Steps: []resource.TestStep{
-			{Config: r.basic(data)},
+			{
+				Config: r.basic(data),
+			},
 			{
 				Query: true,
 				Config: fmt.Sprintf(`

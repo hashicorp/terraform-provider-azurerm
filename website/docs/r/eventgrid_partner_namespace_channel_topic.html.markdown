@@ -46,11 +46,11 @@ resource "azurerm_eventgrid_partner_configuration" "subscriber" {
   resource_group_name = azurerm_resource_group.subscriber.name
 
   partner_authorization {
-    partner_registration_id              = azurerm_eventgrid_partner_registration.partner.partner_registration_id
-    partner_name                         = azurerm_eventgrid_partner_registration.partner.name
-    authorization_expiration_time_in_utc = "2026-11-09T00:00:00Z"
+    partner_registration_id = azurerm_eventgrid_partner_registration.partner.partner_registration_id
   }
 }
+
+data "azurerm_client_config" "subscriber" {}
 
 # Partner-managed Channel: creates a Partner Topic in the subscriber's destination Resource Group.
 resource "azurerm_eventgrid_partner_namespace_channel_topic" "example" {
