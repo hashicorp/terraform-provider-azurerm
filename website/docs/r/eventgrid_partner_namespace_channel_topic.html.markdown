@@ -89,7 +89,21 @@ The following arguments are supported:
 
 ---
 
-* `event_type` - (Optional) One or more `event_type` blocks as defined below.
+* `event_type` - (Optional) One or more `event_type` blocks as defined below. Names must be unique, and blocks must be ordered alphabetically by `name` using case-sensitive ordering.
+
+---
+
+An `event_type` block supports the following:
+
+* `display_name` - (Required) A non-empty display name for the event type.
+
+* `name` - (Required) The name of the event type, for example `Contoso.OrderCreated`. Must be between 1 and 128 characters. Names must be unique within the Channel.
+
+* `data_schema_url` - (Optional) An HTTP or HTTPS URL describing the event's data schema.
+
+* `description` - (Optional) A description of the event type. Must be between 1 and 256 characters.
+
+* `documentation_url` - (Optional) An HTTP or HTTPS URL for the event type's documentation.
 
 ---
 
@@ -103,23 +117,9 @@ A `partner_topic` block supports the following:
 
 * `subscription_id` - (Required) The GUID of the subscriber's Azure subscription in which the Partner Topic will be created. Changing this forces a new resource to be created.
 
----
-
-An `event_type` block supports the following:
-
-* `name` - (Required) The name of the event type, for example `Contoso.OrderCreated`. Must be between 1 and 128 characters. Names must be unique within the Channel.
-
-* `display_name` - (Required) A non-empty display name for the event type.
-
-* `data_schema_url` - (Optional) An HTTP or HTTPS URL describing the event's data schema.
-
-* `description` - (Optional) A description of the event type. Must be between 1 and 256 characters.
-
-* `documentation_url` - (Optional) An HTTP or HTTPS URL for the event type's documentation.
-
 ## Attributes Reference
 
-In addition to the Arguments listed above, the following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Event Grid Partner Namespace Channel.
 
@@ -127,7 +127,7 @@ In addition to the Arguments listed above, the following Attributes are exported
 
 * `expiration_time_if_not_activated` - The RFC3339 expiration timestamp for activation, the channel will be deleted if not activated by this time.
 
-* `readiness_state` - The readiness state of the associated Partner Topic, such as `NeverActivated` or `Activated`.
+* `readiness_state` - The readiness state of the associated Partner Topic.
 
 ## Timeouts
 

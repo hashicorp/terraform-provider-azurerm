@@ -6,6 +6,7 @@ package eventgrid_partner_namespace_channel_topic_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -86,6 +87,30 @@ func TestAccEventGridPartnerNamespaceChannelTopic_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridPartnerNamespaceChannelTopic_duplicateEventTypeNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace_channel_topic", "test")
+	r := EventgridPartnerNamespaceChannelTopicResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.duplicateEventTypeNames(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`event_type` names must be unique"),
+		},
+	})
+}
+
+func TestAccEventGridPartnerNamespaceChannelTopic_unsortedEventTypeNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_namespace_channel_topic", "test")
+	r := EventgridPartnerNamespaceChannelTopicResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.unsortedEventTypeNames(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`event_type` blocks must be ordered alphabetically"),
+		},
 	})
 }
 
@@ -186,6 +211,14 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     data_schema_url   = "https://example.com/schemas/order-created.json"
   }
 
+  event_type {
+    name              = "Contoso.OrderDeleted"
+    display_name      = "Order deleted"
+    description       = "An order was deleted."
+    documentation_url = "https://example.com/events/order-deleted"
+    data_schema_url   = "https://example.com/schemas/order-deleted.json"
+  }
+
   depends_on = [azurerm_eventgrid_partner_configuration.test]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
@@ -215,11 +248,91 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
   }
 
   event_type {
+    name              = "Contoso.OrderDeleted"
+    display_name      = "Order deleted"
+    description       = "An order was deleted."
+    documentation_url = "https://example.com/events/order-deleted"
+    data_schema_url   = "https://example.com/schemas/order-deleted.json"
+  }
+
+  event_type {
     name              = "Contoso.OrderUpdated"
     display_name      = "Order updated"
     description       = "An order was updated."
     documentation_url = "https://example.com/events/order-updated"
     data_schema_url   = "https://example.com/schemas/order-updated.json"
+  }
+
+  depends_on = [azurerm_eventgrid_partner_configuration.test]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
+}
+
+func (r EventgridPartnerNamespaceChannelTopicResource) duplicateEventTypeNames(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
+  name                 = "acctest-channel-%d"
+  partner_namespace_id = azurerm_eventgrid_partner_namespace.test.id
+
+  partner_topic {
+    name                = "acctest-topic-%d"
+    resource_group_name = azurerm_resource_group.subscriber.name
+    subscription_id     = "%s"
+    source              = "Contoso.Accounts.User1"
+  }
+
+  event_type {
+    name              = "Contoso.OrderCreated"
+    display_name      = "Order created"
+    description       = "An order was created."
+    documentation_url = "https://example.com/events/order-created"
+    data_schema_url   = "https://example.com/schemas/order-created.json"
+  }
+
+  event_type {
+    name              = "Contoso.OrderCreated"
+    display_name      = "Order deleted"
+    description       = "An order was deleted."
+    documentation_url = "https://example.com/events/order-deleted"
+    data_schema_url   = "https://example.com/schemas/order-deleted.json"
+  }
+
+  depends_on = [azurerm_eventgrid_partner_configuration.test]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
+}
+
+func (r EventgridPartnerNamespaceChannelTopicResource) unsortedEventTypeNames(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
+  name                 = "acctest-channel-%d"
+  partner_namespace_id = azurerm_eventgrid_partner_namespace.test.id
+
+  partner_topic {
+    name                = "acctest-topic-%d"
+    resource_group_name = azurerm_resource_group.subscriber.name
+    subscription_id     = "%s"
+    source              = "Contoso.Accounts.User1"
+  }
+
+  event_type {
+    name              = "Contoso.OrderUpdated"
+    display_name      = "Order updated"
+    description       = "An order was updated."
+    documentation_url = "https://example.com/events/order-updated"
+    data_schema_url   = "https://example.com/schemas/order-updated.json"
+  }
+
+  event_type {
+    name              = "Contoso.OrderDeleted"
+    display_name      = "Order deleted"
+    description       = "An order was deleted."
+    documentation_url = "https://example.com/events/order-deleted"
+    data_schema_url   = "https://example.com/schemas/order-deleted.json"
   }
 
   depends_on = [azurerm_eventgrid_partner_configuration.test]

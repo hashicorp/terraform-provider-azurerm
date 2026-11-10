@@ -124,21 +124,46 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var config EventGridPartnerNamespaceChannelTopicResourceModel
-			if err := metadata.DecodeDiff(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-			names := make(map[string]struct{})
-			for _, event := range config.EventTypes {
-				if event.Name == "" {
-					continue
-				}
-				if _, exists := names[event.Name]; exists {
-					return fmt.Errorf("`event_type` names must be unique: %q is specified more than once", event.Name)
-				}
-				names[event.Name] = struct{}{}
-			}
-			return nil
+			return pluginsdk.CustomDiffInSequence(
+				validateUniqueEventTypeNames,
+				validateAlphabeticalEventTypeNames,
+			)(ctx, metadata.ResourceDiff, metadata)
 		},
 	}
+}
+
+func validateUniqueEventTypeNames(_ context.Context, _ *pluginsdk.ResourceDiff, meta any) error {
+	var config EventGridPartnerNamespaceChannelTopicResourceModel
+	if err := meta.(sdk.ResourceMetaData).DecodeDiff(&config); err != nil {
+		return fmt.Errorf("decoding: %+v", err)
+	}
+	names := make(map[string]struct{})
+	for _, event := range config.EventTypes {
+		if event.Name == "" {
+			continue
+		}
+		if _, exists := names[event.Name]; exists {
+			return fmt.Errorf("`event_type` names must be unique: %q is specified more than once", event.Name)
+		}
+		names[event.Name] = struct{}{}
+	}
+	return nil
+}
+
+func validateAlphabeticalEventTypeNames(_ context.Context, _ *pluginsdk.ResourceDiff, meta any) error {
+	var config EventGridPartnerNamespaceChannelTopicResourceModel
+	if err := meta.(sdk.ResourceMetaData).DecodeDiff(&config); err != nil {
+		return fmt.Errorf("decoding: %+v", err)
+	}
+	previous := ""
+	for _, event := range config.EventTypes {
+		if event.Name == "" {
+			continue
+		}
+		if event.Name < previous {
+			return fmt.Errorf("`event_type` blocks must be ordered alphabetically by `name` (case-sensitive): %q must appear before %q", event.Name, previous)
+		}
+		previous = event.Name
+	}
+	return nil
 }
