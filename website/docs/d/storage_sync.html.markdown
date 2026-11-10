@@ -14,8 +14,8 @@ Use this data source to access information about an existing Storage Sync.
 
 ```hcl
 data "azurerm_storage_sync" "example" {
-  name                = "existingStorageSyncName"
-  resource_group_name = "existingResGroup"
+  name                = "example-storage-sync"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
