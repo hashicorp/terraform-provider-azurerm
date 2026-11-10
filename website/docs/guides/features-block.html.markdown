@@ -269,6 +269,10 @@ The `key_vault` block supports the following:
 
 ~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
+* `set_value_wo_version_on_import` - (Optional) Should the `azurerm_key_vault_secret` resource set `value_wo_version` to `1` on import? This prevents unexpected secret updates and avoids reading secret values during import. Defaults to `false`.
+
+~> **Note:** The configuration of an imported secret must also declare `value_wo_version = 1` — any other value is detected as a change on the first plan after import and causes the secret value to be rewritten from `value_wo`.
+
 ---
 
 The `log_analytics_workspace` block supports the following:
