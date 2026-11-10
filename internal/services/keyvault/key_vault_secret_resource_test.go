@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
@@ -343,9 +342,6 @@ func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Clien
 	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
 	resp, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
 	}
 

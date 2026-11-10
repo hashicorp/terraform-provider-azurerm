@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedsecrets"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -183,7 +183,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta any) error {
 	parameters := secrets.SecretSetParameters{
 		Value:       value,
 		ContentType: pointer.To(contentType),
-		Tags:        pointer.To(tags.ToTypedObject(tags.Expand(t))),
+		Tags:        tags.Expand(t),
 		Attributes:  &secrets.SecretAttributes{},
 	}
 
@@ -317,7 +317,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 		parameters := secrets.SecretSetParameters{
 			Value:       value,
 			ContentType: pointer.To(contentType),
-			Tags:        pointer.To(tags.ToTypedObject(tags.Expand(t))),
+			Tags:        tags.Expand(t),
 			Attributes:  secretAttributes,
 		}
 
@@ -327,7 +327,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 	} else {
 		parameters := secrets.SecretUpdateParameters{
 			ContentType: pointer.To(contentType),
-			Tags:        pointer.To(tags.ToTypedObject(tags.Expand(t))),
+			Tags:        tags.Expand(t),
 			Attributes:  secretAttributes,
 		}
 
@@ -343,7 +343,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if read.Model == nil || read.Model.Id == nil {
-		return fmt.Errorf("cannot read KeyVault Secret '%s' (in key vault '%s')", id.Name, id.KeyVaultBaseURL)
+		return fmt.Errorf("retrieving %s: unable to determine secret ID", secretId)
 	}
 
 	parsedSecretId, err := keyvault.ParseNestedItemID(*read.Model.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
@@ -408,7 +408,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if resp.Model == nil || resp.Model.Id == nil {
-		return fmt.Errorf("reading KeyVault Secret %q: response model was nil", id.Name)
+		return fmt.Errorf("retrieving %s: unable to determine secret ID", secrets.NewSecretID(id.KeyVaultBaseURL, id.Name))
 	}
 
 	// the version may have changed, so parse the updated id
@@ -445,7 +445,7 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
 	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
-	return tags.FlattenAndSet(d, tags.FromTypedObject(pointer.From(resp.Model.Tags)))
+	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
 func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta any) error {

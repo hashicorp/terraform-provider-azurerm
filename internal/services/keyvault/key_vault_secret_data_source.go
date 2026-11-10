@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -113,7 +113,7 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if resp.Model == nil || resp.Model.Id == nil {
-		return fmt.Errorf("reading KeyVault Secret %q: response model was nil", name)
+		return fmt.Errorf("retrieving secret `%s`: unable to determine secret ID", name)
 	}
 
 	// the version may have changed, so parse the updated id
@@ -147,5 +147,5 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name, secretId.Version).ID())
 	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name).ID())
 
-	return tags.FlattenAndSet(d, tags.FromTypedObject(pointer.From(resp.Model.Tags)))
+	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
