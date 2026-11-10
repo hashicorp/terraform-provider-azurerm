@@ -1,4 +1,4 @@
-# Copyright IBM Corp. 2014, 2025
+# Copyright IBM Corp. 2014, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 # follows https://learn.microsoft.com/azure-stack/hci/deploy/deployment-arc-register-server-permissions?tabs=powershell
