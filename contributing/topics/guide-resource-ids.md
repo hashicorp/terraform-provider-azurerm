@@ -4,6 +4,29 @@ Resource IDs are an essential component of all resources and data sources within
 
 Due to their fundamental importance in the provider, resource IDs should be handled through the use of various helper functions that are available.
 
+## New, Parse and Validate
+
+Each Resource ID type comes with 3 functions:
+
+* `New{Name}ID` builds the struct from its individual values
+* `Parse{Name}ID` parses an existing ID string into the struct
+* `Validate{Name}ID` checks that a string is a well-formed ID. It is the `ValidateFunc` for any Argument that takes a Resource ID in Resources and Data Sources alike, and Resources also use it for `terraform import`
+
+Resources build the ID with `New{Name}ID` in Create and parse it from state with `Parse{Name}ID` everywhere else. 
+
+Data Sources depend on their Arguments. If the user supplies `name` and `resource_group_name`, build the ID with `New{Name}ID`. If the user supplies a full ID such as `storage_account_id`, validate it with `Validate{Name}ID` and parse it with `Parse{Name}ID`.
+
+```go
+// when the Arguments are the individual values
+id := commonids.NewResourceGroupID(subscriptionId, state.Name)
+
+// when the Argument is a full Resource ID
+id, err := commonids.ParseStorageAccountID(state.StorageAccountId)
+if err != nil {
+    return err
+}
+```
+
 ## Resource ID Parsers and Validators in `hashicorp/go-azure-sdk`
 
 The SDK `hashicorp/go-azure-sdk` used in the provider contains the necessary parsing and validation functions required for a resource ID and will exist in the resource's package.
