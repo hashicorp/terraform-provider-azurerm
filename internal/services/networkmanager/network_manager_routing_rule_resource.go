@@ -140,7 +140,8 @@ func (r ManagerRoutingRuleResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if len(model.Destination) > 0 {
+			rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+			if len(model.Destination) > 0 && rawConfig["destination"].IsWhollyKnown() {
 				v := model.Destination[0]
 				if strings.EqualFold(v.Type, string(routingrules.RoutingRuleDestinationTypeAddressPrefix)) {
 					if _, _, err := net.ParseCIDR(v.Address); err != nil {
@@ -149,13 +150,9 @@ func (r ManagerRoutingRuleResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if len(model.NextHop) > 0 {
+			if len(model.NextHop) > 0 && rawConfig["next_hop"].IsWhollyKnown() {
 				v := model.NextHop[0]
-
-				nextHopRaw := metadata.ResourceDiff.GetRawConfig().AsValueMap()["next_hop"]
-				addressRaw := nextHopRaw.AsValueSlice()[0].AsValueMap()["address"]
-
-				if addressRaw.IsKnown() && strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
+				if strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
 					return fmt.Errorf("expanding `next_hop`: `address` is required when `type` is `VirtualAppliance`")
 				}
 			}

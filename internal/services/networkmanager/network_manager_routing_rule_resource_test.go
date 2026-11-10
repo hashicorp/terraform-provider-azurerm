@@ -254,7 +254,6 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-# the next_hop address is not known until apply time here, which must not fail the plan
 resource "azurerm_network_manager_routing_rule" "test" {
   name               = "acctest-nmrr-%[2]d"
   rule_collection_id = azurerm_network_manager_routing_rule_collection.test.id
