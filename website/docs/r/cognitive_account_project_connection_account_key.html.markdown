@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `metadata` - (Required) A mapping of metadata key-value pairs for the connection.
 
-~> **Note:** The `metadata` map must include a non-empty `ResourceId` value.
+~> **Note:** The `metadata` map must include `ResourceId` when `category` is `AzureStorageAccount`. To check any additional metadata returned by Azure, create an equivalent connection in the Foundry portal and inspect it with `az rest --method get --url "{connection_resource_id}?api-version=2026-03-01"`.
 
 * `target` - (Required) The target endpoint or resource for the connection.
 
