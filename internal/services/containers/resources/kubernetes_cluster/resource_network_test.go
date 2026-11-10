@@ -643,11 +643,11 @@ func TestAccKubernetesCluster_privateClusterOnWithPrivateDNSZone(t *testing.T) {
 				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config:   r.privateClusterWithPrivateDNSZoneConfig(data, true, true),
 			PlanOnly: true,
 		},
-		data.ImportStep(),
 	})
 }
 
