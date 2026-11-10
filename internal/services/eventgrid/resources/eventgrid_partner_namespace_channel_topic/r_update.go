@@ -44,9 +44,6 @@ func (r Resource) Update() sdk.ResourceFunc {
 			// https://github.com/Azure/azure-rest-api-specs/issues/37280
 			props.MessageForActivation = nil
 
-			props.ProvisioningState = nil
-			props.ReadinessState = nil
-
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
