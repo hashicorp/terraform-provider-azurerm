@@ -105,20 +105,9 @@ func (EventgridPartnerNamespaceChannelTopicResource) template(data acceptance.Te
 	expiryTime := time.Now().UTC().Add(7 * 24 * time.Hour).Format(time.RFC3339)
 
 	return fmt.Sprintf(`
-terraform {
-  required_providers {
-    azapi = {
-      source  = "Azure/azapi"
-      version = "=2.13.0"
-    }
-  }
-}
-
 provider "azurerm" {
   features {}
 }
-
-provider "azapi" {}
 
 resource "azurerm_resource_group" "partner" {
   name     = "acctestRG-partner-%[1]d"
@@ -143,25 +132,12 @@ resource "azurerm_eventgrid_partner_namespace" "test" {
   partner_topic_routing_mode = "ChannelNameHeader"
 }
 
-// Temporarily using AzAPI to do partner authorization until azurerm_eventgrid_partner_configuration is refactored to allow unverified partner name
-// https://github.com/hashicorp/terraform-provider-azurerm/pull/33770
+resource "azurerm_eventgrid_partner_configuration" "test" {
+  resource_group_name = azurerm_resource_group.subscriber.name
 
-resource "azapi_resource" "partner_configuration" {
-  type      = "Microsoft.EventGrid/partnerConfigurations@2025-02-15"
-  name      = "default"
-  parent_id = azurerm_resource_group.subscriber.id
-  location  = "global"
-
-  body = {
-    properties = {
-      partnerAuthorization = {
-        defaultMaximumExpirationTimeInDays = 7
-        authorizedPartnersList = [{
-          partnerRegistrationImmutableId   = azurerm_eventgrid_partner_registration.test.partner_registration_id
-          authorizationExpirationTimeInUtc = "%[3]s"
-        }]
-      }
-    }
+  partner_authorization {
+    partner_registration_id              = azurerm_eventgrid_partner_registration.test.partner_registration_id
+    authorization_expiration_time_in_utc = "%[3]s"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, expiryTime)
@@ -182,7 +158,7 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     source              = "Contoso.Accounts.User1"
   }
 
-  depends_on = [azapi_resource.partner_configuration]
+  depends_on = [azurerm_eventgrid_partner_configuration.test]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
 }
@@ -210,7 +186,7 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     data_schema_url   = "https://example.com/schemas/order-created.json"
   }
 
-  depends_on = [azapi_resource.partner_configuration]
+  depends_on = [azurerm_eventgrid_partner_configuration.test]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
 }
@@ -246,7 +222,7 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "test" {
     data_schema_url   = "https://example.com/schemas/order-updated.json"
   }
 
-  depends_on = [azapi_resource.partner_configuration]
+  depends_on = [azurerm_eventgrid_partner_configuration.test]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.Subscriptions.Primary)
 }
