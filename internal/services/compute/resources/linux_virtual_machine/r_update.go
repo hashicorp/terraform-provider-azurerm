@@ -615,6 +615,16 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		}
 	}
 
+	// if we've shut it down and it was turned off, let's boot it back up
+	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
+		log.Printf("[DEBUG] Starting Linux %s", id)
+		if err := client.StartThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("starting Linux %s: %+v", id, err)
+		}
+
+		log.Printf("[DEBUG] Started Linux %s", id)
+	}
+
 	if shouldUpdateDiskTags {
 		diskName := d.Get("os_disk.0.name").(string)
 
@@ -629,16 +639,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) erro
 		if err = disksClient.UpdateThenPoll(ctx, id, diskUpdate); err != nil {
 			return fmt.Errorf("updating tags on OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.DiskName, id.ResourceGroupName, err)
 		}
-	}
-
-	// if we've shut it down and it was turned off, let's boot it back up
-	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
-		log.Printf("[DEBUG] Starting Linux %s", id)
-		if err := client.StartThenPoll(ctx, *id); err != nil {
-			return fmt.Errorf("starting Linux %s: %+v", id, err)
-		}
-
-		log.Printf("[DEBUG] Started Linux %s", id)
 	}
 
 	return resourceLinuxVirtualMachineRead(d, meta)
