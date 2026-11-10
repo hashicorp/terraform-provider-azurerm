@@ -5,6 +5,7 @@ package data_protection_backup_vault_customer_managed_key
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -50,6 +51,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
+					if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
+						if *kekIdentity.IdentityType == backupvaultresources.IdentityTypeUserAssigned {
+							return errors.New("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
+						}
+					}
+
 					return metadata.ResourceRequiresImport(r.ResourceType(), *id)
 				}
 			}
