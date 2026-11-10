@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/reachabilityanalysisintents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/reachabilityanalysisintents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,7 +69,7 @@ func (r ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Exists(ctx c
 		return nil, err
 	}
 
-	resp, err := client.Network.ReachabilityAnalysisIntents.Get(ctx, *id)
+	resp, err := client.NetworkManager.ReachabilityAnalysisIntents.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

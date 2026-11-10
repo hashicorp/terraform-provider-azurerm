@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routingrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/routingrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +98,7 @@ func (r ManagerRoutingRuleCollectionResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	resp, err := client.Network.RoutingRuleCollections.Get(ctx, *id)
+	resp, err := client.NetworkManager.RoutingRuleCollections.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

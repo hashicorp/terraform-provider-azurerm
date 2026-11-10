@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/staticmembers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,7 +67,7 @@ func (r ManagerStaticMemberResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	client := clients.Network.StaticMembers
+	client := clients.NetworkManager.StaticMembers
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
