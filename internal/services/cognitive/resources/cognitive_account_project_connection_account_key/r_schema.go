@@ -59,7 +59,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"target": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"metadata": {
