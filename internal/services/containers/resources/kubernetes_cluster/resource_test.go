@@ -13,8 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,23 +78,93 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
+func TestAccKubernetesCluster_keyVaultKMSv2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	lastDefault, _ := version.NewVersion("1.37")
+	if oldest, _ := version.NewVersion(meta.OldestKubernetesVersionAlias); oldest.GreaterThanOrEqual(lastDefault) {
+		t.Skipf("Skipping as version `1.36` is no longer available. Oldest available version: `%s`", oldest.String())
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureKeyVaultKms(data, "1.36", true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.azureKeyVaultKms(data, "1.36", false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_keyVaultKMSCMK(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, true),
+			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, false),
+			Config: r.azureKeyVaultKms(data, meta.CurrentKubernetesVersion, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_keyVaultKMSCMKCrossSubscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	data.ResourceTestAdditionalCLIOptions(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureKeyVaultKmsCrossSubscription(data, meta.CurrentKubernetesVersion, true, false),
+		},
+		{
+			PreConfig: func() {
+				client, err := testclient.Build()
+				if err != nil {
+					t.Fatalf("building client: %+v", err)
+				}
+
+				// To properly test `key_vault_id` functionality we need to purge its entry from the cache
+				client.KeyVault.Purge(commonids.NewKeyVaultID(data.Subscriptions.Secondary, fmt.Sprintf("acctestRG-aks-alt-%d", data.RandomInteger), fmt.Sprintf("acctest%d", data.RandomInteger)[:24]))
+			},
+			Config: r.azureKeyVaultKmsCrossSubscription(data, meta.CurrentKubernetesVersion, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_management_service.0.key_vault_id"),
+		{
+			Config: r.azureKeyVaultKmsCrossSubscription(data, meta.CurrentKubernetesVersion, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	}, &resource.AdditionalCLIOptions{
+		Plan: resource.PlanOptions{
+			// refreshing repopulates the cache entry
+			NoRefresh: true,
 		},
 	})
 }
@@ -979,13 +1052,18 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
 }
 
-func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool, versionless bool) string {
+	idAttribute := "id"
+	if versionless {
+		idAttribute = "versionless_id"
+	}
+
 	kmsBlock := ""
 	if enabled {
-		kmsBlock = `
+		kmsBlock = fmt.Sprintf(`
   key_management_service {
-    key_vault_key_id = azurerm_key_vault_key.test.id
-  }`
+    key_vault_key_id = azurerm_key_vault_key.test.%s
+  }`, idAttribute)
 	}
 
 	return fmt.Sprintf(`
@@ -1015,9 +1093,15 @@ resource "azurerm_role_assignment" "test_admin" {
   principal_id         = data.azurerm_client_config.current.object_id
 }
 
-resource "azurerm_role_assignment" "test" {
+resource "azurerm_role_assignment" "crypto" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Key Vault Crypto User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "reader" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Reader"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
@@ -1064,8 +1148,130 @@ resource "azurerm_kubernetes_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   %[4]s
+
+  depends_on = [azurerm_role_assignment.crypto, azurerm_role_assignment.reader]
 }
 `, data.RandomInteger, data.Locations.Primary, controlPlaneVersion, kmsBlock)
+}
+
+func (KubernetesClusterResource) azureKeyVaultKmsCrossSubscription(data acceptance.TestData, controlPlaneVersion string, enabled bool, includeCluster bool) string {
+	kmsBlock := ""
+	if enabled {
+		kmsBlock = `
+  key_management_service {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+    key_vault_id     = azurerm_key_vault.test.id
+  }`
+	}
+
+	clusterBlock := ""
+	if includeCluster {
+		clusterBlock = fmt.Sprintf(`resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  node_resource_group = "${azurerm_resource_group.test.name}-infra"
+  dns_prefix          = "acctestaks%[1]d"
+  kubernetes_version  = %[2]q
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+  %[3]s
+
+  depends_on = [azurerm_role_assignment.crypto, azurerm_role_assignment.reader]
+}`, data.RandomInteger, controlPlaneVersion, kmsBlock)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azurerm-alt" {
+  subscription_id = %[1]q
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_resource_group" "test-alt" {
+  provider = azurerm-alt
+  name     = "acctestRG-aks-alt-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  provider                   = azurerm-alt
+  name                       = substr("acctest%[2]d", 0, 24)
+  location                   = azurerm_resource_group.test-alt.location
+  resource_group_name        = azurerm_resource_group.test-alt.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled = true
+  sku_name                   = "standard"
+}
+
+resource "azurerm_role_assignment" "test_admin" {
+  provider             = azurerm-alt
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "crypto" {
+  provider             = azurerm-alt
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "reader" {
+  provider             = azurerm-alt
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_key_vault_key" "test" {
+  provider     = azurerm-alt
+  name         = "etcd-encryption"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [azurerm_role_assignment.test_admin]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  provider            = azurerm-alt
+  name                = "acctest%[2]d"
+  resource_group_name = azurerm_resource_group.test-alt.name
+  location            = azurerm_resource_group.test-alt.location
+}
+
+%[5]s
+`, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, controlPlaneVersion, clusterBlock)
 }
 
 func (KubernetesClusterResource) storageProfile(data acceptance.TestData, controlPlaneVersion string) string {
