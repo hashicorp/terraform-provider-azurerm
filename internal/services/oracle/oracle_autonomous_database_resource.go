@@ -5,6 +5,7 @@ package oracle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -20,7 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = AutonomousDatabaseRegularResource{}
+var (
+	_ sdk.Resource                  = AutonomousDatabaseRegularResource{}
+	_ sdk.ResourceWithCustomizeDiff = AutonomousDatabaseRegularResource{}
+)
 
 type AutonomousDatabaseRegularResource struct{}
 
@@ -84,7 +88,8 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 
 		"character_set": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Default:      "AL32UTF8",
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -177,7 +182,8 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 
 		"national_character_set": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Default:      "AL16UTF16",
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -256,6 +262,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			if err := validateAutonomousDatabaseCharacterSets(model.DbWorkload, model.CharacterSet, model.NationalCharacterSet); err != nil {
+				return err
+			}
+
 			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId,
 				model.ResourceGroupName,
 				model.Name)
@@ -273,7 +283,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 			properties := &autonomousdatabases.AutonomousDatabaseProperties{
 				AdminPassword:                  pointer.To(model.AdminPassword),
 				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-				CharacterSet:                   pointer.To(model.CharacterSet),
 				ComputeCount:                   pointer.To(model.ComputeCount),
 				ComputeModel:                   pointer.ToEnum[autonomousdatabases.ComputeModel](model.ComputeModel),
 				DataBaseType:                   "Regular",
@@ -285,8 +294,13 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
 				LicenseModel:                   pointer.ToEnum[autonomousdatabases.LicenseModel](model.LicenseModel),
-				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+			}
+
+			// AJD only supports the service defaults and rejects character-set selection.
+			if model.DbWorkload != string(autonomousdatabases.WorkloadTypeAJD) {
+				properties.CharacterSet = pointer.To(model.CharacterSet)
+				properties.NcharacterSet = pointer.To(model.NationalCharacterSet)
 			}
 
 			if len(model.CustomerContacts) > 0 {
@@ -549,4 +563,43 @@ func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.Resour
 		"auto_scaling_for_storage_enabled",
 		"allowed_ips",
 	)
+}
+
+func (AutonomousDatabaseRegularResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Second,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			rawConfig := metadata.ResourceDiff.GetRawConfig()
+			if rawConfig.IsNull() || !rawConfig.IsKnown() {
+				return nil
+			}
+
+			// Unknown inputs are checked in Create once their values have resolved.
+			values := make(map[string]string, 3)
+			for _, name := range []string{"db_workload", "character_set", "national_character_set"} {
+				value := rawConfig.GetAttr(name)
+				if value.IsKnown() && !value.IsNull() {
+					values[name] = value.AsString()
+				}
+			}
+			return validateAutonomousDatabaseCharacterSets(values["db_workload"], values["character_set"], values["national_character_set"])
+		},
+	}
+}
+
+func validateAutonomousDatabaseCharacterSets(workload, characterSet, nationalCharacterSet string) error {
+	if workload != string(autonomousdatabases.WorkloadTypeAJD) {
+		return nil
+	}
+	if characterSet != "" && characterSet != "AL32UTF8" {
+		return errors.New("`character_set` must be `AL32UTF8` when `db_workload` is `AJD`")
+	}
+	if nationalCharacterSet != "" && nationalCharacterSet != "AL16UTF16" {
+		return errors.New("`national_character_set` must be `AL16UTF16` when `db_workload` is `AJD`")
+	}
+	return nil
 }
