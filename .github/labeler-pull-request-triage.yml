@@ -565,6 +565,11 @@ service/spring:
   - any-glob-to-any-file:
     - internal/services/springcloud/**/*
 
+service/sre-agents:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/sreagents/**/*
+
 service/storage:
 - changed-files:
   - any-glob-to-any-file:
