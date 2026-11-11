@@ -85,16 +85,16 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Cognitive Services Account Project Connection.
+* `id` - The ID of the Cognitive Services Account Project Connection with Custom Keys authentication.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Services Account Project Connection.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Services Account Project Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Services Account Project Connection.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Services Account Project Connection.
+* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Services Account Project Connection with Custom Keys authentication.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Services Account Project Connection with Custom Keys authentication.
+* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Services Account Project Connection with Custom Keys authentication.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Services Account Project Connection with Custom Keys authentication.
 
 ## Import
 
