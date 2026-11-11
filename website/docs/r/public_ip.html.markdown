@@ -68,7 +68,9 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
 
-* `ip_address` - (Optional) The IP address associated with the public IP address resource. `public_ip_prefix_id` must be specified when setting this property. Changing this forces a new resource to be created.
+* `ip_address` - (Optional) The IP address associated with the public IP address resource. Changing this forces a new resource to be created.
+
+~> **Note:** `public_ip_prefix_id` must be specified when setting `ip_address`.
 
 ~> **Note:** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
 
