@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
-	"runtime"
 	"time"
 )
 
@@ -23,9 +22,17 @@ import (
 // per reconcile) need the transport to outlive the configured client, so it
 // is shared at package level.
 //
-// The settings mirror the go-azure-sdk default transport. Authorization is
-// applied per request, so sharing the connection pool across clients and
-// credentials is safe.
+// The settings start from the go-azure-sdk default transport, with two
+// changes for a long-lived pool:
+//   - MaxIdleConnsPerHost matches MaxIdleConns, because nearly all requests go
+//     to one host. A lower limit closes connections after bursts on HTTP/1.1
+//     paths (e.g. TLS-inspecting proxies), which brings back the churn.
+//   - HTTP/2 health checks close a silently dropped connection after about
+//     45 seconds. Otherwise every request multiplexed on it would hang until
+//     its context deadline.
+//
+// Authorization is applied per request, so sharing the connection pool across
+// clients and credentials is safe.
 var sharedTransport http.RoundTripper = &http.Transport{
 	Proxy: http.ProxyFromEnvironment,
 	DialContext: (&net.Dialer{
@@ -39,5 +46,9 @@ var sharedTransport http.RoundTripper = &http.Transport{
 	TLSHandshakeTimeout:   10 * time.Second,
 	ExpectContinueTimeout: 1 * time.Second,
 	ForceAttemptHTTP2:     true,
-	MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+	MaxIdleConnsPerHost:   100,
+	HTTP2: &http.HTTP2Config{
+		SendPingTimeout: 30 * time.Second,
+		PingTimeout:     15 * time.Second,
+	},
 }
