@@ -10,7 +10,9 @@ description: |-
 
 Manages a Public IP Address.
 
-~> **Note:** If this resource is to be associated with a resource that requires disassociation before destruction (such as `azurerm_network_interface`) it is recommended to set the `lifecycle` argument `create_before_destroy = true`. Otherwise, it can fail to disassociate on destruction.
+~> **Note:** When deleting this resource, the provider automatically disassociates it from an attached Network Interface IP configuration before deleting the Public IP Address. This requires permission to read and update the Network Interface in addition to deleting the Public IP Address. Other types of associations are not automatically removed and must be disassociated before deletion.
+
+!> **Warning:** Automatic Network Interface disassociation applies whenever the Public IP Address is deleted, including during replacement or a targeted destroy. The provider does not check whether the Network Interface has a planned configuration change or is managed in the same Terraform state. Disassociation interrupts connectivity through this Public IP Address. Ensure the Network Interface configuration is updated to remove or replace the reference; otherwise, its configuration or state may no longer match Azure.
 
 ## Example Usage
 
