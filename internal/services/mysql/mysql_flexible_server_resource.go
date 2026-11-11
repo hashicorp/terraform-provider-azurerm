@@ -19,8 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2024-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -462,9 +461,9 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) erro
 		parameters.Properties.SetRestorePointInTimeAsTime(v)
 	}
 
-	identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
-		return fmt.Errorf("expanding `identity`")
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	parameters.Identity = identity
 
@@ -551,7 +550,7 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := flattenFlexibleServerIdentity(server.Identity)
+			identity, err := identity.FlattenUserAssignedMap(server.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -667,10 +666,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if requireFailover {
-		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.ServerFailover
-		failoverID := serverfailover.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+		failoverClient := meta.(*clients.Client).MySQL.FlexibleServers.Servers
+		failoverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
-		if err := failoverClient.ServersFailoverThenPoll(ctx, failoverID); err != nil {
+		if err := failoverClient.FailoverThenPoll(ctx, failoverID); err != nil {
 			return fmt.Errorf("failing over %s: %+v", *id, err)
 		}
 	} else if d.HasChange("high_availability") {
@@ -722,7 +721,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if d.HasChange("identity") {
-		identity, err := expandFlexibleServerIdentity(d.Get("identity").([]any))
+		identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -1097,40 +1096,4 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]any, err
 	}
 
 	return []any{item}, nil
-}
-
-func expandFlexibleServerIdentity(input []any) (*servers.MySQLServerIdentity, error) {
-	expanded, err := identity.ExpandUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := servers.MySQLServerIdentity{
-		Type: pointer.ToEnum[servers.ManagedServiceIdentityType](string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned {
-		ids := make(map[string]any)
-		for k := range expanded.IdentityIds {
-			ids[k] = struct{}{}
-		}
-		out.UserAssignedIdentities = &ids
-	}
-
-	return &out, nil
-}
-
-func flattenFlexibleServerIdentity(input *servers.MySQLServerIdentity) (*[]any, error) {
-	var transform *identity.UserAssignedMap
-
-	if input != nil {
-		transform = &identity.UserAssignedMap{
-			Type:        identity.Type(string(*input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-		for k := range *input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{}
-		}
-	}
-
-	return identity.FlattenUserAssignedMap(transform)
 }
