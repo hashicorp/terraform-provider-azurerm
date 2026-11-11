@@ -52,6 +52,14 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"alerts_for_all_job_failures_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// Azure Monitor alerts for job failures are enabled by default for Backup vaults.
+			// https://learn.microsoft.com/azure/backup/backup-azure-monitoring-alerts?tabs=backup-vaults#turn-on-azure-monitor-alerts-for-job-failure-scenarios
+			Default: true,
+		},
+
 		"cross_region_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -96,6 +104,12 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
+		}
+		schema["alerts_for_all_job_failures_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// NOTE: O+C Preserve existing Azure alert settings when omitted in 5.x rather than enabling alerts on upgrade.
+			Computed: true,
 		}
 	}
 

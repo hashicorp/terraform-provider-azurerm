@@ -6,6 +6,7 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -168,6 +169,7 @@ func resourcePostgresqlFlexibleServerConfigurationFlatten(d *pluginsdk.ResourceD
 
 func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Postgres.FlexibleServersConfigurationsClient
+	serverClient := meta.(*clients.Client).Postgres.FlexibleServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,10 +178,21 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta a
 		return err
 	}
 
-	// if the server has already been deleted, we don't need to do anything
 	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
-	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
-		return nil
+
+	server, err := serverClient.Get(ctx, serverID)
+	if err != nil {
+		if response.WasNotFound(server.HttpResponse) {
+			// if the server has already been deleted, we don't need to do anything
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", serverID, err)
+	}
+
+	isReplica, primaryId := false, ""
+	if server.Model != nil && server.Model.Properties != nil {
+		isReplica = slices.Contains([]servers.ReplicationRole{servers.ReplicationRoleAsyncReplica, servers.ReplicationRoleGeoAsyncReplica}, pointer.From(server.Model.Properties.ReplicationRole))
+		primaryId = pointer.From(server.Model.Properties.SourceServerResourceId)
 	}
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
@@ -193,6 +206,26 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta a
 	defaultValue := ""
 	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.DefaultValue != nil {
 		defaultValue = *resp.Model.Properties.DefaultValue
+	}
+
+	// If the targeted server is a replica and the configuration item is one of the below, we'll reset the value to be equal to
+	// that of the primary, otherwise Azure may return a validation error as these items cannot be less than the primary config (and the default could be).
+	// reference: https://learn.microsoft.com/azure/postgresql/read-replica/concepts-read-replicas#scale
+	if isReplica && primaryId != "" && slices.Contains([]string{"max_connections", "max_prepared_transactions", "max_locks_per_transaction", "max_wal_senders", "max_worker_processes"}, id.ConfigurationName) {
+		pID, err := servers.ParseFlexibleServerIDInsensitively(primaryId)
+		if err != nil {
+			return err
+		}
+
+		primaryConfigurationID := configurations.NewConfigurationID(pID.SubscriptionId, pID.ResourceGroupName, pID.FlexibleServerName, id.ConfigurationName)
+		primaryConfig, err := client.Get(ctx, primaryConfigurationID)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", primaryConfigurationID, err)
+		}
+
+		if primaryConfig.Model != nil && primaryConfig.Model.Properties != nil && primaryConfig.Model.Properties.Value != nil {
+			defaultValue = *primaryConfig.Model.Properties.Value
+		}
 	}
 
 	props := configurations.ConfigurationForUpdate{

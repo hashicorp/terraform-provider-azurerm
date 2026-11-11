@@ -258,9 +258,7 @@ func StringDoesNotMatch(r *regexp.Regexp, message string) func(any, string) ([]s
 // is of type string and matches the value of an element in the valid slice
 // will test with in lower case if ignoreCase is true
 func StringInSlice(valid []string, ignoreCase bool) func(any, string) ([]string, []error) {
-	return func(i any, k string) ([]string, []error) {
-		return validation.StringInSlice(valid, ignoreCase)(i, k)
-	}
+	return validation.StringInSlice(valid, ignoreCase)
 }
 
 // StringInEnumSlice returns a SchemaValidateFunc which tests if the provided value

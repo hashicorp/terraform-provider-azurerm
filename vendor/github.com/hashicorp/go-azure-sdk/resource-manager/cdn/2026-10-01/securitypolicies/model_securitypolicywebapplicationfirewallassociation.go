@@ -1,0 +1,10 @@
+package securitypolicies
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type SecurityPolicyWebApplicationFirewallAssociation struct {
+	Domains         *[]ActivatedResourceReference `json:"domains,omitempty"`
+	PatternsToMatch *[]string                     `json:"patternsToMatch,omitempty"`
+	Routes          *[]ResourceReference          `json:"routes,omitempty"`
+}

@@ -23,9 +23,18 @@ type DataProtectionBackupVaultResource struct{}
 func TestAccDataProtectionBackupVault_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultResource{}
+	config := r.regressionTest(data)
+	upgradedConfig := config
+	if features.SixPointOh() {
+		upgradedConfig = r.complete(data)
+	}
+
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: config,
+		},
+		{
+			Config: upgradedConfig,
 		},
 	}, "")
 }
@@ -33,11 +42,17 @@ func TestAccDataProtectionBackupVault_regressionTest(t *testing.T) {
 func TestAccDataProtectionBackupVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultResource{}
+	alertsForAllJobFailures := "true"
+	if !features.SixPointOh() {
+		alertsForAllJobFailures = "false"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue(alertsForAllJobFailures),
 			),
 		},
 		data.ImportStep(),
@@ -90,6 +105,55 @@ func TestAccDataProtectionBackupVault_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccDataProtectionBackupVault_alertsForAllJobFailures(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultResource{}
+	alertsForAllJobFailures := "true"
+	if !features.SixPointOh() {
+		alertsForAllJobFailures = "false"
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alertsForAllJobFailures(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.alertsForAllJobFailures(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.alertsForAllJobFailures(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue(alertsForAllJobFailures),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -279,6 +343,32 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (r DataProtectionBackupVaultResource) regressionTest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  immutability               = "Disabled"
+  soft_delete                = "Off"
+  retention_duration_in_days = 14
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.templateResourceGroup(data), data.RandomInteger)
+}
+
 func (r DataProtectionBackupVaultResource) basic(data acceptance.TestData) string {
 	template := r.templateResourceGroup(data)
 	if !features.SixPointOh() {
@@ -387,6 +477,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 
+  alerts_for_all_job_failures_enabled = false
+
   identity {
     type = "SystemAssigned"
   }
@@ -413,6 +505,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
     datastore_type = "VaultStore"
     redundancy     = "LocallyRedundant"
   }
+
+  alerts_for_all_job_failures_enabled = false
 
   identity {
     type = "SystemAssigned"
@@ -448,6 +542,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 
+  alerts_for_all_job_failures_enabled = true
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -481,6 +577,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
     datastore_type = "VaultStore"
     redundancy     = "LocallyRedundant"
   }
+
+  alerts_for_all_job_failures_enabled = true
 
   identity {
     type         = "UserAssigned"
@@ -748,4 +846,39 @@ resource "azurerm_data_protection_backup_vault" "test" {
   }
 }
 `, r.templateResourceGroup(data), data.RandomInteger)
+}
+
+func (r DataProtectionBackupVaultResource) alertsForAllJobFailures(data acceptance.TestData, enabled bool) string {
+	template := r.templateResourceGroup(data)
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  alerts_for_all_job_failures_enabled = %t
+}
+`, template, data.RandomInteger, enabled)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
+
+  alerts_for_all_job_failures_enabled = %t
+}
+`, template, data.RandomInteger, enabled)
 }

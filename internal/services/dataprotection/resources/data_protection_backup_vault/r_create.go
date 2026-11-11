@@ -85,6 +85,22 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
+	if d.Get("alerts_for_all_job_failures_enabled").(bool) {
+		alertsForAllJobFailures = backupvaultresources.AlertsStateEnabled
+	}
+	parameters.Properties.MonitoringSettings = &backupvaultresources.MonitoringSettings{
+		AzureMonitorAlertSettings: &backupvaultresources.AzureMonitorAlertSettings{
+			AlertsForAllJobFailures: pointer.To(alertsForAllJobFailures),
+		},
+	}
+
+	if !features.SixPointOh() {
+		if pluginsdk.IsExplicitlyNullInConfig(d, "alerts_for_all_job_failures_enabled") {
+			parameters.Properties.MonitoringSettings = nil
+		}
+	}
+
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
 		parameters.Properties.FeatureSettings = &backupvaultresources.FeatureSettings{
 			CrossRegionRestoreSettings: &backupvaultresources.CrossRegionRestoreSettings{},

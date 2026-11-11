@@ -153,12 +153,9 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"protocol": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.Any(
-				validate.ProtocolWithPort,
-				validation.StringInSlice([]string{protocolApplicationDefault}, false),
-			),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.Protocol,
 			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
