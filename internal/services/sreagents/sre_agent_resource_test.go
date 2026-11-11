@@ -322,7 +322,7 @@ resource "azuread_group" "second" {
 
 resource "azurerm_sre_agent" "test" {
   name                     = "acctest-sre-%[2]d"
-  resource_group_name       = azurerm_resource_group.test.name
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   initial_sponsor_group_id = azuread_group.second.object_id
   upgrade_channel          = "Preview"
