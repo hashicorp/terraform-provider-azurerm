@@ -44,7 +44,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) ResourceType
 	return "azurerm_spring_cloud_elastic_application_performance_monitoring"
 }
 
-func (s SpringCloudElasticApplicationPerformanceMonitoringResource) ModelObject() interface{} {
+func (s SpringCloudElasticApplicationPerformanceMonitoringResource) ModelObject() any {
 	return &SpringCloudElasticApplicationPerformanceMonitoringModel{}
 }
 

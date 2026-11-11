@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -22,11 +24,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
-	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -62,7 +64,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: containerValidate.ContainerRegistryName,
+				ValidateFunc: validate.ContainerRegistryName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -159,40 +161,35 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"network_rule_set": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  registries.DefaultActionAllow,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(registries.DefaultActionAllow),
-								string(registries.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      registries.DefaultActionAllow,
+							ValidateFunc: validation.StringInSlice(registries.PossibleValuesForDefaultAction(), false),
 						},
 
 						"ip_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							Computed:   true,
+							Computed:   true, // azignore:AZS007 - pre-existing violation
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"action": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(registries.ActionAllow),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(registries.PossibleValuesForAction(), false),
 									},
 									"ip_range": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validate.CIDR,
+										ValidateFunc: validation.IsCIDRIPv4,
 									},
 								},
 							},
@@ -250,13 +247,10 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			},
 
 			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(registries.NetworkRuleBypassOptionsAzureServices),
-					string(registries.NetworkRuleBypassOptionsNone),
-				}, false),
-				Default: string(registries.NetworkRuleBypassOptionsAzureServices),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(registries.PossibleValuesForNetworkRuleBypassOptions(), false),
+				Default:      string(registries.NetworkRuleBypassOptionsAzureServices),
 			},
 
 			"network_rule_bypass_for_tasks_enabled": {
@@ -275,10 +269,10 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v any) error {
 			sku := d.Get("sku").(string)
 
-			geoReplications := d.Get("georeplications").([]interface{})
+			geoReplications := d.Get("georeplications").([]any)
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if len(geoReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
@@ -287,14 +281,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			// ensure location is different than any location of the geo-replication
 			var geoReplicationLocations []string
 			for _, v := range geoReplications {
-				v := v.(map[string]interface{})
+				v := v.(map[string]any)
 				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
-			for _, loc := range geoReplicationLocations {
-				if loc == location {
-					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
-				}
+			if slices.Contains(geoReplicationLocations, location) {
+				return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
@@ -318,7 +310,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption")
-			if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+			if ok && len(encryptionEnabled.([]any)) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return errors.New("an ACR encryption can only be applied when using the Premium Sku")
 			}
 
@@ -328,7 +320,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
 			}
 			for _, loc := range geoReplications {
-				loc := loc.(map[string]interface{})
+				loc := loc.(map[string]any)
 				zoneRedundancyEnabled, ok := loc["zone_redundancy_enabled"]
 				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
@@ -350,7 +342,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 	}
 }
 
-func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -373,12 +365,12 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	sku := d.Get("sku").(string)
 
-	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]any))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -412,7 +404,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Identity: identity,
 		Properties: &registries.RegistryProperties{
 			AdminUserEnabled: pointer.To(d.Get("admin_enabled").(bool)),
-			Encryption:       expandEncryption(d.Get("encryption").([]interface{})),
+			Encryption:       expandEncryption(d.Get("encryption").([]any)),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &registries.Policies{
 				QuarantinePolicy:                 expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
@@ -429,7 +421,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			NetworkRuleBypassAllowedForTasks: pointer.To(d.Get("network_rule_bypass_for_tasks_enabled").(bool)),
 		},
 
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -439,7 +431,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// the ACR is being created so no previous geo-replication locations
 	var oldGeoReplicationLocations, newGeoReplicationLocations []replications.Replication
-	newGeoReplicationLocations = expandReplications(d.Get("georeplications").([]interface{}))
+	newGeoReplicationLocations = expandReplications(d.Get("georeplications").([]any))
 	// geo replications have been specified
 	if len(newGeoReplicationLocations) > 0 {
 		if err = applyGeoReplicationLocations(ctx, meta, id, oldGeoReplicationLocations, newGeoReplicationLocations); err != nil {
@@ -450,7 +442,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceContainerRegistryRead(d, meta)
 }
 
-func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -468,8 +460,8 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	oldReplicationsRaw, newReplicationsRaw := d.GetChange("georeplications")
 	hasGeoReplicationsChanges := d.HasChange("georeplications")
-	oldReplications := oldReplicationsRaw.([]interface{})
-	newReplications := newReplicationsRaw.([]interface{})
+	oldReplications := oldReplicationsRaw.([]any)
+	newReplications := newReplicationsRaw.([]any)
 
 	// handle upgrade to Premium SKU first
 	if skuChange && isPremiumSku {
@@ -483,9 +475,9 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("network_rule_set") {
-		networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
+		networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]any))
 		if networkRuleSet != nil && isBasicSku {
-			return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+			return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 		}
 
 		payload.Properties.NetworkRuleSet = networkRuleSet
@@ -505,7 +497,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -571,7 +563,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("encryption") {
-		payload.Properties.Encryption = expandEncryption(d.Get("encryption").([]interface{}))
+		payload.Properties.Encryption = expandEncryption(d.Get("encryption").([]any))
 	}
 
 	if d.HasChange("anonymous_pull_enabled") {
@@ -595,7 +587,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	// geo replication is only supported by Premium Sku
@@ -625,7 +617,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceContainerRegistryRead(d, meta)
 }
 
-func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku string, id registries.RegistryId) error {
+func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta any, sku string, id registries.RegistryId) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -644,7 +636,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 	return nil
 }
 
-func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
+func applyGeoReplicationLocations(ctx context.Context, meta any, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
 	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
 
 	oldReplications := map[string]replications.Replication{}
@@ -698,7 +690,7 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 		// Since the replications here are all derived from expand function, where we guaranteed
 		// each properties are non-nil. Whilst we are still doing nil check here in case.
 		if oprop, nprop := oldRepl.Properties, newRepl.Properties; oprop != nil && nprop != nil {
-			// zoneRedundency can't be updated in place
+			// zoneRedundancy can't be updated in place
 			if ov, nv := oprop.ZoneRedundancy, nprop.ZoneRedundancy; ov != nil && nv != nil && *ov != *nv {
 				needUpdate = true
 				needReplace = true
@@ -735,31 +727,15 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 			}
 
 			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("context is missing a timeout")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					resp, err := replicationClient.Get(ctx, id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "NotFound", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return resp, "InProgress", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("additional waiting for deletion of %s: %+v", id, err)
+			poller := custompollers.NewEventualConsistencyPoller(5, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := replicationClient.Get(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, &custompollers.EventualConsistencyPollerOptions{
+				Interval:         5 * time.Second,
+				TargetStatusCode: pointer.To(http.StatusNotFound),
+			})
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 			}
 		}
 
@@ -772,7 +748,7 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 	return nil
 }
 
-func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -812,15 +788,14 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		d.Set("sku", string(pointer.From(model.Sku.Tier)))
+		d.Set("sku", pointer.FromEnum(model.Sku.Tier))
 
 		if props := model.Properties; props != nil {
 			d.Set("admin_enabled", props.AdminUserEnabled)
 			d.Set("login_server", props.LoginServer)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == registries.PublicNetworkAccessEnabled)
 
-			networkRuleSet := flattenNetworkRuleSet(props.NetworkRuleSet)
-			if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+			if err := d.Set("network_rule_set", flattenNetworkRuleSet(props.NetworkRuleSet)); err != nil {
 				return fmt.Errorf("setting `network_rule_set`: %+v", err)
 			}
 
@@ -831,8 +806,8 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
-			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
-			d.Set("role_assignment_mode", string(pointer.From(props.RoleAssignmentMode)))
+			d.Set("network_rule_bypass_option", pointer.FromEnum(props.NetworkRuleBypassOptions))
+			d.Set("role_assignment_mode", pointer.FromEnum(props.RoleAssignmentMode))
 			d.Set("network_rule_bypass_for_tasks_enabled", pointer.From(props.NetworkRuleBypassAllowedForTasks))
 
 			if policies := props.Policies; policies != nil {
@@ -880,12 +855,12 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving replications for %s: %s", *id, err)
 	}
 
-	geoReplications := make([]interface{}, 0)
+	geoReplications := make([]any, 0)
 	if replicationsModel := replicationsResp.Model; replicationsModel != nil {
 		for _, value := range *replicationsModel {
 			valueLocation := location.Normalize(value.Location)
 			if valueLocation != loc {
-				replication := make(map[string]interface{})
+				replication := make(map[string]any)
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
@@ -897,7 +872,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// The order of the georeplications returned from the list API is not consistent. We simply order it alphabetically to be consistent.
 	sort.Slice(geoReplications, func(i, j int) bool {
-		return geoReplications[i].(map[string]interface{})["location"].(string) < geoReplications[j].(map[string]interface{})["location"].(string)
+		return geoReplications[i].(map[string]any)["location"].(string) < geoReplications[j].(map[string]any)["location"].(string)
 	})
 
 	d.Set("georeplications", geoReplications)
@@ -905,7 +880,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -922,17 +897,17 @@ func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
+func expandNetworkRuleSet(profiles []any) *registries.NetworkRuleSet {
 	if len(profiles) == 0 {
 		return nil
 	}
 
-	profile := profiles[0].(map[string]interface{})
+	profile := profiles[0].(map[string]any)
 
 	ipRuleConfigs := profile["ip_rule"].(*pluginsdk.Set).List()
 	ipRules := make([]registries.IPRule, 0)
 	for _, ipRuleInterface := range ipRuleConfigs {
-		config := ipRuleInterface.(map[string]interface{})
+		config := ipRuleInterface.(map[string]any)
 		newIpRule := registries.IPRule{
 			Action: pointer.ToEnum[registries.Action](config["action"].(string)),
 			Value:  config["ip_range"].(string),
@@ -982,15 +957,15 @@ func expandAadAuthAsArmPolicy(enabled bool) *registries.AzureADAuthenticationAsA
 	return &policy
 }
 
-func expandReplications(p []interface{}) []replications.Replication {
+func expandReplications(p []any) []replications.Replication {
 	reps := make([]replications.Replication, 0)
 	if p == nil {
 		return reps
 	}
 	for _, v := range p {
-		value := v.(map[string]interface{})
+		value := v.(map[string]any)
 		location := location.Normalize(value["location"].(string))
-		tags := tags.Expand(value["tags"].(map[string]interface{}))
+		tags := tags.Expand(value["tags"].(map[string]any))
 		zoneRedundancy := replications.ZoneRedundancyDisabled
 		if value["zone_redundancy_enabled"].(bool) {
 			zoneRedundancy = replications.ZoneRedundancyEnabled
@@ -1009,11 +984,11 @@ func expandReplications(p []interface{}) []replications.Replication {
 	return reps
 }
 
-func expandEncryption(input []interface{}) *registries.EncryptionProperty {
+func expandEncryption(input []any) *registries.EncryptionProperty {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &registries.EncryptionProperty{
 		KeyVaultProperties: &registries.KeyVaultProperties{
 			Identity:      pointer.To(v["identity_client_id"].(string)),
@@ -1023,31 +998,31 @@ func expandEncryption(input []interface{}) *registries.EncryptionProperty {
 	}
 }
 
-func flattenEncryption(input *registries.EncryptionProperty) []interface{} {
+func flattenEncryption(input *registries.EncryptionProperty) []any {
 	if input == nil || input.KeyVaultProperties == nil || input.Status == nil || *input.Status == registries.EncryptionStatusDisabled {
-		return []interface{}{}
+		return []any{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"key_vault_key_id":   pointer.From(input.KeyVaultProperties.KeyIdentifier),
 			"identity_client_id": pointer.From(input.KeyVaultProperties.Identity),
 		},
 	}
 }
 
-func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interface{} {
+func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []any {
 	if networkRuleSet == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	values["default_action"] = string(networkRuleSet.DefaultAction)
 
-	ipRules := make([]interface{}, 0)
+	ipRules := make([]any, 0)
 	for _, ipRule := range *networkRuleSet.IPRules {
-		value := make(map[string]interface{})
+		value := make(map[string]any)
 		value["action"] = string(*ipRule.Action)
 
 		// When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
@@ -1061,7 +1036,7 @@ func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interfac
 
 	values["ip_rule"] = ipRules
 
-	return []interface{}{values}
+	return []any{values}
 }
 
 func flattenQuarantinePolicy(p *registries.Policies) bool {

@@ -95,7 +95,7 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -156,7 +156,7 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceApiManagementCertificateRead(d, meta)
 }
 
-func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceApiManagementCertificateRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceApiManagementCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -15,7 +15,7 @@ type MonitorDataCollectionRuleDataSource struct{}
 
 func TestAccMonitorDataCollectionRuleDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_data_collection_rule", "test")
-	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	// https://learn.microsoft.com/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
 	data.Locations.Primary = "westeurope"
 	d := MonitorDataCollectionRuleDataSource{}
 

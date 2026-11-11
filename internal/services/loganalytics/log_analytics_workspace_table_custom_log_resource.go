@@ -137,7 +137,7 @@ func (r WorkspaceTableCustomLogResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r WorkspaceTableCustomLogResource) ModelObject() interface{} {
+func (r WorkspaceTableCustomLogResource) ModelObject() any {
 	return &WorkspaceTableCustomLogResourceModel{}
 }
 

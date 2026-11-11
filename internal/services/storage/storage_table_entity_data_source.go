@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	rmTables "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +30,7 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 			"storage_table_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: rmTables.ValidateTableID,
+				ValidateFunc: tables.ValidateTableID,
 			},
 
 			"partition_key": {
@@ -56,7 +56,7 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -76,7 +76,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	storageTableIdRaw := tableIdRaw.(string)
 
-	storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
+	storageTableId, err := tables.ParseTableID(storageTableIdRaw)
 	if err != nil {
 		return err
 	}

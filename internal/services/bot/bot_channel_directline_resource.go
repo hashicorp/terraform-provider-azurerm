@@ -10,15 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -30,8 +30,15 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 		Update: resourceBotChannelDirectlineUpdate,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BotChannelID(id)
+			_, err := commonids.ParseBotServiceChannelID(id)
 			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotChannelDirectlineV0ToV1{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -149,22 +156,22 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 	}
 }
 
-func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
+	resourceId := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
+		existing, err := client.Get(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, resourceId.ChannelType)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.Response.Response) {
+				return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			// a "Default Site" site gets created and returned.. so let's check it's not just that
 			if props := existing.Properties; props != nil {
 				directLineChannel, ok := props.AsDirectLineChannel()
@@ -189,47 +196,47 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("creating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("creating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 	d.SetId(resourceId.ID())
 
 	// Unable to add a new site with enhanced_authentication_enabled, user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
-	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+	if _, err := client.Update(ctx, resourceId.ResourceGroupName, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Directline Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotServiceName)
+		if response.WasNotFound(resp.Response.Response) {
+			log.Printf("[INFO] Directline Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroupName, id.BotServiceName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Channel Directline for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
+		return fmt.Errorf("retrieving Channel Directline for Bot %q (Resource Group %q): %+v", id.ResourceGroupName, id.BotServiceName, err)
 	}
 
-	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel)
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameDirectLineChannel)
 	if err != nil {
-		return fmt.Errorf("listing Keys for Directline Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
+		return fmt.Errorf("listing Keys for Directline Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroupName, id.BotServiceName, err)
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := channelsResp.Properties; props != nil {
@@ -251,12 +258,12 @@ func resourceBotChannelDirectlineRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -272,40 +279,40 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	// Unable to add a new site with enhanced_authentication_enabled, user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/25758 is fixed, this update will be removed
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
+	resp, err := client.Delete(ctx, id.ResourceGroupName, id.BotServiceName, string(botservice.ChannelNameBasicChannelChannelNameDirectLineChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 		}
 	}
 
 	return nil
 }
 
-func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
+func expandDirectlineSites(input []any) *[]botservice.DirectLineSite {
 	sites := make([]botservice.DirectLineSite, 0)
 
 	for _, element := range input {
@@ -313,7 +320,7 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 			continue
 		}
 
-		site := element.(map[string]interface{})
+		site := element.(map[string]any)
 		expanded := botservice.DirectLineSite{
 			IsBlockUserUploadEnabled:    pointer.To(!site["user_upload_enabled"].(bool)),
 			IsEndpointParametersEnabled: pointer.To(site["endpoint_parameters_enabled"].(bool)),
@@ -350,11 +357,11 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 	return &sites
 }
 
-func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
-	sites := make([]interface{}, len(input))
+func flattenDirectlineSites(input []botservice.DirectLineSite) []any {
+	sites := make([]any, len(input))
 
 	for i, element := range input {
-		site := make(map[string]interface{})
+		site := make(map[string]any)
 
 		if v := element.SiteName; v != nil {
 			site["name"] = *v

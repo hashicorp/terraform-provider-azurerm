@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	synapseValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -66,7 +66,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: synapseValidate.SparkPoolID,
+				ValidateFunc: validate.SparkPoolID,
 			},
 
 			"description": {
@@ -89,7 +89,7 @@ func resourceSynapseSpark() *pluginsdk.Resource {
 	}
 }
 
-func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -110,14 +110,13 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	identity, err := expandIdentity(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: &machinelearningcomputes.SynapseSpark{
-			Properties:       nil,
 			ComputeLocation:  pointer.To(d.Get("location").(string)),
 			Description:      pointer.To(d.Get("description").(string)),
 			ResourceId:       pointer.To(d.Get("synapse_spark_pool_id").(string)),
@@ -125,7 +124,7 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 		Identity: identity,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if err := client.ComputeCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
@@ -136,7 +135,7 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceSynapseSparkRead(d, meta)
 }
 
-func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -183,7 +182,7 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
-func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSynapseSparkDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

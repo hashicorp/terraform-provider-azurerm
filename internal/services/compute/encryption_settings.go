@@ -58,19 +58,19 @@ func encryptionSettingsSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandSnapshotDiskEncryptionSettings(settingsList []interface{}) *snapshots.EncryptionSettingsCollection {
+func expandSnapshotDiskEncryptionSettings(settingsList []any) *snapshots.EncryptionSettingsCollection {
 	if len(settingsList) == 0 {
 		return &snapshots.EncryptionSettingsCollection{}
 	}
-	settings := settingsList[0].(map[string]interface{})
+	settings := settingsList[0].(map[string]any)
 
 	config := &snapshots.EncryptionSettingsCollection{
 		Enabled: true,
 	}
 
 	var diskEncryptionKey *snapshots.KeyVaultAndSecretReference
-	if v := settings["disk_encryption_key"].([]interface{}); len(v) > 0 {
-		dek := v[0].(map[string]interface{})
+	if v := settings["disk_encryption_key"].([]any); len(v) > 0 {
+		dek := v[0].(map[string]any)
 
 		secretURL := dek["secret_url"].(string)
 		sourceVaultId := dek["source_vault_id"].(string)
@@ -83,8 +83,8 @@ func expandSnapshotDiskEncryptionSettings(settingsList []interface{}) *snapshots
 	}
 
 	var keyEncryptionKey *snapshots.KeyVaultAndKeyReference
-	if v := settings["key_encryption_key"].([]interface{}); len(v) > 0 {
-		kek := v[0].(map[string]interface{})
+	if v := settings["key_encryption_key"].([]any); len(v) > 0 {
+		kek := v[0].(map[string]any)
 
 		secretURL := kek["key_url"].(string)
 		sourceVaultId := kek["source_vault_id"].(string)
@@ -106,13 +106,13 @@ func expandSnapshotDiskEncryptionSettings(settingsList []interface{}) *snapshots
 	return config
 }
 
-func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.EncryptionSettingsCollection) []interface{} {
+func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.EncryptionSettingsCollection) []any {
 	if encryptionSettings == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	diskEncryptionKeys := make([]interface{}, 0)
-	keyEncryptionKeys := make([]interface{}, 0)
+	diskEncryptionKeys := make([]any, 0)
+	keyEncryptionKeys := make([]any, 0)
 	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
 		// at this time we only support a single element
 		settings := (*encryptionSettings.EncryptionSettings)[0]
@@ -125,7 +125,7 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.Encrypt
 
 			sourceVaultId := pointer.From(key.SourceVault.Id)
 
-			diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
+			diskEncryptionKeys = append(diskEncryptionKeys, map[string]any{
 				"secret_url":      secretUrl,
 				"source_vault_id": sourceVaultId,
 			})
@@ -139,7 +139,7 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.Encrypt
 
 			sourceVaultId := pointer.From(key.SourceVault.Id)
 
-			keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
+			keyEncryptionKeys = append(keyEncryptionKeys, map[string]any{
 				"key_url":         keyUrl,
 				"source_vault_id": sourceVaultId,
 			})
@@ -147,30 +147,30 @@ func flattenSnapshotDiskEncryptionSettings(encryptionSettings *snapshots.Encrypt
 	}
 
 	if len(diskEncryptionKeys) > 0 {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"disk_encryption_key": diskEncryptionKeys,
 				"key_encryption_key":  keyEncryptionKeys,
 			},
 		}
 	} else {
-		return []interface{}{}
+		return []any{}
 	}
 }
 
-func expandManagedDiskEncryptionSettings(settingsList []interface{}) *disks.EncryptionSettingsCollection {
+func expandManagedDiskEncryptionSettings(settingsList []any) *disks.EncryptionSettingsCollection {
 	if len(settingsList) == 0 {
 		return &disks.EncryptionSettingsCollection{}
 	}
-	settings := settingsList[0].(map[string]interface{})
+	settings := settingsList[0].(map[string]any)
 
 	config := &disks.EncryptionSettingsCollection{
 		Enabled: true,
 	}
 
 	var diskEncryptionKey *disks.KeyVaultAndSecretReference
-	if v := settings["disk_encryption_key"].([]interface{}); len(v) > 0 {
-		dek := v[0].(map[string]interface{})
+	if v := settings["disk_encryption_key"].([]any); len(v) > 0 {
+		dek := v[0].(map[string]any)
 
 		secretURL := dek["secret_url"].(string)
 		sourceVaultId := dek["source_vault_id"].(string)
@@ -183,8 +183,8 @@ func expandManagedDiskEncryptionSettings(settingsList []interface{}) *disks.Encr
 	}
 
 	var keyEncryptionKey *disks.KeyVaultAndKeyReference
-	if v := settings["key_encryption_key"].([]interface{}); len(v) > 0 {
-		kek := v[0].(map[string]interface{})
+	if v := settings["key_encryption_key"].([]any); len(v) > 0 {
+		kek := v[0].(map[string]any)
 
 		secretURL := kek["key_url"].(string)
 		sourceVaultId := kek["source_vault_id"].(string)
@@ -206,13 +206,13 @@ func expandManagedDiskEncryptionSettings(settingsList []interface{}) *disks.Encr
 	return config
 }
 
-func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSettingsCollection) []interface{} {
+func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSettingsCollection) []any {
 	if encryptionSettings == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	diskEncryptionKeys := make([]interface{}, 0)
-	keyEncryptionKeys := make([]interface{}, 0)
+	diskEncryptionKeys := make([]any, 0)
+	keyEncryptionKeys := make([]any, 0)
 	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
 		// at this time we only support a single element
 		settings := (*encryptionSettings.EncryptionSettings)[0]
@@ -225,7 +225,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 
 			sourceVaultId := pointer.From(key.SourceVault.Id)
 
-			diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
+			diskEncryptionKeys = append(diskEncryptionKeys, map[string]any{
 				"secret_url":      secretUrl,
 				"source_vault_id": sourceVaultId,
 			})
@@ -239,7 +239,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 
 			sourceVaultId := pointer.From(key.SourceVault.Id)
 
-			keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
+			keyEncryptionKeys = append(keyEncryptionKeys, map[string]any{
 				"key_url":         keyUrl,
 				"source_vault_id": sourceVaultId,
 			})
@@ -247,13 +247,13 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *disks.EncryptionSe
 	}
 
 	if len(diskEncryptionKeys) > 0 {
-		return []interface{}{
-			map[string]interface{}{
+		return []any{
+			map[string]any{
 				"disk_encryption_key": diskEncryptionKeys,
 				"key_encryption_key":  keyEncryptionKeys,
 			},
 		}
 	} else {
-		return []interface{}{}
+		return []any{}
 	}
 }

@@ -9,13 +9,13 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
 
-func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeId, client *clients.Client, rule *netAppModels.NetAppVolumeQuotaRuleModel) []error {
+func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeId, client *clients.Client, rule *models.NetAppVolumeQuotaRuleModel) []error {
 	errors := make([]error, 0)
 
 	// Validating quota type matches volume type

@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -2473,7 +2473,6 @@ resource "azurerm_application_gateway" "import" {
 `, r.basic(data))
 }
 
-// nolint unused - mistakenly marked as unused
 func (r ApplicationGatewayResource) trustedRootCertificate_keyvault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s

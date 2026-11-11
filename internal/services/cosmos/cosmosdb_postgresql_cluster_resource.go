@@ -73,7 +73,7 @@ func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
 	return CosmosDbPostgreSQLClusterResourceName
 }
 
-func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLClusterResource) ModelObject() any {
 	return &CosmosDbPostgreSQLClusterModel{}
 }
 
@@ -117,7 +117,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"citus_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"8.3",
 				"9.0",
@@ -238,7 +238,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_storage_quota_in_mb": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.All(
 				validation.IntBetween(32768, 16777216),
 				validation.IntDivisibleBy(1024),
@@ -248,7 +248,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"node_vcores": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.IntInSlice([]int{
 				1,
 				2,
@@ -275,7 +275,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"shards_on_coordinator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 		},
 
 		"source_location": {
@@ -298,7 +298,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 		"sql_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				"11",
 				"12",
@@ -423,7 +423,7 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `false` when `node_count` is greater than or equal to `2`.
 			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config.
-			// nolint staticcheck
+			//nolint:staticcheck,tfproviderlint // XR001: GetOkExists is needed here, see above
 			if v, ok := metadata.ResourceData.GetOkExists("shards_on_coordinator_enabled"); ok {
 				parameters.Properties.EnableShardsOnCoordinator = pointer.To(v.(bool))
 			}
@@ -663,7 +663,7 @@ func expandMaintenanceWindow(input []MaintenanceWindow) *clusters.MaintenanceWin
 
 func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWindow {
 	if input == nil || input.CustomWindow == nil || *input.CustomWindow == "Disabled" {
-		return nil
+		return []MaintenanceWindow{}
 	}
 
 	return []MaintenanceWindow{

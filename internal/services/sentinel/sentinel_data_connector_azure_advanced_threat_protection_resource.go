@@ -50,7 +50,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtection() *pluginsdk.Res
 			"tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -58,7 +58,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtection() *pluginsdk.Res
 	}
 }
 
-func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionCreate(d *plugins
 	return resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead(d, meta)
 }
 
-func resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +149,7 @@ func resourceSentinelDataConnectorAzureAdvancedThreatProtectionRead(d *pluginsdk
 	return nil
 }
 
-func resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelDataConnectorAzureAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

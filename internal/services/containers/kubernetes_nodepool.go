@@ -5,6 +5,7 @@ package containers
 
 import (
 	"fmt"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,14 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,9 +62,9 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"vm_size": {
-						Type: pluginsdk.TypeString,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
-						Optional:     true,
 						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
@@ -87,16 +86,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"gpu_instance": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.GPUInstanceProfileMIGOneg),
-							string(managedclusters.GPUInstanceProfileMIGTwog),
-							string(managedclusters.GPUInstanceProfileMIGThreeg),
-							string(managedclusters.GPUInstanceProfileMIGFourg),
-							string(managedclusters.GPUInstanceProfileMIGSeveng),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForGPUInstanceProfile(), false),
 					},
 
 					"gpu_driver": {
@@ -107,13 +100,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"kubelet_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.KubeletDiskTypeOS),
-							string(managedclusters.KubeletDiskTypeTemporary),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForKubeletDiskType(), false),
 					},
 
 					"max_count": {
@@ -126,7 +116,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"max_pods": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 					},
 
 					"min_count": {
@@ -141,14 +131,14 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"node_count": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(1, 1000),
 					},
 
 					"node_labels": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -167,24 +157,22 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_size_gb": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 
 					"os_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  agentpools.OSDiskTypeManaged,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.OSDiskTypeEphemeral),
-							string(managedclusters.OSDiskTypeManaged),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      agentpools.OSDiskTypeManaged,
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForOSDiskType(), false),
 					},
 
 					"os_sku": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true, // defaults to Ubuntu if using Linux
+						// Note: O+C because defaults to Ubuntu if using Linux
+						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(agentpools.OSSKUAzureLinux),
 							string(agentpools.OSSKUAzureLinuxThree),
@@ -193,6 +181,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 							string(agentpools.OSSKUWindowsTwoZeroOneNine),
 							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+							string(agentpools.OSSKUWindowsTwoZeroTwoFive),
 						}, false),
 					},
 
@@ -210,7 +199,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"orchestrator_version": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"pod_subnet_id": {
@@ -230,13 +219,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"scale_down_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(managedclusters.ScaleDownModeDelete),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(managedclusters.ScaleDownModeDeallocate),
-							string(managedclusters.ScaleDownModeDelete),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(managedclusters.ScaleDownModeDelete),
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForScaleDownMode(), false),
 					},
 
 					"snapshot_id": {
@@ -249,7 +235,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: computeValidate.HostGroupID,
+						ValidateFunc: validation.AsGeneratedID(commonids.ParseDedicatedHostGroupIDInsensitively),
 					},
 
 					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
@@ -257,7 +243,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.WorkloadRuntimeKataVMIsolation),
 							string(managedclusters.WorkloadRuntimeOCIContainer),
@@ -613,12 +599,9 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 							},
 
 							"protocol": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(agentpools.ProtocolTCP),
-									string(agentpools.ProtocolUDP),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForProtocol(), false),
 							},
 						},
 					},
@@ -708,8 +691,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 
 	if osDisktypeNodePool := defaultCluster.OsDiskType; osDisktypeNodePool != nil {
-		osDisktype := agentpools.OSDiskType(string(*osDisktypeNodePool))
-		agentpool.Properties.OsDiskType = &osDisktype
+		agentpool.Properties.OsDiskType = pointer.ToEnum[agentpools.OSDiskType](string(*osDisktypeNodePool))
 	}
 	if kubeletConfigNodePool := defaultCluster.KubeletConfig; kubeletConfigNodePool != nil {
 		kubeletConfig := agentpools.KubeletConfig{
@@ -746,7 +728,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
 					PortStart: allowedHostPortRaw.PortStart,
 					PortEnd:   allowedHostPortRaw.PortEnd,
-					Protocol:  pointer.ToEnum[agentpools.Protocol](string(pointer.From(allowedHostPortRaw.Protocol))),
+					Protocol:  pointer.ToEnum[agentpools.Protocol](pointer.FromEnum(allowedHostPortRaw.Protocol)),
 				})
 			}
 			networkProfile.AllowedHostPorts = &allowedHostPorts
@@ -823,13 +805,13 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 }
 
 func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.ManagedClusterAgentPoolProfile, error) {
-	input := d.Get("default_node_pool").([]interface{})
+	input := d.Get("default_node_pool").([]any)
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 
 	enableAutoScaling := raw["auto_scaling_enabled"].(bool)
 
-	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
+	nodeLabelsRaw := raw["node_labels"].(map[string]any)
 	nodeLabels := expandNodeLabels(nodeLabelsRaw)
 	var nodeTaints *[]string
 
@@ -838,7 +820,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		nodeTaints = pointer.To([]string{"CriticalAddonsOnly=true:NoSchedule"})
 	}
 
-	t := raw["tags"].(map[string]interface{})
+	t := raw["tags"].(map[string]any)
 
 	profile := managedclusters.ManagedClusterAgentPoolProfile{
 		EnableAutoScaling:      pointer.To(enableAutoScaling),
@@ -863,7 +845,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		// since this is the "default" node pool we can assume this is a system node pool
 		Mode: pointer.To(managedclusters.AgentPoolModeSystem),
 
-		UpgradeSettings: expandClusterNodePoolUpgradeSettings(raw["upgrade_settings"].([]interface{})),
+		UpgradeSettings: expandClusterNodePoolUpgradeSettings(raw["upgrade_settings"].([]any)),
 
 		// // TODO: support these in time
 		// ScaleSetEvictionPolicy: "",
@@ -900,8 +882,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.PodSubnetID = pointer.To(podSubnetID)
 	}
 
-	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
-	profile.ScaleDownMode = &scaleDownModeDelete
+	profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownModeDelete)
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
 		profile.ScaleDownMode = pointer.ToEnum[managedclusters.ScaleDownMode](scaleDownMode)
 	}
@@ -998,11 +979,11 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
 	}
 
-	if kubeletConfig := raw["kubelet_config"].([]interface{}); len(kubeletConfig) > 0 {
+	if kubeletConfig := raw["kubelet_config"].([]any); len(kubeletConfig) > 0 {
 		profile.KubeletConfig = expandClusterNodePoolKubeletConfig(kubeletConfig)
 	}
 
-	if linuxOSConfig := raw["linux_os_config"].([]interface{}); len(linuxOSConfig) > 0 {
+	if linuxOSConfig := raw["linux_os_config"].([]any); len(linuxOSConfig) > 0 {
 		linuxOSConfig, err := expandClusterNodePoolLinuxOSConfig(linuxOSConfig)
 		if err != nil {
 			return nil, err
@@ -1010,7 +991,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.LinuxOSConfig = linuxOSConfig
 	}
 
-	if networkProfile := raw["node_network_profile"].([]interface{}); len(networkProfile) > 0 {
+	if networkProfile := raw["node_network_profile"].([]any); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
 	}
 
@@ -1019,17 +1000,17 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}, nil
 }
 
-func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.KubeletConfig {
+func expandClusterNodePoolKubeletConfig(input []any) *managedclusters.KubeletConfig {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	result := &managedclusters.KubeletConfig{
 		CpuCfsQuota: pointer.To(raw["cpu_cfs_quota_enabled"].(bool)),
 		// must be false, otherwise the backend will report error: CustomKubeletConfig.FailSwapOn must be set to false to enable swap file on nodes.
 		FailSwapOn:           pointer.To(false),
-		AllowedUnsafeSysctls: helpers.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
+		AllowedUnsafeSysctls: pluginsdk.ExpandStringSlice(raw["allowed_unsafe_sysctls"].(*pluginsdk.Set).List()),
 	}
 
 	if v := raw["cpu_manager_policy"].(string); v != "" {
@@ -1060,12 +1041,12 @@ func expandClusterNodePoolKubeletConfig(input []interface{}) *managedclusters.Ku
 	return result
 }
 
-func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.LinuxOSConfig, error) {
+func expandClusterNodePoolLinuxOSConfig(input []any) (*managedclusters.LinuxOSConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
-	raw := input[0].(map[string]interface{})
-	sysctlConfig, err := expandClusterNodePoolSysctlConfig(raw["sysctl_config"].([]interface{}))
+	raw := input[0].(map[string]any)
+	sysctlConfig, err := expandClusterNodePoolSysctlConfig(raw["sysctl_config"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -1087,11 +1068,11 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 	return result, nil
 }
 
-func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.SysctlConfig, error) {
+func expandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	result := &managedclusters.SysctlConfig{
 		NetIPv4TcpTwReuse: pointer.To(raw["net_ipv4_tcp_tw_reuse"].(bool)),
 	}
@@ -1187,9 +1168,9 @@ func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.Sy
 	return result, nil
 }
 
-func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*[]interface{}, error) {
+func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile, d *pluginsdk.ResourceData) (*[]any, error) {
 	if input == nil {
-		return &[]interface{}{}, nil
+		return &[]any{}, nil
 	}
 
 	agentPool, err := findDefaultNodePool(input, d)
@@ -1219,7 +1200,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	gpuDriver := ""
 	if agentPool.GpuProfile != nil {
-		gpuDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+		gpuDriver = pointer.FromEnum(agentPool.GpuProfile.Driver)
 	}
 
 	maxCount := 0
@@ -1245,9 +1226,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	var nodeLabels map[string]string
 	if agentPool.NodeLabels != nil {
 		nodeLabels = make(map[string]string)
-		for k, v := range *agentPool.NodeLabels {
-			nodeLabels[k] = v
-		}
+		maps.Copy(nodeLabels, *agentPool.NodeLabels)
 	}
 
 	nodePublicIPPrefixID := pointer.From(agentPool.NodePublicIPPrefixID)
@@ -1332,7 +1311,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
 
-	out := map[string]interface{}{
+	out := map[string]any{
 		"auto_scaling_enabled":          enableAutoScaling,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
@@ -1372,17 +1351,17 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
-	return &[]interface{}{
+	return &[]any{
 		out,
 	}, nil
 }
 
-func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
+func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []any {
 	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
-		return []interface{}{}
+		return []any{}
 	}
 
-	values := make(map[string]interface{})
+	values := make(map[string]any)
 
 	if input.MaxSurge != nil && *input.MaxSurge != "" {
 		values["max_surge"] = *input.MaxSurge
@@ -1400,12 +1379,12 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
-	return []interface{}{values}
+	return []any{values}
 }
 
-func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) []interface{} {
+func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
@@ -1440,15 +1419,15 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
 			"cpu_cfs_quota_period":      cpuCfsQuotaPeriod,
 			"image_gc_high_threshold":   imageGcHighThreshold,
 			"image_gc_low_threshold":    imageGcLowThreshold,
 			"topology_manager_policy":   topologyManagerPolicy,
-			"allowed_unsafe_sysctls":    helpers.FlattenStringSlice(input.AllowedUnsafeSysctls),
+			"allowed_unsafe_sysctls":    pluginsdk.FlattenSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
 			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
@@ -1456,9 +1435,9 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 	}
 }
 
-func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{} {
+func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
@@ -1493,15 +1472,15 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		podMaxPids = int(*input.PodMaxPids)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"cpu_manager_policy":        cpuManagerPolicy,
 			"cpu_cfs_quota_enabled":     cpuCfsQuotaEnabled,
 			"cpu_cfs_quota_period":      cpuCfsQuotaPeriod,
 			"image_gc_high_threshold":   imageGcHighThreshold,
 			"image_gc_low_threshold":    imageGcLowThreshold,
 			"topology_manager_policy":   topologyManagerPolicy,
-			"allowed_unsafe_sysctls":    helpers.FlattenStringSlice(input.AllowedUnsafeSysctls),
+			"allowed_unsafe_sysctls":    pluginsdk.FlattenSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
 			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
@@ -1509,9 +1488,9 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 	}
 }
 
-func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]interface{}, error) {
+func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]any, error) {
 	if input == nil {
-		return make([]interface{}, 0), nil
+		return make([]any, 0), nil
 	}
 
 	var swapFileSizeMB int
@@ -1525,8 +1504,8 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 		return nil, err
 	}
 
-	config := []interface{}{
-		map[string]interface{}{
+	config := []any{
+		map[string]any{
 			"swap_file_size_mb":            swapFileSizeMB,
 			"sysctl_config":                sysctlConfig,
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
@@ -1537,9 +1516,9 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 	return config, nil
 }
 
-func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]interface{}, error) {
+func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]any, error) {
 	if input == nil {
-		return make([]interface{}, 0), nil
+		return make([]any, 0), nil
 	}
 
 	var fsAioMaxNr int
@@ -1663,8 +1642,8 @@ func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]
 	if input.VMVfsCachePressure != nil {
 		vmVfsCachePressure = int(*input.VMVfsCachePressure)
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"fs_aio_max_nr":                      fsAioMaxNr,
 			"fs_file_max":                        fsFileMax,
 			"fs_inotify_max_user_watches":        fsInotifyMaxUserWatches,
@@ -1748,13 +1727,13 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 	return agentPool, nil
 }
 
-func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.AgentPoolUpgradeSettings {
+func expandClusterNodePoolUpgradeSettings(input []any) *managedclusters.AgentPoolUpgradeSettings {
 	setting := &managedclusters.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
 	}
@@ -1772,25 +1751,25 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	return setting
 }
 
-func expandClusterPoolNetworkProfile(input []interface{}) *managedclusters.AgentPoolNetworkProfile {
+func expandClusterPoolNetworkProfile(input []any) *managedclusters.AgentPoolNetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+	v := input[0].(map[string]any)
 	return &managedclusters.AgentPoolNetworkProfile{
-		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
-		ApplicationSecurityGroups: helpers.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
-		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]any)),
+		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]any)),
+		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
 	}
 }
 
-func expandClusterPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]managedclusters.PortRange {
+func expandClusterPoolNetworkProfileAllowedHostPorts(input []any) *[]managedclusters.PortRange {
 	if len(input) == 0 {
 		return nil
 	}
 	out := make([]managedclusters.PortRange, 0)
 	for _, v := range input {
-		raw := v.(map[string]interface{})
+		raw := v.(map[string]any)
 		var portEnd, portStart int64
 		var protocol managedclusters.Protocol
 		if raw["port_end"] != nil {
@@ -1811,7 +1790,7 @@ func expandClusterPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]man
 	return &out
 }
 
-func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]managedclusters.IPTag {
+func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]managedclusters.IPTag {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1827,26 +1806,26 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{
 	return &out
 }
 
-func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
+func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []any {
 	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"allowed_host_ports":             flattenClusterPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
-			"application_security_group_ids": helpers.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"application_security_group_ids": pluginsdk.FlattenSlice(input.ApplicationSecurityGroups),
 			"node_public_ip_tags":            flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}
 }
 
-func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.PortRange) []interface{} {
+func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.PortRange) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 	for _, portRange := range *input {
-		out = append(out, map[string]interface{}{
+		out = append(out, map[string]any{
 			"port_end":   pointer.From(portRange.PortEnd),
 			"port_start": pointer.From(portRange.PortStart),
 			"protocol":   pointer.From(portRange.Protocol),
@@ -1855,11 +1834,11 @@ func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.P
 	return out
 }
 
-func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]interface{} {
+func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]any {
 	if input == nil {
-		return map[string]interface{}{}
+		return map[string]any{}
 	}
-	out := make(map[string]interface{})
+	out := make(map[string]any)
 
 	for _, tag := range *input {
 		if tag.IPTagType != nil {

@@ -10,12 +10,12 @@ import (
 )
 
 // expandBatchAccountKeyVaultReference expands Batch account KeyVault reference
-func expandBatchAccountKeyVaultReference(list []interface{}) (*batchaccount.KeyVaultReference, error) {
+func expandBatchAccountKeyVaultReference(list []any) (*batchaccount.KeyVaultReference, error) {
 	if len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("key vault reference should be defined")
 	}
 
-	keyVaultRef := list[0].(map[string]interface{})
+	keyVaultRef := list[0].(map[string]any)
 
 	ref := &batchaccount.KeyVaultReference{
 		Id:  keyVaultRef["id"].(string),
@@ -26,11 +26,11 @@ func expandBatchAccountKeyVaultReference(list []interface{}) (*batchaccount.KeyV
 }
 
 // flattenBatchAccountKeyvaultReference flattens a Batch account keyvault reference
-func flattenBatchAccountKeyvaultReference(keyVaultReference *batchaccount.KeyVaultReference) interface{} {
-	result := make(map[string]interface{})
+func flattenBatchAccountKeyvaultReference(keyVaultReference *batchaccount.KeyVaultReference) any {
+	result := make(map[string]any)
 
 	if keyVaultReference == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	if keyVaultReference.Id != "" {
@@ -41,5 +41,5 @@ func flattenBatchAccountKeyvaultReference(keyVaultReference *batchaccount.KeyVau
 		result["url"] = keyVaultReference.Url
 	}
 
-	return []interface{}{result}
+	return []any{result}
 }

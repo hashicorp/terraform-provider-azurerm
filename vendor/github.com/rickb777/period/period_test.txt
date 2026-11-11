@@ -1,0 +1,362 @@
+// Copyright 2015 Rick Beton. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package period
+
+import (
+	"fmt"
+	"strings"
+	"time"
+)
+
+var oneDay = 24 * time.Hour
+var oneMonthApprox = 2629746 * time.Second // 30.436875 days
+var oneYearApprox = 31556952 * time.Second // 365.2425 days
+
+//func TestPeriodIntComponents(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//
+//	cases := []struct {
+//		value                      string
+//		y, m, w, d, dx, hh, mm, ss int
+//	}{
+//		// note: the negative cases are also covered (see below)
+//
+//		{value: "P0D"},
+//		{value: "P1Y", y: 1},
+//		{value: "P1W", w: 1, d: 7},
+//		{value: "P6M", m: 6},
+//		{value: "P12M", m: 12},
+//		{value: "P39D", w: 5, d: 39, dx: 4},
+//		{value: "P4D", d: 4, dx: 4},
+//		{value: "PT12H", hh: 12},
+//		{value: "PT60M", mm: 60},
+//		{value: "PT30M", mm: 30},
+//		{value: "PT5S", ss: 5},
+//	}
+//	for i, c := range cases {
+//		pp := MustParse(c.value, false)
+//		g.Expect(pp.Years()).To(Equal(c.y), info(i, pp))
+//		g.Expect(pp.Months()).To(Equal(c.m), info(i, pp))
+//		g.Expect(pp.Weeks()).To(Equal(c.w), info(i, pp))
+//		g.Expect(pp.Days()).To(Equal(c.d), info(i, pp))
+//		g.Expect(pp.ModuloDays()).To(Equal(c.dx), info(i, pp))
+//		g.Expect(pp.Hours()).To(Equal(c.hh), info(i, pp))
+//		g.Expect(pp.Minutes()).To(Equal(c.mm), info(i, pp))
+//		g.Expect(pp.Seconds()).To(Equal(c.ss), info(i, pp))
+//
+//		pn := pp.Negate()
+//		g.Expect(pn.Years()).To(Equal(-c.y), info(i, pn))
+//		g.Expect(pn.Months()).To(Equal(-c.m), info(i, pn))
+//		g.Expect(pn.Weeks()).To(Equal(-c.w), info(i, pn))
+//		g.Expect(pn.Days()).To(Equal(-c.d), info(i, pn))
+//		g.Expect(pn.ModuloDays()).To(Equal(-c.dx), info(i, pn))
+//		g.Expect(pn.Hours()).To(Equal(-c.hh), info(i, pn))
+//		g.Expect(pn.Minutes()).To(Equal(-c.mm), info(i, pn))
+//		g.Expect(pn.Seconds()).To(Equal(-c.ss), info(i, pn))
+//	}
+//}
+
+//-------------------------------------------------------------------------------------------------
+
+//func TestPeriodApproxDays(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//
+//	cases := []struct {
+//		value      string
+//		approxDays int
+//	}{
+//		// note: the negative cases are also covered (see below)
+//
+//		{"P0D", 0},
+//		{"PT24H", 1},
+//		{"PT49H", 2},
+//		{"P1D", 1},
+//		{"P1M", 30},
+//		{"P1Y", 365},
+//	}
+//	for i, c := range cases {
+//		p := MustParse(c.value, false)
+//		td1 := p.TotalDaysApprox()
+//		g.Expect(td1).To(Equal(c.approxDays), info(i, c.value))
+//
+//		td2 := p.Negate().TotalDaysApprox()
+//		g.Expect(td2).To(Equal(-c.approxDays), info(i, c.value))
+//	}
+//}
+
+//-------------------------------------------------------------------------------------------------
+
+//func TestPeriodApproxMonths(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//
+//	cases := []struct {
+//		value        string
+//		approxMonths int
+//	}{
+//		// note: the negative cases are also covered (see below)
+//
+//		{"P0D", 0},
+//		{"P1D", 0},
+//		{"P30D", 0},
+//		{"P31D", 1},
+//		{"P60D", 1},
+//		{"P62D", 2},
+//		{"P1M", 1},
+//		{"P12M", 12},
+//		{"P2M31D", 3},
+//		{"P1Y", 12},
+//		{"P2Y3M", 27},
+//		{"PT24H", 0},
+//		{"PT744H", 1},
+//	}
+//	for i, c := range cases {
+//		p := MustParse(c.value, false)
+//		td1 := p.TotalMonthsApprox()
+//		g.Expect(td1).To(Equal(c.approxMonths), info(i, c.value))
+//
+//		td2 := p.Negate().TotalMonthsApprox()
+//		g.Expect(td2).To(Equal(-c.approxMonths), info(i, c.value))
+//	}
+//}
+
+//-------------------------------------------------------------------------------------------------
+
+//func TestPeriodFormat(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//
+//	cases := []struct {
+//		period  string
+//		expectW string // with weeks
+//		expectD string // without weeks
+//	}{
+//		// note: the negative cases are also covered (see below)
+//
+//		{"P0D", "0 days", ""},
+//
+//		{"P1Y1M7D", "1 year, 1 month, 1 week", "1 year, 1 month, 7 days"},
+//		{"P1Y1M1W1D", "1 year, 1 month, 1 week, 1 day", "1 year, 1 month, 8 days"},
+//		{"PT1H1M1S", "1 hour, 1 minute, 1 second", ""},
+//		{"P1Y1M1W1DT1H1M1S", "1 year, 1 month, 1 week, 1 day, 1 hour, 1 minute, 1 second", ""},
+//		{"P3Y6M39DT2H7M9S", "3 years, 6 months, 5 weeks, 4 days, 2 hours, 7 minutes, 9 seconds", ""},
+//		{"P365D", "52 weeks, 1 day", ""},
+//
+//		{"P1Y", "1 year", ""},
+//		{"P3Y", "3 years", ""},
+//		{"P1.1Y", "1.1 years", ""},
+//		{"P2.5Y", "2.5 years", ""},
+//
+//		{"P1M", "1 month", ""},
+//		{"P6M", "6 months", ""},
+//		{"P1.1M", "1.1 months", ""},
+//		{"P2.5M", "2.5 months", ""},
+//
+//		{"P1W", "1 week", "7 days"},
+//		{"P1.1W", "1 week, 0.7 day", "7.7 days"},
+//		{"P7D", "1 week", "7 days"},
+//		{"P35D", "5 weeks", "35 days"},
+//		{"P1D", "1 day", "1 day"},
+//		{"P4D", "4 days", "4 days"},
+//		{"P1.1D", "1.1 days", ""},
+//
+//		{"PT1H", "1 hour", ""},
+//		{"PT1.1H", "1.1 hours", ""},
+//
+//		{"PT1M", "1 minute", ""},
+//		{"PT1.1M", "1.1 minutes", ""},
+//
+//		{"PT1S", "1 second", ""},
+//		{"PT1.1S", "1.1 seconds", ""},
+//	}
+//	for i, c := range cases {
+//		p := MustParse(c.period, false)
+//		sp := p.Format()
+//		g.Expect(sp).To(Equal(c.expectW), info(i, "%s -> %s", p, c.expectW))
+//
+//		en := p.Negate()
+//		sn := en.Format()
+//		g.Expect(sn).To(Equal(c.expectW), info(i, "%s -> %s", en, c.expectW))
+//
+//		if c.expectD != "" {
+//			s := MustParse(c.period, false).FormatWithoutWeeks()
+//			g.Expect(s).To(Equal(c.expectD), info(i, "%s -> %s", p, c.expectD))
+//		}
+//	}
+//}
+
+//-------------------------------------------------------------------------------------------------
+
+//func TestPeriodOnlyYMD(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//
+//	cases := []struct {
+//		one    string
+//		expect string
+//	}{
+//		{"P1Y2M3DT4H5M6S", "P1Y2M3D"},
+//		{"-P6Y5M4DT3H2M1S", "-P6Y5M4D"},
+//	}
+//	for i, c := range cases {
+//		s := MustParse(c.one, false).OnlyYMD()
+//		g.Expect(s).To(Equal(MustParse(c.expect, false)), info(i, c.expect))
+//	}
+//}
+
+//func TestPeriodOnlyHMS(t *testing.T) {
+//	g := NewGomegaWithT(t)
+//
+//	cases := []struct {
+//		one    string
+//		expect string
+//	}{
+//		{"P1Y2M3DT4H5M6S", "PT4H5M6S"},
+//		{"-P6Y5M4DT3H2M1S", "-PT3H2M1S"},
+//	}
+//	for i, c := range cases {
+//		s := MustParse(c.one, false).OnlyHMS()
+//		g.Expect(s).To(Equal(MustParse(c.expect, false)), info(i, c.expect))
+//	}
+//}
+
+//-------------------------------------------------------------------------------------------------
+
+//func TestSimplify(t *testing.T) {
+//	cases := []struct {
+//		source, precise, approx string
+//	}{
+//		// note: the negative cases are also covered (see below)
+//
+//		// simplify 1 year to months (a = 9)
+//		{source: "P1Y"},
+//		{source: "P1Y10M"},
+//		{source: "P1Y9M", precise: "P21M"},
+//		{source: "P1Y8.9M", precise: "P20.9M"},
+//
+//		// simplify 1 day to hours (approx only) (b = 6)
+//		{source: "P1DT6H", precise: "P1DT6H", approx: "PT30H"},
+//		{source: "P1DT7H"},
+//		{source: "P1DT5.9H", precise: "P1DT5.9H", approx: "PT29.9H"},
+//
+//		// simplify 1 hour to minutes (c = 10)
+//		{source: "PT1H"},
+//		{source: "PT1H21M"},
+//		{source: "PT1H10M", precise: "PT70M"},
+//		{source: "PT1H9.9M", precise: "PT69.9M"},
+//
+//		// simplify 1 minute to seconds (d = 30)
+//		{source: "PT1M"},    // unchanged
+//		{source: "PT1M31S"}, // ditto
+//		{source: "PT1M30S", precise: "PT90S"},
+//		{source: "PT1M29.9S", precise: "PT89.9S"},
+//
+//		// fractional years don't simplify
+//		{source: "P1.1Y"},
+//
+//		// retained proper fractions
+//		{source: "P1Y0.1D"},
+//		{source: "P12M0.1D"},
+//		{source: "P1YT0.1H"},
+//		{source: "P1MT0.1H"},
+//		{source: "P1Y0.1M", precise: "P12.1M"},
+//		{source: "P1DT0.1H", precise: "P1DT0.1H", approx: "PT24.1H"},
+//		{source: "P1YT0.1M"},
+//		{source: "P1MT0.1M"},
+//		{source: "P1DT0.1M"},
+//
+//		// discard proper fractions - months
+//		{source: "P10Y0.1M", precise: "P10Y0.1M", approx: "P10Y"},
+//		// discard proper fractions - days
+//		{source: "P1Y0.1D", precise: "P1Y0.1D", approx: "P1Y"},
+//		{source: "P12M0.1D", precise: "P12M0.1D", approx: "P12M"},
+//		// discard proper fractions - hours
+//		{source: "P1YT0.1H", precise: "P1YT0.1H", approx: "P1Y"},
+//		{source: "P1MT0.1H", precise: "P1MT0.1H", approx: "P1M"},
+//		{source: "P30DT0.1H", precise: "P30DT0.1H", approx: "P30D"},
+//		// discard proper fractions - minutes
+//		{source: "P1YT0.1M", precise: "P1YT0.1M", approx: "P1Y"},
+//		{source: "P1MT0.1M", precise: "P1MT0.1M", approx: "P1M"},
+//		{source: "P1DT0.1M", precise: "P1DT0.1M", approx: "P1D"},
+//		{source: "PT24H0.1M", precise: "PT24H0.1M", approx: "PT24H"},
+//		// discard proper fractions - seconds
+//		{source: "P1YT0.1S", precise: "P1YT0.1S", approx: "P1Y"},
+//		{source: "P1MT0.1S", precise: "P1MT0.1S", approx: "P1M"},
+//		{source: "P1DT0.1S", precise: "P1DT0.1S", approx: "P1D"},
+//		{source: "PT1H0.1S", precise: "PT1H0.1S", approx: "PT1H"},
+//		{source: "PT60M0.1S", precise: "PT60M0.1S", approx: "PT60M"},
+//	}
+//	for i, c := range cases {
+//		p := MustParse(nospace(c.source), false)
+//		if c.precise == "" {
+//			// unchanged cases
+//			testSimplify(t, i, p, p, true)
+//			testSimplify(t, i, p.Negate(), p.Negate(), true)
+//
+//		} else if c.approx == "" {
+//			// changed but precise/approx has same result
+//			ep := MustParse(nospace(c.precise), false)
+//			testSimplify(t, i, p, ep, true)
+//			testSimplify(t, i, p.Negate(), ep.Negate(), true)
+//
+//		} else {
+//			// changed and precise/approx have different results
+//			ep := MustParse(nospace(c.precise), false)
+//			ea := MustParse(nospace(c.approx), false)
+//			testSimplify(t, i, p, ep, true)
+//			testSimplify(t, i, p.Negate(), ep.Negate(), true)
+//			testSimplify(t, i, p, ea, false)
+//			testSimplify(t, i, p.Negate(), ea.Negate(), false)
+//		}
+//	}
+//
+//	g := NewGomegaWithT(t)
+//	g.Expect(Period{days: 10, hours: 70}.Simplify(false, 6, 7, 30)).To(Equal(Period{hours: 310}))
+//	g.Expect(Period{hours: 10, minutes: 300}.Simplify(true, 6, 30)).To(Equal(Period{minutes: 900}))
+//	g.Expect(Period{years: 10, months: 110}.Simplify(true, 11)).To(Equal(Period{months: 230}))
+//	g.Expect(Period{days: 10, hours: 60}.Simplify(false)).To(Equal(Period{hours: 300}))
+//}
+
+//func testSimplify(t *testing.T, i int, source Period, expected Period, precise bool) {
+//	g := NewGomegaWithT(t)
+//	t.Helper()
+//
+//	sstr := source.String()
+//	n := source.Simplify(precise, 9, 6, 10, 30)
+//	info := fmt.Sprintf("%d: %s.Simplify(%v) expected %s to equal %s", i, sstr, precise, n, expected)
+//	expectValid(t, n, info)
+//	g.Expect(n).To(Equal(expected), info)
+//}
+
+//-------------------------------------------------------------------------------------------------
+
+func utc(year int, month time.Month, day, hour, min, sec, msec int) time.Time {
+	return time.Date(year, month, day, hour, min, sec, msec*int(time.Millisecond), time.UTC)
+}
+
+func bst(year int, month time.Month, day, hour, min, sec, msec int) time.Time {
+	return time.Date(year, month, day, hour, min, sec, msec*int(time.Millisecond), london)
+}
+
+var london *time.Location // UTC + 1 hour during summer
+
+func init() {
+	london, _ = time.LoadLocation("Europe/London")
+}
+
+func info(i int, m ...interface{}) string {
+	if s, ok := m[0].(string); ok {
+		m[0] = i
+		return fmt.Sprintf("%d "+s, m...)
+	}
+	return fmt.Sprintf("%d %v", i, m[0])
+}
+
+func nospace(s string) string {
+	b := new(strings.Builder)
+	for _, r := range s {
+		if r != ' ' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}

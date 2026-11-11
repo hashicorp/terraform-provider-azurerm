@@ -167,7 +167,7 @@ func (r TagRulesResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
 
-func (r TagRulesResource) ModelObject() interface{} {
+func (r TagRulesResource) ModelObject() any {
 	return &TagRulesResourceModel{}
 }
 

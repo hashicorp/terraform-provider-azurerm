@@ -55,7 +55,7 @@ func resourceDiskAccess() *pluginsdk.Resource {
 	}
 }
 
-func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -79,7 +79,7 @@ func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	createDiskAccess := diskaccesses.DiskAccess{
 		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if d.IsNewResource() {
@@ -96,7 +96,7 @@ func resourceDiskAccessCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	return resourceDiskAccessRead(d, meta)
 }
 
-func resourceDiskAccessRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDiskAccessRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,7 +129,7 @@ func resourceDiskAccessRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceDiskAccessDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDiskAccessDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DiskAccessClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

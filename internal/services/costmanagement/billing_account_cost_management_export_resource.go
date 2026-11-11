@@ -59,7 +59,7 @@ func (r BillingAccountCostManagementExportResource) Attributes() map[string]*plu
 	return r.base.attributes()
 }
 
-func (r BillingAccountCostManagementExportResource) ModelObject() interface{} {
+func (r BillingAccountCostManagementExportResource) ModelObject() any {
 	return &BillingAccountCostManagementExportModel{}
 }
 
@@ -176,7 +176,7 @@ func (r BillingAccountCostManagementExportResource) Read() sdk.ResourceFunc {
 						if schedule.Status != nil {
 							state.Active = *schedule.Status == exports.StatusTypeActive
 						}
-						state.RecurrenceType = string(pointer.From(schedule.Recurrence))
+						state.RecurrenceType = pointer.FromEnum(schedule.Recurrence)
 					}
 
 					storageLocation, err := flattenExportDataStorageLocationToModel(props.DeliveryInfo)
@@ -185,7 +185,7 @@ func (r BillingAccountCostManagementExportResource) Read() sdk.ResourceFunc {
 					}
 					state.ExportDataStorageLocation = storageLocation
 					state.ExportDataOptions = flattenExportDataOptionsToModel(props.Definition)
-					state.FileFormat = string(pointer.From(props.Format))
+					state.FileFormat = pointer.FromEnum(props.Format)
 				}
 			}
 

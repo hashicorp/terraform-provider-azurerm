@@ -62,13 +62,13 @@ The following arguments are supported:
 
 * `is_https_allowed` - (Optional) Specifies if https allowed. Defaults to `true`.
 
-* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
+* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types. Required if `is_compression_enabled` is `true`.
 
 * `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
 
 * `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled.
 
-* `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. `NotSet` value can be used for `Premium Verizon` CDN profile. Defaults to `IgnoreQueryString`.
+* `querystring_caching_behaviour` - (Optional) Sets query string caching behaviour. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. `NotSet` value can be used for `Premium Verizon` CDN profile. Defaults to `IgnoreQueryString`.
 
 * `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
@@ -178,7 +178,7 @@ A `delivery_rule` block supports the following:
 
 A `cache_expiration_action` block supports the following:
 
-* `behavior` - (Required) The behavior of the cache. Valid values are `BypassCache`, `Override` and `SetIfMissing`.
+* `behavior` - (Required) The behaviour of the cache. Valid values are `BypassCache`, `Override` and `SetIfMissing`.
 
 * `duration` - (Optional) Duration of the cache. Only allowed when `behavior` is set to `Override` or `SetIfMissing`. Format: `[d.]hh:mm:ss`
 
@@ -186,7 +186,7 @@ A `cache_expiration_action` block supports the following:
 
 A `cache_key_query_string_action` block supports the following:
 
-* `behavior` - (Required) The behavior of the cache key for query strings. Valid values are `Exclude`, `ExcludeAll`, `Include` and `IncludeAll`.
+* `behavior` - (Required) The behaviour of the cache key for query strings. Valid values are `Exclude`, `ExcludeAll`, `Include` and `IncludeAll`.
 
 * `parameters` - (Optional) Comma separated list of parameter values.
 

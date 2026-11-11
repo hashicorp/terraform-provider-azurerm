@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-func NetworkConnectionMonitorEndpointAddress(v interface{}, k string) (warnings []string, errors []error) {
+func NetworkConnectionMonitorEndpointAddress(v any, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) == 0 {

@@ -6,7 +6,7 @@ package migration
 import (
 	"context"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2026-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -91,7 +91,7 @@ func (ServiceBusSubscriptionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (ServiceBusSubscriptionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId := rawState["id"].(string)
 		id, err := subscriptions.ParseSubscriptions2ID(oldId)
 		if err != nil {

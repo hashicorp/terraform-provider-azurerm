@@ -7,7 +7,7 @@ import "testing"
 
 func TestCIDRIsIPv4OrIPv6(t *testing.T) {
 	cases := []struct {
-		Input interface{}
+		Input any
 		Valid bool
 	}{
 		{

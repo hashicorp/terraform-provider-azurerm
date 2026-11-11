@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,7 +116,7 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
-	p := LoadBalancerProbe{}
+	p := LbProbeResource{}
 	b := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

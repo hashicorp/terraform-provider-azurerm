@@ -76,7 +76,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"throughput": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -85,7 +85,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -145,7 +145,7 @@ func resourceCosmosDbCassandraTableCreate(d *pluginsdk.ResourceData, meta interf
 	return resourceCosmosDbCassandraTableRead(d, meta)
 }
 
-func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -205,7 +205,7 @@ func resourceCosmosDbCassandraTableUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceCosmosDbCassandraTableRead(d, meta)
 }
 
-func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -261,7 +261,7 @@ func resourceCosmosDbCassandraTableRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -280,34 +280,34 @@ func resourceCosmosDbCassandraTableDelete(d *pluginsdk.ResourceData, meta interf
 }
 
 func expandTableSchema(d *pluginsdk.ResourceData) *cosmosdb.CassandraSchema {
-	i := d.Get("schema").([]interface{})
+	i := d.Get("schema").([]any)
 
 	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
-	input := i[0].(map[string]interface{})
+	input := i[0].(map[string]any)
 
 	cassandraSchema := cosmosdb.CassandraSchema{}
 
-	if v, ok := input["column"].([]interface{}); ok {
+	if v, ok := input["column"].([]any); ok {
 		cassandraSchema.Columns = expandTableSchemaColumns(v)
 	}
 
-	if v, ok := input["partition_key"].([]interface{}); ok {
+	if v, ok := input["partition_key"].([]any); ok {
 		cassandraSchema.PartitionKeys = expandTableSchemaPartitionKeys(v)
 	}
 
-	if v, ok := input["cluster_key"].([]interface{}); ok {
+	if v, ok := input["cluster_key"].([]any); ok {
 		cassandraSchema.ClusterKeys = expandTableSchemaClusterKeys(v)
 	}
 
 	return &cassandraSchema
 }
 
-func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
+func expandTableSchemaColumns(input []any) *[]cosmosdb.Column {
 	columns := make([]cosmosdb.Column, 0)
 	for _, col := range input {
-		data := col.(map[string]interface{})
+		data := col.(map[string]any)
 		column := cosmosdb.Column{
 			Name: pointer.To(data["name"].(string)),
 			Type: pointer.To(data["type"].(string)),
@@ -318,10 +318,10 @@ func expandTableSchemaColumns(input []interface{}) *[]cosmosdb.Column {
 	return &columns
 }
 
-func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPartitionKey {
+func expandTableSchemaPartitionKeys(input []any) *[]cosmosdb.CassandraPartitionKey {
 	keys := make([]cosmosdb.CassandraPartitionKey, 0)
 	for _, key := range input {
-		data := key.(map[string]interface{})
+		data := key.(map[string]any)
 		k := cosmosdb.CassandraPartitionKey{
 			Name: pointer.To(data["name"].(string)),
 		}
@@ -331,10 +331,10 @@ func expandTableSchemaPartitionKeys(input []interface{}) *[]cosmosdb.CassandraPa
 	return &keys
 }
 
-func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
+func expandTableSchemaClusterKeys(input []any) *[]cosmosdb.ClusterKey {
 	keys := make([]cosmosdb.ClusterKey, 0)
 	for _, key := range input {
-		data := key.(map[string]interface{})
+		data := key.(map[string]any)
 		k := cosmosdb.ClusterKey{
 			Name:    pointer.To(data["name"].(string)),
 			OrderBy: pointer.To(data["order_by"].(string)),
@@ -345,13 +345,13 @@ func expandTableSchemaClusterKeys(input []interface{}) *[]cosmosdb.ClusterKey {
 	return &keys
 }
 
-func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
-	results := make([]interface{}, 0)
+func flattenTableSchema(input *cosmosdb.CassandraSchema) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	result["column"] = flattenTableSchemaColumns(input.Columns)
 	result["partition_key"] = flattenTableSchemaPartitionKeys(input.PartitionKeys)
 	result["cluster_key"] = flattenTableSchemaClusterKeys(input.ClusterKeys)
@@ -360,17 +360,17 @@ func flattenTableSchema(input *cosmosdb.CassandraSchema) []interface{} {
 	return results
 }
 
-func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
+func flattenTableSchemaColumns(input *[]cosmosdb.Column) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	columns := make([]interface{}, 0)
+	columns := make([]any, 0)
 
 	for _, v := range *input {
 		name := pointer.From(v.Name)
 		typeStr := pointer.From(v.Type)
-		columns = append(columns, map[string]interface{}{
+		columns = append(columns, map[string]any{
 			"name": name,
 			"type": typeStr,
 		})
@@ -379,15 +379,15 @@ func flattenTableSchemaColumns(input *[]cosmosdb.Column) []interface{} {
 	return columns
 }
 
-func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []interface{} {
+func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	keys := make([]interface{}, 0)
+	keys := make([]any, 0)
 
 	for _, v := range *input {
-		keys = append(keys, map[string]interface{}{
+		keys = append(keys, map[string]any{
 			"name": pointer.From(v.Name),
 		})
 	}
@@ -395,17 +395,17 @@ func flattenTableSchemaPartitionKeys(input *[]cosmosdb.CassandraPartitionKey) []
 	return keys
 }
 
-func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []interface{} {
+func flattenTableSchemaClusterKeys(input *[]cosmosdb.ClusterKey) []any {
 	if input == nil {
-		return nil
+		return []any{}
 	}
 
-	keys := make([]interface{}, 0)
+	keys := make([]any, 0)
 
 	for _, v := range *input {
 		name := pointer.From(v.Name)
 		orderBy := pointer.From(v.OrderBy)
-		keys = append(keys, map[string]interface{}{
+		keys = append(keys, map[string]any{
 			"name":     name,
 			"order_by": orderBy,
 		})

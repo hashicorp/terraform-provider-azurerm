@@ -34,7 +34,7 @@ func (r ApiManagementWorkspaceResource) ResourceType() string {
 	return "azurerm_api_management_workspace"
 }
 
-func (r ApiManagementWorkspaceResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceResource) ModelObject() any {
 	return &ApiManagementWorkspaceModel{}
 }
 

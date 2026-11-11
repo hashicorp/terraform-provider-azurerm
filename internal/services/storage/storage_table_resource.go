@@ -111,7 +111,7 @@ func resourceStorageTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -158,8 +158,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.SetId(id.ID())
 
-	// Setting ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
@@ -171,7 +170,7 @@ func resourceStorageTableCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageTableRead(d, meta)
 }
 
-func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -209,8 +208,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	// Retrieving ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Tables Client: %v", err)
 	}
@@ -230,7 +228,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,7 +268,7 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -293,8 +291,7 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
-		// Setting ACLs only supports shared key authentication (@manicminer, 2024-02-29)
-		aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+		aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Tables Client: %v", err)
 		}
@@ -307,14 +304,14 @@ func resourceStorageTableUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	return resourceStorageTableRead(d, meta)
 }
 
-func expandStorageTableACLs(input []interface{}) []legacyTables.SignedIdentifier {
+func expandStorageTableACLs(input []any) []legacyTables.SignedIdentifier {
 	results := make([]legacyTables.SignedIdentifier, 0)
 
 	for _, v := range input {
-		vals := v.(map[string]interface{})
+		vals := v.(map[string]any)
 
-		policies := vals["access_policy"].([]interface{})
-		policy := policies[0].(map[string]interface{})
+		policies := vals["access_policy"].([]any)
+		policy := policies[0].(map[string]any)
 
 		identifier := legacyTables.SignedIdentifier{
 			Id: vals["id"].(string),
@@ -330,17 +327,17 @@ func expandStorageTableACLs(input []interface{}) []legacyTables.SignedIdentifier
 	return results
 }
 
-func flattenStorageTableACLs(input *[]legacyTables.SignedIdentifier) []interface{} {
-	result := make([]interface{}, 0)
+func flattenStorageTableACLs(input *[]legacyTables.SignedIdentifier) []any {
+	result := make([]any, 0)
 	if input == nil {
 		return result
 	}
 
 	for _, v := range *input {
-		output := map[string]interface{}{
+		output := map[string]any{
 			"id": v.Id,
-			"access_policy": []interface{}{
-				map[string]interface{}{
+			"access_policy": []any{
+				map[string]any{
 					"start":       v.AccessPolicy.Start,
 					"expiry":      v.AccessPolicy.Expiry,
 					"permissions": v.AccessPolicy.Permission,

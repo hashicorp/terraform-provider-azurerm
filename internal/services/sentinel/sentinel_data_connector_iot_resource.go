@@ -45,7 +45,7 @@ func (r DataConnectorIOTResource) Arguments() map[string]*pluginsdk.Schema {
 		"subscription_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,7 +60,7 @@ func (r DataConnectorIOTResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_iot"
 }
 
-func (r DataConnectorIOTResource) ModelObject() interface{} {
+func (r DataConnectorIOTResource) ModelObject() any {
 	return &DataConnectorIOTModel{}
 }
 

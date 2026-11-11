@@ -32,7 +32,10 @@ func (prog *Program) MethodValue(sel *types.Selection) *Function {
 		return nil // interface method or type parameter
 	}
 
-	if prog.isParameterized(T, sel.Type()) {
+	// Selection.Type allocates a new Signature on each call, and
+	// isParameterized memoizes by type identity, so an uncanonicalized
+	// argument would add one permanently retained entry per call (#81308).
+	if prog.isParameterized(T, prog.canon.Type(sel.Type())) {
 		return nil // method on generic type or generic method
 	}
 
@@ -167,10 +170,18 @@ func (prog *Program) RuntimeTypes() []types.Type {
 	// eliminates the need to eagerly compute all the element
 	// types during SSA building.
 	var runtimeTypes []types.Type
-	add := func(t types.Type) { runtimeTypes = append(runtimeTypes, t) }
 	var set typeutil.Map // for de-duping identical types
 	for t := range prog.makeInterfaceTypes {
-		typesinternal.ForEachElement(&set, &prog.MethodSets, t, add)
+		typesinternal.ForEachElement(prog.MethodSets.MethodSet, t, func(t types.Type, access bool) bool {
+			if !access {
+				return false // inaccessible to reflection
+			}
+			seen, _ := set.Set(t, true).(bool)
+			if !seen {
+				runtimeTypes = append(runtimeTypes, t)
+			}
+			return seen
+		})
 	}
 
 	return runtimeTypes

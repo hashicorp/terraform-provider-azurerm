@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ManagedHSMDataPlaneRoleAssignmentID(i interface{}, k string) (warnings []string, errors []error) {
+func ManagedHSMDataPlaneRoleAssignmentID(i any, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
 	}

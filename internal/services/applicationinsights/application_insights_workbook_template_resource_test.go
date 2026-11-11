@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -83,7 +83,7 @@ func TestAccApplicationInsightsWorkbookTemplate_update(t *testing.T) {
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := workbooktemplates.ParseWorkbookTemplateID(state.ID)
+	id, err := workbooktemplatesapis.ParseWorkbookTemplateID(state.ID)
 	if err != nil {
 		return nil, err
 	}

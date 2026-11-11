@@ -26,6 +26,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity
 
+const azureDedicatedHostGroupResourceName = "azurerm_dedicated_host_group"
+
 func resourceDedicatedHostGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceDedicatedHostGroupCreate,
@@ -78,7 +80,7 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -99,7 +101,7 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	platformFaultDomainCount := d.Get("platform_fault_domain_count").(int)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	payload := dedicatedhostgroups.DedicatedHostGroup{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -131,7 +133,7 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceDedicatedHostGroupRead(d, meta)
 }
 
-func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,10 +153,14 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceDedicatedHostGroupFlatten(d, id, resp.Model)
+}
+
+func resourceDedicatedHostGroupFlatten(d *pluginsdk.ResourceData, id *commonids.DedicatedHostGroupId, model *dedicatedhostgroups.DedicatedHostGroup) error {
 	d.Set("name", id.HostGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		zone := ""
@@ -177,7 +183,7 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +194,7 @@ func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	payload := dedicatedhostgroups.DedicatedHostGroupUpdate{
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -198,7 +204,7 @@ func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta interface{
 	return resourceDedicatedHostGroupRead(d, meta)
 }
 
-func resourceDedicatedHostGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDedicatedHostGroupDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

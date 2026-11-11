@@ -41,7 +41,7 @@ var (
 
 type SystemCenterVirtualMachineManagerVirtualMachineTemplateResource struct{}
 
-func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerVirtualMachineTemplateModel{}
 }
 

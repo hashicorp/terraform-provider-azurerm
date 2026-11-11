@@ -21,14 +21,3 @@ func ValidateNetAppBackupPolicyCombinedRetention(dailyBackupsToKeep, weeklyBacku
 
 	return errors
 }
-
-// TODO: Validating that the policy attached to a secondary CRR volume (destination) is not enabled for backup
-func ValidateNetAppBackupPolicyForSecondaryCRRVolume(backupPolicyEnabled bool) []error {
-	errors := make([]error, 0)
-
-	if backupPolicyEnabled {
-		errors = append(errors, fmt.Errorf("backup policy cannot be enabled on a secondary CRR volume"))
-	}
-
-	return errors
-}

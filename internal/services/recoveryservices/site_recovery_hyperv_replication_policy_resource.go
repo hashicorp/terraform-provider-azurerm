@@ -65,7 +65,7 @@ func (r ReplicationPolicyHyperVResource) Attributes() map[string]*schema.Schema 
 	return map[string]*schema.Schema{}
 }
 
-func (r ReplicationPolicyHyperVResource) ModelObject() interface{} {
+func (r ReplicationPolicyHyperVResource) ModelObject() any {
 	return &ReplicationPolicyHyperVModel{}
 }
 

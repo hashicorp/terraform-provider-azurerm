@@ -48,7 +48,7 @@ func (r ManagedRedisAccessPolicyAssignmentResource) Attributes() map[string]*plu
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagedRedisAccessPolicyAssignmentResource) ModelObject() interface{} {
+func (r ManagedRedisAccessPolicyAssignmentResource) ModelObject() any {
 	return &ManagedRedisAccessPolicyAssignmentResourceModel{}
 }
 

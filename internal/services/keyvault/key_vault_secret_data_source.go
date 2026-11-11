@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceKeyVaultSecret() *pluginsdk.Resource {
@@ -83,7 +83,7 @@ func dataSourceKeyVaultSecret() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -103,7 +103,7 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	resp, err := client.GetSecret(ctx, *keyVaultBaseUri, name, version)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, *keyVaultBaseUri)
 		}
 		return fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", name, err)

@@ -64,7 +64,7 @@ type WindowsWebAppDataSourceModel struct {
 
 var _ sdk.DataSource = WindowsWebAppDataSource{}
 
-func (d WindowsWebAppDataSource) ModelObject() interface{} {
+func (d WindowsWebAppDataSource) ModelObject() any {
 	return &WindowsWebAppDataSourceModel{}
 }
 
@@ -328,7 +328,7 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 					if props.ClientCertEnabled != nil {
 						webApp.ClientCertEnabled = *props.ClientCertEnabled
 					}
-					webApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					webApp.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					webApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					webApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					webApp.DefaultHostname = pointer.From(props.DefaultHostName)

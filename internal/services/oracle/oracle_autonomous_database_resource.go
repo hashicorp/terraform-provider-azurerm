@@ -49,6 +49,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	SubnetId                     string                          `tfschema:"subnet_id"`
 	VnetId                       string                          `tfschema:"virtual_network_id"`
 	AllowedIps                   []string                        `tfschema:"allowed_ips"`
+	Ocid                         string                          `tfschema:"ocid"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -139,13 +140,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.LicenseModelLicenseIncluded),
-				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
 		},
 
 		"long_term_backup_schedule": {
@@ -188,7 +186,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -230,11 +228,16 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 }
 
 func (AutonomousDatabaseRegularResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"ocid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
-func (AutonomousDatabaseRegularResource) ModelObject() interface{} {
-	return &AutonomousDatabaseRegularResource{}
+func (AutonomousDatabaseRegularResource) ModelObject() any {
+	return &AutonomousDatabaseRegularResourceModel{}
 }
 
 func (AutonomousDatabaseRegularResource) ResourceType() string {
@@ -459,10 +462,10 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-				state.DbWorkload = string(pointer.From(props.DbWorkload))
+				state.DbWorkload = pointer.FromEnum(props.DbWorkload)
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
-				state.LicenseModel = string(pointer.From(props.LicenseModel))
+				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.Location = result.Model.Location
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
 				state.Name = pointer.From(result.Model.Name)
@@ -472,6 +475,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.VnetId = pointer.From(props.VnetId)
 				state.LongTermBackUpSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+				state.Ocid = pointer.From(props.Ocid)
 			}
 			return metadata.Encode(&state)
 		},

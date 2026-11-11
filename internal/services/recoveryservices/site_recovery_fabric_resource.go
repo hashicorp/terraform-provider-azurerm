@@ -31,7 +31,7 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
@@ -56,7 +56,7 @@ func resourceSiteRecoveryFabric() *pluginsdk.Resource {
 	}
 }
 
-func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -99,7 +99,7 @@ func resourceSiteRecoveryFabricCreate(d *pluginsdk.ResourceData, meta interface{
 	return resourceSiteRecoveryFabricRead(d, meta)
 }
 
-func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationfabrics.ParseReplicationFabricID(d.Id())
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func resourceSiteRecoveryFabricRead(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricDelete(d *pluginsdk.ResourceData, meta any) error {
 	id, err := replicationfabrics.ParseReplicationFabricID(d.Id())
 	if err != nil {
 		return err

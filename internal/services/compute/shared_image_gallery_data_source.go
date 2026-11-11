@@ -59,7 +59,7 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	imagesClient := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

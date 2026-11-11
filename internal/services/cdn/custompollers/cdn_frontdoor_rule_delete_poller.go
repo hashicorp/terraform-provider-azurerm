@@ -20,13 +20,6 @@ type frontDoorRuleDeletePoller struct {
 	id     rules.RuleId
 }
 
-func NewFrontDoorRuleDeletePoller(client *rules.RulesClient, id rules.RuleId) pollers.PollerType {
-	return &frontDoorRuleDeletePoller{
-		client: client,
-		id:     id,
-	}
-}
-
 func (p frontDoorRuleDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	result, err := p.client.Get(ctx, p.id)
 	if err != nil {

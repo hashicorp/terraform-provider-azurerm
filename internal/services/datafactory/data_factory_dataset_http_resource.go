@@ -8,6 +8,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,8 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryDatasetHTTP() *pluginsdk.Resource {
@@ -160,7 +161,7 @@ func resourceDataFactoryDatasetHTTP() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	subscriptionId := meta.(*clients.Client).DataFactory.DatasetClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -177,12 +178,12 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
 			}
 		}
@@ -195,10 +196,9 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
 	linkedService := &datafactory.LinkedServiceReference{
 		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
+		Type:          pointer.To("LinkedServiceReference"),
 	}
 
 	description := d.Get("description").(string)
@@ -209,33 +209,30 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		name := v.(string)
 		httpTableset.Folder = &datafactory.DatasetFolder{
-			Name: &name,
+			Name: pointer.To(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		httpTableset.Parameters = expandDataSetParameters(v.(map[string]interface{}))
+		httpTableset.Parameters = expandDataSetParameters(v.(map[string]any))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		httpTableset.Annotations = &annotations
+		httpTableset.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		httpTableset.AdditionalProperties = v.(map[string]interface{})
+		httpTableset.AdditionalProperties = v.(map[string]any)
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		httpTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		httpTableset.Structure = expandDataFactoryDatasetStructure(v.([]any))
 	}
 
-	datasetType := string(datafactory.TypeBasicDatasetTypeHTTPFile)
 	dataset := datafactory.DatasetResource{
 		Properties: &httpTableset,
-		Type:       &datasetType,
+		Type:       pointer.To(string(datafactory.TypeBasicDatasetTypeHTTPFile)),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataset, ""); err != nil {
@@ -249,7 +246,7 @@ func resourceDataFactoryDatasetHTTPCreateUpdate(d *pluginsdk.ResourceData, meta 
 	return resourceDataFactoryDatasetHTTPRead(d, meta)
 }
 
-func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,7 +260,7 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -285,13 +282,11 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("description", httpTable.Description)
 	}
 
-	parameters := flattenDataSetParameters(httpTable.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
+	if err := d.Set("parameters", flattenDataSetParameters(httpTable.Parameters)); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(httpTable.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
+	if err := d.Set("annotations", flattenDataFactoryAnnotations(httpTable.Annotations)); err != nil {
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
@@ -328,15 +323,14 @@ func resourceDataFactoryDatasetHTTPRead(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(httpTable.Structure)
-	if err := d.Set("schema_column", structureColumns); err != nil {
+	if err := d.Set("schema_column", flattenDataFactoryStructureColumns(httpTable.Structure)); err != nil {
 		return fmt.Errorf("setting `schema_column`: %+v", err)
 	}
 
 	return nil
 }
 
-func resourceDataFactoryDatasetHTTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryDatasetHTTPDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -346,9 +340,9 @@ func resourceDataFactoryDatasetHTTPDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}

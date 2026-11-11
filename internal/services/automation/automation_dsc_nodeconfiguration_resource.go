@@ -71,7 +71,7 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -116,7 +116,7 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }
 
-func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +193,7 @@ func resourceAutomationDscNodeConfigurationRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

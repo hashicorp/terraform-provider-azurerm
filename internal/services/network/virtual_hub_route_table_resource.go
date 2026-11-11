@@ -10,15 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +50,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.HubRouteTableName,
+				ValidateFunc: validate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
@@ -72,7 +71,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 			"route": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -121,7 +120,7 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +151,7 @@ func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interfac
 	parameters := virtualwans.HubRouteTable{
 		Name: pointer.To(d.Get("name").(string)),
 		Properties: &virtualwans.HubRouteTableProperties{
-			Labels: helpers.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
+			Labels: pluginsdk.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List()),
 			Routes: expandVirtualHubRouteTableHubRoutes(d.Get("route").(*pluginsdk.Set).List()),
 		},
 	}
@@ -169,7 +168,7 @@ func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interfac
 	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +203,7 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("labels") {
-		payload.Properties.Labels = helpers.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
+		payload.Properties.Labels = pluginsdk.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("route") {
@@ -220,7 +219,7 @@ func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourceVirtualHubRouteTableRead(d, meta)
 }
 
-func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +244,7 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("labels", helpers.FlattenStringSlice(props.Labels))
+			d.Set("labels", pluginsdk.FlattenSlice(props.Labels))
 
 			if err := d.Set("route", flattenVirtualHubRouteTableHubRoutes(props.Routes)); err != nil {
 				return fmt.Errorf("setting `route`: %+v", err)
@@ -256,7 +255,7 @@ func resourceVirtualHubRouteTableRead(d *pluginsdk.ResourceData, meta interface{
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,16 +275,16 @@ func resourceVirtualHubRouteTableDelete(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.HubRoute {
+func expandVirtualHubRouteTableHubRoutes(input []any) *[]virtualwans.HubRoute {
 	results := make([]virtualwans.HubRoute, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
+		v := item.(map[string]any)
 
 		result := virtualwans.HubRoute{
 			Name:            v["name"].(string),
 			DestinationType: v["destinations_type"].(string),
-			Destinations:    pointer.From(helpers.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List())),
+			Destinations:    pointer.From(pluginsdk.ExpandStringSlice(v["destinations"].(*pluginsdk.Set).List())),
 			NextHopType:     v["next_hop_type"].(string),
 			NextHop:         v["next_hop"].(string),
 		}
@@ -296,16 +295,16 @@ func expandVirtualHubRouteTableHubRoutes(input []interface{}) *[]virtualwans.Hub
 	return &results
 }
 
-func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []interface{} {
-	results := make([]interface{}, 0)
+func flattenVirtualHubRouteTableHubRoutes(input *[]virtualwans.HubRoute) []any {
+	results := make([]any, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":              item.Name,
-			"destinations":      helpers.FlattenStringSlice(&item.Destinations),
+			"destinations":      pluginsdk.FlattenSlice(&item.Destinations),
 			"destinations_type": item.DestinationType,
 			"next_hop":          item.NextHop,
 			"next_hop_type":     item.NextHopType,

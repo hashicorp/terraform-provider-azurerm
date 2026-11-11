@@ -271,7 +271,7 @@ resource "azurerm_data_factory_custom_dataset" "test" {
   "rowDelimiter": "\t",
   "encodingName": "UTF-8",
   "compressionCodec": "bzip2",
-  "compressionLevel": "Farest",
+  "compressionLevel": "Fastest",
   "quoteChar": "",
   "escapeChar": "",
   "firstRowAsHeader": false,

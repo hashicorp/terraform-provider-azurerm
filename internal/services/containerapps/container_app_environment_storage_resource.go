@@ -32,7 +32,7 @@ type ContainerAppEnvironmentStorageModel struct {
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
 
-func (r ContainerAppEnvironmentStorageResource) ModelObject() interface{} {
+func (r ContainerAppEnvironmentStorageResource) ModelObject() any {
 	return &ContainerAppEnvironmentStorageModel{}
 }
 
@@ -89,14 +89,11 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 		},
 
 		"access_mode": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(managedenvironmentsstorages.AccessModeReadOnly),
-				string(managedenvironmentsstorages.AccessModeReadWrite),
-			}, false),
-			Description: "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(managedenvironmentsstorages.PossibleValuesForAccessMode(), false),
+			Description:  "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
 		},
 
 		"nfs_server_url": {

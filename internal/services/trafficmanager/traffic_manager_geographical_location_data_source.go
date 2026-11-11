@@ -33,7 +33,7 @@ func dataSourceArmTrafficManagerGeographicalLocation() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).TrafficManager.GeographialHierarchiesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -62,8 +62,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	}
 
 	// NOTE: @tombuildsstuff: this is a unique data source that outputs the location as the ID, so this is fine
-	id := *result.Code
-	d.SetId(id)
+	d.SetId(*result.Code) // azignore:AZR001 - unique data source that deliberately uses the location code as its ID
 	return nil
 }
 

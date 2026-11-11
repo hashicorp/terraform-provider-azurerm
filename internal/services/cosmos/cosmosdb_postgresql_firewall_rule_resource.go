@@ -31,7 +31,7 @@ func (r CosmosDbPostgreSQLFirewallRuleResource) ResourceType() string {
 	return "azurerm_cosmosdb_postgresql_firewall_rule"
 }
 
-func (r CosmosDbPostgreSQLFirewallRuleResource) ModelObject() interface{} {
+func (r CosmosDbPostgreSQLFirewallRuleResource) ModelObject() any {
 	return &CosmosDbPostgreSQLFirewallRuleResourceModel{}
 }
 

@@ -10,14 +10,14 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func HashInt(v interface{}) int {
+func HashInt(v any) int {
 	return schema.HashString(strconv.Itoa(v.(int)))
 }
 
-func HashStringIgnoreCase(v interface{}) int {
+func HashStringIgnoreCase(v any) int {
 	return schema.HashString(strings.ToLower(v.(string)))
 }
 
@@ -42,12 +42,12 @@ func FromStringSliceNilable(slice *[]string) *schema.Set {
 }
 
 // HashIPv6Address normalizes an IPv6 address and returns a hash for it
-func HashIPv6Address(ipv6 interface{}) int {
+func HashIPv6Address(ipv6 any) int {
 	return schema.HashString(normalizeIPv6Address(ipv6))
 }
 
 // NormalizeIPv6Address returns the normalized notation of an IPv6
-func normalizeIPv6Address(ipv6 interface{}) string {
+func normalizeIPv6Address(ipv6 any) string {
 	if ipv6 == nil || ipv6.(string) == "" {
 		return ""
 	}
@@ -58,8 +58,8 @@ func normalizeIPv6Address(ipv6 interface{}) string {
 	return r.String()
 }
 
-func HashIPv4AddressOrCIDR(ipv4 interface{}) int {
-	warnings, errors := validate.IPv4Address(ipv4, "")
+func HashIPv4AddressOrCIDR(ipv4 any) int {
+	warnings, errors := validation.IsIPv4Address(ipv4, "")
 
 	// maybe cidr, just hash it
 	if len(warnings) > 0 || len(errors) > 0 {

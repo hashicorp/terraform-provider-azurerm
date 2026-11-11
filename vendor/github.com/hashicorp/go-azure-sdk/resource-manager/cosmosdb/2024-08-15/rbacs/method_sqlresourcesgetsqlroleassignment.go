@@ -18,7 +18,7 @@ type SqlResourcesGetSqlRoleAssignmentOperationResponse struct {
 }
 
 // SqlResourcesGetSqlRoleAssignment ...
-func (c RbacsClient) SqlResourcesGetSqlRoleAssignment(ctx context.Context, id AccountId) (result SqlResourcesGetSqlRoleAssignmentOperationResponse, err error) {
+func (c RbacsClient) SqlResourcesGetSqlRoleAssignment(ctx context.Context, id SqlRoleAssignmentId) (result SqlResourcesGetSqlRoleAssignmentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

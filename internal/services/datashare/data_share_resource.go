@@ -61,13 +61,10 @@ func resourceDataShare() *pluginsdk.Resource {
 			},
 
 			"kind": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(share.ShareKindCopyBased),
-					string(share.ShareKindInPlace),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(share.PossibleValuesForShareKind(), false),
 			},
 
 			"description": {
@@ -88,12 +85,9 @@ func resourceDataShare() *pluginsdk.Resource {
 						},
 
 						"recurrence": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(synchronizationsetting.RecurrenceIntervalDay),
-								string(synchronizationsetting.RecurrenceIntervalHour),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(synchronizationsetting.PossibleValuesForRecurrenceInterval(), false),
 						},
 
 						"start_time": {
@@ -114,7 +108,7 @@ func resourceDataShare() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -160,8 +154,8 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	if d.HasChange("snapshot_schedule") {
 		// only one dependent sync setting is allowed in one data share
 		o, _ := d.GetChange("snapshot_schedule")
-		if origins := o.([]interface{}); len(origins) > 0 {
-			origin := origins[0].(map[string]interface{})
+		if origins := o.([]any); len(origins) > 0 {
+			origin := origins[0].(map[string]any)
 			if originName, ok := origin["name"].(string); ok && originName != "" {
 				syncId := synchronizationsetting.NewSynchronizationSettingID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName, originName)
 				if err := syncClient.DeleteThenPoll(ctx, syncId); err != nil {
@@ -171,7 +165,7 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if snapshotSchedule := expandAzureRmDataShareSnapshotSchedule(d.Get("snapshot_schedule").([]interface{})); snapshotSchedule != nil {
+	if snapshotSchedule := expandAzureRmDataShareSnapshotSchedule(d.Get("snapshot_schedule").([]any)); snapshotSchedule != nil {
 		syncId := synchronizationsetting.NewSynchronizationSettingID(id.SubscriptionId, id.ResourceGroupName, id.AccountName, id.ShareName, d.Get("snapshot_schedule.0.name").(string))
 		if _, err := syncClient.Create(ctx, syncId, snapshotSchedule); err != nil {
 			return fmt.Errorf("creating datashare snapshot schedule %s: %+v", syncId, err)
@@ -181,7 +175,7 @@ func resourceDataShareCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	return resourceDataShareRead(d, meta)
 }
 
-func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -210,7 +204,7 @@ func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("kind", string(pointer.From(props.ShareKind)))
+			d.Set("kind", pointer.FromEnum(props.ShareKind))
 			d.Set("description", props.Description)
 			d.Set("terms", props.Terms)
 		}
@@ -233,7 +227,7 @@ func resourceDataShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceDataShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -259,12 +253,12 @@ func resourceDataShareDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *synchronizationsetting.ScheduledSynchronizationSetting {
+func expandAzureRmDataShareSnapshotSchedule(input []any) *synchronizationsetting.ScheduledSynchronizationSetting {
 	if len(input) == 0 {
 		return nil
 	}
 
-	snapshotSchedule := input[0].(map[string]interface{})
+	snapshotSchedule := input[0].(map[string]any)
 
 	startTime, _ := time.Parse(time.RFC3339, snapshotSchedule["start_time"].(string))
 
@@ -278,12 +272,12 @@ func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *synchronizatio
 	}
 }
 
-func flattenAzureRmDataShareSnapshotSchedule(input []synchronizationsetting.ScheduledSynchronizationSetting) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAzureRmDataShareSnapshotSchedule(input []synchronizationsetting.ScheduledSynchronizationSetting) []any {
+	output := make([]any, 0)
 
 	for _, setting := range input {
 		props := setting.Properties
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"name":       pointer.From(setting.Name),
 			"recurrence": string(props.RecurrenceInterval),
 			"start_time": props.SynchronizationTime,

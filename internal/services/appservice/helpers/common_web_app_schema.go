@@ -402,7 +402,7 @@ func BackupSchema() *pluginsdk.Schema {
 							"start_time": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								Computed:     true,
+								Computed:     true, // azignore:AZS007 - pre-existing violation
 								Description:  "When the schedule should start working in RFC-3339 format.",
 								ValidateFunc: validation.IsRFC3339Time,
 							},
@@ -651,15 +651,9 @@ func applicationLogSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"file_system_level": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
-						string(webapps.LogLevelError),
-						string(webapps.LogLevelOff),
-						string(webapps.LogLevelInformation),
-						string(webapps.LogLevelVerbose),
-						string(webapps.LogLevelWarning),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForLogLevel(), false),
 				},
 
 				"azure_blob_storage": appLogBlobStorageSchema(),
@@ -670,19 +664,19 @@ func applicationLogSchema() *pluginsdk.Schema {
 			if stateLogs == nil || planLogs == nil {
 				return false
 			}
-			stateAttrs := stateLogs.([]interface{})
-			planAttrs := planLogs.([]interface{})
+			stateAttrs := stateLogs.([]any)
+			planAttrs := planLogs.([]any)
 
 			// If the plan wants to set default values and the state is empty; suppress diff
 			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
-				planAttr := planAttrs[0].(map[string]interface{})
+				planAttr := planAttrs[0].(map[string]any)
 				newFileSystemLevel, ok := planAttr["file_system_level"].(string)
 				if !ok {
 					return false
 				}
 
 				// if something is in `azure_blob_storage`, then we don't suppress the diff as we don't allow the default values for `azure_blob_storage` to be passed in
-				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]interface{})
+				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]any)
 				if !ok || len(newAzureBlobStorage) != 0 {
 					return false
 				}
@@ -1183,7 +1177,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 	}
 	props := *logsConfig.Properties
 	if onlyDefaultLoggingConfig(props) {
-		return nil
+		return []LogsConfig{}
 	}
 
 	logs := LogsConfig{}
@@ -1193,10 +1187,10 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		applicationLog := ApplicationLog{}
 
 		if appLogs.FileSystem != nil {
-			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
+			applicationLog.FileSystemLevel = pointer.FromEnum(appLogs.FileSystem.Level)
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
-					Level: string(pointer.From(appLogs.AzureBlobStorage.Level)),
+					Level: pointer.FromEnum(appLogs.AzureBlobStorage.Level),
 				}
 
 				blobStorage.SasURL = pointer.From(appLogs.AzureBlobStorage.SasURL)
@@ -1219,7 +1213,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 					}
 				},
 			*/
-			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
+			if !strings.EqualFold(pointer.FromEnum(appLogs.FileSystem.Level), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
 				logs.ApplicationLogs = []ApplicationLog{applicationLog}
 			}
 		}
@@ -1309,7 +1303,7 @@ func FlattenStorageAccounts(appStorageAccounts *webapps.AzureStoragePropertyDict
 	for k, v := range *appStorageAccounts.Properties {
 		storageAccount := StorageAccount{
 			Name: k,
-			Type: string(pointer.From(v.Type)),
+			Type: pointer.FromEnum(v.Type),
 		}
 		if v.AccountName != nil {
 			storageAccount.AccountName = *v.AccountName
@@ -1401,29 +1395,7 @@ func FilterManagedAppSettings(input map[string]string) map[string]string {
 		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 	}
 
-	for _, v := range unmanagedSettings { //nolint:typecheck
-		delete(input, v)
-	}
-
-	return input
-}
-
-// FilterManagedAppSettingsDeprecated removes app_settings values from the state that are controlled directly be
-// schema properties when the deprecated docker settings are used. This function should be removed in 4.0
-func FilterManagedAppSettingsDeprecated(input map[string]string) map[string]string {
-	unmanagedSettings := []string{
-		"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
-		"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
-		"WEBSITE_HTTPLOGGING_CONTAINER_URL",
-		"WEBSITE_HTTPLOGGING_RETENTION_DAYS",
-		"WEBSITE_VNET_ROUTE_ALL",
-		"spring.datasource.password",
-		"spring.datasource.url",
-		"spring.datasource.username",
-		"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
-	}
-
-	for _, v := range unmanagedSettings { //nolint:typecheck
+	for _, v := range unmanagedSettings {
 		delete(input, v)
 	}
 

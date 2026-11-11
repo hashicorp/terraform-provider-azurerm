@@ -10,13 +10,13 @@ It is sometimes necessary to make changes to an existing Data Source. Reasons in
 
 When updating an existing Data Source keep in mind the configuration of the end user that may be using it.  Mitigations must be taken, where possible, to prevent the change breaking existing user configurations.
 
-The process is similar to [extending an existing Resource](guide-new-fields-to-resource), in that modifications in multiple places are required.
+The process is similar to [extending an existing Resource](guide-new-fields-to-resource.md), in that modifications in multiple places are required.
 
 ## Schema
 
 Building on the example from [adding a new data source](guide-new-data-source.md) the new property will need to be added into the `Attributes` list which contains a list of schema fields that are Computed only.
 
-The location of the new property within this list is determined based on the order found in [adding a new data source](guide-new-data-source.md#step-3-scaffold-an-emptynew-data-source). 
+The location of the new property within this list is determined based on the order found in [adding a new data source](guide-new-data-source.md#step-3-scaffold-an-emptynew-data-source).
 
 > **Warning:** do not reorder existing properties in the same PR, as doing so degrades diff readability. Make any reordering changes in a separate follow-up PR instead.
 

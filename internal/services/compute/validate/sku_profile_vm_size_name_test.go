@@ -8,7 +8,7 @@ import "testing"
 func TestSkuProfileVMSizeName(t *testing.T) {
 	testCases := []struct {
 		name        string
-		input       interface{}
+		input       any
 		shouldError bool
 	}{
 		{

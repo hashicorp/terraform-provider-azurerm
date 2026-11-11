@@ -72,7 +72,7 @@ func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -98,7 +98,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	d.SetId(keyVaultId.ID())
 
 	var names []string
-	var certs []map[string]interface{}
+	var certs []map[string]any
 	if certificateList.Response().Value != nil {
 		for certificateList.NotDone() {
 			for _, v := range *certificateList.Response().Value {
@@ -123,8 +123,8 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 	return nil
 }
 
-func expandCertificate(name string, item kv.CertificateItem) map[string]interface{} {
-	cert := map[string]interface{}{
+func expandCertificate(name string, item kv.CertificateItem) map[string]any {
+	cert := map[string]any{
 		"name": name,
 		"id":   *item.ID,
 	}

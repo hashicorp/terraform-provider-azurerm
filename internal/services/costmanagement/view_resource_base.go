@@ -6,6 +6,7 @@ package costmanagement
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -70,11 +71,9 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 		},
 
 		"report_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(views.ReportTypeUsage),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(views.PossibleValuesForReportType(), false),
 		},
 
 		"timeframe": {
@@ -186,9 +185,7 @@ func (br costManagementViewBaseResource) arguments(fields map[string]*pluginsdk.
 		},
 	}
 
-	for k, v := range fields {
-		output[k] = v
-	}
+	maps.Copy(output, fields)
 
 	return output
 }

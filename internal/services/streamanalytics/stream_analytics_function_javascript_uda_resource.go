@@ -121,7 +121,7 @@ func resourceStreamAnalyticsFunctionUDA() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -155,8 +155,8 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 						Script: pointer.To(d.Get("script").(string)),
 					},
 				},
-				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]interface{})),
-				Output: expandStreamAnalyticsFunctionUDAOutput(d.Get("output").([]interface{})),
+				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]any)),
+				Output: expandStreamAnalyticsFunctionUDAOutput(d.Get("output").([]any)),
 			},
 		},
 	}
@@ -171,7 +171,7 @@ func resourceStreamAnalyticsFunctionUDACreate(d *pluginsdk.ResourceData, meta in
 	return resourceStreamAnalyticsFunctionUDARead(d, meta)
 }
 
-func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceStreamAnalyticsFunctionUDARead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -238,8 +238,8 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 						Script: pointer.To(d.Get("script").(string)),
 					},
 				},
-				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]interface{})),
-				Output: expandStreamAnalyticsFunctionUDAOutput(d.Get("output").([]interface{})),
+				Inputs: expandStreamAnalyticsFunctionUDAInputs(d.Get("input").([]any)),
+				Output: expandStreamAnalyticsFunctionUDAOutput(d.Get("output").([]any)),
 			},
 		},
 	}
@@ -252,7 +252,7 @@ func resourceStreamAnalyticsFunctionUDAUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceStreamAnalyticsFunctionUDARead(d, meta)
 }
 
-func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -271,11 +271,11 @@ func resourceStreamAnalyticsFunctionUDADelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]functions.FunctionInput {
+func expandStreamAnalyticsFunctionUDAInputs(input []any) *[]functions.FunctionInput {
 	outputs := make([]functions.FunctionInput, 0)
 
 	for _, raw := range input {
-		v := raw.(map[string]interface{})
+		v := raw.(map[string]any)
 		variableType := v["type"].(string)
 		outputs = append(outputs, functions.FunctionInput{
 			DataType:                 pointer.To(variableType),
@@ -286,19 +286,19 @@ func expandStreamAnalyticsFunctionUDAInputs(input []interface{}) *[]functions.Fu
 	return &outputs
 }
 
-func flattenStreamAnalyticsFunctionUDAInputs(input *[]functions.FunctionInput) []interface{} {
+func flattenStreamAnalyticsFunctionUDAInputs(input *[]functions.FunctionInput) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	outputs := make([]interface{}, 0)
+	outputs := make([]any, 0)
 
 	for _, v := range *input {
 		variableType := pointer.From(v.DataType)
 
 		isConfigurationParameter := pointer.From(v.IsConfigurationParameter)
 
-		outputs = append(outputs, map[string]interface{}{
+		outputs = append(outputs, map[string]any{
 			"type":                    variableType,
 			"configuration_parameter": isConfigurationParameter,
 		})
@@ -307,8 +307,8 @@ func flattenStreamAnalyticsFunctionUDAInputs(input *[]functions.FunctionInput) [
 	return outputs
 }
 
-func expandStreamAnalyticsFunctionUDAOutput(input []interface{}) *functions.FunctionOutput {
-	output := input[0].(map[string]interface{})
+func expandStreamAnalyticsFunctionUDAOutput(input []any) *functions.FunctionOutput {
+	output := input[0].(map[string]any)
 
 	dataType := output["type"].(string)
 	return &functions.FunctionOutput{
@@ -316,15 +316,15 @@ func expandStreamAnalyticsFunctionUDAOutput(input []interface{}) *functions.Func
 	}
 }
 
-func flattenStreamAnalyticsFunctionUDAOutput(input *functions.FunctionOutput) []interface{} {
+func flattenStreamAnalyticsFunctionUDAOutput(input *functions.FunctionOutput) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	variableType := pointer.From(input.DataType)
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"type": variableType,
 		},
 	}

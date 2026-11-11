@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-func PortOrPortRangeWithin(min int, max int) func(interface{}, string) ([]string, []error) {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
+func PortOrPortRangeWithin(min int, max int) func(any, string) ([]string, []error) {
+	return func(i any, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

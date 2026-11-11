@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/staticmembers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +31,7 @@ func (r ManagerStaticMemberResource) ResourceType() string {
 	return "azurerm_network_manager_static_member"
 }
 
-func (r ManagerStaticMemberResource) ModelObject() interface{} {
+func (r ManagerStaticMemberResource) ModelObject() any {
 	return &ManagerStaticMemberModel{}
 }
 

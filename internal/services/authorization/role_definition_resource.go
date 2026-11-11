@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
@@ -50,7 +52,7 @@ func (r RoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"role_definition_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -117,7 +119,7 @@ func (r RoleDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 		"assignable_scopes": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateScopeID,
@@ -139,12 +141,12 @@ func (r RoleDefinitionResource) ResourceType() string {
 	return "azurerm_role_definition"
 }
 
-func (r RoleDefinitionResource) ModelObject() interface{} {
+func (r RoleDefinitionResource) ModelObject() any {
 	return &RoleDefinitionModel{}
 }
 
 func (r RoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
+	return func(input any, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
@@ -393,26 +395,12 @@ func (r RoleDefinitionResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Deletes are not instant and can take time to propagate
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{
-					"Pending",
-				},
-				Target: []string{
-					"Deleted",
-					"NotFound",
-				},
-				Refresh:                   roleDefinitionDeleteStateRefreshFunc(ctx, client, id),
-				MinTimeout:                10 * time.Second,
-				ContinuousTargetOccurence: 20,
-				Timeout:                   time.Until(deadline),
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for delete on Role Definition %s to complete", stateId)
+			poller := custompollers.NewEventualConsistencyPoller(20, func(pollerCtx context.Context) (*http.Response, error) {
+				resp, err := client.Get(pollerCtx, id)
+				return resp.HttpResponse, err
+			}, custompollers.DefaultDeletionEventualConsistencyPollerOptions())
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", stateId, err)
 			}
 
 			return nil
@@ -430,7 +418,7 @@ func (RoleDefinitionResource) StateUpgraders() sdk.StateUpgradeData {
 }
 
 func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client *roledefinitions.RoleDefinitionsClient, id roledefinitions.ScopedRoleDefinitionId, updateRequestDate string) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return resp, "Failed", err
@@ -526,17 +514,4 @@ func flattenRoleDefinitionPermissions(input *[]roledefinitions.Permission) []Per
 	}
 
 	return permissions
-}
-
-func roleDefinitionDeleteStateRefreshFunc(ctx context.Context, client *roledefinitions.RoleDefinitionsClient, id roledefinitions.ScopedRoleDefinitionId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-			return nil, "Error", err
-		}
-		return "Pending", "Pending", nil
-	}
 }

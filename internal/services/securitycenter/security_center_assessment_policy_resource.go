@@ -8,12 +8,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" //nolint:staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,22 +53,18 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"severity": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(security.SeverityMedium),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.SeverityLow),
-					string(security.SeverityMedium),
-					string(security.SeverityHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(security.SeverityMedium),
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleSeverityValues(), false),
 			},
 
-			// API would return `Unknown` when `categories` isn't set.
-			// After synced with service team, they confirmed will add `Unknown` as possible value to this property and it will be published as a new version of this API.
-			// https://github.com/Azure/azure-rest-api-specs/issues/14918
 			"categories": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				// Note: O+C the API would return `Unknown` when `categories` isn't set.
+				// After synced with service team, they confirmed will add `Unknown` as possible value to this property and it will be published as a new version of this API.
+				// https://github.com/Azure/azure-rest-api-specs/issues/14918
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -85,13 +80,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"implementation_effort": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.ImplementationEffortLow),
-					string(security.ImplementationEffortModerate),
-					string(security.ImplementationEffortHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleImplementationEffortValues(), false),
 			},
 
 			"remediation_description": {
@@ -119,13 +110,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"user_impact": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(security.UserImpactLow),
-					string(security.UserImpactModerate),
-					string(security.UserImpactHigh),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInEnumSlice(security.PossibleUserImpactValues(), false),
 			},
 
 			"name": {
@@ -136,7 +123,7 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -205,7 +192,7 @@ func resourceArmSecurityCenterAssessmentPolicyCreate(d *pluginsdk.ResourceData, 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,9 +219,9 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 			d.Set("description", pointer.From(props.Description))
 			d.Set("display_name", props.DisplayName)
 			d.Set("severity", string(props.Severity))
-			d.Set("implementation_effort", string(pointer.From(props.ImplementationEffort)))
+			d.Set("implementation_effort", pointer.FromEnum(props.ImplementationEffort))
 			d.Set("remediation_description", pointer.From(props.RemediationDescription))
-			d.Set("user_impact", string(pointer.From(props.UserImpact)))
+			d.Set("user_impact", pointer.FromEnum(props.UserImpact))
 
 			categories := make([]string, 0)
 			if props.Categories != nil {
@@ -242,7 +229,7 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					categories = append(categories, string(item))
 				}
 			}
-			d.Set("categories", helpers.FlattenStringSlice(&categories))
+			d.Set("categories", pluginsdk.FlattenSlice(&categories))
 
 			threats := make([]string, 0)
 			if props.Threats != nil {
@@ -250,14 +237,14 @@ func resourceArmSecurityCenterAssessmentPolicyRead(d *pluginsdk.ResourceData, me
 					threats = append(threats, string(item))
 				}
 			}
-			d.Set("threats", helpers.FlattenStringSlice(&threats))
+			d.Set("threats", pluginsdk.FlattenSlice(&threats))
 		}
 	}
 
 	return nil
 }
 
-func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -322,7 +309,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	return resourceArmSecurityCenterAssessmentPolicyRead(d, meta)
 }
 
-func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterAssessmentPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).SecurityCenter.AssessmentsMetadataClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -11,10 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
-type Client struct {
-	ServiceNetworkingClient *servicenetworking_2025_01_01.Client
-}
-
 func NewClient(o *common.ClientOptions) (*servicenetworking_2025_01_01.Client, error) {
 	client, err := servicenetworking_2025_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)

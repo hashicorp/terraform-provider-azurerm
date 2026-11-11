@@ -91,7 +91,7 @@ func resourceCapacityReservation() *pluginsdk.Resource {
 	}
 }
 
-func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationsClient
 	groupsClient := meta.(*clients.Client).Compute.CapacityReservationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -127,8 +127,8 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 
 	payload := capacityreservations.CapacityReservation{
 		Location: location.Normalize(capacityReservationGroup.Model.Location),
-		Sku:      expandCapacityReservationSku(d.Get("sku").([]interface{})),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:      expandCapacityReservationSku(d.Get("sku").([]any)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]any)),
 	}
 	if v, ok := d.GetOk("zone"); ok {
 		payload.Zones = &[]string{
@@ -148,7 +148,7 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 	return resourceCapacityReservationRead(d, meta)
 }
 
-func resourceCapacityReservationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +192,7 @@ func resourceCapacityReservationRead(d *pluginsdk.ResourceData, meta interface{}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceCapacityReservationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,10 +204,10 @@ func resourceCapacityReservationUpdate(d *pluginsdk.ResourceData, meta interface
 
 	payload := capacityreservations.CapacityReservationUpdate{}
 	if d.HasChange("sku") {
-		payload.Sku = pointer.To(expandCapacityReservationSku(d.Get("sku").([]interface{})))
+		payload.Sku = pointer.To(expandCapacityReservationSku(d.Get("sku").([]any)))
 	}
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -217,7 +217,7 @@ func resourceCapacityReservationUpdate(d *pluginsdk.ResourceData, meta interface
 	return resourceCapacityReservationRead(d, meta)
 }
 
-func resourceCapacityReservationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCapacityReservationDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.CapacityReservationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,17 +234,17 @@ func resourceCapacityReservationDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandCapacityReservationSku(input []interface{}) capacityreservations.Sku {
-	v := input[0].(map[string]interface{})
+func expandCapacityReservationSku(input []any) capacityreservations.Sku {
+	v := input[0].(map[string]any)
 	return capacityreservations.Sku{
 		Name:     pointer.To(v["name"].(string)),
 		Capacity: pointer.To(int64(v["capacity"].(int))),
 	}
 }
 
-func flattenCapacityReservationSku(input capacityreservations.Sku) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenCapacityReservationSku(input capacityreservations.Sku) []any {
+	return []any{
+		map[string]any{
 			"name":     pointer.From(input.Name),
 			"capacity": pointer.From(input.Capacity),
 		},

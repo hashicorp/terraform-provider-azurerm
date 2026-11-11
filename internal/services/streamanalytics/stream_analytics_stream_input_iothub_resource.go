@@ -98,7 +98,7 @@ func resourceStreamAnalyticsStreamInputIoTHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
-	serializationRaw := d.Get("serialization").([]interface{})
+	serializationRaw := d.Get("serialization").([]any)
 	serialization, err := expandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `serialization`: %+v", err)
@@ -163,7 +163,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *pluginsdk.ResourceD
 	return resourceStreamAnalyticsStreamInputIoTHubRead(d, meta)
 }
 
-func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -219,7 +219,7 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceStreamAnalyticsStreamInputIoTHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

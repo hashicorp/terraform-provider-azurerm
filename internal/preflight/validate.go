@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package preflight
 
 import (
@@ -7,21 +10,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
+	preflightsdk "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 type ValidationRequest struct {
-	Location   *string                                               `json:"location"`
-	Provider   string                                                `json:"provider"`
-	ResourceId resourceids.ResourceId                                `json:"resourceId"`
-	Type       string                                                `json:"type"`
-	Resource   preflightvalidation.ResourceValidationRequestResource `json:"resource"`
-	Scope      string                                                `json:"scope"`
+	Location   *string                                        `json:"location"`
+	Provider   string                                         `json:"provider"`
+	ResourceId resourceids.ResourceId                         `json:"resourceId"`
+	Type       string                                         `json:"type"`
+	Resource   preflightsdk.ResourceValidationRequestResource `json:"resource"`
+	Scope      string                                         `json:"scope"`
 }
 
 // NewValidationRequest constructs a new ValidationRequest for use with the Azure Preflight
@@ -67,7 +71,7 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 		ResourceId: id,
 		Type:       resourceType,
 		Scope:      scope,
-		Resource: preflightvalidation.ResourceValidationRequestResource{
+		Resource: preflightsdk.ResourceValidationRequestResource{
 			ApiVersion: apiVersion,
 			Name:       resourceName,
 			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
@@ -79,13 +83,13 @@ func buildValidationRequest(location *string, id resourceids.ResourceId, provide
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	client := metadata.Client.Preflight.PreflightClient
 
-	input := preflightvalidation.ResourceValidationRequest{
+	input := preflightsdk.ResourceValidationRequest{
 		Location:       v.Location,
 		Provider:       v.Provider,
-		Resources:      []preflightvalidation.ResourceValidationRequestResource{v.Resource},
+		Resources:      []preflightsdk.ResourceValidationRequestResource{v.Resource},
 		Scope:          v.Scope,
 		Type:           v.Type,
-		ValidationType: pointer.To(preflightvalidation.ResourceValidationTypeArmFull),
+		ValidationType: pointer.To(preflightsdk.ResourceValidationTypeArmFull),
 	}
 
 	resp, err := client.ValidateResources(ctx, input)
@@ -167,8 +171,8 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 	var scopeSegments []string
 	cutOffIndex := providerIdx - 1
 	if len(typeSegs) > 1 {
-		for i := len(segments) - 1; i >= 0; i-- {
-			if segments[i].Type == resourceids.ConstantSegmentType || segments[i].Type == resourceids.StaticSegmentType {
+		for i, segment := range slices.Backward(segments) {
+			if segment.Type == resourceids.ConstantSegmentType || segment.Type == resourceids.StaticSegmentType {
 				cutOffIndex = i
 				break
 			}

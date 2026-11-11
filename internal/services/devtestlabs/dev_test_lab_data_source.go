@@ -78,7 +78,7 @@ func dataSourceDevTestLab() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -104,7 +104,7 @@ func dataSourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
-		d.Set("storage_type", string(pointer.From(props.LabStorageType)))
+		d.Set("storage_type", pointer.FromEnum(props.LabStorageType))
 
 		// Computed fields
 		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)

@@ -114,7 +114,7 @@ func (d EdgeDeviceDataSource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (d EdgeDeviceDataSource) ModelObject() interface{} {
+func (d EdgeDeviceDataSource) ModelObject() any {
 	return &EdgeDeviceModel{}
 }
 

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2024-06-19/filesystems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2026-04-16/filesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

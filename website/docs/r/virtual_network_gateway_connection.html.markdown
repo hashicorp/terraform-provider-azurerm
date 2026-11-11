@@ -238,7 +238,7 @@ The following arguments are supported:
 
 * `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,
-    For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
+    For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
 
 * `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
 
@@ -324,4 +324,4 @@ terraform import azurerm_virtual_network_gateway_connection.exampleConnection /s
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

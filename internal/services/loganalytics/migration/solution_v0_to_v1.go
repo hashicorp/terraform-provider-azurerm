@@ -20,7 +20,7 @@ var _ pluginsdk.StateUpgrade = SolutionV0ToV1{}
 type SolutionV0ToV1 struct{}
 
 func (SolutionV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldId, err := solution.ParseSolutionIDInsensitively(rawState["id"].(string))
 		if err != nil {
 			return rawState, err

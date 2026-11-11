@@ -15,7 +15,7 @@ The Provider is split up into Service Packages (see [terminology](reference-glos
 At a high-level, the Provider structure is:
 
 | Directory/Package | Description |
-|-------------------|-------------|
+| ------------------- | ------------- |
 | `./examples` | More complete example usages of Data Sources and Resources offered by this Provider. |
 | `./helpers` | **This package is deprecated (and so intentionally not documented) - new functionality should instead be added to either the Service Package or [go-azure-helpers](https://github.com/hashicorp/go-azure-helpers)**. |
 | `./internal/acceptance` | The Acceptance Test wrappers that we use in the Azure Provider, offering common patterns across the Provider to be reused. |
@@ -33,16 +33,15 @@ At a high-level, the Provider structure is:
 | `./internal/timeouts` | Helpers for computing the Timeouts for a Data Source / Resource - used in Untyped Data Sources and Untyped Resources. |
 | `./internal/tools` | Tooling used to generate functionality within the Provider, for example for Resource IDs and Website Documentation. |
 | `./scripts` | Scripts used during testing, linting, and building the provider. |
-| `./utils` | Helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `pointer.To(“someValue”)`). **We intend to deprecate this folder in time** and new functionality should be added to individual service packages where possible. The existing functions will be gradually moved (via aliasing) into another repository. |
 | `./vendor` | Vendored copies of the go modules the provider uses. For more information please refer to the official [Go Documentation](https://go.dev/ref/mod#vendoring). |
-| `./website` | Guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs). |.
+| `./website` | Guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs). |
 
 > **Note:** Due to the size of the codebase and open Pull Requests - when functionality is moved we use aliasing to try and avoid breaking open Pull Requests / big-bang migrations. These aliases stick around for a few weeks to allow open PRs to be merged without extra out-of-scope changes - at which point these aliases are removed.
 
 Each Service Package consists of (to take `appconfiguration` as an example):
 
 | File/Directory | Description |
-|----------------|-------------|
+| ---------------- | ------------- |
 | `./services/appconfiguration` | |
 | `./client` | A Client struct, with a reference to any SDK Clients used to access the Azure APIs within this Service Package. |
 | `./parse` | Resource ID Formatters and Parsers. |

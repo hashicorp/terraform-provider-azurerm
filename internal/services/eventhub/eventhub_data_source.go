@@ -50,7 +50,7 @@ func dataSourceEventHub() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceEventHubRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

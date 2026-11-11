@@ -23,7 +23,7 @@ import (
 const TargetContainerIdAzure = "Microsoft Azure"
 
 // we only support replicate to Azure as backup to customer-managed sites is being deprecated.
-// https://learn.microsoft.com/en-us/azure/site-recovery/site-to-site-deprecation
+// https://learn.microsoft.com/azure/site-recovery/site-to-site-deprecation
 
 type HyperVReplicationPolicyAssociationModel struct {
 	Name     string `tfschema:"name"`
@@ -64,7 +64,7 @@ func (h HyperVReplicationPolicyAssociationResource) Attributes() map[string]*sch
 	return map[string]*schema.Schema{}
 }
 
-func (h HyperVReplicationPolicyAssociationResource) ModelObject() interface{} {
+func (h HyperVReplicationPolicyAssociationResource) ModelObject() any {
 	return &HyperVReplicationPolicyAssociationModel{}
 }
 

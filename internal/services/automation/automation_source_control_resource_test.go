@@ -29,8 +29,8 @@ type githubRepo struct {
 
 func newSourceControlResource(t *testing.T) SourceControlResource {
 	// - ARM_TEST_ASC_GITHUB_REPOSITORY_URL represents the user repo
-	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
-	// Checkout https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-build-task for details.
+	// - ARM_TEST_ASC_GITHUB_USER_TOKEN represents the github personal token with the appropriate permissions per: https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task#create-a-github-personal-access-token
+	// Checkout https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-build-task for details.
 	ins := SourceControlResource{
 		githubRepo: githubRepo{
 			url:   os.Getenv("ARM_TEST_ASC_GITHUB_REPOSITORY_URL"),

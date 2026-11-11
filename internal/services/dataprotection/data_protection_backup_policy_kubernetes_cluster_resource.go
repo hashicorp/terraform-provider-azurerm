@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,7 +71,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) ResourceType() stri
 	return "azurerm_data_protection_backup_policy_kubernetes_cluster"
 }
 
-func (r DataProtectionBackupPolicyKubernatesClusterResource) ModelObject() interface{} {
+func (r DataProtectionBackupPolicyKubernatesClusterResource) ModelObject() any {
 	return &BackupPolicyKubernatesClusterModel{}
 }
 
@@ -128,9 +127,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that current possible value only support `OperationalStore`.
-										// However, considering that `VaultStore` might be supported in the future, it would be exposed for user specification.
 										string(basebackuppolicyresources.DataStoreTypesOperationalStore),
+										string(basebackuppolicyresources.DataStoreTypesVaultStore),
 									}, false),
 								},
 
@@ -138,7 +136,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -233,9 +231,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required: true,
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that currently only `OperationalStore` is supported.
-										// However, since `VaultStore` is in public preview and will be supported in the future, it is open to user specification.
 										string(basebackuppolicyresources.DataStoreTypesOperationalStore),
+										string(basebackuppolicyresources.DataStoreTypesVaultStore),
 									}, false),
 								},
 
@@ -243,7 +240,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
+									ValidateFunc: validation.ISO8601Duration,
 								},
 							},
 						},
@@ -464,7 +461,6 @@ func expandBackupPolicyKubernetesClusterLifeCycle(input []LifeCycle) []basebacku
 func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRule) (*[]basebackuppolicyresources.TaggingCriteria, error) {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -475,7 +471,6 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 	}
 	for _, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
-			IsDefault:       false,
 			TaggingPriority: item.Priority,
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(item.Name + "_"),
@@ -532,7 +527,6 @@ func expandBackupPolicyKubernetesClusterCriteriaArray(input []Criteria) (*[]base
 
 		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    &daysOfWeek,
 			MonthsOfYear:     &monthsOfYear,
 			ScheduleTimes:    pointer.To(item.ScheduledBackupTimes),
@@ -580,11 +574,11 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]basebackuppolic
 		return results
 	}
 
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
+	var taggingCriteriaList []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
 		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-				taggingCriterias = trigger.TaggingCriteria
+				taggingCriteriaList = trigger.TaggingCriteria
 			}
 		}
 	}
@@ -596,7 +590,7 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]basebackuppolic
 			var taggingCriteria []Criteria
 			if retentionRule.IsDefault == nil || !*retentionRule.IsDefault {
 				name = retentionRule.Name
-				for _, criteria := range taggingCriterias {
+				for _, criteria := range taggingCriteriaList {
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
 						taggingPriority = criteria.TaggingPriority
 						taggingCriteria = flattenBackupPolicyKubernetesClusterBackupCriteriaArray(criteria.Criteria)

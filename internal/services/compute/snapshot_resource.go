@@ -16,9 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -68,6 +70,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(snapshots.DiskCreateOptionCopy),
+					string(snapshots.DiskCreateOptionCopyStart),
 					string(snapshots.DiskCreateOptionImport),
 				}, false),
 			},
@@ -123,6 +126,7 @@ func resourceSnapshot() *pluginsdk.Resource {
 			"disk_size_gb": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				// Note: O+C because Azure computes disk size when not specified
 				Computed: true,
 			},
 
@@ -138,14 +142,14 @@ func resourceSnapshot() *pluginsdk.Resource {
 
 		// Encryption Settings cannot be disabled once enabled
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
-				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta any) bool {
+				return len(old.([]any)) > 0 && len(new.([]any)) == 0
 			}),
 		),
 	}
 }
 
-func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -154,7 +158,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	id := snapshots.NewSnapshotID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	location := location.Normalize(d.Get("location").(string))
 	createOption := d.Get("create_option").(string)
-	t := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]any)
 
 	if d.IsNewResource() {
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -212,13 +216,28 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		properties.Properties.DiskSizeGB = pointer.To(int64(diskSizeGB))
 	}
 
-	properties.Properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(d.Get("encryption_settings").([]interface{}))
+	properties.Properties.EncryptionSettingsCollection = expandSnapshotDiskEncryptionSettings(d.Get("encryption_settings").([]any))
 
 	if d.IsNewResource() {
 		if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, properties, sdk.SetIDCallback(meta, &id, d)); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 		d.SetId(id.ID())
+
+		// When `create_option` is `CopyStart` the API returns as soon as the copy
+		// operation has been initiated, however the resulting snapshot is not usable
+		// until the background copy has completed. Wait for `CompletionPercent` to
+		// reach 100 so that downstream resources (e.g. `azurerm_managed_disk`) don't
+		// consume an incomplete snapshot.
+		if createOption == string(snapshots.DiskCreateOptionCopyStart) {
+			log.Printf("[DEBUG] Waiting for the copy of %s to complete", id)
+
+			pollerType := custompoller.NewSnapshotCopyStartPoller(client, id)
+			poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for the copy of %s to complete: %+v", id, err)
+			}
+		}
 	} else {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
@@ -228,7 +247,7 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	return resourceSnapshotRead(d, meta)
 }
 
-func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSnapshotRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,7 +319,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSnapshotDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.SnapshotsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

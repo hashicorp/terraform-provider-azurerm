@@ -100,7 +100,7 @@ type dataSourceWindowsPerformanceCounterProperty struct {
 	ObjectName      string `json:"objectName"`
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -143,7 +143,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterCreateUpdate(d *plug
 	return resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d, meta)
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]interface{}))
+			propStr, err := pluginsdk.FlattenJsonToString(props.(map[string]any))
 			if err != nil {
 				return fmt.Errorf("failed to flatten properties map to json: %+v", err)
 			}
@@ -190,7 +190,7 @@ func resourceLogAnalyticsDataSourceWindowsPerformanceCounterRead(d *pluginsdk.Re
 	return nil
 }
 
-func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsPerformanceCounterDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

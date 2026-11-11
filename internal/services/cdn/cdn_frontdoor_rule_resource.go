@@ -630,7 +630,7 @@ func (c CdnFrontDoorRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (c CdnFrontDoorRuleResource) ModelObject() interface{} {
+func (c CdnFrontDoorRuleResource) ModelObject() any {
 	return &CdnFrontDoorRuleResourceModel{}
 }
 

@@ -63,7 +63,7 @@ func resourceRelayHybridConnectionAuthorizationRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -103,7 +103,7 @@ func resourceRelayHybridConnectionAuthorizationRuleCreateUpdate(d *pluginsdk.Res
 	return resourceRelayHybridConnectionAuthorizationRuleRead(d, meta)
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceRelayHybridConnectionAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRelayHybridConnectionAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

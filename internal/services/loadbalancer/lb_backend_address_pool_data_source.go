@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -120,7 +120,7 @@ func dataSourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,10 +148,10 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, 
 				return fmt.Errorf("setting `backend_address`: %v", err)
 			}
 
-			var backendIPConfigurations []interface{}
+			var backendIPConfigurations []any
 			if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
 				for _, config := range *beipConfigs {
-					ipConfig := make(map[string]interface{})
+					ipConfig := make(map[string]any)
 					if id := config.Id; id != nil {
 						ipConfig["id"] = pointer.From(id)
 						backendIPConfigurations = append(backendIPConfigurations, ipConfig)
@@ -206,12 +206,12 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerBackendAddress) []interface{} {
+func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerBackendAddress) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]any, 0)
 
 	for _, e := range *input {
 		name := pointer.From(e.Name)
@@ -220,7 +220,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 			ipAddress string
 			vnetId    string
 		)
-		var inboundNATRulePortMappingList []interface{}
+		var inboundNATRulePortMappingList []any
 		if prop := e.Properties; prop != nil {
 			ipAddress = pointer.From(prop.IPAddress)
 
@@ -230,7 +230,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 			if prop.InboundNatRulesPortMapping != nil {
 				rules := prop.InboundNatRulesPortMapping
 				for _, rule := range *rules {
-					rulePortMapping := make(map[string]interface{})
+					rulePortMapping := make(map[string]any)
 
 					if rule.InboundNatRuleName != nil {
 						rulePortMapping["inbound_nat_rule_name"] = pointer.From(rule.InboundNatRuleName)
@@ -247,7 +247,7 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 			}
 		}
 
-		v := map[string]interface{}{
+		v := map[string]any{
 			"name":                          name,
 			"virtual_network_id":            vnetId,
 			"ip_address":                    ipAddress,

@@ -45,7 +45,7 @@ func (r DataConnectorOffice365ProjectResource) Arguments() map[string]*pluginsdk
 		"tenant_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ForceNew:     true,
 			ValidateFunc: validation.IsUUID,
 		},
@@ -60,7 +60,7 @@ func (r DataConnectorOffice365ProjectResource) ResourceType() string {
 	return "azurerm_sentinel_data_connector_office_365_project"
 }
 
-func (r DataConnectorOffice365ProjectResource) ModelObject() interface{} {
+func (r DataConnectorOffice365ProjectResource) ModelObject() any {
 	return &DataConnectorOffice365ProjectModel{}
 }
 

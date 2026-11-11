@@ -41,7 +41,7 @@ func (r ApiManagementWorkspaceApiVersionSetResource) ResourceType() string {
 	return "azurerm_api_management_workspace_api_version_set"
 }
 
-func (r ApiManagementWorkspaceApiVersionSetResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceApiVersionSetResource) ModelObject() any {
 	return &ApiManagementWorkspaceApiVersionSetModel{}
 }
 

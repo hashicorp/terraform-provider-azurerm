@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func TagValueToString(v interface{}) (string, error) {
+func TagValueToString(v any) (string, error) {
 	switch value := v.(type) {
 	case string:
 		return value, nil

@@ -13,33 +13,33 @@ import (
 func TestKeyResourceV0ToV1(t *testing.T) {
 	testData := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		expected *string
 	}{
 		{
 			name: "old id (normal)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/labelName",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/labelName"),
 		},
 		{
 			name: "old id (encoded)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key%3Aname%2Ftest/Label/test%3Alabel%2Fname",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name"),
 		},
 		{
 			name: "new id",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/key:name/test/Label/test:label/name"),
 		},
 		{
 			name: "old id (this is a bug and should be fixed in v1 to v2)",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/%00",
 			},
 			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/resourceGroup1/providers/Microsoft.AppConfiguration/configurationStores/appConf1/AppConfigurationKey/keyName/Label/\000/AppConfigurationKey/keyName/Label/"),

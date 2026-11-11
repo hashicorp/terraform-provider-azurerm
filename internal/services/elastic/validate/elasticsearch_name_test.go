@@ -26,7 +26,7 @@ func TestElasticMonitorsName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// with hypen
+			// with hyphen
 			input:    "malcolm-in-the-middle",
 			expected: true,
 		},

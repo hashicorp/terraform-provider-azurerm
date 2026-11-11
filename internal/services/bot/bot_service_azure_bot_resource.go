@@ -9,58 +9,58 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 var (
 	_ sdk.ResourceWithUpdate         = AzureBotServiceResource{}
 	_ sdk.ResourceWithCustomImporter = AzureBotServiceResource{}
+	_ sdk.ResourceWithStateMigration = AzureBotServiceResource{}
 )
 
 type AzureBotServiceResource struct{}
 
 type BotServiceModel struct {
-	Name                              string                 `tfschema:"name"`
-	ResourceGroupName                 string                 `tfschema:"resource_group_name"`
-	Location                          string                 `tfschema:"location"`
-	Sku                               string                 `tfschema:"sku"`
-	MicrosoftAppId                    string                 `tfschema:"microsoft_app_id"`
-	DisplayName                       string                 `tfschema:"display_name"`
-	Endpoint                          string                 `tfschema:"endpoint"`
-	DeveloperAppInsightsKey           string                 `tfschema:"developer_app_insights_key"`
-	DeveloperAppInsightsApiKey        string                 `tfschema:"developer_app_insights_api_key"`
-	DeveloperAppInsightsApplicationId string                 `tfschema:"developer_app_insights_application_id"`
-	CmkKeyVaultKeyUrl                 string                 `tfschema:"cmk_key_vault_key_url"`
-	MicrosoftAppMsiId                 string                 `tfschema:"microsoft_app_msi_id"`
-	MicrosoftAppTenantId              string                 `tfschema:"microsoft_app_tenant_id"`
-	MicrosoftAppType                  string                 `tfschema:"microsoft_app_type"`
-	LocalAuthenticationEnabled        bool                   `tfschema:"local_authentication_enabled"`
-	LuisAppIds                        []string               `tfschema:"luis_app_ids"`
-	LuisKey                           string                 `tfschema:"luis_key"`
-	PublicNetworkAccessEnabled        bool                   `tfschema:"public_network_access_enabled"`
-	StreamingEndpointEnabled          bool                   `tfschema:"streaming_endpoint_enabled"`
-	IconUrl                           string                 `tfschema:"icon_url"`
-	Tags                              map[string]interface{} `tfschema:"tags"`
+	Name                              string         `tfschema:"name"`
+	ResourceGroupName                 string         `tfschema:"resource_group_name"`
+	Location                          string         `tfschema:"location"`
+	Sku                               string         `tfschema:"sku"`
+	MicrosoftAppId                    string         `tfschema:"microsoft_app_id"`
+	DisplayName                       string         `tfschema:"display_name"`
+	Endpoint                          string         `tfschema:"endpoint"`
+	DeveloperAppInsightsKey           string         `tfschema:"developer_app_insights_key"`
+	DeveloperAppInsightsApiKey        string         `tfschema:"developer_app_insights_api_key"`
+	DeveloperAppInsightsApplicationId string         `tfschema:"developer_app_insights_application_id"`
+	CmkKeyVaultKeyUrl                 string         `tfschema:"cmk_key_vault_key_url"`
+	MicrosoftAppMsiId                 string         `tfschema:"microsoft_app_msi_id"`
+	MicrosoftAppTenantId              string         `tfschema:"microsoft_app_tenant_id"`
+	MicrosoftAppType                  string         `tfschema:"microsoft_app_type"`
+	LocalAuthenticationEnabled        bool           `tfschema:"local_authentication_enabled"`
+	LuisAppIds                        []string       `tfschema:"luis_app_ids"`
+	LuisKey                           string         `tfschema:"luis_key"`
+	PublicNetworkAccessEnabled        bool           `tfschema:"public_network_access_enabled"`
+	StreamingEndpointEnabled          bool           `tfschema:"streaming_endpoint_enabled"`
+	IconUrl                           string         `tfschema:"icon_url"`
+	Tags                              map[string]any `tfschema:"tags"`
 }
 
-func (r AzureBotServiceResource) ModelObject() interface{} {
+func (r AzureBotServiceResource) ModelObject() any {
 	return &BotServiceModel{}
 }
 
 func (r AzureBotServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.BotServiceID
+	return commonids.ValidateBotServiceID
 }
 
 func (r AzureBotServiceResource) ResourceType() string {
@@ -81,13 +81,10 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(botservice.SkuNameF0),
-				string(botservice.SkuNameS1),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInEnumSlice(botservice.PossibleSkuNameValues(), false),
 		},
 
 		"microsoft_app_id": {
@@ -100,7 +97,7 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -150,14 +147,10 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"microsoft_app_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(botservice.MsaAppTypeMultiTenant),
-				string(botservice.MsaAppTypeSingleTenant),
-				string(botservice.MsaAppTypeUserAssignedMSI),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInEnumSlice(botservice.PossibleMsaAppTypeValues(), false),
 		},
 
 		"local_authentication_enabled": {
@@ -221,23 +214,23 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
+			id := commonids.NewBotServiceID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-				existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+				existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 				if err != nil {
-					if !utils.ResponseWasNotFound(existing.Response) {
+					if !response.WasNotFound(existing.Response.Response) {
 						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 					}
 				}
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 				}
 			}
 
 			displayName := config.DisplayName
 			if displayName == "" {
-				displayName = id.Name
+				displayName = id.BotServiceName
 			}
 
 			publicNetworkEnabled := botservice.PublicNetworkAccessEnabled
@@ -286,7 +279,7 @@ func (r AzureBotServiceResource) Create() sdk.ResourceFunc {
 				props.Properties.MsaAppMSIResourceID = pointer.To(config.MicrosoftAppMsiId)
 			}
 
-			if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
+			if _, err := client.Create(ctx, id.ResourceGroupName, id.BotServiceName, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -302,22 +295,22 @@ func (r AzureBotServiceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
 
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.Response.Response) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state := BotServiceModel{
-				Name:              id.Name,
-				ResourceGroupName: id.ResourceGroup,
+				Name:              id.BotServiceName,
+				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.NormalizeNilable(resp.Location),
 			}
 
@@ -373,12 +366,12 @@ func (r AzureBotServiceResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+			if _, err = client.Delete(ctx, id.ResourceGroupName, id.BotServiceName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -392,7 +385,7 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Bot.BotClient
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -402,7 +395,7 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			existing, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -459,7 +452,7 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 				existing.Tags = tags.Expand(config.Tags)
 			}
 
-			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {
+			if _, err := client.Update(ctx, id.ResourceGroupName, id.BotServiceName, existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -468,16 +461,27 @@ func (r AzureBotServiceResource) Update() sdk.ResourceFunc {
 	}
 }
 
+func (r AzureBotServiceResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			// v0 -> v1 normalises the casing of IDs imported while this resource parsed them with the
+			// case-insensitive legacy parser, so they can be parsed with the case-sensitive SDK parser
+			0: migration.BotServiceAzureBotV0ToV1{},
+		},
+	}
+}
+
 func (r AzureBotServiceResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		client := metadata.Client.Bot.BotClient
 
-		id, err := parse.BotServiceID(metadata.ResourceData.Id())
+		id, err := commonids.ParseBotServiceID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroupName, id.BotServiceName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}

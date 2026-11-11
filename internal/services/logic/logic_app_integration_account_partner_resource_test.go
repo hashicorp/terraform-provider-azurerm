@@ -157,7 +157,7 @@ resource "azurerm_logic_app_integration_account_partner" "import" {
 `, r.basic(data))
 }
 
-func (r LogicAppIntegrationAccountPartnerResource) complete(data acceptance.TestData, qualifier string, value string, metdataContent string) string {
+func (r LogicAppIntegrationAccountPartnerResource) complete(data acceptance.TestData, qualifier string, value string, metadataContent string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,5 +177,5 @@ resource "azurerm_logic_app_integration_account_partner" "test" {
     }
 METADATA
 }
-`, r.template(data), data.RandomInteger, qualifier, value, metdataContent)
+`, r.template(data), data.RandomInteger, qualifier, value, metadataContent)
 }

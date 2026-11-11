@@ -111,7 +111,7 @@ func resourceDataShareDataSetBlobStorage() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,7 +174,7 @@ func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta i
 	return resourceDataShareDataSetBlobStorageRead(d, meta)
 }
 
-func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,9 +248,9 @@ func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func flattenAzureRmDataShareDataSetBlobStorageAccount(name, rg, subs string) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
+func flattenAzureRmDataShareDataSetBlobStorageAccount(name, rg, subs string) []any {
+	return []any{
+		map[string]any{
 			"name":                name,
 			"resource_group_name": rg,
 			"subscription_id":     subs,

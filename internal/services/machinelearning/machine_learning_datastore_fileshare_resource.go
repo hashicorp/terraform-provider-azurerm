@@ -39,7 +39,7 @@ type MachineLearningDataStoreFileShareModel struct {
 	Tags                  map[string]string `tfschema:"tags"`
 }
 
-func (r MachineLearningDataStoreFileShare) ModelObject() interface{} {
+func (r MachineLearningDataStoreFileShare) ModelObject() any {
 	return &MachineLearningDataStoreFileShareModel{}
 }
 
@@ -99,11 +99,7 @@ func (r MachineLearningDataStoreFileShare) Arguments() map[string]*pluginsdk.Sch
 		"service_data_identity": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(datastore.ServiceDataAccessAuthIdentityNone),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity),
-				string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity),
-			},
+			ValidateFunc: validation.StringInSlice(datastore.PossibleValuesForServiceDataAccessAuthIdentity(),
 				false),
 			Default: string(datastore.ServiceDataAccessAuthIdentityNone),
 		},

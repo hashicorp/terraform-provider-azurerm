@@ -34,7 +34,7 @@ var (
 	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
 )
 
-func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
+func (a AlertRuleThreatIntelligenceResource) ModelObject() any {
 	return &AlertRuleThreatIntelligenceModel{}
 }
 

@@ -60,13 +60,9 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 			},
 
 			"versioning_scheme": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apiversionset.VersioningSchemeHeader),
-					string(apiversionset.VersioningSchemeQuery),
-					string(apiversionset.VersioningSchemeSegment),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(apiversionset.PossibleValuesForVersioningScheme(), false),
 			},
 
 			"description": {
@@ -92,7 +88,7 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -169,7 +165,7 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 	return resourceApiManagementApiVersionSetRead(d, meta)
 }
 
-func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,7 +203,7 @@ func resourceApiManagementApiVersionSetRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceApiManagementApiVersionSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

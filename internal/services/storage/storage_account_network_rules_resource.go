@@ -25,6 +25,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -parent-id "storage_account_id"
 
+const azurermStorageAccountNetworkRulesResource = "azurerm_storage_account_network_rules"
+
 func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageAccountNetworkRulesCreate,
@@ -57,15 +59,11 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			"bypass": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true, // Defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
+				// Note: O+C because this defaults to storageaccounts.BypassAzureServices in the API, but schema does not support defaults for lists/sets.
+				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(storageaccounts.BypassAzureServices),
-						string(storageaccounts.BypassLogging),
-						string(storageaccounts.BypassMetrics),
-						string(storageaccounts.BypassNone),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 				},
 				Set: pluginsdk.HashString,
 			},
@@ -91,12 +89,9 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 			},
 
 			"default_action": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storageaccounts.DefaultActionAllow),
-					string(storageaccounts.DefaultActionDeny),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDefaultAction(), false),
 			},
 
 			"private_link_access": {
@@ -113,7 +108,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 						"endpoint_tenant_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
 							ValidateFunc: validation.IsUUID,
 						},
 					},
@@ -123,7 +118,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta any) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -176,7 +171,7 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 	acls.Bypass = expandAccountNetworkRuleBypass(d.Get("bypass").(*pluginsdk.Set).List())
 	acls.IPRules = expandAccountNetworkRuleIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
 	acls.VirtualNetworkRules = expandAccountNetworkRuleVirtualNetworkRules(d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List())
-	acls.ResourceAccessRules = expandAccountNetworkRulePrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
+	acls.ResourceAccessRules = expandAccountNetworkRulePrivateLinkAccess(d.Get("private_link_access").([]any), tenantId)
 
 	payload := storageaccounts.StorageAccountUpdateParameters{
 		Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
@@ -195,7 +190,7 @@ func resourceStorageAccountNetworkRulesCreate(d *pluginsdk.ResourceData, meta in
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
 
-func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta any) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -243,7 +238,7 @@ func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("private_link_access") {
-		acls.ResourceAccessRules = expandAccountNetworkRulePrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
+		acls.ResourceAccessRules = expandAccountNetworkRulePrivateLinkAccess(d.Get("private_link_access").([]any), tenantId)
 	}
 
 	payload := storageaccounts.StorageAccountUpdateParameters{
@@ -259,7 +254,7 @@ func resourceStorageAccountNetworkRulesUpdate(d *pluginsdk.ResourceData, meta in
 	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
 
-func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -279,9 +274,13 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceStorageAccountNetworkRulesFlatten(d, id, resp.Model)
+}
+
+func resourceStorageAccountNetworkRulesFlatten(d *pluginsdk.ResourceData, id *commonids.StorageAccountId, model *storageaccounts.StorageAccount) error {
 	d.Set("storage_account_id", d.Id())
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			if rules := props.NetworkAcls; rules != nil {
 				if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleIPRules(rules.IPRules))); err != nil {
@@ -304,7 +303,7 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
-func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

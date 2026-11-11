@@ -6,7 +6,7 @@ package deliveryruleactions
 import (
 	"errors"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -16,14 +16,9 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"behavior": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.QueryStringBehaviorExclude),
-					string(cdn.QueryStringBehaviorExcludeAll),
-					string(cdn.QueryStringBehaviorInclude),
-					string(cdn.QueryStringBehaviorIncludeAll),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInEnumSlice(cdn.PossibleQueryStringBehaviorValues(), false),
 			},
 
 			"parameters": {
@@ -34,11 +29,11 @@ func CacheKeyQueryString() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
+func ExpandArmCdnEndpointActionCacheKeyQueryString(input []any) (*[]cdn.BasicDeliveryRuleAction, error) {
 	output := make([]cdn.BasicDeliveryRuleAction, 0)
 
 	for _, v := range input {
-		item := v.(map[string]interface{})
+		item := v.(map[string]any)
 
 		cacheKeyQueryStringAction := cdn.DeliveryRuleCacheKeyQueryStringAction{
 			Name: cdn.NameBasicDeliveryRuleActionNameCacheKeyQueryString,
@@ -62,7 +57,7 @@ func ExpandArmCdnEndpointActionCacheKeyQueryString(input []interface{}) (*[]cdn.
 	return &output, nil
 }
 
-func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
+func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleAction) (*map[string]any, error) {
 	action, ok := input.AsDeliveryRuleCacheKeyQueryStringAction()
 	if !ok {
 		return nil, errors.New("expected a delivery rule cache key query string action")
@@ -78,7 +73,7 @@ func FlattenArmCdnEndpointActionCacheKeyQueryString(input cdn.BasicDeliveryRuleA
 		}
 	}
 
-	return &map[string]interface{}{
+	return &map[string]any{
 		"behavior":   behaviour,
 		"parameters": parameters,
 	}, nil

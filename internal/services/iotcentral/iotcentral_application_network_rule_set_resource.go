@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -52,13 +51,10 @@ func (r IotCentralApplicationNetworkRuleSetResource) Arguments() map[string]*plu
 		},
 
 		"default_action": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(apps.NetworkActionDeny),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(apps.NetworkActionAllow),
-				string(apps.NetworkActionDeny),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(apps.NetworkActionDeny),
+			ValidateFunc: validation.StringInSlice(apps.PossibleValuesForNetworkAction(), false),
 		},
 
 		"ip_rule": {
@@ -69,12 +65,12 @@ func (r IotCentralApplicationNetworkRuleSetResource) Arguments() map[string]*plu
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: iothubValidate.IoTHubIpRuleName,
+						ValidateFunc: validate.IoTHubIpRuleName,
 					},
 					"ip_mask": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.CIDR,
+						ValidateFunc: validation.IsCIDRIPv4,
 					},
 				},
 			},
@@ -90,7 +86,7 @@ func (r IotCentralApplicationNetworkRuleSetResource) ResourceType() string {
 	return "azurerm_iotcentral_application_network_rule_set"
 }
 
-func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() interface{} {
+func (r IotCentralApplicationNetworkRuleSetResource) ModelObject() any {
 	return &IotCentralApplicationNetworkRuleSetModel{}
 }
 
@@ -298,7 +294,7 @@ func expandIotCentralApplicationNetworkRuleSetIPRule(input []IPRule) *[]apps.Net
 
 func flattenIotCentralApplicationNetworkRuleSetIPRule(input *[]apps.NetworkRuleSetIPRule) []IPRule {
 	if input == nil {
-		return nil
+		return []IPRule{}
 	}
 
 	results := make([]IPRule, 0)

@@ -274,7 +274,7 @@ func (r ManagedRedisResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r ManagedRedisResource) ModelObject() interface{} {
+func (r ManagedRedisResource) ModelObject() any {
 	return &ManagedRedisResourceModel{}
 }
 
@@ -411,7 +411,7 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
-					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
+					state.HighAvailabilityEnabled = strings.EqualFold(pointer.FromEnum(props.HighAvailability), string(redisenterprise.HighAvailabilityEnabled))
 					state.Hostname = pointer.From(props.HostName)
 					state.PublicNetworkAccess = string(props.PublicNetworkAccess)
 				}
@@ -864,8 +864,8 @@ func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.Cluster
 	}
 }
 
-func dbLen(v interface{}) int {
-	if s, ok := v.([]interface{}); ok {
+func dbLen(v any) int {
+	if s, ok := v.([]any); ok {
 		return len(s)
 	}
 	return 0

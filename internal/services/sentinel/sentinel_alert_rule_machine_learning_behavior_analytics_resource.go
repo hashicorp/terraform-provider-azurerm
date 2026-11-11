@@ -67,7 +67,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalytics() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,7 +122,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 	return resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d, meta)
 }
 
-func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,7 +163,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func resourceSentinelAlertRuleMLBehaviorAnalyticsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMLBehaviorAnalyticsDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -56,14 +56,14 @@ func resourceApiManagementTag() *pluginsdk.Resource {
 			"display_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // azignore:AZS007 - pre-existing violation
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
 
-func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.TagClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -111,7 +111,7 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	return resourceApiManagementTagRead(d, meta)
 }
 
-func resourceApiManagementTagRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementTagRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.TagClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceApiManagementTagRead(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceApiManagementTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementTagDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.TagClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

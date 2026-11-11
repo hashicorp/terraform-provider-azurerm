@@ -65,7 +65,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Attributes() map[string]*plugi
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r RedisCacheAccessPolicyAssignmentResource) ModelObject() interface{} {
+func (r RedisCacheAccessPolicyAssignmentResource) ModelObject() any {
 	return &RedisCacheAccessPolicyAssignmentResourceModel{}
 }
 

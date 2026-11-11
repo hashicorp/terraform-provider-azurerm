@@ -5,7 +5,6 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -58,7 +57,17 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"cache_control": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"source_uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -73,7 +82,7 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -119,7 +128,6 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	id := blobs.NewBlobID(*accountId, containerName, name)
 
-	log.Printf("[INFO] Retrieving %s", id)
 	input := blobs.GetPropertiesInput{}
 	props, err := blobsClient.GetProperties(ctx, containerName, name, input)
 	if err != nil {
@@ -135,6 +143,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+	d.Set("cache_control", props.CacheControl)
 
 	// Set the ContentMD5 value to md5 hash in hex
 	contentMD5 := ""
@@ -145,8 +154,8 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	d.Set("content_md5", contentMD5)
-
 	d.Set("encryption_scope", props.EncryptionScope)
+	d.Set("source_uri", props.CopySource)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 

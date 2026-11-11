@@ -92,14 +92,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 						// Here we treat `node_deallocation_method` the same as a secret value.
 						// Issue link: https://github.com/Azure/azure-rest-api-specs/issues/20948
 						"node_deallocation_method": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ComputeNodeDeallocationOptionRequeue),
-								string(pool.ComputeNodeDeallocationOptionRetainedData),
-								string(pool.ComputeNodeDeallocationOptionTaskCompletion),
-								string(pool.ComputeNodeDeallocationOptionTerminate),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeDeallocationOption(), false),
 						},
 						"target_dedicated_nodes": {
 							Type:         pluginsdk.TypeInt,
@@ -415,10 +410,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ForceNew:         true,
 							Default:          string(pool.DynamicVNetAssignmentScopeNone),
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.DynamicVNetAssignmentScopeNone),
-								string(pool.DynamicVNetAssignmentScopeJob),
-							}, false),
+							ValidateFunc:     validation.StringInSlice(pool.PossibleValuesForDynamicVNetAssignmentScope(), false),
 						},
 						"accelerated_networking_enabled": {
 							Type:     pluginsdk.TypeBool,
@@ -442,13 +434,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Set: pluginsdk.HashString,
 						},
 						"public_address_provisioning_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.IPAddressProvisioningTypeBatchManaged),
-								string(pool.IPAddressProvisioningTypeUserManaged),
-								string(pool.IPAddressProvisioningTypeNoPublicIPAddresses),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForIPAddressProvisioningType(), false),
 						},
 						"endpoint_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -463,13 +451,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"protocol": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(pool.InboundEndpointProtocolTCP),
-											string(pool.InboundEndpointProtocolUDP),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInboundEndpointProtocol(), false),
 									},
 									"backend_port": {
 										Type:     pluginsdk.TypeInt,
@@ -499,13 +484,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 													ValidateFunc: validation.IntAtLeast(150),
 												},
 												"access": {
-													Type:     pluginsdk.TypeString,
-													Required: true,
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(pool.NetworkSecurityGroupRuleAccessAllow),
-														string(pool.NetworkSecurityGroupRuleAccessDeny),
-													}, false),
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNetworkSecurityGroupRuleAccess(), false),
 												},
 												"source_address_prefix": {
 													Type:         pluginsdk.TypeString,
@@ -516,7 +498,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 												"source_port_ranges": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: true,
+													Computed: true, // azignore:AZS007 - pre-existing violation
 													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type:         pluginsdk.TypeString,
@@ -544,14 +526,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(0, 63),
 						},
 						"caching": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(pool.CachingTypeReadOnly),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.CachingTypeNone),
-								string(pool.CachingTypeReadOnly),
-								string(pool.CachingTypeReadWrite),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.CachingTypeReadOnly),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForCachingType(), false),
 						},
 						"disk_size_gb": {
 							Type:         pluginsdk.TypeInt,
@@ -576,12 +554,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_encryption_target": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.DiskEncryptionTargetTemporaryDisk),
-								string(pool.DiskEncryptionTargetOsDisk),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForDiskEncryptionTarget(), false),
 						},
 					},
 				},
@@ -646,13 +621,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"policy": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(pool.NodePlacementPolicyTypeRegional),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.NodePlacementPolicyTypeZonal),
-								string(pool.NodePlacementPolicyTypeRegional),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.NodePlacementPolicyTypeRegional),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForNodePlacementPolicyType(), false),
 						},
 					},
 				},
@@ -666,19 +638,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{
-						string(pool.DiffDiskPlacementCacheDisk),
-					}, false,
+					pool.PossibleValuesForDiffDiskPlacement(), false,
 				),
 			},
 			"inter_node_communication": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(pool.InterNodeCommunicationStateEnabled),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(pool.InterNodeCommunicationStateEnabled),
-					string(pool.InterNodeCommunicationStateDisabled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(pool.InterNodeCommunicationStateEnabled),
+				ValidateFunc: validation.StringInSlice(pool.PossibleValuesForInterNodeCommunicationState(), false),
 			},
 
 			"security_profile": {
@@ -724,17 +691,14 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"task_scheduling_policy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"node_fill_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ComputeNodeFillTypeSpread),
-								string(pool.ComputeNodeFillTypePack),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true, // azignore:AZS007 - pre-existing violation
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForComputeNodeFillType(), false),
 						},
 					},
 				},
@@ -756,12 +720,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"elevation_level": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(pool.ElevationLevelNonAdmin),
-								string(pool.ElevationLevelAdmin),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
 						},
 						"linux_user_configuration": {
 							Type:     pluginsdk.TypeList,
@@ -790,12 +751,9 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"login_mode": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(pool.LoginModeBatch),
-											string(pool.LoginModeInteractive),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(pool.PossibleValuesForLoginMode(), false),
 									},
 								},
 							},
@@ -826,7 +784,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -868,7 +826,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	parameters.Properties.TaskSchedulingPolicy = taskSchedulingPolicy
 
-	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identityResult, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -882,7 +840,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.ScaleSettings = scaleSettings
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
+		startTaskList := startTaskValue.([]any)
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
@@ -890,8 +848,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", id, userIdentityError)
 		}
 
@@ -910,7 +867,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	metaDataRaw := d.Get("metadata").(map[string]any)
 	parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
 	mountConfiguration, err := ExpandBatchPoolMountConfigurations(d)
@@ -919,7 +876,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 	parameters.Properties.MountConfiguration = mountConfiguration
 
-	networkConfiguration := d.Get("network_configuration").([]interface{})
+	networkConfiguration := d.Get("network_configuration").([]any)
 	parameters.Properties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("expanding `network_configuration`: %+v", err)
@@ -955,7 +912,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -994,7 +951,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Properties: &pool.PoolProperties{},
 	}
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
@@ -1020,7 +977,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters.Properties.UserAccounts = userAccounts
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
-		startTaskList := startTaskValue.([]interface{})
+		startTaskList := startTaskValue.([]any)
 		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
@@ -1028,8 +985,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// start task should have a user identity defined
-		userIdentity := startTask.UserIdentity
-		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+		if userIdentityError := validateUserIdentity(startTask.UserIdentity); userIdentityError != nil {
 			return fmt.Errorf("creating %s: %+v", *id, userIdentityError)
 		}
 
@@ -1040,7 +996,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
 			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
 			if d.HasChange("data_disks") {
-				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]any))
 			}
 		}
 	}
@@ -1050,7 +1006,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("metadata") {
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaDataRaw := d.Get("metadata").(map[string]any)
 
 		parameters.Properties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
@@ -1082,7 +1038,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1118,7 +1074,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 			d.Set("vm_size", props.VMSize)
-			d.Set("inter_node_communication", string(pointer.From(props.InterNodeCommunication)))
+			d.Set("inter_node_communication", pointer.FromEnum(props.InterNodeCommunication))
 
 			if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 				if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
@@ -1130,15 +1086,15 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			if props.TaskSchedulingPolicy != nil && props.TaskSchedulingPolicy.NodeFillType != "" {
-				taskSchedulingPolicy := make([]interface{}, 0)
-				nodeFillType := make(map[string]interface{})
+				taskSchedulingPolicy := make([]any, 0)
+				nodeFillType := make(map[string]any)
 				nodeFillType["node_fill_type"] = string(props.TaskSchedulingPolicy.NodeFillType)
 				taskSchedulingPolicy = append(taskSchedulingPolicy, nodeFillType)
 				d.Set("task_scheduling_policy", taskSchedulingPolicy)
 			}
 
 			if props.UserAccounts != nil {
-				userAccounts := make([]interface{}, 0)
+				userAccounts := make([]any, 0)
 				for _, userAccount := range *props.UserAccounts {
 					userAccounts = append(userAccounts, flattenBatchPoolUserAccount(d, &userAccount))
 				}
@@ -1154,9 +1110,9 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, config.ContainerConfiguration))
 					}
 					if config.DataDisks != nil {
-						dataDisks := make([]interface{}, 0)
+						dataDisks := make([]any, 0)
 						for _, item := range *config.DataDisks {
-							dataDisk := make(map[string]interface{})
+							dataDisk := make(map[string]any)
 							dataDisk["lun"] = item.Lun
 							dataDisk["disk_size_gb"] = item.DiskSizeGB
 
@@ -1177,10 +1133,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("data_disks", dataDisks)
 					}
 					if config.DiskEncryptionConfiguration != nil {
-						diskEncryptionConfiguration := make([]interface{}, 0)
+						diskEncryptionConfiguration := make([]any, 0)
 						if config.DiskEncryptionConfiguration.Targets != nil {
 							for _, item := range *config.DiskEncryptionConfiguration.Targets {
-								target := make(map[string]interface{})
+								target := make(map[string]any)
 								target["disk_encryption_target"] = string(item)
 								diskEncryptionConfiguration = append(diskEncryptionConfiguration, target)
 							}
@@ -1188,10 +1144,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						d.Set("disk_encryption", diskEncryptionConfiguration)
 					}
 					if config.Extensions != nil {
-						extensions := make([]interface{}, 0)
+						extensions := make([]any, 0)
 						n := len(*config.Extensions)
 						for _, item := range *config.Extensions {
-							extension := make(map[string]interface{})
+							extension := make(map[string]any)
 							extension["name"] = item.Name
 							extension["publisher"] = item.Publisher
 							extension["type"] = item.Type
@@ -1205,7 +1161,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
+								settingValue, err := json.Marshal((*item.Settings).(map[string]any))
 								if err != nil {
 									return fmt.Errorf("flattening `settings_json`: %+v", err)
 								}
@@ -1232,8 +1188,8 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					d.Set("node_agent_sku_id", config.NodeAgentSkuId)
 
 					if config.NodePlacementConfiguration != nil {
-						nodePlacementConfiguration := make([]interface{}, 0)
-						nodePlacementConfig := make(map[string]interface{})
+						nodePlacementConfiguration := make([]any, 0)
+						nodePlacementConfig := make(map[string]any)
 						nodePlacementConfig["policy"] = string(*config.NodePlacementConfiguration.Policy)
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
@@ -1250,8 +1206,8 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 					}
 
 					if config.WindowsConfiguration != nil {
-						windowsConfig := []interface{}{
-							map[string]interface{}{
+						windowsConfig := []any{
+							map[string]any{
 								"enable_automatic_updates": *config.WindowsConfiguration.EnableAutomaticUpdates,
 							},
 						}
@@ -1264,7 +1220,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 			if props.MountConfiguration != nil {
-				mountConfigs := make([]interface{}, 0)
+				mountConfigs := make([]any, 0)
 				for _, mountConfig := range *props.MountConfiguration {
 					mountConfigs = append(mountConfigs, flattenBatchPoolMountConfig(d, &mountConfig))
 				}
@@ -1286,7 +1242,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
-func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1318,35 +1274,32 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	}
 
 	if autoScaleOk {
-		autoScale := autoScaleValue.([]interface{})
+		autoScale := autoScaleValue.([]any)
 		if len(autoScale) == 0 {
 			return nil, fmt.Errorf("when scale mode is Auto, auto_scale block is required")
 		}
 
-		autoScaleSettings := autoScale[0].(map[string]interface{})
+		autoScaleSettings := autoScale[0].(map[string]any)
 
-		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
 		autoScaleFormula := autoScaleSettings["formula"].(string)
 
 		scaleSettings.AutoScale = &pool.AutoScaleSettings{
-			EvaluationInterval: &autoScaleEvaluationInterval,
+			EvaluationInterval: pointer.To(autoScaleSettings["evaluation_interval"].(string)),
 			Formula:            autoScaleFormula,
 		}
 	} else if fixedScaleOk {
-		fixedScale := fixedScaleValue.([]interface{})
+		fixedScale := fixedScaleValue.([]any)
 		if len(fixedScale) == 0 {
 			return nil, fmt.Errorf("when scale mode is Fixed, fixed_scale block is required")
 		}
 
-		fixedScaleSettings := fixedScale[0].(map[string]interface{})
-		nodeDeallocationOption := pool.ComputeNodeDeallocationOption(fixedScaleSettings["node_deallocation_method"].(string))
+		fixedScaleSettings := fixedScale[0].(map[string]any)
 		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
 		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
-		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
 
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
-			NodeDeallocationOption: &nodeDeallocationOption,
-			ResizeTimeout:          &resizeTimeout,
+			NodeDeallocationOption: pointer.ToEnum[pool.ComputeNodeDeallocationOption](fixedScaleSettings["node_deallocation_method"].(string)),
+			ResizeTimeout:          pointer.To(fixedScaleSettings["resize_timeout"].(string)),
 			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
 			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),
 		}
@@ -1396,7 +1349,7 @@ func validateUserIdentity(userIdentity *pool.UserIdentity) error {
 }
 
 func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
-	// Perform validation across multiple fields as per https://docs.microsoft.com/en-us/rest/api/batchmanagement/pool/create#resourcefile
+	// Perform validation across multiple fields as per https://docs.microsoft.com/rest/api/batchmanagement/pool/create#resourcefile
 
 	if pool.StartTask != nil {
 		startTask := *pool.StartTask
@@ -1466,12 +1419,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						},
 					},
 					"working_directory": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(pool.ContainerWorkingDirectoryTaskWorkingDirectory),
-							string(pool.ContainerWorkingDirectoryContainerImageDefault),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerWorkingDirectory(), false),
 					},
 				},
 			},
@@ -1515,22 +1465,16 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"elevation_level": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(pool.ElevationLevelNonAdmin),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pool.ElevationLevelNonAdmin),
-										string(pool.ElevationLevelAdmin),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pool.ElevationLevelNonAdmin),
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForElevationLevel(), false),
 								},
 								"scope": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  string(pool.AutoUserScopeTask),
-									ValidateFunc: validation.StringInSlice([]string{
-										string(pool.AutoUserScopeTask),
-										string(pool.AutoUserScopePool),
-									}, false),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(pool.AutoUserScopeTask),
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForAutoUserScope(), false),
 								},
 							},
 						},

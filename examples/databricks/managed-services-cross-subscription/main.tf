@@ -34,11 +34,8 @@ resource "azurerm_databricks_workspace" "example" {
   sku                         = "premium"
   managed_resource_group_name = "${var.prefix}-DBW-managed-services"
 
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.example.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
-
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.example.id
-  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_key.disk.id
 
   tags = {
     Environment = "Sandbox"

@@ -105,7 +105,7 @@ func dataSourceSharedImageVersion() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -243,12 +243,12 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 	}
 }
 
-func flattenSharedImageVersionDataSourceTargetRegions(input *[]galleryimageversions.TargetRegion) []interface{} {
-	results := make([]interface{}, 0)
+func flattenSharedImageVersionDataSourceTargetRegions(input *[]galleryimageversions.TargetRegion) []any {
+	results := make([]any, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{})
+			output := make(map[string]any)
 
 			output["name"] = location.Normalize(v.Name)
 

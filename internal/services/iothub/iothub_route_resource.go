@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -20,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub" // azignore:AZG010 - package name does not match its path
 )
 
 func resourceIotHubRoute() *pluginsdk.Resource {
@@ -83,7 +82,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 			},
 			"condition": {
 				// The condition is a string value representing device-to-cloud message routes query expression
-				// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+				// https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "true",
@@ -106,7 +105,7 @@ func resourceIotHubRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -119,7 +118,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 
@@ -128,14 +127,14 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	source := devices.RoutingSource(d.Get("source").(string))
 	condition := d.Get("condition").(string)
-	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
+	endpointNamesRaw := d.Get("endpoint_names").([]any)
 	isEnabled := d.Get("enabled").(bool)
 
 	route := devices.RouteProperties{
 		Name:          &id.Name,
 		Source:        source,
 		Condition:     &condition,
-		EndpointNames: helpers.ExpandStringSlice(endpointNamesRaw),
+		EndpointNames: pluginsdk.ExpandStringSlice(endpointNamesRaw),
 		IsEnabled:     &isEnabled,
 	}
 
@@ -191,7 +190,7 @@ func resourceIotHubRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceIotHubRouteRead(d, meta)
 }
 
-func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +202,7 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -242,7 +241,7 @@ func resourceIotHubRouteRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,7 +256,7 @@ func resourceIotHubRouteDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	iothub, err := client.Get(ctx, id.ResourceGroup, id.IotHubName)
 	if err != nil {
-		if utils.ResponseWasNotFound(iothub.Response) {
+		if response.WasNotFound(iothub.Response.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", id.IotHubName, id.ResourceGroup)
 		}
 

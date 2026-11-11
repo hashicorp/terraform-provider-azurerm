@@ -34,7 +34,7 @@ func (CdnFrontDoorBatchRuleSetDataSource) ResourceType() string {
 	return "azurerm_cdn_frontdoor_batch_rule_set"
 }
 
-func (CdnFrontDoorBatchRuleSetDataSource) ModelObject() interface{} {
+func (CdnFrontDoorBatchRuleSetDataSource) ModelObject() any {
 	return &CdnFrontDoorBatchRuleSetDataSourceModel{}
 }
 

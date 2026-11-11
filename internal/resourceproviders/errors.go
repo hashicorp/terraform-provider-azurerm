@@ -46,24 +46,24 @@ func userError(err error) error {
 	return fmt.Errorf(registrationErrorV4Fmt, "Encountered an error whilst ensuring Resource Providers are registered", err)
 }
 
-// registrationErrors is a container for errors encountered when attempting to register resource providers. It makes
+// registrationError is a container for errors encountered when attempting to register resource providers. It makes
 // use of unwrap support in `errors.Is()` to detect whether any of the contained errors match a target error, which
 // allows us to expose different user-facing messages depending on the types of errors encountered. A mutex is
 // necessary, as we populate this from goroutines.
-type registrationErrors struct {
+type registrationError struct {
 	errs []error
 	lock sync.Mutex
 }
 
-func (e *registrationErrors) Error() (out string) {
+func (e *registrationError) Error() (out string) {
 	return errors.Join(e.errs...).Error()
 }
 
-func (e *registrationErrors) Unwrap() []error {
+func (e *registrationError) Unwrap() []error {
 	return e.errs
 }
 
-func (e *registrationErrors) append(err error) {
+func (e *registrationError) append(err error) {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 
@@ -74,6 +74,6 @@ func (e *registrationErrors) append(err error) {
 	e.errs = append(e.errs, err)
 }
 
-func (e *registrationErrors) hasErr() bool {
+func (e *registrationError) hasErr() bool {
 	return len(e.errs) > 0
 }

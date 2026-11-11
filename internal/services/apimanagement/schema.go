@@ -84,7 +84,8 @@ func apiManagementResourceHostnameProxySchema() map[string]*pluginsdk.Schema {
 	hostnameSchema["default_ssl_binding"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Computed: true, // Azure has certain logic to set this, which we cannot predict
+		// Note: O+C because Azure has certain logic to set the default SSL binding which cannot be predicted
+		Computed: true,
 	}
 
 	return hostnameSchema

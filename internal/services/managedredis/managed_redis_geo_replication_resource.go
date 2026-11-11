@@ -66,7 +66,7 @@ func (r ManagedRedisGeoReplicationResource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ManagedRedisGeoReplicationResource) ModelObject() interface{} {
+func (r ManagedRedisGeoReplicationResource) ModelObject() any {
 	return &ManagedRedisGeoReplicationResourceModel{}
 }
 
@@ -361,7 +361,7 @@ func toClusterId(dbIdStr string) (*redisenterprise.RedisEnterpriseId, error) {
 
 func flattenLinkedDatabases(dbs *[]databases.LinkedDatabase) []string {
 	if dbs == nil {
-		return nil
+		return []string{}
 	}
 
 	result := make([]string, 0, len(*dbs))

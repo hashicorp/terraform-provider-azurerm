@@ -8,14 +8,14 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors"
-	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/dicomservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	HealthcareServiceClient                *service.ResourceClient
+	HealthcareServiceClient                *resource.ResourceClient
 	HealthcareWorkspaceClient              *workspaces.WorkspacesClient
 	HealthcareWorkspaceDicomServiceClient  *dicomservices.DicomServicesClient
 	HealthcareWorkspaceFhirServiceClient   *fhirservices.FhirServicesClient
@@ -23,7 +23,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	healthcareServiceClient, err := service.NewResourceClientWithBaseURI(o.Environment.ResourceManager)
+	healthcareServiceClient, err := resource.NewResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building HealthcareService Client: %+v", err)
 	}

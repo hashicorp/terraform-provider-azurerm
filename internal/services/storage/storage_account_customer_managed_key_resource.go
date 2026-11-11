@@ -76,7 +76,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -156,7 +156,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
-func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -214,7 +214,7 @@ func resourceStorageAccountCustomerManagedKeyFlatten(d *pluginsdk.ResourceData, 
 	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
-func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta any) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

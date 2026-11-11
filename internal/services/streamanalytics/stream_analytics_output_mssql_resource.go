@@ -127,7 +127,7 @@ func resourceStreamAnalyticsOutputSql() *pluginsdk.Resource {
 	}
 }
 
-func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -186,7 +186,7 @@ func resourceStreamAnalyticsOutputSqlCreateUpdate(d *pluginsdk.ResourceData, met
 	return resourceStreamAnalyticsOutputSqlRead(d, meta)
 }
 
-func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,7 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("retreving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.OutputName)
@@ -248,7 +248,7 @@ func resourceStreamAnalyticsOutputSqlRead(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func resourceStreamAnalyticsOutputSqlDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSqlDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

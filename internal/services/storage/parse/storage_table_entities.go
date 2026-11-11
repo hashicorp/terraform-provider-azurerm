@@ -4,13 +4,13 @@
 package parse
 
 import (
-	"crypto/sha1" // nolint: gosec only used for hashing and the API expects sha1
+	"crypto/sha1" // only used for hashing and the API expects sha1
 	"encoding/hex"
 	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 )
 
 // TODO: tests for this
@@ -39,7 +39,7 @@ func (id StorageTableEntitiesId) ID() string {
 }
 
 func NewStorageTableEntitiesId(accountName, domainSuffix, tableName, filter string) StorageTableEntitiesId {
-	s := helpers.Base64EncodeIfNot(filter)
+	s := base64.EncodeIfNot(filter)
 	sha := sha1.Sum([]byte(s))
 	filterHash := hex.EncodeToString(sha[:])
 	return StorageTableEntitiesId{

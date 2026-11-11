@@ -43,7 +43,7 @@ func (v VirtualMachineConfigurationAssignment) Attributes() map[string]*schema.S
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (v VirtualMachineConfigurationAssignment) ModelObject() interface{} {
+func (v VirtualMachineConfigurationAssignment) ModelObject() any {
 	return &VirtualMachineConfigurationAssignment{}
 }
 

@@ -112,7 +112,7 @@ func dataSourceDataFactory() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.Factories
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -141,13 +141,11 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if props := model.Properties; props != nil {
-			githubConfiguration := flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)
-			if err := d.Set("github_configuration", githubConfiguration); err != nil {
+			if err := d.Set("github_configuration", flattenGitHubRepoConfigurationDataSource(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `github_configuration`: %+v", err)
 			}
 
-			vstsConfiguration := flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)
-			if err := d.Set("vsts_configuration", vstsConfiguration); err != nil {
+			if err := d.Set("vsts_configuration", flattenVSTSRepoConfigurationDataSource(props.RepoConfiguration)); err != nil {
 				return fmt.Errorf("setting `vsts_configuration`: %+v", err)
 			}
 		}
@@ -160,11 +158,11 @@ func dataSourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryGitHubConfiguration); ok {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"git_url":         pointer.From(v.HostName),
@@ -176,11 +174,11 @@ func flattenGitHubRepoConfigurationDataSource(input factories.FactoryRepoConfigu
 	return output
 }
 
-func flattenVSTSRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []interface{} {
-	output := make([]interface{}, 0)
+func flattenVSTSRepoConfigurationDataSource(input factories.FactoryRepoConfiguration) []any {
+	output := make([]any, 0)
 
 	if v, ok := input.(factories.FactoryVSTSConfiguration); ok {
-		output = append(output, map[string]interface{}{
+		output = append(output, map[string]any{
 			"account_name":    v.AccountName,
 			"branch_name":     v.CollaborationBranch,
 			"project_name":    v.ProjectName,

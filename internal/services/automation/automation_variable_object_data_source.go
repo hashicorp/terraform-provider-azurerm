@@ -21,6 +21,6 @@ func dataSourceAutomationVariableObject() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceAutomationVariableObjectRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceAutomationVariableObjectRead(d *pluginsdk.ResourceData, meta any) error {
 	return dataSourceAutomationVariableRead(d, meta, "Object")
 }

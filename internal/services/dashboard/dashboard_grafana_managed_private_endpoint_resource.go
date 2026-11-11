@@ -47,14 +47,7 @@ type ManagedPrivateEndpointModel struct {
 	PrivateLinkServiceURL     string            `tfschema:"private_link_service_url"`
 }
 
-type ManagedPrivateEndpointId struct {
-	SubscriptionId             string
-	ResourceGroupName          string
-	GrafanaName                string
-	ManagedPrivateEndpointName string
-}
-
-func (r ManagedPrivateEndpointResource) ModelObject() interface{} {
+func (r ManagedPrivateEndpointResource) ModelObject() any {
 	return &ManagedPrivateEndpointModel{}
 }
 

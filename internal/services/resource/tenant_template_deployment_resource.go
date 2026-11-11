@@ -9,12 +9,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func tenantTemplateDeploymentResource() *pluginsdk.Resource {
@@ -60,12 +59,12 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 			"template_content": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: true, // azignore:AZS007 - pre-existing violation
 				ExactlyOneOf: []string{
 					"template_content",
 					"template_spec_version_id",
 				},
-				StateFunc: helpers.NormalizeJson,
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 
 			"template_spec_version_id": {
@@ -88,8 +87,8 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 			"parameters_content": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
-				Computed:  true,
-				StateFunc: helpers.NormalizeJson,
+				Computed:  true, // azignore:AZS007 - pre-existing violation
+				StateFunc: pluginsdk.NormalizeJson,
 			},
 
 			"tags": commonschema.Tags(),
@@ -105,7 +104,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 	}
 }
 
-func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,11 +114,11 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return fmt.Errorf("checking for presence of existing Tenant Template Deployment %q: %+v", id.DeploymentName, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.Response.Response) {
 			return tf.ImportAsExistsError("azurerm_tenant_template_deployment", id.ID())
 		}
 	}
@@ -130,7 +129,7 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
 	if templateRaw, ok := d.GetOk("template_content"); ok {
@@ -177,7 +176,7 @@ func tenantTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta inte
 	return tenantTemplateDeploymentResourceRead(d, meta)
 }
 
-func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +244,7 @@ func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("tags") {
-		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		deployment.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
 	log.Printf("[DEBUG] Running validation of Tenant Template Deployment %q..", id.DeploymentName)
@@ -268,7 +267,7 @@ func tenantTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta inte
 	return tenantTemplateDeploymentResourceRead(d, meta)
 }
 
-func tenantTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -280,7 +279,7 @@ func tenantTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interf
 
 	resp, err := client.GetAtTenantScope(ctx, id.DeploymentName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			log.Printf("[DEBUG] Tenant Template Deployment %q was not found - removing from state", id.DeploymentName)
 			d.SetId("")
 			return nil
@@ -331,7 +330,7 @@ func tenantTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func tenantTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

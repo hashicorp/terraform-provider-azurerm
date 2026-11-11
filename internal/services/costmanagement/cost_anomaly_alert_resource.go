@@ -53,14 +53,14 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 
 		"notification_email": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -92,7 +92,7 @@ func (AnomalyAlertResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AnomalyAlertResource) ModelObject() interface{} {
+func (AnomalyAlertResource) ModelObject() any {
 	return &AnomalyAlertModel{}
 }
 

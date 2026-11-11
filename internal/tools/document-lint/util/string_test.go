@@ -25,7 +25,7 @@ func TestExtractCodeValue(t *testing.T) {
 		},
 		{
 			args: args{
-				line: "defauts to `def`.",
+				line: "defaults to `def`.",
 			},
 			wantRes: []string{"def"},
 		},

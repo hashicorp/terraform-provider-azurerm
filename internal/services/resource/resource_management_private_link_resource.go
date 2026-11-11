@@ -22,7 +22,7 @@ var _ sdk.Resource = ResourceManagementPrivateLinkResource{}
 
 type ResourceManagementPrivateLinkResource struct{}
 
-func (r ResourceManagementPrivateLinkResource) ModelObject() interface{} {
+func (r ResourceManagementPrivateLinkResource) ModelObject() any {
 	return &ResourceManagementPrivateLinkResourceSchema{}
 }
 

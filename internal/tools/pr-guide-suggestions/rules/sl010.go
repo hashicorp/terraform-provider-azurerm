@@ -30,6 +30,7 @@ var abbreviations = map[string]string{
 	"lb":            "load_balancer",
 	"waf":           "web_application_firewall",
 	"sec":           "seconds",
+	"auth":          "authentication",
 	"addr":          "address",
 	"msg":           "message",
 	"num":           "number",

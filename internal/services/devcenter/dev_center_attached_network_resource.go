@@ -22,7 +22,7 @@ var _ sdk.Resource = DevCenterAttachedNetworkResource{}
 
 type DevCenterAttachedNetworkResource struct{}
 
-func (r DevCenterAttachedNetworkResource) ModelObject() interface{} {
+func (r DevCenterAttachedNetworkResource) ModelObject() any {
 	return &DevCenterAttachedNetworkResourceModel{}
 }
 

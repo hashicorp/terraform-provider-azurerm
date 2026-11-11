@@ -34,6 +34,7 @@ func TestAccRoleDefinitionDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("permissions.0.not_actions.0").HasValue("Microsoft.Authorization/*/Delete"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.1").HasValue("Microsoft.Authorization/*/Write"),
 				check.That(data.ResourceName).Key("permissions.0.not_actions.2").HasValue("Microsoft.Authorization/elevateAccess/Action"),
+				check.That(data.ResourceName).Key("role_definition_resource_id").Exists(),
 			),
 		},
 	})

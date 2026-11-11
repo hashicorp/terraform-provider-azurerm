@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/deletedmanagedhsms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2026-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type Client struct {
@@ -25,10 +25,10 @@ type Client struct {
 	DeletedManagedHsmClient *deletedmanagedhsms.DeletedManagedHsmsClient
 
 	// Data Plane
-	DataPlaneKeysClient            *dataplane.BaseClient
-	DataPlaneRoleAssignmentsClient *dataplane.RoleAssignmentsClient
-	DataPlaneRoleDefinitionsClient *dataplane.RoleDefinitionsClient
-	DataPlaneSecurityDomainsClient *dataplane.HSMSecurityDomainClient
+	DataPlaneKeysClient            *keyvault.BaseClient
+	DataPlaneRoleAssignmentsClient *keyvault.RoleAssignmentsClient
+	DataPlaneRoleDefinitionsClient *keyvault.RoleDefinitionsClient
+	DataPlaneSecurityDomainsClient *keyvault.HSMSecurityDomainClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -44,20 +44,20 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(deletedManagedHsmClient.Client, o.Authorizers.ResourceManager)
 
-	managementKeysClient := dataplane.New()
+	managementKeysClient := keyvault.New()
 	o.ConfigureClient(&managementKeysClient.Client, o.ManagedHSMAuthorizer)
 
-	securityDomainClient := dataplane.NewHSMSecurityDomainClient()
+	securityDomainClient := keyvault.NewHSMSecurityDomainClient()
 	o.ConfigureClient(&securityDomainClient.Client, o.ManagedHSMAuthorizer)
 
-	roleDefinitionsClient := dataplane.NewRoleDefinitionsClient()
+	roleDefinitionsClient := keyvault.NewRoleDefinitionsClient()
 	o.ConfigureClient(&roleDefinitionsClient.Client, o.ManagedHSMAuthorizer)
 
-	roleAssignmentsClient := dataplane.NewRoleAssignmentsClient()
+	roleAssignmentsClient := keyvault.NewRoleAssignmentsClient()
 	o.ConfigureClient(&roleAssignmentsClient.Client, o.ManagedHSMAuthorizer)
 
 	return &Client{
-		// Resource Manger
+		// Resource Manager
 		DeletedManagedHsmClient: deletedManagedHsmClient,
 		ManagedHsmClient:        managedHsmClient,
 

@@ -167,7 +167,7 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d DbSystemShapesDataSource) ModelObject() interface{} {
+func (d DbSystemShapesDataSource) ModelObject() any {
 	return &DbSystemShapesModel{}
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
@@ -57,14 +57,10 @@ func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
 			},
 
 			"frequency": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.TumblingWindowFrequencyHour),
-					string(datafactory.TumblingWindowFrequencyMinute),
-					string(datafactory.TumblingWindowFrequencyMonth),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInEnumSlice(datafactory.PossibleTumblingWindowFrequencyValues(), false),
 			},
 
 			"interval": {
@@ -204,7 +200,7 @@ func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
 	}
 }
 
-func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -220,11 +216,11 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 			existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.Response.Response) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.Response.Response) {
 				return tf.ImportAsExistsError("azurerm_data_factory_trigger_tumbling_window", id.ID())
 			}
 		}
@@ -248,12 +244,12 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 			Frequency:      datafactory.TumblingWindowFrequency(d.Get("frequency").(string)),
 			Interval:       pointer.To(int32(d.Get("interval").(int))),
 			MaxConcurrency: pointer.To(int32(d.Get("max_concurrency").(int))),
-			RetryPolicy:    expandDataFactoryTriggerTumblingWindowRetryPolicy(d.Get("retry").([]interface{})),
+			RetryPolicy:    expandDataFactoryTriggerTumblingWindowRetryPolicy(d.Get("retry").([]any)),
 			DependsOn:      expandDataFactoryTriggerDependency(d.Get("trigger_dependency").(*pluginsdk.Set).List()),
 			StartTime:      &date.Time{Time: startTime},
 		},
 		Description: pointer.To(d.Get("description").(string)),
-		Pipeline:    expandDataFactoryTriggerSinglePipeline(d.Get("pipeline").([]interface{})),
+		Pipeline:    expandDataFactoryTriggerSinglePipeline(d.Get("pipeline").([]any)),
 		Type:        datafactory.TypeBasicTriggerTypeTumblingWindowTrigger,
 	}
 
@@ -270,12 +266,11 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		props.Annotations = &annotations
+		props.Annotations = pointer.To(v.([]any))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		props.AdditionalProperties = v.(map[string]interface{})
+		props.AdditionalProperties = v.(map[string]any)
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -301,7 +296,7 @@ func resourceDataFactoryTriggerTumblingWindowCreateUpdate(d *pluginsdk.ResourceD
 	return resourceDataFactoryTriggerTumblingWindowRead(d, meta)
 }
 
-func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -314,7 +309,7 @@ func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, met
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.Response.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -385,7 +380,7 @@ func resourceDataFactoryTriggerTumblingWindowRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceDataFactoryTriggerTumblingWindowDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryTriggerTumblingWindowDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).DataFactory.TriggersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -410,41 +405,41 @@ func resourceDataFactoryTriggerTumblingWindowDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func expandDataFactoryTriggerTumblingWindowRetryPolicy(input []interface{}) *datafactory.RetryPolicy {
+func expandDataFactoryTriggerTumblingWindowRetryPolicy(input []any) *datafactory.RetryPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &datafactory.RetryPolicy{
 		Count:             pointer.To(int32(raw["count"].(int))),
 		IntervalInSeconds: pointer.To(int32(raw["interval"].(int))),
 	}
 }
 
-func expandDataFactoryTriggerSinglePipeline(input []interface{}) *datafactory.TriggerPipelineReference {
+func expandDataFactoryTriggerSinglePipeline(input []any) *datafactory.TriggerPipelineReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	raw := input[0].(map[string]any)
 	return &datafactory.TriggerPipelineReference{
 		PipelineReference: &datafactory.PipelineReference{
 			ReferenceName: pointer.To(raw["name"].(string)),
 			Type:          pointer.To("PipelineReference"),
 		},
-		Parameters: raw["parameters"].(map[string]interface{}),
+		Parameters: raw["parameters"].(map[string]any),
 	}
 }
 
-func expandDataFactoryTriggerDependency(input []interface{}) *[]datafactory.BasicDependencyReference {
+func expandDataFactoryTriggerDependency(input []any) *[]datafactory.BasicDependencyReference {
 	if len(input) == 0 {
 		return nil
 	}
 
 	result := make([]datafactory.BasicDependencyReference, 0, len(input))
 	for _, item := range input {
-		raw := item.(map[string]interface{})
+		raw := item.(map[string]any)
 
 		var trigger datafactory.BasicDependencyReference
 
@@ -477,9 +472,9 @@ func expandDataFactoryTriggerDependency(input []interface{}) *[]datafactory.Basi
 	return &result
 }
 
-func flattenDataFactoryTriggerRetryPolicy(input *datafactory.RetryPolicy) []interface{} {
+func flattenDataFactoryTriggerRetryPolicy(input *datafactory.RetryPolicy) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	count := 0
@@ -493,17 +488,17 @@ func flattenDataFactoryTriggerRetryPolicy(input *datafactory.RetryPolicy) []inte
 		interval = int(*input.IntervalInSeconds)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"count":    count,
 			"interval": interval,
 		},
 	}
 }
 
-func flattenDataFactoryTriggerSinglePipeline(input *datafactory.TriggerPipelineReference) []interface{} {
+func flattenDataFactoryTriggerSinglePipeline(input *datafactory.TriggerPipelineReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
 	name := ""
@@ -511,20 +506,20 @@ func flattenDataFactoryTriggerSinglePipeline(input *datafactory.TriggerPipelineR
 		name = *input.PipelineReference.ReferenceName
 	}
 
-	return []interface{}{
-		map[string]interface{}{
+	return []any{
+		map[string]any{
 			"name":       name,
 			"parameters": input.Parameters,
 		},
 	}
 }
 
-func flattenDataFactoryTriggerDependency(input *[]datafactory.BasicDependencyReference) []interface{} {
+func flattenDataFactoryTriggerDependency(input *[]datafactory.BasicDependencyReference) []any {
 	if input == nil {
-		return []interface{}{}
+		return []any{}
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, item := range *input {
 		var offset, size, triggerName string
 
@@ -548,7 +543,7 @@ func flattenDataFactoryTriggerDependency(input *[]datafactory.BasicDependencyRef
 			}
 		}
 
-		result = append(result, map[string]interface{}{
+		result = append(result, map[string]any{
 			"trigger_name": triggerName,
 			"offset":       offset,
 			"size":         size,

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2026-05-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -328,7 +328,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     subnet_id                    = azurerm_subnet.test.id
     proximity_placement_group_id = azurerm_proximity_placement_group.test.id
     volume_spec_name             = "shared"
-    storage_quota_in_gb          = 1024
+    storage_quota_in_gb          = 50
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
     security_style               = "unix"

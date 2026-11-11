@@ -81,7 +81,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) ResourceType() strin
 	return "azurerm_virtual_machine_gallery_application_assignment"
 }
 
-func (r VirtualMachineGalleryApplicationAssignmentResource) ModelObject() interface{} {
+func (r VirtualMachineGalleryApplicationAssignmentResource) ModelObject() any {
 	return &VirtualMachineGalleryApplicationAssignmentResourceResourceModel{}
 }
 

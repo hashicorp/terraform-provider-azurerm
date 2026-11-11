@@ -35,7 +35,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) ResourceType() string {
 	return "azurerm_network_function_azure_traffic_collector"
 }
 
-func (r NetworkFunctionAzureTrafficCollectorResource) ModelObject() interface{} {
+func (r NetworkFunctionAzureTrafficCollectorResource) ModelObject() any {
 	return &NetworkFunctionAzureTrafficCollectorModel{}
 }
 
@@ -225,7 +225,7 @@ func (r NetworkFunctionAzureTrafficCollectorResource) Delete() sdk.ResourceFunc 
 func flattenCollectorPolicyModelArray(inputList *[]azuretrafficcollectors.ResourceReference) []string {
 	var outputList []string
 	if inputList == nil {
-		return outputList
+		return []string{}
 	}
 
 	for _, input := range *inputList {

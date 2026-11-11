@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	prometheusrulegroups "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,7 +90,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 }
 
 func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(state.ID)
+	id, err := prometheusrulegroupresources.ParsePrometheusRuleGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}

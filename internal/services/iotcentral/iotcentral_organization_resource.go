@@ -62,7 +62,7 @@ func (r IotCentralOrganizationResource) ResourceType() string {
 	return "azurerm_iotcentral_organization"
 }
 
-func (r IotCentralOrganizationResource) ModelObject() interface{} {
+func (r IotCentralOrganizationResource) ModelObject() any {
 	return &IotCentralOrganizationModel{}
 }
 
@@ -109,9 +109,7 @@ func (r IotCentralOrganizationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", state.OrganizationId, err)
 			}
 
-			orgId := parse.NewOrganizationID(appId.SubscriptionId, appId.ResourceGroupName, appId.IotAppName, *org.ID)
-
-			metadata.SetID(orgId)
+			metadata.SetID(parse.NewOrganizationID(appId.SubscriptionId, appId.ResourceGroupName, appId.IotAppName, *org.ID))
 			return nil
 		},
 		Timeout: 30 * time.Minute,

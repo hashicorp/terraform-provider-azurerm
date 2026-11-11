@@ -33,7 +33,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataDiskID(id)
 			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta any) ([]*pluginsdk.ResourceData, error) {
 			client := meta.(*clients.Client).Compute.VirtualMachinesClient
 			id, err := parse.DataDiskID(d.Id())
 			if err != nil {
@@ -108,13 +108,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			},
 
 			"caching": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(virtualmachines.CachingTypesNone),
-					string(virtualmachines.CachingTypesReadOnly),
-					string(virtualmachines.CachingTypesReadWrite),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForCachingTypes(), false),
 			},
 
 			"create_option": {
@@ -137,7 +133,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,7 +249,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
-func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -300,7 +296,7 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("virtual_machine_id", virtualMachineId.ID())
-	d.Set("caching", string(pointer.From(disk.Caching)))
+	d.Set("caching", pointer.FromEnum(disk.Caching))
 	d.Set("create_option", string(disk.CreateOption))
 	d.Set("write_accelerator_enabled", disk.WriteAcceleratorEnabled)
 
@@ -313,7 +309,7 @@ func resourceVirtualMachineDataDiskAttachmentRead(d *pluginsdk.ResourceData, met
 	return nil
 }
 
-func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -371,7 +367,7 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta interface{}, id string) (*disks.Disk, error) {
+func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta any, id string) (*disks.Disk, error) {
 	client := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

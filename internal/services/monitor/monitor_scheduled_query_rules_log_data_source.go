@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -95,7 +94,7 @@ func dataSourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -142,11 +141,11 @@ func dataSourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta
 		}
 
 		if props.Source.AuthorizedResources != nil {
-			d.Set("authorized_resource_ids", helpers.FlattenStringSlice(props.Source.AuthorizedResources))
+			d.Set("authorized_resource_ids", pluginsdk.FlattenSlice(props.Source.AuthorizedResources))
 			d.Set("data_source_id", props.Source.DataSourceId)
 		}
 
-		if err = d.Set("tags", helpers.FlattenPtrMapStringString(model.Tags)); err != nil {
+		if err = d.Set("tags", pluginsdk.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
 	}

@@ -33,7 +33,7 @@ func TestEnhancedValidationDisabled(t *testing.T) {
 	}
 	enhancedEnabled = false
 	defer func() {
-		enhancedEnabled = features.EnhancedValidationEnabled()
+		enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 		cachedResourceProviders = nil
 	}()
 
@@ -73,7 +73,7 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 	enhancedEnabled = true
 	cachedResourceProviders = &[]string{"Microsoft.Compute"}
 	defer func() {
-		enhancedEnabled = features.EnhancedValidationEnabled()
+		enhancedEnabled = features.EnhancedValidationResourceProvidersEnabled()
 		cachedResourceProviders = nil
 	}()
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -65,7 +65,7 @@ func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r EventGridNamespaceTopicResource) ModelObject() interface{} {
+func (r EventGridNamespaceTopicResource) ModelObject() any {
 	return &EventGridNamespaceTopicResourceModel{}
 }
 

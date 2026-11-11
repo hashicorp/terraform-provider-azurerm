@@ -41,7 +41,7 @@ var (
 
 type SystemCenterVirtualMachineManagerCloudResource struct{}
 
-func (r SystemCenterVirtualMachineManagerCloudResource) ModelObject() interface{} {
+func (r SystemCenterVirtualMachineManagerCloudResource) ModelObject() any {
 	return &SystemCenterVirtualMachineManagerCloudModel{}
 }
 

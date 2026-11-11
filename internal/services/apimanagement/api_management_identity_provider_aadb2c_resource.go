@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -109,7 +108,7 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -151,7 +150,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 			ClientLibrary:            pointer.To(clientLibrary),
 			ClientSecret:             clientSecret,
 			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
-			AllowedTenants:           helpers.ExpandStringSlice([]interface{}{allowedTenant}),
+			AllowedTenants:           pluginsdk.ExpandStringSlice([]any{allowedTenant}),
 			SigninTenant:             pointer.To(signinTenant),
 			Authority:                pointer.To(authority),
 			SignupPolicyName:         pointer.To(signupPolicy),
@@ -169,7 +168,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.Res
 	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +215,7 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

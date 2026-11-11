@@ -33,7 +33,7 @@ type (
 	}
 )
 
-func (SiteRecoveryRecoveryVaultDataSource) ModelObject() interface{} {
+func (SiteRecoveryRecoveryVaultDataSource) ModelObject() any {
 	return &SiteRecoveryRecoveryVaultDataSourceModel{}
 }
 

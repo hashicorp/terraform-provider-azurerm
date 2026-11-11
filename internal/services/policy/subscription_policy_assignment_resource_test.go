@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -278,7 +278,7 @@ func TestAccSubscriptionPolicyAssignment_basicWithCustomPolicyRequiresImport(t *
 }
 
 func (r SubscriptionAssignmentTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := assignments.ParseScopedPolicyAssignmentID(state.ID)
+	id, err := policyassignments.ParseScopedPolicyAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}

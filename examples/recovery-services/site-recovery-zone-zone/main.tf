@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "secondary" {
   location = var.location
 }
 
-// Source Vritual Machine
+// Source Virtual Machine
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   resource_group_name = azurerm_resource_group.primary.name

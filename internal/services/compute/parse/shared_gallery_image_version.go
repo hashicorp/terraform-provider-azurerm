@@ -19,14 +19,6 @@ type SharedGalleryImageVersionId struct {
 	Version     string
 }
 
-func NewSharedGalleryImageVersionID(galleryName, imageName, version string) SharedGalleryImageVersionId {
-	return SharedGalleryImageVersionId{
-		GalleryName: galleryName,
-		ImageName:   imageName,
-		Version:     version,
-	}
-}
-
 func (id SharedGalleryImageVersionId) String() string {
 	segments := []string{
 		fmt.Sprintf("Gallery Name %q", id.GalleryName),

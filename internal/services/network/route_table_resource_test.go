@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -40,7 +40,7 @@ func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nilNextHopIPAddess(data),
+			Config: r.nilNextHopIPAddress(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
@@ -271,7 +271,7 @@ resource "azurerm_route_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RouteTableResource) nilNextHopIPAddess(data acceptance.TestData) string {
+func (RouteTableResource) nilNextHopIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

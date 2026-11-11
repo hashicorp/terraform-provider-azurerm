@@ -46,9 +46,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_dev_test_global_vm_shutdown_schedule": resourceDevTestGlobalVMShutdownSchedule(),
 		"azurerm_dev_test_lab":                         resourceDevTestLab(),
-		"azurerm_dev_test_schedule":                    resourceDevTestLabSchedules(),
 		"azurerm_dev_test_linux_virtual_machine":       resourceArmDevTestLinuxVirtualMachine(),
 		"azurerm_dev_test_policy":                      resourceArmDevTestPolicy(),
+		"azurerm_dev_test_schedule":                    resourceDevTestLabSchedules(),
 		"azurerm_dev_test_virtual_network":             resourceArmDevTestVirtualNetwork(),
 		"azurerm_dev_test_windows_virtual_machine":     resourceArmDevTestWindowsVirtualMachine(),
 	}

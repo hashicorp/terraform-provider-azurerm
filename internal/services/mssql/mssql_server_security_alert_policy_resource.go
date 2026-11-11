@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -113,7 +113,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -198,7 +198,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,7 +235,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	d.Set("server_name", id.ServerName)
 	d.Set("state", string(props.State))
 
-	disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+	disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 	if props.DisabledAlerts != nil {
 		for _, v := range *props.DisabledAlerts {
 			if v != "" {
@@ -247,7 +247,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 
 	d.Set("email_account_admins_enabled", props.EmailAccountAdmins)
 
-	emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+	emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []any{})
 	if props.EmailAddresses != nil {
 		for _, v := range *props.EmailAddresses {
 			if v != "" {
@@ -276,7 +276,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	return nil
 }
 
-func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -368,7 +368,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

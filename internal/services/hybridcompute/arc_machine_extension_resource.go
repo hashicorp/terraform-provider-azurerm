@@ -43,7 +43,7 @@ func (r ArcMachineExtensionResource) ResourceType() string {
 	return "azurerm_arc_machine_extension"
 }
 
-func (r ArcMachineExtensionResource) ModelObject() interface{} {
+func (r ArcMachineExtensionResource) ModelObject() any {
 	return &MachineExtensionModel{}
 }
 
@@ -179,7 +179,7 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ProtectedSettings != "" {
-				protectedSettingsValue := make(map[string]interface{})
+				protectedSettingsValue := make(map[string]any)
 				if err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue); err != nil {
 					return err
 				}
@@ -191,7 +191,7 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Settings != "" {
-				settingsValue := make(map[string]interface{})
+				settingsValue := make(map[string]any)
 				if err = json.Unmarshal([]byte(model.Settings), &settingsValue); err != nil {
 					return err
 				}
@@ -255,7 +255,7 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protected_settings") {
-				protectedSettingsValue := make(map[string]interface{})
+				protectedSettingsValue := make(map[string]any)
 				if err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue); err != nil {
 					return err
 				}
@@ -272,7 +272,7 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("settings") {
-				settingsValue := make(map[string]interface{})
+				settingsValue := make(map[string]any)
 				if err := json.Unmarshal([]byte(model.Settings), &settingsValue); err != nil {
 					return err
 				}
