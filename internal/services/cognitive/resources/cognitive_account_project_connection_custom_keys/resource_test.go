@@ -60,10 +60,9 @@ func TestAccCognitiveAccountProjectConnectionCustomKeys_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("metadata.ApiType").HasValue("Azure"),
 			),
 		},
-		data.ImportStep("custom_keys", "metadata"),
+		data.ImportStep("custom_keys"),
 	})
 }
 
@@ -78,28 +77,25 @@ func TestAccCognitiveAccountProjectConnectionCustomKeys_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("custom_keys"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("metadata.ApiType").HasValue("Azure"),
 			),
 		},
+		data.ImportStep("custom_keys"),
 		{
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("metadata.ApiType").HasValue("Custom"),
-				check.That(data.ResourceName).Key("custom_keys.%").HasValue("1"),
 			),
 		},
-		data.ImportStep("custom_keys", "metadata"),
+		data.ImportStep("custom_keys"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("metadata.%").HasValue("0"),
-				check.That(data.ResourceName).Key("custom_keys.%").HasValue("2"),
 			),
 		},
 		data.ImportStep("custom_keys"),

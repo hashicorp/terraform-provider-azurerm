@@ -26,10 +26,7 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *projectconnectionreso
 		base := model.Properties.ConnectionPropertiesV2()
 		state.Category = pointer.FromEnum(base.Category)
 		state.Target = pointer.From(base.Target)
-		// Metadata is user-managed; do not adopt API-added keys when configuration is absent.
-		if len(priorMetadata) > 0 {
-			state.Metadata = helpers.FlattenAccountProjectConnectionMetadata(priorMetadata, base.Metadata)
-		}
+		state.Metadata = helpers.FlattenAccountProjectConnectionMetadata(priorMetadata, base.Metadata)
 	}
 
 	return metadata.Encode(&state)
