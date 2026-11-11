@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/resources/load_test"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/resources/playwright_workspace"
 )
 
 var (
@@ -32,15 +34,15 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		LoadTestDataSource{},
-		PlaywrightWorkspaceDataSource{},
+		load_test.DataSource{},
+		playwright_workspace.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		LoadTestResource{},
-		PlaywrightWorkspaceResource{},
+		load_test.Resource{},
+		playwright_workspace.Resource{},
 	}
 }
 
@@ -62,6 +64,6 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		PlaywrightWorkspaceListResource{},
+		playwright_workspace.ListResource{},
 	}
 }
