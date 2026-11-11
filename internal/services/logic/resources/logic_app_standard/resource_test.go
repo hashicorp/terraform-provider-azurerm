@@ -171,7 +171,7 @@ func TestAccLogicAppStandard_extensionBundle(t *testing.T) {
 			Config: r.extensionBundle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "AzureFunctionsJobHost__extensionBundle__id")),
+				data.CheckWithClient(r.hasAppSettings("AzureFunctionsJobHost__extensionBundle__id")),
 			),
 		},
 		data.ImportStep(),
@@ -832,7 +832,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasAppSettings("WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -840,7 +840,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.updateStorageAccountKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasAppSettings("WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -848,7 +848,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
+				data.CheckWithClient(r.hasAppSettings("WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -1231,7 +1231,7 @@ func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LogicAppStandardResource) hasAppSettings(shouldExist bool, settingNames ...string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r LogicAppStandardResource) hasAppSettings(settingNames ...string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := commonids.ParseLogicAppId(state.ID)
 		if err != nil {
@@ -1257,8 +1257,8 @@ func (r LogicAppStandardResource) hasAppSettings(shouldExist bool, settingNames 
 
 		for _, settingName := range settingNames {
 			_, exists := present[strings.ToLower(settingName)]
-			if exists != shouldExist {
-				return fmt.Errorf("expected presence of %q to be %t but got %t", settingName, shouldExist, exists)
+			if !exists {
+				return fmt.Errorf("expected app setting %q to exist", settingName)
 			}
 		}
 
