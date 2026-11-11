@@ -17,15 +17,7 @@ import (
 const loadBalancerBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU load balancers is no longer permitted following its retirement. For more information, see https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance"
 
 func lbSchema() map[string]*pluginsdk.Schema {
-	skuValidateFunc := validation.StringInSlice([]string{
-		string(loadbalancers.LoadBalancerSkuNameStandard),
-		string(loadbalancers.LoadBalancerSkuNameGateway),
-	}, false)
-	if !features.SixPointOh() {
-		skuValidateFunc = validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false)
-	}
-
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -39,11 +31,14 @@ func lbSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"sku": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
-			ForceNew:     true,
-			ValidateFunc: skuValidateFunc,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(loadbalancers.LoadBalancerSkuNameGateway),
+				string(loadbalancers.LoadBalancerSkuNameStandard),
+			}, false),
 		},
 
 		"sku_tier": {
@@ -160,6 +155,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"private_ip_addresses": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -170,4 +166,10 @@ func lbSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["sku"].ValidateFunc = validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false)
+	}
+
+	return s
 }

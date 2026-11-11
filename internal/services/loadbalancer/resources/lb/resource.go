@@ -42,7 +42,7 @@ func RegisterResource() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
 				if !features.SixPointOh() {
 					sku := d.Get("sku").(string)
-					if strings.EqualFold(sku, string(loadbalancers.LoadBalancerSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "edge_zone", "sku", "sku_tier", "frontend_ip_configuration") {
+					if strings.EqualFold(sku, string(loadbalancers.LoadBalancerSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "edge_zone", "sku", "sku_tier") {
 						return errors.New(loadBalancerBasicSkuCreateDeprecationMessage)
 					}
 				}
