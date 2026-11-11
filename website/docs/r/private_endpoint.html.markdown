@@ -311,13 +311,13 @@ A `private_dns_zone_configs` block exports:
 
 A `private_service_connection` block exports the following:
 
-* `connection_actions_required` - Indicates if changes on the service provider require any updates on the consumer.
+* `action_required` - Indicates if changes on the service provider require any updates on the consumer.
 
-* `connection_state_description` - The reason for approval/rejection of the connection.
-
-* `connection_status` - The status of the connection between the service consumer and provider.
+* `description` - The reason for approval/rejection of the connection.
 
 * `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+
+* `status` - The status of the connection between the service consumer and provider.
 
 ---
 
