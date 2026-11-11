@@ -153,7 +153,7 @@ func TestAccCognitiveAccountProjectConnectionCustomKeys_importMismatchedAuthType
 			ImportStateIdFunc: func(s *terraform.State) (string, error) {
 				rs, ok := s.RootModule().Resources["azurerm_cognitive_account_project_connection_entra_id.wrong"]
 				if !ok {
-					return "", fmt.Errorf("Entra ID connection not found in state")
+					return "", fmt.Errorf("resource `%s` not found in state", "azurerm_cognitive_account_project_connection_entra_id.wrong")
 				}
 				return rs.Primary.ID, nil
 			},
