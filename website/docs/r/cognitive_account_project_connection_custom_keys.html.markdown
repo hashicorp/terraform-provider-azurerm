@@ -104,7 +104,7 @@ A Cognitive Services Account Project Connection with Custom Keys authentication 
 terraform import azurerm_cognitive_account_project_connection_custom_keys.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/projects/project1/connections/connection1
 ```
 
--> **Note:** Only connections using Custom Keys authentication can be imported. Configure `custom_keys` and any required `metadata` after import, as these values are not populated in the imported state.
+-> **Note:** Only connections using Custom Keys authentication can be imported. Configure `custom_keys` after import, as these values are not populated in the imported state.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
