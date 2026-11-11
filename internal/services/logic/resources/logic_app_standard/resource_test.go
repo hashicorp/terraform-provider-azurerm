@@ -13,11 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1109,85 +1107,6 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 	})
 }
 
-func TestAccLogicAppStandard_onASE(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
-	r := LogicAppStandardResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.onASE(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-		{
-			Config: r.onASEUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-		{
-			Config: r.onASE(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(false, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-		{
-			Config: r.onASEWithContentShare(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-	})
-}
-
-func TestAccLogicAppStandard_onASEWithContentShare(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
-	r := LogicAppStandardResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.onASEWithContentShare(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-		{
-			Config: r.onASEUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-		{
-			Config: r.onASEWithContentShare(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasAppSettings(true, "WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
-				data.CheckWithClient(r.hasRunningHost),
-			),
-		},
-		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
-	})
-}
-
 func TestAccLogicAppStandard_keyVaultReferenceIdentityInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -1345,23 +1264,6 @@ func (r LogicAppStandardResource) hasAppSettings(shouldExist bool, settingNames 
 
 		return nil
 	}
-}
-
-func (r LogicAppStandardResource) hasRunningHost(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := commonids.ParseLogicAppId(state.ID)
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
-	defer cancel()
-
-	pollerType := custompollers.NewLogicAppRuntimeTestPoller(clients.AppService.WebAppsClient.Client, *id)
-	poller := pollers.NewPoller(pollerType, 0, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-	if err := poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for the runtime host of %s: %w", id, err)
-	}
-	return nil
 }
 
 func (r LogicAppStandardResource) basic(data acceptance.TestData) string {
@@ -2733,180 +2635,6 @@ resource "azurerm_logic_app_standard" "test" {
   ftp_publish_basic_authentication_enabled = false
 }
 `, r.template(data), data.RandomInteger, enabled)
-}
-
-func (r LogicAppStandardResource) onASE(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_service_plan.test.id
-  vnet_content_share_enabled = true
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  app_settings = {
-    FUNCTIONS_INPROC_NET8_ENABLED = "1"
-    FUNCTIONS_WORKER_RUNTIME      = "dotnet"
-    WEBSITE_NODE_DEFAULT_VERSION  = "~20"
-    WEBSITE_VNET_ROUTE_ALL        = "1"
-  }
-
-  site_config {
-    always_on = true
-  }
-}
-`, r.onASETemplate(data), data.RandomInteger)
-}
-
-func (r LogicAppStandardResource) onASEUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_service_plan.test.id
-  vnet_content_share_enabled = true
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.secondary_access_key
-
-  app_settings = {
-    FUNCTIONS_INPROC_NET8_ENABLED = "1"
-    FUNCTIONS_WORKER_RUNTIME      = "dotnet"
-    WEBSITE_NODE_DEFAULT_VERSION  = "~20"
-    WEBSITE_VNET_ROUTE_ALL        = "1"
-    TEST_SETTING                  = "updated"
-  }
-
-  site_config {
-    always_on = true
-  }
-}
-`, r.onASETemplate(data), data.RandomInteger)
-}
-
-func (r LogicAppStandardResource) onASEWithContentShare(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_service_plan.test.id
-  vnet_content_share_enabled = true
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  storage_account_share_name = azurerm_storage_share.custom.name
-
-  app_settings = {
-    FUNCTIONS_INPROC_NET8_ENABLED = "1"
-    FUNCTIONS_WORKER_RUNTIME      = "dotnet"
-    WEBSITE_NODE_DEFAULT_VERSION  = "~20"
-    WEBSITE_VNET_ROUTE_ALL        = "1"
-  }
-
-  site_config {
-    always_on = true
-  }
-}
-`, r.onASETemplate(data), data.RandomInteger)
-}
-
-func (r LogicAppStandardResource) onASETemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "asedelegation"
-    service_delegation {
-      name    = "Microsoft.Web/hostingEnvironments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_app_service_environment_v3" "test" {
-  name                         = "acctest-ase-%[1]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  subnet_id                    = azurerm_subnet.test.id
-  internal_load_balancing_mode = "Web, Publishing"
-  zone_redundant               = false
-}
-
-resource "azurerm_private_dns_zone" "test" {
-  name                = azurerm_app_service_environment_v3.test.dns_suffix
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                = "acctest-dnslink-%[1]d"
-  private_dns_zone_id = azurerm_private_dns_zone.test.id
-  virtual_network_id  = azurerm_virtual_network.test.id
-}
-
-resource "azurerm_private_dns_a_record" "test" {
-  name                = "*"
-  private_dns_zone_id = azurerm_private_dns_zone.test.id
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.test.internal_inbound_ip_addresses
-}
-
-resource "azurerm_private_dns_a_record" "scm" {
-  name                = "*.scm"
-  private_dns_zone_id = azurerm_private_dns_zone.test.id
-  ttl                 = 3600
-  records             = azurerm_app_service_environment_v3.test.internal_inbound_ip_addresses
-}
-
-resource "azurerm_service_plan" "test" {
-  name                       = "acctest-SP-%[1]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  os_type                    = "Windows"
-  sku_name                   = "I1v2"
-  app_service_environment_id = azurerm_app_service_environment_v3.test.id
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "custom" {
-  name               = "custom-content"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 1
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r LogicAppStandardResource) keyVaultReferenceIdentityInvalid(data acceptance.TestData) string {
