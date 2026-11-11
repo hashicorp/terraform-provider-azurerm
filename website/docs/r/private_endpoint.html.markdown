@@ -211,6 +211,12 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
 
+* `ip_version_type` - (Optional) The IP version type for the Private Endpoint. Possible values are `IPv4`, `IPv6`, and `DualStack`. Defaults to `IPv4`.
+
+~> **Note:** When `ip_version_type` is set to `IPv6` or `DualStack`, `private_endpoint_vnet_policies` must be set to `Basic` on the Virtual Network and all peered Virtual Networks. In addition, `private_endpoint_network_policies` must be set to `RouteTableEnabled` on the Subnet. Refer to [document](https://learn.microsoft.com/azure/private-link/private-link-ipv6#prerequisites).
+
+~> **Note:** Only changing `ip_version_type` from `IPv4` to `DualStack` updates the Private Endpoint in place. All other changes to `ip_version_type` force a new Private Endpoint to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
