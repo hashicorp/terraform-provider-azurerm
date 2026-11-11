@@ -435,6 +435,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			var planSKU *string
+			var aseId *commonids.AppServiceEnvironmentId
 			if model := servicePlan.Model; model != nil {
 				if sku := model.Sku; sku != nil && sku.Name != nil {
 					planSKU = sku.Name
@@ -449,18 +450,19 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 						// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
 						nameSuffix := "appserviceenvironment.net"
 						if ase.Id != nil {
-							aseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
-							nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+							parsedAseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
+							nameSuffix = fmt.Sprintf("%s.%s", parsedAseId.HostingEnvironmentName, nameSuffix)
 							if err != nil {
 								metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
 							} else {
-								existingASE, err := aseClient.Get(ctx, *aseId)
+								existingASE, err := aseClient.Get(ctx, *parsedAseId)
 								if err != nil || existingASE.Model == nil {
 									metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
 								} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
 									nameSuffix = *props.DnsSuffix
 								}
 							}
+							aseId = parsedAseId
 						}
 
 						availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
@@ -565,6 +567,12 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 			if differentServicePlanToParent {
 				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
+			}
+
+			if aseId != nil {
+				siteEnvelope.Properties.HostingEnvironmentProfile = &webapps.HostingEnvironmentProfile{
+					Id: pointer.To(aseId.ID()),
+				}
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
