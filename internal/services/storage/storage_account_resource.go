@@ -244,6 +244,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"smb_oauth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"cross_tenant_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1377,8 +1383,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
 		payload.Properties.AllowedCopyScope = pointer.ToEnum[storageaccounts.AllowedCopyScope](v)
 	}
-	if v, ok := d.GetOk("azure_files_authentication"); ok {
-		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(v.([]any))
+	azureFilesAuthenticationRaw := d.Get("azure_files_authentication").([]any)
+	smbOAuthEnabled := d.Get("smb_oauth_enabled").(bool)
+	if len(azureFilesAuthenticationRaw) > 0 || smbOAuthEnabled {
+		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(azureFilesAuthenticationRaw, smbOAuthEnabled)
 		if err != nil {
 			return fmt.Errorf("parsing `azure_files_authentication`: %v", err)
 		}
@@ -1454,7 +1462,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta any) error {
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 	encryptionRaw := d.Get("customer_managed_key").([]any)
-	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType, provisionedBillingModelVersion)
 	if err != nil {
 		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 	}
@@ -1676,7 +1684,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 		queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 		tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 		encryptionRaw := d.Get("customer_managed_key").([]any)
-		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType, provisionedBillingModelVersion)
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
@@ -1814,7 +1822,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	// azure_files_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
-	if d.HasChange("azure_files_authentication") {
+	if d.HasChange("azure_files_authentication") || d.HasChange("smb_oauth_enabled") {
 		// due to service issue: https://github.com/Azure/azure-rest-api-specs/issues/12473, we need to update to None before changing its DirectoryServiceOptions
 		old, new := d.GetChange("azure_files_authentication.0.directory_type")
 		if old != new && new != string(storageaccounts.DirectoryServiceOptionsNone) {
@@ -1831,7 +1839,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 			}
 		}
 
-		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(d.Get("azure_files_authentication").([]any))
+		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(d.Get("azure_files_authentication").([]any), d.Get("smb_oauth_enabled").(bool))
 		if err != nil {
 			return fmt.Errorf("expanding `azure_files_authentication`: %+v", err)
 		}
@@ -2025,6 +2033,11 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
+		smbOAuthEnabled := false
+		if afa := props.AzureFilesIdentityBasedAuthentication; afa != nil && afa.SmbOAuthSettings != nil {
+			smbOAuthEnabled = pointer.From(afa.SmbOAuthSettings.IsSmbOAuthEnabled)
+		}
+		d.Set("smb_oauth_enabled", smbOAuthEnabled)
 		d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
 		d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
 		d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
@@ -2283,7 +2296,7 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []any {
 	return output
 }
 
-func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
+func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []any, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType, billingModel string) (*storageaccounts.Encryption, error) {
 	if !features.SixPointOh() {
 		if accountKind == storageaccounts.KindStorage {
 			if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
@@ -2309,8 +2322,8 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		}, nil
 	}
 
-	if accountTier != storageaccounts.SkuTierPremium && accountKind != storageaccounts.KindStorageVTwo {
-		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
+	if accountTier != storageaccounts.SkuTierPremium && accountKind != storageaccounts.KindStorageVTwo && (accountKind != storageaccounts.KindFileStorage || billingModel != "V2") {
+		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2`, account tier `Premium`, or account kind `FileStorage` with billing model `V2`")
 	}
 
 	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
@@ -2482,16 +2495,22 @@ func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirect
 	return output
 }
 
-func expandAccountAzureFilesAuthentication(input []any) (*storageaccounts.AzureFilesIdentityBasedAuthentication, error) {
+func expandAccountAzureFilesAuthentication(input []any, smbOAuthEnabled bool) (*storageaccounts.AzureFilesIdentityBasedAuthentication, error) {
+	smbOAuthSettings := &storageaccounts.SmbOAuthSettings{
+		IsSmbOAuthEnabled: pointer.To(smbOAuthEnabled),
+	}
+
 	if len(input) == 0 {
 		return &storageaccounts.AzureFilesIdentityBasedAuthentication{
 			DirectoryServiceOptions: storageaccounts.DirectoryServiceOptionsNone,
+			SmbOAuthSettings:        smbOAuthSettings,
 		}, nil
 	}
 
 	v := input[0].(map[string]any)
 	output := storageaccounts.AzureFilesIdentityBasedAuthentication{
 		DirectoryServiceOptions: storageaccounts.DirectoryServiceOptions(v["directory_type"].(string)),
+		SmbOAuthSettings:        smbOAuthSettings,
 	}
 	if output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAD ||
 		output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAADDS ||

@@ -289,6 +289,8 @@ An `ingress` block exports the following:
 
 * `ip_security_restriction` - One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
 
+* `session_affinity_enabled`- Is session affinity enabled.
+
 * `target_port` - The target port on the container for the Ingress traffic.
 
 * `traffic_weight` - A `traffic_weight` block as detailed below.
