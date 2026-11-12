@@ -28,7 +28,7 @@ func TestAccApiCenterApi_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("api_center_service_id").MatchesOtherKey(check.That("azurerm_api_center_service.test").Key("id")),
+				check.That(data.ResourceName).Key("service_id").MatchesOtherKey(check.That("azurerm_api_center_service.test").Key("id")),
 				check.That(data.ResourceName).Key("display_name").MatchesOtherKey(check.That(data.ResourceName).Key("name")),
 				check.That(data.ResourceName).Key("lifecycle_stage").HasValue("design"),
 			),
@@ -138,7 +138,7 @@ func (r ApiCenterApiResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_api_center_api" "test" {
   name                  = "acctest%d"
-  api_center_service_id = azurerm_api_center_service.test.id
+  service_id = azurerm_api_center_service.test.id
   kind                  = "rest"
 }
 `, r.template(data), data.RandomInteger)
@@ -150,7 +150,7 @@ func (r ApiCenterApiResource) complete(data acceptance.TestData) string {
 
 resource "azurerm_api_center_api" "test" {
   name                  = "acctest%d"
-  api_center_service_id = azurerm_api_center_service.test.id
+  service_id = azurerm_api_center_service.test.id
   display_name          = "Acceptance Test GraphQL API"
   kind                  = "graphql"
   description           = "An API for acceptance testing."
@@ -183,7 +183,7 @@ func (r ApiCenterApiResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_api_center_api" "import" {
   name                  = azurerm_api_center_api.test.name
-  api_center_service_id = azurerm_api_center_api.test.api_center_service_id
+  service_id = azurerm_api_center_api.test.service_id
   display_name          = azurerm_api_center_api.test.display_name
   kind                  = azurerm_api_center_api.test.kind
 }

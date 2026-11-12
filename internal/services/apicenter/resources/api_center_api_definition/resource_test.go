@@ -28,7 +28,7 @@ func TestAccApiCenterApiDefinition_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("api_center_api_version_id").MatchesOtherKey(check.That("azurerm_api_center_api_version.test").Key("id")),
+				check.That(data.ResourceName).Key("api_version_id").MatchesOtherKey(check.That("azurerm_api_center_api_version.test").Key("id")),
 				check.That(data.ResourceName).Key("display_name").MatchesOtherKey(check.That(data.ResourceName).Key("name")),
 			),
 		},
@@ -131,7 +131,7 @@ resource "azurerm_api_center_service" "test" {
 
 resource "azurerm_api_center_api" "test" {
   name                  = "acctest-api-%[1]d"
-  api_center_service_id = azurerm_api_center_service.test.id
+  service_id = azurerm_api_center_service.test.id
   display_name          = "Acceptance Test API"
   kind                  = "rest"
   terms_of_service_url  = "https://example.com/terms"
@@ -139,7 +139,7 @@ resource "azurerm_api_center_api" "test" {
 
 resource "azurerm_api_center_api_version" "test" {
   name              = "acctest-version-%[1]d"
-  api_center_api_id = azurerm_api_center_api.test.id
+  api_id = azurerm_api_center_api.test.id
   lifecycle_stage   = "testing"
   display_name      = "Acceptance Test API Version"
 }
@@ -152,7 +152,7 @@ func (r ApiCenterApiDefinitionResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_api_center_api_definition" "test" {
   name                      = "acctest%d"
-  api_center_api_version_id = azurerm_api_center_api_version.test.id
+  api_version_id = azurerm_api_center_api_version.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -163,7 +163,7 @@ func (r ApiCenterApiDefinitionResource) complete(data acceptance.TestData) strin
 
 resource "azurerm_api_center_api_definition" "test" {
   name                      = "acctest%d"
-  api_center_api_version_id = azurerm_api_center_api_version.test.id
+  api_version_id = azurerm_api_center_api_version.test.id
   display_name              = "Complete API Definition"
   description               = "An API definition for acceptance testing."
 }
@@ -176,7 +176,7 @@ func (r ApiCenterApiDefinitionResource) requiresImport(data acceptance.TestData)
 
 resource "azurerm_api_center_api_definition" "import" {
   name                      = azurerm_api_center_api_definition.test.name
-  api_center_api_version_id = azurerm_api_center_api_definition.test.api_center_api_version_id
+  api_version_id = azurerm_api_center_api_definition.test.api_version_id
   display_name              = azurerm_api_center_api_definition.test.display_name
 }
 `, r.basic(data))

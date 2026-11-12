@@ -1,8 +1,11 @@
 package api_center_deployment
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -13,12 +16,18 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *deployments.Deploym
 		// Id: deployments.NewDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceName, id.ApiName, id.DeploymentName).ID(),
 	}
 
+	serviceId := services.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
+
 	if props := model.Properties; props != nil {
-		state.DefinitionId = pointer.From(props.DefinitionId)
+
+		scopedDefinitionId := fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.DefinitionId))
+		scopedEnvironmentId := fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.EnvironmentId))
+
+		state.DefinitionId = scopedDefinitionId
 		state.Description = pointer.From(props.Description)
-		state.EnvironmentId = pointer.From(props.EnvironmentId)
-		state.Server = flattenDeploymentServer(props.Server)
-		state.State = string(pointer.From(props.State))
+		state.EnvironmentId = scopedEnvironmentId
+		state.ServerRuntimeUri = flattenDeploymentServer(props.Server)
+		state.State = metadata.ResourceData.Get("state").(string)
 		state.Title = pointer.From(props.Title)
 	}
 
@@ -29,13 +38,9 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *deployments.Deploym
 	return metadata.Encode(&state)
 }
 
-func flattenDeploymentServer(input *deployments.DeploymentServer) []DeploymentServer {
+func flattenDeploymentServer(input *deployments.DeploymentServer) []string {
 	if input == nil {
-		return []DeploymentServer{}
+		return []string{}
 	}
-	return []DeploymentServer{
-		{
-			RuntimeUri: pointer.From(input.RuntimeUri),
-		},
-	}
+	return pointer.From(input.RuntimeUri)
 }

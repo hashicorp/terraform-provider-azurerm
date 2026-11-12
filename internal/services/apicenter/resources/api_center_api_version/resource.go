@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name azurerm_api_center_api_version -service-package-name apicenter -properties "name" -compare-values "subscription_id:api_center_api_id,resource_group_name:api_center_api_id,service_name:api_center_api_id,workspace_name:api_center_api_id,api_name:api_center_api_id"
+//go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name azurerm_api_center_api_version -service-package-name apicenter -properties "name" -compare-values "subscription_id:api_id,resource_group_name:api_id,service_name:api_id,workspace_name:api_id,api_name:api_id"
 
 var (
 	_ sdk.ResourceWithIdentity = Resource{}

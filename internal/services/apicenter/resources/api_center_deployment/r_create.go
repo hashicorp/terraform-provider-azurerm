@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -45,21 +47,21 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			//definition, err  := apidefinitions.ParseDefinitionID(config.DefinitionId)
-			//if err != nil {
-			//	return err
-			//}
-			//definitionId := apidefinitions.NewDefinitionID(subscriptionId, definition.ResourceGroupName, definition.ServiceName, definition.WorkspaceName, definition.ApiName, definition.VersionName, definition.DefinitionName)
-			//
-			//
+			scopedDefinitionId := fmt.Sprintf("/workspaces/%s/apis/%s/versions/%s/definitions/%s", definition.WorkspaceName, definition.ApiName, definition.VersionName, definition.DefinitionName)
+
+			environment, err := environments.ParseEnvironmentID(config.EnvironmentId)
+			if err != nil {
+				return err
+			}
+			scopedEnvironmentId := fmt.Sprintf("/workspaces/%s/environments/%s", environment.WorkspaceName, environment.EnvironmentName)
 
 			payload := deployments.Deployment{
 				Name: new(config.Name),
 				Properties: &deployments.DeploymentProperties{
-					DefinitionId:  new(config.DefinitionId),
+					DefinitionId:  new(scopedDefinitionId),
 					Description:   new(config.Description),
-					EnvironmentId: new(config.EnvironmentId),
-					Server:        expandDeploymentServer(config.Server),
+					EnvironmentId: new(scopedEnvironmentId),
+					Server:        &deployments.DeploymentServer{RuntimeUri: pointer.To(config.ServerRuntimeUri)},
 					State:         new(deployments.DeploymentState(config.State)),
 					Title:         new(config.Title),
 				},

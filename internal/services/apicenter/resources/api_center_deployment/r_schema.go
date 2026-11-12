@@ -11,20 +11,13 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		//"api_center_api_id": {
-		//	Type:         pluginsdk.TypeString,
-		//	Required:     true,
-		//	ForceNew:     true,
-		//	ValidateFunc: apis.ValidateApiID,
-		//},
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
-		"api_center_api_definition_id": {
+		"api_definition_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: apidefinitions.ValidateDefinitionID,
@@ -36,12 +29,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"environment_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: environments.ValidateEnvironmentID,
 		},
 		"server_runtime_uri": {
 			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,

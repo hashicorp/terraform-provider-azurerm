@@ -5,6 +5,7 @@ package api_center_deployment_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -40,6 +41,8 @@ func TestAccApiCenterDeployment_listByApiID(t *testing.T) {
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"service_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"workspace_name":      knownvalue.StringExact("default"),
 							"api_name":            knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
@@ -51,7 +54,22 @@ func TestAccApiCenterDeployment_listByApiID(t *testing.T) {
 }
 
 func (r ApiCenterDeploymentResource) basicList(data acceptance.TestData) string {
-	return r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_center_deployment" "test" {
+  count =3 
+  name                         = "acctest%d${count.index}"
+  api_definition_id            = azurerm_api_center_api_definition.test.id
+  environment_id               = azurerm_api_center_environment.test.id
+  state                        = "active"
+
+  server_runtime_uri = [
+    "https://example.com/api",
+    "https://example.com/api-secondary",
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ApiCenterDeploymentResource) basicQuery() string {

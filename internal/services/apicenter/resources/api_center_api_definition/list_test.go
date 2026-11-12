@@ -39,10 +39,13 @@ func TestAccApiCenterApiDefinition_listByVersionID(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_api_center_api_definition.list",
 						map[string]knownvalue.Check{
-							"name":                        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name":         knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"api_center_api_version_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":             knownvalue.StringExact(data.Subscriptions.Primary),
+							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"api_name":            knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"service_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"version_name":        knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"workspace_name":      knownvalue.StringExact("default"),
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
 				},
@@ -57,7 +60,7 @@ func (r ApiCenterApiDefinitionResource) basicList(data acceptance.TestData) stri
 
 resource "azurerm_api_center_api_definition" "test" {
   name                      = "acctest%d"
-  api_center_api_version_id = azurerm_api_center_api_version.test.id
+  api_version_id = azurerm_api_center_api_version.test.id
   display_name              = "Acceptance Test API Definition"
 }
 `, r.template(data), data.RandomInteger)
