@@ -29,12 +29,21 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			param := edgeactions.EdgeActionUpdate{}
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("sku_name") {
-				param.Sku = &edgeactions.SkuTypeUpdate{
-					Name: pointer.To(config.SkuName),
-					Tier: pointer.To(config.SkuName),
+				payload.Sku = edgeactions.SkuType{
+					Name: config.SkuName,
+					Tier: config.SkuName,
 				}
 			}
 
@@ -43,10 +52,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				if config.Tags == nil {
 					config.Tags = map[string]string{}
 				}
-				param.Tags = pointer.To(config.Tags)
+				payload.Tags = pointer.To(config.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
+			if err := client.CreateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
