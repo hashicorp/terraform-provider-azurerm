@@ -35,7 +35,8 @@ type AutonomousDatabaseRegularResourceModel struct {
 	Ocid                         string                                  `tfschema:"ocid"`
 
 	// Optional
-	CustomerContacts []string `tfschema:"customer_contacts"`
+	MaintenancePatchLevel string   `tfschema:"maintenance_patch_level"`
+	CustomerContacts      []string `tfschema:"customer_contacts"`
 }
 
 func (Resource) ModelObject() any {

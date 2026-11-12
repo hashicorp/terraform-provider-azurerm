@@ -140,6 +140,13 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		// Optional
+		"maintenance_patch_level": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      autonomousdatabases.AutonomousMaintenanceScheduleTypeRegular,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForAutonomousMaintenanceScheduleType(), false),
+		},
+
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

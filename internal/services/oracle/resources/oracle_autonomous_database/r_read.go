@@ -44,6 +44,7 @@ func (Resource) Read() sdk.ResourceFunc {
 				}
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+				state.MaintenancePatchLevel = pointer.FromEnum(props.AutonomousMaintenanceScheduleType)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.CharacterSet = pointer.From(props.CharacterSet)

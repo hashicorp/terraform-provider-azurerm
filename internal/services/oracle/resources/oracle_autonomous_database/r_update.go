@@ -34,6 +34,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			// Check what needs to be updated
 			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
+			needsMaintenancePatchLevelUpdate := metadata.ResourceData.HasChange("maintenance_patch_level")
 			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
 			needsPasswordUpdate := metadata.ResourceData.HasChange("admin_password")
 			needsBackupRetentionDaysUpdate := metadata.ResourceData.HasChange("backup_retention_period_in_days")
@@ -62,9 +63,21 @@ func (r Resource) Update() sdk.ResourceFunc {
 				if metadata.ResourceData.HasChange("allowed_ips") {
 					generalUpdate.Properties.WhitelistedIPs = pointer.To(model.AllowedIps)
 				}
-
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
 					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
+				}
+			}
+
+			if needsMaintenancePatchLevelUpdate {
+				// The service returns AUTONOMOUS_DATABASE_UPDATE_FAILED when this value is included with general property updates.
+				maintenancePatchLevelUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						AutonomousMaintenanceScheduleType: pointer.ToEnum[autonomousdatabases.AutonomousMaintenanceScheduleType](model.MaintenancePatchLevel),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, maintenancePatchLevelUpdate); err != nil {
+					return fmt.Errorf("updating maintenance patch level for %s: %+v", *id, err)
 				}
 			}
 
