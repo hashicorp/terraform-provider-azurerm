@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package containerapps
+package container_app_session_pool
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ContainerAppSessionPoolListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(ContainerAppSessionPoolListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (ContainerAppSessionPoolListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = ContainerAppSessionPoolResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (ContainerAppSessionPoolListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(ContainerAppSessionPoolResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (ContainerAppSessionPoolListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.ContainerApps.SessionPoolClient
 
 	var data sdk.DefaultListModel
@@ -44,7 +44,7 @@ func (ContainerAppSessionPoolListResource) List(ctx context.Context, request lis
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	sessionPool := ContainerAppSessionPoolResource{}
+	sessionPool := Resource{}
 
 	switch {
 	case !data.ResourceGroupName.IsNull():
