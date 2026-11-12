@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -473,9 +473,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"unix_permissions": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "0770",
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// Note: O+C because Azure returns a default of `0770` for some volume types, while others reject this default value with a 400 when sent to the API
+				// unexpected status 400 (400 Bad Request) with error: InvalidInputUnixPermissionForNtfsSecurityStyleVolume: Unix permissions are not allowed for specified volume configuration, Create SMB or dual protocol volume with NTFS security style, without unix permissions.
+				Computed:     true,
 				ValidateFunc: validation.StringLenBetween(4, 4),
 			},
 		},
@@ -809,7 +811,6 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta any) error {
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
 			IsLargeVolume:            pointer.To(d.Get("large_volume_enabled").(bool)),
-			UnixPermissions:          pointer.To(d.Get("unix_permissions").(string)),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]any)),
 		Zones: zones,
@@ -848,6 +849,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
 		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
+	}
+
+	if unixPerms := d.Get("unix_permissions").(string); unixPerms != "" {
+		parameters.Properties.UnixPermissions = pointer.To(unixPerms)
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {

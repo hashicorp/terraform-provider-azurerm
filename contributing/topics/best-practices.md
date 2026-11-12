@@ -246,9 +246,19 @@ Whilst this works, there are some side effects, for example:
 Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
 
 1. Specifying a `Default` if Azure consistently sets the same value
-2. Setting the property `Required` and force user to specify a value at creation
+2. Setting the property to `Required` and requiring the user to specify a value at creation time
 
-However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
+Examples of invalid uses of O+C:
+
+1. Adding O+C property when Azure always set a static default value on creation when value not provided, use Optional + Default instead
+2. Adding O+C property when Azure does not set any default value on creation
+3. Adding O+C property that is difficult to clear, for example a list property. User might expact property removal is a reset / value-clearance, not realising they have to do `subnet = []`.  Consider implementing the property as a child resource / as a required property in the next major version.
+
+Examples of valid uses of O+C:
+
+1. (Hypothetical) Temporarily adding an O+C property with `ForceNew: true` to `azurerm_public_ip` (a high-impact or foundational resource) where Azure sets a non-static default value. There have been cases where CD pipelines were not appropriately set up to check plan diffs, resulting in accidental, catastrophic resource replacements. Using O+C means the default behaviour is to opt-out from tracking the property and prevent such replacements. This O+C should be replaced by a `Required` in the next major version. Follow the behaviour switching pattern described in [the breaking changes guide](./guide-breaking-changes.md).
+2. Allowing Azure to set a location-specific default value that is preferable to a hardcoded default. For example, `PremiumSSDv2` for `mongo_cluster.storage_type` is [preferred for its performance and cost benefits](https://github.com/hashicorp/terraform-provider-azurerm/pull/33361#discussion_r4167778143), but is not yet available in all locations.
+3. Renaming properties according to the [breaking change guide](./guide-breaking-changes.md).
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
 
@@ -258,13 +268,20 @@ If you encounter a field that must be `Optional` and `Computed`, make sure it fo
 Example:
 
 ```go
-	"etag": {
+	"storage_type": {
 		Type: pluginsdk.TypeString,
 		Optional: true,
-		// NOTE: O+C Azure generates a new value every time this resource is updated
+		// NOTE: O+C Azure sets a location-specific default if not provided
 		Computed: true,
 	},
 ```
+
+When in doubt, adhere these two principles:
+
+1. Do not surprise user with unexpected plan diff upon AzureRM version update
+2. If the property is removed from HCL config, the intent and effect should be intuitive
+
+See also relevant guide on how to identify breaking change: [guide-breaking-changes.md](./guide-breaking-changes.md).
 
 ## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ApiManagementUserResource struct{}
+
+func TestAccApiManagementUser_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")
+	r := ApiManagementUserResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccApiManagementUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_user", "test")

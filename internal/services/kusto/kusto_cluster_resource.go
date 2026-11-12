@@ -1,10 +1,12 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
 
 import (
 	"fmt"
+	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -110,10 +112,13 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"trusted_external_tenants": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				Computed:   true, // azignore:AZS007 - pre-existing violation
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
+				// The Azure Data Explorer API returns tenants in its own order, so compare sorted tenant lists.
+				DiffSuppressFunc: diffSuppressTrustedExternalTenants,
+				Type:             pluginsdk.TypeList,
+				Optional:         true,
+				Computed:         true, // azignore:AZS007 - pre-existing violation
+				ConfigMode:       pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
@@ -693,4 +698,76 @@ func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExten
 	}
 
 	return output
+}
+
+func expandTrustedExternalTenants(input []any) *[]clusters.TrustedExternalTenant {
+	output := make([]clusters.TrustedExternalTenant, 0)
+
+	for _, v := range input {
+		output = append(output, clusters.TrustedExternalTenant{
+			Value: pointer.To(v.(string)),
+		})
+	}
+
+	return &output
+}
+
+func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []any {
+	if input == nil {
+		return []any{}
+	}
+	output := make([]any, 0)
+
+	for _, v := range *input {
+		if v.Value == nil {
+			continue
+		}
+
+		output = append(output, *v.Value)
+	}
+
+	return output
+}
+
+func diffSuppressTrustedExternalTenants(_, _, _ string, d *pluginsdk.ResourceData) bool {
+	if d == nil || d.Id() == "" {
+		return false
+	}
+
+	// Do not suppress changes for omitted or unknown configuration of this Optional + Computed list.
+	rawConfig := d.GetRawConfig()
+	if rawConfig.IsNull() {
+		return false
+	}
+
+	rawTenants := rawConfig.GetAttr("trusted_external_tenants")
+	if rawTenants.IsNull() || !rawTenants.IsWhollyKnown() {
+		return false
+	}
+
+	oldTenants, newTenants := d.GetChange("trusted_external_tenants")
+	oldList, okOld := oldTenants.([]any)
+	newList, okNew := newTenants.([]any)
+	if !okOld || !okNew {
+		return false
+	}
+
+	if len(oldList) != len(newList) {
+		return false
+	}
+
+	// Sort copies so comparison does not mutate state or configuration.
+	oldTenantsSorted := make([]string, len(oldList))
+	for i, tenant := range oldList {
+		oldTenantsSorted[i] = tenant.(string)
+	}
+
+	newTenantsSorted := make([]string, len(newList))
+	for i, tenant := range newList {
+		newTenantsSorted[i] = tenant.(string)
+	}
+
+	slices.Sort(oldTenantsSorted)
+	slices.Sort(newTenantsSorted)
+	return reflect.DeepEqual(oldTenantsSorted, newTenantsSorted)
 }
