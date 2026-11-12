@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/actions/azure_front_door_cache_purge"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_edge_action"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_endpoint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_endpoint_custom_domain"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_frontdoor_batch_rule_set"
@@ -77,6 +78,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		cdn_edge_action.Resource{},
 		cdn_frontdoor_batch_rule_set.Resource{},
 		cdn_frontdoor_rule.Resource{},
 	}
