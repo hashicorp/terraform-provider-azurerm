@@ -620,7 +620,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				return nil
 			}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
-				if diff.GetRawConfig().AsValueMap()["storage_mb"].IsNull() {
+				rawStorageMb := diff.GetRawConfig().GetAttr("storage_mb")
+				if !rawStorageMb.IsKnown() || rawStorageMb.IsNull() {
 					return nil
 				}
 
@@ -637,6 +638,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				validStorageMb := slices.Sorted(maps.Keys(validate.InitializeFlexibleServerStorageTierDefaults()))
 				if !slices.Contains(validStorageMb, storageMb) {
 					return fmt.Errorf("`storage_mb` must be one of %v when `storage_type` is `Premium_LRS`, got `%d`", validStorageMb, storageMb)
+				}
+
+				oldStorageMbRaw, _ := diff.GetChange("storage_mb")
+				if storageMb != 4194304 || oldStorageMbRaw.(int) == 4194304 {
+					return nil
+				}
+
+				// The service team requested removing `4194304` for SSDv1 to preserve host caching and align with the portal and other tools.
+				// Non-Default create modes remain exempt to accommodate source servers already using that size.
+				if createMode := servers.CreateMode(diff.Get("create_mode").(string)); createMode == "" || createMode == servers.CreateModeDefault {
+					return errors.New("`storage_mb` value `4194304` is not supported because it disables host caching, use `4193280` instead")
 				}
 
 				return nil
