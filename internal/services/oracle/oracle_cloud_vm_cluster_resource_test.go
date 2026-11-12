@@ -6,10 +6,14 @@ package oracle_test
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/resourceanchors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,6 +94,41 @@ func TestAccCloudVmClusterResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+	})
+}
+
+// A Network Anchor must be provisioned outside this provider. Use an existing
+// compatible anchor/network foundation so this test owns only the ExaDB-D
+// resources, and ResourceTest still verifies their destruction.
+func TestCloudVmClusterResource_anchors(t *testing.T) {
+	resourceAnchorID := "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/TfRatestRg/providers/Oracle.Database/resourceAnchors/testTfRaExa"
+	networkAnchorID := "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/TfRatestRg/providers/Oracle.Database/networkAnchors/testTfNAVm"
+	subnetID := "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/TfRatestRg/providers/Microsoft.Network/virtualNetworks/TfVnetTest/subnets/default2"
+	publicKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
+	if resourceAnchorID == "" || networkAnchorID == "" || subnetID == "" || publicKey == "" {
+		t.Skip("anchor acceptance test requires ARM_TEST_ORACLE_RESOURCE_ANCHOR_ID, ARM_TEST_ORACLE_NETWORK_ANCHOR_ID, ARM_TEST_ORACLE_SUBNET_ID and ARM_TEST_ORACLE_SSH_PUBLIC_KEY")
+	}
+	anchor, err := resourceanchors.ParseResourceAnchorID(resourceAnchorID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	subnet, err := commonids.ParseSubnetID(subnetID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	vnet := commonids.NewVirtualNetworkID(subnet.SubscriptionId, subnet.ResourceGroupName, subnet.VirtualNetworkName)
+	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
+	r := CloudVmClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{Config: r.anchors(data, anchor.ResourceGroupName, resourceAnchorID, networkAnchorID, vnet.ID(), subnetID, publicKey), Check: acceptance.ComposeTestCheckFunc(
+			check.That(data.ResourceName).ExistsInAzure(r),
+			check.That(data.ResourceName).Key("resource_anchor_id").HasValue(resourceAnchorID),
+			check.That(data.ResourceName).Key("network_anchor_id").HasValue(networkAnchorID),
+			check.That("data.azurerm_oracle_cloud_vm_cluster.test").Key("resource_anchor_id").HasValue(resourceAnchorID),
+			check.That("data.azurerm_oracle_cloud_vm_cluster.test").Key("network_anchor_id").HasValue(networkAnchorID),
+		)},
 		data.ImportStep(),
 	})
 }
@@ -298,4 +337,56 @@ data "azurerm_oracle_db_servers" "test" {
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (a CloudVmClusterResource) anchors(data acceptance.TestData, resourceGroupName, resourceAnchorID, networkAnchorID, virtualNetworkID, subnetID, publicKey string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_resource_group" "test" {
+  name = "%[1]s"
+}
+
+//resource "azurerm_oracle_exadata_infrastructure" "test" {
+//  name                = "OFakeanchor%[2]d"
+//  display_name        = "OFakeanchor%[2]d"
+//  resource_group_name = data.azurerm_resource_group.test.name
+//  location            = data.azurerm_resource_group.test.location
+//  resource_anchor_id  = "%[3]s"
+//  compute_count       = 2
+//  storage_count       = 3
+//  shape               = "Exadata.X9M"
+//  zones               = ["2"]
+//}
+
+data "azurerm_oracle_db_servers" "test" {
+  resource_group_name               = "TfRatestRg"
+  cloud_exadata_infrastructure_name = "OfakeExaInfraRA"
+}
+
+resource "azurerm_oracle_cloud_vm_cluster" "test" {
+  name                            = "OFakeanchorvm%[2]d"
+  display_name                    = "OFakeanchorvm%[2]d"
+  resource_group_name             = "TfRatestRg"
+  location                        = "eastus"
+  cloud_exadata_infrastructure_id = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/TfRatestRg/providers/Oracle.Database/cloudExadataInfrastructures/OfakeExaInfraRA"
+  resource_anchor_id              = "%[3]s"
+  network_anchor_id               = "%[4]s"
+  virtual_network_id              = "%[5]s"
+  subnet_id                       = "%[6]s"
+  db_servers                      = [for server in data.azurerm_oracle_db_servers.test.db_servers : server.ocid]
+  cpu_core_count                  = 2
+  gi_version                      = "23.0.0.0"
+  hostname                        = "hostname"
+  license_model                   = "BringYourOwnLicense"
+  ssh_public_keys                 = ["%[7]s"]
+}
+
+data "azurerm_oracle_cloud_vm_cluster" "test" {
+  name                = azurerm_oracle_cloud_vm_cluster.test.name
+  resource_group_name = azurerm_oracle_cloud_vm_cluster.test.resource_group_name
+}
+`, resourceGroupName, data.RandomInteger, resourceAnchorID, networkAnchorID, virtualNetworkID, subnetID, strings.Trim(strconv.Quote(publicKey), "\""))
 }

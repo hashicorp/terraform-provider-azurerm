@@ -6,7 +6,7 @@ package validate
 import (
 	"regexp"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
