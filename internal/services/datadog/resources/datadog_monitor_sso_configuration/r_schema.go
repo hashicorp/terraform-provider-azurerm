@@ -4,8 +4,7 @@
 package datadog_monitor_sso_configuration
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -16,7 +15,7 @@ func datadogMonitorSsoConfigurationSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: monitorsresource.ValidateMonitorID,
+			ValidateFunc: datadogsinglesignonresources.ValidateMonitorID,
 		},
 
 		"name": {
@@ -34,7 +33,7 @@ func datadogMonitorSsoConfigurationSchema() map[string]*pluginsdk.Schema {
 		"single_sign_on": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(singlesignon.PossibleValuesForSingleSignOnStates(), false),
+			ValidateFunc: validation.StringInSlice(datadogsinglesignonresources.PossibleValuesForSingleSignOnStates(), false),
 		},
 
 		"login_url": {

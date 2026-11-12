@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,7 +25,7 @@ func TestAccDataProtectionBackupVault_regressionTest(t *testing.T) {
 	r := DataProtectionBackupVaultResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regressionTest(data),
 		},
 	}, "")
 }
@@ -32,11 +33,17 @@ func TestAccDataProtectionBackupVault_regressionTest(t *testing.T) {
 func TestAccDataProtectionBackupVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultResource{}
+	alertsForAllJobFailures := "true"
+	if !features.SixPointOh() {
+		alertsForAllJobFailures = "false"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue(alertsForAllJobFailures),
 			),
 		},
 		data.ImportStep(),
@@ -89,6 +96,55 @@ func TestAccDataProtectionBackupVault_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccDataProtectionBackupVault_alertsForAllJobFailures(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultResource{}
+	alertsForAllJobFailures := "true"
+	if !features.SixPointOh() {
+		alertsForAllJobFailures = "false"
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alertsForAllJobFailures(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.alertsForAllJobFailures(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.alertsForAllJobFailures(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("alerts_for_all_job_failures_enabled").HasValue(alertsForAllJobFailures),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -204,6 +260,32 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (r DataProtectionBackupVaultResource) regressionTest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  immutability               = "Disabled"
+  soft_delete                = "Off"
+  retention_duration_in_days = 14
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r DataProtectionBackupVaultResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -262,6 +344,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
 
+  alerts_for_all_job_failures_enabled = false
+
   identity {
     type = "SystemAssigned"
   }
@@ -294,6 +378,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
+  alerts_for_all_job_failures_enabled = true
 
   identity {
     type         = "UserAssigned"
@@ -395,4 +481,20 @@ resource "azurerm_data_protection_backup_vault" "test" {
   redundancy          = "ZoneRedundant"
 }
 `, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupVaultResource) alertsForAllJobFailures(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+
+  alerts_for_all_job_failures_enabled = %t
+}
+`, r.template(data), data.RandomInteger, enabled)
 }

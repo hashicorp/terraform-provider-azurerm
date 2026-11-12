@@ -6,7 +6,7 @@ package datadog_monitor_tag_rule
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -25,7 +25,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rules.ParseTagRuleID(id)
+			_, err := tagrules.ParseTagRuleID(id)
 			return err
 		}),
 

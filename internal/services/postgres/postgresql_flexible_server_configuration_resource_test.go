@@ -134,15 +134,15 @@ func (r PostgresqlFlexibleServerConfigurationResource) checkWith(configurationNa
 			if response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("%s does not exist", id)
 			}
-			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
+			return fmt.Errorf("retrieving %s: %+v", configurationId, err)
 		}
 
-		if model := resp.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if err = checker(props); err != nil {
-					return fmt.Errorf("%s: \n%+v", err, resp)
-				}
-			}
+		if resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("unable to retrieve configuration properties for %s", configurationId)
+		}
+
+		if err = checker(resp.Model.Properties); err != nil {
+			return fmt.Errorf("%s: \n%+v", err, resp)
 		}
 
 		return nil
@@ -169,6 +169,15 @@ func pendingRestartCheck(expectedValue bool) func(*configurations.ConfigurationP
 			if actualValue != expectedValue {
 				return fmt.Errorf("Azure Postgresql Flexible Server configuration IsConfigPendingRestart is expected'%v', but got ='%v'", expectedValue, actualValue)
 			}
+		}
+		return nil
+	}
+}
+
+func configurationValueCheck(expectedValue string) func(*configurations.ConfigurationProperties) error {
+	return func(props *configurations.ConfigurationProperties) error {
+		if v := pointer.From(props.Value); v != expectedValue {
+			return fmt.Errorf("configuration value does not match: expected `%s`, got `%s`", expectedValue, v)
 		}
 		return nil
 	}
@@ -231,6 +240,33 @@ func TestAccFlexibleServerConfiguration_staticParameterWithReplica(t *testing.T)
 	})
 }
 
+func TestAccFlexibleServerConfiguration_scaleParametersWithReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "replica_max_worker_processes")
+	r := PostgresqlFlexibleServerConfigurationResource{}
+
+	locksResource := "azurerm_postgresql_flexible_server_configuration.replica_max_locks_per_transaction"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scaleParametersWithReplica(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(locksResource).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		data.ImportStepFor(locksResource),
+		{
+			Config: r.scaleParametersWithReplica(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				// removing the replica overrides should reset them to the primary config
+				data.CheckWithClientForResource(r.checkWith("max_worker_processes", configurationValueCheck("32")), "azurerm_postgresql_flexible_server.replica"),
+				data.CheckWithClientForResource(r.checkWith("max_locks_per_transaction", configurationValueCheck("128")), "azurerm_postgresql_flexible_server.replica"),
+			),
+		},
+	})
+}
+
 func TestAccFlexibleServerConfiguration_doesNotRestartServer_whenFeatureIsDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_configuration", "test")
 	r := PostgresqlFlexibleServerConfigurationResource{}
@@ -283,28 +319,28 @@ func (PostgresqlFlexibleServerConfigurationResource) template(data acceptance.Te
 
 func (r PostgresqlFlexibleServerConfigurationResource) basic(data acceptance.TestData, name, value string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
-  name      = "%s"
+  name      = "%[2]s"
   server_id = azurerm_postgresql_flexible_server.test.id
-  value     = "%s"
+  value     = "%[3]s"
 }
 `, r.template(data), name, value)
 }
 
 func (r PostgresqlFlexibleServerConfigurationResource) staticParameterWithReplica(data acceptance.TestData, name, value string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
-  name      = "%s"
+  name      = "%[2]s"
   server_id = azurerm_postgresql_flexible_server.test.id
-  value     = "%s"
+  value     = "%[3]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "replica" {
-  name                = "acctest-replica-%d"
+  name                = "acctest-replica-%[4]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   zone                = azurerm_postgresql_flexible_server.test.zone
@@ -314,9 +350,70 @@ resource "azurerm_postgresql_flexible_server" "replica" {
 `, r.template(data), name, value, data.RandomInteger)
 }
 
+func (r PostgresqlFlexibleServerConfigurationResource) scaleParametersWithReplica(data acceptance.TestData, overrides bool) string {
+	configurationOverrides := ""
+	if overrides {
+		configurationOverrides = `
+resource "azurerm_postgresql_flexible_server_configuration" "replica_max_worker_processes" {
+  name      = "max_worker_processes"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = "48"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "replica_max_locks_per_transaction" {
+  name      = "max_locks_per_transaction"
+  server_id = azurerm_postgresql_flexible_server.replica.id
+  value     = "192"
+}
+`
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "17"
+  sku_name               = "GP_Standard_D4s_v3"
+  storage_mb             = 32768
+  zone                   = "2"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "primary_max_worker_processes" {
+  name      = "max_worker_processes"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "32"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "primary_max_locks_per_transaction" {
+  name      = "max_locks_per_transaction"
+  server_id = azurerm_postgresql_flexible_server.test.id
+  value     = "128"
+}
+
+resource "azurerm_postgresql_flexible_server" "replica" {
+  name                = "acctest-fs-replica-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
+  zone                = azurerm_postgresql_flexible_server.test.zone
+  version             = "17"
+  sku_name            = "GP_Standard_D4s_v3"
+  storage_mb          = 32768
+}
+
+%[3]s
+`, PostgresqlFlexibleServerResource{}.template(data), data.RandomInteger, configurationOverrides)
+}
+
 func (PostgresqlFlexibleServerConfigurationResource) multiplePostgresqlFlexibleServerConfigurations(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
   name      = "idle_in_transaction_session_timeout"
@@ -361,12 +458,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-postgresql-%d"
-  location = "%s"
+  name     = "acctestRG-postgresql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
+  name                   = "acctest-fs-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
@@ -378,9 +475,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
-  name      = "%s"
+  name      = "%[3]s"
   server_id = azurerm_postgresql_flexible_server.test.id
-  value     = "%s"
+  value     = "%[4]s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, name, value)
+`, data.RandomInteger, data.Locations.Primary, name, value)
 }
