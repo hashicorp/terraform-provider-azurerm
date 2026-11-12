@@ -47,7 +47,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *containerappssessio
 				}
 				state.ContainerAppEnvironmentId = environmentId.ID()
 			}
-			state.ContainerType = string(pointer.From(props.ContainerType))
+			state.ContainerType = pointer.FromEnum(props.ContainerType)
 			state.CustomContainerTemplate = flattenContainerAppSessionPoolCustomContainerTemplate(props.CustomContainerTemplate)
 			state.SessionManagedIdentities = flattenContainerAppSessionPoolManagedIdentitySettings(props.ManagedIdentitySettings)
 			state.NodeCount = pointer.From(props.NodeCount)
@@ -154,7 +154,7 @@ func flattenContainerAppSessionPoolLifecycleConfiguration(input *containerappsse
 	return []LifecycleConfigurationModel{
 		{
 			CooldownPeriodInSeconds: pointer.From(input.CooldownPeriodInSeconds),
-			LifecycleType:           string(pointer.From(input.LifecycleType)),
+			LifecycleType:           pointer.FromEnum(input.LifecycleType),
 			MaxAlivePeriodInSeconds: pointer.From(input.MaxAlivePeriodInSeconds),
 		},
 	}
