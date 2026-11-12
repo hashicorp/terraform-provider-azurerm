@@ -13,7 +13,10 @@ import (
 
 func expandAgentPoolSecurityProfile(input []any) *agentpools.AgentPoolSecurityProfile {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &agentpools.AgentPoolSecurityProfile{
+			EnableSecureBoot: pointer.To(false),
+			EnableVTPM:       pointer.To(false),
+		}
 	}
 
 	v := input[0].(map[string]any)

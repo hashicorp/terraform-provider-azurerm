@@ -283,6 +283,22 @@ func SchemaNodePoolSecurity(path string) *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+			if k != fmt.Sprintf("%s.#", path) {
+				return false
+			}
+
+			if old == "1" && new == "0" {
+				oldSecureBoot, _ := d.GetChange(secureBootPath)
+				oldVtpmPath, _ := d.GetChange(vtpmPath)
+				if !oldSecureBoot.(bool) && !oldVtpmPath.(bool) {
+					return true
+				}
+			}
+
+			return false
+		},
+
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"secure_boot_enabled": {
@@ -1035,6 +1051,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.NetworkProfile = ExpandClusterPoolNetworkProfile(networkProfile)
 	}
 
+	// Because SSHAccess is related to security, ensure the value set outside of Terraform is preserved until it is exposed in the provider.
 	if securityProfile := raw["security"].([]any); len(securityProfile) > 0 {
 		profile.SecurityProfile = expandManagedClusterAgentPoolSecurityProfile(securityProfile)
 	}
@@ -1854,7 +1871,10 @@ func ExpandClusterPoolNetworkProfileNodePublicIPTags(input map[string]any) *[]ma
 
 func expandManagedClusterAgentPoolSecurityProfile(input []any) *managedclusters.AgentPoolSecurityProfile {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &managedclusters.AgentPoolSecurityProfile{
+			EnableSecureBoot: pointer.To(false),
+			EnableVTPM:       pointer.To(false),
+		}
 	}
 
 	v := input[0].(map[string]any)
@@ -1869,16 +1889,10 @@ func flattenManagedClusterAgentPoolSecurityProfile(input *managedclusters.AgentP
 		return []any{}
 	}
 
-	secureBootEnabled := pointer.From(input.EnableSecureBoot)
-	vtpmEnabled := pointer.From(input.EnableVTPM)
-	if !secureBootEnabled && !vtpmEnabled {
-		return []any{}
-	}
-
 	return []any{
 		map[string]any{
-			"secure_boot_enabled": secureBootEnabled,
-			"vtpm_enabled":        vtpmEnabled,
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
 		},
 	}
 }

@@ -196,16 +196,10 @@ func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile)
 		return []any{}
 	}
 
-	secureBootEnabled := pointer.From(input.EnableSecureBoot)
-	vtpmEnabled := pointer.From(input.EnableVTPM)
-	if !secureBootEnabled && !vtpmEnabled {
-		return []any{}
-	}
-
 	return []any{
 		map[string]any{
-			"secure_boot_enabled": secureBootEnabled,
-			"vtpm_enabled":        vtpmEnabled,
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
 		},
 	}
 }
