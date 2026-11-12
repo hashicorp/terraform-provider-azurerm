@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package key_vault_secret
@@ -8,21 +8,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -48,20 +46,24 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 		return nil
 	}
 
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	secretId := secrets.NewSecretID(id.KeyVaultBaseURL, id.Name)
+	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
+
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]any)
 
-	secretAttributes := &kv.SecretAttributes{}
+	secretAttributes := &secrets.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		secretAttributes.NotBefore = pointer.To(date.UnixTime(notBeforeDate))
+		secretAttributes.Nbf = pointer.To(notBeforeDate.Unix())
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		secretAttributes.Expires = pointer.To(date.UnixTime(expirationDate))
+		secretAttributes.Exp = pointer.To(expirationDate.Unix())
 	}
 
 	if d.HasChanges("value", "value_wo_version") {
@@ -73,41 +75,45 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta any) error {
 			value = valueWo.AsString()
 		}
 		// for changing the value of the secret we need to create a new version
-		parameters := kv.SecretSetParameters{
-			Value:            pointer.To(value),
-			ContentType:      pointer.To(contentType),
-			Tags:             tags.Expand(t),
-			SecretAttributes: secretAttributes,
+		parameters := secrets.SecretSetParameters{
+			Value:       value,
+			ContentType: pointer.To(contentType),
+			Tags:        tags.Expand(t),
+			Attributes:  secretAttributes,
 		}
 
-		if _, err = client.SetSecret(ctx, id.KeyVaultBaseURL, id.Name, parameters); err != nil {
+		if _, err = client.SetSecret(ctx, secretId, parameters); err != nil {
 			return err
 		}
 	} else {
-		parameters := kv.SecretUpdateParameters{
-			ContentType:      pointer.To(contentType),
-			Tags:             tags.Expand(t),
-			SecretAttributes: secretAttributes,
+		parameters := secrets.SecretUpdateParameters{
+			ContentType: pointer.To(contentType),
+			Tags:        tags.Expand(t),
+			Attributes:  secretAttributes,
 		}
 
-		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseURL, id.Name, "", parameters); err != nil {
+		if _, err = client.UpdateSecret(ctx, secretVersionId, parameters); err != nil {
 			return err
 		}
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, "")
+	read, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
 		return fmt.Errorf("getting Key Vault Secret %q : %+v", id.Name, err)
 	}
 
-	secretId, err := keyvault.ParseNestedItemID(*read.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
+	if read.Model == nil || read.Model.Id == nil {
+		return fmt.Errorf("retrieving %s: unable to determine secret ID", secretId)
+	}
+
+	parsedSecretId, err := keyvault.ParseNestedItemID(*read.Model.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret)
 	if err != nil {
 		return err
 	}
 
 	// the ID is suffixed with the secret version
-	d.SetId(secretId.ID())
+	d.SetId(parsedSecretId.ID())
 
 	return resourceKeyVaultSecretRead(d, meta)
 }

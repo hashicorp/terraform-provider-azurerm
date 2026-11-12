@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package key_vault_secret
@@ -7,18 +7,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-type DeleteAndPurgeNestedItem interface {
-	DeleteNestedItem(ctx context.Context) (autorest.Response, error)
-	NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error)
-	PurgeNestedItem(ctx context.Context) (autorest.Response, error)
-	NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error)
-}
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

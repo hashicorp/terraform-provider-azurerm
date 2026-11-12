@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package key_vault_managed_storage_account
@@ -9,33 +9,40 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedsecrets"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type deleteAndPurgeSecret struct {
-	client      *kv.BaseClient
-	keyVaultUri string
-	name        string
+	secretsClient        *secrets.SecretsClient
+	deletedSecretsClient *deletedsecrets.DeletedSecretsClient
+	keyVaultUri          string
+	name                 string
 }
 
 func (d deleteAndPurgeSecret) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
-	resp, err := d.client.DeleteSecret(ctx, d.keyVaultUri, d.name)
-	return resp.Response, err
+	secretId := secrets.NewSecretID(d.keyVaultUri, d.name)
+	resp, err := d.secretsClient.DeleteSecret(ctx, secretId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeSecret) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
-	resp, err := d.client.GetSecret(ctx, d.keyVaultUri, d.name, "")
-	return resp.Response, err
+	secretVersionId := secrets.NewSecretversionID(d.keyVaultUri, d.name, "")
+	resp, err := d.secretsClient.GetSecret(ctx, secretVersionId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeSecret) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
-	return d.client.PurgeDeletedSecret(ctx, d.keyVaultUri, d.name)
+	deletedSecretId := deletedsecrets.NewDeletedsecretID(d.keyVaultUri, d.name)
+	resp, err := d.deletedSecretsClient.PurgeDeletedSecret(ctx, deletedSecretId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeSecret) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
-	resp, err := d.client.GetDeletedSecret(ctx, d.keyVaultUri, d.name)
-	return resp.Response, err
+	deletedSecretId := deletedsecrets.NewDeletedsecretID(d.keyVaultUri, d.name)
+	resp, err := d.deletedSecretsClient.GetDeletedSecret(ctx, deletedSecretId)
+	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func RegisterResource() *pluginsdk.Resource {
