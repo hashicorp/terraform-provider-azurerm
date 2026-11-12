@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_account
@@ -93,23 +93,63 @@ func expandNetAppActiveDirectories(input []any) *[]netappaccounts.ActiveDirector
 		dns := strings.Join(*pluginsdk.ExpandStringSlice(v["dns_servers"].([]any)), ",")
 
 		result := netappaccounts.ActiveDirectory{
-			Dns:                        pointer.To(dns),
-			Domain:                     pointer.To(v["domain"].(string)),
-			OrganizationalUnit:         pointer.To(v["organizational_unit"].(string)),
-			Password:                   pointer.To(v["password"].(string)),
-			SmbServerName:              pointer.To(v["smb_server_name"].(string)),
-			Username:                   pointer.To(v["username"].(string)),
-			Site:                       pointer.To(v["site_name"].(string)),
-			AdName:                     pointer.To(v["kerberos_ad_name"].(string)),
-			KdcIP:                      pointer.To(v["kerberos_kdc_ip"].(string)),
-			AesEncryption:              pointer.To(v["aes_encryption_enabled"].(bool)),
-			AllowLocalNfsUsersWithLdap: pointer.To(v["local_nfs_users_with_ldap_allowed"].(bool)),
-			LdapOverTLS:                pointer.To(v["ldap_over_tls_enabled"].(bool)),
-			ServerRootCACertificate:    pointer.To(v["server_root_ca_certificate"].(string)),
-			LdapSigning:                pointer.To(v["ldap_signing_enabled"].(bool)),
+			Dns:                           pointer.To(dns),
+			Domain:                        pointer.To(v["domain"].(string)),
+			OrganizationalUnit:            pointer.To(v["organizational_unit"].(string)),
+			Password:                      pointer.To(v["password"].(string)),
+			SmbServerName:                 pointer.To(v["smb_server_name"].(string)),
+			Username:                      pointer.To(v["username"].(string)),
+			Site:                          pointer.To(v["site_name"].(string)),
+			AdName:                        pointer.To(v["kerberos_ad_name"].(string)),
+			KdcIP:                         pointer.To(v["kerberos_kdc_ip"].(string)),
+			AesEncryption:                 pointer.To(v["aes_encryption_enabled"].(bool)),
+			AllowLocalNfsUsersWithLdap:    pointer.To(v["local_nfs_users_with_ldap_allowed"].(bool)),
+			LdapOverTLS:                   pointer.To(v["ldap_over_tls_enabled"].(bool)),
+			ServerRootCACertificate:       pointer.To(v["server_root_ca_certificate"].(string)),
+			LdapSigning:                   pointer.To(v["ldap_signing_enabled"].(bool)),
+			EncryptDCConnections:          pointer.To(v["domain_controller_connection_encryption_enabled"].(bool)),
+			PreferredServersForLdapClient: pointer.To(strings.Join(*pluginsdk.ExpandStringSlice(v["ldap_client_preferred_servers"].([]any)), ",")),
+		}
+
+		var searchScope map[string]any
+		if rawSearchScope := v["ldap_search_scope"].([]any); len(rawSearchScope) > 0 {
+			searchScope = rawSearchScope[0].(map[string]any)
+		}
+		result.LdapSearchScope = expandNetAppLdapSearchScope(searchScope)
+
+		if admins := v["administrator_users"].(*pluginsdk.Set); admins != nil {
+			result.Administrators = pluginsdk.ExpandStringSlice(admins.List())
+		}
+
+		if backupUsers := v["backup_users"].(*pluginsdk.Set); backupUsers != nil {
+			result.BackupOperators = pluginsdk.ExpandStringSlice(backupUsers.List())
+		}
+
+		if secUsers := v["security_users"].(*pluginsdk.Set); secUsers != nil {
+			result.SecurityOperators = pluginsdk.ExpandStringSlice(secUsers.List())
 		}
 
 		results = append(results, result)
 	}
 	return &results
+}
+
+func expandNetAppLdapSearchScope(input map[string]any) *netappaccounts.LdapSearchScopeOpt {
+	if input == nil {
+		// if not supplied, set empty strings to all fields to properly update in API.
+		// if LdapSearchScopeOpt is left nil or empty, the API will not update the search scope and will leave it as-is.
+		return &netappaccounts.LdapSearchScopeOpt{
+			GroupDN:               pointer.To(""),
+			GroupMembershipFilter: pointer.To(""),
+			UserDN:                pointer.To(""),
+		}
+	}
+
+	result := netappaccounts.LdapSearchScopeOpt{
+		GroupDN:               pointer.To(input["group_dn"].(string)),
+		GroupMembershipFilter: pointer.To(input["group_membership_filter"].(string)),
+		UserDN:                pointer.To(input["user_dn"].(string)),
+	}
+
+	return &result
 }

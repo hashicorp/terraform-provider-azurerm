@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_account
@@ -122,6 +122,80 @@ func netappAccountSchema() map[string]*pluginsdk.Schema {
 						Optional:    true,
 						Default:     false,
 						Description: "Specifies whether or not the LDAP traffic needs to be signed.",
+					},
+					"domain_controller_connection_encryption_enabled": {
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+						Description: "Specifies if traffic between the Domain Controller and SMB server is encrypted.",
+					},
+					"ldap_client_preferred_servers": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 2,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.IsIPv4Address,
+						},
+						Description: "Specifies the preferred LDAP server IPs for the LDAP client.",
+					},
+					"ldap_search_scope": {
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
+						MaxItems:    1,
+						Description: "Specifies the LDAP search scope for the LDAP client.",
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"group_dn": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringLenBetween(1, 255),
+									Description:  "Specifies the group DN, which overrides the base DN for group lookups.",
+									AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
+								},
+								"group_membership_filter": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringLenBetween(1, 255),
+									Description:  "Specifies the custom LDAP search filter to be used when looking up group membership from LDAP server.",
+									AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
+								},
+								"user_dn": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringLenBetween(1, 255),
+									Description:  "Specifies the user DN, which overrides the base DN for user lookups.",
+									AtLeastOneOf: []string{"active_directory.0.ldap_search_scope.0.group_dn", "active_directory.0.ldap_search_scope.0.group_membership_filter", "active_directory.0.ldap_search_scope.0.user_dn"},
+								},
+							},
+						},
+					},
+					"administrator_users": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.ActiveDirectoryUserName,
+						},
+						Description: "Domain users to be added to the built-in Administrators active directory group.",
+					},
+					"backup_users": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.ActiveDirectoryUserName,
+						},
+						Description: "Domain users to be added to the built-in Backup Operators active directory group.",
+					},
+					"security_users": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.ActiveDirectoryUserName,
+						},
+						Description: "Domain users to be given SeSecurityPrivilege privilege.",
 					},
 				},
 			},

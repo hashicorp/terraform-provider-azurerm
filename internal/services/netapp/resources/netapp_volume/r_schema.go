@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_volume
@@ -436,9 +436,11 @@ func netappVolumeSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"unix_permissions": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "0770",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because Azure returns a default of `0770` for some volume types, while others reject this default value with a 400 when sent to the API
+			// unexpected status 400 (400 Bad Request) with error: InvalidInputUnixPermissionForNtfsSecurityStyleVolume: Unix permissions are not allowed for specified volume configuration, Create SMB or dual protocol volume with NTFS security style, without unix permissions.
+			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(4, 4),
 		},
 	}

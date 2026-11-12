@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_account
@@ -93,6 +93,26 @@ func flattenNetAppActiveDirectories(input *[]netappaccounts.ActiveDirectory, pre
 			"ldap_over_tls_enabled":             v.LdapOverTLS,
 			"server_root_ca_certificate":        prevCaCert,
 			"ldap_signing_enabled":              v.LdapSigning,
+			"domain_controller_connection_encryption_enabled": v.EncryptDCConnections,
+			"ldap_client_preferred_servers":                   pluginsdk.FlattenStringSliceWithDelimiter(v.PreferredServersForLdapClient, ","),
+			"administrator_users":                             pluginsdk.FlattenSlice(v.Administrators),
+			"backup_users":                                    pluginsdk.FlattenSlice(v.BackupOperators),
+			"security_users":                                  pluginsdk.FlattenSlice(v.SecurityOperators),
+			"ldap_search_scope":                               flattenNetAppLdapSearchScope(v.LdapSearchScope),
+		},
+	}
+}
+
+func flattenNetAppLdapSearchScope(input *netappaccounts.LdapSearchScopeOpt) []any {
+	if input == nil || (input.GroupDN == nil && input.GroupMembershipFilter == nil && input.UserDN == nil) {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"group_dn":                input.GroupDN,
+			"group_membership_filter": input.GroupMembershipFilter,
+			"user_dn":                 input.UserDN,
 		},
 	}
 }

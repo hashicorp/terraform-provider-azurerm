@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_volume
@@ -221,7 +221,6 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta any) error {
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
 			IsLargeVolume:            pointer.To(d.Get("large_volume_enabled").(bool)),
-			UnixPermissions:          pointer.To(d.Get("unix_permissions").(string)),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]any)),
 		Zones: zones,
@@ -260,6 +259,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
 		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
+	}
+
+	if unixPerms := d.Get("unix_permissions").(string); unixPerms != "" {
+		parameters.Properties.UnixPermissions = pointer.To(unixPerms)
 	}
 
 	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
