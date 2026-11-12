@@ -69,6 +69,28 @@ func (t RelayHybridConnectionAuthorizationRuleResource) Exists(ctx context.Conte
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAccRelayHybridConnectionAuthorizationRule_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection_authorization_rule", "test")
+	r := RelayHybridConnectionAuthorizationRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (RelayHybridConnectionAuthorizationRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -122,4 +144,42 @@ resource "azurerm_relay_hybrid_connection_authorization_rule" "import" {
   manage = azurerm_relay_hybrid_connection_authorization_rule.test.manage
 }
 `, r.basic(data))
+}
+
+func (r RelayHybridConnectionAuthorizationRuleResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctestrn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                 = "acctestrnhc-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  relay_namespace_name = azurerm_relay_namespace.test.name
+}
+
+resource "azurerm_relay_hybrid_connection_authorization_rule" "test" {
+  name                   = "acctestrnak-%d"
+  namespace_name         = azurerm_relay_namespace.test.name
+  hybrid_connection_name = azurerm_relay_hybrid_connection.test.name
+  resource_group_name    = azurerm_resource_group.test.name
+
+  listen = true
+  send   = true
+  manage = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
