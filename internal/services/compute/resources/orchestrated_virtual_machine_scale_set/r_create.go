@@ -70,6 +70,8 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Properties.SinglePlacementGroup = pointer.To(d.Get("single_placement_group").(bool))
 	}
 
+	props.Properties.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_virtual_machine_creation_enabled").(bool), d.Get("resilient_virtual_machine_deletion_enabled").(bool))
+
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones

@@ -100,6 +100,16 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"advertised_gateway_prefixes": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
+			},
+		},
+
 		"bgp_community": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -461,6 +471,14 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 			d.Set("private_endpoint_vnet_policies", pointer.FromEnum(props.PrivateEndpointVNetPolicies))
 
+			advertisedGatewayPrefixes := make([]string, 0)
+			if props.SummarizedGatewayPrefixes != nil {
+				advertisedGatewayPrefixes = pointer.From(props.SummarizedGatewayPrefixes.AddressPrefixes)
+			}
+			if err := d.Set("advertised_gateway_prefixes", advertisedGatewayPrefixes); err != nil {
+				return fmt.Errorf("setting `advertised_gateway_prefixes`: %+v", err)
+			}
+
 			if space := props.AddressSpace; space != nil {
 				if err := d.Set("address_space", space.AddressPrefixes); err != nil {
 					return fmt.Errorf("setting `address_space`: %+v", err)
@@ -531,6 +549,13 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	payload := existing.Model
+
+	if d.HasChange("advertised_gateway_prefixes") {
+		if payload.Properties.SummarizedGatewayPrefixes == nil {
+			payload.Properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{}
+		}
+		payload.Properties.SummarizedGatewayPrefixes.AddressPrefixes = pluginsdk.ExpandStringSlice(d.Get("advertised_gateway_prefixes").(*pluginsdk.Set).List())
+	}
 
 	if d.HasChange("address_space") {
 		if v := d.Get("address_space").(*pluginsdk.Set).List(); len(v) > 0 {
@@ -895,6 +920,12 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 
 	if v, ok := d.GetOk("address_space"); ok {
 		properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("advertised_gateway_prefixes"); ok {
+		properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{
+			AddressPrefixes: pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List()),
+		}
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {

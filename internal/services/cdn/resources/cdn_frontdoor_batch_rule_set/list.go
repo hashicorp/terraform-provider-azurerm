@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"

@@ -11,7 +11,7 @@ import (
 
 type Resource struct{}
 
-var _ sdk.Resource = Resource{}
+var _ sdk.ResourceWithCustomizeDiff = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_cost_management_scheduled_action"

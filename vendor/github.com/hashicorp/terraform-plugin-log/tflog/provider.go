@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2021, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tflog
@@ -138,6 +138,51 @@ func Error(ctx context.Context, msg string, additionalFields ...map[string]inter
 	}
 
 	logger.Error(msg, additionalArgs...)
+}
+
+// IsTrace returns true if the logger in ctx would emit a trace-level log.
+func IsTrace(ctx context.Context) bool {
+	logger := logging.GetProviderRootLogger(ctx)
+	if logger == nil {
+		return false
+	}
+	return logger.IsTrace()
+}
+
+// IsDebug returns true if the logger in ctx would emit a debug-level log.
+func IsDebug(ctx context.Context) bool {
+	logger := logging.GetProviderRootLogger(ctx)
+	if logger == nil {
+		return false
+	}
+	return logger.IsDebug()
+}
+
+// IsInfo returns true if the logger in ctx would emit an info-level log.
+func IsInfo(ctx context.Context) bool {
+	logger := logging.GetProviderRootLogger(ctx)
+	if logger == nil {
+		return false
+	}
+	return logger.IsInfo()
+}
+
+// IsWarn returns true if the logger in ctx would emit a warn-level log.
+func IsWarn(ctx context.Context) bool {
+	logger := logging.GetProviderRootLogger(ctx)
+	if logger == nil {
+		return false
+	}
+	return logger.IsWarn()
+}
+
+// IsError returns true if the logger in ctx would emit an error-level log.
+func IsError(ctx context.Context) bool {
+	logger := logging.GetProviderRootLogger(ctx)
+	if logger == nil {
+		return false
+	}
+	return logger.IsError()
 }
 
 // OmitLogWithFieldKeys returns a new context.Context that has a modified logger

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,11 +20,11 @@ import (
 
 func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta any) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Datadog.MonitorsResource
+	client := meta.(*clients.Client).Datadog.DatadogMonitorResources
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := datadogmonitorresources.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 		existing, err := client.MonitorsGet(ctx, id)
@@ -38,18 +38,18 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	monitoringStatus := monitorsresource.MonitoringStatusDisabled
+	monitoringStatus := datadogmonitorresources.MonitoringStatusDisabled
 	if d.Get("monitoring_enabled").(bool) {
-		monitoringStatus = monitorsresource.MonitoringStatusEnabled
+		monitoringStatus = datadogmonitorresources.MonitoringStatusEnabled
 	}
 
-	payload := monitorsresource.DatadogMonitorResource{
+	payload := datadogmonitorresources.DatadogMonitorResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Identity: expandMonitorIdentityProperties(d.Get("identity").([]any)),
-		Sku: &monitorsresource.ResourceSku{
+		Sku: &datadogmonitorresources.ResourceSku{
 			Name: d.Get("sku_name").(string),
 		},
-		Properties: &monitorsresource.MonitorProperties{
+		Properties: &datadogmonitorresources.MonitorProperties{
 			DatadogOrganizationProperties: expandMonitorOrganizationProperties(d.Get("datadog_organization").([]any)),
 			UserInfo:                      expandMonitorUserInfo(d.Get("user").([]any)),
 			MonitoringStatus:              pointer.To(monitoringStatus),
