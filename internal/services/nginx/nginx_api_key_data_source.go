@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeploymentapikeyresponses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2025-11-01/nginxdeployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -39,7 +39,7 @@ func (m APIKeyDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"nginx_deployment_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: nginxdeployment.ValidateNginxDeploymentID,
+			ValidateFunc: nginxdeployments.ValidateNginxDeploymentID,
 		},
 	}
 }
@@ -70,16 +70,16 @@ func (m APIKeyDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.Nginx.NginxApiKey
+			client := meta.Client.Nginx.NginxDeploymentApiKeyResponses
 			var state APIKeyDataSourceModel
 			if err := meta.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			deploymentId, err := nginxdeployment.ParseNginxDeploymentID(state.NginxDeploymentId)
+			deploymentId, err := nginxdeployments.ParseNginxDeploymentID(state.NginxDeploymentId)
 			if err != nil {
 				return err
 			}
-			id := nginxapikey.NewApiKeyID(
+			id := nginxdeploymentapikeyresponses.NewApiKeyID(
 				deploymentId.SubscriptionId,
 				deploymentId.ResourceGroupName,
 				deploymentId.NginxDeploymentName,
