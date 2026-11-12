@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/armdisasterrecoveries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,12 +20,12 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.DisasterRecoveryConfigsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -45,18 +45,18 @@ func resourceEventHubNamespaceDisasterRecoveryConfigRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *disasterrecoveryconfigs.DisasterRecoveryConfigsClient, id disasterrecoveryconfigs.DisasterRecoveryConfigId) error {
+func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *armdisasterrecoveries.ArmDisasterRecoveriesClient, id armdisasterrecoveries.DisasterRecoveryConfigId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(disasterrecoveryconfigs.ProvisioningStateDRAccepted)},
-		Target:     []string{string(disasterrecoveryconfigs.ProvisioningStateDRSucceeded)},
+		Pending:    []string{string(armdisasterrecoveries.ProvisioningStateDRAccepted)},
+		Target:     []string{string(armdisasterrecoveries.ProvisioningStateDRSucceeded)},
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
 		Refresh: func() (any, string, error) {
-			read, err := client.Get(ctx, id)
+			read, err := client.DisasterRecoveryConfigsGet(ctx, id)
 			if err != nil {
 				return nil, "error", fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -67,7 +67,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Con
 						return read, "failed", fmt.Errorf("provisioningState was empty")
 					}
 
-					if *props.ProvisioningState == disasterrecoveryconfigs.ProvisioningStateDRFailed {
+					if *props.ProvisioningState == armdisasterrecoveries.ProvisioningStateDRFailed {
 						return read, "failed", fmt.Errorf("replication failed for %s: %+v", id, err)
 					}
 					return read, string(*props.ProvisioningState), nil

@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/authorizationrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,12 +31,12 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Id())
+	id, err := ehnamespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.NamespacesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -73,7 +73,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("local_authentication_enabled", !pointer.From(props.DisableLocalAuth))
 
 			publicNetworkAccess := true
-			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == namespaces.PublicNetworkAccessDisabled {
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == ehnamespaces.PublicNetworkAccessDisabled {
 				publicNetworkAccess = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
@@ -99,7 +99,7 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 		return fmt.Errorf("setting `network_ruleset` for Evenhub Namespace %s: %v", id.NamespaceName, err)
 	}
 
-	authorizationRuleId := authorizationrulesnamespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, eventHubNamespaceDefaultAuthorizationRule)
+	authorizationRuleId := authorizationrules.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, eventHubNamespaceDefaultAuthorizationRule)
 	keys, err := authorizationKeysClient.NamespacesListKeys(ctx, authorizationRuleId)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", id.NamespaceName, err)
@@ -204,9 +204,9 @@ func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ an
 	return
 }
 
-func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *namespaces.NamespacesClient, id namespaces.NamespaceId) pluginsdk.StateRefreshFunc {
+func eventHubNamespaceProvisioningStateRefreshFunc(ctx context.Context, client *ehnamespaces.EHNamespacesClient, id ehnamespaces.NamespaceId) pluginsdk.StateRefreshFunc {
 	return func() (any, string, error) {
-		res, err := client.Get(ctx, id)
+		res, err := client.NamespacesGet(ctx, id)
 
 		provisioningState := "Pending"
 		if err != nil {

@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/schemaregistry"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/schemagroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,15 +21,15 @@ func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	namespaceId, err := namespaces.ParseNamespaceID(d.Get("namespace_id").(string))
+	namespaceId, err := ehnamespaces.ParseNamespaceID(d.Get("namespace_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing eventhub namespace %s error: %+v", namespaceId.ID(), err)
 	}
 
-	id := schemaregistry.NewSchemaGroupID(subscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
+	id := schemagroups.NewSchemaGroupID(subscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.SchemaRegistryGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -41,17 +41,17 @@ func resourceEventHubNamespaceSchemaRegistryCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	schemaCompatibilityType := schemaregistry.SchemaCompatibility(d.Get("schema_compatibility").(string))
-	schemaType := schemaregistry.SchemaType(d.Get("schema_type").(string))
+	schemaCompatibilityType := schemagroups.SchemaCompatibility(d.Get("schema_compatibility").(string))
+	schemaType := schemagroups.SchemaType(d.Get("schema_type").(string))
 
-	parameters := schemaregistry.SchemaGroup{
-		Properties: &schemaregistry.SchemaGroupProperties{
+	parameters := schemagroups.SchemaGroup{
+		Properties: &schemagroups.SchemaGroupProperties{
 			SchemaCompatibility: &schemaCompatibilityType,
 			SchemaType:          &schemaType,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.SchemaRegistryCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
