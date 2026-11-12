@@ -215,6 +215,14 @@ func resourceMapsAccountUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	payload := existing.Model
 
+	if d.HasChange("identity") {
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = identityExpanded
+	}
+
 	if d.HasChange("local_authentication_enabled") {
 		payload.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 	}
