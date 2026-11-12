@@ -193,6 +193,9 @@ func findRoleAssignmentSchedule(ctx context.Context, client *roleassignmentsched
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 	})
 	if err != nil {
+		if response.WasNotFound(schedulesResult.LatestHttpResponse) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("listing Role Assignment Schedules for %s: %+v", scopeId, err)
 	}
 

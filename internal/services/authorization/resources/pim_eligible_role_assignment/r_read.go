@@ -212,6 +212,9 @@ func findRoleEligibilitySchedule(ctx context.Context, client *roleeligibilitysch
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s') and atScope()", id.PrincipalId)),
 	})
 	if err != nil {
+		if response.WasNotFound(schedulesResult.LatestHttpResponse) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("listing Role Eligibility Schedules for %s: %+v", scopeId, err)
 	}
 
