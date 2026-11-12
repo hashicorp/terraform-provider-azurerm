@@ -59,7 +59,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"authentication_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r Resource) ModelObject() any {

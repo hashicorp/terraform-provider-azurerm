@@ -87,6 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cognitive Services Account Project Connection with Custom Keys authentication.
 
+* `authentication_type` - The authentication type of the connection.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

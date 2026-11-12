@@ -24,6 +24,7 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *projectconnectionreso
 
 	if model != nil && model.Properties != nil {
 		base := model.Properties.ConnectionPropertiesV2()
+		state.AuthType = string(base.AuthType)
 		state.Category = pointer.FromEnum(base.Category)
 		state.Target = pointer.From(base.Target)
 		state.Metadata = helpers.FlattenAccountProjectConnectionMetadata(priorMetadata, base.Metadata)

@@ -34,16 +34,8 @@ func TestAccCognitiveAccountProjectConnectionCustomKeys_list(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query: true,
-				Config: `
-list "azurerm_cognitive_account_project_connection_custom_keys" "list" {
-  provider         = azurerm
-  include_resource = true
-  config {
-    cognitive_account_project_id = azurerm_cognitive_account_project.test.id
-  }
-}
-`,
+				Query:  true,
+				Config: r.basicListQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_cognitive_account_project_connection_custom_keys.list", 2),
 					querycheck.ExpectIdentity(
@@ -61,8 +53,8 @@ list "azurerm_cognitive_account_project_connection_custom_keys" "list" {
 						queryfilter.ByDisplayName(knownvalue.StringRegexp(regexp.MustCompile("acctest-conn2-"))),
 						[]querycheck.KnownValueCheck{
 							{
-								Path:       tfjsonpath.New("category"),
-								KnownValue: knownvalue.StringExact("RemoteTool"),
+								Path:       tfjsonpath.New("authentication_type"),
+								KnownValue: knownvalue.StringExact("CustomKeys"),
 							},
 						},
 					),
@@ -72,6 +64,18 @@ list "azurerm_cognitive_account_project_connection_custom_keys" "list" {
 	})
 }
 
+func (r CognitiveAccountProjectConnectionCustomKeysResource) basicListQuery() string {
+	return `
+list "azurerm_cognitive_account_project_connection_custom_keys" "list" {
+  provider         = azurerm
+  include_resource = true
+  config {
+    cognitive_account_project_id = azurerm_cognitive_account_project.test.id
+  }
+}
+`
+}
+
 func (r CognitiveAccountProjectConnectionCustomKeysResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -79,12 +83,12 @@ func (r CognitiveAccountProjectConnectionCustomKeysResource) basicList(data acce
 resource "azurerm_cognitive_account_project_connection_custom_keys" "test2" {
   name                         = "acctest-conn2-%[2]d"
   cognitive_account_project_id = azurerm_cognitive_account_project.test.id
-  category                     = "RemoteTool"
+  category                     = "CustomKeys"
   target                       = "https://tool.example.com/"
 
   custom_keys = {
     apiKey = azurerm_cognitive_account.test.primary_access_key
   }
 }
-`, r.mixedConnections(data), data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
