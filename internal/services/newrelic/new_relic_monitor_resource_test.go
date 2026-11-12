@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2026-06-01/newrelicmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -107,13 +107,13 @@ func TestAccNewRelicMonitor_identity(t *testing.T) {
 }
 
 func (r NewRelicMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := monitors.ParseMonitorID(state.ID)
+	id, err := newrelicmonitorresources.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.NewRelic.MonitorsClient
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.MonitorsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
