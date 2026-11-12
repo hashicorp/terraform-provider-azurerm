@@ -8,9 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" //nolint:staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -37,6 +36,21 @@ func TestAccPolicyDefinition_basic(t *testing.T) {
 	})
 }
 
+func TestAccPolicyDefinition_basicWithLowercaseParameterType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithLowercaseParameterType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	r := PolicyDefinitionResource{}
@@ -47,6 +61,21 @@ func TestAccPolicyDefinition_basicWithDetail(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("role_definition_ids.0").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPolicyDefinition_basicWithParameterSchema(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithParameterSchema(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -177,29 +206,32 @@ func TestAccPolicyDefinition_removeParameter(t *testing.T) {
 }
 
 func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	definitionsClient := client.Policy.DefinitionsClient
-	id, err := parse.PolicyDefinitionID(state.ID)
+	definitionsClient := client.Policy.PolicyDefinitionsClient
+
+	resourceId, err := parse.PolicyDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp policy.Definition
-	switch scope := id.PolicyScopeId.(type) {
-	case parse.ScopeAtSubscription:
-		resp, err = definitionsClient.Get(ctx, id.Name)
+	switch scopeId := resourceId.PolicyScopeId.(type) {
 	case parse.ScopeAtManagementGroup:
-		resp, err = definitionsClient.GetAtManagementGroup(ctx, id.Name, scope.ManagementGroupName)
-	default:
-		return nil, fmt.Errorf("unexpected scope type: %+v", scope)
-	}
-	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
-			return pointer.To(false), nil
+		id := policydefinitions.NewProviders2PolicyDefinitionID(scopeId.ManagementGroupName, resourceId.Name)
+		resp, err := definitionsClient.GetAtManagementGroup(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
-		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
-	}
+		return pointer.To(resp.Model != nil), nil
+	case parse.ScopeAtSubscription:
+		id := policydefinitions.NewProviderPolicyDefinitionID(scopeId.SubscriptionId, resourceId.Name)
+		resp, err := definitionsClient.Get(ctx, id)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		}
 
-	return pointer.To(resp.DefinitionProperties != nil), nil
+		return pointer.To(resp.Model != nil), nil
+	default:
+		return nil, fmt.Errorf("unsupported scope for policy definition ID `%s`: expected a subscription or management group scope", state.ID)
+	}
 }
 
 func (r PolicyDefinitionResource) basic(data acceptance.TestData) string {
@@ -240,6 +272,44 @@ POLICY_RULE
     }
   }
 PARAMETERS
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) basicWithLowercaseParameterType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = jsonencode({
+    if = {
+      not = {
+        field = "location"
+        in    = "[parameters('allowedLocations')]"
+      }
+    }
+    then = {
+      effect = "audit"
+    }
+  })
+
+  parameters = jsonencode({
+    allowedLocations = {
+      type = "array"
+      metadata = {
+        description = "The list of allowed locations for resources."
+        displayName = "Allowed locations"
+        strongType  = "location"
+      }
+    }
+  })
 }
 `, data.RandomInteger, data.RandomInteger)
 }
@@ -285,6 +355,50 @@ resource "azurerm_policy_definition" "test" {
   }
 }
 POLICY_RULE
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) basicWithParameterSchema(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "Indexed"
+  display_name = "acctestpol-%d"
+
+  policy_rule = jsonencode({
+    if = {
+      field     = "tags['environment']"
+      notEquals = "[parameters('tagSettings').environment]"
+    }
+    then = {
+      effect = "audit"
+    }
+  })
+
+  parameters = jsonencode({
+    tagSettings = {
+      type = "Object"
+      defaultValue = {
+        environment = "production"
+      }
+      schema = {
+        type = "object"
+        properties = {
+          environment = {
+            type = "string"
+          }
+        }
+        required             = ["environment"]
+        additionalProperties = false
+      }
+    }
+  })
 }
 `, data.RandomInteger, data.RandomInteger)
 }
