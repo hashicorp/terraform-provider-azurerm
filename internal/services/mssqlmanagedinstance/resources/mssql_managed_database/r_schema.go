@@ -88,10 +88,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"point_in_time_restore": {
-			Type:     schema.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
+			Type:          schema.TypeList,
+			Optional:      true,
+			ForceNew:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"recover_database_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"restore_point_in_time": {
@@ -109,6 +110,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"recover_database_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"point_in_time_restore"},
 		},
 
 		"tags": commonschema.Tags(),

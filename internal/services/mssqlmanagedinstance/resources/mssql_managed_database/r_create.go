@@ -63,7 +63,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if len(model.PointInTimeRestore) > 0 {
+			if model.RecoverDatabaseId != "" {
+				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModeRecovery)
+				parameters.Properties.RecoverableDatabaseId = pointer.To(model.RecoverDatabaseId)
+			} else if len(model.PointInTimeRestore) > 0 {
 				restorePointInTime := model.PointInTimeRestore[0]
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime

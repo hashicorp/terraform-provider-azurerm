@@ -9,6 +9,7 @@ type MsSqlManagedDatabaseModel struct {
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
 	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
 	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	RecoverDatabaseId       string                    `tfschema:"recover_database_id"`
 	Tags                    map[string]string         `tfschema:"tags"`
 }
 

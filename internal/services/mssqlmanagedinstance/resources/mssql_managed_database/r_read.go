@@ -77,6 +77,9 @@ func (r Resource) Read() sdk.ResourceFunc {
 			if v, ok := d.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
 			}
+			if v, ok := d.GetOk("recover_database_id"); ok {
+				model.RecoverDatabaseId = v.(string)
+			}
 
 			model.Tags = pointer.From(result.Model.Tags)
 
