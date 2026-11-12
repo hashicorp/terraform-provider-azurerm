@@ -5,7 +5,7 @@ package oracle
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/exascaledbstoragevaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/exascaledbstoragevaults"
 )
 
 type ExascaleDatabaseStorageDetailsModel struct {
