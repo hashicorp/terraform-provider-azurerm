@@ -957,7 +957,7 @@ func expandSREAgentAction(input []ActionModel) *agents.ActionConfiguration {
 
 func flattenSREAgentAction(input *agents.ActionConfiguration) ([]ActionModel, error) {
 	if input == nil {
-		return nil, nil
+		return make([]ActionModel, 0), nil
 	}
 
 	action := ActionModel{
@@ -994,7 +994,7 @@ func expandSREAgentApplicationInsights(input []ApplicationInsightsModel) *agents
 
 func flattenSREAgentApplicationInsights(input *agents.LogConfiguration, config []ApplicationInsightsModel) []ApplicationInsightsModel {
 	if input == nil || input.ApplicationInsightsConfiguration == nil {
-		return nil
+		return make([]ApplicationInsightsModel, 0)
 	}
 
 	applicationInsights := ApplicationInsightsModel{
@@ -1025,7 +1025,7 @@ func expandSREAgentDefaultModel(input []DefaultModel) *agents.DefaultModel {
 
 func flattenSREAgentDefaultModel(input *agents.DefaultModel) []DefaultModel {
 	if input == nil {
-		return nil
+		return make([]DefaultModel, 0)
 	}
 
 	return []DefaultModel{
@@ -1057,7 +1057,7 @@ func expandSREAgentIncidentManagement(input []IncidentManagementModel) *agents.I
 
 func flattenSREAgentIncidentManagement(input *agents.IncidentManagementConfiguration, config []IncidentManagementModel) []IncidentManagementModel {
 	if input == nil {
-		return nil
+		return make([]IncidentManagementModel, 0)
 	}
 
 	incidentManagement := IncidentManagementModel{
@@ -1095,7 +1095,7 @@ func expandSREAgentKnowledgeGraph(input []KnowledgeGraphModel) *agents.Knowledge
 
 func flattenSREAgentKnowledgeGraph(input *agents.KnowledgeGraphConfiguration) ([]KnowledgeGraphModel, error) {
 	if input == nil {
-		return nil, nil
+		return make([]KnowledgeGraphModel, 0), nil
 	}
 
 	knowledgeGraph := KnowledgeGraphModel{
@@ -1164,7 +1164,7 @@ func expandSREAgentSandbox(input []SandboxModel) *agents.SandboxConfiguration {
 
 func flattenSREAgentSandbox(input *agents.SandboxConfiguration) []SandboxModel {
 	if input == nil {
-		return nil
+		return make([]SandboxModel, 0)
 	}
 
 	sandbox := SandboxModel{

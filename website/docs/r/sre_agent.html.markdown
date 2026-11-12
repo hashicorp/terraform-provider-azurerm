@@ -149,6 +149,8 @@ A `default_model` block supports the following:
 
 * `provider` - (Required) The provider of the model used by the Azure SRE Agent.
 
+-> **Note:** For available providers and model families, see [model provider selection](https://learn.microsoft.com/azure/sre-agent/model-provider-selection#available-providers).
+
 ---
 
 An `egress` block supports the following:
