@@ -304,28 +304,11 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azuread_group" "test" {
-  display_name     = "acctest-sponsor-%[2]d"
-  mail_enabled     = true
-  mail_nickname    = "acctest-sponsor-%[2]d"
-  security_enabled = false
-  types            = ["Unified"]
-}
-
-resource "azuread_group" "second" {
-  display_name     = "acctest-sponsor2-%[2]d"
-  mail_enabled     = true
-  mail_nickname    = "acctest-sponsor2-%[2]d"
-  security_enabled = false
-  types            = ["Unified"]
-}
-
 resource "azurerm_sre_agent" "test" {
-  name                     = "acctest-sre-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  initial_sponsor_group_id = azuread_group.second.object_id
-  upgrade_channel          = "Preview"
+  name                = "acctest-sre-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  upgrade_channel     = "Preview"
 
   identity {
     type         = "UserAssigned"
@@ -402,22 +385,6 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azuread_group" "test" {
-  display_name     = "acctest-sponsor-%[2]d"
-  mail_enabled     = true
-  mail_nickname    = "acctest-sponsor-%[2]d"
-  security_enabled = false
-  types            = ["Unified"]
-}
-
-resource "azuread_group" "second" {
-  display_name     = "acctest-sponsor2-%[2]d"
-  mail_enabled     = true
-  mail_nickname    = "acctest-sponsor2-%[2]d"
-  security_enabled = false
-  types            = ["Unified"]
-}
-
 resource "azurerm_user_assigned_identity" "second" {
   name                = "acctest-identity2-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -460,12 +427,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_sre_agent" "test" {
-  name                     = "acctest-sre-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  initial_sponsor_group_id = azuread_group.test.object_id
-  subnet_id                = azurerm_subnet.test.id
-  upgrade_channel          = "Stable"
+  name                = "acctest-sre-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.test.id
+  upgrade_channel     = "Stable"
 
   identity {
     type         = "SystemAssigned, UserAssigned"

@@ -99,10 +99,6 @@ The following arguments are supported:
 
 * `incident_management` - (Optional) An `incident_management` block as defined below.
 
-* `initial_sponsor_group_id` - (Optional) The object ID (UUID) of the Microsoft Entra group that initially sponsors the agent identity.
-
-~> **Note:** Use a Microsoft 365 group or a dynamic membership group as the sponsor. Fixed-membership security groups are not supported for new sponsor assignments.
-
 * `knowledge_graph` - (Optional) A `knowledge_graph` block as defined below.
 
 * `sandbox` - (Optional) A `sandbox` block as defined below.

@@ -36,22 +36,21 @@ var (
 )
 
 type SREAgentModel struct {
-	Name                  string                                     `tfschema:"name"`
-	ResourceGroupName     string                                     `tfschema:"resource_group_name"`
-	Location              string                                     `tfschema:"location"`
-	Identity              []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Action                []ActionModel                              `tfschema:"action"`
-	ApplicationInsights   []ApplicationInsightsModel                 `tfschema:"application_insights"`
-	DefaultModel          []DefaultModel                             `tfschema:"default_model"`
-	IncidentManagement    []IncidentManagementModel                  `tfschema:"incident_management"`
-	InitialSponsorGroupId string                                     `tfschema:"initial_sponsor_group_id"`
-	KnowledgeGraph        []KnowledgeGraphModel                      `tfschema:"knowledge_graph"`
-	Sandbox               []SandboxModel                             `tfschema:"sandbox"`
-	SubnetId              string                                     `tfschema:"subnet_id"`
-	UpgradeChannel        string                                     `tfschema:"upgrade_channel"`
-	Tags                  map[string]string                          `tfschema:"tags"`
-	Endpoint              string                                     `tfschema:"endpoint"`
-	OutboundIPAddresses   []string                                   `tfschema:"outbound_ip_addresses"`
+	Name                string                                     `tfschema:"name"`
+	ResourceGroupName   string                                     `tfschema:"resource_group_name"`
+	Location            string                                     `tfschema:"location"`
+	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Action              []ActionModel                              `tfschema:"action"`
+	ApplicationInsights []ApplicationInsightsModel                 `tfschema:"application_insights"`
+	DefaultModel        []DefaultModel                             `tfschema:"default_model"`
+	IncidentManagement  []IncidentManagementModel                  `tfschema:"incident_management"`
+	KnowledgeGraph      []KnowledgeGraphModel                      `tfschema:"knowledge_graph"`
+	Sandbox             []SandboxModel                             `tfschema:"sandbox"`
+	SubnetId            string                                     `tfschema:"subnet_id"`
+	UpgradeChannel      string                                     `tfschema:"upgrade_channel"`
+	Tags                map[string]string                          `tfschema:"tags"`
+	Endpoint            string                                     `tfschema:"endpoint"`
+	OutboundIPAddresses []string                                   `tfschema:"outbound_ip_addresses"`
 }
 
 type ActionModel struct {
@@ -261,12 +260,6 @@ func (SREAgentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"initial_sponsor_group_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsUUID,
 		},
 
 		"knowledge_graph": {
@@ -703,12 +696,6 @@ func (r SREAgentResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			if config.InitialSponsorGroupId != "" {
-				param.Properties.AgentIdentity = &agents.AgentIdentity{
-					InitialSponsorGroupId: config.InitialSponsorGroupId,
-				}
-			}
-
 			if config.SubnetId != "" {
 				param.Properties.VnetConfiguration = &agents.VnetConfiguration{
 					SubnetResourceId: pointer.To(config.SubnetId),
@@ -809,15 +796,6 @@ func (SREAgentResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.DefaultModel = expandSREAgentDefaultModel(config.DefaultModel)
 			}
 
-			if metadata.ResourceData.HasChange("initial_sponsor_group_id") {
-				existing.Model.Properties.AgentIdentity = nil
-				if config.InitialSponsorGroupId != "" {
-					existing.Model.Properties.AgentIdentity = &agents.AgentIdentity{
-						InitialSponsorGroupId: config.InitialSponsorGroupId,
-					}
-				}
-			}
-
 			if metadata.ResourceData.HasChange("knowledge_graph") {
 				existing.Model.Properties.KnowledgeGraphConfiguration = expandSREAgentKnowledgeGraph(config.KnowledgeGraph)
 			}
@@ -900,10 +878,6 @@ func (SREAgentResource) flatten(metadata sdk.ResourceMetaData, id *agents.AgentI
 			state.DefaultModel = flattenSREAgentDefaultModel(props.DefaultModel)
 			state.IncidentManagement = flattenSREAgentIncidentManagement(props.IncidentManagementConfiguration, config.IncidentManagement)
 			state.Sandbox = flattenSREAgentSandbox(props.SandboxConfiguration)
-
-			if props.AgentIdentity != nil {
-				state.InitialSponsorGroupId = props.AgentIdentity.InitialSponsorGroupId
-			}
 
 			state.Action, err = flattenSREAgentAction(props.ActionConfiguration)
 			if err != nil {
