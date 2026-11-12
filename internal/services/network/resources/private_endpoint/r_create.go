@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package private_endpoint
@@ -65,6 +65,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
 			IPConfigurations:           expandPrivateEndpointIPConfigurations(d.Get("ip_configuration").([]any)),
+			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](d.Get("ip_version_type").(string)),
 			CustomNetworkInterfaceName: pointer.To(d.Get("custom_network_interface_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),

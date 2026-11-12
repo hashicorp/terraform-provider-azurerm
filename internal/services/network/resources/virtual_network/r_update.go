@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_network
@@ -44,6 +44,13 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	payload := existing.Model
+
+	if d.HasChange("advertised_gateway_prefixes") {
+		if payload.Properties.SummarizedGatewayPrefixes == nil {
+			payload.Properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{}
+		}
+		payload.Properties.SummarizedGatewayPrefixes.AddressPrefixes = pluginsdk.ExpandStringSlice(d.Get("advertised_gateway_prefixes").(*pluginsdk.Set).List())
+	}
 
 	if d.HasChange("address_space") {
 		if v := d.Get("address_space").(*pluginsdk.Set).List(); len(v) > 0 {

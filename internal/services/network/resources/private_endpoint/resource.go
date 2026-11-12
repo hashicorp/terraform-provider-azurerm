@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package private_endpoint
@@ -37,6 +37,20 @@ func RegisterResource() *pluginsdk.Resource {
 
 		Schema: privateEndpointSchema(),
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+			rawConfig := d.GetRawConfig()
+			if d.Id() != "" && d.HasChange("ip_version_type") && rawConfig.IsKnown() && !rawConfig.IsNull() && rawConfig.GetAttr("ip_version_type").IsKnown() {
+				old, new := d.GetChange("ip_version_type")
+				current := old.(string)
+				if current == "" {
+					current = string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour)
+				}
+				next := new.(string)
+				// Azure only supports updating the IP version type in place from IPv4 to DualStack.
+				if current != next && (current != string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour) || next != string(privateendpoints.PrivateEndpointIPVersionTypeDualStack)) {
+					return d.ForceNew("ip_version_type")
+				}
+			}
+
 			privateServiceConnections := d.Get("private_service_connection").([]any)
 			for _, psc := range privateServiceConnections {
 				privateServiceConnection := psc.(map[string]any)

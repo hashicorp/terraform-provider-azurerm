@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_network
@@ -52,6 +52,16 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				}
 
 				return false
+			},
+		},
+
+		"advertised_gateway_prefixes": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
 			},
 		},
 

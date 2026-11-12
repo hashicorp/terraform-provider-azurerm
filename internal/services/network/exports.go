@@ -6,10 +6,11 @@ package network
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/resources/subnet"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/resources/virtual_network"
 )
 
 var (
 	NewSubnetAndVnetPoller     = helpers.NewSubnetAndVnetPoller
 	SubnetResourceName         = subnet.SubnetResourceName
-	VirtualNetworkResourceName = subnet.VirtualNetworkResourceName
+	VirtualNetworkResourceName = virtual_network.VirtualNetworkResourceName
 )

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_network
@@ -29,6 +29,14 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 			d.Set("guid", props.ResourceGuid)
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 			d.Set("private_endpoint_vnet_policies", pointer.FromEnum(props.PrivateEndpointVNetPolicies))
+
+			advertisedGatewayPrefixes := make([]string, 0)
+			if props.SummarizedGatewayPrefixes != nil {
+				advertisedGatewayPrefixes = pointer.From(props.SummarizedGatewayPrefixes.AddressPrefixes)
+			}
+			if err := d.Set("advertised_gateway_prefixes", advertisedGatewayPrefixes); err != nil {
+				return fmt.Errorf("setting `advertised_gateway_prefixes`: %+v", err)
+			}
 
 			if space := props.AddressSpace; space != nil {
 				if err := d.Set("address_space", space.AddressPrefixes); err != nil {

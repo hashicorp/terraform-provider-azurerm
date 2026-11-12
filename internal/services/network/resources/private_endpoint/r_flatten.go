@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package private_endpoint
@@ -64,6 +64,11 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 			}
 			d.Set("subnet_id", subnetId)
 			d.Set("custom_network_interface_name", pointer.From(props.CustomNetworkInterfaceName))
+			ipVersionType := string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour)
+			if props.IPVersionType != nil {
+				ipVersionType = string(*props.IPVersionType)
+			}
+			d.Set("ip_version_type", ipVersionType)
 
 			if fetchCompleteData {
 				privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
@@ -151,6 +156,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 		for _, item := range *serviceConnections {
 			privateConnectionId := ""
 			subResourceNames := make([]any, 0)
+			var state privateendpoints.PrivateLinkServiceConnectionState
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -159,12 +165,16 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId
 				}
+				state = pointer.From(props.PrivateLinkServiceConnectionState)
 			}
 			attrs := map[string]any{
 				"name":                 pointer.From(item.Name),
 				"is_manual_connection": false,
 				"private_ip_address":   privateIPAddress,
 				"subresource_names":    subResourceNames,
+				"status":               pointer.From(state.Status),
+				"description":          pointer.From(state.Description),
+				"action_required":      pointer.From(state.ActionsRequired),
 			}
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
@@ -182,6 +192,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 			privateConnectionId := ""
 			requestMessage := ""
 			subResourceNames := make([]any, 0)
+			var state privateendpoints.PrivateLinkServiceConnectionState
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -193,6 +204,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				if props.RequestMessage != nil {
 					requestMessage = *props.RequestMessage
 				}
+				state = pointer.From(props.PrivateLinkServiceConnectionState)
 			}
 
 			attrs := map[string]any{
@@ -201,6 +213,9 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				"private_ip_address":   privateIPAddress,
 				"request_message":      requestMessage,
 				"subresource_names":    subResourceNames,
+				"status":               pointer.From(state.Status),
+				"description":          pointer.From(state.Description),
+				"action_required":      pointer.From(state.ActionsRequired),
 			}
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
