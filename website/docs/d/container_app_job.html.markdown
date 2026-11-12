@@ -27,6 +27,12 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Container App Job exists.
 
+---
+
+* `read_secrets` - (Optional) Should the data source read the secrets from the Container App Job? Defaults to `true`.
+
+-> **Note:** Reading secrets requires permission to perform the `Microsoft.App/jobs/listSecrets/action` action. Set `read_secrets` to `false` when the caller only has read access.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -55,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `schedule_trigger_config` - A `schedule_trigger_config` block as detailed below.
 
-* `secret` - One or more `secret` blocks as detailed below.
+* `secret` - One or more `secret` blocks as detailed below. This is only populated when `read_secrets` is `true`.
 
 * `template` - A `template` block as detailed below.
 
@@ -272,6 +278,8 @@ A `secret` block exports the following:
 * `name` - The secret name.
 
 * `value` - The value for this secret.
+
+-> **Note:** The `secret` block is marked as sensitive and will not be shown in plan output.
 
 ---
 

@@ -3216,7 +3216,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {

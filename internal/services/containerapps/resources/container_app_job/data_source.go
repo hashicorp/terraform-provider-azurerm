@@ -24,10 +24,31 @@ import (
 
 type DataSource struct{}
 
+type ContainerAppJobDataSourceModel struct {
+	Name                      string                                     `tfschema:"name"`
+	ResourceGroup             string                                     `tfschema:"resource_group_name"`
+	ReadSecrets               bool                                       `tfschema:"read_secrets"`
+	Location                  string                                     `tfschema:"location"`
+	ContainerAppEnvironmentId string                                     `tfschema:"container_app_environment_id"`
+	WorkloadProfileName       string                                     `tfschema:"workload_profile_name"`
+	Template                  []helpers.JobTemplateModel                 `tfschema:"template"`
+	ReplicaRetryLimit         int64                                      `tfschema:"replica_retry_limit"`
+	ReplicaTimeoutInSeconds   int64                                      `tfschema:"replica_timeout_in_seconds"`
+	Secrets                   []helpers.Secret                           `tfschema:"secret"`
+	Registries                []helpers.Registry                         `tfschema:"registry"`
+	EventTriggerConfig        []helpers.EventTriggerConfiguration        `tfschema:"event_trigger_config"`
+	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
+	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
+	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Tags                      map[string]any                             `tfschema:"tags"`
+	OutboundIPAddresses       []string                                   `tfschema:"outbound_ip_addresses"`
+	EventStreamEndpoint       string                                     `tfschema:"event_stream_endpoint"`
+}
+
 var _ sdk.DataSource = DataSource{}
 
 func (r DataSource) ModelObject() any {
-	return &ContainerAppJobModel{}
+	return &ContainerAppJobDataSourceModel{}
 }
 
 func (r DataSource) ResourceType() string {
@@ -43,6 +64,12 @@ func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+		"read_secrets": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 	}
 }
 
@@ -108,7 +135,7 @@ func (r DataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ContainerApps.JobClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state ContainerAppJobModel
+			var state ContainerAppJobDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -165,11 +192,13 @@ func (r DataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			secretResp, err := client.ListSecrets(ctx, id)
-			if err != nil {
-				return fmt.Errorf("listing secrets for %s: %+v", id, err)
+			if state.ReadSecrets {
+				secretResp, err := client.ListSecrets(ctx, id)
+				if err != nil {
+					return fmt.Errorf("listing secrets for %s: %+v", id, err)
+				}
+				state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
 			}
-			state.Secrets = helpers.FlattenContainerAppJobSecrets(secretResp.Model)
 
 			metadata.SetID(id)
 			return metadata.Encode(&state)
