@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_cluster
@@ -52,6 +52,23 @@ func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExten
 				},
 			)
 		}
+	}
+
+	return output
+}
+
+func flattenTrustedExternalTenants(input *[]clusters.TrustedExternalTenant) []any {
+	if input == nil {
+		return []any{}
+	}
+	output := make([]any, 0)
+
+	for _, v := range *input {
+		if v.Value == nil {
+			continue
+		}
+
+		output = append(output, *v.Value)
 	}
 
 	return output

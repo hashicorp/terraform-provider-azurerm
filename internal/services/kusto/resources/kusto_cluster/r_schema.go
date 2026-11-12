@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto_cluster
@@ -68,10 +68,13 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"trusted_external_tenants": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true, // azignore:AZS007 - pre-existing violation
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			// TODO: Remove this temporary workaround once a global fix for perpetual TypeList order diffs is available.
+			// The Azure Data Explorer API returns tenants in its own order, so compare sorted tenant lists.
+			DiffSuppressFunc: diffSuppressTrustedExternalTenants,
+			Type:             pluginsdk.TypeList,
+			Optional:         true,
+			Computed:         true, // azignore:AZS007 - pre-existing violation
+			ConfigMode:       pluginsdk.SchemaConfigModeAttr,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty, validation.StringInSlice([]string{"*"}, false)),
