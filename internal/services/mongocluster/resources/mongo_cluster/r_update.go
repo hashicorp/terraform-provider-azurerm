@@ -102,10 +102,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
-				payload.Properties.Storage = &mongoclusters.StorageProperties{
-					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
-				}
+				payload.Properties.Storage = expandMongoClusterStorage(state.StorageSizeInGb, state.StorageType)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

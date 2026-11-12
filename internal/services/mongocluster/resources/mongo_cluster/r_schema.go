@@ -205,18 +205,20 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"storage_size_in_gb": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// Note: O+C because geo replicas and point-in-time restores inherit the source cluster's storage size when omitted. Computed preserves the API-returned size without planning its removal.
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
 		"storage_type": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Note: O+C because the service team has indicated a default of `PremiumSSDv2` is preferred, however, this is not available in all regions so we'll omit it and let the service fallback to `PremiumSSD` if necessary.
+			Computed:     true,
 			ForceNew:     true,
-			Default:      string(mongoclusters.StorageTypePremiumSSD),
 			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForStorageType(), false),
-			RequiredWith: []string{"storage_size_in_gb"},
 		},
 
 		"tags": commonschema.Tags(),
