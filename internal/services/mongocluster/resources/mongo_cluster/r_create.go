@@ -107,11 +107,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			parameter.Properties.PublicNetworkAccess = pointer.ToEnum[mongoclusters.PublicNetworkAccess](state.PublicNetworkAccess)
 
-			if state.StorageSizeInGb != 0 {
-				parameter.Properties.Storage = &mongoclusters.StorageProperties{
-					SizeGb: pointer.To(state.StorageSizeInGb),
-					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
-				}
+			storage := expandMongoClusterStorage(state.StorageSizeInGb, state.StorageType)
+			if storage.SizeGb != nil || storage.Type != nil {
+				parameter.Properties.Storage = storage
 			}
 
 			if state.Tags != nil {
@@ -160,6 +158,19 @@ func (r Resource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandMongoClusterStorage(sizeInGb int64, storageType string) *mongoclusters.StorageProperties {
+	result := &mongoclusters.StorageProperties{}
+	if sizeInGb != 0 {
+		result.SizeGb = pointer.To(sizeInGb)
+	}
+
+	if storageType != "" {
+		result.Type = pointer.ToEnum[mongoclusters.StorageType](storageType)
+	}
+
+	return result
 }
 
 func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
