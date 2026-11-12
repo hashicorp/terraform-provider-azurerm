@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package private_endpoint
@@ -48,6 +48,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	ipConfigurations := d.Get("ip_configuration").([]any)
 	subnetId := d.Get("subnet_id").(string)
 	customNicName := d.Get("custom_network_interface_name").(string)
+	ipVersionType := d.Get("ip_version_type").(string)
 
 	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
 	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
@@ -69,6 +70,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 				Id: pointer.To(subnetId),
 			},
 			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](ipVersionType),
 			CustomNetworkInterfaceName: pointer.To(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_network
@@ -210,6 +210,12 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 
 	if v, ok := d.GetOk("address_space"); ok {
 		properties.AddressSpace.AddressPrefixes = pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("advertised_gateway_prefixes"); ok {
+		properties.SummarizedGatewayPrefixes = &virtualnetworks.AddressSpace{
+			AddressPrefixes: pluginsdk.ExpandStringSlice(v.(*pluginsdk.Set).List()),
+		}
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {

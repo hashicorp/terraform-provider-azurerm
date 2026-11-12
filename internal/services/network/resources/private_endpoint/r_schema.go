@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package private_endpoint
@@ -6,6 +6,7 @@ package private_endpoint
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -56,6 +57,13 @@ func privateEndpointSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
+		},
+
+		"ip_version_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour),
+			ValidateFunc: validation.StringInSlice(privateendpoints.PossibleValuesForPrivateEndpointIPVersionType(), false),
 		},
 
 		"private_dns_zone_group": {
@@ -131,6 +139,18 @@ func privateEndpointSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringLenBetween(1, 140),
 					},
 					"private_ip_address": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"action_required": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"status": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
