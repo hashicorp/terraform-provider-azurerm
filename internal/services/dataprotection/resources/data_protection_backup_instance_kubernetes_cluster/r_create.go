@@ -126,7 +126,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]backupinstanceresources.BackupDatasourceParameters {
 	if len(input) == 0 {
-		return nil
+		return pointer.To([]backupinstanceresources.BackupDatasourceParameters{
+			backupinstanceresources.KubernetesClusterBackupDatasourceParameters{},
+		})
 	}
 	results := make([]backupinstanceresources.BackupDatasourceParameters, 0)
 	results = append(results, backupinstanceresources.KubernetesClusterBackupDatasourceParameters{

@@ -221,8 +221,9 @@ resource "azurerm_role_assignment" "test_vault_data_operator_on_snap_rg" {
 }
 
 // Confirmed with the Service Team that we should wait for role propagation before creating the backup instance
+// Wait for at least 3mins to be consistent with portal
 resource "time_sleep" "wait_for_role_propagations" {
-  create_duration = "120s"
+  create_duration = "180s"
 
   depends_on = [
     azurerm_role_assignment.test_extension_and_storage_account_permission,
@@ -285,11 +286,6 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "import" {
   backup_policy_id             = azurerm_data_protection_backup_instance_kubernetes_cluster.test.backup_policy_id
   kubernetes_cluster_id        = azurerm_data_protection_backup_instance_kubernetes_cluster.test.kubernetes_cluster_id
   snapshot_resource_group_name = azurerm_data_protection_backup_instance_kubernetes_cluster.test.snapshot_resource_group_name
-
-  backup_datasource_parameters {
-    cluster_scoped_resources_enabled = false
-    volume_snapshot_enabled          = false
-  }
 }
 `, config)
 }
@@ -306,11 +302,6 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.test.id
   kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
   snapshot_resource_group_name = azurerm_resource_group.snap.name
-
-  backup_datasource_parameters {
-    cluster_scoped_resources_enabled = false
-    volume_snapshot_enabled          = false
-  }
 }
 `, template, data.RandomInteger)
 }

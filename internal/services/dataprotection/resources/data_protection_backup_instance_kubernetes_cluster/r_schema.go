@@ -48,6 +48,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C Azure requires datasource parameters. To avoid making the block required, create sends defaults when omitted and O+C retains the API response in state.
+			Computed: true,
 			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
