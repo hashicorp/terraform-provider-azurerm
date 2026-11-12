@@ -6,6 +6,7 @@ package eventhub_namespace
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/networkrulesets"
@@ -51,6 +52,53 @@ func eventhubNamespaceSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: clusters.ValidateClusterID,
+		},
+
+		"geo_replication": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"maximum_replication_lag_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Required: true,
+						ValidateFunc: validation.Any(
+							validation.IntInSlice([]int{0}),
+							validation.IntBetween(300, 86400),
+						),
+					},
+
+					"replica": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						MinItems: 2,
+						Set:      resourceGeoReplicationReplicaHash,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"location": {
+									Type:             pluginsdk.TypeString,
+									Required:         true,
+									ValidateFunc:     location.EnhancedValidate,
+									DiffSuppressFunc: location.DiffSuppressFunc,
+								},
+
+								"role": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(ehnamespaces.PossibleValuesForGeoDRRoleType(), false),
+								},
+
+								"dedicated_cluster_id": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: clusters.ValidateClusterID,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),

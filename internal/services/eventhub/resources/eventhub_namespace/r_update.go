@@ -79,6 +79,14 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(d.Get("maximum_throughput_units").(int)))
 	}
 
+	if d.HasChange("geo_replication") {
+		oldGeoReplication, newGeoReplication := d.GetChange("geo_replication")
+		parameters.Properties.GeoDataReplication = expandEventHubNamespaceGeoReplication(newGeoReplication.([]any))
+		if parameters.Properties.GeoDataReplication == nil {
+			parameters.Properties.GeoDataReplication = eventHubNamespaceGeoReplicationPrimaryOnly(oldGeoReplication.([]any), location)
+		}
+	}
+
 	// @favoretti: if we are downgrading from Standard to Basic SKU and namespace had both autoInflate enabled and
 	// maximumThroughputUnits set - we need to force throughput units back to 0, otherwise downgrade fails
 	//
@@ -132,4 +140,24 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	return resourceEventHubNamespaceRead(d, meta)
+}
+
+func eventHubNamespaceGeoReplicationPrimaryOnly(previous []any, namespaceLocation string) *ehnamespaces.GeoDataReplicationProperties {
+	primaryLocation := namespaceLocation
+	if existing := expandEventHubNamespaceGeoReplication(previous); existing != nil {
+		for _, replica := range pointer.From(existing.Locations) {
+			if pointer.From(replica.RoleType) == ehnamespaces.GeoDRRoleTypePrimary {
+				primaryLocation = pointer.From(replica.LocationName)
+			}
+		}
+	}
+
+	return &ehnamespaces.GeoDataReplicationProperties{
+		Locations: &[]ehnamespaces.NamespaceReplicaLocation{
+			{
+				LocationName: pointer.To(primaryLocation),
+				RoleType:     pointer.To(ehnamespaces.GeoDRRoleTypePrimary),
+			},
+		},
+	}
 }

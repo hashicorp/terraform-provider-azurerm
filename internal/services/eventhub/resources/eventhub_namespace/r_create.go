@@ -95,6 +95,8 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 		parameters.Properties.MaximumThroughputUnits = pointer.To(int64(v.(int)))
 	}
 
+	parameters.Properties.GeoDataReplication = expandEventHubNamespaceGeoReplication(d.Get("geo_replication").([]any))
+
 	if err := client.NamespacesCreateOrUpdateCallbackThenPoll(ctx, id, parameters, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -128,6 +130,35 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	return resourceEventHubNamespaceRead(d, meta)
+}
+
+func expandEventHubNamespaceGeoReplication(input []any) *ehnamespaces.GeoDataReplicationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	block := input[0].(map[string]any)
+
+	replicas := make([]ehnamespaces.NamespaceReplicaLocation, 0)
+	for _, raw := range block["replica"].(*pluginsdk.Set).List() {
+		replica := raw.(map[string]any)
+
+		replicaLocation := ehnamespaces.NamespaceReplicaLocation{
+			LocationName: pointer.To(location.Normalize(replica["location"].(string))),
+			RoleType:     pointer.ToEnum[ehnamespaces.GeoDRRoleType](replica["role"].(string)),
+		}
+
+		if v := replica["dedicated_cluster_id"].(string); v != "" {
+			replicaLocation.ClusterArmId = pointer.To(v)
+		}
+
+		replicas = append(replicas, replicaLocation)
+	}
+
+	return &ehnamespaces.GeoDataReplicationProperties{
+		MaxReplicationLagDurationInSeconds: pointer.To(int64(block["maximum_replication_lag_in_seconds"].(int))),
+		Locations:                          &replicas,
+	}
 }
 
 func expandEventHubNamespaceNetworkRuleset(input []any) (*networkrulesets.NetworkRuleSetProperties, error) {

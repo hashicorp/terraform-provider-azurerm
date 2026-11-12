@@ -51,6 +51,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return nil
 			}),
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
+			pluginsdk.CustomizeDiffShim(eventhubGeoReplicationDiff),
 		),
 	}
 }

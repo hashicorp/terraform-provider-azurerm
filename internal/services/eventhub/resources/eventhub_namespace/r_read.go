@@ -78,6 +78,10 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 			d.Set("minimum_tls_version", pointer.FromEnum(props.MinimumTlsVersion))
+
+			if err := d.Set("geo_replication", flattenEventHubNamespaceGeoReplication(props.GeoDataReplication)); err != nil {
+				return fmt.Errorf("setting `geo_replication`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -194,6 +198,85 @@ func resourceVnetRuleHash(v any) int {
 		}
 	}
 	return pluginsdk.HashString(buf.String())
+}
+
+// only a namespace with at least one `Secondary` replica is geo-replicated, so anything else flattens to an empty block
+func flattenEventHubNamespaceGeoReplication(input *ehnamespaces.GeoDataReplicationProperties) []any {
+	if input == nil || input.Locations == nil {
+		return []any{}
+	}
+
+	hasSecondary := false
+	replicas := make([]any, 0)
+	for _, replica := range *input.Locations {
+		role := pointer.FromEnum(replica.RoleType)
+		if strings.EqualFold(role, string(ehnamespaces.GeoDRRoleTypeSecondary)) {
+			hasSecondary = true
+		}
+
+		replicas = append(replicas, map[string]any{
+			"location":             location.NormalizeNilable(replica.LocationName),
+			"role":                 role,
+			"dedicated_cluster_id": pointer.From(replica.ClusterArmId),
+		})
+	}
+
+	if !hasSecondary {
+		return []any{}
+	}
+
+	return []any{
+		map[string]any{
+			"maximum_replication_lag_in_seconds": int(pointer.From(input.MaxReplicationLagDurationInSeconds)),
+			"replica":                            replicas,
+		},
+	}
+}
+
+func resourceGeoReplicationReplicaHash(v any) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]any); ok {
+		if v, ok := m["location"].(string); ok {
+			fmt.Fprintf(&buf, "%s-", location.Normalize(v))
+		}
+		if v, ok := m["role"].(string); ok {
+			fmt.Fprintf(&buf, "%s-", strings.ToLower(v))
+		}
+		if v, ok := m["dedicated_cluster_id"].(string); ok {
+			fmt.Fprintf(&buf, "%s-", strings.ToLower(v))
+		}
+	}
+	return pluginsdk.HashString(buf.String())
+}
+
+func eventhubGeoReplicationDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) error {
+	geoReplication := d.Get("geo_replication").([]any)
+	if len(geoReplication) == 0 || geoReplication[0] == nil {
+		return nil
+	}
+
+	replicas, ok := geoReplication[0].(map[string]any)["replica"].(*pluginsdk.Set)
+	if !ok {
+		return nil
+	}
+
+	primaries := 0
+	for _, raw := range replicas.List() {
+		role := raw.(map[string]any)["role"].(string)
+		if role == "" {
+			return nil
+		}
+		if role == string(ehnamespaces.GeoDRRoleTypePrimary) {
+			primaries++
+		}
+	}
+
+	if primaries != 1 {
+		return fmt.Errorf("exactly one `replica` in `geo_replication` must have `role` set to `%s`, got %d", ehnamespaces.GeoDRRoleTypePrimary, primaries)
+	}
+
+	return nil
 }
 
 func eventhubTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ any) (err error) {
