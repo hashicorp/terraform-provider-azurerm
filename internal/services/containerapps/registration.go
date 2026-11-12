@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_custom_domain"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_dapr_component"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_maintenance_configuration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_managed_certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_job"
@@ -54,6 +55,7 @@ func (r Registration) Resources() []sdk.Resource {
 		container_app_environment_certificate.Resource{},
 		container_app_environment_custom_domain.Resource{},
 		container_app_environment_dapr_component.Resource{},
+		container_app_environment_maintenance_configuration.Resource{},
 		container_app_environment_managed_certificate.Resource{},
 		container_app_environment.Resource{},
 		container_app_environment_storage.Resource{},
