@@ -82,6 +82,8 @@ resource "azurerm_oracle_cloud_vm_cluster" "example" {
 }
 ```
 
+-> **Note:** Anchor IDs are Azure resource IDs, rather than OCI OCIDs. The Oracle service validates the anchors, their placement and their association with the selected infrastructure and network. Existing configurations can continue to omit anchors. See the [anchor-backed VM cluster example](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/oracle/cloud-vm-cluster-anchors).
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -133,6 +135,10 @@ The following arguments are supported:
 * `sparse_diskgroup_enabled` - (Optional) If true, the sparse disk group is configured for the Cloud VM Cluster. If `false`, the sparse disk group is not created. Changing this forces a new Cloud VM Cluster to be created.
 
 * `memory_size_in_gbs` - (Optional) The memory to be allocated in GBs. Changing this forces a new Cloud VM Cluster to be created.
+
+* `network_anchor_id` - (Optional) The Azure resource ID of the Network Anchor associated with this Cloud VM Cluster. The `subnet_id` and `virtual_network_id` arguments are still required. Changing this forces a new resource to be created.
+
+* `resource_anchor_id` - (Optional) The Azure resource ID of the Resource Anchor associated with this Cloud VM Cluster. When omitted, the API inherits the Resource Anchor from the Exadata Infrastructure, if one is associated. Changing this forces a new resource to be created.
 
 * `scan_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. The default port to 1521. Changing this forces a new Cloud VM Cluster to be created.
 

@@ -95,6 +95,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_size_in_gbs` - The memory to be allocated in GBs.
 
+* `network_anchor_id` - The Azure resource ID of the associated Network Anchor.
+
 * `node_count` - The number of nodes in the Cloud VM Cluster.
 
 * `nsg_url` - The list of [OCIDs](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) for the network security groups (NSGs) to which this resource belongs. Setting this to an empty list removes all resources from all NSGs. For more information about NSGs, see [Security Rules](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/securityrules.htm). NsgIds restrictions:
@@ -105,6 +107,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Cloud VM Cluster.
 
 * `ocpu_count` - The number of OCPU cores to enable on the Cloud VM Cluster. Only 1 decimal place is allowed for the fractional part.
+
+* `resource_anchor_id` - The Azure resource ID of the associated Resource Anchor.
 
 * `scan_dns_name` - The FQDN of the DNS record for the SCAN IP addresses that are associated with the Cloud VM Cluster.
 

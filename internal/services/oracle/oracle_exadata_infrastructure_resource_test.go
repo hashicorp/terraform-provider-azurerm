@@ -108,6 +108,20 @@ func TestExaInfra_update(t *testing.T) {
 	})
 }
 
+func TestExaInfra_anchors(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
+	r := ExadataInfraResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{Config: r.anchors(data), Check: acceptance.ComposeTestCheckFunc(
+			check.That(data.ResourceName).ExistsInAzure(r),
+			//check.That("data.azurerm_oracle_exadata_infrastructure.test").Key("resource_anchor_id").MatchesOtherKey(check.That(data.ResourceName).Key("resource_anchor_id")),
+			//check.That(data.ResourceName).Key("resource_anchor_id").MatchesOtherKey(check.That("azurerm_oracle_resource_anchor.test").Key("id")),
+		)},
+		data.ImportStep(),
+	})
+}
+
 func (a ExadataInfraResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -244,4 +258,30 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (a ExadataInfraResource) anchors(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_oracle_exadata_infrastructure" "test" {
+  name                = "OFakeacctest%[2]d"
+  location            = "%[3]s"
+  resource_group_name = "TfRatestRg"
+  resource_anchor_id  ="/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/TfRatestRg/providers/Oracle.Database/resourceAnchors/testTfRaExa"
+  compute_count       = 2
+  display_name        = "OFakeacctest%[2]d"
+  shape               = "Exadata.X9M"
+  storage_count       = 3
+  zones               = local.zones
+}
+
+data "azurerm_oracle_exadata_infrastructure" "test" {
+  name                = azurerm_oracle_exadata_infrastructure.test.name
+  resource_group_name = azurerm_oracle_exadata_infrastructure.test.resource_group_name
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }

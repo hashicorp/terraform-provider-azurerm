@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/resourceanchors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,6 +39,7 @@ type ExadataInfraResourceModel struct {
 	CustomerContacts   []string                 `tfschema:"customer_contacts"`
 	DatabaseServerType string                   `tfschema:"database_server_type"`
 	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
+	ResourceAnchorId   string                   `tfschema:"resource_anchor_id"`
 	StorageServerType  string                   `tfschema:"storage_server_type"`
 	Zones              zones.Schema             `tfschema:"zones"`
 }
@@ -181,6 +183,13 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"resource_anchor_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: resourceanchors.ValidateResourceAnchorID,
+		},
+
 		"storage_server_type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -200,7 +209,7 @@ func (ExadataInfraResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (ExadataInfraResource) ModelObject() any {
-	return &ExadataInfraResource{}
+	return &ExadataInfraResourceModel{}
 }
 
 func (ExadataInfraResource) ResourceType() string {
@@ -246,6 +255,10 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					CustomerContacts: pointer.To(ExpandCustomerContacts(model.CustomerContacts)),
 				},
 			}
+			if model.ResourceAnchorId != "" {
+				param.Properties.ResourceAnchorId = pointer.To(model.ResourceAnchorId)
+			}
+
 			if model.DatabaseServerType != "" {
 				param.Properties.DatabaseServerType = pointer.To(model.DatabaseServerType)
 			}
@@ -335,6 +348,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 				state.Zones = zones.Flatten(&model.Zones)
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
+					state.ResourceAnchorId = pointer.From(props.ResourceAnchorId)
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
 					state.Name = pointer.From(result.Model.Name)
 					state.ResourceGroupName = id.ResourceGroupName

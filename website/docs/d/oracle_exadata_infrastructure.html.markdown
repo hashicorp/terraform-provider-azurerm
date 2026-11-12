@@ -97,6 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Cloud Exadata Infrastructure.
 
+* `resource_anchor_id` - The Azure resource ID of the associated Resource Anchor.
+
 * `shape` - The model name of the Cloud Exadata Infrastructure resource.
 
 * `storage_count` - The number of storage servers for the Cloud Exadata Infrastructure.

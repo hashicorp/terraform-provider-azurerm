@@ -32,6 +32,8 @@ resource "azurerm_oracle_exadata_infrastructure" "example" {
 }
 ```
 
+-> **Note:** Anchor IDs are Azure resource IDs, rather than OCI OCIDs. The Oracle service validates the anchors, their placement and their association with the selected infrastructure and network. Existing configurations can continue to omit anchors. See the [anchor-backed infrastructure example](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/oracle/exadata-infrastructure-resource-anchor).
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -51,6 +53,8 @@ The following arguments are supported:
 * `storage_count` - (Required) The number of storage servers for the Cloud Exadata Infrastructure. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
 * `database_server_type` - (Optional) The database server model type of the cloud Exadata infrastructure resource. Changing this forces a new Cloud Exadata Infrastructure to be created.
+
+* `resource_anchor_id` - (Optional) The Azure resource ID of the Resource Anchor associated with this Exadata Infrastructure. Changing this forces a new resource to be created.
 
 * `storage_server_type` - (Optional) The storage server model type of the cloud Exadata infrastructure resource. Changing this forces a new Cloud Exadata Infrastructure to be created.
 

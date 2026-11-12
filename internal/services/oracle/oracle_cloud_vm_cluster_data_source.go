@@ -21,6 +21,8 @@ import (
 type CloudVmClusterDataSource struct{}
 
 type CloudVmClusterDataModel struct {
+	ResourceAnchorId  string            `tfschema:"resource_anchor_id"`
+	NetworkAnchorId   string            `tfschema:"network_anchor_id"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
@@ -116,7 +118,13 @@ func (d CloudVmClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": commonschema.LocationComputed(),
+		"resource_anchor_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"network_anchor_id": {Type: pluginsdk.TypeString, Computed: true},
+		"location":          commonschema.LocationComputed(),
 
 		// CloudVMClusterProperties
 		"backup_subnet_cidr": {
@@ -493,6 +501,8 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 				if props := model.Properties; props != nil {
+					state.ResourceAnchorId = pointer.From(props.ResourceAnchorId)
+					state.NetworkAnchorId = pointer.From(props.NetworkAnchorId)
 					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
 					state.CloudExadataInfrastructureId = props.CloudExadataInfrastructureId
 					state.ClusterName = pointer.From(props.ClusterName)

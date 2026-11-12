@@ -24,6 +24,7 @@ type ExadataInfraDataSource struct{}
 type ExadataInfraDataModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
+	ResourceAnchorId  string            `tfschema:"resource_anchor_id"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema      `tfschema:"zones"`
@@ -332,6 +333,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"resource_anchor_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -431,6 +437,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Zones = zones.Flatten(&model.Zones)
 				if props := model.Properties; props != nil {
+					state.ResourceAnchorId = pointer.From(props.ResourceAnchorId)
 					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
 					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
 					state.AdditionalStorageCount = pointer.From(props.AdditionalStorageCount)

@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/networkanchors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2026-06-01/resourceanchors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
@@ -50,6 +52,8 @@ type CloudVmClusterResourceModel struct {
 	VnetId                       string   `tfschema:"virtual_network_id"`
 
 	// Optional
+	NetworkAnchorId          string                         `tfschema:"network_anchor_id"`
+	ResourceAnchorId         string                         `tfschema:"resource_anchor_id"`
 	BackupSubnetCidr         string                         `tfschema:"backup_subnet_cidr"`
 	ClusterName              string                         `tfschema:"cluster_name"`
 	DataCollectionOptions    []DataCollectionOptionsModel   `tfschema:"data_collection_options"`
@@ -251,6 +255,20 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"resource_anchor_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: resourceanchors.ValidateResourceAnchorID,
+		},
+
+		"network_anchor_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: networkanchors.ValidateNetworkAnchorID,
+		},
+
 		"scan_listener_port_tcp": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -325,7 +343,7 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (CloudVmClusterResource) ModelObject() any {
-	return &CloudVmClusterResource{}
+	return &CloudVmClusterResourceModel{}
 }
 
 func (CloudVmClusterResource) ResourceType() string {
@@ -374,6 +392,14 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 					SubnetId:                     model.SubnetId,
 					VnetId:                       model.VnetId,
 				},
+			}
+
+			if model.ResourceAnchorId != "" {
+				param.Properties.ResourceAnchorId = pointer.To(model.ResourceAnchorId)
+			}
+
+			if model.NetworkAnchorId != "" {
+				param.Properties.NetworkAnchorId = pointer.To(model.NetworkAnchorId)
 			}
 
 			if len(model.FileSystemConfiguration) > 0 {
@@ -504,6 +530,8 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
+					state.ResourceAnchorId = pointer.From(props.ResourceAnchorId)
+					state.NetworkAnchorId = pointer.From(props.NetworkAnchorId)
 					state.CloudExadataInfrastructureId = props.CloudExadataInfrastructureId
 					state.CpuCoreCount = props.CpuCoreCount
 					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
