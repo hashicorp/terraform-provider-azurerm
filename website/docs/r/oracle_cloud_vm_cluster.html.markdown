@@ -46,10 +46,6 @@ resource "azurerm_subnet" "example" {
     name = "delegation"
 
     service_delegation {
-      actions = [
-        "Microsoft.Network/networkinterfaces/*",
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
       name = "Oracle.Database/networkAttachments"
     }
   }

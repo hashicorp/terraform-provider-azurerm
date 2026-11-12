@@ -275,9 +275,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name = "NGINX.NGINXPLUS/nginxDeployments"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 }

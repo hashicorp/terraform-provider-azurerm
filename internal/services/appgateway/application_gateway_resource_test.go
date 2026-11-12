@@ -6251,9 +6251,6 @@ resource "azurerm_subnet" "test" {
 
     service_delegation {
       name = "Microsoft.Network/applicationGateways"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
     }
   }
 

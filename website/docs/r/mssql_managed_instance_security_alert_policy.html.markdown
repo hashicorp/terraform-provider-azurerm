@@ -155,8 +155,7 @@ resource "azurerm_subnet" "example" {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
