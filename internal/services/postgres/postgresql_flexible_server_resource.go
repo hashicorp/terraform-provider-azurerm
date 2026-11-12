@@ -645,7 +645,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					return nil
 				}
 
-				// `4194304` disables host caching, so Azure only supports it for non-Default create modes whose source server already uses that size.
+				// The service team requested removing `4194304` for SSDv1 to preserve host caching and align with the portal and other tools.
+				// Non-Default create modes remain exempt to accommodate source servers already using that size.
 				if createMode := servers.CreateMode(diff.Get("create_mode").(string)); createMode == "" || createMode == servers.CreateModeDefault {
 					return errors.New("`storage_mb` value `4194304` is not supported because it disables host caching, use `4193280` instead")
 				}
