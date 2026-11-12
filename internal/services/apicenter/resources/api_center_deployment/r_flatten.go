@@ -2,7 +2,6 @@ package api_center_deployment
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -10,8 +9,8 @@ import (
 
 func (r Resource) flatten(metadata sdk.ResourceMetaData, id *deployments.DeploymentId, model *deployments.Deployment) error {
 	state := ApiCenterDeploymentModel{
-		Name:  id.DeploymentName,
-		ApiId: apis.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceName, id.ApiName).ID(),
+		Name: id.DeploymentName,
+		// Id: deployments.NewDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceName, id.ApiName, id.DeploymentName).ID(),
 	}
 
 	if props := model.Properties; props != nil {

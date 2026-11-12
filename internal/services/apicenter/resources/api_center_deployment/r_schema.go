@@ -26,7 +26,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"api_center_api_definition_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ValidateFunc: apidefinitions.ValidateDefinitionID,
 		},
 		"description": {
@@ -39,21 +39,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: environments.ValidateEnvironmentID,
 		},
-		"server": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"runtime_uri": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-						},
-					},
-				},
+		"server_runtime_uri": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 		},
 		"state": {

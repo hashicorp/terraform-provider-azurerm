@@ -48,6 +48,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(model.Name),
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
+				Sku:      services.Sku{Name: model.SkuName},
 				Identity: expandedIdentity,
 			}
 

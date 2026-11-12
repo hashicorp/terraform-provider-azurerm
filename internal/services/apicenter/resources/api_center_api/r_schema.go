@@ -24,9 +24,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: services.ValidateServiceID,
 		},
 
-		"contacts": {
+		"contact": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -55,6 +56,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"external_documentation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MinItems: 1,
 			MaxItems: 20,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

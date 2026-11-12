@@ -15,8 +15,9 @@ import (
 type Resource struct{}
 
 var (
-	_ sdk.ResourceWithIdentity = Resource{}
-	_ sdk.ResourceWithUpdate   = Resource{}
+	_ sdk.ResourceWithIdentity      = Resource{}
+	_ sdk.ResourceWithUpdate        = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
 )
 
 func (r Resource) Identity() resourceids.ResourceId {

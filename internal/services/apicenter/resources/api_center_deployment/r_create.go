@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,12 +28,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 				config.Title = config.Name
 			}
 
-			api, err := apis.ParseApiID(config.ApiId)
+			definition, err := apidefinitions.ParseDefinitionID(config.DefinitionId)
 			if err != nil {
 				return err
 			}
 
-			id := deployments.NewDeploymentID(subscriptionId, api.ResourceGroupName, api.ServiceName, api.WorkspaceName, api.ApiName, config.Name)
+			id := deployments.NewDeploymentID(subscriptionId, definition.ResourceGroupName, definition.ServiceName, definition.WorkspaceName, definition.ApiName, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -44,6 +44,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
+
+			//definition, err  := apidefinitions.ParseDefinitionID(config.DefinitionId)
+			//if err != nil {
+			//	return err
+			//}
+			//definitionId := apidefinitions.NewDefinitionID(subscriptionId, definition.ResourceGroupName, definition.ServiceName, definition.WorkspaceName, definition.ApiName, definition.VersionName, definition.DefinitionName)
+			//
+			//
 
 			payload := deployments.Deployment{
 				Name: new(config.Name),

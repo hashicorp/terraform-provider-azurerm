@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,7 +29,7 @@ func TestAccApiCenterDeployment_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("api_center_api_id").MatchesOtherKey(check.That("azurerm_api_center_api.test").Key("id")),
+				check.That(data.ResourceName).Key("api_center_api_definition_id").MatchesOtherKey(check.That("azurerm_api_center_api_definition.test").Key("id")),
 				check.That(data.ResourceName).Key("display_name").MatchesOtherKey(check.That(data.ResourceName).Key("name")),
 			),
 		},
@@ -45,6 +46,14 @@ func TestAccApiCenterDeployment_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_center_api_definition_id").MatchesOtherKey(check.That("azurerm_api_center_api_definition.test").Key("id")),
+				check.That(data.ResourceName).Key("environment_id").MatchesOtherKey(check.That("azurerm_api_center_environment.test").Key("id")),
+				check.That(data.ResourceName).Key("description").HasValue("An API deployment for acceptance testing."),
+				check.That(data.ResourceName).Key("display_name").HasValue("Acceptance Test Deployment"),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+				check.That(data.ResourceName).Key("server_runtime_uri.#").HasValue("2"),
+				resource.TestCheckTypeSetElemAttr(data.ResourceName, "server_runtime_uri.*", "https://example.com/api"),
+				resource.TestCheckTypeSetElemAttr(data.ResourceName, "server_runtime_uri.*", "https://example.com/api-secondary"),
 			),
 		},
 		data.ImportStep(),
@@ -82,6 +91,14 @@ func TestAccApiCenterDeployment_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_center_api_definition_id").MatchesOtherKey(check.That("azurerm_api_center_api_definition.test").Key("id")),
+				check.That(data.ResourceName).Key("environment_id").MatchesOtherKey(check.That("azurerm_api_center_environment.test").Key("id")),
+				check.That(data.ResourceName).Key("description").HasValue("An API deployment for acceptance testing."),
+				check.That(data.ResourceName).Key("display_name").HasValue("Acceptance Test Deployment"),
+				check.That(data.ResourceName).Key("state").HasValue("active"),
+				check.That(data.ResourceName).Key("server_runtime_uri.#").HasValue("2"),
+				resource.TestCheckTypeSetElemAttr(data.ResourceName, "server_runtime_uri.*", "https://example.com/api"),
+				resource.TestCheckTypeSetElemAttr(data.ResourceName, "server_runtime_uri.*", "https://example.com/api-secondary"),
 			),
 		},
 		data.ImportStep(),
@@ -89,6 +106,7 @@ func TestAccApiCenterDeployment_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("server_runtime_uri.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -136,6 +154,17 @@ resource "azurerm_api_center_api" "test" {
   kind                  = "rest"
   terms_of_service_url  = "https://example.com/terms"
 }
+
+resource "azurerm_api_center_api_version" "test" {
+  name              = "acctest-version-%[1]d"
+  api_center_api_id = azurerm_api_center_api.test.id
+  lifecycle_stage   = "testing"
+}
+
+resource "azurerm_api_center_api_definition" "test" {
+  name                      = "acctest-definition-%[1]d"
+  api_center_api_version_id = azurerm_api_center_api_version.test.id
+}
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -144,8 +173,8 @@ func (r ApiCenterDeploymentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_deployment" "test" {
-  name              = "acctest%d"
-  api_center_api_id = azurerm_api_center_api.test.id
+  name                         = "acctest%d"
+  api_center_api_definition_id = azurerm_api_center_api_definition.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -153,19 +182,6 @@ resource "azurerm_api_center_deployment" "test" {
 func (r ApiCenterDeploymentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-
-resource "azurerm_api_center_api_version" "test" {
-  name              = "acctest-version-%[2]d"
-  api_center_api_id = azurerm_api_center_api.test.id
-  lifecycle_stage   = "testing"
-  display_name      = "Acceptance Test API Version"
-}
-
-resource "azurerm_api_center_api_definition" "test" {
-  name                      = "acctest-definition-%[2]d"
-  api_center_api_version_id = azurerm_api_center_api_version.test.id
-  display_name              = "Acceptance Test API Definition"
-}
 
 resource "azurerm_api_center_environment" "test" {
   name                  = "acctest-environment-%[2]d"
@@ -175,20 +191,17 @@ resource "azurerm_api_center_environment" "test" {
 }
 
 resource "azurerm_api_center_deployment" "test" {
-  name              = "acctest%[2]d"
-  api_center_api_id = azurerm_api_center_api.test.id
-  definition_id     = trimprefix(azurerm_api_center_api_definition.test.id, azurerm_api_center_service.test.id)
-  description       = "An API deployment for acceptance testing."
-  environment_id    = trimprefix(azurerm_api_center_environment.test.id, azurerm_api_center_service.test.id)
-  state             = "active"
-  display_name      = "Acceptance Test Deployment"
+  name                         = "acctest%[2]d"
+  api_center_api_definition_id = azurerm_api_center_api_definition.test.id
+  description                  = "An API deployment for acceptance testing."
+  environment_id               = azurerm_api_center_environment.test.id
+  state                        = "active"
+  display_name                 = "Acceptance Test Deployment"
 
-  server {
-    runtime_uri = [
-      "https://example.com/api",
-      "https://example.com/api-secondary",
-    ]
-  }
+  server_runtime_uri = [
+    "https://example.com/api",
+    "https://example.com/api-secondary",
+  ]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -198,8 +211,8 @@ func (r ApiCenterDeploymentResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_center_deployment" "import" {
-  name              = azurerm_api_center_deployment.test.name
-  api_center_api_id = azurerm_api_center_deployment.test.api_center_api_id
+  name                         = azurerm_api_center_deployment.test.name
+  api_center_api_definition_id = azurerm_api_center_deployment.test.api_center_api_definition_id
 }
 `, r.basic(data))
 }

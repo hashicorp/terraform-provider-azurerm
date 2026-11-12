@@ -5,7 +5,6 @@ package api_center_deployment_test
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -41,7 +40,7 @@ func TestAccApiCenterDeployment_listByApiID(t *testing.T) {
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"api_center_api_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"api_name":            knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
@@ -52,14 +51,7 @@ func TestAccApiCenterDeployment_listByApiID(t *testing.T) {
 }
 
 func (r ApiCenterDeploymentResource) basicList(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_center_deployment" "test" {
-  name              = "acctest%d"
-  api_center_api_id = azurerm_api_center_api.test.id
-}
-`, r.template(data), data.RandomInteger)
+	return r.basic(data)
 }
 
 func (r ApiCenterDeploymentResource) basicQuery() string {

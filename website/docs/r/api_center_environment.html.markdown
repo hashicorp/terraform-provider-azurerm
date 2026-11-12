@@ -1,96 +1,56 @@
 ---
-subcategory: "ApiCenter"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_center_environment"
+page_title: "Resource: azurerm_api_center_environment"
+subcategory: ""
 description: |-
-  Manages an API Center Environment.
+  Documentation for azurerm_api_center_environment.
 ---
 
-# azurerm_api_center_environment
+# Resource: azurerm_api_center_environment
 
-Manages an API Center Environment.
-
-## Example Usage
-
-```hcl
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_api_center_service" "example" {
-  name                = "apicenter-example"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_api_center_environment" "example" {
-  name                   = "test"
-  api_center_service_id  = azurerm_api_center_service.example.id
-  environment_type       = "testing"
-  description            = "example environment"
-  development_portal_uri = "https://developer.com"
-  instructions           = "Use this wonderful API to CRUD brilliant data."
-  server_type            = "Azure API Management"
-  management_portal_uri  = "https://azure-apim-mgmt-portal.azure.com"
-}
-```
+Documentation for azurerm_api_center_environment.
 
 ## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The Name which should be used for this API Center Environment. Changing this forces a new API Center Environment to be created.
+* `name` - (Required) No description provided. Changing this value forces a new resource to be created.
 
-* `api_center_service_id` - (Required) The ID of the API Center Service where this API Center Environment should exist. Changing this forces a new API Center Environment to be created.
+* `api_center_service_id` - (Required) No description provided. Changing this value forces a new resource to be created.
 
-* `display_name` - (Optional) Display name of this API Center Environment. Defaults to the value of `name`.
+* `description` - (Optional) No description provided.
 
-* `environment_type` - (Required) Type of this API Center Environment. Possible values are `development`, `testing`, `staging` and `production`. Changing this forces a new API Center Environment to be created.
+* `development_portal_uri` - (Optional) No description provided.
 
-* `description` - (Optional) A description of this API Center Environment.
+* `display_name` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
 
-* `development_portal_uri` - (Optional) URI of development portal for this API Center Environment.
+* `environment_type` - (Required) No description provided. Possible values include `development`, `production`, `staging`, and `testing`. Changing this value forces a new resource to be created.
 
-* `instructions` - (Optional) Arbitrary auxiliary instructions for this API Center Environment.
+* `instructions` - (Optional) No description provided.
 
-* `server_type` - (Optional) Server type for this API Center Environment. Possible values are `AWS API Gateway`, `Apigee API Management`, `Azure API Management`, `Azure compute service`, `Kong API Gateway`, `Kubernetes` and `MuleSoft API Management`.
+* `management_portal_uri` - (Optional) No description provided.
 
-* `management_portal_uri` - (Optional) URI of management portal for this API Center Environment.
+* `server_type` - (Optional) No description provided. Possible values include `AWS API Gateway`, `Apigee API Management`, `Azure API Management`, `Azure compute service`, `Kong API Gateway`, `Kubernetes`, and `MuleSoft API Management`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported:
+The following attributes are exported:
 
-* `id` - The ID of the API Center Environment.
+* `id` - The ID of the Resource
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the API Center Environment.
-* `read` - (Defaults to 5 minutes) Used when retrieving the API Center Environment.
-* `update` - (Defaults to 30 minutes) Used when updating the API Center Environment.
-* `delete` - (Defaults to 30 minutes) Used when deleting the API Center Environment.
+* `create` - (Defaults to 30 minutes) Used when creating the resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the resource.
+* `update` - (Defaults to 30 minutes) Used when updating the resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the resource.
 
 ## Import
 
-API Center Environment can be imported using the `resource id`, e.g.
+This resource can be imported using its resource ID, e.g.
 
 ```shell
-terraform import azurerm_api_center_environment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.ApiCenter/services/example/workspaces/default/environments/example
+terraform import azurerm_api_center_environment.example "<resource-id>"
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.ApiCenter` - 2024-03-01

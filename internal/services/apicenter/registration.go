@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_deployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_environment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_service"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -65,7 +64,6 @@ func (r Registration) Resources() []sdk.Resource {
 		api_center_deployment.Resource{},
 		api_center_environment.Resource{},
 		api_center_service.Resource{},
-		api_center_workspace.Resource{},
 	}
 }
 
@@ -93,6 +91,5 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		api_center_deployment.ListResource{},
 		api_center_environment.ListResource{},
 		api_center_service.ListResource{},
-		api_center_workspace.ListResource{},
 	}
 }

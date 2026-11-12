@@ -46,6 +46,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 				existing.Model.Identity = identityValue
 			}
 
+			if metadata.ResourceData.HasChange("sku_name") {
+				existing.Model.Sku = services.Sku{Name: state.SkuName}
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = pointer.To(state.Tags)
 			}

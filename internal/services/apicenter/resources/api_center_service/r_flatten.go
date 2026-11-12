@@ -26,6 +26,8 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *services.ServiceId,
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
 
+		state.SkuName = model.Sku.Name
+
 		state.Identity = identityValue
 	}
 

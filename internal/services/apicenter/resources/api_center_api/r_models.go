@@ -3,7 +3,7 @@ package api_center_api
 type ApiCenterApiModel struct {
 	ServiceId             string                  `tfschema:"api_center_service_id"`
 	Name                  string                  `tfschema:"name"`
-	Contacts              []Contact               `tfschema:"contacts"`
+	Contacts              []Contact               `tfschema:"contact"`
 	Description           string                  `tfschema:"description"`
 	ExternalDocumentation []ExternalDocumentation `tfschema:"external_documentation"`
 	Kind                  string                  `tfschema:"kind"`

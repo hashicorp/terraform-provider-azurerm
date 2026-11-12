@@ -42,7 +42,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 
-			if metadata.ResourceData.HasChange("contacts") {
+			if metadata.ResourceData.HasChange("contact") {
 				model.Properties.Contacts = expandContactList(state.Contacts)
 			}
 			if metadata.ResourceData.HasChange("description") {

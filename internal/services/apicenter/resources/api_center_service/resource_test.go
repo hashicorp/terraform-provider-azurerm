@@ -63,6 +63,27 @@ func TestAccApiCenterService_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccApiCenterService_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
+	r := ApiCenterServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.standardSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiCenterServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := services.ParseServiceID(state.ID)
 	if err != nil {
@@ -105,6 +126,28 @@ resource "azurerm_api_center_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r ApiCenterServiceResource) standardSku(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_center_service" "test" {
+  name                = "acctestApiCSvc%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name           = "Standard"
+	
   identity {
     type = "SystemAssigned"
   }

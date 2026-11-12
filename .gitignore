@@ -74,3 +74,6 @@ AGENTS.md
 
 # lychee link-checker cache (make linkcheck-external)
 .lycheecache
+
+# unimportant files for Pterodactyl flap flap
+.pterodactyl
