@@ -24,6 +24,9 @@ type GoBuild struct {
 	Version         *version.Version
 	DetectVendoring bool
 
+	// Args are any additional args (other than -o) to pass to "go build"
+	Args []string
+
 	pathToRemove string
 	logger       *log.Logger
 }
@@ -72,6 +75,7 @@ func (gb *GoBuild) Build(ctx context.Context, repoDir, targetDir, binaryName str
 	}
 
 	buildArgs := []string{"build", "-o", filepath.Join(targetDir, binaryName)}
+	buildArgs = append(buildArgs, gb.Args...)
 
 	if gb.DetectVendoring {
 		vendorDir := filepath.Join(repoDir, "vendor")
