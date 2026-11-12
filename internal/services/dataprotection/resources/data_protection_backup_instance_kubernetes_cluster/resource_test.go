@@ -396,7 +396,7 @@ resource "azurerm_role_assignment" "test_uai_data_operator_on_snap_rg" {
 
 // Confirm with the Service Team that we should wait for role propagation before creating the backup instance
 resource "time_sleep" "wait_for_role_propagations" {
-  create_duration = "120s"
+  create_duration = "180s"
 
   depends_on = [
     azurerm_role_assignment.test_uai_read_on_cluster,
