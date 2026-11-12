@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_integration_runtime_azure_ssis_test
@@ -18,6 +18,17 @@ import (
 )
 
 type IntegrationRuntimeManagedSsisResource struct{}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, "Basic"),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")

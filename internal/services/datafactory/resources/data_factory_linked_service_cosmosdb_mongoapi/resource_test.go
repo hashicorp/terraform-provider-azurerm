@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_cosmosdb_mongoapi_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceCosmosDBMongoAPIResource struct{}
+
+func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb_mongoapi", "test")
+	r := LinkedServiceCosmosDBMongoAPIResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceCosmosDbMongoAPI_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb_mongoapi", "test")

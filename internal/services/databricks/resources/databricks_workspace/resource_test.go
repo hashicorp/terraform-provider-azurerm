@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_workspace_test
@@ -26,6 +26,17 @@ type DatabricksWorkspaceResource struct{}
 type DatabricksWorkspaceAlternateSubscription struct {
 	tenantID       string
 	subscriptionID string
+}
+
+func TestAccDatabricksWorkspace_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
 }
 
 func TestAccDatabricksWorkspace_basic(t *testing.T) {

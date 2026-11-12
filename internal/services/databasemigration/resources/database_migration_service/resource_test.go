@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_service_test
@@ -6,6 +6,7 @@ package database_migration_service_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +19,16 @@ import (
 
 type DatabaseMigrationServiceResource struct{}
 
+func TestAccDatabaseMigrationService_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
+	r := DatabaseMigrationServiceResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDatabaseMigrationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	r := DatabaseMigrationServiceResource{}
@@ -26,6 +37,7 @@ func TestAccDatabaseMigrationService_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Network/networkInterfaces/[^/]+$`)),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_1vCores"),
 			),
@@ -42,6 +54,7 @@ func TestAccDatabaseMigrationService_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Network/networkInterfaces/[^/]+$`)),
 				check.That(data.ResourceName).Key("subnet_id").Exists(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_1vCores"),
 				check.That(data.ResourceName).Key("tags.name").HasValue("test"),

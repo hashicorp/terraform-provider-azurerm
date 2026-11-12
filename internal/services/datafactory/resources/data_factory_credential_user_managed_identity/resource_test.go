@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_credential_user_managed_identity_test
@@ -17,6 +17,17 @@ import (
 )
 
 type CredentialUserAssignedManagedIdentityResource struct{}
+
+func TestAccDataFactoryCredentialUserAssignedManagedIdentity_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")
+	r := CredentialUserAssignedManagedIdentityResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryCredentialUserAssignedManagedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_credential_user_managed_identity", "test")

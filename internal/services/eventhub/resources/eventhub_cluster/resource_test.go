@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub_cluster_test
@@ -17,6 +17,17 @@ import (
 )
 
 type EventHubClusterResource struct{}
+
+func TestAccEventHubCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
+	r := EventHubClusterResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccEventHubCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")

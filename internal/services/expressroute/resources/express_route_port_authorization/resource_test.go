@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_port_authorization_test
@@ -17,6 +17,17 @@ import (
 )
 
 type ExpressRoutePortAuthorizationResource struct{}
+
+func TestAccExpressRoutePortAuthorization_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_port_authorization", "test")
+	r := ExpressRoutePortAuthorizationResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccExpressRoutePortAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port_authorization", "test")

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package role_assignment
@@ -64,9 +64,10 @@ func roleAssignmentSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"principal_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"principal_type": {

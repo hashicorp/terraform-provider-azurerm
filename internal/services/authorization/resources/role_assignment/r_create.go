@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package role_assignment
@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/helpers"
@@ -58,12 +57,10 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta any) error 
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		generatedUUID, err := uuid.GenerateUUID()
+		name, err = parse.RoleAssignmentName(scopeId.Scope, principalId, roleDefinitionId)
 		if err != nil {
-			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
+			return fmt.Errorf("generating role assignment name: %+v", err)
 		}
-
-		name = generatedUUID
 	}
 
 	tenantId := ""

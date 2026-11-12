@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster
@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -87,6 +87,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
 	updateCluster := false
+	updateTagsOnly := d.HasChange("tags") && !d.HasChangesExcept("tags")
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control_enabled") {
@@ -140,6 +141,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			return err
 		}
 		existing.Model.Properties.AddonProfiles = addonProfiles
+
+		// TODO: Migrate `oms_agent` legacy add-on flow to the `azureMonitorProfile.containerInsights` API object
+		// Note: the add-on block (`oms_agent`) supports additional fields that are not exposed in the object, investigate
+		if d.HasChange("oms_agent") {
+			// In API version 2026-06-01 and above, the `containerInsights` settings overlap with the add-on payload, with the former taking precedence which causes perpetual diffs.
+			// For now, remove from payload to ensure add-on values are used, preserving existing behaviour.
+			if props.AzureMonitorProfile != nil {
+				props.AzureMonitorProfile.ContainerInsights = nil
+			}
+		}
 	}
 
 	if d.HasChanges("run_command_enabled", "private_cluster_public_fqdn_enabled", "api_server_access_profile") {
@@ -354,7 +365,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	if d.HasChange("tags") {
-		updateCluster = true
+		updateCluster = !updateTagsOnly
 		t := d.Get("tags").(map[string]any)
 		existing.Model.Tags = tags.Expand(t)
 	}
@@ -558,6 +569,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 
 		if err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+	} else if updateTagsOnly {
+		// if Tags are the only thing that's changed we can use the lighter-weight Update Tags API, which issues a
+		// PATCH, rather than the full Create/Update API, which issues a PUT and can trigger an unnecessary cluster
+		// reconcile
+		tagsObject := managedclusters.TagsObject{
+			Tags: existing.Model.Tags,
+		}
+		if err = clusterClient.UpdateTagsThenPoll(ctx, *id, tagsObject, managedclusters.DefaultUpdateTagsOperationOptions()); err != nil {
+			return fmt.Errorf("updating tags for %s: %+v", *id, err)
 		}
 	}
 

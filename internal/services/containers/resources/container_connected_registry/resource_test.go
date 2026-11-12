@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_connected_registry_test
@@ -18,6 +18,17 @@ import (
 )
 
 type ContainerConnectedRegistryResource struct{}
+
+func TestAccContainerConnectedRegistry_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_connected_registry", "test")
+	r := ContainerConnectedRegistryResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccContainerConnectedRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_connected_registry", "test")
@@ -211,7 +222,7 @@ resource "azurerm_container_connected_registry" "test" {
   # This is necessary to make the Terraform apply order works correctly.
   # Without CBD: azurerm_container_registry_token.client (destroy) -> azurerm_container_connected_registry.test (update)
   # 			 (the 1st step will fail as the token is under used by the connected registry)
-  # With CBD   : azurerm_container_connected_registry.test (update) -> azurerm_container_registry_token.client (destroy) 
+  # With CBD   : azurerm_container_connected_registry.test (update) -> azurerm_container_registry_token.client (destroy)
   lifecycle {
     create_before_destroy = true
   }

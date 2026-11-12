@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_vault_test
@@ -18,6 +18,16 @@ import (
 )
 
 type DataProtectionBackupVaultDataSource struct{}
+
+func TestAccDataProtectionBackupVaultDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataProtectionBackupVaultDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_protection_backup_vault", "test")

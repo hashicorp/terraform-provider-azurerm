@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_disk_test
@@ -19,6 +19,16 @@ import (
 )
 
 type DataProtectionBackupInstanceDiskResource struct{}
+
+func TestAccDataProtectionBackupInstanceDisk_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")
+	r := DataProtectionBackupInstanceDiskResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataProtectionBackupInstanceDisk_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")

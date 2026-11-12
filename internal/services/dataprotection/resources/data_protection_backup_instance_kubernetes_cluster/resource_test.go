@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_instance_kubernetes_cluster_test
@@ -18,6 +18,16 @@ import (
 )
 
 type DataProtectionBackupInstanceKubernetesClusterResource struct{}
+
+func TestAccDataProtectionBackupInstanceKubernetesCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
+	r := DataProtectionBackupInstanceKubernetesClusterResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataProtectionBackupInstanceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")

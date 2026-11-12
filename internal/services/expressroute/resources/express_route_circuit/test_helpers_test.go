@@ -619,6 +619,17 @@ resource "azurerm_express_route_circuit_peering" "import" {
 `, r.privatePeering(data))
 }
 
+func testAccDataSourceExpressRouteCircuitPeering_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	d := ExpressRouteCircuitPeeringDataSource{}
+
+	data.DataSourceSequentialRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.privatePeering(data),
+		},
+	}, "")
+}
+
 func testAccDataSourceExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	dataSource := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit_peering", "data")
 	d := ExpressRouteCircuitPeeringDataSource{}
@@ -644,6 +655,17 @@ func testAccDataSourceExpressRouteCircuitPeering_privatePeering(t *testing.T) {
 		},
 		data.ImportStep("shared_key"), // is not returned by the API
 	})
+}
+
+func testAccExpressRouteCircuitAuthorization_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")
+	r := ExpressRouteCircuitAuthorizationResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
 }
 
 func testAccExpressRouteCircuitAuthorization_basic(t *testing.T) {
@@ -696,6 +718,17 @@ func testAccExpressRouteCircuitAuthorization_requiresImport(t *testing.T) {
 			ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit_authorization"),
 		},
 	})
+}
+
+func testAccExpressRouteCircuitPeering_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
+	r := ExpressRouteCircuitPeeringResource{}
+
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privatePeering(data),
+		},
+	}, "")
 }
 
 func testAccExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {

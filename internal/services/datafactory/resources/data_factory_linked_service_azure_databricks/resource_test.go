@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_azure_databricks_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceDatabricksResource struct{}
+
+func TestAccDataFactoryLinkedServiceDatabricks_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")
+
+	r := LinkedServiceDatabricksResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msi(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceDatabricks_authViaMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_databricks", "test")

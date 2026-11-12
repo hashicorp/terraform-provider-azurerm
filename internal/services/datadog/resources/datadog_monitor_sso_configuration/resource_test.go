@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_monitor_sso_configuration_test
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,6 +37,16 @@ func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) 
 	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
 	r.enterpriseAppId = os.Getenv("ARM_TEST_ENTERPRISE_APP_ID")
+}
+
+func TestAccDatadogMonitorSSO_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
+	r := SSODatadogMonitorResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
 }
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
@@ -99,12 +109,12 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 }
 
 func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := singlesignon.ParseSingleSignOnConfigurationID(state.ID)
+	id, err := datadogsinglesignonresources.ParseSingleSignOnConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Datadog.SingleSignOn.ConfigurationsGet(ctx, *id)
+	resp, err := client.Datadog.DatadogSingleSignOnResources.SingleSignOnConfigurationsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

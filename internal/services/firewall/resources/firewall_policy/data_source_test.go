@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_policy_test
@@ -14,6 +14,17 @@ import (
 )
 
 type FirewallPolicyDataSource struct{}
+
+func TestAccFirewallPolicyDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")
+	r := FirewallPolicyDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")

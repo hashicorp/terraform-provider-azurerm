@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_mysql_test
@@ -18,6 +18,17 @@ import (
 )
 
 type LinkedServiceMySQLResource struct{}
+
+func TestAccDataFactoryLinkedServiceMySQL_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
+	r := LinkedServiceMySQLResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")

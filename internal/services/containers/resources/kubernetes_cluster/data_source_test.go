@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster_test
@@ -13,6 +13,17 @@ import (
 )
 
 type KubernetesClusterDataSource struct{}
+
+func TestAccDataSourceKubernetesCluster_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
@@ -558,10 +569,11 @@ func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 func TestAccDataSourceKubernetesCluster_serviceMeshCertificateAuthority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshCertificateAuthority(data),
+			Config: r.serviceMeshCertificateAuthority(data, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
@@ -971,14 +983,14 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.serviceMeshProfile(data, true, true))
 }
 
-func (s KubernetesClusterDataSource) serviceMeshCertificateAuthority(data acceptance.TestData) string {
+func (s KubernetesClusterDataSource) serviceMeshCertificateAuthority(data acceptance.TestData, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 %s
 data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.addonProfileServiceMeshProfileCertificateAuthorityConfig(data))
+`, KubernetesClusterResource{}.addonProfileServiceMeshProfileCertificateAuthorityConfig(data, serviceMeshVersion))
 }
 
 func (KubernetesClusterDataSource) serviceMeshRevisions(data acceptance.TestData, revisions string) string {

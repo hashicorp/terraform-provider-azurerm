@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_sql_server_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceSQLServerResource struct{}
+
+func TestAccDataFactoryLinkedServiceSQLServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
+	r := LinkedServiceSQLServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")

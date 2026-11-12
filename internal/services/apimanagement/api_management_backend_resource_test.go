@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -471,7 +471,7 @@ resource "azurerm_api_management_backend" "test" {
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
 	//nolint:dupword
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_certificate" "test" {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid_partner_configuration_test
@@ -6,6 +6,7 @@ package eventgrid_partner_configuration_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -18,6 +19,17 @@ import (
 )
 
 type EventGridPartnerConfigurationsTestResource struct{}
+
+func TestAccEventGridPartnerConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
+	r := EventGridPartnerConfigurationsTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccEventGridPartnerConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
@@ -83,6 +95,48 @@ func TestAccEventGridPartnerConfiguration_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridPartnerConfiguration_withoutPartnerName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
+	r := EventGridPartnerConfigurationsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutPartnerName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withoutPartnerName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridPartnerConfiguration_withoutPartnerIdentifiers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
+	r := EventGridPartnerConfigurationsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withoutPartnerIdentifiers(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("at least one of `partner_registration_id` or `partner_name` must be provided in `partner_authorization\\.0`"),
+		},
 	})
 }
 
@@ -155,4 +209,52 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, expiryTime)
+}
+
+func (EventGridPartnerConfigurationsTestResource) withoutPartnerName(data acceptance.TestData) string {
+	expiryTime := time.Now().UTC().Add(7 * 24 * time.Hour).Format(time.RFC3339)
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventgrid_partner_registration" "test" {
+  name                = "acctest-egpr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_eventgrid_partner_configuration" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+
+  partner_authorization {
+    partner_registration_id              = azurerm_eventgrid_partner_registration.test.partner_registration_id
+    authorization_expiration_time_in_utc = "%[3]s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, expiryTime)
+}
+
+func (EventGridPartnerConfigurationsTestResource) withoutPartnerIdentifiers(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_partner_configuration" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+
+  partner_authorization {}
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

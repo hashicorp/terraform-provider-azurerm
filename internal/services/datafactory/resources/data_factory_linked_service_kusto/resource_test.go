@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_kusto_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceKustoResource struct{}
+
+func TestAccDataFactoryLinkedServiceKusto_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")
+	r := LinkedServiceKustoResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceKusto_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_kusto", "test")

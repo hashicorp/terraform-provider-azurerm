@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_trigger_schedule_test
@@ -17,6 +17,17 @@ import (
 )
 
 type TriggerScheduleResource struct{}
+
+func TestAccDataFactoryTriggerSchedule_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
+	r := TriggerScheduleResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryTriggerSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")

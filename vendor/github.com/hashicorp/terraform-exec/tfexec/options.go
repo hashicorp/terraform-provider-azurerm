@@ -476,3 +476,19 @@ type LockFileOption struct {
 func LockFile(useLockFile bool) *LockFileOption {
 	return &LockFileOption{useLockFile: useLockFile}
 }
+
+type SourceProviderLockFileOption struct {
+	path string
+}
+
+func SourceProviderLockFile(path string) *SourceProviderLockFileOption {
+	return &SourceProviderLockFileOption{path: path}
+}
+
+type DestinationProviderLockFileOption struct {
+	path string
+}
+
+func DestinationProviderLockFile(path string) *DestinationProviderLockFileOption {
+	return &DestinationProviderLockFileOption{path: path}
+}

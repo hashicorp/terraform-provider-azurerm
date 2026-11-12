@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_flowlet_data_flow_test
@@ -17,6 +17,17 @@ import (
 )
 
 type FlowletDataFlowResource struct{}
+
+func TestAccDataFactoryFlowletDataFlow_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
+	r := FlowletDataFlowResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryFlowletDataFlow_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_flowlet_data_flow", "test")
@@ -104,15 +115,15 @@ resource "azurerm_data_factory_flowlet_data_flow" "test" {
 
   script = <<EOT
 source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
+  allowSchemaDrift: true,
+  validateSchema: false,
+  limit: 100,
+  ignoreNoFilesFound: false,
+  documentForm: 'documentPerLine') ~> source1
 source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
+  allowSchemaDrift: true,
+  validateSchema: false,
+  skipDuplicateMapInputs: true,
   skipDuplicateMapOutputs: true) ~> sink1
 EOT
 }
@@ -315,15 +326,15 @@ resource "azurerm_data_factory_flowlet_data_flow" "test1" {
 
   script = <<EOT
 source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
+  allowSchemaDrift: true,
+  validateSchema: false,
+  limit: 100,
+  ignoreNoFilesFound: false,
+  documentForm: 'documentPerLine') ~> source1
 source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
+  allowSchemaDrift: true,
+  validateSchema: false,
+  skipDuplicateMapInputs: true,
   skipDuplicateMapOutputs: true) ~> sink1
 EOT
 }
@@ -342,15 +353,15 @@ resource "azurerm_data_factory_flowlet_data_flow" "test2" {
 
   script = <<EOT
 source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
+  allowSchemaDrift: true,
+  validateSchema: false,
+  limit: 100,
+  ignoreNoFilesFound: false,
+  documentForm: 'documentPerLine') ~> source1
 source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
+  allowSchemaDrift: true,
+  validateSchema: false,
+  skipDuplicateMapInputs: true,
   skipDuplicateMapOutputs: true) ~> sink1
 EOT
 }

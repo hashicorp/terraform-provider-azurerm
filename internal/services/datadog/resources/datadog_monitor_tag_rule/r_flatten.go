@@ -1,14 +1,14 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_monitor_tag_rule
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules"
 )
 
-func flattenLogRules(input *rules.LogRules) []any {
+func flattenLogRules(input *tagrules.LogRules) []any {
 	results := make([]any, 0)
 
 	if input != nil {
@@ -23,7 +23,7 @@ func flattenLogRules(input *rules.LogRules) []any {
 	return results
 }
 
-func flattenMetricRules(input *rules.MetricRules) []any {
+func flattenMetricRules(input *tagrules.MetricRules) []any {
 	if input == nil {
 		return make([]any, 0)
 	}
@@ -35,7 +35,7 @@ func flattenMetricRules(input *rules.MetricRules) []any {
 	}
 }
 
-func flattenFilteringTags(input *[]rules.FilteringTag) []any {
+func flattenFilteringTags(input *[]tagrules.FilteringTag) []any {
 	results := make([]any, 0)
 	if input != nil {
 		for _, filteringTagRules := range *input {

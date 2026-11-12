@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_group_cost_management_view_test
@@ -17,6 +17,17 @@ import (
 )
 
 type ResourceGroupCostManagementView struct{}
+
+func TestAccResourceGroupCostManagementView_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")
+	r := ResourceGroupCostManagementView{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccResourceGroupCostManagementView_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_cost_management_view", "test")

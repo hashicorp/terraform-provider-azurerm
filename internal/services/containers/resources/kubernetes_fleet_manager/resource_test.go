@@ -21,6 +21,17 @@ import (
 
 type KubernetesFleetManagerTestResource struct{}
 
+func TestAccKubernetesFleetManager_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
+	r := KubernetesFleetManagerTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccKubernetesFleetManager_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
 	r := KubernetesFleetManagerTestResource{}

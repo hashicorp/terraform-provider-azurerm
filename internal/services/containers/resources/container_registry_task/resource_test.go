@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_task_test
@@ -42,6 +42,25 @@ func preCheckGithubRepo(t *testing.T) {
 			t.Skipf("`%s` must be set for acceptance tests!", variable)
 		}
 	}
+}
+
+func TestAccContainerRegistryTask_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_task", "test")
+
+	preCheckGithubRepo(t)
+
+	r := ContainerRegistryTaskResource{
+		githubRepo: githubRepo{
+			url:   os.Getenv("ARM_TEST_ACR_TASK_GITHUB_REPO_URL"),
+			token: os.Getenv("ARM_TEST_ACR_TASK_GITHUB_USER_TOKEN"),
+		},
+	}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dockerStepBasic(data),
+		},
+	}, "")
 }
 
 func TestAccContainerRegistryTask_dockerStep(t *testing.T) {

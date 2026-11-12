@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_linked_service_azure_search_test
@@ -17,6 +17,17 @@ import (
 )
 
 type LinkedServiceSearchResource struct{}
+
+func TestAccDataFactoryLinkedServiceAzureSearch_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
+	r := LinkedServiceSearchResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataFactoryLinkedServiceAzureSearch_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_search", "test")
