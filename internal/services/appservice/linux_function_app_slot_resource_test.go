@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -22,6 +22,16 @@ import (
 type LinuxFunctionAppSlotResource struct{}
 
 // Plan types
+
+func TestAccLinuxFunctionAppSlot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionComplete(data),
+		},
+	}, "")
+}
 
 func TestAccLinuxFunctionAppSlot_basicConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")

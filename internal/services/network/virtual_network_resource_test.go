@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -75,6 +75,49 @@ func TestAccVirtualNetwork_updateFlowTimeoutInMinutes(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updateFlowTimeoutInMinutes(data, 6),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetwork_advertisedGatewayPrefixes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advertisedGatewayPrefixes(data, `["10.0.0.0/8"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advertisedGatewayPrefixes(data, `["10.0.0.0/8", "fd00::/48"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advertisedGatewayPrefixes(data, `["10.0.0.0/8", "192.168.0.0/16", "fd00::/48", "fd01::/48"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -270,6 +313,22 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_ipAddressPool_sequential(t *testing.T) {
+	testCases := map[string]func(t *testing.T){
+		"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+		"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+		"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+		"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+		"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			tc(t)
+		})
+	}
+}
+
 func testAccVirtualNetwork_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -458,7 +517,7 @@ func TestAccVirtualNetwork_subnetRouteTable(t *testing.T) {
 	})
 }
 
-func TestVirtualNetworkResource_tagCount(t *testing.T) {
+func TestAccVirtualNetwork_tagCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -575,6 +634,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                           = "acctestvirtnet%d"
   address_space                  = ["10.0.0.0/16", "10.10.0.0/16"]
+  advertised_gateway_prefixes    = ["10.0.0.0/8"]
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   dns_servers                    = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
@@ -595,6 +655,27 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) advertisedGatewayPrefixes(data acceptance.TestData, prefixes string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                        = "acctestvirtnet%d"
+  address_space               = ["10.0.0.0/16"]
+  advertised_gateway_prefixes = %s
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, prefixes)
 }
 
 func (r VirtualNetworkResource) requiresImport(data acceptance.TestData) string {
