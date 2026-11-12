@@ -259,7 +259,7 @@ resource "azurerm_extended_location_custom_location" "test" {
 # Azure Files backing for the pipeline's persistent volume, and self-signed TLS material for
 # the mutualTls tlsConfiguration exercised by the complete test.
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "acctest%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
