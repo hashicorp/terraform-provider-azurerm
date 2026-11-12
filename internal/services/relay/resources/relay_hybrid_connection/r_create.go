@@ -4,56 +4,57 @@
 package relay_hybrid_connection
 
 import (
+	"context"
 	"fmt"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r Resource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.HybridConnectionsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	id := hybridconnections.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("relay_namespace_name").(string), d.Get("name").(string))
+			var model RelayHybridConnectionResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.Get(ctx, id)
-			if err != nil {
+			id := hybridconnections.NewHybridConnectionID(subscriptionId, model.ResourceGroupName, model.RelayNamespaceName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
+
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", id.ID())
+			parameters := hybridconnections.HybridConnection{
+				Properties: &hybridconnections.HybridConnectionProperties{
+					RequiresClientAuthorization: pointer.To(model.RequiresClientAuthorization),
+					UserMetadata:                pointer.To(model.UserMetadata),
+				},
 			}
-		}
-	}
 
-	requireClientAuthorization := d.Get("requires_client_authorization").(bool)
-	userMetadata := d.Get("user_metadata").(string)
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
-	parameters := hybridconnections.HybridConnection{
-		Properties: &hybridconnections.HybridConnectionProperties{
-			RequiresClientAuthorization: &requireClientAuthorization,
-			UserMetadata:                &userMetadata,
+			metadata.SetID(id)
+
+			return nil
 		},
 	}
-
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if d.IsNewResource() {
-		d.SetId(id.ID())
-	}
-
-	return resourceArmRelayHybridConnectionRead(d, meta)
 }

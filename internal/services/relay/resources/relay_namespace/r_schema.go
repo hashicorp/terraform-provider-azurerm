@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func relayNamespaceSchema() map[string]*pluginsdk.Schema {
+func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -29,6 +29,12 @@ func relayNamespaceSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForSkuName(), false),
 		},
 
+		"tags": commonschema.Tags(),
+	}
+}
+
+func (r Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"metric_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -57,7 +63,5 @@ func relayNamespaceSchema() map[string]*pluginsdk.Schema {
 			Computed:  true,
 			Sensitive: true,
 		},
-
-		"tags": commonschema.Tags(),
 	}
 }

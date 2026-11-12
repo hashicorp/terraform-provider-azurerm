@@ -4,45 +4,50 @@
 package relay_hybrid_connection
 
 import (
+	"context"
 	"fmt"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r Resource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.HybridConnectionsClient
 
-	id, err := hybridconnections.ParseHybridConnectionID(d.Id())
-	if err != nil {
-		return err
+			id, err := hybridconnections.ParseHybridConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state := RelayHybridConnectionResourceModel{
+				Name:               id.HybridConnectionName,
+				ResourceGroupName:  id.ResourceGroupName,
+				RelayNamespaceName: id.NamespaceName,
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.RequiresClientAuthorization = pointer.From(props.RequiresClientAuthorization)
+					state.UserMetadata = pointer.From(props.UserMetadata)
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.HybridConnectionName)
-	d.Set("relay_namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("requires_client_authorization", props.RequiresClientAuthorization)
-			d.Set("user_metadata", props.UserMetadata)
-		}
-	}
-
-	return nil
 }
