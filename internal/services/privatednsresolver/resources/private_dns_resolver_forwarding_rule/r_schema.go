@@ -5,6 +5,7 @@ package private_dns_resolver_forwarding_rule
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -15,7 +16,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.ForwardingRuleName(),
 		},
 
 		"dns_forwarding_ruleset_id": {
