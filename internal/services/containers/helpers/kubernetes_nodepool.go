@@ -798,6 +798,8 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			EnableSecureBoot: securityProfileRaw.EnableSecureBoot,
 			EnableVTPM:       securityProfileRaw.EnableVTPM,
 		}
+
+		// Because SSHAccess is related to security, ensure the value set outside of Terraform is preserved until it is exposed in the provider.
 		if securityProfileRaw.SshAccess != nil {
 			agentpool.Properties.SecurityProfile.SshAccess = pointer.ToEnum[agentpools.AgentPoolSSHAccess](string(*securityProfileRaw.SshAccess))
 		}
