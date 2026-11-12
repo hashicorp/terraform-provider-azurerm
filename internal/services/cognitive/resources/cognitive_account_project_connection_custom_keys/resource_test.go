@@ -172,10 +172,6 @@ func (r CognitiveAccountProjectConnectionCustomKeysResource) Exists(ctx context.
 
 func (r CognitiveAccountProjectConnectionCustomKeysResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cognitive-pcck-%[1]d"
   location = "%[2]s"
@@ -213,6 +209,10 @@ func (r CognitiveAccountProjectConnectionCustomKeysResource) basic(data acceptan
 
 func (r CognitiveAccountProjectConnectionCustomKeysResource) category(data acceptance.TestData, category string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_cognitive_account_project_connection_custom_keys" "test" {
@@ -231,6 +231,10 @@ resource "azurerm_cognitive_account_project_connection_custom_keys" "test" {
 
 func (r CognitiveAccountProjectConnectionCustomKeysResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_cognitive_account_project_connection_custom_keys" "test" {
@@ -255,6 +259,10 @@ resource "azurerm_cognitive_account_project_connection_custom_keys" "test" {
 
 func (r CognitiveAccountProjectConnectionCustomKeysResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_cognitive_account_project_connection_custom_keys" "test" {
