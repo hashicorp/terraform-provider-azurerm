@@ -250,11 +250,11 @@ An `allowed_host_ports` block supports the following:
 
 A `security` block supports the following:
 
-~> **Note:** Enabling Secure Boot or vTPM requires a supported Generation 2 Linux node pool. See the [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
-
 * `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Node Pool. Defaults to `false`.
 
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Node Pool. Defaults to `false`.
+
+~> **Note:** Enabling `secure_boot_enabled` or `vtpm_enabled` has the following [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
 
 ---
 

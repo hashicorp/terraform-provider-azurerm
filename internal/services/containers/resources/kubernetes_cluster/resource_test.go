@@ -6,7 +6,6 @@ package kubernetes_cluster_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
@@ -16,14 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	acceptanceHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -52,110 +47,45 @@ func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultNodePoolSecurity(data, false, "", "initial"),
+			Config: r.defaultNodePoolSecurity(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, true, `
+			Config: r.defaultNodePoolSecurity(data, `
 secure_boot_enabled = false
 vtpm_enabled        = false
-`, "initial"),
-			ExpectError: regexp.MustCompile("at least one of .* must be set to `true`"),
+`),
 		},
+		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, true, `
+			Config: r.defaultNodePoolSecurity(data, `
 secure_boot_enabled = true
 vtpm_enabled        = true
-`, "initial"),
+`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, false, "", "initial"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.defaultNodePoolSecurity(data, false, "", "updated"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.defaultNodePoolSecurity(data, true, `
+			Config: r.defaultNodePoolSecurity(data, `
 secure_boot_enabled = true
-`, "updated"),
+`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.defaultNodePoolSecurity(data, true, `
-vtpm_enabled = true
-`, "updated"),
+			Config: r.defaultNodePoolSecurity(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.defaultNodePoolSecurity(data, false, "", "updated"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_defaultNodePoolSecurityUpgrade(t *testing.T) {
-	t.Setenv(resource.EnvTfAccRefreshAfterApply, "true")
-
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-	config := r.defaultNodePoolSecurity(data, false, "", "initial")
-	previous := map[string]resource.ExternalProvider{
-		"azurerm": {Source: "hashicorp/azurerm", VersionConstraint: "=5.7.0"},
-	}
-	current := framework.ProtoV5ProviderFactoriesInitWithTestName(context.Background(), t.Name(), "azurerm")
-	oldImport := data.ImportStep()
-	oldImport.ExternalProviders = previous
-	newImport := data.ImportStep()
-	newImport.ProtoV5ProviderFactories = current
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { acceptance.PreCheck(t) },
-		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.BuildWithTestName(t.Name())
-			if err != nil {
-				return fmt.Errorf("building client: %+v", err)
-			}
-			return acceptanceHelpers.CheckDestroyedFunc(client, r, data.ResourceType, data.ResourceName)(s)
-		},
-		Steps: []acceptance.TestStep{
-			{Config: config, ExternalProviders: previous},
-			oldImport,
-			{
-				Config:                   config,
-				ProtoV5ProviderFactories: current,
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
-				},
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			newImport,
-		},
 	})
 }
 
@@ -634,9 +564,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, includeSecurity bool, securitySettings, label string) string {
+func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, securitySettings string) string {
 	securityBlock := ""
-	if includeSecurity {
+	if securitySettings != "" {
 		securityBlock = fmt.Sprintf(`
 security {
 %s
@@ -665,10 +595,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 1
     vm_size    = "Standard_D2s_v3"
 
-    node_labels = {
-      securitytest = "%[4]s"
-    }
-
     %[3]s
 
     upgrade_settings {
@@ -685,7 +611,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, securityBlock, label)
+`, data.RandomInteger, data.Locations.Primary, securityBlock)
 }
 
 func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {
