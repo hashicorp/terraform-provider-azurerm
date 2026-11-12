@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/resources/notification_hub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/resources/notification_hub_authorization_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/resources/notification_hub_namespace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -36,17 +39,17 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_notification_hub":           dataSourceNotificationHub(),
-		"azurerm_notification_hub_namespace": dataSourceNotificationHubNamespace(),
+		"azurerm_notification_hub":           notification_hub.RegisterDataSource(),
+		"azurerm_notification_hub_namespace": notification_hub_namespace.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_notification_hub":                    resourceNotificationHub(),
-		"azurerm_notification_hub_authorization_rule": resourceNotificationHubAuthorizationRule(),
-		"azurerm_notification_hub_namespace":          resourceNotificationHubNamespace(),
+		"azurerm_notification_hub":                    notification_hub.RegisterResource(),
+		"azurerm_notification_hub_authorization_rule": notification_hub_authorization_rule.RegisterResource(),
+		"azurerm_notification_hub_namespace":          notification_hub_namespace.RegisterResource(),
 	}
 }
 
