@@ -5,6 +5,7 @@ package resourceproviders
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -58,4 +59,27 @@ func enhancedValidation(i any, k string) ([]string, []error) {
 	}
 
 	return nil, nil
+}
+
+// ValidateSupported returns an error when any of the specified Resource Providers are not in the list of
+// Resource Providers supported by this Azure Environment.
+// validation is skipped when the list of supported Resource Providers isn't cached
+func ValidateSupported(input ResourceProviders) error {
+	if cachedResourceProviders == nil {
+		return nil
+	}
+
+	unsupported := make([]string, 0)
+	for provider := range input {
+		if !slices.Contains(*cachedResourceProviders, provider) {
+			unsupported = append(unsupported, fmt.Sprintf("`%s`", provider))
+		}
+	}
+
+	if len(unsupported) == 0 {
+		return nil
+	}
+
+	slices.Sort(unsupported)
+	return fmt.Errorf("the following Resource Providers were not found in the list of Resource Providers supported by this Azure Environment: %s", strings.Join(unsupported, ", "))
 }
