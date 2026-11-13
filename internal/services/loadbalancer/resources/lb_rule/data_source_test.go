@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 
 func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
-	r := LoadBalancerRule{}
+	r := LbRuleResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 	})
 }
 
-func (r LoadBalancerRule) basicDataSource(data acceptance.TestData) string {
+func (r LbRuleResource) basicDataSource(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -66,7 +66,7 @@ data "azurerm_lb_rule" "test" {
 `, template)
 }
 
-func (r LoadBalancerRule) completeDataSource(data acceptance.TestData) string {
+func (r LbRuleResource) completeDataSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {

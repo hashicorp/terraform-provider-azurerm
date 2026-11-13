@@ -7,9 +7,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/helpers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+const azurermLbRuleResourceName = "azurerm_lb_rule"
+
+//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "load_balancer_name:loadbalancer_id,resource_group_name:loadbalancer_id,subscription_id:loadbalancer_id"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -18,15 +22,11 @@ func RegisterResource() *pluginsdk.Resource {
 		Update: resourceArmLoadBalancerRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerRuleDelete,
 
-		Importer: helpers.LoadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
-			id, err := loadbalancers.ParseLoadBalancingRuleID(input)
-			if err != nil {
-				return nil, err
-			}
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&loadbalancers.LoadBalancingRuleId{}),
+		},
 
-			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
-			return &lbId, nil
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&loadbalancers.LoadBalancingRuleId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -35,6 +35,6 @@ func RegisterResource() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceArmLoadBalancerRuleSchema(),
+		Schema: loadBalancerRuleSchema(),
 	}
 }

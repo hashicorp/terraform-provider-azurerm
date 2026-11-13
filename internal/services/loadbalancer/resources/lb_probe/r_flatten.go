@@ -13,6 +13,8 @@ import (
 
 func resourceArmLoadBalancerProbeFlatten(d *pluginsdk.ResourceData, id *loadbalancers.ProbeId, model *loadbalancers.Probe) error {
 	d.Set("name", model.Name)
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
+	d.Set("loadbalancer_id", lbId.ID())
 
 	if model != nil {
 		if props := model.Properties; props != nil {
