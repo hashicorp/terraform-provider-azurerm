@@ -153,6 +153,27 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, r.templateVNet(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentResource) consumptionWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
