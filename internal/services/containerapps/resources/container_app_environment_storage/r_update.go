@@ -10,7 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -38,8 +40,17 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("could not update %s: existing resource is missing `AzureFile` properties", *id)
 			}
 
+			woAccessKey, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "access_key_wo", cty.String)
+			if err != nil {
+				return err
+			}
+
+			if !woAccessKey.IsNull() {
+				storage.AccessKey = woAccessKey.AsString()
+			}
+
 			// This *must* be sent, and is currently the only updatable property on the resource.
-			existing.Model.Properties.AzureFile.AccountKey = pointer.To(metadata.ResourceData.Get("access_key").(string))
+			existing.Model.Properties.AzureFile.AccountKey = pointer.To(storage.AccessKey)
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)

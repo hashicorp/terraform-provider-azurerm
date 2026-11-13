@@ -59,6 +59,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 				state.AccessKey = keyFromConfig.(string)
 			}
 
+			state.AccessKeyWOVersion = int64(metadata.ResourceData.Get("access_key_wo_version").(int))
+
 			return metadata.Encode(&state)
 		},
 	}
