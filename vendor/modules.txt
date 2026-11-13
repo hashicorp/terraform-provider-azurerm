@@ -1126,7 +1126,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/securitypoliciesinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/trafficcontrollerinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr
-github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/blobauditing
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databasesecurityalertpolicies
@@ -1145,7 +1144,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobstepexecuti
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobsteps
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/jobtargetgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications
@@ -1171,6 +1169,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabili
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/startstopmanagedinstanceschedules
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/virtualnetworkrules
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/backupshorttermretentionpolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/managedbackupshorttermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines

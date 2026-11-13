@@ -5,8 +5,8 @@ package helper
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -81,6 +81,11 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
+				},
+				"immutability_locked": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
 				},
 			},
 		},
@@ -173,13 +178,17 @@ func ExpandShortTermRetentionPolicy(input []any) *backupshorttermretentionpolici
 		props.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHours(int64(v.(int))))
 	}
 
+	if v, ok := policy["immutability_locked"].(bool); ok {
+		props.LockImmutability = pointer.To(v)
+	}
+
 	return &props
 }
 
 func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.BackupShortTermRetentionPolicy) []any {
 	result := make([]any, 0)
 
-	if input == nil {
+	if input == nil || input.Properties == nil {
 		return result
 	}
 
@@ -193,6 +202,8 @@ func FlattenShortTermRetentionPolicy(input *backupshorttermretentionpolicies.Bac
 	if input.Properties.DiffBackupIntervalInHours != nil {
 		output["backup_interval_in_hours"] = pointer.From(input.Properties.DiffBackupIntervalInHours)
 	}
+
+	output["immutability_locked"] = pointer.From(input.Properties.ImmutabilityStatus) == backupshorttermretentionpolicies.ImmutabilityStatusLocked
 
 	result = append(result, output)
 

@@ -12,3 +12,9 @@
 #   version: 2021-06-01-preview
 #   stableVersionTargetDate: 2026-01-01
 #   responsibleIndividual: github.com/gerrytan
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: sql
+  version: 2026-08-01-preview
+  stableVersionTargetDate: 2027-01-01
+  responsibleIndividual: github.com/ziyeqf

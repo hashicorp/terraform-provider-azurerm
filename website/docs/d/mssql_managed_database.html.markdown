@@ -44,6 +44,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `short_term_retention_days` -  The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 
+* `short_term_retention_immutability_locked` - Whether the immutability of the short term backups is locked.
+
 ---
 
 A `long_term_retention_policy` block exports the following:
@@ -74,4 +76,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Sql` - 2025-01-01
+* `Microsoft.Sql` - 2026-08-01-preview, 2025-01-01
