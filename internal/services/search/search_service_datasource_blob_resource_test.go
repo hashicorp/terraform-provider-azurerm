@@ -255,7 +255,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_container" "test2" {
-  name               = "acctestsc%[2]d"
+  name               = "acctestsc%[2]d-2"
   storage_account_id = azurerm_storage_account.test.id
 }
 
