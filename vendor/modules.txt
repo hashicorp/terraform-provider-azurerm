@@ -403,6 +403,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes
