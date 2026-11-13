@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/connections/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Connections.ConnectionsClient
+	client := azuresdkhacks.NewConnectionsWorkaroundClient(meta.(*clients.Client).Connections.ConnectionsClient)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -39,6 +40,8 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 	d.Set("name", id.ConnectionName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
+		d.Set("kind", pointer.From(model.Kind))
+
 		if props := model.Properties; props != nil {
 			d.Set("display_name", props.DisplayName)
 
@@ -52,6 +55,12 @@ func resourceApiConnectionRead(d *schema.ResourceData, meta any) error {
 			// The non-secret parameters are returned in `NonSecretParameterValues` instead.
 			if err := d.Set("parameter_values", flattenParameterValues(pointer.From(props.NonSecretParameterValues))); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
+			}
+
+			d.Set("parameter_value_type", pointer.From(props.ParameterValueType))
+
+			if err := d.Set("parameter_value_set", flattenParameterValueSet(props.ParameterValueSet)); err != nil {
+				return fmt.Errorf("setting `parameter_value_set`: %+v", err)
 			}
 		}
 
