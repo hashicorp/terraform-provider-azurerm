@@ -930,6 +930,19 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
+
+resource "azurerm_key_vault_access_policy" "recovery_services" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_recovery_services_vault.test.identity[0].principal_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "WrapKey",
+    "UnwrapKey",
+  ]
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, enableInfraEncryptionState, keyIndex)
 }
 
