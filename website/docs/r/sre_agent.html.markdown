@@ -15,7 +15,7 @@ Manages an Azure SRE Agent.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
-  location = "West Europe"
+  location = "Sweden Central"
 }
 
 resource "azurerm_user_assigned_identity" "example" {
@@ -103,13 +103,13 @@ The following arguments are supported:
 
 * `sandbox` - (Optional) A `sandbox` block as defined below.
 
-~> **Note:** A configured `sandbox` block must specify `egress` or `package`. When omitted during creation, Azure supplies the sandbox configuration.
+~> **Note:** When `sandbox` is omitted during creation, Azure supplies the default configuration. A configured `sandbox` block must specify `egress` or `package`. Once configured, removing the block retains its existing configuration rather than resetting it to the Azure defaults.
 
 * `subnet_id` - (Optional) The ID of the Subnet used by the Azure SRE Agent.
 
 ~> **Note:** The Subnet must be delegated to `Microsoft.App/environments`.
 
-~> **Note:** `subnet_id` and `sandbox.egress.mode` set to `AzureVNet` must be configured together. When removing `subnet_id`, also remove the `AzureVNet` egress mode or change it to `Limited` or `Unrestricted`.
+~> **Note:** `subnet_id` is required when `sandbox.egress.mode` is set to `AzureVNet` and must not be set otherwise. When removing `subnet_id`, explicitly change `sandbox.egress.mode` to `Limited` or `Unrestricted`, as removing the `sandbox` block retains its existing configuration.
 
 * `upgrade_channel` - (Optional) The upgrade channel for the Azure SRE Agent. Possible values are `Preview` and `Stable`. Defaults to `Stable`.
 
@@ -163,15 +163,19 @@ An `egress` block supports the following:
 
 * `http_proxy` - (Optional) An `http_proxy` block as defined below.
 
+~> **Note:** To use `http_proxy`, `sandbox.egress.mode` must be set to `AzureVNet`.
+
 * `mode` - (Optional) The sandbox egress mode. Possible values are `AzureVNet`, `Limited`, and `Unrestricted`.
 
 ---
 
 An `http_proxy` block supports the following:
 
-* `https_url` - (Required) The proxy URL for outbound HTTPS traffic. Must start with `http://` or `https://`.
+* `https_url` - (Required) The proxy URL for outbound HTTPS traffic. Must be an absolute URL starting with `http://` and containing a host.
 
-* `http_url` - (Optional) The proxy URL for outbound HTTP traffic. Must start with `http://` or `https://`.
+* `http_url` - (Optional) The proxy URL for outbound HTTP traffic. Must be an absolute URL starting with `http://` and containing a host.
+
+~> **Note:** When specified, `http_url` must use the same origin (scheme, host, and port) as `https_url`. Different HTTP and HTTPS proxies are not supported.
 
 * `no_proxy` - (Optional) A list of hosts or addresses that bypass the proxy.
 
@@ -199,7 +203,7 @@ An `incident_management` block supports the following:
 
 * `connection_url` - (Optional) The URL of the incident management connection. Must start with `http://` or `https://`.
 
-* `obo_user` - (Optional) The user on whose behalf the incident management connection operates.
+* `on_behalf_of_user` - (Optional) The user on whose behalf the incident management connection operates.
 
 ---
 

@@ -90,6 +90,11 @@ func TestAccSreAgent_update(t *testing.T) {
 		},
 		data.ImportStep("application_insights.0.connection_string", "incident_management.0.connection_key"),
 		{
+			Config:      r.basic(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`subnet_id` is required when `sandbox\\.egress\\.mode` is set to `AzureVNet` and must not be set otherwise"),
+		},
+		{
 			Config: r.updated(data),
 			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
@@ -115,12 +120,12 @@ func TestAccSreAgent_invalidNetwork(t *testing.T) {
 		{
 			Config:      r.networkWithoutSubnet(data),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("must be configured together"),
+			ExpectError: regexp.MustCompile("`subnet_id` is required when `sandbox\\.egress\\.mode` is set to `AzureVNet` and must not be set otherwise"),
 		},
 		{
 			Config:      r.subnetWithoutNetwork(data),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("must be configured together"),
+			ExpectError: regexp.MustCompile("`subnet_id` is required when `sandbox\\.egress\\.mode` is set to `AzureVNet` and must not be set otherwise"),
 		},
 	})
 }
@@ -332,11 +337,11 @@ resource "azurerm_sre_agent" "test" {
   }
 
   incident_management {
-    connection_key  = "acceptance-not-a-real-credential-updated"
-    connection_name = "azmonitor"
-    connection_url  = "https://incident-updated.example.invalid"
-    obo_user        = "sre-updated@example.invalid"
-    type            = "AzMonitor"
+    connection_key    = "acceptance-not-a-real-credential-updated"
+    connection_name   = "azmonitor"
+    connection_url    = "https://incident-updated.example.invalid"
+    on_behalf_of_user = "sre-updated@example.invalid"
+    type              = "AzMonitor"
   }
 
   knowledge_graph {
@@ -455,11 +460,11 @@ resource "azurerm_sre_agent" "test" {
   }
 
   incident_management {
-    connection_key  = "acceptance-not-a-real-credential-complete"
-    connection_name = "azmonitor"
-    connection_url  = "https://incident-complete.example.invalid"
-    obo_user        = "sre-complete@example.invalid"
-    type            = "AzMonitor"
+    connection_key    = "acceptance-not-a-real-credential-complete"
+    connection_name   = "azmonitor"
+    connection_url    = "https://incident-complete.example.invalid"
+    on_behalf_of_user = "sre-complete@example.invalid"
+    type              = "AzMonitor"
   }
 
   knowledge_graph {

@@ -74,7 +74,7 @@ type IncidentManagementModel struct {
 	ConnectionKey  string `tfschema:"connection_key"`
 	ConnectionName string `tfschema:"connection_name"`
 	ConnectionURL  string `tfschema:"connection_url"`
-	OboUser        string `tfschema:"obo_user"`
+	OnBehalfOfUser string `tfschema:"on_behalf_of_user"`
 }
 
 type KnowledgeGraphModel struct {
@@ -253,7 +253,7 @@ func (SREAgentResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 
-					"obo_user": {
+					"on_behalf_of_user": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -403,16 +403,21 @@ func (SREAgentResource) Arguments() map[string]*pluginsdk.Schema {
 									},
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
+											// https://github.com/Azure/azure-rest-api-specs/blob/fdba4d6ef03d157da38bb8d7d6c3384e1fd9f25c/specification/app/resource-manager/Microsoft.App/SreAgent/agent.models.tsp#L232-L250
 											"https_url": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.IsURLWithScheme([]string{
+													"http",
+												}),
 											},
 
 											"http_url": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+												Type:     pluginsdk.TypeString,
+												Optional: true,
+												ValidateFunc: validation.IsURLWithScheme([]string{
+													"http",
+												}),
 											},
 
 											"no_proxy": {
@@ -635,6 +640,8 @@ func (SREAgentResource) CustomizeDiff() sdk.ResourceFunc {
 							}
 						}
 					}
+				} else {
+					mode, _ = metadata.ResourceDiff.Get("sandbox.0.egress.0.mode").(string)
 				}
 
 				subnet := config.GetAttr("subnet_id")
@@ -644,7 +651,7 @@ func (SREAgentResource) CustomizeDiff() sdk.ResourceFunc {
 
 				hasSubnet := !subnet.IsNull() && subnet.AsString() != ""
 				if hasSubnet != (mode == string(agents.SandboxEgressModeAzureVNet)) {
-					return errors.New("`subnet_id` and `sandbox.egress.mode` set to `AzureVNet` must be configured together")
+					return errors.New("`subnet_id` is required when `sandbox.egress.mode` is set to `AzureVNet` and must not be set otherwise")
 				}
 			}
 
@@ -1020,7 +1027,7 @@ func expandSREAgentIncidentManagement(input []IncidentManagementModel) *agents.I
 		Type:          pointer.To(incidentManagement.Type),
 		ConnectionKey: pointer.To(incidentManagement.ConnectionKey),
 		ConnectionURL: pointer.To(incidentManagement.ConnectionURL),
-		OboUser:       pointer.To(incidentManagement.OboUser),
+		OboUser:       pointer.To(incidentManagement.OnBehalfOfUser),
 	}
 	if incidentManagement.ConnectionName != "" {
 		result.ConnectionName = pointer.To(incidentManagement.ConnectionName)
@@ -1037,7 +1044,7 @@ func flattenSREAgentIncidentManagement(input *agents.IncidentManagementConfigura
 	incidentManagement := IncidentManagementModel{
 		ConnectionName: pointer.From(input.ConnectionName),
 		ConnectionURL:  pointer.From(input.ConnectionURL),
-		OboUser:        pointer.From(input.OboUser),
+		OnBehalfOfUser: pointer.From(input.OboUser),
 		Type:           pointer.From(input.Type),
 	}
 
