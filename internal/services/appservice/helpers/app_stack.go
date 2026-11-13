@@ -365,6 +365,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"8.0",
 						"9.0",
 						"10.0",
+						"11.0",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
