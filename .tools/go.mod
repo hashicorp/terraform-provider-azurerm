@@ -1,6 +1,6 @@
 module github.com/hashicorp/terraform-provider-azurerm/tools
 
-go 1.26.10
+go 1.26.11
 
 tool (
 	github.com/YakDriver/tfproviderdocs
