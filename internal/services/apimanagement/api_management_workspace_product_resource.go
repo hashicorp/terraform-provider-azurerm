@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -41,7 +41,7 @@ func (r ApiManagementWorkspaceProductResource) ResourceType() string {
 	return "azurerm_api_management_workspace_product"
 }
 
-func (r ApiManagementWorkspaceProductResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceProductResource) ModelObject() any {
 	return &ApiManagementWorkspaceProductModel{}
 }
 
@@ -266,7 +266,7 @@ func (r ApiManagementWorkspaceProductResource) Update() sdk.ResourceFunc {
 				properties.Properties.Terms = pointer.To(model.Terms)
 			}
 
-			if metadata.ResourceData.HasChange("require_approval_enabled") || metadata.ResourceData.HasChange("subscriptions_limit") {
+			if metadata.ResourceData.HasChanges("require_approval_enabled", "subscriptions_limit") {
 				if model.RequireSubscriptionEnabled {
 					if model.SubscriptionsLimit > 0 {
 						properties.Properties.SubscriptionsLimit = pointer.To(model.SubscriptionsLimit)
