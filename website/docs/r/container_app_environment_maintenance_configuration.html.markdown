@@ -10,7 +10,7 @@ description: |-
 
 Manages a Container App Environment Maintenance Configuration.
 
-~> **Note:** Planned maintenance is a paid feature. For more information, see [Azure Container Apps planned maintenance](https://learn.microsoft.com/en-us/azure/container-apps/planned-maintenance).
+~> **Note:** Planned maintenance is a paid feature. For more information, see [Azure Container Apps planned maintenance](https://learn.microsoft.com/azure/container-apps/planned-maintenance).
 
 ## Example Usage
 
