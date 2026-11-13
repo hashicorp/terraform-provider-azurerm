@@ -5,8 +5,8 @@ package express_route_circuit
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -96,6 +96,25 @@ func expressRouteCircuitSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"activation_key": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C when `partner_account_id` is specified, the API generates the activation key for the circuit
+			Computed:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"partner_account_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C when `activation_key` is specified, the API populates the partner account ID from the activation key
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"service_provider_provisioning_state": {

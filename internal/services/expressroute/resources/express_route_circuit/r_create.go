@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -62,6 +62,14 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta any) erro
 
 	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
 		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("activation_key"); ok {
+		erc.Properties.ActivationKey = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("partner_account_id"); ok {
+		erc.Properties.PartnerAccountId = pointer.To(v.(string))
 	}
 
 	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive

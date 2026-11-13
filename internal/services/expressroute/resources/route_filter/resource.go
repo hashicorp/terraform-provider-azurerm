@@ -6,7 +6,7 @@ package route_filter
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/routefilters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
