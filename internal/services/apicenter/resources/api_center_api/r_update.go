@@ -1,0 +1,86 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package api_center_api
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apis"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
+)
+
+func (r Resource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiCenter.ApisClient
+
+			id, err := apis.ParseApiID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state ApiCenterApiModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			model := existing.Model
+
+			if metadata.ResourceData.HasChange("custom_properties") {
+				model.Properties.CustomProperties, err = helpers.ExpandCustomProperties(state.CustomProperties)
+				if err != nil {
+					return err
+				}
+			}
+
+			if metadata.ResourceData.HasChange("contact") {
+				model.Properties.Contacts = expandContactList(state.Contacts)
+			}
+			if metadata.ResourceData.HasChange("description") {
+				model.Properties.Description = pointer.To(state.Description)
+			}
+			if metadata.ResourceData.HasChange("external_documentation") {
+				model.Properties.ExternalDocumentation = expandExternalDocumentationList(state.ExternalDocumentation)
+			}
+			if metadata.ResourceData.HasChange("kind") {
+				model.Properties.Kind = apis.ApiKind(state.Kind)
+			}
+			if metadata.ResourceData.HasChange("license") {
+				model.Properties.License = expandLicense(state.License)
+			}
+			if metadata.ResourceData.HasChange("summary") {
+				model.Properties.Summary = pointer.To(state.Summary)
+			}
+			if metadata.ResourceData.HasChange("display_name") {
+				model.Properties.Title = state.Title
+			}
+			if metadata.ResourceData.HasChange("terms_of_service_url") {
+				model.Properties.TermsOfService = &apis.TermsOfService{Url: state.TermsOfServiceUrl}
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, *id, *model); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}

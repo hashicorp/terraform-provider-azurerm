@@ -1,0 +1,112 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package api_center_api_definition
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apiversions"
+	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+type ListResource struct{}
+
+type ApiCenterApiDefinitionListModel struct {
+	VersionId types.String `tfsdk:"api_center_api_version_id"`
+}
+
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
+
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
+}
+
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
+}
+
+func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"api_center_api_version_id": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{Func: apiversions.ValidateVersionID},
+				},
+			},
+		},
+	}
+}
+
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+	client := metadata.Client.ApiCenter.ApiDefinitionsClient
+
+	var data ApiCenterApiDefinitionListModel
+	diags := request.Config.Get(ctx, &data)
+	if diags.HasError() {
+		stream.Results = list.ListResultsStreamDiagnostics(diags)
+		return
+	}
+
+	resource := Resource{}
+
+	parentID, err := apidefinitions.ParseVersionID(data.VersionId.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing parent ID for `%s`", resource.ResourceType()), err)
+		return
+	}
+
+	resp, err := client.ListComplete(ctx, *parentID, apidefinitions.DefaultListOperationOptions())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", resource.ResourceType()), err)
+		return
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+		return
+	}
+
+	stream.Results = func(push func(list.ListResult) bool) {
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
+		for _, item := range resp.Items {
+			result := request.NewListResult(ctx)
+			result.DisplayName = pointer.From(item.Name)
+			id, err := apidefinitions.ParseDefinitionIDInsensitively(pointer.From(item.Id))
+			if err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("parsing %s ID", resource.ResourceType()), err)
+				return
+			}
+
+			meta := sdk.NewResourceMetaData(metadata.Client, resource)
+			meta.SetID(id)
+
+			if err := resource.flatten(meta, ctx, id, &item); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", resource.ResourceType()), err)
+				return
+			}
+
+			sdk.EncodeListResult(ctx, meta.ResourceData, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+			if !push(result) {
+				return
+			}
+		}
+	}
+}

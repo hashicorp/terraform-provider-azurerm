@@ -74,3 +74,9 @@ AGENTS.md
 
 # lychee link-checker cache (make linkcheck-external)
 .lycheecache
+
+# unimportant files for Pterodactyl
+.pterodactyl
+
+# files for scaff
+internal/**/*.scaffold.hcl
