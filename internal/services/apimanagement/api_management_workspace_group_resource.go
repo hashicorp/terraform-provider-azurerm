@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -38,7 +38,7 @@ func (r ApiManagementWorkspaceGroupResource) ResourceType() string {
 	return "azurerm_api_management_workspace_group"
 }
 
-func (r ApiManagementWorkspaceGroupResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceGroupResource) ModelObject() any {
 	return &ApiManagementWorkspaceGroupModel{}
 }
 
