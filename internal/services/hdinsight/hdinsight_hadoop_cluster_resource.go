@@ -293,22 +293,35 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta any) e
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		diskEncryptionProperties, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]any))
+		payload.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]any))
 		if err != nil {
 			return err
 		}
-		payload.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		if payload.Properties.DiskEncryptionProperties.MsiResourceId != nil {
+			if payload.Identity == nil {
+				payload.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
+
+			payload.Identity.IdentityIds[*payload.Properties.DiskEncryptionProperties.MsiResourceId] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		payload.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]any))
 
 		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		payload.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if payload.Properties.SecurityProfile != nil && payload.Properties.SecurityProfile.MsiResourceId != nil {
+			if payload.Identity == nil {
+				payload.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
 			payload.Identity.IdentityIds[*payload.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
 				// intentionally empty
 			}
