@@ -34,6 +34,11 @@ resource "azurerm_container_app_environment" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
   logs_destination           = "log-analytics"
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 
 resource "azurerm_container_app_environment_maintenance_configuration" "example" {
@@ -42,7 +47,7 @@ resource "azurerm_container_app_environment_maintenance_configuration" "example"
   maintenance_window {
     day_of_week       = "Sunday"
     start_hour_in_utc = 1
-    duration_hours    = 8
+    duration_in_hours    = 8
   }
 }
 ```
@@ -61,9 +66,9 @@ A `maintenance_window` block supports the following:
 
 * `day_of_week` - (Required) The day of the week for the maintenance window. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday`, and `Wednesday`.
 
-* `start_hour_in_utc` - (Required) The start hour of the maintenance window in UTC. Possible values are between `0` and `23`.
+* `duration_in_hours` - (Required) The duration of the maintenance window in hours. Possible values range between `8` and `24`.
 
-* `duration_hours` - (Required) The duration of the maintenance window in hours. Possible values are between `8` and `24`.
+* `start_hour_in_utc` - (Required) The start hour of the maintenance window in UTC. Possible values range between `0` and `23`.
 
 ## Attributes Reference
 

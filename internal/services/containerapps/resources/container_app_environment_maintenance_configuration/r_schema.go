@@ -36,13 +36,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
-						Description:  "The start hour of the maintenance window in UTC. Possible values are between `0` and `23`.",
+						Description:  "The start hour of the maintenance window in UTC. Possible values range between `0` and `23`.",
 					},
-					"duration_hours": {
+					"duration_in_hours": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(8, 24),
-						Description:  "The duration of the maintenance window in hours. Possible values are between `8` and `24`.",
+						Description:  "The duration of the maintenance window in hours. Possible values range between `8` and `24`.",
 					},
 				},
 			},

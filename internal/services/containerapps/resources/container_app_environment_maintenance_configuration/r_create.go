@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -30,16 +31,18 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := maintenanceconfigurations.NewMaintenanceConfigurationID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.ManagedEnvironmentName, "default")
+			id := maintenanceconfigurations.NewMaintenanceConfigurationID(containerAppEnvironmentId.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.ManagedEnvironmentName, "default")
 
-			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			maintenanceConfig := maintenanceconfigurations.MaintenanceConfigurationResource{
@@ -53,6 +56,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -69,7 +75,7 @@ func expandMaintenanceWindow(input []MaintenanceWindow) []maintenanceconfigurati
 		{
 			WeekDay:       maintenanceconfigurations.WeekDay(v.DayOfWeek),
 			StartHourUtc:  v.StartHourInUtc,
-			DurationHours: v.DurationHours,
+			DurationHours: v.DurationInHours,
 		},
 	}
 }

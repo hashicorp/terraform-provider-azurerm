@@ -4,6 +4,7 @@
 package container_app_environment_maintenance_configuration
 
 import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -11,7 +12,10 @@ import (
 
 type Resource struct{}
 
-var _ sdk.ResourceWithUpdate = Resource{}
+var (
+	_ sdk.ResourceWithUpdate   = Resource{}
+	_ sdk.ResourceWithIdentity = Resource{}
+)
 
 func (r Resource) ResourceType() string {
 	return "azurerm_container_app_environment_maintenance_configuration"
@@ -19,4 +23,8 @@ func (r Resource) ResourceType() string {
 
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return maintenanceconfigurations.ValidateMaintenanceConfigurationID
+}
+
+func (r Resource) Identity() resourceids.ResourceId {
+	return &maintenanceconfigurations.MaintenanceConfigurationId{}
 }

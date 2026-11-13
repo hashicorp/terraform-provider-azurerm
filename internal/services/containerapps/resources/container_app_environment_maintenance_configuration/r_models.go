@@ -9,9 +9,9 @@ type ContainerAppEnvironmentMaintenanceConfigurationModel struct {
 }
 
 type MaintenanceWindow struct {
-	DayOfWeek      string `tfschema:"day_of_week"`
-	StartHourInUtc int64  `tfschema:"start_hour_in_utc"`
-	DurationHours  int64  `tfschema:"duration_hours"`
+	DayOfWeek       string `tfschema:"day_of_week"`
+	StartHourInUtc  int64  `tfschema:"start_hour_in_utc"`
+	DurationInHours int64  `tfschema:"duration_in_hours"`
 }
 
 func (r Resource) ModelObject() any {

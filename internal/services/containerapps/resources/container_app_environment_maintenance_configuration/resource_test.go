@@ -105,7 +105,7 @@ resource "azurerm_container_app_environment_maintenance_configuration" "test" {
   maintenance_window {
     day_of_week       = "Sunday"
     start_hour_in_utc = 1
-    duration_hours    = 8
+    duration_in_hours    = 8
   }
 }
 `, r.template(data))
@@ -125,7 +125,7 @@ resource "azurerm_container_app_environment_maintenance_configuration" "test" {
   maintenance_window {
     day_of_week       = "Saturday"
     start_hour_in_utc = 2
-    duration_hours    = 10
+    duration_in_hours    = 10
   }
 }
 `, r.template(data))
@@ -141,7 +141,7 @@ resource "azurerm_container_app_environment_maintenance_configuration" "import" 
   maintenance_window {
     day_of_week       = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.day_of_week
     start_hour_in_utc = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.start_hour_in_utc
-    duration_hours    = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.duration_hours
+    duration_in_hours    = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.duration_in_hours
   }
 }
 `, r.basic(data))
@@ -168,6 +168,11 @@ resource "azurerm_container_app_environment" "test" {
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   logs_destination           = "log-analytics"
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
