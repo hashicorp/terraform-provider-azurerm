@@ -12,7 +12,7 @@ is implemented via `CustomizeDiff` on resources that support it.
 ## Constraint: PUT payloads only
 
 The Azure Preflight Validation API validates full ARM **PUT** payloads. **PATCH operations are
-not supported.** The `properties` value passed to `NewValidationRequest` must represent the
+not supported.** The `requestBody` value passed to `NewValidationRequest` must represent the
 complete resource body exactly as it will be sent to the ARM API. A partial or PATCH-style
 payload will produce unreliable validation results — either false positives (blocked valid
 configs) or false negatives (invalid configs that pass undetected).
