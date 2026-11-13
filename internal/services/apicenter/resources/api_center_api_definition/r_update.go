@@ -51,8 +51,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("specification") {
 				importSpec := expandApiDefinitionPropertiesSpecification(state.Specification)
-				err = client.ImportSpecificationThenPoll(ctx, *id, *importSpec)
-				if err != nil {
+				if err := client.ImportSpecificationThenPoll(ctx, *id, *importSpec); err != nil {
 					return fmt.Errorf("importing specification for %s: %+v", id, err)
 				}
 			}
