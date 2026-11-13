@@ -315,6 +315,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			sc := webApp.SiteConfig[0]
+			var aseId *commonids.AppServiceEnvironmentId
 
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
 				Name: webApp.Name,
@@ -337,18 +338,19 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					// setting from ASEv1? Hence the non-fatal approach here.
 					nameSuffix := "appserviceenvironment.net"
 					if ase.Id != nil {
-						aseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
-						nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+						parsedAseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
+						nameSuffix = fmt.Sprintf("%s.%s", parsedAseId.HostingEnvironmentName, nameSuffix)
 						if err != nil {
 							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
 						} else {
-							existingASE, err := aseClient.Get(ctx, *aseId)
+							existingASE, err := aseClient.Get(ctx, *parsedAseId)
 							if err != nil || existingASE.Model == nil {
 								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
 							} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
 								nameSuffix = *props.DnsSuffix
 							}
 						}
+						aseId = parsedAseId
 					}
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", webApp.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
@@ -402,6 +404,12 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
 					EndToEndEncryptionEnabled: pointer.To(webApp.EndToEndTLSEncryptionEnabled),
 				},
+			}
+
+			if aseId != nil {
+				siteEnvelope.Properties.HostingEnvironmentProfile = &webapps.HostingEnvironmentProfile{
+					Id: pointer.To(aseId.ID()),
+				}
 			}
 
 			siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webApp.VirtualNetworkImagePullEnabled)
