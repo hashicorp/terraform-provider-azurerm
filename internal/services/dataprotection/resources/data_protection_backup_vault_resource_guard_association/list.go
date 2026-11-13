@@ -1,7 +1,7 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package dataprotection
+package data_protection_backup_vault_resource_guard_association
 
 import (
 	"context"
@@ -20,23 +20,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupVaultResourceGuardAssociationListResource struct{}
+type ListResource struct{}
 
-type DataProtectionBackupVaultResourceGuardAssociationListModel struct {
+type ListModel struct {
 	DataProtectionBackupVaultId types.String `tfsdk:"data_protection_backup_vault_id"`
 }
 
-var _ sdk.FrameworkListWrappedResourceWithConfig = new(DataProtectionBackupVaultResourceGuardAssociationListResource)
+var _ sdk.FrameworkListWrappedResourceWithConfig = new(ListResource)
 
-func (r DataProtectionBackupVaultResourceGuardAssociationListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = dataProtectionBackupVaultResourceGuardAssociationResourceType
 }
 
-func (r DataProtectionBackupVaultResourceGuardAssociationListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(DataProtectionBackupVaultResourceGuardAssociationResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (r DataProtectionBackupVaultResourceGuardAssociationListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"data_protection_backup_vault_id": schema.StringAttribute{
@@ -51,10 +51,10 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) ListResou
 	}
 }
 
-func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.DataProtection.ResourceGuardProxyClient
 
-	var data DataProtectionBackupVaultResourceGuardAssociationListModel
+	var data ListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
@@ -74,7 +74,7 @@ func (r DataProtectionBackupVaultResourceGuardAssociationListResource) List(ctx 
 		return
 	}
 
-	association := DataProtectionBackupVaultResourceGuardAssociationResource{}
+	association := Resource{}
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, proxy := range resp.Items {
