@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,7 +102,7 @@ func (r ManagerNetworkGroupResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	client := clients.Network.NetworkGroups
+	client := clients.NetworkManager.NetworkGroups
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
