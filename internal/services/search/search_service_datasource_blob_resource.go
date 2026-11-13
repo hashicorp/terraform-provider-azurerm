@@ -70,8 +70,8 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"connection_string_wo_version": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
 
