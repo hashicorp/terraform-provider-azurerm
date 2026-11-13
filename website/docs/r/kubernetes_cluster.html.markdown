@@ -776,6 +776,10 @@ A `nat_gateway_profile` block supports the following:
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `16` inclusive.
 
+* `sku` - (Optional) The SKU of the managed NAT Gateway. Possible values are `Standard` and `StandardV2`. This can only be set when `outbound_type` is `managedNATGateway`.
+
+-> **Note:** If `sku` is omitted, AKS uses `StandardV2` where available and `Standard` otherwise for new clusters, and retains the current SKU for existing clusters. Existing Standard gateways can be upgraded to StandardV2 without replacing the cluster. Downgrading from StandardV2 to Standard is not supported.
+
 ---
 
 A `bootstrap_profile` block supports the following:
