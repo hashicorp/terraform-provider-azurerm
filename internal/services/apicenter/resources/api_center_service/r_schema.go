@@ -23,9 +23,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.Name(),
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
@@ -36,6 +36,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      "Free",
 			ValidateFunc: validation.StringInSlice([]string{"Free", "Standard"}, false),
 		},
+
 		"tags": commonschema.Tags(),
 	}
 }

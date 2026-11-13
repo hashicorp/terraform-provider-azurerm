@@ -12,13 +12,6 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"service_id": {
-			Type:         pluginsdk.TypeString,
-			Description:  "The ID of the API Center service.",
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: services.ValidateServiceID,
-		},
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The name of the metadata schema.",
@@ -26,22 +19,33 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
+		"service_id": {
+			Type:         pluginsdk.TypeString,
+			Description:  "The ID of the API Center service.",
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: services.ValidateServiceID,
+		},
+
 		"metadata_assignment": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"deprecated": {
-						Type:        pluginsdk.TypeBool,
-						Description: "Whether the metadata assignment is deprecated.",
-						Optional:    true,
-					},
 					"entity": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The type of entity to which the metadata applies.",
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(metadataschemas.PossibleValuesForMetadataAssignmentEntity(), false),
 					},
+
+					"deprecated": {
+						Type:        pluginsdk.TypeBool,
+						Description: "Whether the metadata assignment is deprecated.",
+						Optional:    true,
+					},
+
 					"required": {
 						Type:        pluginsdk.TypeBool,
 						Description: "Whether the metadata assignment is required.",
@@ -50,6 +54,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"schema": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The JSON schema defining the metadata.",

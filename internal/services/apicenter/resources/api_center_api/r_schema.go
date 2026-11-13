@@ -30,6 +30,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: services.ValidateServiceID,
 		},
 
+		"kind": {
+			Type:         pluginsdk.TypeString,
+			Description:  "The kind of API.",
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(apis.PossibleValuesForApiKind(), false),
+		},
+
 		"contact": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -42,12 +49,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
+
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The name of the API contact.",
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
+
 					"url": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The URL for the API contact.",
@@ -57,13 +66,25 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"custom_properties": helpers.CustomPropertiesSchema(),
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Description:  "A description of the API.",
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 1000),
 		},
+
+		"display_name": {
+			Type:        pluginsdk.TypeString,
+			Description: "The display name of the API.",
+			Optional:    true,
+			// Note: O+C if display name is not set, it will default to the name of the API
+			Computed:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+
 		"external_documentation": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -71,33 +92,30 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 20,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"description": {
-						Type:         pluginsdk.TypeString,
-						Description:  "A description of the external documentation.",
-						Optional:     true,
-						ValidateFunc: validation.StringLenBetween(1, 500),
-					},
-					"title": {
-						Type:         pluginsdk.TypeString,
-						Description:  "The title of the external documentation.",
-						Optional:     true,
-						ValidateFunc: validation.StringLenBetween(1, 50),
-					},
 					"url": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The URL of the external documentation.",
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
+
+					"description": {
+						Type:         pluginsdk.TypeString,
+						Description:  "A description of the external documentation.",
+						Optional:     true,
+						ValidateFunc: validation.StringLenBetween(1, 500),
+					},
+
+					"title": {
+						Type:         pluginsdk.TypeString,
+						Description:  "The title of the external documentation.",
+						Optional:     true,
+						ValidateFunc: validation.StringLenBetween(1, 50),
+					},
 				},
 			},
 		},
-		"kind": {
-			Type:         pluginsdk.TypeString,
-			Description:  "The kind of API.",
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(apis.PossibleValuesForApiKind(), false),
-		},
+
 		"license": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -111,12 +129,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:  validation.StringLenBetween(1, 50),
 						ConflictsWith: []string{"license.0.url"},
 					},
+
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The name of the API license.",
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
+
 					"url": {
 						Type:          pluginsdk.TypeString,
 						Description:   "The URL of the API license.",
@@ -127,20 +147,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"summary": {
 			Type:         pluginsdk.TypeString,
 			Description:  "A short summary of the API.",
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 200),
 		},
-		"display_name": {
-			Type:        pluginsdk.TypeString,
-			Description: "The display name of the API.",
-			Optional:    true,
-			// Note: O+C if display name is not set, it will default to the name of the API
-			Computed:     true,
-			ValidateFunc: validation.StringLenBetween(1, 50),
-		},
+
 		"terms_of_service_url": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The URL of the API's terms of service.",

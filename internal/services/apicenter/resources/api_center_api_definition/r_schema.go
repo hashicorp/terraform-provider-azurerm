@@ -12,13 +12,6 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"api_version_id": {
-			Type:         pluginsdk.TypeString,
-			Description:  "The ID of the API version to which this API definition belongs.",
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: apiversions.ValidateVersionID,
-		},
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The name of the API definition.",
@@ -26,12 +19,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
+
+		"api_version_id": {
+			Type:         pluginsdk.TypeString,
+			Description:  "The ID of the API version to which this API definition belongs.",
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: apiversions.ValidateVersionID,
+		},
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The description of the API definition.",
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
 		"display_name": {
 			Type:        pluginsdk.TypeString,
 			Description: "The display name of the API definition.",
@@ -52,11 +55,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The name of the Specification.",
 						Required:    true,
 					},
-					"version": {
+
+					"content": {
 						Type:        pluginsdk.TypeString,
-						Description: "The version of the Specification.",
+						Description: "The content of the Specification.",
 						Optional:    true,
+						AtLeastOneOf: []string{
+							"specification.0.url",
+							"specification.0.content",
+						},
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"url": {
 						Type:        pluginsdk.TypeString,
 						Description: "The URL containing the Specification content.",
@@ -69,15 +79,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							"specification.0.content",
 						},
 					},
-					"content": {
+
+					"version": {
 						Type:        pluginsdk.TypeString,
-						Description: "The content of the Specification.",
+						Description: "The version of the Specification.",
 						Optional:    true,
-						AtLeastOneOf: []string{
-							"specification.0.url",
-							"specification.0.content",
-						},
-						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},

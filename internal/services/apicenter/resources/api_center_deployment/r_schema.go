@@ -22,25 +22,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
+
 		"api_definition_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API definition to deploy.",
 			Required:     true,
 			ValidateFunc: apidefinitions.ValidateDefinitionID,
 		},
-		"custom_properties": helpers.CustomPropertiesSchema(),
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Description:  "A description of the deployment.",
-			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(1, 500),
-		},
+
 		"environment_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the environment for this deployment.",
 			Required:     true,
 			ValidateFunc: environments.ValidateEnvironmentID,
 		},
+
 		"server_runtime_uri": {
 			Type:        pluginsdk.TypeSet,
 			Description: "A set of server runtime URLs for this deployment.",
@@ -51,12 +47,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 		},
-		"state": {
+
+		"custom_properties": helpers.CustomPropertiesSchema(),
+
+		"description": {
 			Type:         pluginsdk.TypeString,
-			Description:  "The state of the deployment.",
+			Description:  "A description of the deployment.",
 			Optional:     true,
-			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentState(), false),
+			ValidateFunc: validation.StringLenBetween(1, 500),
 		},
+
 		"display_name": {
 			Type:        pluginsdk.TypeString,
 			Description: "The display name of the deployment.",
@@ -64,6 +64,13 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			// Note: O+C if display name is not set, it will default to the name of the deployment
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+
+		"state": {
+			Type:         pluginsdk.TypeString,
+			Description:  "The state of the deployment.",
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentState(), false),
 		},
 	}
 }

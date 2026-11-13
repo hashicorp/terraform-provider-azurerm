@@ -63,15 +63,15 @@ The following arguments are supported:
 
 * `api_definition_id` - (Required) The ID of the API definition to deploy.
 
+* `environment_id` - (Required) The ID of the environment for this deployment.
+
+* `server_runtime_uri` - (Required) A set of server runtime URLs for this deployment.
+
 * `custom_properties` - (Optional) A JSON object containing custom properties. Defaults to `{}`.
 
 * `description` - (Optional) A description of the deployment. String length must be between `1` and `500` characters inclusive.
 
 * `display_name` - (Optional) The display name of the deployment. String length must be between `1` and `50` characters inclusive.
-
-* `environment_id` - (Required) The ID of the environment for this deployment.
-
-* `server_runtime_uri` - (Required) A set of server runtime URLs for this deployment.
 
 * `state` - (Optional) The state of the deployment. Possible values include `active` and `inactive`.
 

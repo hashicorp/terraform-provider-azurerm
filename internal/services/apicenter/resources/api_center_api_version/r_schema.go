@@ -13,13 +13,6 @@ import (
 
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"api_id": {
-			Type:         pluginsdk.TypeString,
-			Description:  "The ID of the API to which this API version belongs.",
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: apis.ValidateApiID,
-		},
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The name of the API version.",
@@ -27,12 +20,22 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
+
+		"api_id": {
+			Type:         pluginsdk.TypeString,
+			Description:  "The ID of the API to which this API version belongs.",
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: apis.ValidateApiID,
+		},
+
 		"lifecycle_stage": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The lifecycle stage of the API version.",
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(apiversions.PossibleValuesForLifecycleStage(), false),
 		},
+
 		"display_name": {
 			Type:        pluginsdk.TypeString,
 			Description: "The display name of the API version.",

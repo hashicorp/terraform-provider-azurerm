@@ -49,11 +49,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the metadata schema. Changing this value forces a new resource to be created.
 
+* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
+
 * `metadata_assignment` - (Required) (see [nested schema](#schema-6e6573746564-696e707574-6d657461646174615f61737369676e6d656e74))
 
 * `schema` - (Required) The JSON schema defining the metadata.
-
-* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
 
 ---
 

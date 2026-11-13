@@ -45,9 +45,9 @@ The following arguments are supported:
 
 * `api_id` - (Required) The ID of the API to which this API version belongs. Changing this value forces a new resource to be created.
 
-* `display_name` - (Optional) The display name of the API version. String length must be between `1` and `50` characters inclusive.
-
 * `lifecycle_stage` - (Required) The lifecycle stage of the API version. Possible values include `deprecated`, `design`, `development`, `preview`, `production`, `retired`, and `testing`.
+
+* `display_name` - (Optional) The display name of the API version. String length must be between `1` and `50` characters inclusive.
 
 ## Attributes Reference
 

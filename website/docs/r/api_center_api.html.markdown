@@ -37,6 +37,10 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the API. Changing this value forces a new resource to be created.
 
+* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
+
+* `kind` - (Required) The kind of API. Possible values include `graphql`, `grpc`, `rest`, `soap`, `webhook`, and `websocket`.
+
 * `contact` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-636f6e74616374))
 
 * `custom_properties` - (Optional) A JSON object containing custom properties. Defaults to `{}`.
@@ -47,11 +51,7 @@ The following arguments are supported:
 
 * `external_documentation` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-65787465726e616c5f646f63756d656e746174696f6e))
 
-* `kind` - (Required) The kind of API. Possible values include `graphql`, `grpc`, `rest`, `soap`, `webhook`, and `websocket`.
-
 * `license` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-6c6963656e7365))
-
-* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
 
 * `summary` - (Optional) A short summary of the API. String length must be between `1` and `200` characters inclusive.
 

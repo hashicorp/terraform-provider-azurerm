@@ -30,15 +30,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: services.ValidateServiceID,
 		},
 
-		"display_name": {
-			Type:        pluginsdk.TypeString,
-			Description: "The display name of the environment.",
-			Optional:    true,
-			// Note: O+C if display name is not set, it will default to the name of the environment
-			Computed:     true,
-			ValidateFunc: validation.StringLenBetween(1, 50),
-		},
-
 		"environment_type": {
 			Type:        pluginsdk.TypeString,
 			Description: "The type of the environment.",
@@ -48,6 +39,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				environments.PossibleValuesForEnvironmentKind(),
 				false),
 		},
+
+		"custom_properties": helpers.CustomPropertiesSchema(),
 
 		"description": {
 			Type:         pluginsdk.TypeString,
@@ -63,13 +56,27 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
-		"custom_properties": helpers.CustomPropertiesSchema(),
+		"display_name": {
+			Type:        pluginsdk.TypeString,
+			Description: "The display name of the environment.",
+			Optional:    true,
+			// Note: O+C if display name is not set, it will default to the name of the environment
+			Computed:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
 
 		"instructions": {
 			Type:         pluginsdk.TypeString,
 			Description:  "Instructions for using the environment.",
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"management_portal_uri": {
+			Type:         pluginsdk.TypeString,
+			Description:  "The HTTPS URI of the management portal.",
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"server_type": {
@@ -79,12 +86,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(
 				environments.PossibleValuesForEnvironmentServerType(),
 				false),
-		},
-		"management_portal_uri": {
-			Type:         pluginsdk.TypeString,
-			Description:  "The HTTPS URI of the management portal.",
-			Optional:     true,
-			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 	}
 }
