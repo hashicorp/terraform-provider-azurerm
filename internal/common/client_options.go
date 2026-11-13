@@ -23,6 +23,7 @@ type Authorizers struct {
 	KeyVault        auth.Authorizer
 	ManagedHSM      auth.Authorizer
 	ResourceManager auth.Authorizer
+	Search          auth.Authorizer
 	Storage         auth.Authorizer
 	Synapse         auth.Authorizer
 
