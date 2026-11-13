@@ -159,7 +159,7 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error 
 	}
 
 	serviceId := policy.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
-	resp, err := client.Get(ctx, serviceId, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatXml)})
+	resp, err := client.Get(ctx, serviceId, policy.GetOperationOptions{Format: pointer.To(policy.PolicyExportFormatRawxml)})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
@@ -173,7 +173,10 @@ func resourceApiManagementPolicyRead(d *pluginsdk.ResourceData, meta any) error 
 		if props := model.Properties; props != nil {
 			// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 			// as such there is no way to set `xml_link` and we'll let Terraform handle it
-			d.Set("xml_content", html.UnescapeString(props.Value))
+			policyContent := html.UnescapeString(props.Value)
+			if currentContent := d.Get("xml_content").(string); !XmlWithDotNetInterpolationsDiffSuppress("xml_content", currentContent, policyContent, d) {
+				d.Set("xml_content", policyContent)
+			}
 		}
 	}
 
