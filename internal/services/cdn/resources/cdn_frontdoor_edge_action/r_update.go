@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action
+package cdn_frontdoor_edge_action
 
 import (
 	"context"
@@ -40,10 +40,10 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 
-			if metadata.ResourceData.HasChange("sku_name") {
+			if metadata.ResourceData.HasChange("sku") {
 				payload.Sku = edgeactions.SkuType{
-					Name: config.SkuName,
-					Tier: config.SkuName,
+					Name: config.Sku,
+					Tier: config.Sku,
 				}
 			}
 

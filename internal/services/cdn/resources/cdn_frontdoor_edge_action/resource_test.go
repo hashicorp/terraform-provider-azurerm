@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action_test
+package cdn_frontdoor_edge_action_test
 
 import (
 	"context"
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CdnEdgeActionResource struct{}
+type CdnFrontdoorEdgeActionResource struct{}
 
-func TestAccCdnEdgeAction_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_edge_action", "test")
-	r := CdnEdgeActionResource{}
+func TestAccCdnFrontdoorEdgeAction_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
+	r := CdnFrontdoorEdgeActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccCdnEdgeAction_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnEdgeAction_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_edge_action", "test")
-	r := CdnEdgeActionResource{}
+func TestAccCdnFrontdoorEdgeAction_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
+	r := CdnFrontdoorEdgeActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,9 +48,9 @@ func TestAccCdnEdgeAction_complete(t *testing.T) {
 	})
 }
 
-func TestAccCdnEdgeAction_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_edge_action", "test")
-	r := CdnEdgeActionResource{}
+func TestAccCdnFrontdoorEdgeAction_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
+	r := CdnFrontdoorEdgeActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,9 +63,9 @@ func TestAccCdnEdgeAction_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCdnEdgeAction_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_edge_action", "test")
-	r := CdnEdgeActionResource{}
+func TestAccCdnFrontdoorEdgeAction_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
+	r := CdnFrontdoorEdgeActionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccCdnEdgeAction_update(t *testing.T) {
 	})
 }
 
-func (CdnEdgeActionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (CdnFrontdoorEdgeActionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := edgeactions.ParseEdgeActionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (CdnEdgeActionResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CdnEdgeActionResource) template(data acceptance.TestData) string {
+func (CdnFrontdoorEdgeActionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,38 +119,37 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CdnEdgeActionResource) basic(data acceptance.TestData) string {
+func (r CdnFrontdoorEdgeActionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cdn_edge_action" "test" {
+resource "azurerm_cdn_frontdoor_edge_action" "test" {
   name                = "acctestea%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnEdgeActionResource) requiresImport(data acceptance.TestData) string {
+func (r CdnFrontdoorEdgeActionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cdn_edge_action" "import" {
-  name                = azurerm_cdn_edge_action.test.name
-  resource_group_name = azurerm_cdn_edge_action.test.resource_group_name
-  sku_name            = azurerm_cdn_edge_action.test.sku_name
+resource "azurerm_cdn_frontdoor_edge_action" "import" {
+  name                = azurerm_cdn_frontdoor_edge_action.test.name
+  resource_group_name = azurerm_cdn_frontdoor_edge_action.test.resource_group_name
+  sku                 = azurerm_cdn_frontdoor_edge_action.test.sku
 }
 `, r.basic(data))
 }
 
-func (r CdnEdgeActionResource) complete(data acceptance.TestData) string {
+func (r CdnFrontdoorEdgeActionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cdn_edge_action" "test" {
+resource "azurerm_cdn_frontdoor_edge_action" "test" {
   name                = "acctestea%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
+  sku                 = "Standard"
 
   tags = {
     Environment = "Test"

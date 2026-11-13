@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action
+package cdn_frontdoor_edge_action
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -20,7 +20,7 @@ var (
 )
 
 func (Resource) ResourceType() string {
-	return "azurerm_cdn_edge_action"
+	return "azurerm_cdn_frontdoor_edge_action"
 }
 
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

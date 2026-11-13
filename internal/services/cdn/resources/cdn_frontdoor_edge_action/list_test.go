@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action_test
+package cdn_frontdoor_edge_action_test
 
 import (
 	"context"
@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccCdnEdgeAction_list_basic(t *testing.T) {
-	r := CdnEdgeActionResource{}
-	listResourceAddress := "azurerm_cdn_edge_action.list"
+func TestAccCdnFrontdoorEdgeAction_list_basic(t *testing.T) {
+	r := CdnFrontdoorEdgeActionResource{}
+	listResourceAddress := "azurerm_cdn_frontdoor_edge_action.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_cdn_edge_action", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -48,32 +48,31 @@ func TestAccCdnEdgeAction_list_basic(t *testing.T) {
 	})
 }
 
-func (r CdnEdgeActionResource) basicList(data acceptance.TestData) string {
+func (r CdnFrontdoorEdgeActionResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cdn_edge_action" "test" {
+resource "azurerm_cdn_frontdoor_edge_action" "test" {
   count = 2
 
   name                = "acctestea${count.index}%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (CdnEdgeActionResource) basicQuery() string {
+func (CdnFrontdoorEdgeActionResource) basicQuery() string {
 	return `
-list "azurerm_cdn_edge_action" "list" {
+list "azurerm_cdn_frontdoor_edge_action" "list" {
   provider = azurerm
   config {}
 }
 `
 }
 
-func (CdnEdgeActionResource) basicQueryByResourceGroupName() string {
+func (CdnFrontdoorEdgeActionResource) basicQueryByResourceGroupName() string {
 	return `
-list "azurerm_cdn_edge_action" "list" {
+list "azurerm_cdn_frontdoor_edge_action" "list" {
   provider = azurerm
   config {
     resource_group_name = azurerm_resource_group.test.name

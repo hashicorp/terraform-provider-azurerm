@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action
+package cdn_frontdoor_edge_action
 
 import (
 	"context"
@@ -48,8 +48,8 @@ func (r Resource) Create() sdk.ResourceFunc {
 			param := edgeactions.EdgeAction{
 				Location: "global",
 				Sku: edgeactions.SkuType{
-					Name: config.SkuName,
-					Tier: config.SkuName,
+					Name: config.Sku,
+					Tier: config.Sku,
 				},
 				Tags: pointer.To(config.Tags),
 			}

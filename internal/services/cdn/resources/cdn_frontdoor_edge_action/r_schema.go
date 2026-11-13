@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action
+package cdn_frontdoor_edge_action
 
 import (
 	"regexp"
@@ -25,9 +25,10 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"sku_name": {
+		"sku": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Optional: true,
+			Default:  "Standard",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Standard",
 			}, false),

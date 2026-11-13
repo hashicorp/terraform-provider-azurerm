@@ -1,12 +1,12 @@
 ---
 subcategory: "CDN"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cdn_edge_action"
+page_title: "Azure Resource Manager: azurerm_cdn_frontdoor_edge_action"
 description: |-
   Lists Edge Action resources.
 ---
 
-# List resource: azurerm_cdn_edge_action
+# List resource: azurerm_cdn_frontdoor_edge_action
 
 Lists Edge Action resources.
 
@@ -15,7 +15,7 @@ Lists Edge Action resources.
 ### List all Edge Actions in the subscription
 
 ```hcl
-list "azurerm_cdn_edge_action" "example" {
+list "azurerm_cdn_frontdoor_edge_action" "example" {
   provider = azurerm
   config {}
 }
@@ -24,7 +24,7 @@ list "azurerm_cdn_edge_action" "example" {
 ### List all Edge Actions in a specific resource group
 
 ```hcl
-list "azurerm_cdn_edge_action" "example" {
+list "azurerm_cdn_frontdoor_edge_action" "example" {
   provider = azurerm
   config {
     resource_group_name = "example-rg"

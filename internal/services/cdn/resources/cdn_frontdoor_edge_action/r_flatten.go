@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package cdn_edge_action
+package cdn_frontdoor_edge_action
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,7 +17,7 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *edgeactions.EdgeActio
 	}
 
 	if model != nil {
-		state.SkuName = model.Sku.Name
+		state.Sku = model.Sku.Name
 		state.Tags = pointer.From(model.Tags)
 	}
 
