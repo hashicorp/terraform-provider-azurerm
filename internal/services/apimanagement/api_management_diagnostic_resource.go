@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -89,6 +89,11 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Computed: true, // azignore:AZS007 - pre-existing violation
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"http_correlation_protocol": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -116,6 +121,10 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				if d.Get("identifier") != "applicationinsights" {
 					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
 				}
+			}
+
+			if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() && d.Get("identifier") != "applicationinsights" {
+				return fmt.Errorf("`metrics_enabled` can only be set when `identifier` is set to `applicationinsights`")
 			}
 
 			return nil
@@ -158,13 +167,12 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+	parameters.Properties.Sampling = nil
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "sampling_percentage") {
 		parameters.Properties.Sampling = &diagnostic.SamplingSettings{
 			SamplingType: pointer.To(diagnostic.SamplingTypeFixed),
-			Percentage:   pointer.To(samplingPercentage.(float64)),
+			Percentage:   pointer.To(d.Get("sampling_percentage").(float64)),
 		}
-	} else {
-		parameters.Properties.Sampling = nil
 	}
 
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
@@ -182,6 +190,10 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
 		parameters.Properties.HTTPCorrelationProtocol = pointer.ToEnum[diagnostic.HTTPCorrelationProtocol](httpCorrelationProtocol.(string))
+	}
+
+	if v := d.GetRawConfig().AsValueMap()["metrics_enabled"]; !v.IsNull() {
+		parameters.Properties.Metrics = pointer.To(d.Get("metrics_enabled").(bool))
 	}
 
 	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
@@ -250,6 +262,7 @@ func resourceApiManagementDiagnosticRead(d *pluginsdk.ResourceData, meta any) er
 			d.Set("always_log_errors", pointer.From(props.AlwaysLog) == diagnostic.AlwaysLogAllErrors)
 			d.Set("verbosity", pointer.From(props.Verbosity))
 			d.Set("log_client_ip", pointer.From(props.LogClientIP))
+			d.Set("metrics_enabled", pointer.From(props.Metrics))
 			d.Set("http_correlation_protocol", pointer.From(props.HTTPCorrelationProtocol))
 			if frontend := props.Frontend; frontend != nil {
 				d.Set("frontend_request", flattenApiManagementDiagnosticHTTPMessageDiagnostic(frontend.Request))

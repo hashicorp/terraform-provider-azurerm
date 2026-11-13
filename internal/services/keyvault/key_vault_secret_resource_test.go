@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -8,19 +8,22 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultSecretResource struct{}
@@ -64,6 +67,14 @@ func TestAccKeyVaultSecret_writeOnlyValue(t *testing.T) {
 			data.ImportStep("value", "value_wo_version"),
 			{
 				Config: r.writeOnlyValue(data, "szechuan", 2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						// changing `value_wo_version` creates a new version of the secret, so `version` and the
+						// attributes derived from it must be planned as unknown
+						plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("version")),
+						plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("resource_id")),
+					},
+				},
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
 					check.That(data.ResourceName).Key("value").IsEmpty(),
@@ -194,6 +205,12 @@ func TestAccKeyVaultSecret_update(t *testing.T) {
 		},
 		{
 			Config: r.basicUpdated(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("version")),
+					plancheck.ExpectUnknownValue(data.ResourceName, tfjsonpath.New("resource_id")),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("szechuan"),
@@ -321,17 +338,17 @@ func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Clien
 	}
 
 	// we always want to get the latest version
-	resp, err := clients.KeyVault.ManagementClient.GetSecret(ctx, id.KeyVaultBaseURL, id.Name, "")
+	client := clients.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(id.KeyVaultBaseURL)
+	secretVersionId := secrets.NewSecretversionID(id.KeyVaultBaseURL, id.Name, "")
+	resp, err := client.GetSecret(ctx, secretVersionId)
 	if err != nil {
 		return nil, fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	dataPlaneClient := client.KeyVault.ManagementClient
-
 	name := state.Attributes["name"]
 	keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 	if err != nil {
@@ -342,7 +359,9 @@ func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := dataPlaneClient.DeleteSecret(ctx, *vaultBaseUrl, name); err != nil {
+	secretsClient := client.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*vaultBaseUrl)
+	secretId := secrets.NewSecretID(*vaultBaseUrl, name)
+	if _, err := secretsClient.DeleteSecret(ctx, secretId); err != nil {
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
@@ -364,12 +383,16 @@ func (KeyVaultSecretResource) destroyParentKeyVault(ctx context.Context, client 
 
 func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		dataPlaneClient := clients.KeyVault.ManagementClient
-
 		name := state.Attributes["name"]
 		keyVaultId, err := commonids.ParseKeyVaultID(state.Attributes["key_vault_id"])
 		if err != nil {
 			return err
+		}
+
+		if _, ok := ctx.Deadline(); !ok {
+			ctx2, cancel := context.WithTimeout(ctx, time.Minute*5)
+			defer cancel()
+			ctx = ctx2
 		}
 
 		vaultBaseUrl, err := clients.KeyVault.BaseUriForKeyVault(ctx, *keyVaultId)
@@ -377,10 +400,12 @@ func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.Clien
 			return fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
-		updated := kv.SecretSetParameters{
-			Value: pointer.To(value),
+		secretsClient := clients.KeyVault.DataPlaneKeyVaultClient.Secrets.Clone(*vaultBaseUrl)
+		secretId := secrets.NewSecretID(*vaultBaseUrl, name)
+		updated := secrets.SecretSetParameters{
+			Value: value,
 		}
-		if _, err = dataPlaneClient.SetSecret(ctx, *vaultBaseUrl, name, updated); err != nil {
+		if _, err = secretsClient.SetSecret(ctx, secretId, updated); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 		return nil

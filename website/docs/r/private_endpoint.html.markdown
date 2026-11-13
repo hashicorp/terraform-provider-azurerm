@@ -211,6 +211,12 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
 
+* `ip_version_type` - (Optional) The IP version type for the Private Endpoint. Possible values are `IPv4`, `IPv6`, and `DualStack`. Defaults to `IPv4`.
+
+~> **Note:** When `ip_version_type` is set to `IPv6` or `DualStack`, `private_endpoint_vnet_policies` must be set to `Basic` on the Virtual Network and all peered Virtual Networks. In addition, `private_endpoint_network_policies` must be set to `RouteTableEnabled` on the Subnet. Refer to [document](https://learn.microsoft.com/azure/private-link/private-link-ipv6#prerequisites).
+
+~> **Note:** Only changing `ip_version_type` from `IPv4` to `DualStack` updates the Private Endpoint in place. All other changes to `ip_version_type` force a new Private Endpoint to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -271,8 +277,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
-
 ---
 
 A `network_interface` block exports:
@@ -311,10 +315,15 @@ A `private_dns_zone_configs` block exports:
 
 ---
 
-A `private_service_connection` block exports:
+A `private_service_connection` block exports the following:
+
+* `action_required` - Indicates if changes on the service provider require any updates on the consumer.
+
+* `description` - The reason for approval/rejection of the connection.
 
 * `private_ip_address` - The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
+* `status` - The status of the connection between the service consumer and provider.
 
 ---
 
