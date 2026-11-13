@@ -7,6 +7,60 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_diagnostic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_operation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_operation_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_operation_tag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_release"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_tag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_tag_description"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_api_version_set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_authorization_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_backend"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_custom_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_diagnostic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_email_template"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_api"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_certificate_authority"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_gateway_host_name_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_global_schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_group_user"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_identity_provider_aad"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_identity_provider_aadb2c"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_identity_provider_facebook"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_identity_provider_google"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_identity_provider_microsoft"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_identity_provider_twitter"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_logger"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_named_value"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_notification_recipient_email"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_notification_recipient_user"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_openid_connect_provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_policy_fragment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_product"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_product_api"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_product_group"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_product_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_product_tag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_redis_cache"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_standalone_gateway"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_subscription"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_tag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_user"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_api_version_set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_named_value"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/resources/api_management_workspace_policy_fragment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,87 +91,87 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_api_management":                                 dataSourceApiManagementService(),
-		"azurerm_api_management_api":                             dataSourceApiManagementApi(),
-		"azurerm_api_management_api_version_set":                 dataSourceApiManagementApiVersionSet(),
-		"azurerm_api_management_gateway":                         dataSourceApiManagementGateway(),
-		"azurerm_api_management_gateway_host_name_configuration": dataSourceApiManagementGatewayHostNameConfiguration(),
-		"azurerm_api_management_group":                           dataSourceApiManagementGroup(),
-		"azurerm_api_management_product":                         dataSourceApiManagementProduct(),
-		"azurerm_api_management_user":                            dataSourceApiManagementUser(),
+		"azurerm_api_management":                                 api_management.RegisterDataSource(),
+		"azurerm_api_management_api":                             api_management_api.RegisterDataSource(),
+		"azurerm_api_management_api_version_set":                 api_management_api_version_set.RegisterDataSource(),
+		"azurerm_api_management_gateway":                         api_management_gateway.RegisterDataSource(),
+		"azurerm_api_management_gateway_host_name_configuration": api_management_gateway_host_name_configuration.RegisterDataSource(),
+		"azurerm_api_management_group":                           api_management_group.RegisterDataSource(),
+		"azurerm_api_management_product":                         api_management_product.RegisterDataSource(),
+		"azurerm_api_management_user":                            api_management_user.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_api_management":                                 resourceApiManagementService(),
-		"azurerm_api_management_api":                             resourceApiManagementApi(),
-		"azurerm_api_management_api_diagnostic":                  resourceApiManagementApiDiagnostic(),
-		"azurerm_api_management_api_operation":                   resourceApiManagementApiOperation(),
-		"azurerm_api_management_api_operation_policy":            resourceApiManagementApiOperationPolicy(),
-		"azurerm_api_management_api_operation_tag":               resourceApiManagementApiOperationTag(),
-		"azurerm_api_management_api_policy":                      resourceApiManagementApiPolicy(),
-		"azurerm_api_management_api_release":                     resourceApiManagementApiRelease(),
-		"azurerm_api_management_api_schema":                      resourceApiManagementApiSchema(),
-		"azurerm_api_management_api_tag":                         resourceApiManagementApiTag(),
-		"azurerm_api_management_api_tag_description":             resourceApiManagementApiTagDescription(),
-		"azurerm_api_management_api_version_set":                 resourceApiManagementApiVersionSet(),
-		"azurerm_api_management_authorization_server":            resourceApiManagementAuthorizationServer(),
-		"azurerm_api_management_backend":                         resourceApiManagementBackend(),
-		"azurerm_api_management_certificate":                     resourceApiManagementCertificate(),
-		"azurerm_api_management_custom_domain":                   resourceApiManagementCustomDomain(),
-		"azurerm_api_management_diagnostic":                      resourceApiManagementDiagnostic(),
-		"azurerm_api_management_email_template":                  resourceApiManagementEmailTemplate(),
-		"azurerm_api_management_gateway":                         resourceApiManagementGateway(),
-		"azurerm_api_management_gateway_api":                     resourceApiManagementGatewayApi(),
-		"azurerm_api_management_gateway_certificate_authority":   resourceApiManagementGatewayCertificateAuthority(),
-		"azurerm_api_management_gateway_host_name_configuration": resourceApiManagementGatewayHostNameConfiguration(),
-		"azurerm_api_management_global_schema":                   resourceApiManagementGlobalSchema(),
-		"azurerm_api_management_group":                           resourceApiManagementGroup(),
-		"azurerm_api_management_group_user":                      resourceApiManagementGroupUser(),
-		"azurerm_api_management_identity_provider_aad":           resourceApiManagementIdentityProviderAAD(),
-		"azurerm_api_management_identity_provider_aadb2c":        resourceArmApiManagementIdentityProviderAADB2C(),
-		"azurerm_api_management_identity_provider_facebook":      resourceApiManagementIdentityProviderFacebook(),
-		"azurerm_api_management_identity_provider_google":        resourceApiManagementIdentityProviderGoogle(),
-		"azurerm_api_management_identity_provider_microsoft":     resourceApiManagementIdentityProviderMicrosoft(),
-		"azurerm_api_management_identity_provider_twitter":       resourceApiManagementIdentityProviderTwitter(),
-		"azurerm_api_management_logger":                          resourceApiManagementLogger(),
-		"azurerm_api_management_named_value":                     resourceApiManagementNamedValue(),
-		"azurerm_api_management_openid_connect_provider":         resourceApiManagementOpenIDConnectProvider(),
-		"azurerm_api_management_policy":                          resourceApiManagementPolicy(),
-		"azurerm_api_management_policy_fragment":                 resourceApiManagementPolicyFragment(),
-		"azurerm_api_management_product":                         resourceApiManagementProduct(),
-		"azurerm_api_management_product_api":                     resourceApiManagementProductApi(),
-		"azurerm_api_management_product_group":                   resourceApiManagementProductGroup(),
-		"azurerm_api_management_product_policy":                  resourceApiManagementProductPolicy(),
-		"azurerm_api_management_product_tag":                     resourceApiManagementProductTag(),
-		"azurerm_api_management_redis_cache":                     resourceApiManagementRedisCache(),
-		"azurerm_api_management_subscription":                    resourceApiManagementSubscription(),
-		"azurerm_api_management_tag":                             resourceApiManagementTag(),
-		"azurerm_api_management_user":                            resourceApiManagementUser(),
+		"azurerm_api_management":                                 api_management.RegisterResource(),
+		"azurerm_api_management_api":                             api_management_api.RegisterResource(),
+		"azurerm_api_management_api_diagnostic":                  api_management_api_diagnostic.RegisterResource(),
+		"azurerm_api_management_api_operation":                   api_management_api_operation.RegisterResource(),
+		"azurerm_api_management_api_operation_policy":            api_management_api_operation_policy.RegisterResource(),
+		"azurerm_api_management_api_operation_tag":               api_management_api_operation_tag.RegisterResource(),
+		"azurerm_api_management_api_policy":                      api_management_api_policy.RegisterResource(),
+		"azurerm_api_management_api_release":                     api_management_api_release.RegisterResource(),
+		"azurerm_api_management_api_schema":                      api_management_api_schema.RegisterResource(),
+		"azurerm_api_management_api_tag":                         api_management_api_tag.RegisterResource(),
+		"azurerm_api_management_api_tag_description":             api_management_api_tag_description.RegisterResource(),
+		"azurerm_api_management_api_version_set":                 api_management_api_version_set.RegisterResource(),
+		"azurerm_api_management_authorization_server":            api_management_authorization_server.RegisterResource(),
+		"azurerm_api_management_backend":                         api_management_backend.RegisterResource(),
+		"azurerm_api_management_certificate":                     api_management_certificate.RegisterResource(),
+		"azurerm_api_management_custom_domain":                   api_management_custom_domain.RegisterResource(),
+		"azurerm_api_management_diagnostic":                      api_management_diagnostic.RegisterResource(),
+		"azurerm_api_management_email_template":                  api_management_email_template.RegisterResource(),
+		"azurerm_api_management_gateway":                         api_management_gateway.RegisterResource(),
+		"azurerm_api_management_gateway_api":                     api_management_gateway_api.RegisterResource(),
+		"azurerm_api_management_gateway_certificate_authority":   api_management_gateway_certificate_authority.RegisterResource(),
+		"azurerm_api_management_gateway_host_name_configuration": api_management_gateway_host_name_configuration.RegisterResource(),
+		"azurerm_api_management_global_schema":                   api_management_global_schema.RegisterResource(),
+		"azurerm_api_management_group":                           api_management_group.RegisterResource(),
+		"azurerm_api_management_group_user":                      api_management_group_user.RegisterResource(),
+		"azurerm_api_management_identity_provider_aad":           api_management_identity_provider_aad.RegisterResource(),
+		"azurerm_api_management_identity_provider_aadb2c":        api_management_identity_provider_aadb2c.RegisterResource(),
+		"azurerm_api_management_identity_provider_facebook":      api_management_identity_provider_facebook.RegisterResource(),
+		"azurerm_api_management_identity_provider_google":        api_management_identity_provider_google.RegisterResource(),
+		"azurerm_api_management_identity_provider_microsoft":     api_management_identity_provider_microsoft.RegisterResource(),
+		"azurerm_api_management_identity_provider_twitter":       api_management_identity_provider_twitter.RegisterResource(),
+		"azurerm_api_management_logger":                          api_management_logger.RegisterResource(),
+		"azurerm_api_management_named_value":                     api_management_named_value.RegisterResource(),
+		"azurerm_api_management_openid_connect_provider":         api_management_openid_connect_provider.RegisterResource(),
+		"azurerm_api_management_policy":                          api_management_policy.RegisterResource(),
+		"azurerm_api_management_policy_fragment":                 api_management_policy_fragment.RegisterResource(),
+		"azurerm_api_management_product":                         api_management_product.RegisterResource(),
+		"azurerm_api_management_product_api":                     api_management_product_api.RegisterResource(),
+		"azurerm_api_management_product_group":                   api_management_product_group.RegisterResource(),
+		"azurerm_api_management_product_policy":                  api_management_product_policy.RegisterResource(),
+		"azurerm_api_management_product_tag":                     api_management_product_tag.RegisterResource(),
+		"azurerm_api_management_redis_cache":                     api_management_redis_cache.RegisterResource(),
+		"azurerm_api_management_subscription":                    api_management_subscription.RegisterResource(),
+		"azurerm_api_management_tag":                             api_management_tag.RegisterResource(),
+		"azurerm_api_management_user":                            api_management_user.RegisterResource(),
 	}
 }
 
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ApiManagementSubscriptionDataSource{},
-		ApiManagementWorkspaceDataSource{},
+		api_management_subscription.DataSource{},
+		api_management_workspace.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ApiManagementNotificationRecipientEmailResource{},
-		ApiManagementNotificationRecipientUserResource{},
-		ApiManagementStandaloneGatewayResource{},
-		ApiManagementWorkspaceApiVersionSetResource{},
-		ApiManagementWorkspaceCertificateResource{},
-		ApiManagementWorkspaceNamedValueResource{},
-		ApiManagementWorkspacePolicyFragmentResource{},
-		ApiManagementWorkspacePolicyResource{},
-		ApiManagementWorkspaceResource{},
+		api_management_notification_recipient_email.Resource{},
+		api_management_notification_recipient_user.Resource{},
+		api_management_standalone_gateway.Resource{},
+		api_management_workspace_api_version_set.Resource{},
+		api_management_workspace_certificate.Resource{},
+		api_management_workspace_named_value.Resource{},
+		api_management_workspace_policy_fragment.Resource{},
+		api_management_workspace_policy.Resource{},
+		api_management_workspace.Resource{},
 	}
 }
 
