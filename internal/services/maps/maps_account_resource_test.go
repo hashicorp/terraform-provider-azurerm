@@ -97,6 +97,48 @@ func TestAccMapsAccount_userAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccMapsAccount_identityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
+	r := MapsAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MapsAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accounts.ParseAccountID(state.ID)
 	if err != nil {
@@ -302,6 +344,30 @@ resource "azurerm_maps_account" "test" {
   location                     = azurerm_resource_group.test.location
   sku_name                     = "G2"
   local_authentication_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MapsAccountResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_maps_account" "test" {
+  name                = "accMapsAccount-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "G2"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
