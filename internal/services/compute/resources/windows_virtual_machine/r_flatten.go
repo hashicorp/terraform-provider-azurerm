@@ -124,6 +124,7 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 			}
 			d.Set("platform_fault_domain", platformFaultDomain)
 
+			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
 			if profile := props.OsProfile; profile != nil {
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
@@ -139,7 +140,6 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 					assessmentMode := string(virtualmachines.WindowsPatchAssessmentModeImageDefault)
-					bypassPlatformSafetyChecksOnUserScheduleEnabled := false
 					rebootSetting := ""
 					if patchSettings := config.PatchSettings; patchSettings != nil {
 						d.Set("patch_mode", pointer.From(patchSettings.PatchMode))
@@ -155,7 +155,6 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 					}
 
 					d.Set("patch_assessment_mode", assessmentMode)
-					d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
 					d.Set("reboot_setting", rebootSetting)
 
 					d.Set("timezone", config.TimeZone)
@@ -169,6 +168,8 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 					}
 				}
 			}
+
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", bypassPlatformSafetyChecksOnUserScheduleEnabled)
 
 			// Resources created with azurerm_virtual_machine have priority set to ""
 			// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
