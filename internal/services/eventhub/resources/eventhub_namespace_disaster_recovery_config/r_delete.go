@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/checknameavailabilitydisasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/armdisasterrecoveries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,7 +24,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(d.Id())
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	pairingStatus, err := client.Get(ctx, *id)
+	pairingStatus, err := client.DisasterRecoveryConfigsGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("checking the status of eventhub disaster recovery error: %+v", err)
 	}
@@ -48,7 +48,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	}
 
 	if breakPairFirst {
-		if _, err := client.BreakPairing(ctx, *id); err != nil {
+		if _, err := client.DisasterRecoveryConfigsBreakPairing(ctx, *id); err != nil {
 			return fmt.Errorf("breaking pairing of %s: %+v", *id, err)
 		}
 		if err := resourceEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, *id); err != nil {
@@ -56,13 +56,13 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		}
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if _, err := client.DisasterRecoveryConfigsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// no future for deletion so wait for it to vanish
 	deletePoller := custompollers.NewEventualConsistencyPoller(1, func(pollerCtx context.Context) (*http.Response, error) {
-		resp, err := client.Get(pollerCtx, *id)
+		resp, err := client.DisasterRecoveryConfigsGet(pollerCtx, *id)
 		return resp.HttpResponse, err
 	}, &custompollers.EventualConsistencyPollerOptions{
 		Interval:         30 * time.Second,
@@ -78,7 +78,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 	if !ok {
 		return fmt.Errorf("context has no deadline")
 	}
-	parentNamespaceId := checknameavailabilitydisasterrecoveryconfigs.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	parentNamespaceId := ehnamespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	availabilityClient := meta.(*clients.Client).Eventhub.DisasterRecoveryNameAvailabilityClient
 	nameFreeWait := &pluginsdk.StateChangeConf{
 		Pending:    []string{"NameInUse"},
@@ -86,7 +86,7 @@ func resourceEventHubNamespaceDisasterRecoveryConfigDelete(d *pluginsdk.Resource
 		MinTimeout: 30 * time.Second,
 		Timeout:    time.Until(deadline),
 		Refresh: func() (any, string, error) {
-			input := checknameavailabilitydisasterrecoveryconfigs.CheckNameAvailabilityParameter{
+			input := ehnamespaces.CheckNameAvailabilityParameter{
 				Name: id.DisasterRecoveryConfigName,
 			}
 			resp, err := availabilityClient.DisasterRecoveryConfigsCheckNameAvailability(ctx, parentNamespaceId, input)

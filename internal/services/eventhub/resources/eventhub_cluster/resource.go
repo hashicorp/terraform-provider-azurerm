@@ -6,7 +6,7 @@ package eventhub_cluster
 import (
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -17,7 +17,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Update: resourceEventHubClusterCreateUpdate,
 		Delete: resourceEventHubClusterDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := eventhubsclusters.ParseClusterID(id)
+			_, err := clusters.ParseClusterID(id)
 			return err
 		}),
 

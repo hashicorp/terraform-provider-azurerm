@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/authorizationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/resources/eventhub_namespace_authorization_rule/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -24,7 +24,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Delete: resourceEventHubNamespaceAuthorizationRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(id)
+			_, err := authorizationrules.ParseAuthorizationRuleID(id)
 			return err
 		}),
 

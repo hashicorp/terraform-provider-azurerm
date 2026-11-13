@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/authorizationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -184,7 +184,7 @@ func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 }
 
 func (EventHubNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(state.ID)
+	id, err := authorizationrules.ParseAuthorizationRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}

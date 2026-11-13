@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/authorizationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -19,7 +19,7 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(d.Id())
+	id, err := authorizationrules.ParseAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -63,16 +63,16 @@ func resourceEventHubNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func flattenEventHubNamespaceAuthorizationRuleRights(rights []authorizationrulesnamespaces.AccessRights) (listen, send, manage bool) {
+func flattenEventHubNamespaceAuthorizationRuleRights(rights []authorizationrules.AccessRights) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
 	for _, right := range rights {
 		switch right {
-		case authorizationrulesnamespaces.AccessRightsListen:
+		case authorizationrules.AccessRightsListen:
 			listen = true
-		case authorizationrulesnamespaces.AccessRightsSend:
+		case authorizationrules.AccessRightsSend:
 			send = true
-		case authorizationrulesnamespaces.AccessRightsManage:
+		case authorizationrules.AccessRightsManage:
 			manage = true
 		default:
 			log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
