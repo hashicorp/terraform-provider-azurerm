@@ -601,11 +601,11 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  location = "%[3]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
+  name                     = "acctest%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -619,11 +619,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "acctestblob.vhd"
-  storage_account_name   = azurerm_storage_account.test.name
-  storage_container_name = azurerm_storage_container.test.name
-  type                   = "Page"
-  size                   = 5120
+  name                 = "acctestblob.vhd"
+  storage_container_id = azurerm_storage_container.test.id
+  type                 = "Page"
+  size                 = 20972032
 }
 
 resource "azurerm_snapshot" "test" {
@@ -635,7 +634,7 @@ resource "azurerm_snapshot" "test" {
   storage_account_id  = azurerm_storage_account.test.id
   disk_size_gb        = 10
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.RandomString, data.Locations.Primary)
 }
 
 func (SnapshotResource) incrementalEnabled(data acceptance.TestData) string {
