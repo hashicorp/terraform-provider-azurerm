@@ -388,7 +388,6 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta any) erro
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 		if props := model.Properties; props != nil {
 			d.Set("tier", pointer.FromEnum(props.Tier))
 			d.Set("cluster_version", props.ClusterVersion)
@@ -400,6 +399,14 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta any) erro
 
 			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway, d)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
+			}
+
+			storageAccounts, storageAccountsGen2 := flattenHDInsightStorageAccounts(props.StorageProfile, d)
+			if err := d.Set("storage_account", storageAccounts); err != nil {
+				return fmt.Errorf("flattening `storage_account`: %+v", err)
+			}
+			if err := d.Set("storage_account_gen2", storageAccountsGen2); err != nil {
+				return fmt.Errorf("flattening `storage_account_gen2`: %+v", err)
 			}
 
 			flattenHDInsightsMetastores(d, configurations)
