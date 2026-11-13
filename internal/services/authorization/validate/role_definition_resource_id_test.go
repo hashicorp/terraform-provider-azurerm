@@ -8,7 +8,7 @@ import "testing"
 func TestRoleDefinitionResourceID(t *testing.T) {
 	testCases := []struct {
 		name     string
-		input    interface{}
+		input    any
 		errCount int
 	}{
 		{
