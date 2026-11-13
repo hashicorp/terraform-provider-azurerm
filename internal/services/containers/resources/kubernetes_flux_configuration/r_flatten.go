@@ -160,6 +160,48 @@ func flattenBucketDefinitionModel(input *fluxconfiguration.BucketDefinition, buc
 	return append(outputList, output)
 }
 
+func flattenOCIRepositoryDefinitionModel(input *fluxconfiguration.OCIRepositoryDefinition) ([]OCIRepositoryDefinitionModel, error) {
+	outputList := make([]OCIRepositoryDefinitionModel, 0)
+	if input == nil {
+		return outputList, nil
+	}
+
+	output := OCIRepositoryDefinitionModel{
+		LocalAuthRef:          pointer.From(input.LocalAuthRef),
+		ServiceAccountName:    pointer.From(input.ServiceAccountName),
+		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
+		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),
+		TlsEnabled:            !pointer.From(input.Insecure),
+		Url:                   pointer.From(input.Url),
+		UseWorkloadIdentity:   pointer.From(input.UseWorkloadIdentity),
+	}
+
+	if ref := input.RepositoryRef; ref != nil {
+		switch {
+		case ref.Digest != nil:
+			output.ReferenceType = FluxOCIReferenceDigest
+			output.ReferenceValue = *ref.Digest
+		case ref.Semver != nil:
+			output.ReferenceType = FluxOCIReferenceSemver
+			output.ReferenceValue = *ref.Semver
+		case ref.Tag != nil:
+			output.ReferenceType = FluxOCIReferenceTag
+			output.ReferenceValue = *ref.Tag
+		default:
+			return nil, fmt.Errorf("failed to retrieve oci reference")
+		}
+	}
+
+	if ls := input.LayerSelector; ls != nil {
+		output.LayerSelector = []LayerSelectorDefinitionModel{{
+			MediaType: pointer.From(ls.MediaType),
+			Operation: pointer.FromEnum(ls.Operation),
+		}}
+	}
+
+	return append(outputList, output), nil
+}
+
 func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryDefinition, gitRepository []GitRepositoryDefinitionModel) ([]GitRepositoryDefinitionModel, error) {
 	outputList := make([]GitRepositoryDefinitionModel, 0)
 	if input == nil {
