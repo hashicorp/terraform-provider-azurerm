@@ -6,7 +6,6 @@ package search_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -114,18 +113,12 @@ func TestAccSearchServiceDatasourceBlob_encryptionKey(t *testing.T) {
 }
 
 func TestAccSearchServiceDatasourceBlob_encryptionKeyWithAppCredentials(t *testing.T) {
-	appClientId := os.Getenv("ARM_TEST_SEARCH_APP_CLIENT_ID")
-	appClientSecret := os.Getenv("ARM_TEST_SEARCH_APP_CLIENT_SECRET")
-	if appClientId == "" || appClientSecret == "" {
-		t.Skip("Skipping: ARM_TEST_SEARCH_APP_CLIENT_ID and ARM_TEST_SEARCH_APP_CLIENT_SECRET must be set")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
 	r := SearchServiceDatasourceBlobResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withEncryptionKeyAndAppCredentials(data, appClientId, appClientSecret),
+			Config: r.withEncryptionKeyAndAppCredentials(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -261,10 +254,15 @@ provider "azurerm" {
 
 %s
 
+resource "azurerm_storage_container" "test2" {
+  name               = "acctestsc%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                         = "acctestds%d"
+  name                         = "acctestds%[2]d"
   search_service_endpoint      = azurerm_search_service.test.endpoint
-  container_name               = azurerm_storage_container.test.name
+  container_name               = azurerm_storage_container.test2.name
   container_query              = "/folder"
   connection_string_wo         = azurerm_storage_account.test.primary_connection_string
   connection_string_wo_version = 1
@@ -282,7 +280,7 @@ func (r SearchServiceDatasourceBlobResource) encryptionKeyTemplate(data acceptan
 %s
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv%s"
+  name                       = "acctestkv%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -305,7 +303,7 @@ resource "azurerm_role_assignment" "search_keyvault" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%s"
+  name         = "acctestkvkey%[2]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -321,7 +319,7 @@ resource "azurerm_key_vault_key" "test" {
 
   depends_on = [azurerm_role_assignment.current_user_keyvault]
 }
-`, r.template(data), data.RandomString, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r SearchServiceDatasourceBlobResource) withEncryptionKey(data acceptance.TestData) string {
@@ -348,22 +346,36 @@ resource "azurerm_search_service_datasource_blob" "test" {
 `, r.encryptionKeyTemplate(data), data.RandomInteger)
 }
 
-func (r SearchServiceDatasourceBlobResource) withEncryptionKeyAndAppCredentials(data acceptance.TestData, appClientId, appClientSecret string) string {
+func (r SearchServiceDatasourceBlobResource) withEncryptionKeyAndAppCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-%s
+provider "azuread" {}
+
+%[1]s
+
+resource "azuread_application" "test" {
+  display_name = "acctestspa%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application.test.client_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.id
+}
 
 resource "azurerm_role_assignment" "app_keyvault" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = data.azurerm_client_config.current.object_id
+  principal_id         = azuread_service_principal.test.object_id
 }
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                         = "acctestds%d"
+  name                         = "acctestds%[2]d"
   search_service_endpoint      = azurerm_search_service.test.endpoint
   container_name               = azurerm_storage_container.test.name
   connection_string_wo         = azurerm_storage_account.test.primary_connection_string
@@ -371,13 +383,13 @@ resource "azurerm_search_service_datasource_blob" "test" {
 
   encryption_key {
     key_vault_key_id = azurerm_key_vault_key.test.id
-    client_id        = %q
-    client_secret    = %q
+    client_id        = azuread_service_principal.test.client_id
+    client_secret    = azuread_service_principal_password.test.value
   }
 
   depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault, azurerm_role_assignment.app_keyvault]
 }
-`, r.encryptionKeyTemplate(data), data.RandomInteger, appClientId, appClientSecret)
+`, r.encryptionKeyTemplate(data), data.RandomInteger)
 }
 
 func (r SearchServiceDatasourceBlobResource) writeOnlyConnectionString(data acceptance.TestData, version int) string {

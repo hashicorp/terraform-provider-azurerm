@@ -72,6 +72,7 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 		"connection_string_wo_version": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"container_query": {
@@ -130,13 +131,16 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 			endpoint := model.SearchServiceEndpoint
 			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
 			id := datasources.NewDatasourceID(endpoint, model.Name)
-			existing, err := client.Get(ctx, id, datasources.DefaultGetOperationOptions())
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.Get(ctx, id, datasources.DefaultGetOperationOptions())
+				if err != nil && !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			woConnectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
@@ -176,7 +180,7 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.Create(ctx, parameters, datasources.DefaultCreateOperationOptions()); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, parameters, datasources.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
