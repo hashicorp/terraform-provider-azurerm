@@ -199,3 +199,29 @@ data "azurerm_firewall" "test" {
 }
 `, FirewallResource{}.inVirtualHub(data, pipCount))
 }
+
+func TestAccFirewallDataSource_withAutoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+	r := FirewallDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.withAutoscale(data, 2, 10),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale.0.minimum_capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("autoscale.0.maximum_capacity").HasValue("10"),
+			),
+		},
+	})
+}
+
+func (FirewallDataSource) withAutoscale(data acceptance.TestData, minCapacity, maxCapacity int) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, FirewallResource{}.withAutoscale(data, minCapacity, maxCapacity))
+}
