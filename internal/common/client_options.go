@@ -63,15 +63,34 @@ type ClientOptions struct {
 	// Transport exposes the go-azure-sdk mechanism to attach / replace the default transport. Primarily for go-vcr
 	// testing
 	Transport http.RoundTripper
+
+	// ResourceManagerTransport is shared by all clients configured with Configure, so that Resource Manager requests
+	// reuse connections. Transport takes precedence when set. Data-plane clients do not use it, see ConfigureDataPlane.
+	ResourceManagerTransport http.RoundTripper
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
 func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer) {
+	o.configure(c, authorizer, o.ResourceManagerTransport)
+}
+
+// ConfigureDataPlane sets up a data-plane client using an auth.Authorizer from hashicorp/go-azure-sdk.
+//
+// Unlike Configure it does not use the shared ResourceManagerTransport: a data-plane hostname can resolve to a
+// different address during a run (e.g. once a Private Endpoint and its Private DNS Zone exist), and a pooled
+// connection would keep using the previous address.
+func (o ClientOptions) ConfigureDataPlane(c client.BaseClient, authorizer auth.Authorizer) {
+	o.configure(c, authorizer, nil)
+}
+
+func (o ClientOptions) configure(c client.BaseClient, authorizer auth.Authorizer, pooled http.RoundTripper) {
 	c.SetAuthorizer(authorizer)
 	c.SetUserAgent(userAgent(c.GetUserAgent(), o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID))
 
 	if o.Transport != nil {
 		c.SetTransport(o.Transport)
+	} else if pooled != nil {
+		c.SetTransport(pooled)
 	}
 
 	if !o.DisableCorrelationRequestID {

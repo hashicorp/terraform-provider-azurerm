@@ -55,7 +55,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
 	dataplaneKeyvaultClient, err := v7_4.NewClient(func(c *dataplane.Client) {
-		o.Configure(c.Client, o.Authorizers.KeyVault)
+		o.ConfigureDataPlane(c.Client, o.Authorizers.KeyVault)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("building data-plane KeyVault client: %+v", err)
