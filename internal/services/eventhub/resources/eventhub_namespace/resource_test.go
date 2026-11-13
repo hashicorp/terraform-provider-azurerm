@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -531,13 +531,64 @@ func TestAccEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *testing
 	})
 }
 
+func TestAccEventHubNamespace_geoReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_replication.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.geoReplication(data, 300),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_replication.0.replica.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.geoReplication(data, 600),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_replication.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHubNamespace_geoReplicationMultiplePrimaries(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	r := EventHubNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.geoReplicationMultiplePrimaries(data),
+			ExpectError: regexp.MustCompile("exactly one `replica` in `geo_replication` must have `role` set to `Primary`"),
+		},
+	})
+}
+
 func (EventHubNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := namespaces.ParseNamespaceID(state.ID)
+	id, err := ehnamespaces.ParseNamespaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.NamespacesClient.Get(ctx, *id)
+	resp, err := clients.Eventhub.NamespacesClient.NamespacesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
@@ -1159,4 +1210,95 @@ resource "azurerm_eventhub_namespace" "test" {
   maximum_throughput_units = 0
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
+  capacity            = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventHubNamespaceResource) geoReplication(data acceptance.TestData, maximumReplicationLag int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
+  capacity            = 1
+
+  geo_replication {
+    maximum_replication_lag_in_seconds = %[4]d
+
+    replica {
+      location = azurerm_resource_group.test.location
+      role     = "Primary"
+    }
+
+    replica {
+      location = "%[3]s"
+      role     = "Secondary"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, maximumReplicationLag)
+}
+
+func (EventHubNamespaceResource) geoReplicationMultiplePrimaries(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eh-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
+  capacity            = 1
+
+  geo_replication {
+    maximum_replication_lag_in_seconds = 300
+
+    replica {
+      location = "%[2]s"
+      role     = "Primary"
+    }
+
+    replica {
+      location = "%[3]s"
+      role     = "Primary"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

@@ -6,7 +6,7 @@ package eventhub_namespace_authorization_rule
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/authorizationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,7 +18,7 @@ func resourceEventHubNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := authorizationrulesnamespaces.ParseAuthorizationRuleID(d.Id())
+	id, err := authorizationrules.ParseAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}

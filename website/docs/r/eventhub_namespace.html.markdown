@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
+* `geo_replication` - (Optional) A `geo_replication` block as defined below.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `40`.
@@ -64,6 +66,26 @@ The following arguments are supported:
 * `minimum_tls_version` - (Optional) The minimum supported TLS version for this EventHub Namespace. The only possible value is `1.2`. Defaults to `1.2`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+
+---
+
+A `geo_replication` block supports the following:
+
+* `maximum_replication_lag_in_seconds` - (Required) The maximum acceptable lag, in seconds, for replicating data from the primary replica to a quorum of secondary replicas. Operations on the primary replica fail while the lag exceeds this value. Possible values are `0` or between `300` and `86400`.
+
+* `replica` - (Required) Two or more `replica` blocks as defined below. Exactly one `replica` must have `role` set to `Primary`.
+
+~> **Note:** Geo-replication is only available for `Premium` namespaces and namespaces in a Dedicated Event Hub Cluster. Removing the `geo_replication` block removes every `Secondary` replica and keeps the `Primary`. For more information see the [Event Hubs Geo-Replication documentation](https://learn.microsoft.com/azure/event-hubs/geo-replication).
+
+---
+
+A `replica` block supports the following:
+
+* `location` - (Required) The Azure Region where this replica of the EventHub Namespace is maintained.
+
+* `role` - (Required) The role of this replica. Possible values are `Primary` and `Secondary`.
+
+* `dedicated_cluster_id` - (Optional) The ID of the Dedicated Event Hub Cluster that this replica should be placed in.
 
 ---
 
@@ -163,4 +185,4 @@ terraform import azurerm_eventhub_namespace.namespace1 /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventHub` - 2024-01-01
+* `Microsoft.EventHub` - 2026-01-01

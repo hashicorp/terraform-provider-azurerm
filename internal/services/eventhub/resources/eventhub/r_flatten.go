@@ -5,15 +5,15 @@ package eventhub
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func resourceEventHubFlatten(d *pluginsdk.ResourceData, id *eventhubs.EventhubId, model *eventhubs.Eventhub) error {
 	d.Set("name", id.EventhubName)
 
-	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	namespaceId := ehnamespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
 	d.Set("namespace_id", namespaceId.ID())
 
 	if model != nil {

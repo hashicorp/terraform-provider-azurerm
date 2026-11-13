@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -32,13 +32,13 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		client := meta.(*clients.Client).Eventhub.NamespacesClient
-		namespaceId := namespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
-		resp, err := client.Get(ctx, namespaceId)
+		namespaceId := ehnamespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
+		resp, err := client.NamespacesGet(ctx, namespaceId)
 		if err != nil {
 			return err
 		}
 		if model := resp.Model; model != nil {
-			if model.Sku.Name != namespaces.SkuNamePremium && model.Properties.ClusterArmId == nil {
+			if model.Sku.Name != ehnamespaces.SkuNamePremium && model.Properties.ClusterArmId == nil {
 				return fmt.Errorf("`partition_count` cannot be changed on shared namespaces unless the namespace sku is `Premium`")
 			}
 		}

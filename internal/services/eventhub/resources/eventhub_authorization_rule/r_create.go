@@ -7,8 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationruleseventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/eventhubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -45,16 +44,16 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
-	parameters := authorizationruleseventhubs.AuthorizationRule{
+	parameters := eventhubs.AuthorizationRule{
 		Name: &id.AuthorizationRuleName,
-		Properties: &authorizationruleseventhubs.AuthorizationRuleProperties{
+		Properties: &eventhubs.AuthorizationRuleProperties{
 			Rights: expandEventHubAuthorizationRuleRights(d),
 		},
 	}
 
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		localId := authorizationruleseventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName, id.AuthorizationRuleName)
-		if _, err := authorizationRulesClient.EventHubsCreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {
+		localId := eventhubs.NewEventhubAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.EventhubName, id.AuthorizationRuleName)
+		if _, err := authorizationRulesClient.CreateOrUpdateAuthorizationRule(ctx, localId, parameters); err != nil {
 			return pluginsdk.NonRetryableError(fmt.Errorf("creating %s: %+v", id, err))
 		}
 
@@ -76,19 +75,19 @@ func resourceEventHubAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, me
 	})
 }
 
-func expandEventHubAuthorizationRuleRights(d *pluginsdk.ResourceData) []authorizationruleseventhubs.AccessRights {
-	rights := make([]authorizationruleseventhubs.AccessRights, 0)
+func expandEventHubAuthorizationRuleRights(d *pluginsdk.ResourceData) []eventhubs.AccessRights {
+	rights := make([]eventhubs.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
-		rights = append(rights, authorizationruleseventhubs.AccessRightsListen)
+		rights = append(rights, eventhubs.AccessRightsListen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, authorizationruleseventhubs.AccessRightsSend)
+		rights = append(rights, eventhubs.AccessRightsSend)
 	}
 
 	if d.Get("manage").(bool) {
-		rights = append(rights, authorizationruleseventhubs.AccessRightsManage)
+		rights = append(rights, eventhubs.AccessRightsManage)
 	}
 
 	return rights

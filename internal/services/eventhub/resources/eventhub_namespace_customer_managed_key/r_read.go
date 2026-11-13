@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/ehnamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,12 +21,12 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := namespaces.ParseNamespaceID(d.Id())
+	id, err := ehnamespaces.ParseNamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.NamespacesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -74,7 +74,7 @@ func resourceEventHubNamespaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, 
 	return nil
 }
 
-func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]string, error) {
+func flattenEventHubNamespaceKeyVaultKeyIds(input *ehnamespaces.Encryption) ([]string, error) {
 	results := make([]string, 0)
 	if input == nil || input.KeyVaultProperties == nil {
 		return results, nil

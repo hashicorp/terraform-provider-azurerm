@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/armdisasterrecoveries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -69,12 +69,12 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 }
 
 func (EventHubNamespaceDisasterRecoveryConfigResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := disasterrecoveryconfigs.ParseDisasterRecoveryConfigID(state.ID)
+	id, err := armdisasterrecoveries.ParseDisasterRecoveryConfigID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.DisasterRecoveryConfigsClient.Get(ctx, *id)
+	resp, err := clients.Eventhub.DisasterRecoveryConfigsClient.DisasterRecoveryConfigsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

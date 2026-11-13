@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2026-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -74,12 +74,12 @@ func TestAccEventHubCluster_update(t *testing.T) {
 }
 
 func (EventHubClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := eventhubsclusters.ParseClusterID(state.ID)
+	id, err := clusters.ParseClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Eventhub.ClusterClient.ClustersGet(ctx, *id)
+	resp, err := clients.Eventhub.ClusterClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
