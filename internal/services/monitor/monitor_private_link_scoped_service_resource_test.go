@@ -152,8 +152,9 @@ resource "azurerm_monitor_private_link_scope" "test" {
 resource "azurerm_monitor_private_link_scoped_service" "test" {
   name                = "acctest-plss-%d"
   resource_group_name = azurerm_resource_group.test.name
-  scope_name          = azurerm_monitor_private_link_scope.test.name
+  scope_name          = "acctest-unused-pls-%d"
+  scope_resource_id   = azurerm_monitor_private_link_scope.test.id
   linked_resource_id  = azurerm_monitor_data_collection_endpoint.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
