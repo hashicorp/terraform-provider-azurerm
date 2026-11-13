@@ -76,7 +76,7 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_userAssignedIdentity(t
 	r := DataProtectionBackupInstanceKubernetesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeWithUserAssignedIdentity(data),
+			Config: r.completeWithUserAssignedIdentity(data, "test"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,6 +84,34 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_userAssignedIdentity(t
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeWithUserAssignedIdentity(data, "test"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataProtectionBackupInstanceKubernetesCluster_userAssignedIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
+	r := DataProtectionBackupInstanceKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeWithUserAssignedIdentity(data, "test"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeWithUserAssignedIdentity(data, "test_update"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -131,6 +159,12 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
+resource "azurerm_user_assigned_identity" "test_update" {
+  name                = "acctest-uai-update-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_data_protection_backup_vault" "test" {
   name                = "acctest-dbv-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -140,7 +174,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   soft_delete         = "Off"
   identity {
     type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test_update.id]
   }
 }
 
@@ -248,6 +282,22 @@ resource "azurerm_role_assignment" "test_vault_data_operator_on_snap_rg" {
   principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
 }
 
+// Confirmed with the Service Team that we should wait for role propagation before creating the backup instance
+// Wait for at least 3mins to be consistent with portal
+resource "time_sleep" "wait_for_system_assigned_role_propagations" {
+  create_duration = "180s"
+
+  depends_on = [
+    azurerm_role_assignment.test_extension_and_storage_account_permission,
+    azurerm_role_assignment.test_vault_msi_read_on_cluster,
+    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
+    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_contributor_on_storage,
+    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
+  ]
+}
+
 resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
   name                = "acctest-paks-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -280,13 +330,7 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
   }
 
   depends_on = [
-    azurerm_role_assignment.test_extension_and_storage_account_permission,
-    azurerm_role_assignment.test_vault_msi_read_on_cluster,
-    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
-    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
-    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
-    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
-    azurerm_role_assignment.test_vault_data_contributor_on_storage,
+    time_sleep.wait_for_system_assigned_role_propagations,
   ]
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -360,38 +404,55 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterResource) completeWithUserAssignedIdentity(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) completeWithUserAssignedIdentity(data acceptance.TestData, identityName string) string {
 	return fmt.Sprintf(`
 %[1]s
 
+locals {
+  user_assigned_identities = {
+    test        = azurerm_user_assigned_identity.test.principal_id
+    test_update = azurerm_user_assigned_identity.test_update.principal_id
+  }
+}
+
 resource "azurerm_role_assignment" "test_uai_read_on_cluster" {
+  for_each = local.user_assigned_identities
+
   scope                = azurerm_kubernetes_cluster.test.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = each.value
 }
 
 resource "azurerm_role_assignment" "test_uai_read_on_snap_rg" {
+  for_each = local.user_assigned_identities
+
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = each.value
 }
 
 resource "azurerm_role_assignment" "test_uai_data_contributor_on_storage" {
+  for_each = local.user_assigned_identities
+
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = each.value
 }
 
 resource "azurerm_role_assignment" "test_uai_snapshot_contributor_on_snap_rg" {
+  for_each = local.user_assigned_identities
+
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Disk Snapshot Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = each.value
 }
 
 resource "azurerm_role_assignment" "test_uai_data_operator_on_snap_rg" {
+  for_each = local.user_assigned_identities
+
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Data Operator for Managed Disks"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = each.value
 }
 
 // Confirm with the Service Team that we should wait for role propagation before creating the backup instance
@@ -414,7 +475,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.test.id
   kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
   snapshot_resource_group_name = azurerm_resource_group.snap.name
-  user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
+  user_assigned_identity_id    = azurerm_user_assigned_identity.%[3]s.id
 
   backup_datasource_parameters {
     excluded_namespaces              = ["test-excluded-namespaces"]
@@ -430,5 +491,5 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
     time_sleep.wait_for_role_propagations
   ]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, identityName)
 }
