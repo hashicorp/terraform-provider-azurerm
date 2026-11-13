@@ -4,6 +4,8 @@
 package automation_hybrid_runbook_worker
 
 import (
+	"strings"
+
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -39,6 +41,10 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return strings.EqualFold(old, new)
+			},
+			DiffSuppressOnRefresh: true,
 		},
 	}
 }
