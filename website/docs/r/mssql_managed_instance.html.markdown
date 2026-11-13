@@ -239,7 +239,7 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Defaults to `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `database_format` - (Optional) Specifies the internal format of the SQL Managed Instance databases specific to the SQL engine version. Possible values are `AlwaysUpToDate` and `SQLServer2022`. Defaults to `SQLServer2022`.
+* `database_format` - (Optional) Specifies the internal format of the SQL Managed Instance databases specific to the SQL engine version. Possible values are `AlwaysUpToDate`, `SQLServer2022` and `SQLServer2025`. Defaults to `SQLServer2022`.
 
 ~> **Note:** Changing `database_format` from `AlwaysUpToDate` to `SQLServer2022` forces a new SQL Managed Instance to be created.
 
@@ -258,6 +258,12 @@ The following arguments are supported:
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. The only possible value is `1.2`. Defaults to `1.2`.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+
+* `pricing_model` - (Optional) Specifies the pricing model for the SQL Managed Instance. Possible values are `Freemium` and `Regular`.
+
+~> **Note:** When `pricing_model` is set to `Freemium`, `sku_name` must be `GP_Gen5`, `vcores` must be `4` or `8`, `storage_size_in_gb` must be `64`, `storage_account_type` must be `LRS`, and `zone_redundant_enabled` must be `false`. Azure allows [only one free SQL Managed Instance per subscription](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer?view=azuresql#prerequisites).
+
+!> **Note:** Changing `pricing_model` from `Regular` to `Freemium` forces a new SQL Managed Instance to be created.
 
 * `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Possible values are `Proxy` and `Redirect`. Defaults to `Redirect`.
 
