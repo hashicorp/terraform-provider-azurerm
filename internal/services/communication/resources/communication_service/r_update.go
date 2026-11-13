@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -44,6 +45,14 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			existing.Model.Properties = &props
+
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				commService.Identity = expandedIdentity
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				commService.Tags = pointer.To(model.Tags)
