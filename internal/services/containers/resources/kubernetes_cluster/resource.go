@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/resources/kubernetes_cluster/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -53,6 +54,20 @@ func RegisterResource() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffInSequence(
+			func(_ context.Context, d *pluginsdk.ResourceDiff, meta any) error {
+				name := d.Get("default_node_pool.0.name").(string)
+				if name == "" {
+					return nil
+				}
+				return validate.KubernetesAgentPoolNameWithFeatures(name, "default_node_pool.0.name", meta.(*clients.Client).Features.KubernetesCluster.NodePoolNameMaxLength)
+			},
+			func(_ context.Context, d *pluginsdk.ResourceDiff, meta any) error {
+				name := d.Get("default_node_pool.0.temporary_name_for_rotation").(string)
+				if name == "" {
+					return nil
+				}
+				return validate.KubernetesAgentPoolNameWithFeatures(name, "default_node_pool.0.temporary_name_for_rotation", meta.(*clients.Client).Features.KubernetesCluster.NodePoolNameMaxLength)
+			},
 			// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta any) bool {
 				return old != 0 && new == 0
