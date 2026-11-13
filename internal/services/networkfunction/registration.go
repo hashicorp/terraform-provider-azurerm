@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/resources/network_function_azure_traffic_collector"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/networkfunction/resources/network_function_collector_policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -52,8 +54,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		NetworkFunctionAzureTrafficCollectorResource{},
-		NetworkFunctionCollectorPolicyResource{},
+		network_function_azure_traffic_collector.Resource{},
+		network_function_collector_policy.Resource{},
 	}
 }
 

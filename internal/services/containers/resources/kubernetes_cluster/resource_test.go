@@ -41,6 +41,54 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_defaultNodePoolSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultNodePoolSecurity(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultNodePoolSecurity(data, `
+secure_boot_enabled = false
+vtpm_enabled        = false
+`),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultNodePoolSecurity(data, `
+secure_boot_enabled = true
+vtpm_enabled        = true
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultNodePoolSecurity(data, `
+secure_boot_enabled = true
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.defaultNodePoolSecurity(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -514,6 +562,56 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) defaultNodePoolSecurity(data acceptance.TestData, securitySettings string) string {
+	securityBlock := ""
+	if securitySettings != "" {
+		securityBlock = fmt.Sprintf(`
+security {
+%s
+}
+`, securitySettings)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+
+    %[3]s
+
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, securityBlock)
 }
 
 func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {

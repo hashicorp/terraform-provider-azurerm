@@ -46,7 +46,7 @@ github.com/Masterminds/semver/v3
 # github.com/Masterminds/sprig/v3 v3.3.0
 ## explicit; go 1.21
 github.com/Masterminds/sprig/v3
-# github.com/ProtonMail/go-crypto v1.4.1
+# github.com/ProtonMail/go-crypto v1.5.2
 ## explicit; go 1.23.0
 github.com/ProtonMail/go-crypto/bitcurves
 github.com/ProtonMail/go-crypto/brainpool
@@ -66,8 +66,11 @@ github.com/ProtonMail/go-crypto/openpgp/errors
 github.com/ProtonMail/go-crypto/openpgp/internal/algorithm
 github.com/ProtonMail/go-crypto/openpgp/internal/ecc
 github.com/ProtonMail/go-crypto/openpgp/internal/encoding
+github.com/ProtonMail/go-crypto/openpgp/mldsa_eddsa
+github.com/ProtonMail/go-crypto/openpgp/mlkem_ecdh
 github.com/ProtonMail/go-crypto/openpgp/packet
 github.com/ProtonMail/go-crypto/openpgp/s2k
+github.com/ProtonMail/go-crypto/openpgp/slhdsa
 github.com/ProtonMail/go-crypto/openpgp/x25519
 github.com/ProtonMail/go-crypto/openpgp/x448
 # github.com/agext/levenshtein v1.2.3
@@ -101,13 +104,32 @@ github.com/cloudflare/circl/dh/x448
 github.com/cloudflare/circl/ecc/goldilocks
 github.com/cloudflare/circl/internal/conv
 github.com/cloudflare/circl/internal/sha3
+github.com/cloudflare/circl/kem
+github.com/cloudflare/circl/kem/mlkem/mlkem1024
+github.com/cloudflare/circl/kem/mlkem/mlkem768
 github.com/cloudflare/circl/math
 github.com/cloudflare/circl/math/fp25519
 github.com/cloudflare/circl/math/fp448
 github.com/cloudflare/circl/math/mlsbset
+github.com/cloudflare/circl/pke/kyber/internal/common
+github.com/cloudflare/circl/pke/kyber/internal/common/params
+github.com/cloudflare/circl/pke/kyber/kyber1024
+github.com/cloudflare/circl/pke/kyber/kyber1024/internal
+github.com/cloudflare/circl/pke/kyber/kyber768
+github.com/cloudflare/circl/pke/kyber/kyber768/internal
 github.com/cloudflare/circl/sign
 github.com/cloudflare/circl/sign/ed25519
 github.com/cloudflare/circl/sign/ed448
+github.com/cloudflare/circl/sign/internal/dilithium
+github.com/cloudflare/circl/sign/internal/dilithium/params
+github.com/cloudflare/circl/sign/mldsa/mldsa65
+github.com/cloudflare/circl/sign/mldsa/mldsa65/internal
+github.com/cloudflare/circl/sign/mldsa/mldsa87
+github.com/cloudflare/circl/sign/mldsa/mldsa87/internal
+github.com/cloudflare/circl/sign/slhdsa
+github.com/cloudflare/circl/simd/keccakf1600
+github.com/cloudflare/circl/xof
+github.com/cloudflare/circl/xof/k12
 # github.com/dave/jennifer v1.7.1
 ## explicit; go 1.20
 github.com/dave/jennifer/jen
@@ -173,7 +195,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/data-plane v0.20261104.1160259
+# github.com/hashicorp/go-azure-sdk/data-plane v0.20261106.1110203
 ## explicit; go 1.26.10
 github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4
@@ -193,7 +215,7 @@ github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/settings
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage
 github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20261104.1160259
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20261106.1110203
 ## explicit; go 1.26.10
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -376,18 +398,18 @@ github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afddomains
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdendpoints
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigingroups
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/afdorigins
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/customdomains
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/endpoints
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/profiles
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/routes
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rules
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/rulesets
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/secrets
-github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/securitypolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afddomains
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigingroups
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/afdorigins
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/profiles
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/routes
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rules
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/rulesets
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/secrets
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/securitypolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilities
@@ -523,6 +545,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serv
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardproxybaseresources
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards
 github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources
@@ -1246,7 +1269,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20261104.1160259
+# github.com/hashicorp/go-azure-sdk/sdk v0.20261106.1110203
 ## explicit; go 1.26.10
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1302,14 +1325,14 @@ github.com/hashicorp/go-uuid
 # github.com/hashicorp/go-version v1.9.0
 ## explicit
 github.com/hashicorp/go-version
-# github.com/hashicorp/hc-install v0.9.4
-## explicit; go 1.25.8
+# github.com/hashicorp/hc-install v0.10.0
+## explicit; go 1.26.0
 github.com/hashicorp/hc-install
 github.com/hashicorp/hc-install/checkpoint
 github.com/hashicorp/hc-install/errors
 github.com/hashicorp/hc-install/fs
+github.com/hashicorp/hc-install/httpclient
 github.com/hashicorp/hc-install/internal/build
-github.com/hashicorp/hc-install/internal/httpclient
 github.com/hashicorp/hc-install/internal/pubkey
 github.com/hashicorp/hc-install/internal/releasesjson
 github.com/hashicorp/hc-install/internal/src
@@ -1328,11 +1351,11 @@ github.com/hashicorp/hcl/v2/internal/unicodeutil
 # github.com/hashicorp/logutils v1.0.0
 ## explicit
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform-exec v0.25.1
-## explicit; go 1.25.8
+# github.com/hashicorp/terraform-exec v0.26.0
+## explicit; go 1.26.0
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
-# github.com/hashicorp/terraform-json v0.28.0
+# github.com/hashicorp/terraform-json v0.29.0
 ## explicit; go 1.21
 github.com/hashicorp/terraform-json
 # github.com/hashicorp/terraform-plugin-framework v1.19.0
@@ -1627,6 +1650,7 @@ go.yaml.in/yaml/v4/plugin/limit
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
+golang.org/x/crypto/blake2s
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20

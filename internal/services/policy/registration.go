@@ -7,6 +7,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/management_group_policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/management_group_policy_exemption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/management_group_policy_remediation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/management_group_policy_set_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/policy_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/policy_definition_built_in"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/policy_set_definition"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/policy_virtual_machine_configuration_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/resource_group_policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/resource_group_policy_exemption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/resource_group_policy_remediation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/resource_policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/resource_policy_exemption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/resource_policy_remediation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/subscription_policy_assignment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/subscription_policy_exemption"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/resources/subscription_policy_remediation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,18 +42,18 @@ type Registration struct{}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		AssignmentDataSource{},
+		policy_assignment.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ManagementGroupAssignmentResource{},
-		ManagementGroupPolicySetDefinitionResource{},
-		PolicySetDefinitionResource{},
-		ResourceAssignmentResource{},
-		ResourceGroupAssignmentResource{},
-		SubscriptionAssignmentResource{},
+		management_group_policy_assignment.Resource{},
+		management_group_policy_set_definition.Resource{},
+		policy_set_definition.Resource{},
+		resource_policy_assignment.Resource{},
+		resource_group_policy_assignment.Resource{},
+		subscription_policy_assignment.Resource{},
 	}
 }
 
@@ -54,26 +72,26 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_policy_definition":                               dataSourcePolicyDefinition(),
-		"azurerm_policy_definition_built_in":                      dataSourcePolicyDefinitionBuiltIn(),
-		"azurerm_policy_set_definition":                           dataSourcePolicySetDefinition(),
-		"azurerm_policy_virtual_machine_configuration_assignment": dataSourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_policy_definition":                               policy_definition.RegisterDataSource(),
+		"azurerm_policy_definition_built_in":                      policy_definition_built_in.RegisterDataSource(),
+		"azurerm_policy_set_definition":                           policy_set_definition.RegisterDataSource(),
+		"azurerm_policy_virtual_machine_configuration_assignment": policy_virtual_machine_configuration_assignment.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_management_group_policy_exemption":               resourceManagementGroupPolicyExemption(),
-		"azurerm_management_group_policy_remediation":             resourceManagementGroupPolicyRemediation(),
-		"azurerm_policy_definition":                               resourcePolicyDefinition(),
-		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
-		"azurerm_resource_group_policy_exemption":                 resourceResourceGroupPolicyExemption(),
-		"azurerm_resource_group_policy_remediation":               resourceResourceGroupPolicyRemediation(),
-		"azurerm_resource_policy_exemption":                       resourceResourcePolicyExemption(),
-		"azurerm_resource_policy_remediation":                     resourceResourcePolicyRemediation(),
-		"azurerm_subscription_policy_exemption":                   resourceSubscriptionPolicyExemption(),
-		"azurerm_subscription_policy_remediation":                 resourceSubscriptionPolicyRemediation(),
+		"azurerm_management_group_policy_exemption":               management_group_policy_exemption.RegisterResource(),
+		"azurerm_management_group_policy_remediation":             management_group_policy_remediation.RegisterResource(),
+		"azurerm_policy_definition":                               policy_definition.RegisterResource(),
+		"azurerm_policy_virtual_machine_configuration_assignment": policy_virtual_machine_configuration_assignment.RegisterResource(),
+		"azurerm_resource_group_policy_exemption":                 resource_group_policy_exemption.RegisterResource(),
+		"azurerm_resource_group_policy_remediation":               resource_group_policy_remediation.RegisterResource(),
+		"azurerm_resource_policy_exemption":                       resource_policy_exemption.RegisterResource(),
+		"azurerm_resource_policy_remediation":                     resource_policy_remediation.RegisterResource(),
+		"azurerm_subscription_policy_exemption":                   subscription_policy_exemption.RegisterResource(),
+		"azurerm_subscription_policy_remediation":                 subscription_policy_remediation.RegisterResource(),
 	}
 }
 
