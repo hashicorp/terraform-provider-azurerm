@@ -185,7 +185,7 @@ func TestAccSnapshot_importCompleteStorageAccountId(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("source_uri"),
 	})
 }
 
@@ -604,6 +604,21 @@ resource "azurerm_resource_group" "test" {
   location = "%[3]s"
 }
 
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestdisk-%[1]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+}
+
+resource "azurerm_managed_disk_sas_token" "test" {
+  managed_disk_id     = azurerm_managed_disk.test.id
+  duration_in_seconds = 3600
+  access_level        = "Read"
+}
+
 resource "azurerm_storage_account" "test" {
   name                     = "acctest%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
@@ -622,7 +637,7 @@ resource "azurerm_storage_blob" "test" {
   name                 = "acctestblob.vhd"
   storage_container_id = azurerm_storage_container.test.id
   type                 = "Page"
-  size                 = 20972032
+  source_uri           = azurerm_managed_disk_sas_token.test.sas_url
 }
 
 resource "azurerm_snapshot" "test" {
