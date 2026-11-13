@@ -7,6 +7,7 @@ var services = mapOf(
         "apimanagement" to "API Management",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
+        "apicenter" to "Api Center",
         "appconfiguration" to "App Configuration",
         "appservice" to "AppService",
         "appgateway" to "Application Gateway",
