@@ -1053,7 +1053,6 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.NetworkProfile = ExpandClusterPoolNetworkProfile(networkProfile)
 	}
 
-	// Because SSHAccess is related to security, ensure the value set outside of Terraform is preserved until it is exposed in the provider.
 	if securityProfile := raw["security"].([]any); len(securityProfile) > 0 {
 		profile.SecurityProfile = expandManagedClusterAgentPoolSecurityProfile(securityProfile)
 	}
