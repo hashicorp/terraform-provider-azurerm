@@ -1,5 +1,5 @@
 ---
-subcategory: "Api"
+subcategory: "ApiCenter"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_center_api_definition"
 description: |-
@@ -18,7 +18,7 @@ Lists Api Center Api Definition resources.
 list "azurerm_api_center_api_definition" "example" {
   provider = azurerm
   config {
-    api_center_api_version_id = "..."
+    api_center_api_version_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service/workspaces/default/apis/example-api/versions/example-version"
   }
 }
 ```

@@ -1,14 +1,41 @@
 ---
 layout: "azurerm"
 page_title: "Resource: azurerm_api_center_api_version"
-subcategory: ""
+subcategory: "ApiCenter"
 description: |-
   Documentation for azurerm_api_center_api_version.
 ---
 
-# Resource: azurerm_api_center_api_version
+# azurerm_api_center_api_version
 
 Documentation for azurerm_api_center_api_version.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_api_center_service" "example" {
+  name                = "example-service"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_api_center_api" "example" {
+  name       = "example-api"
+  service_id = azurerm_api_center_service.example.id
+  kind       = "rest"
+}
+
+resource "azurerm_api_center_api_version" "example" {
+  name            = "example-version"
+  api_id          = azurerm_api_center_api.example.id
+  lifecycle_stage = "development"
+}
+```
 
 ## Arguments Reference
 
@@ -39,8 +66,14 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-This resource can be imported using its resource ID, e.g.
+API Center API Versions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_center_api_version.example "<resource-id>"
+terraform import azurerm_api_center_api_version.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service/workspaces/default/apis/example-api/versions/example-version
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiCenter` - 2024-03-01
