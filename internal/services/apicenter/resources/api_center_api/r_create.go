@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,10 +47,16 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			customProperties, err := helpers.ExpandCustomProperties(config.CustomProperties)
+			if err != nil {
+				return err
+			}
+
 			payload := apis.Api{
 				Name: pointer.To(config.Name),
 				Properties: &apis.ApiProperties{
 					Contacts:              expandContactList(config.Contacts),
+					CustomProperties:      customProperties,
 					Description:           pointer.To(config.Description),
 					ExternalDocumentation: expandExternalDocumentationList(config.ExternalDocumentation),
 					Kind:                  apis.ApiKind(config.Kind),

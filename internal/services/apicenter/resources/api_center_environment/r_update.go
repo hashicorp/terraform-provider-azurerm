@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -41,6 +42,13 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			model := existing.Model
+
+			if metadata.ResourceData.HasChange("custom_properties") {
+				model.Properties.CustomProperties, err = helpers.ExpandCustomProperties(state.CustomProperties)
+				if err != nil {
+					return err
+				}
+			}
 
 			if metadata.ResourceData.HasChange("description") {
 				model.Properties.Description = pointer.To(state.Description)

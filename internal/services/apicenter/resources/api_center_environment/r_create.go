@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -47,38 +48,28 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			apiCenterEnvironmentProps := environments.EnvironmentProperties{
-				Kind:  environments.EnvironmentKind(model.Type),
-				Title: model.Title,
-			}
-
-			if model.Description != "" {
-				apiCenterEnvironmentProps.Description = pointer.To(model.Description)
-			}
-
-			apiCenterEnvironmentProps.Onboarding = &environments.Onboarding{}
-			if model.DevPortalUri != "" {
-				apiCenterEnvironmentProps.Onboarding.DeveloperPortalUri = pointer.To([]string{model.DevPortalUri})
-			}
-
-			if model.Instructions != "" {
-				apiCenterEnvironmentProps.Onboarding.Instructions = pointer.To(model.Instructions)
-			}
-
-			apiCenterEnvironmentProps.Server = &environments.EnvironmentServer{}
-
-			if model.ServerType != "" {
-				apiCenterEnvironmentProps.Server.Type = pointer.ToEnum[environments.EnvironmentServerType](model.ServerType)
-			}
-
-			if model.MgmtPortalUri != "" {
-				apiCenterEnvironmentProps.Server.ManagementPortalUri = pointer.To([]string{model.MgmtPortalUri})
+			customProperties, err := helpers.ExpandCustomProperties(model.CustomProperties)
+			if err != nil {
+				return err
 			}
 
 			apiCenterEnvironment := environments.Environment{
-				Name:       pointer.To(model.Name),
-				Properties: pointer.To(apiCenterEnvironmentProps),
-				Type:       pointer.To(model.Type),
+				Name: pointer.To(model.Name),
+				Properties: &environments.EnvironmentProperties{
+					CustomProperties: customProperties,
+					Description:      new(model.Description),
+					Kind:             environments.EnvironmentKind(model.Type),
+					Onboarding: &environments.Onboarding{
+						DeveloperPortalUri: pointer.To([]string{model.DevPortalUri}),
+						Instructions:       pointer.To(model.Instructions),
+					},
+					Server: &environments.EnvironmentServer{
+						Type:                pointer.ToEnum[environments.EnvironmentServerType](model.ServerType),
+						ManagementPortalUri: pointer.To([]string{model.MgmtPortalUri}),
+					},
+					Title: model.Title,
+				},
+				Type: pointer.To(model.Type),
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id, apiCenterEnvironment); err != nil {

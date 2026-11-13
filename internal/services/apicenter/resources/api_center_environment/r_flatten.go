@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -15,6 +16,12 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *environments.Enviro
 	}
 	if model != nil {
 		if props := model.Properties; props != nil {
+			customProperties, err := helpers.FlattenCustomProperties(props.CustomProperties)
+			if err != nil {
+				return err
+			}
+			state.CustomProperties = customProperties
+
 			state.Title = props.Title
 			state.Description = pointer.From(props.Description)
 			state.Type = string(props.Kind)

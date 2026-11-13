@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -19,6 +20,11 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *deployments.Deploym
 	serviceId := services.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 
 	if props := model.Properties; props != nil {
+		customProperties, err := helpers.FlattenCustomProperties(props.CustomProperties)
+		if err != nil {
+			return err
+		}
+		state.CustomProperties = customProperties
 
 		scopedDefinitionId := fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.DefinitionId))
 		scopedEnvironmentId := fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.EnvironmentId))

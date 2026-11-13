@@ -2,6 +2,7 @@ package api_center_deployment
 
 type ApiCenterDeploymentModel struct {
 	Name             string   `tfschema:"name"`
+	CustomProperties string   `tfschema:"custom_properties"`
 	DefinitionId     string   `tfschema:"api_definition_id"`
 	Description      string   `tfschema:"description"`
 	EnvironmentId    string   `tfschema:"environment_id"`

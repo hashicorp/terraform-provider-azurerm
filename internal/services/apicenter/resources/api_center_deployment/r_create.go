@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -55,15 +56,21 @@ func (r Resource) Create() sdk.ResourceFunc {
 			}
 			scopedEnvironmentId := fmt.Sprintf("/workspaces/%s/environments/%s", environment.WorkspaceName, environment.EnvironmentName)
 
+			customProperties, err := helpers.ExpandCustomProperties(config.CustomProperties)
+			if err != nil {
+				return err
+			}
+
 			payload := deployments.Deployment{
 				Name: new(config.Name),
 				Properties: &deployments.DeploymentProperties{
-					DefinitionId:  new(scopedDefinitionId),
-					Description:   new(config.Description),
-					EnvironmentId: new(scopedEnvironmentId),
-					Server:        &deployments.DeploymentServer{RuntimeUri: pointer.To(config.ServerRuntimeUri)},
-					State:         new(deployments.DeploymentState(config.State)),
-					Title:         new(config.Title),
+					CustomProperties: customProperties,
+					DefinitionId:     new(scopedDefinitionId),
+					Description:      new(config.Description),
+					EnvironmentId:    new(scopedEnvironmentId),
+					Server:           &deployments.DeploymentServer{RuntimeUri: pointer.To(config.ServerRuntimeUri)},
+					State:            new(deployments.DeploymentState(config.State)),
+					Title:            new(config.Title),
 				},
 			}
 

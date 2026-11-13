@@ -20,6 +20,30 @@ import (
 
 type ApiCenterDeploymentResource struct{}
 
+func TestAccApiCenterDeployment_customProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_deployment", "test")
+	r := ApiCenterDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customProperties(data, "catalog-team", "medium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"medium","owning_team":"catalog-team"}}`),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customProperties(data, "platform-team", "high"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"high","owning_team":"platform-team"}}`),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiCenterDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_deployment", "test")
 	r := ApiCenterDeploymentResource{}
@@ -101,7 +125,7 @@ func TestAccApiCenterDeployment_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("server_runtime_uri.#").HasValue("0"),
+				check.That(data.ResourceName).Key("server_runtime_uri.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -186,6 +210,62 @@ resource "azurerm_api_center_deployment" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ApiCenterDeploymentResource) customProperties(data acceptance.TestData, team, criticality string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_center_metadata_schema" "test" {
+  name       = "governance"
+  service_id = azurerm_api_center_service.test.id
+
+  metadata_assignment {
+    entity   = "deployment"
+    required = true
+  }
+
+  schema = jsonencode({
+    type     = "object"
+    required = ["owning_team", "criticality"]
+    properties = {
+      owning_team = { type = "string" }
+      criticality = {
+        type = "string"
+        oneOf = [
+          {
+            const       = "low"
+            description = "Low criticality"
+          },
+          {
+            const       = "medium"
+            description = "Medium criticality"
+          },
+          {
+            const       = "high"
+            description = "High criticality"
+          },
+        ]
+      }
+    }
+  })
+}
+
+resource "azurerm_api_center_deployment" "test" {
+  name              = "acctest%d"
+  api_definition_id = azurerm_api_center_api_definition.test.id
+  environment_id    = azurerm_api_center_environment.test.id
+
+  server_runtime_uri = ["https://example.com/api"]
+
+  custom_properties = jsonencode({
+    (azurerm_api_center_metadata_schema.test.name) = {
+      owning_team = %q
+      criticality = %q
+    }
+  })
+}
+`, r.template(data), data.RandomInteger, team, criticality)
 }
 
 func (r ApiCenterDeploymentResource) complete(data acceptance.TestData) string {

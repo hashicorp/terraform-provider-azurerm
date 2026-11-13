@@ -18,6 +18,30 @@ import (
 
 type ApiCenterEnvironmentResource struct{}
 
+func TestAccApiCenterEnvironment_customProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_environment", "test")
+	r := ApiCenterEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customProperties(data, "catalog-team", "medium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"medium","owning_team":"catalog-team"}}`),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customProperties(data, "platform-team", "high"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"high","owning_team":"platform-team"}}`),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiCenterEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_environment", "test")
 	r := ApiCenterEnvironmentResource{}
@@ -103,6 +127,63 @@ resource "azurerm_api_center_service" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r ApiCenterEnvironmentResource) customProperties(data acceptance.TestData, team, criticality string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_center_metadata_schema" "test" {
+  name       = "governance"
+  service_id = azurerm_api_center_service.test.id
+
+  metadata_assignment {
+    entity   = "environment"
+    required = true
+  }
+
+  schema = jsonencode({
+    type = "object"
+    properties = {
+      owning_team = { type = "string" }
+      criticality = {
+        type = "string"
+        oneOf = [
+          {
+            const       = "low"
+            description = "Low criticality"
+          },
+          {
+            const       = "medium"
+            description = "Medium criticality"
+          },
+          {
+            const       = "high"
+            description = "High criticality"
+          },
+        ]
+      }
+    }
+  })
+}
+
+resource "azurerm_api_center_environment" "test" {
+  name             = "test"
+  service_id       = azurerm_api_center_service.test.id
+  environment_type = "testing"
+
+  custom_properties = jsonencode({
+    (azurerm_api_center_metadata_schema.test.name) = {
+      owning_team = %q
+      criticality = %q
+    }
+  })
+}
+`, r.template(data), team, criticality)
 }
 
 func (r ApiCenterEnvironmentResource) basic(data acceptance.TestData) string {

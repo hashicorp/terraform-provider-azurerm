@@ -4,6 +4,7 @@ type ApiCenterApiModel struct {
 	ServiceId             string                  `tfschema:"service_id"`
 	Name                  string                  `tfschema:"name"`
 	Contacts              []Contact               `tfschema:"contact"`
+	CustomProperties      string                  `tfschema:"custom_properties"`
 	Description           string                  `tfschema:"description"`
 	ExternalDocumentation []ExternalDocumentation `tfschema:"external_documentation"`
 	Kind                  string                  `tfschema:"kind"`
