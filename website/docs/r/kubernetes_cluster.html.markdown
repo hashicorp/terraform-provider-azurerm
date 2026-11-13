@@ -373,11 +373,13 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
-* `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
+* `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. Changes are performed in place unless `temporary_name_for_rotation` is specified, in which case the node pool is cycled.
+
+-> **Note:** [In-place VMSS resizing](https://learn.microsoft.com/azure/aks/resize-node-pool#resize-a-vmss-node-pool-in-place-preview) is an AKS preview feature and uses a rolling upgrade that honors `upgrade_settings`. It requires a nonzero `max_surge` and cannot be combined with a change to `node_count` or `orchestrator_version`. Changes to the disk controller type, CPU architecture, confidential computing support, or hypervisor generation require cycling the node pool using `temporary_name_for_rotation`.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
@@ -437,7 +439,7 @@ A `default_node_pool` block supports the following:
 
 * `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this default Node Pool. `temporary_name_for_rotation` must be specified when changing this property.
 
-* `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the default node pool for VM resizing.
+* `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the default node pool when one of the relevant properties is updated. When specified, changes to `vm_size` also cycle the node pool instead of resizing it in place.
 
 * `type` - (Optional) The type of Node Pool which should be created. Possible values are `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
 

@@ -644,12 +644,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			"default_node_pool.0.snapshot_id",
 			"default_node_pool.0.ultra_ssd_enabled",
 			"default_node_pool.0.vnet_subnet_id",
-			"default_node_pool.0.vm_size",
 			"default_node_pool.0.zones",
 		}
 
 		// if the default node pool name has changed, it means the initial attempt at resizing failed
 		cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+		if d.HasChange("default_node_pool.0.vm_size") && d.Get("default_node_pool.0.temporary_name_for_rotation").(string) != "" {
+			cycleNodePool = true
+		}
 		// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
 		if d.HasChange("default_node_pool.0.os_sku") {
 			oldOsSkuRaw, newOsSkuRaw := d.GetChange("default_node_pool.0.os_sku")
@@ -664,7 +666,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 		}
 		if cycleNodePool {
 			log.Printf("[DEBUG] Cycling Default Node Pool..")
-			// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
+			// to provide a seamless updating experience for the default node pool we need to cycle the default
 			// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
 			// bringing up the new one.
 
