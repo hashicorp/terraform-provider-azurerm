@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -6,6 +6,7 @@ package oracle_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,6 +21,9 @@ import (
 )
 
 type NetworkAnchorResource struct{}
+
+// OracleNetworkAnchorResource matches the resource name inferred by the identity test generator.
+type OracleNetworkAnchorResource = NetworkAnchorResource
 
 func (a NetworkAnchorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networkanchors.ParseNetworkAnchorID(state.ID)
@@ -55,36 +59,24 @@ func TestAccNetworkAnchorResource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("dns_forwarding_rule_url").IsNotEmpty(),
-				// check.That(data.ResourceName).Key("dns_forwarding_rule.#").HasValue("0"),
 			),
 		},
-		data.ImportStep("dns_forwarding_rule", "dns_listening_endpoint_allowed_cidrs"),
+		data.ImportStep(),
+		{
+			Config:   r.completeReordered(data),
+			PlanOnly: true,
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PostApplyPreRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+			},
+		},
 	})
 }
 
-func TestAccNetworkAnchorResource_dnsForwardingRule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
-	r := NetworkAnchorResource{}
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updateDnsForwardingRule(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
+func (r NetworkAnchorResource) completeReordered(data acceptance.TestData) string {
+	config := strings.Replace(r.complete(data),
+		`["abc.ocidelegated.ocinetworkanch.oraclevcn.com", "ghi.ocidelegated.ocinetworkanch.oraclevcn.com"]`,
+		`["ghi.ocidelegated.ocinetworkanch.oraclevcn.com", "abc.ocidelegated.ocinetworkanch.oraclevcn.com"]`, 1)
+	return strings.Replace(config, `["10.0.2.0/24", "10.0.3.0/24"]`, `["10.0.3.0/24", "10.0.2.0/24"]`, 1)
 }
 
 func TestAccNetworkAnchorResource_requiresImport(t *testing.T) {
@@ -114,6 +106,13 @@ func TestAccNetworkAnchorResource_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -166,21 +165,22 @@ resource "azurerm_oracle_network_anchor" "test" {
   resource_anchor_id = azurerm_oracle_resource_anchor.test.id
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
 
-  oci_backup_cidr_block                 = "10.0.0.0/24"
-  oracle_dns_listening_endpoint_enabled = true
-  oracle_to_azure_dns_zone_sync_enabled = true
+  backup_subnet_cidr                   = "10.0.0.0/24"
+  dns_private_zone_replication_enabled = true
 
-  oracle_dns_forwarding_endpoint_enabled = true
   dns_forwarding_rule {
-    domain_names          = "abc.ocidelegated.ocinetworkanch.oraclevcn.com"
+    domain_names          = ["abc.ocidelegated.ocinetworkanch.oraclevcn.com", "ghi.ocidelegated.ocinetworkanch.oraclevcn.com"]
     forwarding_ip_address = "10.0.1.16"
   }
   dns_forwarding_rule {
-    domain_names          = "def.ocidelegated.ocinetworkanch.oraclevcn.com"
+    domain_names          = ["def.ocidelegated.ocinetworkanch.oraclevcn.com"]
     forwarding_ip_address = "10.0.1.24"
   }
-  dns_listening_endpoint_allowed_cidrs = "10.0.2.0/24,10.0.3.0/24"
-}`, a.template(data), data.RandomString, data.Locations.Primary, data.Subscriptions.Primary)
+  dns_listening_endpoint_allowed_cidrs = ["10.0.2.0/24", "10.0.3.0/24"]
+  tags = {
+    test = "testNA1"
+  }
+}`, a.template(data), data.RandomString, data.Locations.Primary)
 }
 
 func (a NetworkAnchorResource) update(data acceptance.TestData) string {
@@ -204,48 +204,10 @@ resource "azurerm_oracle_network_anchor" "test" {
   resource_anchor_id = azurerm_oracle_resource_anchor.test.id
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
 
-  oci_backup_cidr_block = "10.0.2.0/24"
+  backup_subnet_cidr = "10.0.2.0/24"
   tags = {
     test = "testNA1"
   }
-}`, a.template(data), data.RandomString, data.Locations.Primary, data.Subscriptions.Primary)
-}
-
-func (a NetworkAnchorResource) updateDnsForwardingRule(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-%s
-
-resource "azurerm_oracle_network_anchor" "test" {
-  location            = "%[3]s"
-  name                = "acctestNA%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  zones               = local.zones
-
-  resource_anchor_id = azurerm_oracle_resource_anchor.test.id
-  subnet_id          = azurerm_subnet.virtual_network_subnet.id
-
-  oci_backup_cidr_block                 = "10.0.0.0/24"
-  oracle_dns_listening_endpoint_enabled = true
-  oracle_to_azure_dns_zone_sync_enabled = true
-
-  oracle_dns_forwarding_endpoint_enabled = true
-  dns_forwarding_rule {
-    domain_names          = "abc2.ocidelegated.ocinetworkanch.oraclevcn.com"
-    forwarding_ip_address = "10.0.1.17"
-  }
-  dns_forwarding_rule {
-    domain_names          = "def2.ocidelegated.ocinetworkanch.oraclevcn.com"
-    forwarding_ip_address = "10.0.1.25"
-  }
-  dns_listening_endpoint_allowed_cidrs = "10.0.2.0/24,10.0.3.0/24"
 }`, a.template(data), data.RandomString, data.Locations.Primary, data.Subscriptions.Primary)
 }
 
@@ -254,15 +216,13 @@ func (a NetworkAnchorResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_oracle_network_anchor" "import" {
-  name                                   = azurerm_oracle_network_anchor.test.name
-  location                               = azurerm_oracle_network_anchor.test.location
-  resource_group_name                    = azurerm_oracle_network_anchor.test.resource_group_name
-  zones                                  = azurerm_oracle_network_anchor.test.zones
-  resource_anchor_id                     = azurerm_oracle_network_anchor.test.resource_anchor_id
-  subnet_id                              = azurerm_oracle_network_anchor.test.subnet_id
-  oracle_dns_forwarding_endpoint_enabled = azurerm_oracle_network_anchor.test.oracle_dns_forwarding_endpoint_enabled
-  oracle_dns_listening_endpoint_enabled  = azurerm_oracle_network_anchor.test.oracle_dns_listening_endpoint_enabled
-  oracle_to_azure_dns_zone_sync_enabled  = azurerm_oracle_network_anchor.test.oracle_to_azure_dns_zone_sync_enabled
+  name                                 = azurerm_oracle_network_anchor.test.name
+  location                             = azurerm_oracle_network_anchor.test.location
+  resource_group_name                  = azurerm_oracle_network_anchor.test.resource_group_name
+  zones                                = azurerm_oracle_network_anchor.test.zones
+  resource_anchor_id                   = azurerm_oracle_network_anchor.test.resource_anchor_id
+  subnet_id                            = azurerm_oracle_network_anchor.test.subnet_id
+  dns_private_zone_replication_enabled = azurerm_oracle_network_anchor.test.dns_private_zone_replication_enabled
 }
 `, a.basic(data))
 }

@@ -4,3 +4,6 @@ change "new-data-source" {
 change "new-resource" {
   body = "**New Resource**: `azurerm_oracle_network_anchor`"
 }
+change "new-list-resource" {
+  body = "**New List Resource**: `azurerm_oracle_network_anchor`"
+}

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/networkanchors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/resourceanchors"
@@ -23,7 +25,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = NetworkAnchorResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity
+
+var (
+	_ sdk.ResourceWithUpdate   = NetworkAnchorResource{}
+	_ sdk.ResourceWithIdentity = NetworkAnchorResource{}
+)
 
 type NetworkAnchorResource struct{}
 
@@ -36,16 +43,14 @@ type NetworkAnchorResourceModel struct {
 	SubnetId         string       `tfschema:"subnet_id"`
 	Zones            zones.Schema `tfschema:"zones"`
 
-	DnsForwardingRule                  []DnsForwardingRuleModel `tfschema:"dns_forwarding_rule"`
-	DnsListeningEndpointAllowedCidrs   string                   `tfschema:"dns_listening_endpoint_allowed_cidrs"`
-	OciBackupCidrBlock                 string                   `tfschema:"oci_backup_cidr_block"`
-	OracleDnsForwardingEndpointEnabled bool                     `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
-	OracleDnsListeningEndpointEnabled  bool                     `tfschema:"oracle_dns_listening_endpoint_enabled"`
-	OracleToAzureDnsZoneSyncEnabled    bool                     `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
+	BackupSubnetCidr                 string                   `tfschema:"backup_subnet_cidr"`
+	DnsForwardingRule                []DnsForwardingRuleModel `tfschema:"dns_forwarding_rule"`
+	DnsListeningEndpointAllowedCidrs []string                 `tfschema:"dns_listening_endpoint_allowed_cidrs"`
+	DnsPrivateZoneReplicationEnabled bool                     `tfschema:"dns_private_zone_replication_enabled"`
 
-	DnsForwardingRuleUrl            string            `tfschema:"dns_forwarding_rule_url"`
 	DnsForwardingEndpointIpAddress  string            `tfschema:"dns_forwarding_endpoint_ip_address"`
 	DnsForwardingEndpointNsgRuleUrl string            `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
+	DnsForwardingRuleUrl            string            `tfschema:"dns_forwarding_rule_url"`
 	DnsListeningEndpointIpAddress   string            `tfschema:"dns_listening_endpoint_ip_address"`
 	DnsListeningEndpointNsgRuleUrl  string            `tfschema:"dns_listening_endpoint_nsg_rule_url"`
 	OciVcnDnsLabel                  string            `tfschema:"oci_vcn_dns_label"`
@@ -53,8 +58,8 @@ type NetworkAnchorResourceModel struct {
 }
 
 type DnsForwardingRuleModel struct {
-	DomainNames         string `tfschema:"domain_names"`
-	ForwardingIPAddress string `tfschema:"forwarding_ip_address"`
+	DomainNames         []string `tfschema:"domain_names"`
+	ForwardingIPAddress string   `tfschema:"forwarding_ip_address"`
 }
 
 func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
@@ -84,6 +89,12 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 
+		"backup_subnet_cidr": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsCIDR,
+		},
+
 		"dns_forwarding_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -91,13 +102,19 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"domain_names": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.DomainNames,
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						ForceNew: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.DomainName,
+						},
 					},
 					"forwarding_ip_address": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.IsIPAddress,
 					},
 				},
@@ -105,34 +122,20 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"dns_listening_endpoint_allowed_cidrs": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.IsCommaSeparatedCIDRs,
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsCIDR,
+			},
 		},
 
-		"oci_backup_cidr_block": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsCIDR,
-		},
-
-		"oracle_dns_forwarding_endpoint_enabled": {
+		"dns_private_zone_replication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
-		},
-
-		"oracle_dns_listening_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"oracle_to_azure_dns_zone_sync_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			ForceNew: true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -169,7 +172,11 @@ func (NetworkAnchorResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (NetworkAnchorResource) ModelObject() any {
-	return &NetworkAnchorResource{}
+	return &NetworkAnchorResourceModel{}
+}
+
+func (NetworkAnchorResource) Identity() resourceids.ResourceId {
+	return &networkanchors.NetworkAnchorId{}
 }
 
 func (NetworkAnchorResource) ResourceType() string {
@@ -200,21 +207,21 @@ func (r NetworkAnchorResource) Create() sdk.ResourceFunc {
 			properties := &networkanchors.NetworkAnchorProperties{
 				ResourceAnchorId:                     model.ResourceAnchorId,
 				SubnetId:                             model.SubnetId,
-				IsOracleDnsForwardingEndpointEnabled: pointer.To(model.OracleDnsForwardingEndpointEnabled),
-				IsOracleDnsListeningEndpointEnabled:  pointer.To(model.OracleDnsListeningEndpointEnabled),
-				IsOracleToAzureDnsZoneSyncEnabled:    pointer.To(model.OracleToAzureDnsZoneSyncEnabled),
+				IsOracleDnsForwardingEndpointEnabled: pointer.To(len(model.DnsForwardingRule) > 0),
+				IsOracleDnsListeningEndpointEnabled:  pointer.To(len(model.DnsListeningEndpointAllowedCidrs) > 0),
+				IsOracleToAzureDnsZoneSyncEnabled:    pointer.To(model.DnsPrivateZoneReplicationEnabled),
 			}
 
-			if model.OciBackupCidrBlock != "" {
-				properties.OciBackupCidrBlock = pointer.To(model.OciBackupCidrBlock)
+			if model.BackupSubnetCidr != "" {
+				properties.OciBackupCidrBlock = pointer.To(model.BackupSubnetCidr)
 			}
 
 			if len(model.DnsForwardingRule) > 0 {
 				properties.DnsForwardingRules = expandDnsForwardingRules(model.DnsForwardingRule)
 			}
 
-			if model.DnsListeningEndpointAllowedCidrs != "" {
-				properties.DnsListeningEndpointAllowedCidrs = pointer.To(model.DnsListeningEndpointAllowedCidrs)
+			if len(model.DnsListeningEndpointAllowedCidrs) > 0 {
+				properties.DnsListeningEndpointAllowedCidrs = pointer.To(strings.Join(model.DnsListeningEndpointAllowedCidrs, ","))
 			}
 
 			param := networkanchors.NetworkAnchor{
@@ -225,12 +232,12 @@ func (r NetworkAnchorResource) Create() sdk.ResourceFunc {
 				Properties: properties,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -250,30 +257,31 @@ func (r NetworkAnchorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			update := networkanchors.NetworkAnchorUpdate{
-				Properties: &networkanchors.NetworkAnchorUpdateProperties{},
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			update := *existing.Model
 
 			if metadata.ResourceData.HasChange("tags") {
 				update.Tags = pointer.To(model.Tags)
 			}
 
-			if metadata.ResourceData.HasChange("oci_backup_cidr_block") {
-				update.Properties.OciBackupCidrBlock = pointer.To(model.OciBackupCidrBlock)
+			if metadata.ResourceData.HasChange("backup_subnet_cidr") {
+				update.Properties.OciBackupCidrBlock = nil
+				if model.BackupSubnetCidr != "" {
+					update.Properties.OciBackupCidrBlock = pointer.To(model.BackupSubnetCidr)
+				}
 			}
 
-			if metadata.ResourceData.HasChange("oracle_dns_forwarding_endpoint_enabled") {
-				update.Properties.IsOracleDnsForwardingEndpointEnabled = pointer.To(model.OracleDnsForwardingEndpointEnabled)
-			}
-
-			if metadata.ResourceData.HasChange("oracle_dns_listening_endpoint_enabled") {
-				update.Properties.IsOracleDnsListeningEndpointEnabled = pointer.To(model.OracleDnsListeningEndpointEnabled)
-			}
-
-			if metadata.ResourceData.HasChange("oracle_to_azure_dns_zone_sync_enabled") {
-				update.Properties.IsOracleToAzureDnsZoneSyncEnabled = pointer.To(model.OracleToAzureDnsZoneSyncEnabled)
-			}
-			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -281,7 +289,7 @@ func (r NetworkAnchorResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (NetworkAnchorResource) Read() sdk.ResourceFunc {
+func (r NetworkAnchorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -298,52 +306,53 @@ func (NetworkAnchorResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := NetworkAnchorResourceModel{
-				Name:              id.NetworkAnchorName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
-				state.Zones = pointer.From(model.Zones)
-				if props := model.Properties; props != nil {
-					state.ResourceAnchorId = props.ResourceAnchorId
-					state.SubnetId = props.SubnetId
-					state.OciVcnDnsLabel = pointer.From(props.OciVcnDnsLabel)
-					state.OracleDnsForwardingEndpointEnabled = pointer.From(props.IsOracleDnsForwardingEndpointEnabled)
-					state.OracleDnsListeningEndpointEnabled = pointer.From(props.IsOracleDnsListeningEndpointEnabled)
-					state.OracleToAzureDnsZoneSyncEnabled = pointer.From(props.IsOracleToAzureDnsZoneSyncEnabled)
-					state.DnsForwardingEndpointIpAddress = pointer.From(props.DnsForwardingEndpointIPAddress)
-					state.DnsForwardingRuleUrl = pointer.From(props.DnsForwardingRulesURL)
-					state.DnsForwardingEndpointNsgRuleUrl = pointer.From(props.DnsForwardingEndpointNsgRulesURL)
-					state.DnsListeningEndpointIpAddress = pointer.From(props.DnsListeningEndpointIPAddress)
-					state.DnsListeningEndpointNsgRuleUrl = pointer.From(props.DnsListeningEndpointNsgRulesURL)
-
-					if props.OciBackupCidrBlock != nil {
-						state.OciBackupCidrBlock = pointer.From(props.OciBackupCidrBlock)
-					} else if v, ok := metadata.ResourceData.GetOk("oci_backup_cidr_block"); ok {
-						state.OciBackupCidrBlock = v.(string)
-					}
-
-					if props.DnsForwardingRules != nil {
-						state.DnsForwardingRule = flattenDnsForwardingRules(props.DnsForwardingRules)
-					} else if v, ok := metadata.ResourceData.GetOk("dns_forwarding_rule"); ok {
-						// The service may omit these inputs from GET responses even when they were configured.
-						// Preserve the prior state value when omitted to avoid a perpetual ForceNew diff.
-						state.DnsForwardingRule = expandDnsForwardingRulesModel(v.([]any))
-					}
-					if props.DnsListeningEndpointAllowedCidrs != nil {
-						state.DnsListeningEndpointAllowedCidrs = pointer.From(props.DnsListeningEndpointAllowedCidrs)
-					} else if v, ok := metadata.ResourceData.GetOk("dns_listening_endpoint_allowed_cidrs"); ok {
-						state.DnsListeningEndpointAllowedCidrs = v.(string)
-					}
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (NetworkAnchorResource) flatten(metadata sdk.ResourceMetaData, id *networkanchors.NetworkAnchorId, model *networkanchors.NetworkAnchor) error {
+	state := NetworkAnchorResourceModel{
+		Name:              id.NetworkAnchorName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+		state.Zones = pointer.From(model.Zones)
+		if props := model.Properties; props != nil {
+			resourceAnchorID, err := resourceanchors.ParseResourceAnchorIDInsensitively(props.ResourceAnchorId)
+			if err != nil {
+				return err
+			}
+			state.ResourceAnchorId = resourceAnchorID.ID()
+
+			subnetID, err := commonids.ParseSubnetIDInsensitively(props.SubnetId)
+			if err != nil {
+				return err
+			}
+			state.SubnetId = subnetID.ID()
+
+			state.OciVcnDnsLabel = pointer.From(props.OciVcnDnsLabel)
+			state.DnsPrivateZoneReplicationEnabled = pointer.From(props.IsOracleToAzureDnsZoneSyncEnabled)
+			state.DnsForwardingEndpointIpAddress = pointer.From(props.DnsForwardingEndpointIPAddress)
+			state.DnsForwardingRuleUrl = pointer.From(props.DnsForwardingRulesURL)
+			state.DnsForwardingEndpointNsgRuleUrl = pointer.From(props.DnsForwardingEndpointNsgRulesURL)
+			state.DnsListeningEndpointIpAddress = pointer.From(props.DnsListeningEndpointIPAddress)
+			state.DnsListeningEndpointNsgRuleUrl = pointer.From(props.DnsListeningEndpointNsgRulesURL)
+
+			state.BackupSubnetCidr = pointer.From(props.OciBackupCidrBlock)
+			state.DnsForwardingRule = flattenDnsForwardingRules(props.DnsForwardingRules)
+			state.DnsListeningEndpointAllowedCidrs = flattenNetworkAnchorCommaSeparatedValues(pointer.From(props.DnsListeningEndpointAllowedCidrs))
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (NetworkAnchorResource) Delete() sdk.ResourceFunc {
@@ -373,7 +382,7 @@ func expandDnsForwardingRules(dnsForwardingRules []DnsForwardingRuleModel) *[]ne
 	results := make([]networkanchors.DnsForwardingRule, 0)
 	for _, item := range dnsForwardingRules {
 		results = append(results, networkanchors.DnsForwardingRule{
-			DomainNames:         item.DomainNames,
+			DomainNames:         strings.Join(item.DomainNames, ","),
 			ForwardingIPAddress: item.ForwardingIPAddress,
 		})
 	}
@@ -385,7 +394,7 @@ func flattenDnsForwardingRules(dnsForwardingRules *[]networkanchors.DnsForwardin
 	if dnsForwardingRules != nil {
 		for _, item := range *dnsForwardingRules {
 			results = append(results, DnsForwardingRuleModel{
-				DomainNames:         item.DomainNames,
+				DomainNames:         flattenNetworkAnchorCommaSeparatedValues(item.DomainNames),
 				ForwardingIPAddress: item.ForwardingIPAddress,
 			})
 		}
@@ -394,15 +403,12 @@ func flattenDnsForwardingRules(dnsForwardingRules *[]networkanchors.DnsForwardin
 	return results
 }
 
-func expandDnsForwardingRulesModel(input []any) []DnsForwardingRuleModel {
-	results := make([]DnsForwardingRuleModel, 0, len(input))
-	for _, item := range input {
-		v := item.(map[string]any)
-		results = append(results, DnsForwardingRuleModel{
-			DomainNames:         v["domain_names"].(string),
-			ForwardingIPAddress: v["forwarding_ip_address"].(string),
-		})
+func flattenNetworkAnchorCommaSeparatedValues(input string) []string {
+	result := make([]string, 0)
+	for value := range strings.SplitSeq(input, ",") {
+		if value = strings.TrimSpace(value); value != "" {
+			result = append(result, value)
+		}
 	}
-
-	return results
+	return result
 }

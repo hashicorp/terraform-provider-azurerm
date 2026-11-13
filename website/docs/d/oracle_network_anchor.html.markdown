@@ -14,8 +14,8 @@ Use this data source to access information about an existing Oracle Network Anch
 
 ```hcl
 data "azurerm_oracle_network_anchor" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-network-anchor"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
@@ -33,51 +33,51 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Oracle Network Anchor.
 
-* `cidr_block` - Delegated Azure subnet CIDR block.
+* `backup_subnet_cidr` - The CIDR block for the Oracle Cloud Infrastructure backup subnet.
 
-* `dns_forwarding_endpoint_ip_address` - A DNS forwarding endpoint IP address.
+* `cidr_block` - The CIDR block of the delegated Azure client subnet.
+
+* `dns_forwarding_endpoint_enabled` - Whether a DNS forwarding endpoint is enabled for Oracle database instances to resolve Azure private domain names.
+
+* `dns_forwarding_endpoint_ip_address` - The DNS forwarding endpoint IP address.
 
 * `dns_forwarding_endpoint_nsg_rule_url` - A link to OCI console DNS Forwarding endpoint NSG rules.
 
 * `dns_forwarding_rule_url` - A link to OCI console DNS Forwarding rules page.
 
-* `dns_listening_endpoint_allowed_cidrs` - A list of CIDRs that are allowed to send requests to the DNS listening endpoint.
+* `dns_listening_endpoint_allowed_cidrs` - A set of CIDR blocks allowed to send requests to the DNS listening endpoint.
 
-* `dns_listening_endpoint_ip_address` - A DNS listening endpoint IP address.
+* `dns_listening_endpoint_enabled` - Whether a DNS listening endpoint is enabled for Azure applications to resolve Oracle database domain names.
+
+* `dns_listening_endpoint_ip_address` - The DNS listening endpoint IP address.
 
 * `dns_listening_endpoint_nsg_rule_url` - A link to OCI console DNS Listening endpoint NSG rules.
 
-* `location` - The Azure Region where the Oracle Network Anchor exists.
+* `dns_private_zone_replication_enabled` - Whether database private DNS zones are replicated from Oracle Cloud Infrastructure to Azure during database creation.
 
-* `oci_backup_cidr_block` - Oracle Cloud Infrastructure backup subnet CIDR block.
+* `location` - The Azure Region where the Oracle Network Anchor exists.
 
 * `oci_subnet_id` - Oracle Cloud Infrastructure subnet OCID.
 
-* `oci_vcn_dns_label` - Oracle Cloud Infrastructure DNS label.
+* `oci_vcn_dns_label` - The Oracle Cloud Infrastructure VCN DNS label.
 
 * `oci_vcn_id` - Oracle Cloud Infrastructure VCN OCID.
-
-* `oracle_dns_forwarding_endpoint_enabled` - Whether the Oracle DNS forwarding endpoint is enabled.
-
-* `oracle_dns_listening_endpoint_enabled` - Whether the Oracle DNS listening endpoint is enabled.
-
-* `oracle_to_azure_dns_zone_sync_enabled` - Whether DNS zone sync from OCI to Azure is enabled.
 
 * `provisioning_state` - Oracle Network Anchor provisioning state.
 
 * `resource_anchor_id` - The ID of the corresponding Azure Resource Anchor.
 
-* `subnet_id` - Delegated Azure subnet.
-
-* `vnet_id` - Oracle Cloud Infrastructure VNET for network connectivity.
-
-* `zones` - A list of availability `zones`.
+* `subnet_id` - The ID of the delegated Azure subnet.
 
 * `tags` - A mapping of tags assigned to the Oracle Network Anchor.
+
+* `virtual_network_id` - The Azure virtual network ID for network connectivity.
+
+* `zones` - A list of availability `zones`.
 
 ## Timeouts
 

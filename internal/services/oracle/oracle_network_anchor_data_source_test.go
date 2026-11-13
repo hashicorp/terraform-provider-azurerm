@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -22,6 +22,11 @@ func TestAccNetworkAnchorDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("backup_subnet_cidr").HasValue("10.0.0.0/24"),
+				check.That(data.ResourceName).Key("dns_forwarding_endpoint_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dns_listening_endpoint_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dns_private_zone_replication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dns_listening_endpoint_allowed_cidrs.#").HasValue("2"),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("resource_anchor_id").Exists(),
@@ -40,5 +45,5 @@ data "azurerm_oracle_network_anchor" "test" {
   name                = azurerm_oracle_network_anchor.test.name
   resource_group_name = azurerm_oracle_network_anchor.test.resource_group_name
 }
-`, NetworkAnchorResource{}.basic(data))
+`, NetworkAnchorResource{}.complete(data))
 }

@@ -57,6 +57,13 @@ resource "azurerm_oracle_network_anchor" "example" {
   resource_anchor_id = azurerm_oracle_resource_anchor.example.id
   subnet_id          = azurerm_subnet.virtual_network_subnet.id
   zones              = ["2"]
+
+  dns_forwarding_rule {
+    domain_names          = ["app.example.com", "corp.example.com"]
+    forwarding_ip_address = "10.0.3.4"
+  }
+
+  dns_listening_endpoint_allowed_cidrs = ["10.0.2.0/24"]
 }
 ```
 
@@ -72,23 +79,23 @@ The following arguments are supported:
 
 * `resource_anchor_id` - (Required) The ID of the Azure Resource Anchor. Changing this forces a new Oracle Network Anchor to be created.
 
-* `subnet_id` - (Required) The ID of the Delegated Azure subnet. Changing this forces a new Oracle Network Anchor to be created.
+* `subnet_id` - (Required) The ID of the delegated Azure subnet. Changing this forces a new resource to be created.
+
+-> **Note:** The subnet must be delegated to `Oracle.Database/networkAttachments`. The virtual network is determined by this subnet ID.
 
 * `zones` - (Required) A list of availability zones for the Network Anchor. Changing this forces a new Oracle Network Anchor to be created.
 
 ---
 
-* `dns_forwarding_rule` - (Optional) One or more `dns_forwarding_rule` blocks as defined below. Changing this forces a new Oracle Network Anchor to be created.
+* `backup_subnet_cidr` - (Optional) The CIDR block for the Oracle Cloud Infrastructure backup subnet.
 
-* `dns_listening_endpoint_allowed_cidrs` - (Optional) A list of CIDRs that are allowed to send requests to the DNS listening endpoint. Changing this forces a new Oracle Network Anchor to be created.
+* `dns_forwarding_rule` - (Optional) One or more `dns_forwarding_rule` blocks as defined below. Configuring at least one rule enables the DNS forwarding endpoint so Oracle database instances can resolve Azure private domain names. Omitting the rules or specifying an empty list disables forwarding. Changing this forces a new resource to be created.
 
-* `oci_backup_cidr_block` - (Optional) Oracle Cloud Infrastructure backup subnet CIDR block.
+* `dns_listening_endpoint_allowed_cidrs` - (Optional) A set of CIDR blocks allowed to send requests to the DNS listening endpoint. Configuring at least one CIDR enables the DNS listening endpoint so Azure applications can resolve Oracle database domain names. Omitting the CIDRs or specifying an empty set disables listening. Changing this forces a new resource to be created.
 
-* `oracle_dns_forwarding_endpoint_enabled` - (Optional) Whether to enable the Oracle DNS forwarding endpoint.
+* `dns_private_zone_replication_enabled` - (Optional) Whether to replicate database private DNS zones from Oracle Cloud Infrastructure to Azure during database creation. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `oracle_dns_listening_endpoint_enabled` - (Optional) Whether to enable the Oracle DNS listening endpoint.
-
-* `oracle_to_azure_dns_zone_sync_enabled` - (Optional) Whether to enable DNS zone sync from OCI to Azure.
+-> **Note:** DNS listening and private-zone replication provide overlapping ways to resolve Oracle database domain names from Azure. Choose the option that matches your DNS design. They can be enabled together. Private-zone replication occurs during database creation; it does not imply continuous DNS synchronization.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Oracle Network Anchor.
 
@@ -96,13 +103,13 @@ The following arguments are supported:
 
 A `dns_forwarding_rule` block supports the following:
 
-* `domain_names` - (Required) Comma-separated domain names.
+* `domain_names` - (Required) A set of domain names whose DNS queries should be forwarded.
 
 * `forwarding_ip_address` - (Required) Forwarding IP address.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Oracle Network Anchor.
 
@@ -115,6 +122,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `dns_listening_endpoint_ip_address` - A DNS listening endpoint IP address.
 
 * `dns_listening_endpoint_nsg_rule_url` - A link to OCI console DNS Listening endpoint NSG rules.
+
+* `oci_vcn_dns_label` - The Oracle Cloud Infrastructure VCN DNS label.
 
 ## Timeouts
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -11,10 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/networkanchors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-09-01/resourceanchors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,26 +29,26 @@ type NetworkAnchorDataModel struct {
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	Location          string `tfschema:"location"`
 
-	CidrBlock                          string            `tfschema:"cidr_block"`
-	DnsForwardingEndpointIpAddress     string            `tfschema:"dns_forwarding_endpoint_ip_address"`
-	DnsForwardingEndpointNsgRuleUrl    string            `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
-	DnsForwardingRuleUrl               string            `tfschema:"dns_forwarding_rule_url"`
-	DnsListeningEndpointAllowedCidrs   string            `tfschema:"dns_listening_endpoint_allowed_cidrs"`
-	DnsListeningEndpointIpAddress      string            `tfschema:"dns_listening_endpoint_ip_address"`
-	DnsListeningEndpointNsgRuleUrl     string            `tfschema:"dns_listening_endpoint_nsg_rule_url"`
-	OciBackupCidrBlock                 string            `tfschema:"oci_backup_cidr_block"`
-	OciSubnetId                        string            `tfschema:"oci_subnet_id"`
-	OciVcnDnsLabel                     string            `tfschema:"oci_vcn_dns_label"`
-	OciVcnId                           string            `tfschema:"oci_vcn_id"`
-	OracleDnsForwardingEndpointEnabled bool              `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
-	OracleDnsListeningEndpointEnabled  bool              `tfschema:"oracle_dns_listening_endpoint_enabled"`
-	OracleToAzureDnsZoneSyncEnabled    bool              `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
-	ProvisioningState                  string            `tfschema:"provisioning_state"`
-	ResourceAnchorId                   string            `tfschema:"resource_anchor_id"`
-	SubnetId                           string            `tfschema:"subnet_id"`
-	VirtualNetworkId                   string            `tfschema:"virtual_network_id"`
-	Zones                              zones.Schema      `tfschema:"zones"`
-	Tags                               map[string]string `tfschema:"tags"`
+	BackupSubnetCidr                 string            `tfschema:"backup_subnet_cidr"`
+	CidrBlock                        string            `tfschema:"cidr_block"`
+	DnsForwardingEndpointEnabled     bool              `tfschema:"dns_forwarding_endpoint_enabled"`
+	DnsForwardingEndpointIpAddress   string            `tfschema:"dns_forwarding_endpoint_ip_address"`
+	DnsForwardingEndpointNsgRuleUrl  string            `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
+	DnsForwardingRuleUrl             string            `tfschema:"dns_forwarding_rule_url"`
+	DnsListeningEndpointAllowedCidrs []string          `tfschema:"dns_listening_endpoint_allowed_cidrs"`
+	DnsListeningEndpointEnabled      bool              `tfschema:"dns_listening_endpoint_enabled"`
+	DnsListeningEndpointIpAddress    string            `tfschema:"dns_listening_endpoint_ip_address"`
+	DnsListeningEndpointNsgRuleUrl   string            `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	DnsPrivateZoneReplicationEnabled bool              `tfschema:"dns_private_zone_replication_enabled"`
+	OciSubnetId                      string            `tfschema:"oci_subnet_id"`
+	OciVcnDnsLabel                   string            `tfschema:"oci_vcn_dns_label"`
+	OciVcnId                         string            `tfschema:"oci_vcn_id"`
+	ProvisioningState                string            `tfschema:"provisioning_state"`
+	ResourceAnchorId                 string            `tfschema:"resource_anchor_id"`
+	SubnetId                         string            `tfschema:"subnet_id"`
+	VirtualNetworkId                 string            `tfschema:"virtual_network_id"`
+	Zones                            zones.Schema      `tfschema:"zones"`
+	Tags                             map[string]string `tfschema:"tags"`
 }
 
 func (d NetworkAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -68,8 +70,16 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
+		"backup_subnet_cidr": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 		"cidr_block": {
 			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dns_forwarding_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 		"dns_forwarding_endpoint_ip_address": {
@@ -85,7 +95,14 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 		"dns_listening_endpoint_allowed_cidrs": {
-			Type:     pluginsdk.TypeString,
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+		"dns_listening_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 		"dns_listening_endpoint_ip_address": {
@@ -96,8 +113,8 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"oci_backup_cidr_block": {
-			Type:     pluginsdk.TypeString,
+		"dns_private_zone_replication_enabled": {
+			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 		"oci_subnet_id": {
@@ -110,18 +127,6 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 		"oci_vcn_id": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"oracle_dns_forwarding_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-		"oracle_dns_listening_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-		"oracle_to_azure_dns_zone_sync_enabled": {
-			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 		"provisioning_state": {
@@ -147,7 +152,7 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d NetworkAnchorDataSource) ModelObject() any {
-	return &NetworkAnchorDataSource{}
+	return &NetworkAnchorDataModel{}
 }
 
 func (d NetworkAnchorDataSource) ResourceType() string {
@@ -185,22 +190,39 @@ func (d NetworkAnchorDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 				if props := model.Properties; props != nil {
-					state.ResourceAnchorId = props.ResourceAnchorId
+					resourceAnchorID, err := resourceanchors.ParseResourceAnchorIDInsensitively(props.ResourceAnchorId)
+					if err != nil {
+						return err
+					}
+					state.ResourceAnchorId = resourceAnchorID.ID()
+
+					subnetID, err := commonids.ParseSubnetIDInsensitively(props.SubnetId)
+					if err != nil {
+						return err
+					}
+					state.SubnetId = subnetID.ID()
+
+					if props.VnetId != nil {
+						virtualNetworkID, err := commonids.ParseVirtualNetworkIDInsensitively(*props.VnetId)
+						if err != nil {
+							return err
+						}
+						state.VirtualNetworkId = virtualNetworkID.ID()
+					}
+
 					state.ProvisioningState = pointer.FromEnum(props.ProvisioningState)
-					state.VirtualNetworkId = pointer.From(props.VnetId)
-					state.SubnetId = props.SubnetId
 					state.CidrBlock = pointer.From(props.CidrBlock)
 					state.OciVcnId = pointer.From(props.OciVcnId)
 					state.OciVcnDnsLabel = pointer.From(props.OciVcnDnsLabel)
 					state.OciSubnetId = pointer.From(props.OciSubnetId)
-					state.OciBackupCidrBlock = pointer.From(props.OciBackupCidrBlock)
-					state.OracleDnsForwardingEndpointEnabled = pointer.From(props.IsOracleDnsForwardingEndpointEnabled)
-					state.OracleDnsListeningEndpointEnabled = pointer.From(props.IsOracleDnsListeningEndpointEnabled)
-					state.OracleToAzureDnsZoneSyncEnabled = pointer.From(props.IsOracleToAzureDnsZoneSyncEnabled)
+					state.BackupSubnetCidr = pointer.From(props.OciBackupCidrBlock)
+					state.DnsForwardingEndpointEnabled = pointer.From(props.IsOracleDnsForwardingEndpointEnabled)
+					state.DnsListeningEndpointEnabled = pointer.From(props.IsOracleDnsListeningEndpointEnabled)
+					state.DnsPrivateZoneReplicationEnabled = pointer.From(props.IsOracleToAzureDnsZoneSyncEnabled)
 					state.DnsForwardingEndpointIpAddress = pointer.From(props.DnsForwardingEndpointIPAddress)
 					state.DnsForwardingRuleUrl = pointer.From(props.DnsForwardingRulesURL)
 					state.DnsForwardingEndpointNsgRuleUrl = pointer.From(props.DnsForwardingEndpointNsgRulesURL)
-					state.DnsListeningEndpointAllowedCidrs = pointer.From(props.DnsListeningEndpointAllowedCidrs)
+					state.DnsListeningEndpointAllowedCidrs = flattenNetworkAnchorCommaSeparatedValues(pointer.From(props.DnsListeningEndpointAllowedCidrs))
 					state.DnsListeningEndpointIpAddress = pointer.From(props.DnsListeningEndpointIPAddress)
 					state.DnsListeningEndpointNsgRuleUrl = pointer.From(props.DnsListeningEndpointNsgRulesURL)
 				}
