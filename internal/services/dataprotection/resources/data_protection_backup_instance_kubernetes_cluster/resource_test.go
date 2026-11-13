@@ -408,51 +408,64 @@ func (r DataProtectionBackupInstanceKubernetesClusterResource) completeWithUserA
 	return fmt.Sprintf(`
 %[1]s
 
-locals {
-  user_assigned_identities = {
-    test        = azurerm_user_assigned_identity.test.principal_id
-    test_update = azurerm_user_assigned_identity.test_update.principal_id
-  }
-}
-
 resource "azurerm_role_assignment" "test_uai_read_on_cluster" {
-  for_each = local.user_assigned_identities
-
   scope                = azurerm_kubernetes_cluster.test.id
   role_definition_name = "Reader"
-  principal_id         = each.value
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_update_uai_read_on_cluster" {
+  scope                = azurerm_kubernetes_cluster.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test_update.principal_id
 }
 
 resource "azurerm_role_assignment" "test_uai_read_on_snap_rg" {
-  for_each = local.user_assigned_identities
-
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Reader"
-  principal_id         = each.value
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_update_uai_read_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test_update.principal_id
 }
 
 resource "azurerm_role_assignment" "test_uai_data_contributor_on_storage" {
-  for_each = local.user_assigned_identities
-
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = each.value
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_update_uai_data_contributor_on_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test_update.principal_id
 }
 
 resource "azurerm_role_assignment" "test_uai_snapshot_contributor_on_snap_rg" {
-  for_each = local.user_assigned_identities
-
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Disk Snapshot Contributor"
-  principal_id         = each.value
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_update_uai_snapshot_contributor_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Disk Snapshot Contributor"
+  principal_id         = azurerm_user_assigned_identity.test_update.principal_id
 }
 
 resource "azurerm_role_assignment" "test_uai_data_operator_on_snap_rg" {
-  for_each = local.user_assigned_identities
-
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Data Operator for Managed Disks"
-  principal_id         = each.value
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test_update_uai_data_operator_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Data Operator for Managed Disks"
+  principal_id         = azurerm_user_assigned_identity.test_update.principal_id
 }
 
 // Confirm with the Service Team that we should wait for role propagation before creating the backup instance
@@ -461,10 +474,15 @@ resource "time_sleep" "wait_for_role_propagations" {
 
   depends_on = [
     azurerm_role_assignment.test_uai_read_on_cluster,
+    azurerm_role_assignment.test_update_uai_read_on_cluster,
     azurerm_role_assignment.test_uai_read_on_snap_rg,
+    azurerm_role_assignment.test_update_uai_read_on_snap_rg,
     azurerm_role_assignment.test_uai_data_contributor_on_storage,
+    azurerm_role_assignment.test_update_uai_data_contributor_on_storage,
     azurerm_role_assignment.test_uai_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_update_uai_snapshot_contributor_on_snap_rg,
     azurerm_role_assignment.test_uai_data_operator_on_snap_rg,
+    azurerm_role_assignment.test_update_uai_data_operator_on_snap_rg,
   ]
 }
 

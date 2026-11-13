@@ -76,7 +76,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 						}
 						if backupDsp := policyParameters.BackupDatasourceParametersList; backupDsp != nil {
 							if v := pointer.From(flattenBackupDatasourceParameters(*backupDsp)); len(v) > 0 {
-								if !isDefaultBackupDatasourceParameters(v[0]) || len(metadata.ResourceData.Get("backup_datasource_parameters").([]interface{})) > 0 {
+								if !isDefaultBackupDatasourceParameters(v[0]) || len(metadata.ResourceData.Get("backup_datasource_parameters").([]any)) > 0 {
 									state.BackupDatasourceParameters = v
 								}
 							}
