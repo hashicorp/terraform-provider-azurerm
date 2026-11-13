@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -131,6 +132,13 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 					privateDnsZoneId = "None"
 				default:
 					privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
+					if privateDnsZoneId != "" {
+						if parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDnsZoneId); err == nil {
+							privateDnsZoneId = parsed.ID()
+						} else {
+							return err
+						}
+					}
 				}
 			}
 			d.Set("private_dns_zone_id", privateDnsZoneId)
