@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_managed_certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_environment_storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_job"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/resources/container_app_session_pool"
 )
 
 var (
@@ -59,6 +60,7 @@ func (r Registration) Resources() []sdk.Resource {
 		container_app_environment_storage.Resource{},
 		container_app_job.Resource{},
 		container_app.Resource{},
+		container_app_session_pool.Resource{},
 	}
 }
 
@@ -79,5 +81,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		container_app_session_pool.ListResource{},
+	}
 }
