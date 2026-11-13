@@ -172,6 +172,8 @@ The `storage_settings` block supports the following:
 
 * `luns` - (Required) A list of Logical Unit Numbers for the disks.
 
+* `use_storage_pool` - (Optional) Specifies whether to use the storage pool for the SQL Server. Defaults to `true`.
+
 ---
 
 The `temp_db_settings` block supports the following:
@@ -179,6 +181,8 @@ The `temp_db_settings` block supports the following:
 * `default_file_path` - (Required) The SQL Server default path
 
 * `luns` - (Required) A list of Logical Unit Numbers for the disks.
+
+* `use_storage_pool` - (Optional) Specifies whether to use the storage pool for TempDB. Defaults to `false`.
 
 * `data_file_count` - (Optional) The SQL Server default file count. This value defaults to `8`
 
