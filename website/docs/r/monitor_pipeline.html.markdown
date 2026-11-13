@@ -205,7 +205,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -222,7 +222,7 @@ resource "azurerm_monitor_pipeline" "example" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -421,7 +421,7 @@ An `otlp_receiver` block supports the following:
 
 ---
 
-A `private_key` block supports the following:
+A `private_key_source` block supports the following:
 
 * `location` - (Required) The location of the private key source.
 
@@ -509,7 +509,7 @@ A `tls_certificate` block supports the following:
 
 * `certificate` - (Required) A `certificate` block as defined above.
 
-* `private_key` - (Required) A `private_key` block as defined above.
+* `private_key_source` - (Required) A `private_key_source` block as defined above.
 
 ---
 

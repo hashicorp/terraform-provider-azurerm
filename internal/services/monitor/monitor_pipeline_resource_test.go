@@ -259,7 +259,7 @@ resource "azurerm_extended_location_custom_location" "test" {
 # Azure Files backing for the pipeline's persistent volume, and self-signed TLS material for
 # the mutualTls tlsConfiguration exercised by the complete test.
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
+  name                     = "acctest%[4]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -527,7 +527,7 @@ resource "azurerm_monitor_data_collection_rule" "updated" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, filepath.Join(os.TempDir(), fmt.Sprintf("acctest-monitor-pipeline-kubeconfig-%d", data.RandomInteger)))
+`, data.RandomInteger, data.Locations.Primary, filepath.Join(os.TempDir(), fmt.Sprintf("acctest-monitor-pipeline-kubeconfig-%d", data.RandomInteger)), data.RandomString)
 }
 
 func (r MonitorPipelineResource) basic(data acceptance.TestData) string {
@@ -748,7 +748,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -765,7 +765,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls.crt"
         type         = "kubernetesSecret"
       }
-      private_key {
+      private_key_source {
         location     = "pipeline-tls-cert"
         sub_location = "tls.key"
       }
@@ -985,7 +985,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls-updated.crt"
         type         = "kubernetesConfigMap"
       }
-      private_key {
+      private_key_source {
         location     = "server-tls-key-updated"
         sub_location = "tls-updated.key"
       }
@@ -1008,7 +1008,7 @@ resource "azurerm_monitor_pipeline" "test" {
         sub_location = "tls-updated.crt"
         type         = "kubernetesConfigMap"
       }
-      private_key {
+      private_key_source {
         location     = "server-tls-key-updated"
         sub_location = "tls-updated.key"
       }
