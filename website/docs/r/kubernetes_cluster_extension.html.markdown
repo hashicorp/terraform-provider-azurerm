@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `configuration_settings` - (Optional) Configuration settings, as name-value pairs for configuring this extension.
 
+~> **Note:** Removing a key from `configuration_settings` performs a full update of the existing extension. Azure does not return protected setting values, so these must be available in Terraform configuration or prior state. For an imported extension with protected settings, configure `configuration_protected_settings` before removing configuration settings. The update is refused if protected settings cannot be verified or reconstructed.
+
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `release_train` - (Optional) The release train used by this extension. Possible values include but are not limited to `Stable`, `Preview`. Changing this forces a new Kubernetes Cluster Extension to be created.

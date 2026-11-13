@@ -106,6 +106,52 @@ func TestAccKubernetesClusterExtension_plan(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterExtension_removeConfigurationSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_extension", "test")
+	r := KubernetesClusterExtensionResource{}
+	var originalID string
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+					originalID = state.ID
+					return nil
+				}),
+			),
+		},
+		{
+			Config: r.configurationSettingsRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("configuration_settings.%").HasValue("0"),
+				check.That(data.ResourceName).Key("configuration_protected_settings.omsagent.secret.key").HasValue("secretKeyValue1"),
+				data.CheckWithClient(func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+					if state.ID != originalID {
+						return fmt.Errorf("extension ID changed while removing configuration settings")
+					}
+					id, err := extensions.ParseScopedExtensionID(state.ID)
+					if err != nil {
+						return err
+					}
+					response, err := client.Containers.KubernetesExtensionsClient.Get(ctx, *id)
+					if err != nil {
+						return err
+					}
+					if response.Model == nil || response.Model.Properties == nil || len(pointer.From(response.Model.Properties.ConfigurationSettings)) != 0 {
+						return fmt.Errorf("configuration settings were not removed from Azure")
+					}
+					return nil
+				}),
+			),
+		},
+		{
+			Config:   r.configurationSettingsRemoved(data),
+			PlanOnly: true,
+		},
+	})
+}
+
 func (r KubernetesClusterExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := extensions.ParseScopedExtensionID(state.ID)
 	if err != nil {
@@ -231,6 +277,24 @@ resource "azurerm_kubernetes_cluster_extension" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r KubernetesClusterExtensionResource) configurationSettingsRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster_extension" "test" {
+  name              = "acctest-kce-%d"
+  cluster_id        = azurerm_kubernetes_cluster.test.id
+  extension_type    = "microsoft.flux"
+  version           = "1.6.3"
+  release_namespace = "flux-system"
+
+  configuration_protected_settings = {
+    "omsagent.secret.key" = "secretKeyValue1"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r KubernetesClusterExtensionResource) plan(data acceptance.TestData) string {
