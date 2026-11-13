@@ -26,6 +26,13 @@ func eventgridEventSubscriptionSchema() map[string]*pluginsdk.Schema {
 
 		"expiration_time_utc": helpers.EventSubscriptionSchemaExpirationTimeUTC(),
 
+		"azure_alert_monitor": helpers.EventSubscriptionSchemaAzureAlertMonitorEndpoint(
+			slices.DeleteFunc(
+				possibleEventSubscriptionEndpointTypes(),
+				func(s string) bool { return s == string(helpers.AzureAlertMonitor) },
+			),
+		),
+
 		"azure_function_endpoint": helpers.EventSubscriptionSchemaAzureFunctionEndpoint(
 			slices.DeleteFunc(
 				possibleEventSubscriptionEndpointTypes(),
