@@ -195,6 +195,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5, daysOfWeek = "2"),
 
+        // SRE Agent is only available in certain regions: https://learn.microsoft.com/azure/sre-agent/supported-regions
+        "sreagents" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "australiaeast", true)),
+
         // HPC Cache has a 4 instance per subscription quota as of early 2021
         "storagecache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
