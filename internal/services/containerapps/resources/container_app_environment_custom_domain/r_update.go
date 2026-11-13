@@ -56,12 +56,23 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			// If custom domain dns suffix or its certificate changed, update all the required attributes
-			if metadata.ResourceData.HasChanges("dns_suffix", "certificate_blob_base64", "certificate_password") {
-				existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
-					DnsSuffix:           pointer.To(model.DnsSuffix),
-					CertificateValue:    pointer.To(model.CertificateValue),
-					CertificatePassword: pointer.To(model.CertificatePassword),
+			if metadata.ResourceData.HasChanges("dns_suffix", "certificate_blob_base64", "certificate_password", "certificate_key_vault") {
+				customDomainConfig := &managedenvironments.CustomDomainConfiguration{
+					DnsSuffix: pointer.To(model.DnsSuffix),
 				}
+
+				if model.CertificateValue != "" {
+					customDomainConfig.CertificateValue = pointer.To(model.CertificateValue)
+					customDomainConfig.CertificatePassword = pointer.To(model.CertificatePassword)
+				} else if len(model.CertificateKeyVault) > 0 {
+					kvConfig := model.CertificateKeyVault[0]
+					customDomainConfig.CertificateKeyVaultProperties = &managedenvironments.CertificateKeyVaultProperties{
+						Identity:    pointer.To(kvConfig.Identity),
+						KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
+					}
+				}
+
+				existing.Model.Properties.CustomDomainConfiguration = customDomainConfig
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {

@@ -46,6 +46,14 @@ func (r Resource) Read() sdk.ResourceFunc {
 						if certPassword, ok := metadata.ResourceData.GetOk("certificate_password"); ok {
 							state.CertificatePassword = certPassword.(string)
 						}
+						if kvProps := customdomain.CertificateKeyVaultProperties; kvProps != nil {
+							state.CertificateKeyVault = []CustomDomainCertificateKeyVaultModel{
+								{
+									Identity:         pointer.From(kvProps.Identity),
+									KeyVaultSecretId: pointer.From(kvProps.KeyVaultURL),
+								},
+							}
+						}
 						state.ManagedEnvironmentId = metadata.ResourceData.Id()
 					}
 				}

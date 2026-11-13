@@ -67,11 +67,22 @@ func (r Resource) Create() sdk.ResourceFunc {
 				existing.Model.Properties.AppLogsConfiguration = nil
 			}
 
-			existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
-				DnsSuffix:           pointer.To(model.DnsSuffix),
-				CertificateValue:    pointer.To(model.CertificateValue),
-				CertificatePassword: pointer.To(model.CertificatePassword),
+			customDomainConfig := &managedenvironments.CustomDomainConfiguration{
+				DnsSuffix: pointer.To(model.DnsSuffix),
 			}
+
+			if model.CertificateValue != "" {
+				customDomainConfig.CertificateValue = pointer.To(model.CertificateValue)
+				customDomainConfig.CertificatePassword = pointer.To(model.CertificatePassword)
+			} else if len(model.CertificateKeyVault) > 0 {
+				kvConfig := model.CertificateKeyVault[0]
+				customDomainConfig.CertificateKeyVaultProperties = &managedenvironments.CertificateKeyVaultProperties{
+					Identity:    pointer.To(kvConfig.Identity),
+					KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
+				}
+			}
+
+			existing.Model.Properties.CustomDomainConfiguration = customDomainConfig
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, *id, *existing.Model, metadata.SetIDCallback(id)); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
