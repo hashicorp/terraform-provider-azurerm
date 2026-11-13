@@ -354,14 +354,14 @@ func TestAccRecoveryServicesVault_sku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.skuStandard(data),
+			Config: r.skuWithEncryption(data, "Standard", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.skuRS0(data),
+			Config: r.skuWithEncryption(data, "RS0", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -369,7 +369,7 @@ func TestAccRecoveryServicesVault_sku(t *testing.T) {
 		data.ImportStep(),
 		{
 			// This step is to ensure `sku` and `encryption` can be updated together when `encryption` was not specified in the existing resource
-			Config: r.skuWithEncryption(data, "Standard"),
+			Config: r.skuWithEncryption(data, "Standard", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -384,14 +384,14 @@ func TestAccRecoveryServicesVault_updateSkuWithExistingEncryption(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.skuWithEncryption(data, "Standard"),
+			Config: r.skuWithEncryption(data, "Standard", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.skuWithEncryption(data, "RS0"),
+			Config:      r.skuWithEncryption(data, "RS0", true),
 			ExpectError: regexp.MustCompile("`sku` cannot be changed when encryption with your own key has been enabled"),
 		},
 	})
@@ -417,7 +417,7 @@ func TestAccRecoveryServicesVault_encryptionWithKeyVaultKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 0),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, false, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -432,11 +432,11 @@ func TestAccRecoveryServicesVault_turnOnEncryptionWithKeyVaultKey(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithIdentity(data),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, false, false, 0),
 		},
 		data.ImportStep(),
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 0),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, false, 0),
 		},
 		data.ImportStep(),
 	})
@@ -448,7 +448,7 @@ func TestAccRecoveryServicesVault_turnOffEncryptionWithKeyVaultKeyShouldHaveClea
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 0),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, false, 0),
 		},
 		data.ImportStep(),
 		{
@@ -464,11 +464,11 @@ func TestAccRecoveryServicesVault_changeInfrastructureEncryptionEnabledShouldHav
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 0),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, false, 0),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.cmkEncryptionWithKeyVaultKey(data, true, 0),
+			Config:      r.cmkEncryptionWithKeyVaultKey(data, true, true, 0),
 			ExpectError: regexp.MustCompile("once `infrastructure_encryption_enabled` has been set it's not possible to change it"),
 		},
 	})
@@ -480,7 +480,7 @@ func TestAccRecoveryServicesVault_encryptionWithInfrastructureEncryption(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, true, 0),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, true, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -495,11 +495,11 @@ func TestAccRecoveryServicesVault_switchEncryptionKeyVaultKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 0),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, false, 0),
 		},
 		data.ImportStep(),
 		{
-			Config: r.cmkEncryptionWithKeyVaultKey(data, false, 1),
+			Config: r.cmkEncryptionWithKeyVaultKey(data, true, false, 1),
 		},
 		data.ImportStep(),
 	})
@@ -844,7 +844,18 @@ resource "azurerm_recovery_services_vault" "import" {
 `, r.basic(data))
 }
 
-func (r RecoveryServicesVaultResource) cmkEncryptionWithKeyVaultKey(data acceptance.TestData, enableInfraEncryptionState bool, keyIndex int) string {
+func (r RecoveryServicesVaultResource) cmkEncryptionWithKeyVaultKey(data acceptance.TestData, encryptionEnabled, enableInfraEncryptionState bool, keyIndex int) string {
+	encryption := ""
+	if encryptionEnabled {
+		encryption = fmt.Sprintf(`
+  encryption {
+    key_id                            = azurerm_key_vault_key.test[%d].id
+    use_system_assigned_identity      = true
+    infrastructure_encryption_enabled = %t
+  }
+`, keyIndex, enableInfraEncryptionState)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -870,11 +881,7 @@ resource "azurerm_recovery_services_vault" "test" {
     type = "SystemAssigned"
   }
 
-  encryption {
-    key_id                            = azurerm_key_vault_key.test[%[5]d].id
-    use_system_assigned_identity      = true
-    infrastructure_encryption_enabled = %[4]t
-  }
+%[4]s
 }
 
 data "azurerm_client_config" "current" {}
@@ -887,31 +894,32 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
-  purge_protection_enabled    = false
+  purge_protection_enabled    = true
 
   sku_name = "standard"
+}
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "current" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    key_permissions = [
-      "Create",
-      "Decrypt",
-      "Encrypt",
-      "Delete",
-      "Get",
-      "List",
-      "Purge",
-      "UnwrapKey",
-      "WrapKey",
-      "Verify",
-      "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Set",
-    ]
-  }
+  key_permissions = [
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "UnwrapKey",
+    "WrapKey",
+    "Verify",
+    "GetRotationPolicy"
+  ]
+  secret_permissions = [
+    "Set",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -929,6 +937,8 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = [azurerm_key_vault_access_policy.current]
 }
 
 resource "azurerm_key_vault_access_policy" "recovery_services" {
@@ -943,7 +953,7 @@ resource "azurerm_key_vault_access_policy" "recovery_services" {
     "UnwrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, enableInfraEncryptionState, keyIndex)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, encryption)
 }
 
 func (r RecoveryServicesVaultResource) cmkEncryptionWithUserAssignedIdentity(data acceptance.TestData, enableInfraEncryptionState bool, keyIndex int) string {
@@ -1250,47 +1260,17 @@ resource "azurerm_recovery_services_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (RecoveryServicesVaultResource) skuStandard(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+func (RecoveryServicesVaultResource) skuWithEncryption(data acceptance.TestData, sku string, encryptionEnabled bool) string {
+	encryption := ""
+	if encryptionEnabled {
+		encryption = `
+  encryption {
+    key_id                            = azurerm_key_vault_key.test.id
+    infrastructure_encryption_enabled = false
+  }
+`
+	}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d"
-  location = "%s"
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-Vault-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RecoveryServicesVaultResource) skuRS0(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d"
-  location = "%s"
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-Vault-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "RS0"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RecoveryServicesVaultResource) skuWithEncryption(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1316,31 +1296,32 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
-  purge_protection_enabled    = false
+  purge_protection_enabled    = true
 
   sku_name = "standard"
+}
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "current" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    key_permissions = [
-      "Create",
-      "Decrypt",
-      "Encrypt",
-      "Delete",
-      "Get",
-      "List",
-      "Purge",
-      "UnwrapKey",
-      "WrapKey",
-      "Verify",
-      "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Set",
-    ]
-  }
+  key_permissions = [
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "UnwrapKey",
+    "WrapKey",
+    "Verify",
+    "GetRotationPolicy"
+  ]
+  secret_permissions = [
+    "Set",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1357,6 +1338,21 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = [azurerm_key_vault_access_policy.current]
+}
+
+resource "azurerm_key_vault_access_policy" "recovery_services" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_recovery_services_vault.test.identity[0].principal_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "WrapKey",
+    "UnwrapKey",
+  ]
 }
 
 resource "azurerm_recovery_services_vault" "test" {
@@ -1365,16 +1361,13 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "%[4]s"
 
-  encryption {
-    key_id                            = azurerm_key_vault_key.test.id
-    infrastructure_encryption_enabled = false
-  }
+%[5]s
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, sku, encryption)
 }
 
 func (RecoveryServicesVaultResource) basicWithClassicVmwareReplicateEnabled(data acceptance.TestData) string {
