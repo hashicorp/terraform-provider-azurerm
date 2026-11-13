@@ -3,6 +3,8 @@
 
 package monitor
 
+//go:generate go run ../../tools/generator-tests resourceidentity -properties "resource_uri:target_resource_id,name"
+
 import (
 	"context"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
@@ -85,6 +88,16 @@ func (r DataCollectionRuleAssociationResource) ModelObject() any {
 	return &DataCollectionRuleAssociationModel{}
 }
 
+var (
+	_ sdk.Resource             = DataCollectionRuleAssociationResource{}
+	_ sdk.ResourceWithIdentity = DataCollectionRuleAssociationResource{}
+	_ sdk.ResourceWithUpdate   = DataCollectionRuleAssociationResource{}
+)
+
+func (r DataCollectionRuleAssociationResource) Identity() resourceids.ResourceId {
+	return &datacollectionruleassociations.ScopedDataCollectionRuleAssociationId{}
+}
+
 func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -108,17 +121,17 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			}
 
 			input := datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource{
-				Name: pointer.To(model.Name),
+				Name: new(model.Name),
 				Properties: &datacollectionruleassociations.DataCollectionRuleAssociation{
-					Description: pointer.To(model.Description),
+					Description: new(model.Description),
 				},
 			}
 
 			if model.DataCollectionEndpointId != "" {
-				input.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
+				input.Properties.DataCollectionEndpointId = new(model.DataCollectionEndpointId)
 			}
 			if model.DataCollectionRuleId != "" {
-				input.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
+				input.Properties.DataCollectionRuleId = new(model.DataCollectionRuleId)
 			}
 
 			if _, err := client.Create(ctx, id, input); err != nil {
@@ -126,6 +139,9 @@ func (r DataCollectionRuleAssociationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return fmt.Errorf("setting resource identity: %w", err)
+			}
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -150,26 +166,34 @@ func (r DataCollectionRuleAssociationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var description, dataCollectionEndpointId, dataCollectionRuleId string
-
-			if model := resp.Model; model != nil {
-				if prop := model.Properties; prop != nil {
-					dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
-					dataCollectionRuleId = pointer.From(prop.DataCollectionRuleId)
-					description = pointer.From(prop.Description)
-				}
-			}
-
-			return metadata.Encode(&DataCollectionRuleAssociationModel{
-				Name:                     id.DataCollectionRuleAssociationName,
-				TargetResourceId:         id.ResourceUri,
-				DataCollectionEndpointId: dataCollectionEndpointId,
-				DataCollectionRuleId:     dataCollectionRuleId,
-				Description:              description,
-			})
+			return r.flatten(metadata, id, resp.Model)
 		},
 		Timeout: 5 * time.Minute,
 	}
+}
+
+func (r DataCollectionRuleAssociationResource) flatten(metadata sdk.ResourceMetaData, id *datacollectionruleassociations.ScopedDataCollectionRuleAssociationId, model *datacollectionruleassociations.DataCollectionRuleAssociationProxyOnlyResource) error {
+	var description, dataCollectionEndpointId, dataCollectionRuleId string
+
+	if model != nil {
+		if prop := model.Properties; prop != nil {
+			dataCollectionEndpointId = pointer.From(prop.DataCollectionEndpointId)
+			dataCollectionRuleId = pointer.From(prop.DataCollectionRuleId)
+			description = pointer.From(prop.Description)
+		}
+	}
+
+	if err := metadata.Encode(&DataCollectionRuleAssociationModel{
+		Name:                     id.DataCollectionRuleAssociationName,
+		TargetResourceId:         id.ResourceUri,
+		DataCollectionEndpointId: dataCollectionEndpointId,
+		DataCollectionRuleId:     dataCollectionRuleId,
+		Description:              description,
+	}); err != nil {
+		return err
+	}
+
+	return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 }
 
 func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
@@ -200,7 +224,7 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_endpoint_id") {
 				if model.DataCollectionEndpointId != "" {
-					existing.Properties.DataCollectionEndpointId = pointer.To(model.DataCollectionEndpointId)
+					existing.Properties.DataCollectionEndpointId = new(model.DataCollectionEndpointId)
 				} else {
 					existing.Properties.DataCollectionEndpointId = nil
 				}
@@ -208,20 +232,21 @@ func (r DataCollectionRuleAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("data_collection_rule_id") {
 				if model.DataCollectionRuleId != "" {
-					existing.Properties.DataCollectionRuleId = pointer.To(model.DataCollectionRuleId)
+					existing.Properties.DataCollectionRuleId = new(model.DataCollectionRuleId)
 				} else {
 					existing.Properties.DataCollectionRuleId = nil
 				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = pointer.To(model.Description)
+				existing.Properties.Description = new(model.Description)
 			}
 
 			if _, err := client.Create(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
-			return nil
+
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 		Timeout: 30 * time.Minute,
 	}

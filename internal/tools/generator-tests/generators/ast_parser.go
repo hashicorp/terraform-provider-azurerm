@@ -42,6 +42,9 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 
 	var identityPkg, identityType string
 	var isVirtual bool
+	var isComposite bool
+	var compositeProperties []string
+	var parseErr error
 
 	// Walk AST to find Identity() or GenerateIdentitySchema
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -53,6 +56,13 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 				ast.Inspect(x.Body, func(bn ast.Node) bool {
 					ret, ok := bn.(*ast.ReturnStmt)
 					if ok && len(ret.Results) == 1 {
+						if isCompositeExpr(ret.Results[0]) {
+							isComposite = true
+							if x.Name.Name == "VirtualIdentity" {
+								isVirtual = true
+							}
+							return false
+						}
 						if unary, uOk := ret.Results[0].(*ast.UnaryExpr); uOk && unary.Op == token.AND {
 							if comp, cOk := unary.X.(*ast.CompositeLit); cOk {
 								if sel, sOk := comp.Type.(*ast.SelectorExpr); sOk {
@@ -83,24 +93,37 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 				})
 			}
 		case *ast.CallExpr:
-			// Look for Pattern B: pluginsdk.GenerateIdentitySchema(&commonids.PublicIPAddressId{}, ...)
+			// Look for Pattern B: pluginsdk.GenerateIdentitySchema(...) or pluginsdk.GenerateCompositeIdentitySchema(...)
 			if sel, ok := x.Fun.(*ast.SelectorExpr); ok {
-				if ident, iOk := sel.X.(*ast.Ident); iOk && ident.Name == "pluginsdk" && sel.Sel.Name == "GenerateIdentitySchema" {
-					if len(x.Args) >= 1 {
-						if unary, uOk := x.Args[0].(*ast.UnaryExpr); uOk && unary.Op == token.AND {
-							if comp, cOk := unary.X.(*ast.CompositeLit); cOk {
-								if typeSel, sOk := comp.Type.(*ast.SelectorExpr); sOk {
-									if typeIdent, tOk := typeSel.X.(*ast.Ident); tOk {
-										identityPkg = typeIdent.Name
-										identityType = typeSel.Sel.Name
+				if ident, iOk := sel.X.(*ast.Ident); iOk && ident.Name == "pluginsdk" {
+					switch sel.Sel.Name {
+					case "GenerateCompositeIdentitySchema":
+						isComposite = true
+						for _, arg := range x.Args[1:] {
+							if lit, ok := arg.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+								compositeProperties = append(compositeProperties, strings.Trim(lit.Value, "\"`"))
+							}
+						}
+					case "GenerateIdentitySchema":
+						if len(x.Args) >= 1 {
+							if isCompositeExpr(x.Args[0]) {
+								parseErr = fmt.Errorf("composite resource IDs in %s must use GenerateCompositeIdentitySchema with explicit property names", filePath)
+								return false
+							} else if unary, uOk := x.Args[0].(*ast.UnaryExpr); uOk && unary.Op == token.AND {
+								if comp, cOk := unary.X.(*ast.CompositeLit); cOk {
+									if typeSel, sOk := comp.Type.(*ast.SelectorExpr); sOk {
+										if typeIdent, tOk := typeSel.X.(*ast.Ident); tOk {
+											identityPkg = typeIdent.Name
+											identityType = typeSel.Sel.Name
+										}
 									}
 								}
 							}
-						}
-						if len(x.Args) >= 2 {
-							if selArg, ok := x.Args[1].(*ast.SelectorExpr); ok {
-								if selArg.Sel.Name == "ResourceTypeForIdentityVirtual" {
-									isVirtual = true
+							if len(x.Args) >= 2 {
+								if selArg, ok := x.Args[1].(*ast.SelectorExpr); ok {
+									if selArg.Sel.Name == "ResourceTypeForIdentityVirtual" {
+										isVirtual = true
+									}
 								}
 							}
 						}
@@ -110,6 +133,20 @@ func InferIdentityProperties(filePath string) (*InferredIdentity, error) {
 		}
 		return true
 	})
+
+	if parseErr != nil {
+		return nil, parseErr
+	}
+
+	if isComposite {
+		if len(compositeProperties) != 2 {
+			return nil, fmt.Errorf("composite identity in %s requires exactly 2 property names, got %d", filePath, len(compositeProperties))
+		}
+		return &InferredIdentity{
+			Properties: compositeProperties,
+			IsVirtual:  isVirtual,
+		}, nil
+	}
 
 	if identityPkg == "" || identityType == "" {
 		return nil, fmt.Errorf("could not locate Identity() method or GenerateIdentitySchema call in %s", filePath)
@@ -154,6 +191,40 @@ func findProviderRoot(startDir string) (string, error) {
 	}
 
 	return "", fmt.Errorf("could not locate provider root (go.mod) starting from %s", startDir)
+}
+
+func isCompositeExpr(expr ast.Expr) bool {
+	switch e := expr.(type) {
+	case *ast.CallExpr:
+		fun := e.Fun
+		if idxList, ok := fun.(*ast.IndexListExpr); ok {
+			fun = idxList.X
+		} else if idx, ok := fun.(*ast.IndexExpr); ok {
+			fun = idx.X
+		}
+		if sel, ok := fun.(*ast.SelectorExpr); ok {
+			if sel.Sel.Name == "NewCompositeResourceID" {
+				return true
+			}
+		}
+	case *ast.UnaryExpr:
+		if e.Op == token.AND {
+			if comp, ok := e.X.(*ast.CompositeLit); ok {
+				litType := comp.Type
+				if idxList, ok := litType.(*ast.IndexListExpr); ok {
+					litType = idxList.X
+				} else if idx, ok := litType.(*ast.IndexExpr); ok {
+					litType = idx.X
+				}
+				if sel, ok := litType.(*ast.SelectorExpr); ok {
+					if sel.Sel.Name == "CompositeResourceID" {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
 }
 
 func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]string, isVirtual bool) (*InferredIdentity, error) {
@@ -250,7 +321,7 @@ func resolveIdentityStruct(pkgName, typeName string, importsMap map[string]strin
 		if snake == "subscription_id" {
 			result.HasSubscriptionID = true
 		} else {
-			if i == len(fields)-1 && !isVirtual {
+			if i == len(fields)-1 && !isVirtual && strings.HasSuffix(f, "Name") {
 				result.Properties = append(result.Properties, "name")
 			} else {
 				result.Properties = append(result.Properties, snake)
