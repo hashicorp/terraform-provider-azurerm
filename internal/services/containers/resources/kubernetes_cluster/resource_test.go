@@ -6,6 +6,7 @@ package kubernetes_cluster_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -103,6 +104,51 @@ func TestAccKubernetesCluster_keyVaultKMSv2(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_keyVaultKMSInfrastructureEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	// infrastructure encryption is enabled by default from Kubernetes 1.37, so an older version is required to test enabling it
+	lastDefault, _ := version.NewVersion("1.37")
+	if oldest, _ := version.NewVersion(meta.OldestKubernetesVersionAlias); oldest.GreaterThanOrEqual(lastDefault) {
+		t.Skipf("Skipping as version `1.36` is no longer available. Oldest available version: `%s`", oldest.String())
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureKeyVaultKmsInfrastructureEncryption(data, "", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kms_infrastructure_encryption_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// platform-managed keys
+			Config: r.azureKeyVaultKmsInfrastructureEncryption(data, "true", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kms_infrastructure_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// customer-managed keys
+			Config: r.azureKeyVaultKmsInfrastructureEncryption(data, "true", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kms_infrastructure_encryption_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("key_management_service.0.key_vault_id"),
+		{
+			Config:      r.azureKeyVaultKmsInfrastructureEncryption(data, "false", true),
+			ExpectError: regexp.MustCompile("`kms_infrastructure_encryption_enabled` cannot be disabled once it has been enabled"),
+		},
 	})
 }
 
@@ -1052,7 +1098,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
 }
 
-func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool, versionless bool) string {
+func (r KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool, versionless bool) string {
 	idAttribute := "id"
 	if versionless {
 		idAttribute = "versionless_id"
@@ -1066,6 +1112,30 @@ func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, cont
   }`, idAttribute)
 	}
 
+	return r.azureKeyVaultKmsTemplate(data, controlPlaneVersion, kmsBlock)
+}
+
+func (r KubernetesClusterResource) azureKeyVaultKmsInfrastructureEncryption(data acceptance.TestData, infrastructureEncryption string, kmsEnabled bool) string {
+	block := ""
+	if infrastructureEncryption != "" {
+		block = fmt.Sprintf(`
+  kms_infrastructure_encryption_enabled = %s
+`, infrastructureEncryption)
+	}
+
+	if kmsEnabled {
+		block += `
+  key_management_service {
+    key_vault_key_id = azurerm_key_vault_key.test.versionless_id
+    key_vault_id     = azurerm_key_vault.test.id
+  }`
+	}
+
+	// infrastructure encryption is enabled by default from Kubernetes 1.37, so an older version is used to test enabling it
+	return r.azureKeyVaultKmsTemplate(data, "1.36", block)
+}
+
+func (KubernetesClusterResource) azureKeyVaultKmsTemplate(data acceptance.TestData, controlPlaneVersion string, kmsBlock string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
