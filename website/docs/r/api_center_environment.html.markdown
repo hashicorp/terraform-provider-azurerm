@@ -14,23 +14,25 @@ Documentation for azurerm_api_center_environment.
 
 The following arguments are supported:
 
-* `name` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `name` - (Required) The name of the environment. Changing this value forces a new resource to be created.
 
-* `api_center_service_id` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `custom_properties` - (Optional) A JSON object containing custom properties. Defaults to `{}`.
 
-* `description` - (Optional) No description provided.
+* `description` - (Optional) A description of the environment.
 
-* `development_portal_uri` - (Optional) No description provided.
+* `development_portal_uri` - (Optional) The HTTPS URI of the development portal.
 
-* `display_name` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
+* `display_name` - (Optional) The display name of the environment. String length must be between `1` and `50` characters inclusive.
 
-* `environment_type` - (Required) No description provided. Possible values include `development`, `production`, `staging`, and `testing`. Changing this value forces a new resource to be created.
+* `environment_type` - (Required) The type of the environment. Possible values include `development`, `production`, `staging`, and `testing`. Changing this value forces a new resource to be created.
 
-* `instructions` - (Optional) No description provided.
+* `instructions` - (Optional) Instructions for using the environment.
 
-* `management_portal_uri` - (Optional) No description provided.
+* `management_portal_uri` - (Optional) The HTTPS URI of the management portal.
 
-* `server_type` - (Optional) No description provided. Possible values include `AWS API Gateway`, `Apigee API Management`, `Azure API Management`, `Azure compute service`, `Kong API Gateway`, `Kubernetes`, and `MuleSoft API Management`.
+* `server_type` - (Optional) The type of server used by the environment. Possible values include `AWS API Gateway`, `Apigee API Management`, `Azure API Management`, `Azure compute service`, `Kong API Gateway`, `Kubernetes`, and `MuleSoft API Management`.
+
+* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
 
 ## Attributes Reference
 

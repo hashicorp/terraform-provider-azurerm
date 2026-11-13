@@ -14,30 +14,34 @@ Documentation for azurerm_api_center_api_definition.
 
 The following arguments are supported:
 
-* `name` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `name` - (Required) The name of the API definition. Changing this value forces a new resource to be created.
 
-* `api_center_api_version_id` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `api_version_id` - (Required) The ID of the API version to which this API definition belongs. Changing this value forces a new resource to be created.
 
-* `description` - (Optional) No description provided.
+* `description` - (Optional) The description of the API definition.
 
-* `display_name` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
+* `display_name` - (Optional) The display name of the API definition. String length must be between `1` and `50` characters inclusive.
+
+* `specification` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-73706563696669636174696f6e))
+
+---
+
+<a id="schema-6e6573746564-696e707574-73706563696669636174696f6e"></a>
+The `specification` block supports the following:
+
+* `name` - (Required) The name of the Specification.
+
+* `content` - (Optional) The content of the Specification.
+
+* `url` - (Optional) The URL containing the Specification content.
+
+* `version` - (Optional) The version of the Specification.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Resource
-
-* `specification` - (see [nested schema](#schema-6e6573746564-6f7574707574-73706563696669636174696f6e))
-
----
-
-<a id="schema-6e6573746564-6f7574707574-73706563696669636174696f6e"></a>
-The `specification` object exports the following:
-
-* `name` - No description provided.
-
-* `version` - No description provided.
 
 ## Timeouts
 

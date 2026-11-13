@@ -14,60 +14,60 @@ Documentation for azurerm_api_center_api.
 
 The following arguments are supported:
 
-* `name` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `name` - (Required) The name of the API. Changing this value forces a new resource to be created.
 
-* `api_center_service_id` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `contact` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-636f6e74616374))
 
-* `contacts` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-636f6e7461637473))
+* `custom_properties` - (Optional) A JSON object containing custom properties. Defaults to `{}`.
 
-* `custom_properties` - (Optional) A JSON-encoded object containing custom metadata properties, keyed by metadata schema name. Defaults to `{}`. Removing this argument clears the API's custom properties. The corresponding metadata schemas must exist before assigning custom properties.
+* `description` - (Optional) A description of the API. String length must be between `1` and `1000` characters inclusive.
 
-* `description` - (Optional) No description provided. String length must be between `1` and `1000` characters inclusive.
-
-* `display_name` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
+* `display_name` - (Optional) The display name of the API. String length must be between `1` and `50` characters inclusive.
 
 * `external_documentation` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-65787465726e616c5f646f63756d656e746174696f6e))
 
-* `kind` - (Required) No description provided. Possible values include `graphql`, `grpc`, `rest`, `soap`, `webhook`, and `websocket`.
+* `kind` - (Required) The kind of API. Possible values include `graphql`, `grpc`, `rest`, `soap`, `webhook`, and `websocket`.
 
 * `license` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-6c6963656e7365))
 
-* `summary` - (Optional) No description provided. String length must be between `1` and `200` characters inclusive.
+* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
 
-* `terms_of_service_url` - (Optional) No description provided.
+* `summary` - (Optional) A short summary of the API. String length must be between `1` and `200` characters inclusive.
+
+* `terms_of_service_url` - (Optional) The URL of the API's terms of service.
 
 ---
 
-<a id="schema-6e6573746564-696e707574-636f6e7461637473"></a>
-The `contacts` block supports the following:
+<a id="schema-6e6573746564-696e707574-636f6e74616374"></a>
+The `contact` block supports the following:
 
-* `email` - (Optional) No description provided. String length must be between `1` and `100` characters inclusive.
+* `email` - (Optional) The email address of the API contact. String length must be between `1` and `100` characters inclusive.
 
-* `name` - (Optional) No description provided. String length must be between `1` and `100` characters inclusive.
+* `name` - (Optional) The name of the API contact. String length must be between `1` and `100` characters inclusive.
 
-* `url` - (Optional) No description provided.
+* `url` - (Optional) The URL for the API contact.
 
 ---
 
 <a id="schema-6e6573746564-696e707574-65787465726e616c5f646f63756d656e746174696f6e"></a>
 The `external_documentation` block supports the following:
 
-* `url` - (Required) No description provided.
+* `url` - (Required) The URL of the external documentation.
 
-* `description` - (Optional) No description provided. String length must be between `1` and `500` characters inclusive.
+* `description` - (Optional) A description of the external documentation. String length must be between `1` and `500` characters inclusive.
 
-* `title` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
+* `title` - (Optional) The title of the external documentation. String length must be between `1` and `50` characters inclusive.
 
 ---
 
 <a id="schema-6e6573746564-696e707574-6c6963656e7365"></a>
 The `license` block supports the following:
 
-* `identifier` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
+* `identifier` - (Optional) The SPDX identifier for the API license. String length must be between `1` and `50` characters inclusive.
 
-* `name` - (Optional) No description provided. String length must be between `1` and `100` characters inclusive.
+* `name` - (Optional) The name of the API license. String length must be between `1` and `100` characters inclusive.
 
-* `url` - (Optional) No description provided.
+* `url` - (Optional) The URL of the API license.
 
 ## Attributes Reference
 
@@ -75,7 +75,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Resource
 
-* `lifecycle_stage` - No description provided.
+* `lifecycle_stage` - The lifecycle stage of the API.
 
 ## Timeouts
 

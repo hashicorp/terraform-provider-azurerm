@@ -14,13 +14,15 @@ Documentation for azurerm_api_center_service.
 
 The following arguments are supported:
 
-* `name` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `name` - (Required) The name of the API Center service. Changing this value forces a new resource to be created.
 
 * `resource_group_name` - (Required) No description provided. Changing this value forces a new resource to be created.
 
 * `location` - (Required) No description provided. Changing this value forces a new resource to be created.
 
 * `identity` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-6964656e74697479))
+
+* `sku_name` - (Optional) The SKU name for the API Center service. Possible values include `Free` and `Standard`. Defaults to `Free`.
 
 * `tags` - (Optional) No description provided.
 

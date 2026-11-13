@@ -14,13 +14,13 @@ Documentation for azurerm_api_center_api_version.
 
 The following arguments are supported:
 
-* `name` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `name` - (Required) The name of the API version. Changing this value forces a new resource to be created.
 
-* `api_center_api_id` - (Required) No description provided. Changing this value forces a new resource to be created.
+* `api_id` - (Required) The ID of the API to which this API version belongs. Changing this value forces a new resource to be created.
 
-* `display_name` - (Optional) No description provided. String length must be between `1` and `50` characters inclusive.
+* `display_name` - (Optional) The display name of the API version. String length must be between `1` and `50` characters inclusive.
 
-* `lifecycle_stage` - (Required) No description provided. Possible values include `deprecated`, `design`, `development`, `preview`, `production`, `retired`, and `testing`.
+* `lifecycle_stage` - (Required) The lifecycle stage of the API version. Possible values include `deprecated`, `design`, `development`, `preview`, `production`, `retired`, and `testing`.
 
 ## Attributes Reference
 
