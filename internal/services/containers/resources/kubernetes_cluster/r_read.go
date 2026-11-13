@@ -111,7 +111,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta any) error {
 			runCommandEnabled := true
 			privateDnsZoneId := ""
 
-			if err := d.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile)); err != nil {
+			apiServerProfileConfigured := len(d.Get("api_server_access_profile").([]any)) > 0
+			if err := d.Set("api_server_access_profile", flattenKubernetesClusterAPIAccessProfile(props.ApiServerAccessProfile, apiServerProfileConfigured)); err != nil {
 				return fmt.Errorf("setting `api_server_access_profile`: %+v", err)
 			}
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {

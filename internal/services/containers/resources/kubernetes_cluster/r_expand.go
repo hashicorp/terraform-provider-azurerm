@@ -124,6 +124,27 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 	return apiAccessProfile
 }
 
+func expandKubernetesClusterAPIAccessProfileUpdate(d *pluginsdk.ResourceData) *managedclusters.ManagedClusterAPIServerAccessProfile {
+	profile := expandKubernetesClusterAPIAccessProfile(d)
+	if d.HasChange("api_server_access_profile") {
+		oldProfileRaw, newProfileRaw := d.GetChange("api_server_access_profile")
+		oldProfile := oldProfileRaw.([]any)
+		newProfile := newProfileRaw.([]any)
+		if len(oldProfile) > 0 && len(newProfile) == 0 {
+			profile.AuthorizedIPRanges = pointer.To([]string{})
+		}
+	}
+	if d.HasChange("api_server_access_profile.0.authorized_ip_ranges") {
+		oldRangesRaw, newRangesRaw := d.GetChange("api_server_access_profile.0.authorized_ip_ranges")
+		oldRanges := oldRangesRaw.(*pluginsdk.Set)
+		newRanges := newRangesRaw.(*pluginsdk.Set)
+		if oldRanges.Len() > 0 && newRanges.Len() == 0 {
+			profile.AuthorizedIPRanges = pointer.To([]string{})
+		}
+	}
+	return profile
+}
+
 func expandBootstrapProfile(rawBootstrapProfile []any) *managedclusters.ManagedClusterBootstrapProfile {
 	if len(rawBootstrapProfile) == 0 || rawBootstrapProfile[0] == nil {
 		return nil
