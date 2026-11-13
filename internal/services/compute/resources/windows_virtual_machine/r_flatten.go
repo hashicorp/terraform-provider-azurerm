@@ -25,6 +25,7 @@ func resourceWindowsVirtualMachineFlatten(ctx context.Context, metaClient *clien
 
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("custom_data_wo_version", d.Get("custom_data_wo_version").(int))
 
 	if model != nil {
 		d.Set("location", location.Normalize(model.Location))

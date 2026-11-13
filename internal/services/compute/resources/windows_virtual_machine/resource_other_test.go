@@ -4,12 +4,18 @@
 package windows_virtual_machine_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 func TestAccWindowsVirtualMachine_otherPatchModeManual(t *testing.T) {
@@ -385,6 +391,74 @@ func TestAccWindowsVirtualMachine_otherCustomData(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password", "custom_data"),
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherCustomDataWriteOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.otherCustomDataWriteOnly(data, "/bin/bash", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("admin_password", "custom_data_wo_version"),
+			{
+				Config: r.otherCustomDataWriteOnly(data, "/bin/sh", 2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+					},
+				},
+				Check: check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("admin_password", "custom_data_wo_version"),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherCustomDataUpdateToWriteOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.otherCustomData(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("admin_password", "custom_data"),
+			{
+				Config: r.otherCustomDataWriteOnly(data, "/bin/bash", 1),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+					},
+				},
+				Check: check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("admin_password", "custom_data_wo_version"),
+			{
+				Config: r.otherCustomData(data),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+					},
+				},
+				Check: check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("admin_password", "custom_data"),
+		},
 	})
 }
 
@@ -1839,6 +1913,40 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) otherCustomDataWriteOnly(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                   = local.vm_name
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  size                   = "Standard_F2"
+  admin_username         = "adminuser"
+  admin_password         = "P@$$w0rd1234!"
+  custom_data_wo         = base64encode(ephemeral.azurerm_key_vault_secret.test.value)
+  custom_data_wo_version = %[3]d
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), version)
 }
 
 func (r WindowsVirtualMachineResource) otherEdgeZone(data acceptance.TestData) string {
