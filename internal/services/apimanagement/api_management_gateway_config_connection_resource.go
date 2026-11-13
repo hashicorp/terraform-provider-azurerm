@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -35,7 +35,7 @@ func (r ApiManagementGatewayConfigConnectionResource) ResourceType() string {
 	return "azurerm_api_management_gateway_config_connection"
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) ModelObject() interface{} {
+func (r ApiManagementGatewayConfigConnectionResource) ModelObject() any {
 	return &ApiManagementGatewayConfigConnectionModel{}
 }
 
@@ -93,7 +93,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc 
 
 			id := apigatewayconfigconnection.NewConfigConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.GatewayName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -103,7 +102,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc 
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
 			payload := apigatewayconfigconnection.ApiManagementGatewayConfigConnectionResource{
 				Properties: apigatewayconfigconnection.GatewayConfigConnectionBaseProperties{
 					SourceId: pointer.To(model.ApiManagementWorkspaceId),
@@ -135,7 +133,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Reading %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -170,7 +167,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Delete() sdk.ResourceFunc 
 				return err
 			}
 
-			metadata.Logger.Infof("Deleting %s", *id)
 			if err := client.DeleteThenPoll(ctx, *id, apigatewayconfigconnection.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
