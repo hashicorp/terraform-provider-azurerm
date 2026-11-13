@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/hashicorp/hc-install/internal/httpclient"
 )
 
 type ChecksumDownloader struct {
@@ -23,7 +22,8 @@ type ChecksumDownloader struct {
 	Logger           *log.Logger
 	ArmoredPublicKey string
 
-	BaseURL string
+	HTTPClient *http.Client
+	BaseURL    string
 }
 
 type ChecksumFileMap map[string]HashSum
@@ -52,7 +52,6 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 		return nil, err
 	}
 
-	client := httpclient.NewHTTPClient(cd.Logger)
 	sigURL := fmt.Sprintf("%s/%s/%s/%s", cd.BaseURL,
 		url.PathEscape(cd.ProductVersion.Name),
 		url.PathEscape(cd.ProductVersion.Version.String()),
@@ -63,7 +62,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", sigURL, err)
 	}
-	sigResp, err := client.Do(req)
+	sigResp, err := cd.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +83,7 @@ func (cd *ChecksumDownloader) DownloadAndVerifyChecksums(ctx context.Context) (C
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %q: %w", shasumsURL, err)
 	}
-	sumsResp, err := client.Do(req)
+	sumsResp, err := cd.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
