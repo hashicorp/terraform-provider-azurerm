@@ -44,7 +44,7 @@ func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) ResourceType() 
 	return "azurerm_api_management_workspace_logger_application_insights"
 }
 
-func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceLoggerApplicationInsightsResource) ModelObject() any {
 	return &ApiManagementWorkspaceLoggerApplicationInsightsModel{}
 }
 

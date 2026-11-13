@@ -47,7 +47,7 @@ func (r ApiManagementWorkspaceLoggerEventhubResource) ResourceType() string {
 	return "azurerm_api_management_workspace_logger_eventhub"
 }
 
-func (r ApiManagementWorkspaceLoggerEventhubResource) ModelObject() interface{} {
+func (r ApiManagementWorkspaceLoggerEventhubResource) ModelObject() any {
 	return &ApiManagementWorkspaceLoggerEventhubModel{}
 }
 
