@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_event_subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_namespace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_namespace_topic"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_namespace_topic_id_association"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_configuration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_namespace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/resources/eventgrid_partner_registration"
@@ -55,6 +56,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		eventgrid_namespace.Resource{},
 		eventgrid_namespace_topic.Resource{},
+		eventgrid_namespace_topic_id_association.Resource{},
 		eventgrid_partner_configuration.Resource{},
 		eventgrid_partner_namespace.Resource{},
 		eventgrid_partner_registration.Resource{},

@@ -84,6 +84,8 @@ A `topic_spaces_configuration` block supports the following:
 
 * `route_topic_id` - (Optional) Specifies the Event Grid topic resource ID to route messages to.
 
+~> **Note:** `azurerm_eventgrid_namespace_topic_id_association` should not be created at the same time with `route_topic_id` being set to avoid perpetual change due to different topic ID set via the two methods.
+
 * `dynamic_routing_enrichment` - (Optional) One or more `dynamic_routing_enrichment` blocks as defined below.
 
 * `static_routing_enrichment` - (Optional) One or more `static_routing_enrichment` blocks as defined below.
