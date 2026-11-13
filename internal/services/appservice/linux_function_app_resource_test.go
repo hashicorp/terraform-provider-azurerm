@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1468,6 +1469,170 @@ func TestAccLinuxFunctionApp_appStackDocker(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerAppEnvironment(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment.test").Key("id"),
+				),
+				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("first"),
+				check.That(data.ResourceName).Key("app_settings.ACCEPTANCE_TEST").HasValue("first"),
+				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("10"),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.containerAppEnvironmentWithScale(data, "second", 5, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment.test").Key("id"),
+				),
+				check.That(data.ResourceName).Key("kind").MatchesRegex(regexp.MustCompile(`(^|,)azurecontainerapps(,|$)`)),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("second"),
+				check.That(data.ResourceName).Key("app_settings.ACCEPTANCE_TEST").HasValue("second"),
+				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("5"),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("1"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironmentDapr(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerAppEnvironmentDapr(data, "first", `
+  dapr {
+    app_id              = "acctest-dapr-%[1]d"
+    api_logging_enabled = true
+  }
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.api_logging_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dapr.0.log_level").HasValue("info"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			// an update that doesn't touch `dapr` must not disable it
+			Config: r.containerAppEnvironmentDapr(data, "second", `
+  dapr {
+    app_id              = "acctest-dapr-%[1]d"
+    api_logging_enabled = true
+  }
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("second"),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.containerAppEnvironmentDapr(data, "second", `
+  dapr {
+    app_id                      = "acctest-dapr-updated-%[1]d"
+    api_logging_enabled         = false
+    log_level                   = "debug"
+    http_max_request_size_in_mb = 8
+    http_read_buffer_size_in_kb = 32
+  }
+`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-updated-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.api_logging_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("dapr.0.log_level").HasValue("debug"),
+				check.That(data.ResourceName).Key("dapr.0.http_max_request_size_in_mb").HasValue("8"),
+				check.That(data.ResourceName).Key("dapr.0.http_read_buffer_size_in_kb").HasValue("32"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			// removing the block disables Dapr
+			Config: r.containerAppEnvironmentDapr(data, "second", ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+// The Dapr sidecar waits for the application to respond on `app_port`, so this uses the Azure Functions Dapr
+// extension's sample image, which has Dapr triggers and listens on port 3001.
+func TestAccLinuxFunctionApp_containerAppEnvironmentDaprAppPort(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerAppEnvironmentDaprTriggers(data, 3001),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.app_port").HasValue("3001"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.containerAppEnvironmentDaprTriggers(data, 3002),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dapr.0.app_port").HasValue("3002"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironmentDaprRequiresContainerAppEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.daprWithServicePlan(data),
+			ExpectError: regexp.MustCompile("all of `container_app_environment_id,dapr` must be specified"),
+		},
+	})
+}
+
+func TestAccLinuxFunctionApp_containerAppEnvironmentUnsupportedSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.containerAppEnvironmentUnsupportedSetting(data, "end_to_end_tls_encryption_enabled = true"),
+			ExpectError: regexp.MustCompile("`end_to_end_tls_encryption_enabled` is not supported by this resource when `container_app_environment_id` is configured"),
+		},
+		{
+			Config:      r.containerAppEnvironmentUnsupportedSetting(data, "content_share_force_disabled = true"),
+			ExpectError: regexp.MustCompile("`content_share_force_disabled` is not supported by this resource when `container_app_environment_id` is configured"),
+		},
 	})
 }
 
@@ -3262,6 +3427,128 @@ resource "azurerm_linux_function_app" "test" {
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentDapr(data acceptance.TestData, environmentTag, dapr string) string {
+	return strings.Replace(
+		r.containerAppEnvironment(data, environmentTag),
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n",
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n"+strings.ReplaceAll(dapr, "%[1]d", strconv.Itoa(data.RandomInteger)),
+		1,
+	)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentDaprTriggers(data acceptance.TestData, appPort int) string {
+	config := r.containerAppEnvironmentDapr(data, "first", fmt.Sprintf(`
+  dapr {
+    app_id   = "acctest-dapr-%%[1]d"
+    app_port = %d
+  }
+`, appPort))
+
+	// the sample's Dapr triggers read these from app settings
+	config = strings.Replace(config,
+		`    ACCEPTANCE_TEST = "first"
+`,
+		`    ACCEPTANCE_TEST  = "first"
+    PubSubName       = "messagebus"
+    StateStoreName   = "statestore"
+    KafkaBindingName = "sample-topic"
+`, 1)
+
+	return strings.Replace(config,
+		`        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"`,
+		`        registry_url = "https://mcr.microsoft.com"
+        image_name   = "daprio/samples/dotnet-azurefunction"
+        image_tag    = "1.0.1"`, 1)
+}
+
+func (r LinuxFunctionAppResource) daprWithServicePlan(data acceptance.TestData) string {
+	return strings.Replace(
+		r.basic(data, SkuStandardPlan),
+		"  site_config {}",
+		"  dapr {\n    app_id = \"acctest\"\n  }\n\n  site_config {}",
+		1,
+	)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentUnsupportedSetting(data acceptance.TestData, setting string) string {
+	return strings.Replace(
+		r.containerAppEnvironment(data, "first"),
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n",
+		"  container_app_environment_id = azurerm_container_app_environment.test.id\n  "+setting+"\n",
+		1,
+	)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironment(data acceptance.TestData, environmentTag string) string {
+	return r.containerAppEnvironmentWithScale(data, environmentTag, 10, 0)
+}
+
+func (r LinuxFunctionAppResource) containerAppEnvironmentWithScale(data acceptance.TestData, environmentTag string, appScaleLimit, elasticInstanceMinimum int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-LFA-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  # some regions add a Consumption profile that the environment resource would otherwise try to remove
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                         = "acctest-ca-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    ACCEPTANCE_TEST = %[4]q
+  }
+
+  site_config {
+    app_scale_limit          = %[5]d
+    elastic_instance_minimum = %[6]d
+
+    application_stack {
+      docker {
+        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"
+      }
+    }
+  }
+
+  tags = {
+    environment = %[4]q
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, environmentTag, appScaleLimit, elasticInstanceMinimum)
 }
 
 func (r LinuxFunctionAppResource) appStackDockerUseMSI(data acceptance.TestData, planSku string) string {

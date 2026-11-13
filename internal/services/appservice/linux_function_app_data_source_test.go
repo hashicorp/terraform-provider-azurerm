@@ -56,3 +56,50 @@ data "azurerm_linux_function_app" "test" {
 }
 `, LinuxFunctionAppResource{}.standardComplete(data))
 }
+
+func TestAccLinuxFunctionAppDataSource_containerAppEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_linux_function_app", "test")
+	d := LinuxFunctionAppDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.containerAppEnvironment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("container_app_environment_id").MatchesOtherKey(
+					check.That("azurerm_container_app_environment.test").Key("id"),
+				),
+				check.That(data.ResourceName).Key("service_plan_id").HasValue(""),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Optional"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.ftps_state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.load_balancing_mode").HasValue("LeastRequests"),
+				check.That(data.ResourceName).Key("site_config.0.managed_pipeline_mode").HasValue("Integrated"),
+				check.That(data.ResourceName).Key("site_config.0.minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("site_config.0.scm_minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction_default_action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction_default_action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("dapr.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dapr.0.app_id").HasValue(fmt.Sprintf("acctest-dapr-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("dapr.0.api_logging_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dapr.0.log_level").HasValue("info"),
+			),
+		},
+	})
+}
+
+func (LinuxFunctionAppDataSource) containerAppEnvironment(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_linux_function_app" "test" {
+  name                = azurerm_linux_function_app.test.name
+  resource_group_name = azurerm_linux_function_app.test.resource_group_name
+}
+`, LinuxFunctionAppResource{}.containerAppEnvironmentDapr(data, "first", `
+  dapr {
+    app_id              = "acctest-dapr-%[1]d"
+    api_logging_enabled = true
+  }
+`))
+}

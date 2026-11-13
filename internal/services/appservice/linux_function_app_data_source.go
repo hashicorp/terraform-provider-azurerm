@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -26,11 +27,12 @@ import (
 type LinuxFunctionAppDataSource struct{}
 
 type LinuxFunctionAppDataSourceModel struct {
-	Name               string `tfschema:"name"`
-	ResourceGroup      string `tfschema:"resource_group_name"`
-	Location           string `tfschema:"location"`
-	ServicePlanId      string `tfschema:"service_plan_id"`
-	StorageAccountName string `tfschema:"storage_account_name"`
+	Name                      string `tfschema:"name"`
+	ResourceGroup             string `tfschema:"resource_group_name"`
+	Location                  string `tfschema:"location"`
+	ServicePlanId             string `tfschema:"service_plan_id"`
+	ContainerAppEnvironmentId string `tfschema:"container_app_environment_id"`
+	StorageAccountName        string `tfschema:"storage_account_name"`
 
 	StorageAccountKey       string `tfschema:"storage_account_access_key"`
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
@@ -46,6 +48,7 @@ type LinuxFunctionAppDataSourceModel struct {
 	ClientCertMode                   string                               `tfschema:"client_certificate_mode"`
 	ClientCertExclusionPaths         string                               `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings                []helpers.ConnectionString           `tfschema:"connection_string"`
+	Dapr                             []helpers.FunctionAppDapr            `tfschema:"dapr"`
 	DailyMemoryTimeQuota             int64                                `tfschema:"daily_memory_time_quota"`
 	Enabled                          bool                                 `tfschema:"enabled"`
 	FunctionExtensionsVersion        string                               `tfschema:"functions_extension_version"`
@@ -105,6 +108,13 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"container_app_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"dapr": helpers.FunctionAppDaprSchemaComputed(),
 
 		"storage_account_name": {
 			Type:     pluginsdk.TypeString,
@@ -305,6 +315,78 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("reading Linux %s: %+v", id, err)
 			}
+			// Container Apps-hosted Function Apps expose configuration and app settings, but not
+			// the App Service publishing, deployment-slot and connection-string read path.
+			if functionApp.Model != nil && functionApp.Model.Properties != nil && pointer.From(functionApp.Model.Properties.ManagedEnvironmentId) != "" {
+				site := *functionApp.Model
+				if pointer.From(site.Properties.ServerFarmId) != "" {
+					return fmt.Errorf("determining hosting target for Linux %s: both Service Plan ID and Container App Environment ID were returned", id)
+				}
+				environmentId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(*site.Properties.ManagedEnvironmentId)
+				if err != nil {
+					return err
+				}
+
+				config, err := client.GetConfiguration(ctx, id)
+				if err != nil {
+					return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+				}
+				if config.Model == nil {
+					return fmt.Errorf("reading Site Config for Linux %s: model was nil", id)
+				}
+				siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionApp(config.Model.Properties)
+				if err != nil {
+					return err
+				}
+				// Azure does not return these for Container Apps-hosted Function Apps, so they match the
+				// values set by the `azurerm_linux_function_app` resource.
+				helpers.SetFunctionAppContainerSiteConfigDefaults(siteConfig)
+
+				containerAppSettingsResp, err := client.ListApplicationSettings(ctx, id)
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+				}
+				if containerAppSettingsResp.Model == nil {
+					return fmt.Errorf("reading App Settings for Linux %s: model was nil", id)
+				}
+
+				state := LinuxFunctionAppDataSourceModel{
+					Name:                       id.SiteName,
+					ResourceGroup:              id.ResourceGroupName,
+					Location:                   location.Normalize(site.Location),
+					ContainerAppEnvironmentId:  environmentId.ID(),
+					Dapr:                       helpers.FlattenFunctionAppDapr(site.Properties.DaprConfig),
+					Kind:                       pointer.From(site.Kind),
+					Tags:                       pointer.From(site.Tags),
+					DefaultHostname:            pointer.From(site.Properties.DefaultHostName),
+					CustomDomainVerificationId: pointer.From(site.Properties.CustomDomainVerificationId),
+					Availability:               pointer.FromEnum(site.Properties.AvailabilityState),
+					Usage:                      pointer.FromEnum(site.Properties.UsageState),
+					SiteConfig:                 []helpers.SiteConfigLinuxFunctionApp{*siteConfig},
+
+					// Azure does not return these for Container Apps-hosted Function Apps, so they match the
+					// values set by the `azurerm_linux_function_app` resource.
+					Enabled:                          true,
+					ClientCertMode:                   string(webapps.ClientCertModeOptional),
+					PublicNetworkAccess:              true,
+					PublishingFTPBasicAuthEnabled:    true,
+					PublishingDeployBasicAuthEnabled: true,
+				}
+				state.unpackLinuxFunctionAppSettings(containerAppSettingsResp.Model, metadata)
+				delete(state.AppSettings, "WEBSITE_AUTH_ENCRYPTION_KEY")
+				metadata.SetID(id)
+				if err := metadata.Encode(&state); err != nil {
+					return fmt.Errorf("encoding Linux %s: %+v", id, err)
+				}
+				ident, err := identity.FlattenSystemAndUserAssignedMap(site.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening identity for Linux %s: %+v", id, err)
+				}
+				if err := metadata.ResourceData.Set("identity", ident); err != nil {
+					return fmt.Errorf("setting identity for Linux %s: %+v", id, err)
+				}
+				return nil
+			}
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, id)
 			if err != nil {
@@ -383,7 +465,9 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Availability = pointer.FromEnum(props.AvailabilityState)
+
 					state.ServicePlanId = pointer.From(props.ServerFarmId)
+
 					state.Enabled = pointer.From(props.Enabled)
 					state.ClientCertMode = pointer.FromEnum(props.ClientCertMode)
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
