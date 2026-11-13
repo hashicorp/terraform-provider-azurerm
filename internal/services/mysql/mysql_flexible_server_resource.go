@@ -461,11 +461,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any) erro
 		parameters.Properties.SetRestorePointInTimeAsTime(v)
 	}
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
+	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	parameters.Identity = identity
+	parameters.Identity = expandedIdentity
 
 	if err := client.CreateCallbackThenPoll(ctx, id, parameters, sdk.SetIDAndIdentityCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -550,11 +550,11 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := identity.FlattenUserAssignedMap(server.Identity)
+			flattenedIdentity, err := identity.FlattenUserAssignedMap(server.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", identity); err != nil {
+			if err := d.Set("identity", flattenedIdentity); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -721,11 +721,11 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta any) erro
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
+		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		parameters.Identity = identity
+		parameters.Identity = expandedIdentity
 	}
 
 	if d.HasChange("maintenance_window") {
