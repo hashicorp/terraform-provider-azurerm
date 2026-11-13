@@ -87,16 +87,26 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			properties := &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{
+				Justification:    pointer.To(config.Justification),
+				PrincipalId:      id.PrincipalId,
+				RequestType:      roleassignmentschedulerequests.RequestTypeAdminAssign,
+				RoleDefinitionId: id.RoleDefinitionId,
+				Scope:            pointer.To(scopeId.ID()),
+				ScheduleInfo:     scheduleInfo,
+				TicketInfo:       ticketInfo,
+			}
+
+			condition := config.Condition
+			conditionVersion := config.ConditionVersion
+
+			if condition != "" && conditionVersion != "" {
+				properties.Condition = pointer.To(condition)
+				properties.ConditionVersion = pointer.To(conditionVersion)
+			}
+
 			payload := roleassignmentschedulerequests.RoleAssignmentScheduleRequest{
-				Properties: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{
-					Justification:    pointer.To(config.Justification),
-					PrincipalId:      id.PrincipalId,
-					RequestType:      roleassignmentschedulerequests.RequestTypeAdminAssign,
-					RoleDefinitionId: id.RoleDefinitionId,
-					Scope:            pointer.To(scopeId.ID()),
-					ScheduleInfo:     scheduleInfo,
-					TicketInfo:       ticketInfo,
-				},
+				Properties: properties,
 			}
 
 			roleAssignmentScheduleRequestName, err := uuid.GenerateUUID()
