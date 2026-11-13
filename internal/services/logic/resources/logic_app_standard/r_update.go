@@ -42,6 +42,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			siteEnvelope := *existing.Model.Properties
+			isASE := siteEnvelope.HostingEnvironmentProfile != nil && siteEnvelope.HostingEnvironmentProfile.Id != nil
 
 			sc, err := client.GetConfiguration(ctx, *id)
 			if err != nil || sc.Model == nil {
@@ -68,10 +69,11 @@ func (r Resource) Update() sdk.ResourceFunc {
 				"app_settings",
 				"version",
 				"storage_account_name",
+				"storage_account_share_name",
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
 			) {
-				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
+				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig, isASE)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
 				}

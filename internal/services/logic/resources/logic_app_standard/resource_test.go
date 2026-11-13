@@ -171,7 +171,7 @@ func TestAccLogicAppStandard_extensionBundle(t *testing.T) {
 			Config: r.extensionBundle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				data.CheckWithClient(r.hasExtensionBundleAppSetting(true)),
+				data.CheckWithClient(r.hasAppSettings("AzureFunctionsJobHost__extensionBundle__id")),
 			),
 		},
 		data.ImportStep(),
@@ -207,7 +207,8 @@ func TestAccLogicAppStandard_appSettingsVnetRouteAllEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		// Import represents routing through site_config because it cannot distinguish platform-injected app settings.
+		data.ImportStep("app_settings.%", "app_settings.WEBSITE_VNET_ROUTE_ALL"),
 	})
 }
 
@@ -831,6 +832,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings("WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -838,6 +840,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.updateStorageAccountKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings("WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -845,6 +848,7 @@ func TestAccLogicAppStandard_updateStorageAccountKey(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasAppSettings("WEBSITE_CONTENTSHARE", "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")),
 			),
 		},
 		data.ImportStep(),
@@ -1227,7 +1231,7 @@ func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r LogicAppStandardResource) hasAppSettings(settingNames ...string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		id, err := commonids.ParseLogicAppId(state.ID)
 		if err != nil {
@@ -1246,15 +1250,16 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 			return fmt.Errorf("listing AppSettings for %s: `model` was nil", id)
 		}
 
-		exists := false
+		present := make(map[string]struct{})
 		for k := range pointer.From(appSettingsResp.Model.Properties) {
-			if strings.EqualFold("AzureFunctionsJobHost__extensionBundle__id", k) {
-				exists = true
-				break
-			}
+			present[strings.ToLower(k)] = struct{}{}
 		}
-		if exists != shouldExist {
-			return fmt.Errorf("expected %t but got %t", shouldExist, exists)
+
+		for _, settingName := range settingNames {
+			_, exists := present[strings.ToLower(settingName)]
+			if !exists {
+				return fmt.Errorf("expected app setting %q to exist", settingName)
+			}
 		}
 
 		return nil

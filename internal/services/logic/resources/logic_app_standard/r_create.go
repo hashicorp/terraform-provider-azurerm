@@ -110,7 +110,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			basicAppSettings, err := getBasicLogicAppSettings(data, *storageAccountDomainSuffix)
+			isASE := servicePlan.Model != nil && servicePlan.Model.Properties != nil && servicePlan.Model.Properties.HostingEnvironmentProfile != nil && servicePlan.Model.Properties.HostingEnvironmentProfile.Id != nil
+
+			basicAppSettings, err := getBasicLogicAppSettings(data, *storageAccountDomainSuffix, isASE)
 			if err != nil {
 				return err
 			}
@@ -276,7 +278,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	return siteConfig, nil
 }
 
-func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, metadata sdk.ResourceMetaData, existing *webapps.SiteConfig) (*webapps.SiteConfig, error) {
+func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, isASE bool) (*webapps.SiteConfig, error) {
 	siteConfig := &webapps.SiteConfig{}
 	if len(d) == 0 {
 		siteConfig.Cors = &webapps.CorsSettings{
@@ -380,7 +382,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 			appSettings = *existing.AppSettings
 		}
 
-		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]any), n.(map[string]any), metadata)
+		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]any), n.(map[string]any), metadata, isASE)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
@@ -404,7 +406,7 @@ func expandAppSettings(input map[string]string) []webapps.NameValuePair {
 	return output
 }
 
-func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any, metadata sdk.ResourceMetaData) *[]webapps.NameValuePair {
+func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any, metadata sdk.ResourceMetaData, isASE bool) *[]webapps.NameValuePair {
 	f := func(input map[string]any) (result map[string]string) {
 		result = make(map[string]string)
 		for k, v := range input {
@@ -419,6 +421,8 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 		n, v := pointer.From(i.Name), pointer.From(i.Value)
 		eMap[n] = v
 	}
+	// Existing ASE apps may use Azure Files; preserve their content storage.
+	_, hasContentStorage := eMap[contentFileConnStringAppSettingName]
 
 	oMap := f(old)
 	cMap := f(new)
@@ -426,7 +430,9 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") && metadata.ResourceData.Get("storage_key_vault_secret_id").(string) != "" {
 		kvRef := fmt.Sprintf(helpers.StorageStringFmtKV, metadata.ResourceData.Get("storage_key_vault_secret_id").(string))
 		eMap[storageAppSettingName] = kvRef
-		eMap[contentFileConnStringAppSettingName] = kvRef
+		if !isASE || hasContentStorage {
+			eMap[contentFileConnStringAppSettingName] = kvRef
+		}
 	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
@@ -434,7 +440,9 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 
 		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
 		eMap[storageAppSettingName] = conn
-		eMap[contentFileConnStringAppSettingName] = conn
+		if !isASE || hasContentStorage {
+			eMap[contentFileConnStringAppSettingName] = conn
+		}
 	}
 
 	if metadata.ResourceData.HasChange("storage_account_share_name") {
@@ -442,6 +450,9 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 
 		if n != "" {
 			eMap[contentShareAppSettingName] = n
+			if isASE && !hasContentStorage {
+				eMap[contentFileConnStringAppSettingName] = eMap[storageAppSettingName]
+			}
 		} else {
 			name := metadata.ResourceData.Get("name").(string)
 			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
