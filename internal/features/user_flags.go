@@ -99,7 +99,8 @@ type AppConfigurationFeatures struct {
 }
 
 type StorageFeatures struct {
-	DataPlaneAvailable bool
+	DataPlaneAvailable    bool
+	SkipStoringAccessKeys bool
 }
 
 type SubscriptionFeatures struct {

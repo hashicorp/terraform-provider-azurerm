@@ -83,7 +83,8 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: true,
+					DataPlaneAvailable:    true,
+					SkipStoringAccessKeys: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -178,7 +179,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []any{
 						map[string]any{
-							"data_plane_available": true,
+							"data_plane_available":     true,
+							"skip_storing_access_keys": true,
 						},
 					},
 					"subscription": []any{
@@ -288,7 +290,8 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: true,
+					DataPlaneAvailable:    true,
+					SkipStoringAccessKeys: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -397,7 +400,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []any{
 						map[string]any{
-							"data_plane_available": false,
+							"data_plane_available":     false,
+							"skip_storing_access_keys": false,
 						},
 					},
 					"subscription": []any{
@@ -507,7 +511,8 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: false,
+					DataPlaneAvailable:    false,
+					SkipStoringAccessKeys: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1542,24 +1547,27 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: true,
+					DataPlaneAvailable:    true,
+					SkipStoringAccessKeys: false,
 				},
 			},
 		},
 		{
-			Name: "Storage Data Plane on Create is Disabled",
+			Name: "Storage Data Plane on Create is Disabled and Skip Storing Access Keys is Enabled",
 			Input: []any{
 				map[string]any{
 					"storage": []any{
 						map[string]any{
-							"data_plane_available": false,
+							"data_plane_available":     false,
+							"skip_storing_access_keys": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: false,
+					DataPlaneAvailable:    false,
+					SkipStoringAccessKeys: true,
 				},
 			},
 		},
