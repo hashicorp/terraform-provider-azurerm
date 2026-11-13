@@ -14,6 +14,7 @@ This contribution guide assumes you have at least a basic understanding of both 
 * [Building the Provider](topics/building-the-provider.md)
 * [Debugging the Provider](topics/debugging-the-provider.md)
 * [Running the Tests](topics/running-the-tests.md)
+* [MySQL Flexible Server Rename: Testing and Release](topics/mysql-flexible-server-rename-testing.md)
 * [Opening a Pull Request](topics/guide-opening-a-pr.md)
 
 ### Creating New Resources & Data Sources
