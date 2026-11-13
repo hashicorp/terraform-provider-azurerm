@@ -150,7 +150,7 @@ func TestAccManagedDevOpsPool_CompleteWithPermission(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("azure_devops_organization.0.permission"),
 	})
 }
 
@@ -167,7 +167,7 @@ func TestAccManagedDevOpsPool_creatorOnlyPermission(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("azure_devops_organization.0.permission"),
 	})
 }
 
