@@ -18,7 +18,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, ctx context.Context, id
 
 	state := ApiCenterApiDefinitionModel{
 		Name:         id.DefinitionName,
-		ApiVersionId: apiversions.NewVersionID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "default", id.ApiName, id.VersionName).ID(),
+		ApiVersionId: apiversions.NewVersionID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceName, id.ApiName, id.VersionName).ID(),
 	}
 
 	exportResp, err := client.ExportSpecification(ctx, *id)

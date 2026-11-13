@@ -37,7 +37,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := apidefinitions.NewDefinitionID(subscriptionId, api.ResourceGroupName, api.ServiceName, "default", api.ApiName, api.VersionName, config.Name)
+			id := apidefinitions.NewDefinitionID(subscriptionId, api.ResourceGroupName, api.ServiceName, api.WorkspaceName, api.ApiName, api.VersionName, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
