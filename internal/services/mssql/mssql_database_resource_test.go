@@ -1016,6 +1016,51 @@ func TestAccMsSqlDatabase_transparentDataEncryptionKey(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_federatedClientId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.federatedClientId(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.federatedClientId(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_federatedClientIdRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.federatedClientId(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.federatedClientIdRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("federated_client_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_namedReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}
@@ -2590,6 +2635,138 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MssqlDatabaseResource) federatedClientIdTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azuread_client_config" "test" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azuread_application" "test" {
+  count = 2
+
+  display_name     = "acctest-app-%[2]d-${count.index}"
+  owners           = [data.azuread_client_config.test.object_id]
+  sign_in_audience = "AzureADMultipleOrgs"
+}
+
+resource "azuread_application_federated_identity_credential" "test" {
+  count = 2
+
+  application_id = azuread_application.test[count.index].id
+  display_name   = "acctest-fic-%[2]d"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://login.microsoftonline.com/${data.azurerm_client_config.test.tenant_id}/v2.0"
+  subject        = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azuread_service_principal" "test" {
+  count = 2
+
+  client_id = azuread_application.test[count.index].client_id
+  owners    = [data.azuread_client_config.test.object_id]
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.test.tenant_id
+  purge_protection_enabled   = true
+  rbac_authorization_enabled = false
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = data.azurerm_client_config.test.object_id
+
+    key_permissions = ["Get", "List", "Create", "Delete", "Update", "Recover", "Purge", "GetRotationPolicy"]
+  }
+
+  # Keep direct key access valid when the federated client ID is removed.
+  access_policy {
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+  }
+
+  dynamic "access_policy" {
+    for_each = azuread_service_principal.test
+
+    content {
+      tenant_id = data.azurerm_client_config.test.tenant_id
+      object_id = access_policy.value.object_id
+
+      key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+    }
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["unwrapKey", "wrapKey"]
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MssqlDatabaseResource) federatedClientId(data acceptance.TestData, applicationIndex int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                                                       = "acctest-db-%[2]d"
+  server_id                                                  = azurerm_mssql_server.test.id
+  federated_client_id                                        = azuread_application.test[%[3]d].client_id
+  sku_name                                                   = "S0"
+  transparent_data_encryption_key_automatic_rotation_enabled = false
+  transparent_data_encryption_key_vault_key_id               = azurerm_key_vault_key.test.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  depends_on = [azuread_application_federated_identity_credential.test]
+}
+`, r.federatedClientIdTemplate(data), data.RandomInteger, applicationIndex)
+}
+
+func (r MssqlDatabaseResource) federatedClientIdRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                                                       = "acctest-db-%[2]d"
+  server_id                                                  = azurerm_mssql_server.test.id
+  federated_client_id                                        = null
+  sku_name                                                   = "S0"
+  transparent_data_encryption_key_automatic_rotation_enabled = false
+  transparent_data_encryption_key_vault_key_id               = azurerm_key_vault_key.test.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  depends_on = [azuread_application_federated_identity_credential.test]
+}
+`, r.federatedClientIdTemplate(data), data.RandomInteger)
 }
 
 func (r MssqlDatabaseResource) transparentDataEncryptionKeyManagedHSM(data acceptance.TestData) string {
