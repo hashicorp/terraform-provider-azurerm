@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package api_center_api_definition
 
 import (
@@ -34,7 +37,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			return r.flatten(metadata,ctx, id, model,)
+			return r.flatten(metadata, ctx, id, model)
 		},
 	}
 }

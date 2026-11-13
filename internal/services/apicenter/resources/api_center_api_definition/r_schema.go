@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package api_center_api_definition
 
 import (
@@ -49,8 +52,8 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Optional: true,
 					},
 					"url": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
 						// O+C if URL is set, Azure will be used to fetch the specification content and only return that
 						Computed:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
