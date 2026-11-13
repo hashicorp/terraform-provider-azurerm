@@ -7,6 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/resources/nginx_api_key"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/resources/nginx_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/resources/nginx_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/resources/nginx_deployment"
 )
 
 type Registration struct{}
@@ -35,20 +39,20 @@ func (r Registration) WebsiteCategories() []string {
 // DataSources ...
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		APIKeyDataSource{},
-		CertificateDataSource{},
-		ConfigurationDataSource{},
-		DeploymentDataSource{},
+		nginx_api_key.DataSource{},
+		nginx_certificate.DataSource{},
+		nginx_configuration.DataSource{},
+		nginx_deployment.DataSource{},
 	}
 }
 
 // Resources ...
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		APIKeyResource{},
-		CertificateResource{},
-		ConfigurationResource{},
-		DeploymentResource{},
+		nginx_api_key.Resource{},
+		nginx_certificate.Resource{},
+		nginx_configuration.Resource{},
+		nginx_deployment.Resource{},
 	}
 }
 

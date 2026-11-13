@@ -106,6 +106,13 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"ip_version_type": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour),
+				ValidateFunc: validation.StringInSlice(privateendpoints.PossibleValuesForPrivateEndpointIPVersionType(), false),
+			},
+
 			"private_dns_zone_group": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -179,6 +186,18 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
 						"private_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"action_required": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"description": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"status": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -297,6 +316,20 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+			rawConfig := d.GetRawConfig()
+			if d.Id() != "" && d.HasChange("ip_version_type") && rawConfig.IsKnown() && !rawConfig.IsNull() && rawConfig.GetAttr("ip_version_type").IsKnown() {
+				old, new := d.GetChange("ip_version_type")
+				current := old.(string)
+				if current == "" {
+					current = string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour)
+				}
+				next := new.(string)
+				// Azure only supports updating the IP version type in place from IPv4 to DualStack.
+				if current != next && (current != string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour) || next != string(privateendpoints.PrivateEndpointIPVersionTypeDualStack)) {
+					return d.ForceNew("ip_version_type")
+				}
+			}
+
 			privateServiceConnections := d.Get("private_service_connection").([]any)
 			for _, psc := range privateServiceConnections {
 				privateServiceConnection := psc.(map[string]any)
@@ -359,6 +392,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
 			IPConfigurations:           expandPrivateEndpointIPConfigurations(d.Get("ip_configuration").([]any)),
+			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](d.Get("ip_version_type").(string)),
 			CustomNetworkInterfaceName: pointer.To(d.Get("custom_network_interface_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
@@ -521,6 +555,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	ipConfigurations := d.Get("ip_configuration").([]any)
 	subnetId := d.Get("subnet_id").(string)
 	customNicName := d.Get("custom_network_interface_name").(string)
+	ipVersionType := d.Get("ip_version_type").(string)
 
 	// Certain child resources like those for cognitive account lock the parent resource to make sure we don't try and update the parent when it's not ready.
 	// Due to that, we'll lock on that resource id to try and prevent those type of errors.
@@ -542,6 +577,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 				Id: pointer.To(subnetId),
 			},
 			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](ipVersionType),
 			CustomNetworkInterfaceName: pointer.To(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
@@ -703,6 +739,11 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 			}
 			d.Set("subnet_id", subnetId)
 			d.Set("custom_network_interface_name", pointer.From(props.CustomNetworkInterfaceName))
+			ipVersionType := string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour)
+			if props.IPVersionType != nil {
+				ipVersionType = string(*props.IPVersionType)
+			}
+			d.Set("ip_version_type", ipVersionType)
 
 			if fetchCompleteData {
 				privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
@@ -923,6 +964,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 		for _, item := range *serviceConnections {
 			privateConnectionId := ""
 			subResourceNames := make([]any, 0)
+			var state privateendpoints.PrivateLinkServiceConnectionState
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -931,12 +973,16 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				if props.PrivateLinkServiceId != nil {
 					privateConnectionId = *props.PrivateLinkServiceId
 				}
+				state = pointer.From(props.PrivateLinkServiceConnectionState)
 			}
 			attrs := map[string]any{
 				"name":                 pointer.From(item.Name),
 				"is_manual_connection": false,
 				"private_ip_address":   privateIPAddress,
 				"subresource_names":    subResourceNames,
+				"status":               pointer.From(state.Status),
+				"description":          pointer.From(state.Description),
+				"action_required":      pointer.From(state.ActionsRequired),
 			}
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
@@ -954,6 +1000,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 			privateConnectionId := ""
 			requestMessage := ""
 			subResourceNames := make([]any, 0)
+			var state privateendpoints.PrivateLinkServiceConnectionState
 
 			if props := item.Properties; props != nil {
 				if v := props.GroupIds; v != nil {
@@ -965,6 +1012,7 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				if props.RequestMessage != nil {
 					requestMessage = *props.RequestMessage
 				}
+				state = pointer.From(props.PrivateLinkServiceConnectionState)
 			}
 
 			attrs := map[string]any{
@@ -973,6 +1021,9 @@ func flattenPrivateLinkEndpointServiceConnection(serviceConnections *[]privateen
 				"private_ip_address":   privateIPAddress,
 				"request_message":      requestMessage,
 				"subresource_names":    subResourceNames,
+				"status":               pointer.From(state.Status),
+				"description":          pointer.From(state.Description),
+				"action_required":      pointer.From(state.ActionsRequired),
 			}
 			if strings.HasSuffix(privateConnectionId, ".azure.privatelinkservice") {
 				attrs["private_connection_resource_alias"] = privateConnectionId
