@@ -125,7 +125,7 @@ func LowerCaseAlphaNumericWithHyphensAndPeriods(i any, k string) (warnings []str
 	return
 }
 
-func ContainerAppScaleRuleConcurrentRequests(i any, k string) (warnings []string, errors []error) {
+func ContainerAppScaleRuleConcurrentRequestsAndConnections(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
