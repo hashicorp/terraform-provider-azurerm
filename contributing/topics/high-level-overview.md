@@ -75,8 +75,8 @@ The provider is built on [the Terraform Plugin SDK](https://github.com/hashicorp
 
 1. Untyped Data Sources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_data_source.go#L16-L131)).
 2. Untyped Resources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_resource.go#L24-L289)).
-3. Typed Data Sources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
-4. Typed Resources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
+3. Typed Data Sources ([example](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/services/privatednsresolver/resources/private_dns_resolver)).
+4. Typed Resources ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/resources/private_dns_resolver/data_source.go)).
 
 Most of the codebase is still untyped. New work is typed, and existing resources move across over time, which is also what will let the provider move to the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework) later. See [Typed vs Untyped](best-practices.md#typed-vs-untyped-resources) for the differences.
 
