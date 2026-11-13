@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_connection_entra_id"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_customer_managed_key"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_project"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_project_connection_custom_keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_project_connection_entra_id"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_rai_blocklist"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/resources/cognitive_account_rai_policy"
@@ -77,6 +78,7 @@ func (r Registration) Resources() []sdk.Resource {
 		cognitive_account_connection_custom_keys.Resource{},
 		cognitive_account_connection_entra_id.Resource{},
 		cognitive_account_project.Resource{},
+		cognitive_account_project_connection_custom_keys.Resource{},
 		cognitive_account_project_connection_entra_id.Resource{},
 		cognitive_account_rai_policy.Resource{},
 		cognitive_deployment.Resource{},
@@ -108,6 +110,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		cognitive_account_connection_custom_keys.ListResource{},
 		cognitive_account_connection_entra_id.ListResource{},
 		cognitive_account.ListResource{},
+		cognitive_account_project_connection_custom_keys.ListResource{},
 		cognitive_account_project_connection_entra_id.ListResource{},
 		cognitive_deployment.ListResource{},
 	}
