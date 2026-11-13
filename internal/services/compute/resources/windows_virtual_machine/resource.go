@@ -4,6 +4,8 @@
 package windows_virtual_machine
 
 import (
+	"context"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
@@ -44,6 +46,38 @@ func RegisterResource() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(resourceWindowsVirtualMachineCustomizeDiff),
+		),
+
 		Schema: windowsVirtualMachineSchema(),
 	}
+}
+
+func resourceWindowsVirtualMachineCustomizeDiff(ctx context.Context, diff *pluginsdk.ResourceDiff, meta any) error {
+	rawConfig := diff.GetRawConfig().AsValueMap()
+	adminUsername, ok := rawConfig["admin_username"]
+	if !ok || adminUsername.IsNull() {
+		return nil
+	}
+
+	if osManagedDiskId, ok := rawConfig["os_managed_disk_id"]; ok && (!osManagedDiskId.IsNull() || !osManagedDiskId.IsKnown()) {
+		return nil
+	}
+
+	adminPasswordSet := false
+	if adminPassword, ok := rawConfig["admin_password"]; ok && !adminPassword.IsNull() {
+		adminPasswordSet = true
+	}
+
+	adminPasswordWOVersionSet := false
+	if adminPasswordWOVersion, ok := rawConfig["admin_password_wo_version"]; ok && !adminPasswordWOVersion.IsNull() {
+		adminPasswordWOVersionSet = true
+	}
+
+	if !adminPasswordSet && !adminPasswordWOVersionSet {
+		return errors.New("one of `admin_password` or `admin_password_wo_version` must be specified when `admin_username` is specified")
+	}
+
+	return nil
 }
