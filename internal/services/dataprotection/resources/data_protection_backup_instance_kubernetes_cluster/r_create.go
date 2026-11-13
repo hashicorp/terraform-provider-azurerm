@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,6 +28,22 @@ func (r Resource) Create() sdk.ResourceFunc {
 			var model BackupInstanceKubernatesClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			var identityDetails *backupinstanceresources.IdentityDetails
+			if model.UserAssignedIdentityId != "" {
+				identityId, err := commonids.ParseUserAssignedIdentityID(model.UserAssignedIdentityId)
+				if err != nil {
+					return err
+				}
+				identityDetails = &backupinstanceresources.IdentityDetails{
+					UseSystemAssignedIdentity:  pointer.To(false),
+					UserAssignedIdentityArmURL: pointer.To(identityId.ID()),
+				}
+			} else {
+				identityDetails = &backupinstanceresources.IdentityDetails{
+					UseSystemAssignedIdentity: pointer.To(true),
+				}
 			}
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
@@ -63,6 +81,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			snapshotResourceGroupId := commonids.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
 			parameters := backupinstanceresources.BackupInstanceResource{
 				Properties: &backupinstanceresources.BackupInstance{
+					IdentityDetails: identityDetails,
 					DataSourceInfo: backupinstanceresources.Datasource{
 						DatasourceType:   pointer.To("Microsoft.ContainerService/managedClusters"),
 						ObjectType:       pointer.To("Datasource"),
@@ -106,6 +125,17 @@ func (r Resource) Create() sdk.ResourceFunc {
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
+
+			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
+			// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/41986
+			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
+				backupinstanceresources.CurrentProtectionStateConfiguringProtection,
+			})
+			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
@@ -113,7 +143,9 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]backupinstanceresources.BackupDatasourceParameters {
 	if len(input) == 0 {
-		return nil
+		return &[]backupinstanceresources.BackupDatasourceParameters{
+			backupinstanceresources.KubernetesClusterBackupDatasourceParameters{},
+		}
 	}
 	results := make([]backupinstanceresources.BackupDatasourceParameters, 0)
 	results = append(results, backupinstanceresources.KubernetesClusterBackupDatasourceParameters{

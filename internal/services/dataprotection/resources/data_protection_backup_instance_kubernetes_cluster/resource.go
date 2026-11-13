@@ -17,6 +17,7 @@ type Resource struct{}
 var (
 	_ sdk.Resource             = Resource{}
 	_ sdk.ResourceWithIdentity = Resource{}
+	_ sdk.ResourceWithUpdate   = Resource{}
 )
 
 func (r Resource) Identity() resourceids.ResourceId {
