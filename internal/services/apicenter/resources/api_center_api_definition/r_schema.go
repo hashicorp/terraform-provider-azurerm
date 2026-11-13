@@ -14,24 +14,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_version_id": {
 			Type:         pluginsdk.TypeString,
+			Description:  "The ID of the API version to which this API definition belongs.",
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: apiversions.ValidateVersionID,
 		},
 		"name": {
 			Type:         pluginsdk.TypeString,
+			Description:  "The name of the API definition.",
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
 		},
 		"description": {
 			Type:         pluginsdk.TypeString,
+			Description:  "The description of the API definition.",
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:        pluginsdk.TypeString,
+			Description: "The display name of the API definition.",
+			Optional:    true,
 			// Note: O+C if display name is not set, it will default to the name of the API definition
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 50),
@@ -44,16 +48,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:        pluginsdk.TypeString,
+						Description: "The name of the Specification.",
+						Required:    true,
 					},
 					"version": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:        pluginsdk.TypeString,
+						Description: "The version of the Specification.",
+						Optional:    true,
 					},
 					"url": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:        pluginsdk.TypeString,
+						Description: "The URL containing the Specification content.",
+						Optional:    true,
 						// Note: O+C if URL is set, Azure will be used to fetch the specification content and only return that
 						Computed:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
@@ -63,8 +70,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"content": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Type:        pluginsdk.TypeString,
+						Description: "The content of the Specification.",
+						Optional:    true,
 						AtLeastOneOf: []string{
 							"specification.0.url",
 							"specification.0.content",

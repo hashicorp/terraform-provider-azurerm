@@ -17,6 +17,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
+			Description:  "The name of the API Center service.",
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.Name(),
@@ -30,6 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
+			Description:  "The SKU name for the API Center service.",
 			Optional:     true,
 			Default:      "Free",
 			ValidateFunc: validation.StringInSlice([]string{"Free", "Standard"}, false),

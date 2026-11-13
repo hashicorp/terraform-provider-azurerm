@@ -15,6 +15,7 @@ import (
 func CustomPropertiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:             pluginsdk.TypeString,
+		Description:      "A JSON object containing custom properties.",
 		Optional:         true,
 		Default:          "{}",
 		ValidateFunc:     validation.StringIsJSON,
