@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
@@ -14,7 +14,7 @@ import (
 
 type ExadataInfraDataSource struct{}
 
-func TestExadataInfraDataSource_basic(t *testing.T) {
+func TestAccExadataInfraDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.ExadataInfraDataSource{}.ResourceType(), "test")
 	r := ExadataInfraDataSource{}
 

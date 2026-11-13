@@ -33,6 +33,7 @@ output "virtual_network_id" {
 * `id` - The ID of the virtual network.
 * `location` - Location of the virtual network.
 * `address_space` - The list of address spaces used by the virtual network.
+* `advertised_gateway_prefixes` - The list of CIDR prefixes that Azure gateways advertise to on-premises networks.
 * `dns_servers` - The list of DNS servers used by the virtual network.
 * `guid` - The GUID of the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
