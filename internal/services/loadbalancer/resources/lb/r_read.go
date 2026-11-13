@@ -9,12 +9,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -45,7 +45,7 @@ func resourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta any) error {
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", pointer.FromEnum(sku.Name))
 			d.Set("sku_tier", pointer.FromEnum(sku.Tier))
@@ -173,11 +173,4 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 		result = append(result, out)
 	}
 	return result
-}
-
-func flattenEdgeZone(input *edgezones.Model) string {
-	if input == nil || input.Name == "" {
-		return ""
-	}
-	return edgezones.NormalizeNilable(&input.Name)
 }
