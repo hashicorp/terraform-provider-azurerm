@@ -298,7 +298,28 @@ func TestAccWindowsVirtualMachine_networkPublicStaticPrivateUpdate(t *testing.T)
 
 func (r WindowsVirtualMachineResource) networkIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24", "ace:cab:deca::/64"]
+}
 
 resource "azurerm_network_interface" "test" {
   name                = "acctestni-%d"
@@ -314,16 +335,17 @@ resource "azurerm_network_interface" "test" {
 
   ip_configuration {
     name                          = "secondary"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_version    = "IPv6"
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
+  name                = "acctestvm%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_D2s_v5"
   admin_username      = "adminuser"
   admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
@@ -342,7 +364,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.templateBase(data), data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
 func (r WindowsVirtualMachineResource) networkMultipleTemplate(data acceptance.TestData) string {
