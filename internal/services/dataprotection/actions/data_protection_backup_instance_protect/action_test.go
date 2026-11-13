@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -108,17 +109,18 @@ func TestAccDataProtectionBackupInstanceProtectAction_resumeBackups(t *testing.T
 func (a *DataProtectionBackupInstanceProtectAction) templatePostgres(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-dataprotection-%d"
-  location = "%s"
+  name     = "acctest-dataprotection-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-postgresqlfs-%d"
+  name                   = "acctest-postgresqlfs-%[1]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
@@ -129,18 +131,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 
-resource "azurerm_data_protection_backup_vault" "test" {
-  name                = "acctest-dataprotection-vault-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  datastore_type      = "VaultStore"
-  redundancy          = "LocallyRedundant"
-  soft_delete         = "Off"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%[3]s
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
@@ -155,7 +146,7 @@ resource "azurerm_role_assignment" "test2" {
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
-  name                            = "acctest-dp-%d"
+  name                            = "acctest-dp-%[1]d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
@@ -169,7 +160,8 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
   depends_on = [azurerm_role_assignment.test, azurerm_role_assignment.test2]
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+`, data.RandomInteger, data.Locations.Primary, a.templateBackupVault(data))
 }
 
 func (a *DataProtectionBackupInstanceProtectAction) protectActionStopProtection(data acceptance.TestData) string {
@@ -282,4 +274,41 @@ action "azurerm_data_protection_backup_instance_protect" "resume_backups" {
   }
 }
 `, a.templatePostgres(data), data.RandomInteger)
+}
+
+func (DataProtectionBackupInstanceProtectAction) templateBackupVault(data acceptance.TestData) string {
+	if !features.SixPointOh() {
+		return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  soft_delete         = "Off"
+
+  storage_setting {
+    datastore_type = "VaultStore"
+    redundancy     = "LocallyRedundant"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger)
 }

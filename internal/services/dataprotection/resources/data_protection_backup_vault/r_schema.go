@@ -14,7 +14,7 @@ import (
 )
 
 func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -29,18 +29,27 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"datastore_type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
-		},
-
-		"redundancy": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
+		"storage_setting": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"datastore_type": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
+					},
+					"redundancy": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
+					},
+				},
+			},
 		},
 
 		"alerts_for_all_job_failures_enabled": {
@@ -83,7 +92,20 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.SixPointOh() {
-		s["alerts_for_all_job_failures_enabled"] = &pluginsdk.Schema{
+		delete(schema, "storage_setting")
+		schema["datastore_type"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingStoreTypes(), false),
+		}
+		schema["redundancy"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForStorageSettingTypes(), false),
+		}
+		schema["alerts_for_all_job_failures_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			// NOTE: O+C Preserve existing Azure alert settings when omitted in 5.x rather than enabling alerts on upgrade.
@@ -91,5 +113,5 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 		}
 	}
 
-	return s
+	return schema
 }
