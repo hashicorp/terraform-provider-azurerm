@@ -78,7 +78,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.Server.RuntimeUri = pointer.To(state.ServerRuntimeUri)
 			}
 			if metadata.ResourceData.HasChange("state") {
-				model.Properties.State = pointer.To(deployments.DeploymentState(state.State))
+				model.Properties.State = pointer.ToEnum[deployments.DeploymentState](state.State)
 			}
 			if metadata.ResourceData.HasChange("display_name") {
 				model.Properties.Title = pointer.To(state.Title)

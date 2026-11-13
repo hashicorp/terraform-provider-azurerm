@@ -40,11 +40,7 @@ func expandExternalDocumentationList(input []ExternalDocumentation) *[]apis.Exte
 
 func expandLicense(input []License) *apis.License {
 	if len(input) == 0 {
-		return &apis.License{
-			Identifier: nil,
-			Name:       nil,
-			Url:        nil,
-		}
+		return &apis.License{}
 	}
 	v := input[0]
 	return &apis.License{

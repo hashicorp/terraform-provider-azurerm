@@ -55,7 +55,6 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			return nil
-
 		},
 	}
 }

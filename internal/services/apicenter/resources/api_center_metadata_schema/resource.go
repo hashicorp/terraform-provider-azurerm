@@ -22,7 +22,7 @@ func (r Resource) Identity() resourceids.ResourceId {
 	return &metadataschemas.MetadataSchemaId{}
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ApiCenterMetadataSchemaModel{}
 }
 

@@ -29,12 +29,9 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *deployments.Deploym
 		}
 		state.CustomProperties = customProperties
 
-		scopedDefinitionId := fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.DefinitionId))
-		scopedEnvironmentId := fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.EnvironmentId))
-
-		state.DefinitionId = scopedDefinitionId
+		state.DefinitionId = fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.DefinitionId))
 		state.Description = pointer.From(props.Description)
-		state.EnvironmentId = scopedEnvironmentId
+		state.EnvironmentId = fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.EnvironmentId))
 		state.ServerRuntimeUri = flattenDeploymentServer(props.Server)
 		state.State = metadata.ResourceData.Get("state").(string)
 		state.Title = pointer.From(props.Title)

@@ -16,7 +16,7 @@ func expandMetadataAssignmentList(input []MetadataAssignment) *[]metadataschemas
 	for _, v := range input {
 		result = append(result, metadataschemas.MetadataAssignment{
 			Deprecated: pointer.To(v.Deprecated),
-			Entity:     pointer.To(metadataschemas.MetadataAssignmentEntity(v.Entity)),
+			Entity:     pointer.ToEnum[metadataschemas.MetadataAssignmentEntity](v.Entity),
 			Required:   pointer.To(v.Required),
 		})
 	}

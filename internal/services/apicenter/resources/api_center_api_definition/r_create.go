@@ -63,7 +63,10 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			importSpec := expandApiDefinitionPropertiesSpecification(config.Specification)
 			if importSpec != nil {
-				client.ImportSpecificationThenPoll(ctx, id, *importSpec)
+				err = client.ImportSpecificationThenPoll(ctx, id, *importSpec)
+				if err != nil {
+					return fmt.Errorf("importing specification for %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)

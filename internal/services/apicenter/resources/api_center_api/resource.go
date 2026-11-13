@@ -12,9 +12,7 @@ import (
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -resource-name azurerm_api_center_api -service-package-name apicenter -properties "name" -compare-values "subscription_id:service_id,resource_group_name:service_id,service_name:service_id" -known-values "workspace_name:default"
 
-var (
-	_ sdk.ResourceWithIdentity = Resource{}
-)
+var _ sdk.ResourceWithIdentity = Resource{}
 
 type Resource struct{}
 
@@ -26,7 +24,7 @@ func (r Resource) IdentityType() pluginsdk.ResourceTypeForIdentity {
 	return pluginsdk.ResourceTypeForIdentityDefault
 }
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ApiCenterApiModel{}
 }
 

@@ -41,7 +41,7 @@ func flattenMetadataAssignmentList(input *[]metadataschemas.MetadataAssignment) 
 	for _, v := range *input {
 		result = append(result, MetadataAssignment{
 			Deprecated: pointer.From(v.Deprecated),
-			Entity:     string(pointer.From(v.Entity)),
+			Entity:     pointer.FromEnum(v.Entity),
 			Required:   pointer.From(v.Required),
 		})
 	}

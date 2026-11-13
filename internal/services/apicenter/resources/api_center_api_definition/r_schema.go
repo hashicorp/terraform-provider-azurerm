@@ -32,7 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// O+C if display name is not set, it will default to the name of the API definition
+			// Note: O+C if display name is not set, it will default to the name of the API definition
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
@@ -54,7 +54,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"url": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						// O+C if URL is set, Azure will be used to fetch the specification content and only return that
+						// Note: O+C if URL is set, Azure will be used to fetch the specification content and only return that
 						Computed:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
 						AtLeastOneOf: []string{

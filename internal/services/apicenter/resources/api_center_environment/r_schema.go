@@ -31,7 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// O+C if display name is not set, it will default to the name of the environment
+			// Note: O+C if display name is not set, it will default to the name of the environment
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},

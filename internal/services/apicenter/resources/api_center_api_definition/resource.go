@@ -23,7 +23,7 @@ func (r Resource) Identity() resourceids.ResourceId {
 
 type Resource struct{}
 
-func (r Resource) ModelObject() interface{} {
+func (r Resource) ModelObject() any {
 	return &ApiCenterApiDefinitionModel{}
 }
 
