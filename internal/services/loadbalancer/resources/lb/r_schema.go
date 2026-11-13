@@ -8,13 +8,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const loadBalancerBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU load balancers is no longer permitted following its retirement. For more information, see https://learn.microsoft.com/azure/load-balancer/load-balancer-basic-upgrade-guidance"
+
 func lbSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -28,11 +31,14 @@ func lbSchema() map[string]*pluginsdk.Schema {
 		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"sku": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(loadbalancers.LoadBalancerSkuNameStandard),
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false),
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(loadbalancers.LoadBalancerSkuNameGateway),
+				string(loadbalancers.LoadBalancerSkuNameStandard),
+			}, false),
 		},
 
 		"sku_tier": {
@@ -149,6 +155,7 @@ func lbSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"private_ip_addresses": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -159,4 +166,10 @@ func lbSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["sku"].ValidateFunc = validation.StringInSlice(loadbalancers.PossibleValuesForLoadBalancerSkuName(), false)
+	}
+
+	return s
 }
