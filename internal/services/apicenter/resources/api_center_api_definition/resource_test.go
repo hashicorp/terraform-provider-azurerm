@@ -51,6 +51,36 @@ func TestAccApiCenterApiDefinition_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiCenterApiDefinition_specificationLink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_api_definition", "test")
+	r := ApiCenterApiDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.specificationLink(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiCenterApiDefinition_specificationContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_api_definition", "test")
+	r := ApiCenterApiDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.specificationContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiCenterApiDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_api_definition", "test")
 	r := ApiCenterApiDefinitionResource{}
@@ -166,6 +196,40 @@ resource "azurerm_api_center_api_definition" "test" {
   api_version_id = azurerm_api_center_api_version.test.id
   display_name              = "Complete API Definition"
   description               = "An API definition for acceptance testing."
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiCenterApiDefinitionResource) specificationLink(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_center_api_definition" "test" {
+  name            = "acctest%d"
+  api_version_id  = azurerm_api_center_api_version.test.id
+
+  specification {
+    name    = "openapi"
+    version = "1.0.0"
+    url     = "https://raw.githubusercontent.com/OAI/learn.openapis.org/main/examples/v3.0/petstore.json"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiCenterApiDefinitionResource) specificationContent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_center_api_definition" "test" {
+  name            = "acctest%d"
+  api_version_id  = azurerm_api_center_api_version.test.id
+
+  specification {
+    name    = "openapi"
+    version = "1.0.0"
+    content = "{\"openapi\":\"3.0.1\",\"info\":{\"title\":\"Acceptance Test\",\"version\":\"1.0.0\"},\"paths\":{}}"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

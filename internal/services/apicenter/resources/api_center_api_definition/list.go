@@ -73,7 +73,15 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 		return
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+		return
+	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
 		for _, item := range resp.Items {
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
@@ -86,7 +94,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			meta := sdk.NewResourceMetaData(metadata.Client, resource)
 			meta.SetID(id)
 
-			if err := resource.flatten(meta, id, &item); err != nil {
+			if err := resource.flatten(meta, ctx, id, &item); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", resource.ResourceType()), err)
 				return
 			}

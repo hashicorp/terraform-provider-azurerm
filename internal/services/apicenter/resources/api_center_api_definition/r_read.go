@@ -34,7 +34,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			return r.flatten(metadata, id, model)
+			return r.flatten(metadata,ctx, id, model,)
 		},
 	}
 }

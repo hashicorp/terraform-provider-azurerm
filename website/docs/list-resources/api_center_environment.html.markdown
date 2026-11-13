@@ -1,6 +1,6 @@
 ---
 subcategory: "ApiCenter"
-layout: "tfa-scaff"
+layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_center_environment"
 description: |-
     Lists API Center Environment resources.
@@ -16,7 +16,7 @@ Lists API Center Environment resources.
 
 ```hcl
 list "azurerm_api_center_environment" "example" {
-  provider = tfa-scaff
+  provider = azurerm
   config {
     api_center_service_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.ApiCenter/services/example"
   }

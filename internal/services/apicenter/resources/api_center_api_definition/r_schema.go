@@ -33,26 +33,47 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
-	}
-}
 
-func (r Resource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
 		"specification": {
 			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Required: true,
 					},
 					"version": {
 						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Optional: true,
+					},
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						// O+C if URL is set, Azure will be used to fetch the specification content and only return that
+						Computed:     true,
+						ValidateFunc: validation.IsURLWithHTTPS,
+						AtLeastOneOf: []string{
+							"specification.0.url",
+							"specification.0.content",
+						},
+					},
+					"content": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						AtLeastOneOf: []string{
+							"specification.0.url",
+							"specification.0.content",
+						},
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
 		},
 	}
+}
+
+func (r Resource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }

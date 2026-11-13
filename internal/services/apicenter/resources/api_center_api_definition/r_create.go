@@ -58,6 +58,11 @@ func (r Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			importSpec := expandApiDefinitionPropertiesSpecification(config.Specification)
+			if importSpec != nil {
+				client.ImportSpecificationThenPoll(ctx, id, *importSpec)
+			}
+
 			metadata.SetID(id)
 			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},

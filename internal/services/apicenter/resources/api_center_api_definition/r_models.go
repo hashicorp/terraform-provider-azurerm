@@ -11,4 +11,6 @@ type ApiCenterApiDefinitionModel struct {
 type ApiDefinitionPropertiesSpecification struct {
 	Name    string `tfschema:"name"`
 	Version string `tfschema:"version"`
+	Url     string `tfschema:"url"`
+	Content string `tfschema:"content"`
 }
