@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -83,12 +84,12 @@ func expandAgentPoolUpgradeSettings(input []any) *agentpools.AgentPoolUpgradeSet
 	return setting
 }
 
-func expandAgentPoolLinuxOSConfig(input []any) (*agentpools.LinuxOSConfig, error) {
+func expandAgentPoolLinuxOSConfig(d *pluginsdk.ResourceData, prefix string, input []any) (*agentpools.LinuxOSConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 	raw := input[0].(map[string]any)
-	sysctlConfig, err := expandAgentPoolSysctlConfig(raw["sysctl_config"].([]any))
+	sysctlConfig, err := expandAgentPoolSysctlConfig(d, prefix+"sysctl_config.0.", raw["sysctl_config"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func expandAgentPoolLinuxOSConfig(input []any) (*agentpools.LinuxOSConfig, error
 	return result, nil
 }
 
-func expandAgentPoolSysctlConfig(input []any) (*agentpools.SysctlConfig, error) {
+func expandAgentPoolSysctlConfig(d *pluginsdk.ResourceData, prefix string, input []any) (*agentpools.SysctlConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -199,11 +200,29 @@ func expandAgentPoolSysctlConfig(input []any) (*agentpools.SysctlConfig, error) 
 	if v := raw["vm_max_map_count"].(int); v != 0 {
 		result.VMMaxMapCount = pointer.To(int64(v))
 	}
-	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VMSwappiness = pointer.To(int64(v))
-	}
-	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VMVfsCachePressure = pointer.To(int64(v))
+	if d != nil {
+		if val, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(prefix + "vm_swappiness")); !diags.HasError() {
+			if val.IsKnown() && !val.IsNull() {
+				result.VMSwappiness = pointer.To(int64(raw["vm_swappiness"].(int)))
+			}
+		} else if v := raw["vm_swappiness"].(int); v != 0 {
+			result.VMSwappiness = pointer.To(int64(v))
+		}
+
+		if val, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(prefix + "vm_vfs_cache_pressure")); !diags.HasError() {
+			if val.IsKnown() && !val.IsNull() {
+				result.VMVfsCachePressure = pointer.To(int64(raw["vm_vfs_cache_pressure"].(int)))
+			}
+		} else if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
+			result.VMVfsCachePressure = pointer.To(int64(v))
+		}
+	} else {
+		if v := raw["vm_swappiness"].(int); v != 0 {
+			result.VMSwappiness = pointer.To(int64(v))
+		}
+		if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
+			result.VMVfsCachePressure = pointer.To(int64(v))
+		}
 	}
 	return result, nil
 }

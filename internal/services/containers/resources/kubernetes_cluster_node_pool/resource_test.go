@@ -1281,7 +1281,7 @@ func TestAccKubernetesClusterNodePool_gpuDriver(t *testing.T) {
 	})
 }
 
-func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agentpools.ParseAgentPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -1501,6 +1501,21 @@ func TestAccKubernetesClusterNodePool_VMSizeOmitted(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_sysctlConfigZeroValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sysctlConfigZeroValues(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1703,6 +1718,61 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
       fs_aio_max_nr               = 65536
       fs_file_max                 = 100000
       fs_inotify_max_user_watches = 1000000
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) sysctlConfigZeroValues(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  linux_os_config {
+    sysctl_config {
+      vm_swappiness         = 0
+      vm_vfs_cache_pressure = 0
     }
   }
 }

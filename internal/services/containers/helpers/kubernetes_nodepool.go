@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/ctyhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -985,7 +986,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 	}
 
 	if linuxOSConfig := raw["linux_os_config"].([]any); len(linuxOSConfig) > 0 {
-		linuxOSConfig, err := ExpandClusterNodePoolLinuxOSConfig(linuxOSConfig)
+		linuxOSConfig, err := ExpandClusterNodePoolLinuxOSConfig(d, "default_node_pool.0.linux_os_config.0.", linuxOSConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -1042,12 +1043,12 @@ func ExpandClusterNodePoolKubeletConfig(input []any) *managedclusters.KubeletCon
 	return result
 }
 
-func ExpandClusterNodePoolLinuxOSConfig(input []any) (*managedclusters.LinuxOSConfig, error) {
+func ExpandClusterNodePoolLinuxOSConfig(d *pluginsdk.ResourceData, prefix string, input []any) (*managedclusters.LinuxOSConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 	raw := input[0].(map[string]any)
-	sysctlConfig, err := ExpandClusterNodePoolSysctlConfig(raw["sysctl_config"].([]any))
+	sysctlConfig, err := ExpandClusterNodePoolSysctlConfig(d, prefix+"sysctl_config.0.", raw["sysctl_config"].([]any))
 	if err != nil {
 		return nil, err
 	}
@@ -1069,7 +1070,7 @@ func ExpandClusterNodePoolLinuxOSConfig(input []any) (*managedclusters.LinuxOSCo
 	return result, nil
 }
 
-func ExpandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConfig, error) {
+func ExpandClusterNodePoolSysctlConfig(d *pluginsdk.ResourceData, prefix string, input []any) (*managedclusters.SysctlConfig, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -1160,11 +1161,29 @@ func ExpandClusterNodePoolSysctlConfig(input []any) (*managedclusters.SysctlConf
 	if v := raw["vm_max_map_count"].(int); v != 0 {
 		result.VMMaxMapCount = pointer.To(int64(v))
 	}
-	if v := raw["vm_swappiness"].(int); v != 0 {
-		result.VMSwappiness = pointer.To(int64(v))
-	}
-	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
-		result.VMVfsCachePressure = pointer.To(int64(v))
+	if d != nil {
+		if val, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(prefix + "vm_swappiness")); !diags.HasError() {
+			if val.IsKnown() && !val.IsNull() {
+				result.VMSwappiness = pointer.To(int64(raw["vm_swappiness"].(int)))
+			}
+		} else if v := raw["vm_swappiness"].(int); v != 0 {
+			result.VMSwappiness = pointer.To(int64(v))
+		}
+
+		if val, diags := d.GetRawConfigAt(ctyhelpers.ConstructCtyPath(prefix + "vm_vfs_cache_pressure")); !diags.HasError() {
+			if val.IsKnown() && !val.IsNull() {
+				result.VMVfsCachePressure = pointer.To(int64(raw["vm_vfs_cache_pressure"].(int)))
+			}
+		} else if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
+			result.VMVfsCachePressure = pointer.To(int64(v))
+		}
+	} else {
+		if v := raw["vm_swappiness"].(int); v != 0 {
+			result.VMSwappiness = pointer.To(int64(v))
+		}
+		if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
+			result.VMVfsCachePressure = pointer.To(int64(v))
+		}
 	}
 	return result, nil
 }
