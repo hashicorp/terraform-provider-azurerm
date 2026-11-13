@@ -744,6 +744,25 @@ func batchPoolSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+		"application_package": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Required:     false,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
 	}
 }
 
