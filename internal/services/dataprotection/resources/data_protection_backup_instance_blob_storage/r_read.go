@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,7 +18,7 @@ import (
 )
 
 func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	client := meta.(*clients.Client).DataProtection.BackupInstanceClient20260601
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -45,16 +45,30 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
+
+			containerNames := make([]string, 0)
+			autoProtectionEnabled := false
+			excludedContainerNamePrefixes := make([]string, 0)
 			if policyParas := props.PolicyInfo.PolicyParameters; policyParas != nil {
 				if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
 					if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
-						if parameter, ok := dsp[0].(backupinstanceresources.BlobBackupDatasourceParameters); ok {
-							if err := d.Set("storage_account_container_names", pluginsdk.FlattenSlice(&parameter.ContainersList)); err != nil {
-								return fmt.Errorf("setting `storage_account_container_names`: %+v", err)
-							}
+						switch parameter := dsp[0].(type) {
+						case backupinstanceresources.BlobBackupDatasourceParameters:
+							containerNames = parameter.ContainersList
+						case backupinstanceresources.BlobBackupDatasourceParametersForAutoProtection:
+							autoProtectionEnabled, excludedContainerNamePrefixes = flattenBlobBackupAutoProtection(parameter)
 						}
 					}
 				}
+			}
+			if err := d.Set("storage_account_container_names", containerNames); err != nil {
+				return fmt.Errorf("setting `storage_account_container_names`: %+v", err)
+			}
+			if err := d.Set("auto_protection_enabled", autoProtectionEnabled); err != nil {
+				return fmt.Errorf("setting `auto_protection_enabled`: %+v", err)
+			}
+			if err := d.Set("excluded_container_name_prefixes", excludedContainerNamePrefixes); err != nil {
+				return fmt.Errorf("setting `excluded_container_name_prefixes`: %+v", err)
 			}
 		}
 	}
