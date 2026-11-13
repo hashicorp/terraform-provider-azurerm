@@ -130,11 +130,11 @@ resource "azurerm_api_center_service" "test" {
 }
 
 resource "azurerm_api_center_api" "test" {
-  name                  = "acctest-api-%[1]d"
-  service_id = azurerm_api_center_service.test.id
-  display_name          = "Acceptance Test API"
-  kind                  = "rest"
-  terms_of_service_url  = "https://example.com/terms"
+  name                 = "acctest-api-%[1]d"
+  service_id           = azurerm_api_center_service.test.id
+  display_name         = "Acceptance Test API"
+  kind                 = "rest"
+  terms_of_service_url = "https://example.com/terms"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -144,9 +144,9 @@ func (r ApiCenterApiVersionResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api_version" "test" {
-  name              = "acctest%d"
-  api_id = azurerm_api_center_api.test.id
-  lifecycle_stage   = "development"
+  name            = "acctest%d"
+  api_id          = azurerm_api_center_api.test.id
+  lifecycle_stage = "development"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -156,10 +156,10 @@ func (r ApiCenterApiVersionResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api_version" "test" {
-  name              = "acctest%d"
-  api_id = azurerm_api_center_api.test.id
-  lifecycle_stage   = "testing"
-  display_name      = "Testing API Version"
+  name            = "acctest%d"
+  api_id          = azurerm_api_center_api.test.id
+  lifecycle_stage = "testing"
+  display_name    = "Testing API Version"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -169,10 +169,10 @@ func (r ApiCenterApiVersionResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_center_api_version" "import" {
-  name              = azurerm_api_center_api_version.test.name
-  api_id = azurerm_api_center_api_version.test.api_id
-  lifecycle_stage   = azurerm_api_center_api_version.test.lifecycle_stage
-  display_name      = azurerm_api_center_api_version.test.display_name
+  name            = azurerm_api_center_api_version.test.name
+  api_id          = azurerm_api_center_api_version.test.api_id
+  lifecycle_stage = azurerm_api_center_api_version.test.lifecycle_stage
+  display_name    = azurerm_api_center_api_version.test.display_name
 }
 `, r.basic(data))
 }

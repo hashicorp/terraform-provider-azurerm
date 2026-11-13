@@ -56,7 +56,7 @@ func (r ApiCenterMetadataSchemaResource) basicList(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_center_metadata_schema" "test" {
-  count =3
+  count      = 3
   name       = "acctest%d${count.index}"
   service_id = azurerm_api_center_service.test.id
 

@@ -214,9 +214,9 @@ func (r ApiCenterApiResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api" "test" {
-  name                  = "acctest%d"
+  name       = "acctest%d"
   service_id = azurerm_api_center_service.test.id
-  kind                  = "rest"
+  kind       = "rest"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -226,13 +226,13 @@ func (r ApiCenterApiResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api" "test" {
-  name                  = "acctest%d"
-  service_id = azurerm_api_center_service.test.id
-  display_name          = "Acceptance Test GraphQL API"
-  kind                  = "graphql"
-  description           = "An API for acceptance testing."
-  summary               = "Acceptance test API summary"
-  terms_of_service_url  = "https://example.com/terms"
+  name                 = "acctest%d"
+  service_id           = azurerm_api_center_service.test.id
+  display_name         = "Acceptance Test GraphQL API"
+  kind                 = "graphql"
+  description          = "An API for acceptance testing."
+  summary              = "Acceptance test API summary"
+  terms_of_service_url = "https://example.com/terms"
 
   contacts {
     name  = "API Support"
@@ -247,8 +247,8 @@ resource "azurerm_api_center_api" "test" {
   }
 
   license {
-    name       = "MIT License"
-    url        = "https://opensource.org/licenses/MIT"
+    name = "MIT License"
+    url  = "https://opensource.org/licenses/MIT"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -259,10 +259,10 @@ func (r ApiCenterApiResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api" "import" {
-  name                  = azurerm_api_center_api.test.name
-  service_id = azurerm_api_center_api.test.service_id
-  display_name          = azurerm_api_center_api.test.display_name
-  kind                  = azurerm_api_center_api.test.kind
+  name         = azurerm_api_center_api.test.name
+  service_id   = azurerm_api_center_api.test.service_id
+  display_name = azurerm_api_center_api.test.display_name
+  kind         = azurerm_api_center_api.test.kind
 }
 `, r.basic(data))
 }

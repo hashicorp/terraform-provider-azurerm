@@ -59,10 +59,10 @@ func (r ApiCenterApiDefinitionResource) basicList(data acceptance.TestData) stri
 %s
 
 resource "azurerm_api_center_api_definition" "test" {
-count =3
-  name                      = "acctest%d${count.index}"
+  count          = 3
+  name           = "acctest%d${count.index}"
   api_version_id = azurerm_api_center_api_version.test.id
-  display_name              = "Acceptance Test API Definition"
+  display_name   = "Acceptance Test API Definition"
 }
 `, r.template(data), data.RandomInteger)
 }

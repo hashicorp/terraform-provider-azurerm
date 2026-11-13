@@ -160,18 +160,18 @@ resource "azurerm_api_center_service" "test" {
 }
 
 resource "azurerm_api_center_api" "test" {
-  name                  = "acctest-api-%[1]d"
-  service_id = azurerm_api_center_service.test.id
-  display_name          = "Acceptance Test API"
-  kind                  = "rest"
-  terms_of_service_url  = "https://example.com/terms"
+  name                 = "acctest-api-%[1]d"
+  service_id           = azurerm_api_center_service.test.id
+  display_name         = "Acceptance Test API"
+  kind                 = "rest"
+  terms_of_service_url = "https://example.com/terms"
 }
 
 resource "azurerm_api_center_api_version" "test" {
-  name              = "acctest-version-%[1]d"
-  api_id = azurerm_api_center_api.test.id
-  lifecycle_stage   = "testing"
-  display_name      = "Acceptance Test API Version"
+  name            = "acctest-version-%[1]d"
+  api_id          = azurerm_api_center_api.test.id
+  lifecycle_stage = "testing"
+  display_name    = "Acceptance Test API Version"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -181,7 +181,7 @@ func (r ApiCenterApiDefinitionResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api_definition" "test" {
-  name                      = "acctest%d"
+  name           = "acctest%d"
   api_version_id = azurerm_api_center_api_version.test.id
 }
 `, r.template(data), data.RandomInteger)
@@ -192,10 +192,10 @@ func (r ApiCenterApiDefinitionResource) complete(data acceptance.TestData) strin
 %s
 
 resource "azurerm_api_center_api_definition" "test" {
-  name                      = "acctest%d"
+  name           = "acctest%d"
   api_version_id = azurerm_api_center_api_version.test.id
-  display_name              = "Complete API Definition"
-  description               = "An API definition for acceptance testing."
+  display_name   = "Complete API Definition"
+  description    = "An API definition for acceptance testing."
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -205,8 +205,8 @@ func (r ApiCenterApiDefinitionResource) specificationLink(data acceptance.TestDa
 %s
 
 resource "azurerm_api_center_api_definition" "test" {
-  name            = "acctest%d"
-  api_version_id  = azurerm_api_center_api_version.test.id
+  name           = "acctest%d"
+  api_version_id = azurerm_api_center_api_version.test.id
 
   specification {
     name    = "openapi"
@@ -222,8 +222,8 @@ func (r ApiCenterApiDefinitionResource) specificationContent(data acceptance.Tes
 %s
 
 resource "azurerm_api_center_api_definition" "test" {
-  name            = "acctest%d"
-  api_version_id  = azurerm_api_center_api_version.test.id
+  name           = "acctest%d"
+  api_version_id = azurerm_api_center_api_version.test.id
 
   specification {
     name    = "openapi"
@@ -239,9 +239,9 @@ func (r ApiCenterApiDefinitionResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_api_center_api_definition" "import" {
-  name                      = azurerm_api_center_api_definition.test.name
+  name           = azurerm_api_center_api_definition.test.name
   api_version_id = azurerm_api_center_api_definition.test.api_version_id
-  display_name              = azurerm_api_center_api_definition.test.display_name
+  display_name   = azurerm_api_center_api_definition.test.display_name
 }
 `, r.basic(data))
 }

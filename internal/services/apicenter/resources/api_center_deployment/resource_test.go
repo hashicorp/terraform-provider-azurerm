@@ -167,30 +167,31 @@ resource "azurerm_api_center_service" "test" {
 }
 
 resource "azurerm_api_center_api" "test" {
-  name                  = "acctest-api-%[1]d"
-  service_id = azurerm_api_center_service.test.id
-  display_name          = "Acceptance Test API"
-  kind                  = "rest"
-  terms_of_service_url  = "https://example.com/terms"
+  name                 = "acctest-api-%[1]d"
+  service_id           = azurerm_api_center_service.test.id
+  display_name         = "Acceptance Test API"
+  kind                 = "rest"
+  terms_of_service_url = "https://example.com/terms"
 }
 
 resource "azurerm_api_center_api_version" "test" {
-  name              = "acctest-version-%[1]d"
-  api_id = azurerm_api_center_api.test.id
-  lifecycle_stage   = "testing"
+  name            = "acctest-version-%[1]d"
+  api_id          = azurerm_api_center_api.test.id
+  lifecycle_stage = "testing"
 }
 
 resource "azurerm_api_center_api_definition" "test" {
-  name                      = "acctest-definition-%[1]d"
+  name           = "acctest-definition-%[1]d"
   api_version_id = azurerm_api_center_api_version.test.id
 }
 
 resource "azurerm_api_center_environment" "test" {
-  name                  = "acctest-environment-%[1]d"
-  service_id = azurerm_api_center_service.test.id
-  display_name          = "Acceptance Test Environment"
-  environment_type      = "testing"
+  name             = "acctest-environment-%[1]d"
+  service_id       = azurerm_api_center_service.test.id
+  display_name     = "Acceptance Test Environment"
+  environment_type = "testing"
 }
+
 
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -200,9 +201,9 @@ func (r ApiCenterDeploymentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_deployment" "test" {
-  name                         = "acctest%d"
-  api_definition_id            = azurerm_api_center_api_definition.test.id
-  environment_id               = azurerm_api_center_environment.test.id
+  name              = "acctest%d"
+  api_definition_id = azurerm_api_center_api_definition.test.id
+  environment_id    = azurerm_api_center_environment.test.id
 
   server_runtime_uri = [
     "https://example.com/api",
@@ -274,12 +275,12 @@ func (r ApiCenterDeploymentResource) complete(data acceptance.TestData) string {
 
 
 resource "azurerm_api_center_deployment" "test" {
-  name                         = "acctest%[2]d"
+  name              = "acctest%[2]d"
   api_definition_id = azurerm_api_center_api_definition.test.id
-  description                  = "An API deployment for acceptance testing."
-  environment_id               = azurerm_api_center_environment.test.id
-  state                        = "active"
-  display_name                 = "Acceptance Test Deployment"
+  description       = "An API deployment for acceptance testing."
+  environment_id    = azurerm_api_center_environment.test.id
+  state             = "active"
+  display_name      = "Acceptance Test Deployment"
 
   server_runtime_uri = [
     "https://example.com/api",
@@ -294,7 +295,7 @@ func (r ApiCenterDeploymentResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_center_deployment" "import" {
-  name                         = azurerm_api_center_deployment.test.name
+  name              = azurerm_api_center_deployment.test.name
   api_definition_id = azurerm_api_center_deployment.test.api_definition_id
 }
 `, r.basic(data))

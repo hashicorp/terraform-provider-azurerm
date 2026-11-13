@@ -58,11 +58,11 @@ func (r ApiCenterDeploymentResource) basicList(data acceptance.TestData) string 
 %s
 
 resource "azurerm_api_center_deployment" "test" {
-  count =3 
-  name                         = "acctest%d${count.index}"
-  api_definition_id            = azurerm_api_center_api_definition.test.id
-  environment_id               = azurerm_api_center_environment.test.id
-  state                        = "active"
+  count             = 3
+  name              = "acctest%d${count.index}"
+  api_definition_id = azurerm_api_center_api_definition.test.id
+  environment_id    = azurerm_api_center_environment.test.id
+  state             = "active"
 
   server_runtime_uri = [
     "https://example.com/api",

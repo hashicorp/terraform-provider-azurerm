@@ -196,10 +196,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_api_center_environment" "test" {
-  name                  = "test"
-  service_id = azurerm_api_center_service.test.id
-  environment_type      = "testing"
-  description           = "testing environment"
+  name             = "test"
+  service_id       = azurerm_api_center_service.test.id
+  environment_type = "testing"
+  description      = "testing environment"
 }`, template)
 }
 
@@ -214,7 +214,7 @@ provider "azurerm" {
 
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
-  service_id  = azurerm_api_center_service.test.id
+  service_id             = azurerm_api_center_service.test.id
   display_name           = "testtitle"
   environment_type       = "testing"
   description            = "testing environment"
@@ -237,7 +237,7 @@ provider "azurerm" {
 
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
-  service_id  = azurerm_api_center_service.test.id
+  service_id             = azurerm_api_center_service.test.id
   display_name           = "testtitle"
   environment_type       = "testing"
   description            = "testing environment 2"
@@ -255,10 +255,10 @@ func (ApiCenterEnvironmentResource) requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_center_environment" "import" {
-  name                  = azurerm_api_center_environment.test.name
-  service_id = azurerm_api_center_environment.test.service_id
-  display_name          = azurerm_api_center_environment.test.display_name
-  environment_type      = azurerm_api_center_environment.test.environment_type
+  name             = azurerm_api_center_environment.test.name
+  service_id       = azurerm_api_center_environment.test.service_id
+  display_name     = azurerm_api_center_environment.test.display_name
+  environment_type = azurerm_api_center_environment.test.environment_type
 }
 `, template)
 }

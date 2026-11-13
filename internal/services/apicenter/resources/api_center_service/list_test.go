@@ -74,7 +74,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_api_center_service" "test" {
-  count	= 3 
+  count               = 3
   name                = "acctestApiCSvc%d${count.index}"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

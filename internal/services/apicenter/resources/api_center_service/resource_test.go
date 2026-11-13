@@ -146,8 +146,8 @@ resource "azurerm_api_center_service" "test" {
   name                = "acctestApiCSvc%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name           = "Standard"
-	
+  sku_name            = "Standard"
+
   identity {
     type = "SystemAssigned"
   }
