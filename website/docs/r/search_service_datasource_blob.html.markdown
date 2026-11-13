@@ -40,10 +40,11 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_search_service_datasource_blob" "example" {
-  name                    = "example-search-service-datasource-blob"
-  search_service_endpoint = azurerm_search_service.example.endpoint
-  container_name          = azurerm_storage_container.example.name
-  connection_string_wo    = azurerm_storage_account.example.primary_connection_string
+  name                         = "example-search-service-datasource-blob"
+  search_service_endpoint      = azurerm_search_service.example.endpoint
+  container_name               = azurerm_storage_container.example.name
+  connection_string_wo         = azurerm_storage_account.example.primary_connection_string
+  connection_string_wo_version = 1
 }
 ```
 
@@ -57,11 +58,13 @@ The following arguments are supported:
 
 * `search_service_endpoint` - (Required) The endpoint of the Search Service in which this Blob Data Source should be created. Changing this forces a new resource to be created.
 
-* `container_name` - (Required) The name of the Azure Blob Storage container from which to read data.
-
 * `connection_string_wo` - (Required, Write-Only) The connection string to the Azure Blob Storage account.
 
-* `connection_string_wo_version` - (Required) An integer value used to trigger an update for `connection_string_wo`. This property should be incremented when updating `connection_string_wo`.
+* `connection_string_wo_version` - (Required) An integer value used to trigger an update for `connection_string_wo`.
+
+~> **Note:** `connection_string_wo_version` must be `1` or greater and should be incremented when updating `connection_string_wo`.
+
+* `container_name` - (Required) The name of the Azure Blob Storage container from which to read data.
 
 * `container_query` - (Optional) A query string that filters the set of blobs in the container.
 
