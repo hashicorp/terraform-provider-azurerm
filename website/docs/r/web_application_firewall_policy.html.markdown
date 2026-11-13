@@ -208,6 +208,8 @@ The `managed_rules` block supports the following:
 
 * `managed_rule_set` - (Required) One or more `managed_rule_set` block defined below.
 
+~> **Note:** Exactly one `managed_rule_set` block must have a `type` of `OWASP` or `Microsoft_DefaultRuleSet`. A `Microsoft_BotManagerRuleSet` does not count as a primary rule set.
+
 ---
 
 The `exclusion` block supports the following:

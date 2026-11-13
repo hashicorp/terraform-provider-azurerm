@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -13,6 +13,18 @@ import (
 )
 
 type AppServiceGithubTokenDataSource struct{}
+
+func TestAccSourceControlGitHubTokenDataSource_regressionTest(t *testing.T) {
+	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	data := acceptance.BuildTestData(t, "data.azurerm_source_control_token", "test")
+	r := AppServiceGithubTokenDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(token),
+		},
+	}, "")
+}
 
 func TestAccSourceControlGitHubTokenDataSource_basic(t *testing.T) {
 	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
