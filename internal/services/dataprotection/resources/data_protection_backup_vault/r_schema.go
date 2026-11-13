@@ -56,6 +56,12 @@ func dataProtectionBackupVaultSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
+		"cross_subscription_restore": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(backupvaultresources.PossibleValuesForCrossSubscriptionRestoreState(), false),
+		},
+
 		"retention_duration_in_days": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,

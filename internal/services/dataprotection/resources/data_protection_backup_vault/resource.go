@@ -43,6 +43,11 @@ func RegisterResource() *pluginsdk.Resource {
 				return old.(bool) && new.(bool) != old.(bool)
 			}),
 
+			// Once `cross_subscription_restore` is specified as `PermanentlyDisabled` it cannot be enabled.
+			pluginsdk.ForceNewIfChange("cross_subscription_restore", func(ctx context.Context, old, new, meta any) bool {
+				return old.(string) == string(backupvaultresources.CrossSubscriptionRestoreStatePermanentlyDisabled) && new.(string) != old.(string)
+			}),
+
 			// Once `immutability` is enabled it cannot be disabled.
 			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta any) bool {
 				return old.(string) == string(backupvaultresources.ImmutabilityStateLocked) && new.(string) != string(backupvaultresources.ImmutabilityStateLocked)
