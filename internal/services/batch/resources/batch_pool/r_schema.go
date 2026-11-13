@@ -782,6 +782,24 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerWorkingDirectory(), false),
 					},
+					"bind_mount": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"source": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerHostDataPath(), false),
+								},
+								"read_only_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
