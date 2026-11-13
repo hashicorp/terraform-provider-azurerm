@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance_test
@@ -166,6 +166,24 @@ func TestAccMsSqlManagedDatabase_pointInTimeRestore(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedDatabase_recoverDatabase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "recovery")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+		{
+			Config: r.recovery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
+	})
+}
+
 func (r MsSqlManagedDatabase) Exists(ctx context.Context, client *clients.Client, state *acceptance.InstanceState) (*bool, error) {
 	id, err := commonids.ParseManagedInstanceDatabaseID(state.ID)
 	if err != nil {
@@ -285,6 +303,18 @@ resource "azurerm_mssql_managed_database" "pitr" {
     restore_point_in_time = time_offset.pitr.rfc3339
     source_database_id    = azurerm_mssql_managed_database.test.id
   }
+}
+`, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) recovery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "recovery" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d-rec"
+  recover_database_id = "${azurerm_mssql_managed_database.test.managed_instance_id}/recoverableDatabases/${azurerm_mssql_managed_database.test.name}"
 }
 `, MsSqlManagedDatabase{}.basic(data), data.RandomInteger)
 }

@@ -14,8 +14,8 @@ Use this data source to access information about an existing Playwright Workspac
 
 ```hcl
 data "azurerm_playwright_workspace" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-playwright-workspace"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

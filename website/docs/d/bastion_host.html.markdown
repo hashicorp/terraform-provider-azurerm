@@ -15,8 +15,8 @@ Use this data source to access information about an existing Bastion Host.
 
 ```hcl
 data "azurerm_bastion_host" "example" {
-  name                = "existing-bastion"
-  resource_group_name = "existing-resources"
+  name                = "example-bastion"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

@@ -14,7 +14,7 @@ Use this data source to access information about an existing Resource Group.
 
 ```hcl
 data "azurerm_resource_group" "example" {
-  name = "existing"
+  name = "example-resources"
 }
 
 output "id" {

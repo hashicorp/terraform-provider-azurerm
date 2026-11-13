@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
-* `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
+* `node_network_profile` - (Optional) A `node_network_profile` block as defined below.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
@@ -148,17 +148,21 @@ The following arguments are supported:
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
+* `security` - (Optional) A `security` block as documented below.
+
+~> **Note:** Changing either flag in `security` reimages the nodes in this pool and can disrupt workloads.
+
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the node pool when one of the relevant properties are updated.
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as defined below.
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ~> **Note:** A route table must be configured on this Subnet.
 
-* `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
+* `windows_profile` - (Optional) A `windows_profile` block as defined below. Changing this forces a new resource to be created.
 
 * `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `KataVmIsolation`, `OCIContainer` and `WasmWasi`.
 
@@ -241,6 +245,16 @@ An `allowed_host_ports` block supports the following:
 * `port_end` - (Optional) Specifies the end of the port range.
 
 * `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
+
+---
+
+A `security` block supports the following:
+
+* `secure_boot_enabled` - (Optional) Specifies whether Secure Boot should be enabled for this Node Pool. Defaults to `false`.
+
+* `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled for this Node Pool. Defaults to `false`.
+
+~> **Note:** Enabling `secure_boot_enabled` or `vtpm_enabled` has the following [AKS Trusted Launch limitations](https://learn.microsoft.com/azure/aks/use-trusted-launch#limitations).
 
 ---
 
@@ -359,4 +373,4 @@ terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2026-05-01
+* `Microsoft.ContainerService` - 2026-07-01

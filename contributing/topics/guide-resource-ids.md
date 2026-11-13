@@ -4,6 +4,29 @@ Resource IDs are an essential component of all resources and data sources within
 
 Due to their fundamental importance in the provider, resource IDs should be handled through the use of various helper functions that are available.
 
+## New, Parse and Validate
+
+Each Resource ID type comes with 3 functions:
+
+* `New{Name}ID` builds the struct from its individual values
+* `Parse{Name}ID` parses an existing ID string into the struct
+* `Validate{Name}ID` checks that a string is a well-formed ID. It is the `ValidateFunc` for any Argument that takes a Resource ID in Resources and Data Sources alike, and Resources also use it for `terraform import`
+
+`Resources` build the ID with `New{Name}ID` in Create and parse it from state with `Parse{Name}ID` everywhere else.
+
+`Data Sources` depend on their Arguments. If the user supplies `name` and `resource_group_name`, build the ID with `New{Name}ID`. If the user supplies a full ID such as `storage_account_id`, validate it with `Validate{Name}ID` and parse it with `Parse{Name}ID`.
+
+```go
+// when the Arguments are the individual values
+id := commonids.NewResourceGroupID(subscriptionId, state.Name)
+
+// when the Argument is a full Resource ID
+id, err := commonids.ParseStorageAccountID(state.StorageAccountId)
+if err != nil {
+    return err
+}
+```
+
 ## Resource ID Parsers and Validators in `hashicorp/go-azure-sdk`
 
 The SDK `hashicorp/go-azure-sdk` used in the provider contains the necessary parsing and validation functions required for a resource ID and will exist in the resource's package.
@@ -21,7 +44,7 @@ func (r MachineLearningWorkspace) Create() sdk.ResourceFunc {
 
 func (r MachineLearningWorkspace) Read() sdk.ResourceFunc {
     ...
-    id := workspaces.ParseWorkspaceID(subscriptionId, resourceGroupName, workspaceName)
+    id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 	...
 }
 ```
@@ -33,17 +56,17 @@ Some resource types that are referenced across multiple services, will have thei
 This is done to avoid having to convert the same ID between different types.
 
 ```go
-import `github.com/hashicorp/go-azure-helpers/resourcemanager/commonids`
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 func (r AppServicePlan) Create() sdk.ResourceFunc {
     ...
-    id := commonids.NewAppServicePlanID(subscriptionId, resourceGroupName, workspaceName)
+    id := commonids.NewAppServicePlanID(subscriptionId, resourceGroupName, appServicePlanName)
 	...
 }
 
 func (r AppServicePlan) Read() sdk.ResourceFunc {
     ...
-    id := commonids.ParseAppServicePlanID(subscriptionId, resourceGroupName, workspaceName)
+    id, err := commonids.ParseAppServicePlanID(metadata.ResourceData.Id())
 	...
 }
 ```
@@ -53,7 +76,7 @@ func (r AppServicePlan) Read() sdk.ResourceFunc {
 Resource IDs that consist of a scope ID and a resource ID separated by a `|` e.g. `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1` should be handled using the Composite Resource ID functions in the `hashicorp/go-azure-helpers` `commonids` package.
 
 ```go
-import `github.com/hashicorp/go-azure-helpers/resourcemanager/commonids`
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 
 func (r NatGatewayPublicIpAssociation) Create() sdk.ResourceFunc {
     ...
@@ -62,7 +85,7 @@ func (r NatGatewayPublicIpAssociation) Create() sdk.ResourceFunc {
     if err != nil {
 		return err
     }
-    
+
     natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
     if err != nil {
         return err
@@ -123,8 +146,8 @@ In this case, you need to specify the `name` of the Resource (in this case `Reso
 
 Running `make generate` - will output the following files:
 
-* `./internal/service/resource/parse/resource_group_example.go` - contains the Resource ID Struct, Formatter and Parser.
-* `./internal/service/resource/parse/resource_group_example_test.go` - contains tests for those ^.
-* `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
+* `./internal/services/resource/parse/resource_group_example.go` - contains the Resource ID Struct, Formatter and Parser.
+* `./internal/services/resource/parse/resource_group_example_test.go` - contains tests for those ^.
+* `./internal/services/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
 > **Note:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.
