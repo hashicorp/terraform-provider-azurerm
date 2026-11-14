@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-12-01/customdomains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/resources/cdn_endpoint_custom_domain/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

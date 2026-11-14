@@ -176,9 +176,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-		if d.Get("single_placement_group").(bool) {
-			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
-		}
 		virtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
 			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
 				Id: pointer.To(v.(string)),
@@ -356,7 +353,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta a
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
-	props.Properties.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
+	props.Properties.ResiliencyPolicy = helpers.ExpandVirtualMachineScaleSetResiliency(d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
 
 	if len(zones) > 0 {
 		props.Zones = &zones

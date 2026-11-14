@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace/resources/dynatrace_monitor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace/resources/dynatrace_tag_rules"
 )
 
 type Registration struct{}
@@ -26,14 +28,14 @@ func (r Registration) Name() string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		MonitorsDataSource{},
+		dynatrace_monitor.DataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		MonitorsResource{},
-		TagRulesResource{},
+		dynatrace_monitor.Resource{},
+		dynatrace_tag_rules.Resource{},
 	}
 }
 

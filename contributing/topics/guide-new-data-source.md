@@ -57,7 +57,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourceGroupsClient, err := resourcegroups.NewResourceGroupsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Resource Groups Client: %+v", err)
-    }
+	}
 	o.Configure(resourceGroupsClient.Client, o.Authorizer.ResourceManager)
 
 	// ...
@@ -114,8 +114,8 @@ In this case the interface `sdk.DataSource` defines all of the methods required 
 
 ```go
 type DataSource interface {
-    Arguments() map[string]*schema.Schema
-    Attributes() map[string]*schema.Schema
+    Arguments() map[string]*pluginsdk.Schema
+    Attributes() map[string]*pluginsdk.Schema
     ModelObject() any
     ResourceType() string
 	Read() ResourceFunc
@@ -208,8 +208,8 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
+			// build the Resource ID from the Subscription ID and the name in the config
 			id := commonids.NewResourceGroupID(subscriptionId, state.Name)
-
 			// then retrieve the Resource Group by its ID
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -272,6 +272,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"

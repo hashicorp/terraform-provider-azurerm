@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/resources/arc_machine"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/resources/arc_machine_extension"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/resources/arc_private_link_scope"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -47,16 +50,16 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		ArcMachineDataSource{},
+		arc_machine.DataSource{},
 	}
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ArcMachineExtensionResource{},
-		ArcMachineResource{},
-		ArcPrivateLinkScopeResource{},
+		arc_machine_extension.Resource{},
+		arc_machine.Resource{},
+		arc_private_link_scope.Resource{},
 	}
 }
 
