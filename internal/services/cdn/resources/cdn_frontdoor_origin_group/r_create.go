@@ -49,6 +49,7 @@ func resourceCdnFrontDoorOriginGroupCreate(d *pluginsdk.ResourceData, meta any) 
 
 	props := afdorigingroups.AFDOriginGroup{
 		Properties: &afdorigingroups.AFDOriginGroupProperties{
+			Authentication:        expandCdnFrontDoorOriginGroupAuthentication(d.Get("authentication").([]any)),
 			HealthProbeSettings:   expandCdnFrontDoorOriginGroupHealthProbeParameters(d.Get("health_probe").([]any)),
 			LoadBalancingSettings: expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(d.Get("load_balancing").([]any)),
 			SessionAffinityState:  pointer.To(sessionAffinity),
@@ -96,4 +97,25 @@ func expandCdnFrontDoorOriginGroupLoadBalancingSettingsParameters(input []any) *
 		SampleSize:                      pointer.To(int64(v["sample_size"].(int))),
 		SuccessfulSamplesRequired:       pointer.To(int64(v["successful_samples_required"].(int))),
 	}
+}
+
+func expandCdnFrontDoorOriginGroupAuthentication(input []any) *afdorigingroups.OriginAuthenticationProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]any)
+
+	result := &afdorigingroups.OriginAuthenticationProperties{
+		Scope: pointer.To(v["scope"].(string)),
+		Type:  pointer.ToEnum[afdorigingroups.OriginAuthenticationType](v["type"].(string)),
+	}
+
+	if userAssignedIdentityId := v["user_assigned_identity_id"].(string); userAssignedIdentityId != "" {
+		result.UserAssignedIdentity = &afdorigingroups.ResourceReference{
+			Id: pointer.To(userAssignedIdentityId),
+		}
+	}
+
+	return result
 }
