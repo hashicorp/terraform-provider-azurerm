@@ -1,0 +1,47 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package helpers
+
+import (
+	"encoding/json"
+	"reflect"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func MetadataDiffSuppressFunc(_, old, new string, _ *pluginsdk.ResourceData) bool {
+	var oldPolicyAssignmentsMetadata map[string]any
+	errOld := json.Unmarshal([]byte(old), &oldPolicyAssignmentsMetadata)
+	if errOld != nil {
+		return false
+	}
+
+	var newPolicyAssignmentsMetadata map[string]any
+	if new != "" {
+		errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
+		if errNew != nil {
+			return false
+		}
+	}
+
+	// Ignore the following keys if they're found in the metadata JSON
+	ignoreKeys := [5]string{"assignedBy", "createdBy", "createdOn", "updatedBy", "updatedOn"}
+	for _, key := range ignoreKeys {
+		delete(oldPolicyAssignmentsMetadata, key)
+		delete(newPolicyAssignmentsMetadata, key)
+	}
+
+	return reflect.DeepEqual(oldPolicyAssignmentsMetadata, newPolicyAssignmentsMetadata)
+}
+
+func MetadataSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:             pluginsdk.TypeString,
+		Optional:         true,
+		Computed:         true, // azignore:AZS007 - pre-existing violation
+		ValidateFunc:     validation.StringIsJSON,
+		DiffSuppressFunc: MetadataDiffSuppressFunc,
+	}
+}

@@ -44,22 +44,28 @@ kind "feature" {
     priority = 2
   }
 
+  type "new-ephemeral-resource" {
+    regex    = "^\\*\\*New Ephemeral Resource\\*\\*: `azurerm_\\w+`$"
+    example  = "**New Ephemeral Resource**: `azurerm_example`"
+    priority = 3
+  }
+
   type "new-list-resource" {
     regex    = "^\\*\\*New List Resource\\*\\*: `azurerm_\\w+`$"
     example  = "**New List Resource**: `azurerm_example`"
-    priority = 3
+    priority = 4
   }
 
   type "new-resource" {
     regex    = "^\\*\\*New Resource\\*\\*: `azurerm_\\w+`$"
     example  = "**New Resource**: `azurerm_example`"
-    priority = 4
+    priority = 5
   }
 
   type "new-function" {
     regex    = "^\\*\\*New Function\\*\\*: `\\w+`$"
     example  = "**New Function**: `example_function`"
-    priority = 5
+    priority = 6
   }
 }
 
@@ -74,13 +80,13 @@ kind "enhancement" {
   }
 
   type "new-property" {
-    regex    = "^(Data Source: |List Resource: |Action: )?`azurerm_[^`]+` - (add support for|export) the (`[^`]+`(, `[^`]+`)*(,? and `[^`]+`)?) (propert(y|ies)|blocks?)$"
+    regex    = "^(Data Source: |Ephemeral Resource: |List Resource: |Action: )?`azurerm_[^`]+` - (add support for|export) the (`[^`]+`(, `[^`]+`)*(,? and `[^`]+`)?) (propert(y|ies)|blocks?)$"
     example  = "`azurerm_example` - add support for the `new_field` property"
     priority = 2
   }
 
   type "resource-enhancement" {
-    regex    = "^(Data Source: |List Resource: |Action: )?`azurerm_[^`]+` - .+$"
+    regex    = "^(Data Source: |Ephemeral Resource: |List Resource: |Action: )?`azurerm_[^`]+` - .+$"
     example  = "`azurerm_example` - improve validation for the `name` property"
     priority = 3
   }
@@ -103,7 +109,7 @@ kind "bug" {
   }
 
   type "resource-fix" {
-    regex   = "^(Data Source: |List Resource: |Action: )?`azurerm_[^`]+` - .+$"
+    regex   = "^(Data Source: |Ephemeral Resource: |List Resource: |Action: )?`azurerm_[^`]+` - .+$"
     example = "`azurerm_example` - fix panic when `name` is empty"
     priority = 2
   }

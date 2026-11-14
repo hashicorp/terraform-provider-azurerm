@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package virtual_machine_gallery_application_assignment_test
@@ -256,8 +256,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package cost_management_scheduled_action
@@ -11,7 +11,7 @@ import (
 
 type Resource struct{}
 
-var _ sdk.Resource = Resource{}
+var _ sdk.ResourceWithCustomizeDiff = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_cost_management_scheduled_action"

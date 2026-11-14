@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package application_insights_standard_web_test
@@ -160,12 +160,11 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Default:  200,
 					},
 
-					// Typo in API spec, issue: https://github.com/Azure/azure-rest-api-specs/issues/22136
-					// "ignore_status_code": {
-					// 	Type:   pluginsdk.TypeBool,
-					// 	Optional: true,
-					// 	Default: false,
-					// },
+					"ignore_status_code": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 
 					"ssl_cert_remaining_lifetime": {
 						Type:         pluginsdk.TypeInt,

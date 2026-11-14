@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -421,6 +421,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"20-lts",
 						"22-lts",
 						"24-lts",
+						"26",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
