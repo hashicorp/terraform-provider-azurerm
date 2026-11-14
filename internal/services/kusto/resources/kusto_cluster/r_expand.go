@@ -12,15 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 )
 
-func expandKustoClusterCustomerManagedKey(input []any) (*clusters.KeyVaultProperties, error) {
+func expandKustoClusterCustomerManagedKey(input []any) (*clusters.KeyVaultProperties, *string, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	config := input[0].(map[string]any)
 	keyID, err := keyvault.ParseNestedItemID(config["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	properties := &clusters.KeyVaultProperties{
@@ -33,10 +33,10 @@ func expandKustoClusterCustomerManagedKey(input []any) (*clusters.KeyVaultProper
 		properties.UserIdentity = pointer.To(identityID)
 	}
 	if clientID := config["federated_identity_client_id"].(string); clientID != "" {
-		properties.FederatedIdentityClientId = pointer.To(clientID)
+		return properties, pointer.To(clientID), nil
 	}
 
-	return properties, nil
+	return properties, nil, nil
 }
 
 func expandOptimizedAutoScale(input []any) *clusters.OptimizedAutoscale {

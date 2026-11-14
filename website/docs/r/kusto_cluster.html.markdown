@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
+~> **Note:** When this block is omitted, a customer managed key configured outside Terraform is left untouched. Removing the block from the configuration disables a customer managed key managed by Terraform.
+
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted. Defaults to `false`.
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.

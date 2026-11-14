@@ -4,6 +4,7 @@
 package kusto_cluster
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,6 +20,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+func updateKustoClusterAndRestoreAutoscaleOnFailure(update func() error, restoreAutoscale func() error) error {
+	if err := update(); err != nil {
+		if restoreAutoscale != nil {
+			if restoreErr := restoreAutoscale(); restoreErr != nil {
+				return errors.Join(err, fmt.Errorf("restoring optimized autoscale: %w", restoreErr))
+			}
+		}
+		return err
+	}
+
+	return nil
+}
 
 func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
@@ -47,7 +61,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	patch := clusters.ClusterUpdate{}
 	props := clusters.ClusterProperties{}
 	hasPropertyChanges := false
-
+	var federatedIdentityClientID *string
 	if d.HasChanges("sku", "optimized_auto_scale") {
 		sku, err := expandKustoClusterSku(d.Get("sku").([]any))
 		if err != nil {
@@ -114,10 +128,11 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	}
 
 	if d.HasChange("customer_managed_key") {
-		customerManagedKey, err := expandKustoClusterCustomerManagedKey(d.Get("customer_managed_key").([]any))
+		customerManagedKey, clientID, err := expandKustoClusterCustomerManagedKey(d.Get("customer_managed_key").([]any))
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
+		federatedIdentityClientID = clientID
 		if customerManagedKey == nil {
 			customerManagedKey = &clusters.KeyVaultProperties{}
 		}
@@ -197,6 +212,19 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	// SKU and autoscale must be changed in separate operations by the Kusto API.
 	autoScaleIsEnabled := existing.Model.Properties.OptimizedAutoscale != nil && existing.Model.Properties.OptimizedAutoscale.IsEnabled
+	autoScaleWasDisabledForSkuUpdate := false
+	restoreAutoScale := func() error {
+		if !autoScaleIsEnabled {
+			return nil
+		}
+		restoreAutoScalePatch := clusters.ClusterUpdate{
+			Properties: &clusters.ClusterProperties{
+				OptimizedAutoscale: existing.Model.Properties.OptimizedAutoscale,
+			},
+		}
+		return client.UpdateThenPoll(ctx, *id, restoreAutoScalePatch, clusters.UpdateOperationOptions{})
+	}
+
 	if patch.Sku != nil && (d.HasChange("optimized_auto_scale") || autoScaleIsEnabled) {
 		if autoScaleIsEnabled {
 			disableAutoScalePatch := clusters.ClusterUpdate{
@@ -204,13 +232,18 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 					OptimizedAutoscale: &clusters.OptimizedAutoscale{Version: 1},
 				},
 			}
-			if err := client.UpdateThenPoll(ctx, *id, disableAutoScalePatch, clusters.UpdateOperationOptions{}); err != nil {
+			if err := updateKustoClusterAndRestoreAutoscaleOnFailure(func() error {
+				return client.UpdateThenPoll(ctx, *id, disableAutoScalePatch, clusters.UpdateOperationOptions{})
+			}, restoreAutoScale); err != nil {
 				return fmt.Errorf("disabling optimized autoscale on %s before updating SKU: %+v", id, err)
 			}
+			autoScaleWasDisabledForSkuUpdate = true
 		}
 
 		skuPatch := clusters.ClusterUpdate{Sku: patch.Sku}
-		if err := client.UpdateThenPoll(ctx, *id, skuPatch, clusters.UpdateOperationOptions{}); err != nil {
+		if err := updateKustoClusterAndRestoreAutoscaleOnFailure(func() error {
+			return client.UpdateThenPoll(ctx, *id, skuPatch, clusters.UpdateOperationOptions{})
+		}, restoreAutoScale); err != nil {
 			return fmt.Errorf("updating %s SKU: %+v", id, err)
 		}
 		patch.Sku = nil
@@ -225,8 +258,17 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, patch, clusters.UpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+	updateProperties := func() error {
+		return updateKustoClusterThenPoll(ctx, client, *id, patch, federatedIdentityClientID, nil)
+	}
+	var updateErr error
+	if autoScaleWasDisabledForSkuUpdate {
+		updateErr = updateKustoClusterAndRestoreAutoscaleOnFailure(updateProperties, restoreAutoScale)
+	} else {
+		updateErr = updateProperties()
+	}
+	if updateErr != nil {
+		return fmt.Errorf("updating %s: %+v", id, updateErr)
 	}
 
 	d.SetId(id.ID())

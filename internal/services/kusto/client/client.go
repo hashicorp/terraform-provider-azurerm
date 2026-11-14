@@ -48,7 +48,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(clusterPrincipalAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	// The generated clusters client is reused with the newer API version until its 2025-02-14 package is available.
+	// The generated clusters client is reused with the stable 2025-02-14 API version until its SDK package is available.
+	// The generated client itself is API-version agnostic; the version is sent as the `api-version` query parameter.
 	clusterResourceManagerClient, err := resourcemanager.NewClient(o.Environment.ResourceManager, "clusters", "2025-02-14")
 	if err != nil {
 		return nil, fmt.Errorf("building Clusters client: %+v", err)

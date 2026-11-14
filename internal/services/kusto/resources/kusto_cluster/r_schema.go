@@ -31,7 +31,6 @@ func kustoClusterSchema() map[string]*pluginsdk.Schema {
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{

@@ -85,12 +85,21 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta any) error {
 			d.Set("public_ip_type", pointer.FromEnum(props.PublicIPType))
 
 			d.Set("language_extension", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
-			customerManagedKey, err := flattenKustoClusterCustomerManagedKey(props.KeyVaultProperties)
-			if err != nil {
-				return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
-			}
-			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
-				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+
+			// Only track the block when it's configured, otherwise an externally managed CMK would show as drift.
+			if _, ok := d.GetOk("customer_managed_key"); ok {
+				// `federatedIdentityClientId` isn't exposed by the pinned SDK model, so it's carried forward from state.
+				var federatedIdentityClientID *string
+				if value, ok := d.GetOk("customer_managed_key.0.federated_identity_client_id"); ok {
+					federatedIdentityClientID = pointer.To(value.(string))
+				}
+				customerManagedKey, err := flattenKustoClusterCustomerManagedKey(props.KeyVaultProperties, federatedIdentityClientID)
+				if err != nil {
+					return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
+				}
+				if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+					return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+				}
 			}
 		}
 
@@ -102,7 +111,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta any) error {
 	return nil
 }
 
-func flattenKustoClusterCustomerManagedKey(properties *clusters.KeyVaultProperties) ([]any, error) {
+func flattenKustoClusterCustomerManagedKey(properties *clusters.KeyVaultProperties, federatedIdentityClientID *string) ([]any, error) {
 	if properties == nil {
 		return []any{}, nil
 	}
@@ -122,7 +131,7 @@ func flattenKustoClusterCustomerManagedKey(properties *clusters.KeyVaultProperti
 		map[string]any{
 			"key_vault_key_id":             keyID.ID(),
 			"user_assigned_identity_id":    pointer.From(properties.UserIdentity),
-			"federated_identity_client_id": pointer.From(properties.FederatedIdentityClientId),
+			"federated_identity_client_id": pointer.From(federatedIdentityClientID),
 		},
 	}, nil
 }
