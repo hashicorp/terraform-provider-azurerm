@@ -107,6 +107,12 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]any))
 	}
 
+	customerManagedKey, err := expandKustoClusterCustomerManagedKey(d.Get("customer_managed_key").([]any))
+	if err != nil {
+		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+	}
+	clusterProperties.KeyVaultProperties = customerManagedKey
+
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)

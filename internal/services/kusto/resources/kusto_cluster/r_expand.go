@@ -8,8 +8,36 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 )
+
+func expandKustoClusterCustomerManagedKey(input []any) (*clusters.KeyVaultProperties, error) {
+	if len(input) == 0 || input[0] == nil {
+		return nil, nil
+	}
+
+	config := input[0].(map[string]any)
+	keyID, err := keyvault.ParseNestedItemID(config["key_vault_key_id"].(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	properties := &clusters.KeyVaultProperties{
+		KeyName:     pointer.To(keyID.Name),
+		KeyVaultUri: pointer.To(keyID.KeyVaultBaseURL),
+		KeyVersion:  pointer.To(keyID.Version),
+	}
+
+	if identityID := config["user_assigned_identity_id"].(string); identityID != "" {
+		properties.UserIdentity = pointer.To(identityID)
+	}
+	if clientID := config["federated_identity_client_id"].(string); clientID != "" {
+		properties.FederatedIdentityClientId = pointer.To(clientID)
+	}
+
+	return properties, nil
+}
 
 func expandOptimizedAutoScale(input []any) *clusters.OptimizedAutoscale {
 	if len(input) == 0 || input[0] == nil {

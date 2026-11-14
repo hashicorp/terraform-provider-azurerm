@@ -37,16 +37,16 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", *id)
 	}
-
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
-	model := existing.Model
-	props := model.Properties
+
+	patch := clusters.ClusterUpdate{}
+	props := clusters.ClusterProperties{}
+	hasPropertyChanges := false
 
 	if d.HasChanges("sku", "optimized_auto_scale") {
 		sku, err := expandKustoClusterSku(d.Get("sku").([]any))
@@ -55,35 +55,39 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 		}
 
 		optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]any))
-
 		if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
 			if sku.Capacity == nil {
 				return fmt.Errorf("sku.capacity cannot be empty")
 			}
-			// Ensure that requested Capacity is always between min and max to support updating to not overlapping autoscale ranges
+			if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
+				return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+			}
+			originalCapacity := *sku.Capacity
 			if *sku.Capacity < optimizedAutoScale.Minimum {
 				sku.Capacity = pointer.To(optimizedAutoScale.Minimum)
 			}
 			if *sku.Capacity > optimizedAutoScale.Maximum {
 				sku.Capacity = pointer.To(optimizedAutoScale.Maximum)
 			}
-			if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
-				return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+			if *sku.Capacity != originalCapacity {
+				patch.Sku = sku
 			}
 		}
-		model.Sku = *sku
-		// optimized_auto_scale can't be updated when the sku is also being updated, so we'll update sku first and then optimized_auto_scale
-		if d.HasChange("optimized_auto_scale") && d.HasChange("sku") {
-			model.Properties.OptimizedAutoscale = nil
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model, clusters.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+
+		if d.HasChange("optimized_auto_scale") {
+			if optimizedAutoScale == nil {
+				optimizedAutoScale = &clusters.OptimizedAutoscale{Version: 1}
 			}
+			props.OptimizedAutoscale = optimizedAutoScale
+			hasPropertyChanges = true
 		}
-		props.OptimizedAutoscale = optimizedAutoScale
+		if d.HasChange("sku") {
+			patch.Sku = sku
+		}
 	}
 
 	if d.HasChange("location") {
-		model.Location = location.Normalize(d.Get("location").(string))
+		patch.Location = pointer.To(location.Normalize(d.Get("location").(string)))
 	}
 
 	if d.HasChange("identity") {
@@ -91,31 +95,49 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		model.Identity = expandedIdentity
+		patch.Identity = expandedIdentity
 	}
 
 	if d.HasChange("allowed_fqdns") {
 		props.AllowedFqdnList = expandKustoListString(d.Get("allowed_fqdns").([]any))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("allowed_ip_ranges") {
 		props.AllowedIPRangeList = expandKustoListString(d.Get("allowed_ip_ranges").([]any))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("auto_stop_enabled") {
 		props.EnableAutoStop = pointer.To(d.Get("auto_stop_enabled").(bool))
+		hasPropertyChanges = true
+	}
+
+	if d.HasChange("customer_managed_key") {
+		customerManagedKey, err := expandKustoClusterCustomerManagedKey(d.Get("customer_managed_key").([]any))
+		if err != nil {
+			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+		}
+		if customerManagedKey == nil {
+			customerManagedKey = &clusters.KeyVaultProperties{}
+		}
+		props.KeyVaultProperties = customerManagedKey
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("disk_encryption_enabled") {
 		props.EnableDiskEncryption = pointer.To(d.Get("disk_encryption_enabled").(bool))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("double_encryption_enabled") {
 		props.EnableDoubleEncryption = pointer.To(d.Get("double_encryption_enabled").(bool))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("language_extension") {
 		props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extension").([]any))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("outbound_network_access_restricted") {
@@ -124,15 +146,17 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 			restrictOutboundNetworkAccess = clusters.ClusterNetworkAccessFlagEnabled
 		}
 		props.RestrictOutboundNetworkAccess = pointer.To(restrictOutboundNetworkAccess)
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("purge_enabled") {
 		props.EnablePurge = pointer.To(d.Get("purge_enabled").(bool))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("public_ip_type") {
-		publicIPType := clusters.PublicIPType(d.Get("public_ip_type").(string))
-		props.PublicIPType = pointer.To(publicIPType)
+		props.PublicIPType = pointer.To(clusters.PublicIPType(d.Get("public_ip_type").(string)))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -141,33 +165,67 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta any) error {
 			publicNetworkAccess = clusters.PublicNetworkAccessDisabled
 		}
 		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("streaming_ingestion_enabled") {
 		props.EnableStreamingIngest = pointer.To(d.Get("streaming_ingestion_enabled").(bool))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("trusted_external_tenants") {
 		props.TrustedExternalTenants = expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]any))
+		hasPropertyChanges = true
 	}
 
 	if d.HasChange("zones") {
 		zoneList := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-		model.Zones = pointer.To(zoneList)
 		if len(zoneList) > 0 {
-			model.Zones = &zoneList
+			patch.Zones = pointer.To(zoneList)
 		} else {
-			model.Zones = nil
+			patch.Zones = nil
 		}
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]any))
+		patch.Tags = tags.Expand(d.Get("tags").(map[string]any))
 	}
 
-	model.Properties = props
+	if hasPropertyChanges {
+		patch.Properties = &props
+	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+	// SKU and autoscale must be changed in separate operations by the Kusto API.
+	autoScaleIsEnabled := existing.Model.Properties.OptimizedAutoscale != nil && existing.Model.Properties.OptimizedAutoscale.IsEnabled
+	if patch.Sku != nil && (d.HasChange("optimized_auto_scale") || autoScaleIsEnabled) {
+		if autoScaleIsEnabled {
+			disableAutoScalePatch := clusters.ClusterUpdate{
+				Properties: &clusters.ClusterProperties{
+					OptimizedAutoscale: &clusters.OptimizedAutoscale{Version: 1},
+				},
+			}
+			if err := client.UpdateThenPoll(ctx, *id, disableAutoScalePatch, clusters.UpdateOperationOptions{}); err != nil {
+				return fmt.Errorf("disabling optimized autoscale on %s before updating SKU: %+v", id, err)
+			}
+		}
+
+		skuPatch := clusters.ClusterUpdate{Sku: patch.Sku}
+		if err := client.UpdateThenPoll(ctx, *id, skuPatch, clusters.UpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("updating %s SKU: %+v", id, err)
+		}
+		patch.Sku = nil
+
+		if autoScaleIsEnabled {
+			if patch.Properties == nil {
+				patch.Properties = &clusters.ClusterProperties{}
+			}
+			if patch.Properties.OptimizedAutoscale == nil {
+				patch.Properties.OptimizedAutoscale = existing.Model.Properties.OptimizedAutoscale
+			}
+		}
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, patch, clusters.UpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
