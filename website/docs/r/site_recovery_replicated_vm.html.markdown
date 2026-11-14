@@ -23,36 +23,27 @@ resource "azurerm_resource_group" "secondary" {
   location = "East US"
 }
 
-resource "azurerm_virtual_machine" "vm" {
-  name                  = "vm"
-  location              = azurerm_resource_group.primary.location
-  resource_group_name   = azurerm_resource_group.primary.name
-  vm_size               = "Standard_B1s"
-  network_interface_ids = [azurerm_network_interface.vm.id]
+resource "azurerm_linux_virtual_machine" "vm" {
+  name                            = "vm"
+  location                        = azurerm_resource_group.primary.location
+  resource_group_name             = azurerm_resource_group.primary.name
+  size                            = "Standard_B1s"
+  admin_username                  = "test-admin-123"
+  admin_password                  = "test-pwd-123"
+  disable_password_authentication = false
+  network_interface_ids           = [azurerm_network_interface.vm.id]
 
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "vm-os-disk"
-    os_type           = "Linux"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
-  }
-
-  os_profile {
-    admin_username = "test-admin-123"
-    admin_password = "test-pwd-123"
-    computer_name  = "vm"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    name                 = "vm-os-disk"
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
   }
 }
 
@@ -189,7 +180,7 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   resource_group_name                       = azurerm_resource_group.secondary.name
   recovery_vault_name                       = azurerm_recovery_services_vault.vault.name
   source_recovery_fabric_name               = azurerm_site_recovery_fabric.primary.name
-  source_vm_id                              = azurerm_virtual_machine.vm.id
+  source_vm_id                              = azurerm_linux_virtual_machine.vm.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.policy.id
   source_recovery_protection_container_name = azurerm_site_recovery_protection_container.primary.name
 
@@ -197,7 +188,7 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.secondary.id
   target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id
   managed_disk {
-    disk_id                    = azurerm_virtual_machine.vm.storage_os_disk[0].managed_disk_id
+    disk_id                    = azurerm_linux_virtual_machine.vm.os_disk[0].id
     staging_storage_account_id = azurerm_storage_account.primary.id
     target_resource_group_id   = azurerm_resource_group.secondary.id
     target_disk_type           = "Premium_LRS"
