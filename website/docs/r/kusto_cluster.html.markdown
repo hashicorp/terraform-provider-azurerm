@@ -54,6 +54,10 @@ The following arguments are supported:
 
 * `auto_stop_enabled` - (Optional) Specifies if the cluster could be automatically stopped (due to lack of data or no activity for many days). Defaults to `true`.
 
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
+~> **Note:** When this block is omitted, a customer managed key configured outside Terraform is left untouched. Removing the block from the configuration disables a customer managed key managed by Terraform.
+
 * `disk_encryption_enabled` - (Optional) Specifies if the cluster's disks are encrypted. Defaults to `false`.
 
 * `double_encryption_enabled` - (Optional) Is the cluster's double encryption enabled? Changing this forces a new resource to be created.
@@ -93,6 +97,16 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Kusto Cluster.
 
 ~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `customer_managed_key` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key to use for encryption.
+
+* `user_assigned_identity_id` - (Optional) The ID of a User Assigned Managed Identity to use to access the Key Vault.
+
+* `federated_identity_client_id` - (Optional) The client ID of the federated identity used to access the Key Vault. Requires `user_assigned_identity_id`.
 
 ---
 

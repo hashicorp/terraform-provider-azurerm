@@ -107,6 +107,12 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]any))
 	}
 
+	customerManagedKey, federatedIdentityClientID, err := expandKustoClusterCustomerManagedKey(d.Get("customer_managed_key").([]any))
+	if err != nil {
+		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+	}
+	clusterProperties.KeyVaultProperties = customerManagedKey
+
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]any))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -125,7 +131,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta any) error {
 		kustoCluster.Zones = &zones
 	}
 
-	if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}, sdk.SetIDCallback(meta, &id, d)); err != nil {
+	if err := createOrUpdateKustoClusterThenPoll(ctx, client, id, kustoCluster, federatedIdentityClientID, sdk.SetIDCallback(meta, &id, d)); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 

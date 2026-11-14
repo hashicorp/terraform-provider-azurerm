@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/scripts"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -47,11 +48,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(clusterPrincipalAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	clustersClient, err := clusters.NewClustersClientWithBaseURI(o.Environment.ResourceManager)
+	// The generated clusters client is reused with the stable 2025-02-14 API version until its SDK package is available.
+	// The generated client itself is API-version agnostic; the version is sent as the `api-version` query parameter.
+	clusterResourceManagerClient, err := resourcemanager.NewClient(o.Environment.ResourceManager, "clusters", "2025-02-14")
 	if err != nil {
 		return nil, fmt.Errorf("building Clusters client: %+v", err)
 	}
-	o.Configure(clustersClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(clusterResourceManagerClient, o.Authorizers.ResourceManager)
+	clustersClient := &clusters.ClustersClient{
+		Client: clusterResourceManagerClient,
+	}
 
 	databasePrincipalAssignmentsClient, err := databaseprincipalassignments.NewDatabasePrincipalAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
