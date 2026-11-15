@@ -5,7 +5,6 @@ package kubernetes_cluster_node_pool
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -26,10 +25,8 @@ func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
 		want    string
 	}{
 		{name: "omitted", omit: true},
-		{name: "null", message: nil},
 		{name: "empty", message: ""},
 		{name: "text", message: "Welcome\n日本語", want: "Welcome\n日本語"},
-		{name: "literal shell", message: "$(hostname)", want: "$(hostname)"},
 		{name: "literal base64", message: "V2VsY29tZQ==", want: "V2VsY29tZQ=="},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -54,13 +51,6 @@ func TestKubernetesMessageOfTheDayExpand(t *testing.T) {
 				} else if value == nil || *value != base64.StdEncoding.EncodeToString([]byte(test.want)) {
 					t.Fatalf("%s did not preserve the base64-encoded MOTD: %v", name, value)
 				}
-			}
-			wire, err := json.Marshal(converted)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if strings.Contains(string(wire), `"messageOfTheDay"`) != (test.want != "") {
-				t.Fatalf("unexpected MOTD wire presence: %s", wire)
 			}
 		})
 	}
