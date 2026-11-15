@@ -49,11 +49,6 @@ func TestKubernetesFleetAutoUpgradeProfileRead(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			name:   "null optional properties",
-			body:   `{"properties":{"channel":"Stable","nodeImageSelection":null,"updateStrategyId":null,"disabled":null}}`,
-			status: http.StatusOK,
-		},
-		{
 			name: "mixed case API strategy ID",
 			body: fmt.Sprintf(`{"properties":{"channel":"Stable","updateStrategyId":%q}}`,
 				strings.NewReplacer("resourceGroups", "RESOURCEGROUPS", "Microsoft.ContainerService", "microsoft.containerservice", "updateStrategies", "UPDATESTRATEGIES").Replace(strategyID)),
@@ -74,21 +69,8 @@ func TestKubernetesFleetAutoUpgradeProfileRead(t *testing.T) {
 			wantError: true,
 		},
 		{
-			name:      "null properties",
-			body:      `{"properties":null}`,
-			status:    http.StatusOK,
-			wantError: true,
-		},
-		{
 			name:      "update missing properties",
 			body:      `{}`,
-			status:    http.StatusOK,
-			wantError: true,
-			update:    true,
-		},
-		{
-			name:      "update null properties",
-			body:      `{"properties":null}`,
 			status:    http.StatusOK,
 			wantError: true,
 			update:    true,

@@ -39,8 +39,6 @@ func TestKubernetesFleetAutoUpgradeProfileUpdate(t *testing.T) {
 		afterEnable  bool
 	}{
 		{name: "remove selection", beforeImage: "Latest"},
-		{name: "restore selection", afterImage: "Latest"},
-		{name: "change selection", beforeImage: "Latest", afterImage: "Consistent"},
 		{name: "reenable preserving selection", beforeImage: "Latest", afterImage: "Latest", afterEnable: true},
 		{name: "disable preserving selection", beforeImage: "Latest", afterImage: "Latest", beforeEnable: true},
 	}

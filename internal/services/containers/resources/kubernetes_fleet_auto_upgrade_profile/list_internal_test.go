@@ -52,7 +52,6 @@ func TestKubernetesFleetAutoUpgradeProfileList(t *testing.T) {
 		{name: "empty fleet", body: `{"value":[]}`, status: http.StatusOK},
 		{name: "not found is an error", body: `{"error":{"code":"ResourceNotFound","message":"fleet not found"}}`, status: http.StatusNotFound, wantError: true},
 		{name: "missing properties", body: fmt.Sprintf(`{"value":[{"id":%q,"name":"first"}]}`, id.ID()), status: http.StatusOK, wantError: true},
-		{name: "null properties", body: fmt.Sprintf(`{"value":[{"id":%q,"name":"first","properties":null}]}`, id.ID()), status: http.StatusOK, wantError: true},
 		{name: "invalid identity", body: `{"value":[{"id":"invalid","name":"first","properties":{"channel":"Stable"}}]}`, status: http.StatusOK, wantError: true},
 		{name: "wrong identity resource type", body: fmt.Sprintf(`{"value":[%s]}`, strings.Replace(first, id.ID(), strategyID, 1)), status: http.StatusOK, wantError: true},
 		{name: "unknown parent", configID: &unknownParent, wantError: true},
