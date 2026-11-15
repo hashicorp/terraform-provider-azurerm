@@ -63,6 +63,13 @@ provider "azurerm" {
 
 %s
 
+resource "azurerm_storage_mover_source_endpoint" "test" {
+  name             = "acctest-nfs-%d"
+  storage_mover_id = azurerm_storage_mover.test.id
+  host             = "192.168.0.1"
+  export           = "/share"
+}
+
 resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
   count = 2
 
@@ -71,7 +78,7 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
   host             = "192.168.0.1"
   share_name       = "testshare"
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StorageMoverSmbMountEndpointResource) listQuery() string {
