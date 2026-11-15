@@ -29,14 +29,20 @@ func TestAccStorageMoverNfsFileShareTargetEndpoint_list(t *testing.T) {
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
-			{Config: r.basic(data)},
+			{Config: r.listConfig(data)},
 			{
 				Query:  true,
 				Config: r.listQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_storage_mover_nfs_file_share_target_endpoint.list", 1),
+					querycheck.ExpectLength("azurerm_storage_mover_nfs_file_share_target_endpoint.list", 2),
 					querycheck.ExpectIdentity("azurerm_storage_mover_nfs_file_share_target_endpoint.list", map[string]knownvalue.Check{
-						"name":                knownvalue.StringExact(resourceName),
+						"name":                knownvalue.StringExact(resourceName + "-0"),
+						"resource_group_name": knownvalue.StringExact(resourceGroupName),
+						"storage_mover_name":  knownvalue.StringExact(storageMoverName),
+						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+					}),
+					querycheck.ExpectIdentity("azurerm_storage_mover_nfs_file_share_target_endpoint.list", map[string]knownvalue.Check{
+						"name":                knownvalue.StringExact(resourceName + "-1"),
 						"resource_group_name": knownvalue.StringExact(resourceGroupName),
 						"storage_mover_name":  knownvalue.StringExact(storageMoverName),
 						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
@@ -45,6 +51,32 @@ func TestAccStorageMoverNfsFileShareTargetEndpoint_list(t *testing.T) {
 			},
 		},
 	})
+}
+
+func (r StorageMoverNfsFileShareTargetEndpointResource) listConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_mover_source_endpoint" "test" {
+  name             = "acctest-nfs-%d"
+  storage_mover_id = azurerm_storage_mover.test.id
+  host             = "192.168.0.1"
+  export           = "/share"
+}
+
+resource "azurerm_storage_mover_nfs_file_share_target_endpoint" "test" {
+  count = 2
+
+  name               = "acctest-smnfse-%d-${count.index}"
+  storage_mover_id   = azurerm_storage_mover.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  file_share_name    = azurerm_storage_share.test.name
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r StorageMoverNfsFileShareTargetEndpointResource) listQuery() string {
