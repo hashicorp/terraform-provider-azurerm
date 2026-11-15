@@ -49,7 +49,7 @@ func TestStorageMoverLegacyEndpointOwnership(t *testing.T) {
 						status := http.StatusOK
 						if operation == "delete-not-found" {
 							status = http.StatusNotFound
-							}
+						}
 						return &http.Response{
 							StatusCode: status,
 							Header:     http.Header{"Content-Type": []string{"application/json"}},
