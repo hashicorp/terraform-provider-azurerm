@@ -4,7 +4,6 @@
 package kubernetes_cluster
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -28,16 +27,8 @@ func TestKubernetesAzurePolicyPayload(t *testing.T) {
 		if !ok || profile.Enabled != enabled {
 			t.Fatalf("azure policy enabled = %t, want %t", profile.Enabled, enabled)
 		}
-		wire, err := json.Marshal(profile)
-		if err != nil {
-			t.Fatal(err)
-		}
-		var payload map[string]any
-		if err := json.Unmarshal(wire, &payload); err != nil {
-			t.Fatal(err)
-		}
-		if _, ok := payload["config"]; ok {
-			t.Fatalf("azure policy must not send a config version: %s", wire)
+		if profile.Config != nil {
+			t.Fatalf("azure policy must not send a config version: %#v", profile.Config)
 		}
 	}
 }
