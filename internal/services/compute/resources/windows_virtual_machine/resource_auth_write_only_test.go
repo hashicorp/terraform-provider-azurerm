@@ -64,10 +64,8 @@ func TestAccWindowsVirtualMachine_authPasswordWriteOnlyLifecycle(t *testing.T) {
 		importStep(passwords[0]),
 		// A write-only value alone cannot produce a diff or change the VM.
 		step(passwords[1], 1, plancheck.ResourceActionNoop),
-		step(passwords[1], 2, plancheck.ResourceActionReplace),
-		importStep(passwords[1]),
 		// The version itself must trigger replacement, even with the same password.
-		step(passwords[1], 3, plancheck.ResourceActionReplace),
+		step(passwords[1], 2, plancheck.ResourceActionReplace),
 		importStep(passwords[1]),
 	})
 }
