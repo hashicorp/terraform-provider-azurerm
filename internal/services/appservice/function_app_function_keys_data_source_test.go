@@ -43,7 +43,7 @@ func TestAccFunctionAppFunctionKeysDataSource_functionNotFound(t *testing.T) {
 	})
 }
 
-func (FunctionAppFunctionKeysDataSource) basic(data acceptance.TestData) string {
+func (d FunctionAppFunctionKeysDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -51,7 +51,7 @@ data "azurerm_function_app_function_keys" "test" {
   function_app_id = azurerm_function_app_function.test.function_app_id
   function_name   = azurerm_function_app_function.test.name
 }
-`, FunctionAppFunctionResource{}.withLocalFiles(data))
+`, d.functionTemplate(data))
 }
 
 func (FunctionAppFunctionKeysDataSource) functionNotFound(data acceptance.TestData) string {
@@ -67,4 +67,47 @@ data "azurerm_function_app_function_keys" "test" {
   function_name   = "doesNotExist"
 }
 `, FunctionAppFunctionResource{}.templateLinux(data))
+}
+
+// functionTemplate provisions a Function with deployed code, since the Functions host only generates keys once it
+// has successfully loaded the Function. `test_data` is intentionally omitted as it is not read back consistently.
+func (FunctionAppFunctionKeysDataSource) functionTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_function_app_function" "test" {
+  name            = "testAcc-FnAppFn-%[2]d"
+  function_app_id = azurerm_windows_function_app.test.id
+  language        = "CSharp"
+
+  file {
+    name    = "run.csx"
+    content = file("testdata/run.csx")
+  }
+
+  config_json = jsonencode({
+    "bindings" = [
+      {
+        "authLevel" = "function"
+        "direction" = "in"
+        "methods" = [
+          "get",
+          "post",
+        ]
+        "name" = "req"
+        "type" = "httpTrigger"
+      },
+      {
+        "direction" = "out"
+        "name"      = "$return"
+        "type"      = "http"
+      },
+    ]
+  })
+}
+`, FunctionAppFunctionResource{}.templateWindows(data), data.RandomInteger)
 }
