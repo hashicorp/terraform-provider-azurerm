@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_nat_rule_collection_test
@@ -20,6 +20,17 @@ import (
 )
 
 type FirewallNatRuleCollectionResource struct{}
+
+func TestAccFirewallNatRuleCollection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccFirewallNatRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")

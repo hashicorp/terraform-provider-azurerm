@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_schedule
@@ -36,15 +36,9 @@ func automationScheduleSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"frequency": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(schedule.ScheduleFrequencyDay),
-				string(schedule.ScheduleFrequencyHour),
-				string(schedule.ScheduleFrequencyMonth),
-				string(schedule.ScheduleFrequencyOneTime),
-				string(schedule.ScheduleFrequencyWeek),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(schedule.PossibleValuesForScheduleFrequency(), false),
 		},
 
 		"interval": {

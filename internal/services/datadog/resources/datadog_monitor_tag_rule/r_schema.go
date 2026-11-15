@@ -1,11 +1,10 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_monitor_tag_rule
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -16,7 +15,7 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: monitorsresource.ValidateMonitorID,
+			ValidateFunc: tagrules.ValidateMonitorID,
 		},
 
 		"name": {
@@ -61,7 +60,7 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 								"action": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
+									ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 								},
 							},
 						},
@@ -91,7 +90,7 @@ func datadogMonitorTagRuleSchema() map[string]*pluginsdk.Schema {
 								"action": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTagAction(), false),
+									ValidateFunc: validation.StringInSlice(tagrules.PossibleValuesForTagAction(), false),
 								},
 							},
 						},

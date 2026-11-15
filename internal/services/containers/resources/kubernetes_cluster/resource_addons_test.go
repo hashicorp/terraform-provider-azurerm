@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster_test
@@ -306,10 +306,11 @@ func TestAccKubernetesCluster_addonProfileConfidentialComputing(t *testing.T) {
 func TestAccKubernetesCluster_addonProfileServiceMeshProfile_certificateAuthority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileCertificateAuthorityConfig(data),
+			Config: r.addonProfileServiceMeshProfileCertificateAuthorityConfig(data, meta.LatestMeshRevision),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1327,7 +1328,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (k KubernetesClusterResource) addonProfileServiceMeshProfileCertificateAuthorityConfig(data acceptance.TestData) string {
+func (k KubernetesClusterResource) addonProfileServiceMeshProfileCertificateAuthorityConfig(data acceptance.TestData, serviceMeshVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1584,7 +1585,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-28"]
+    revisions                        = [%[3]q]
     certificate_authority {
       key_vault_id           = azurerm_key_vault.test.id
       root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
@@ -1595,7 +1596,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
 }
-`, data.RandomString, data.Locations.Primary)
+`, data.RandomString, data.Locations.Primary, serviceMeshVersion)
 }
 
 func (KubernetesClusterResource) addonProfileServiceMeshProfileRevisionsConfig(data acceptance.TestData, revisions string) string {

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package fluid_relay_server_test
@@ -18,6 +18,17 @@ import (
 )
 
 type FluidRelayResource struct{}
+
+func TestAccFluidRelayServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
+	f := FluidRelayResource{}
+
+	data.ResourceRegressionTest(t, f, []acceptance.TestStep{
+		{
+			Config: f.basic(data),
+		},
+	}, "")
+}
 
 func TestAccFluidRelayServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")

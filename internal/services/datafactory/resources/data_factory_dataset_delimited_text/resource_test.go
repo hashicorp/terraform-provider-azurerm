@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_dataset_delimited_text_test
@@ -75,6 +75,17 @@ func TestAccDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func TestAccDataFactoryDatasetDelimitedText_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
+	r := DatasetDelimitedTextResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blob_basic(data),
+		},
+	}, "")
 }
 
 func TestAccDataFactoryDatasetDelimitedText_blob_basic(t *testing.T) {

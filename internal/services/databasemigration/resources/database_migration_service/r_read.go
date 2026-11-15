@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package database_migration_service
@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serviceresource"
@@ -42,6 +44,17 @@ func resourceDatabaseMigrationServiceRead(d *pluginsdk.ResourceData, meta any) e
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		if props := model.Properties; props != nil {
+			networkInterfaceId := ""
+			if virtualNicId := pointer.From(props.VirtualNicId); virtualNicId != "" {
+				nicId, err := commonids.ParseNetworkInterfaceIDInsensitively(virtualNicId)
+				if err != nil {
+					return err
+				}
+				networkInterfaceId = nicId.ID()
+			}
+			if err := d.Set("network_interface_id", networkInterfaceId); err != nil {
+				return fmt.Errorf("setting `network_interface_id`: %+v", err)
+			}
 			d.Set("subnet_id", props.VirtualSubnetId)
 		}
 		d.Set("sku_name", model.Sku.Name)

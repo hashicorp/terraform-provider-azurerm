@@ -18,6 +18,17 @@ import (
 
 type LinkedServiceSQLManagedInstanceResource struct{}
 
+func TestAccDataFactoryLinkedServiceSQLManagedInstance_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
+	r := LinkedServiceSQLManagedInstanceResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
+
 func TestAccDataFactoryLinkedServiceSQLManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_managed_instance", "test")
 	r := LinkedServiceSQLManagedInstanceResource{}
