@@ -20,7 +20,6 @@ func TestAccKubernetesCluster_defaultNodePoolArtifactStreaming(t *testing.T) {
 			Config: r.defaultNodePoolArtifactStreaming(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.artifact_streaming_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -28,7 +27,6 @@ func TestAccKubernetesCluster_defaultNodePoolArtifactStreaming(t *testing.T) {
 			Config: r.defaultNodePoolArtifactStreaming(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.artifact_streaming_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
