@@ -2,8 +2,7 @@
 
 This guide covers how to add a List Resource for an existing resource, using `azurerm_network_profile` as an example. For more information on Lists, see [Resources - List](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/list).
 
-> [!IMPORTANT]
-> **List Resource implementations are mandatory for all new resources.** A CI check (`enforce-list-resources`) will verify that every new resource file (`*_resource.go`) has a corresponding `*_resource_list.go` file. If your resource genuinely cannot support listing (e.g. no List API exists), please explain why in the PR description and a maintainer will apply the `allow-without-list` or `list-not-supported` label to skip the check.
+Every new resource needs one, and CI checks for the `*_resource_list.go` file. If the API has no list operation, say so in the PR and a maintainer will add the `list-not-supported` label.
 
 ## Prerequisites
 
@@ -21,14 +20,14 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     func resourceNetworkProfileFlatten(d *pluginsdk.ResourceData, id *networkprofiles.NetworkProfileId, profile *networkprofiles.NetworkProfile) error {
         d.Set("name", id.NetworkProfileName)
         d.Set("resource_group_name", id.ResourceGroupName)
-    
+
         if profile != nil {
             if props := profile.Properties; props != nil {
                 cniConfigs := flattenNetworkProfileContainerNetworkInterface(props.ContainerNetworkInterfaceConfigurations)
                 if err := d.Set("container_network_interface", cniConfigs); err != nil {
                     return fmt.Errorf("setting `container_network_interface`: %+v", err)
                 }
-    
+
                 cniIDs := flattenNetworkProfileContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
                 if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
                     return fmt.Errorf("setting `container_network_interface_ids`: %+v", err)
@@ -49,23 +48,23 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     func (ExampleResource) flatten(metadata sdk.ResourceMetaData, id *example.ExampleId, model *example.ExampleModel) error {
         // Instantiate state, set any fields with known values (e.g. ones we can derive from the ID)
         state := ExampleResourceModel{
-            Name: id.ExampleResourceName
-            ResourceGroupName: id.ResourceGroupName
+            Name:              id.ExampleResourceName,
+            ResourceGroupName: id.ResourceGroupName,
         }
-   
+
         if model != nil {
             state.Location = location.Normalize(model.Location)
-            
+
             if props := model.Properties; props != nil {
-                // Set remaining properties into the Resource Model (`state`)   
+                // Set remaining properties into the Resource Model (`state`)
             }
         }
-   
+
         // Set the Resource Identity Data
         if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
             return err
         }
-   
+
         return metadata.Encode(&state)
     }
     ```
@@ -76,9 +75,9 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
     ```go
     type NetworkProfileListResource struct{}
-    
+
     var _ sdk.FrameworkListWrappedResource = new(NetworkProfileListResource)
-    
+
     func (NetworkProfileListResource) ResourceFunc() *pluginsdk.Resource {
         return resourceNetworkProfile()
     }
@@ -95,7 +94,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     type ExampleListResource struct{}
 
     var _ sdk.FrameworkListWrappedResource = new(ExampleListResource)
-    
+
     func (ExampleListResource) ResourceFunc() *pluginsdk.Resource {
         // Use the `sdk.WrappedResource` helper to convert a typed resource into `*pluginsdk.Resource`
         return sdk.WrappedResource(ExampleResource{})
@@ -114,7 +113,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
         SubscriptionId    types.String `tfsdk:"subscription_id"`
         ResourceGroupName types.String `tfsdk:"resource_group_name"`
     }
-    
+
     func (NetworkProfileListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
         response.Schema = schema.Schema{
             Attributes: map[string]schema.Attribute{
@@ -145,9 +144,9 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
     ```go
     func (NetworkProfileListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-    
+
         client := metadata.Client.Network.NetworkProfiles
-    
+
         // Read the list config data into the model
         var data sdk.DefaultListModel
         diags := request.Config.Get(ctx, &data)
@@ -155,15 +154,15 @@ Before adding a List Resource, the resource must have Resource Identity implemen
             stream.Results = list.ListResultsStreamDiagnostics(diags)
             return
         }
-    
+
         // Initialize a list for the results of the API request
         results := make([]networkprofiles.NetworkProfile, 0)
-    
+
         subscriptionID := metadata.SubscriptionId
         if !data.SubscriptionId.IsNull() {
             subscriptionID = data.SubscriptionId.ValueString()
         }
-    
+
         // Make the request based on which list parameters have been set in the config
         switch {
         case !data.ResourceGroupName.IsNull():
@@ -172,7 +171,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azureNetworkProfileResourceName), err)
                 return
             }
-    
+
             results = resp.Items
         default:
             resp, err := client.ListAllComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
@@ -180,23 +179,23 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azureNetworkProfileResourceName), err)
                 return
             }
-    
+
             results = resp.Items
         }
-    
-        // Define the function that will push results into the stream 
+
+        // Define the function that will push results into the stream
         stream.Results = func(push func(list.ListResult) bool) {
             for _, profile := range results {
-            
+
                 // Initialize a new result object for each resource in the list
                 result := request.NewListResult(ctx)
-                
+
                 // Set the display name of the item as the resource name
                 result.DisplayName = pointer.From(profile.Name)
-    
+
                 // Create a new ResourceData object to hold the state of the resource
                 rd := resourceNetworkProfile().Data(&terraform.InstanceState{})
-                
+
                 // Set the ID of the resource for the ResourceData object
                 id, err := networkprofiles.ParseNetworkProfileID(pointer.From(profile.Id))
                 if err != nil {
@@ -204,13 +203,13 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                     return
                 }
                 rd.SetId(id.ID())
-    
+
                 // Use the resource flatten function to set the attributes into the resource state
                 if err := resourceNetworkProfileFlatten(rd, id, &profile); err != nil {
                     sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
                     return
                 }
-    
+
                // Convert and set the identity and resource state into the result
                sdk.EncodeListResult(ctx, rd, &result)
                if result.Diagnostics.HasError() {
@@ -247,7 +246,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
         }
 
         r := ExampleResource{}
-   
+
         switch {
         case !data.ResourceGroupName.IsNull():
             resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
@@ -264,38 +263,39 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 return
             }
 
-        results = resp.Items
-    }
+            results = resp.Items
+        }
 
-    stream.Results = func(push func(list.ListResult) bool) {
-        for _, exampleResult := range results {
-            result := request.NewListResult(ctx)
-            result.DisplayName = pointer.From(exampleResult.Name)
+        stream.Results = func(push func(list.ListResult) bool) {
+            for _, exampleResult := range results {
+                result := request.NewListResult(ctx)
+                result.DisplayName = pointer.From(exampleResult.Name)
 
-            id, err := example.ParseExampleID(pointer.From(exampleResult.Id))
-            if err != nil {
-                sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Example ID", err)
-                return
-            }
+                id, err := example.ParseExampleID(pointer.From(exampleResult.Id))
+                if err != nil {
+                    sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Example ID", err)
+                    return
+                }
 
-            // Instantiate a new ResourceMetaData object to leverage the resource's `flatten` function
-            // which uses the `(ResourceMetaData).Encode()` function to populate the resource state.
-            rmd := sdk.NewResourceMetaData(metadata.Client, r)
-            rmd.SetID(id)
+                // Instantiate a new ResourceMetaData object to leverage the resource's `flatten` function
+                // which uses the `(ResourceMetaData).Encode()` function to populate the resource state.
+                rmd := sdk.NewResourceMetaData(metadata.Client, r)
+                rmd.SetID(id)
 
-            if err := r.flatten(rmd, id, &exampleResult); err != nil {
-                sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
-                return
-            }
+                if err := r.flatten(rmd, id, &exampleResult); err != nil {
+                    sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
+                    return
+                }
 
-            sdk.EncodeListResult(ctx, rmd.ResourceData, &result)
-            if result.Diagnostics.HasError() {
-                push(result)
-                return
-            }
+                sdk.EncodeListResult(ctx, rmd.ResourceData, &result)
+                if result.Diagnostics.HasError() {
+                    push(result)
+                    return
+                }
 
-            if !push(result) {
-                return
+                if !push(result) {
+                    return
+                }
             }
         }
     }
@@ -307,15 +307,15 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
     ```
     package network
-    
+
     import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-    
+
     type Registration struct{}
-    
+
     var _ sdk.FrameworkServiceRegistration = Registration{}
-    
+
     // ...
-    
+
     // Resources returns a list of List Resources supported by this Service
     func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
         return []sdk.FrameworkListWrappedResource{
@@ -332,25 +332,25 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
     ```
     package network_test
-    
+
     import (
         "context"
         "fmt"
         "testing"
-    
+
         "github.com/hashicorp/terraform-plugin-testing/helper/resource"
         "github.com/hashicorp/terraform-plugin-testing/querycheck"
         "github.com/hashicorp/terraform-plugin-testing/tfversion"
         "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
         "github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
     )
-    
+
     func TestAccNetworkProfile_list_basic(t *testing.T) {
         r := NetworkProfileResource{}
         listResourceAddress := "azurerm_network_profile.list"
-    
+
         data := acceptance.BuildTestData(t, "azurerm_network_profile", "test1")
-    
+
         resource.Test(t, resource.TestCase{
             TerraformVersionChecks: []tfversion.TerraformVersionCheck{
                 tfversion.SkipBelow(tfversion.Version1_14_0),
@@ -377,27 +377,27 @@ Before adding a List Resource, the resource must have Resource Identity implemen
             },
         })
     }
-    
+
     // provision multiple Network Profile resources for testing
     func (r NetworkProfileResource) basicList(data acceptance.TestData) string {
         return fmt.Sprintf(`
     provider "azurerm" {
       features {}
     }
-    
+
     // Prerequisite Resources ....
-    
+
     resource "azurerm_network_profile" "test" {
       // Where possible, use the `count` meta argument to provision multiple resources to query
       count = 3
-   
+
       name                = "acctestnetprofile${count.index}-%[1]d"
       location            = azurerm_resource_group.test.location
       resource_group_name = azurerm_resource_group.test.name
-    
+
       container_network_interface {
         name = "acctesteth-%[1]d"
-    
+
         ip_configuration {
           name      = "acctestipconfig-%[1]d"
           subnet_id = azurerm_subnet.test.id
@@ -406,7 +406,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     }
     `, data.RandomInteger, data.Locations.Primary)
     }
-    
+
     // define the basic list query for testing
     func (r NetworkProfileResource) basicQuery() string {
         return `
@@ -416,7 +416,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     }
     `
     }
-    
+
     // define the list query for testing by resource group name
     func (r NetworkProfileResource) basicQueryByResourceGroupName() string {
         return `
@@ -428,7 +428,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     }
     `
     }
-    
+
     ```
 
 7. Add documentation for this List Resource
@@ -445,24 +445,24 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     description: |-
     Lists Network Profile resources.
     ---
-    
+
     # List resource: azurerm_network_profile
-    
+
     Lists Network Profile resources.
-    
+
     ## Example Usage
-    
+
     ### List all Network Profiles in the subscription
-    
+
     ```hcl
     list "azurerm_network_profile" "example" {
       provider = azurerm
       config {}
     }
     ```
-    
+
     ### List all Network Profiles in a specific resource group
-    
+
     ```hcl
     list "azurerm_network_profile" "example" {
       provider = azurerm
@@ -471,13 +471,13 @@ Before adding a List Resource, the resource must have Resource Identity implemen
       }
     }
     ```
-    
+
     ## Argument Reference
-    
+
     This list resource supports the following arguments:
-    
+
     * `resource_group_name` - (Optional) The name of the resource group to query.
-    
+
     * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
     ````
 
@@ -513,12 +513,12 @@ func (ExampleListResource) List(ctx context.Context, request list.ListRequest, s
         sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
         return
     }
-    
-    stream.Result = func(push func(list.ListResult) bool) {
+
+    stream.Results = func(push func(list.ListResult) bool) {
         // Instantiate a new context based on the deadline retrieved earlier
         ctx, cancel := context.WithDeadline(context.Background(), deadline)
         defer cancel()
-        
+
         for _, example := range results {
             // Remaining logic to retrieve and set the resource data
         }

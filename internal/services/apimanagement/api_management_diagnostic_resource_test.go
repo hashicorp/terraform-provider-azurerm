@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -17,6 +17,16 @@ import (
 )
 
 type ApiManagementDiagnosticResource struct{}
+
+func TestAccApiManagementDiagnostic_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
+	r := ApiManagementDiagnosticResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccApiManagementDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
@@ -107,6 +117,35 @@ func TestAccApiManagementDiagnostic_completeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementDiagnostic_samplingPercentage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
+	r := ApiManagementDiagnosticResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.samplingPercentage(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.samplingPercentage(data, 11.1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.samplingPercentage(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ApiManagementDiagnosticResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	diagnosticId, err := diagnostic.ParseDiagnosticID(state.ID)
 	if err != nil {
@@ -173,6 +212,20 @@ resource "azurerm_api_management_diagnostic" "test" {
 `, r.template(data))
 }
 
+func (r ApiManagementDiagnosticResource) samplingPercentage(data acceptance.TestData, percentage float64) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_api_management_diagnostic" "test" {
+  identifier               = "applicationinsights"
+  resource_group_name      = azurerm_resource_group.test.name
+  api_management_name      = azurerm_api_management.test.name
+  api_management_logger_id = azurerm_api_management_logger.test.id
+  sampling_percentage      = %[2]g
+}
+`, r.template(data), percentage)
+}
+
 func (r ApiManagementDiagnosticResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -199,6 +252,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   api_management_name      = azurerm_api_management.test.name
   api_management_logger_id = azurerm_api_management_logger.test2.id
+  metrics_enabled          = true
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -228,6 +282,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   sampling_percentage       = 11.1
   always_log_errors         = false
   log_client_ip             = false
+  metrics_enabled           = true
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
 
@@ -307,6 +362,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   sampling_percentage       = 11.1
   always_log_errors         = false
   log_client_ip             = false
+  metrics_enabled           = false
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
   operation_name_format     = "Url"

@@ -109,7 +109,7 @@ The `backup` block supports:
 
 The `hourly` block supports:
 
-* `interval` - (Required) Specifies the interval at which backup needs to be triggered. Possible values are `4`, `6`, `8` and `12`.
+* `interval` - (Required) Specifies the interval at which backup needs to be triggered. Possible values are `1`, `2`, `4`, `6`, `8` and `12`.
 
 * `start_time` - (Required) Specifies the start time of the hourly backup. The time format should be in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.).
 
