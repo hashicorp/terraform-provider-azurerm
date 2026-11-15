@@ -51,7 +51,7 @@ data "azurerm_function_app_function_keys" "test" {
   function_app_id = azurerm_function_app_function.test.function_app_id
   function_name   = azurerm_function_app_function.test.name
 }
-`, FunctionAppFunctionResource{}.basic(data))
+`, FunctionAppFunctionResource{}.withLocalFiles(data))
 }
 
 func (FunctionAppFunctionKeysDataSource) functionNotFound(data acceptance.TestData) string {

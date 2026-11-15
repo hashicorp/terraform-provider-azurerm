@@ -57,5 +57,5 @@ provider "echo" {
 }
 
 resource "echo" "test" {}
-`, FunctionAppFunctionResource{}.basic(data))
+`, FunctionAppFunctionResource{}.withLocalFiles(data))
 }
