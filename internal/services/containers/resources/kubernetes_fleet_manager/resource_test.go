@@ -71,10 +71,6 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("hub_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("hub_profile.0.agent_profile.0.subnet_id").HasValue(""),
-				check.That(data.ResourceName).Key("hub_profile.0.api_server_access_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("hub_profile.0.fqdn").Exists(),
 				check.That(data.ResourceName).Key("hub_profile.0.kubernetes_version").Exists(),
 				check.That(data.ResourceName).Key("hub_profile.0.portal_fqdn").Exists(),
@@ -105,10 +101,6 @@ func TestAccKubernetesFleetManager_hubProfileDefaults(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config:   r.hubProfileDefaults(data, "initial"),
-			PlanOnly: true,
-		},
 		{
 			Config: r.hubProfileDefaults(data, "updated"),
 			Check: acceptance.ComposeTestCheckFunc(

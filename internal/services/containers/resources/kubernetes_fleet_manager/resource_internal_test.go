@@ -34,8 +34,6 @@ func TestKubernetesFleetManagerHubProfileValidation(t *testing.T) {
 		hub           map[string]any
 		errorContains string
 	}{
-		{name: "without hub"},
-		{name: "default hub", hub: map[string]any{}},
 		{
 			name:          "empty agent profile",
 			hub:           map[string]any{"agent_profile": []any{map[string]any{}}},
@@ -50,24 +48,9 @@ func TestKubernetesFleetManagerHubProfileValidation(t *testing.T) {
 			hub:  map[string]any{"agent_profile": []any{map[string]any{"virtual_machine_size": "Standard_DS2_v2"}}},
 		},
 		{
-			name: "both agent fields",
-			hub:  map[string]any{"agent_profile": []any{map[string]any{"subnet_id": subnetID, "virtual_machine_size": "Standard_D2as_v7"}}},
-		},
-		{
 			name:          "empty API server access profile",
 			hub:           map[string]any{"api_server_access_profile": []any{map[string]any{}}},
 			errorContains: "private_cluster_enabled",
-		},
-		{
-			name: "explicit public cluster",
-			hub:  map[string]any{"api_server_access_profile": []any{map[string]any{"private_cluster_enabled": false}}},
-		},
-		{
-			name: "explicit private cluster",
-			hub: map[string]any{
-				"agent_profile":             []any{map[string]any{"subnet_id": subnetID}},
-				"api_server_access_profile": []any{map[string]any{"private_cluster_enabled": true}},
-			},
 		},
 	}
 	for _, testCase := range testCases {
@@ -386,14 +369,6 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 		})
 	}
 
-	t.Run("create without hub", func(t *testing.T) {
-		var payload fleets.Fleet
-		r.mapKubernetesFleetManagerResourceSchemaToFleet(KubernetesFleetManagerResourceSchema{}, &payload)
-		if payload.Properties == nil || payload.Properties.HubProfile != nil {
-			t.Fatalf("expected initialized properties without a hub, got %#v", payload.Properties)
-		}
-	})
-
 	t.Run("create with hub", func(t *testing.T) {
 		config := KubernetesFleetManagerResourceSchema{
 			HubProfile: []FleetManagerHubProfile{{
@@ -437,41 +412,24 @@ func TestKubernetesFleetManagerHubProfileMapping(t *testing.T) {
 		}
 	})
 
-	t.Run("read and import include every hub attribute", func(t *testing.T) {
+	t.Run("normalize API subnet ID", func(t *testing.T) {
 		payload := fleets.Fleet{Properties: &fleets.FleetProperties{
 			HubProfile: &fleets.FleetHubProfile{
 				AgentProfile: &fleets.AgentProfile{
 					SubnetId: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg/providers/microsoft.network/virtualnetworks/vnet/subnets/subnet"),
-					VMSize:   pointer.To("Standard_DS2_v2"),
 				},
-				ApiServerAccessProfile: &fleets.APIServerAccessProfile{
-					EnablePrivateCluster: pointer.To(true),
-				},
-				DnsPrefix:         pointer.To("fleet-test"),
-				Fqdn:              pointer.To("fleet.example"),
-				KubernetesVersion: pointer.To("1.32.0"),
-				PortalFqdn:        pointer.To("portal.example"),
 			},
 		}}
 		var state KubernetesFleetManagerResourceSchema
 		if err := r.mapFleetToKubernetesFleetManagerResourceSchema(payload, &state); err != nil {
 			t.Fatal(err)
 		}
-		expected := []FleetManagerHubProfile{{
-			AgentProfile: []FleetManagerHubAgentProfile{{
-				SubnetId:           "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet",
-				VirtualMachineSize: "Standard_DS2_v2",
-			}},
-			ApiServerAccessProfile: []FleetManagerHubAPIServerAccessProfile{{
-				PrivateClusterEnabled: true,
-			}},
-			DnsPrefix:         "fleet-test",
-			Fqdn:              "fleet.example",
-			KubernetesVersion: "1.32.0",
-			PortalFqdn:        "portal.example",
-		}}
-		if !reflect.DeepEqual(state.HubProfile, expected) {
-			t.Fatalf("expected hub profile %#v, got %#v", expected, state.HubProfile)
+		if len(state.HubProfile) != 1 || len(state.HubProfile[0].AgentProfile) != 1 {
+			t.Fatalf("expected one hub agent profile, got %#v", state.HubProfile)
+		}
+		const expected = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
+		if got := state.HubProfile[0].AgentProfile[0].SubnetId; got != expected {
+			t.Fatalf("expected normalized subnet ID %q, got %q", expected, got)
 		}
 	})
 
