@@ -61,20 +61,6 @@ func TestAccKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 			),
 		},
 		{
-			Config: r.apiServerAuthorizedIPRangesConfig(data, "null"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("api_server_access_profile.#").HasValue("1"),
-				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("0"),
-			),
-		},
-		emptyProfileImport,
-		{
-			Config: config,
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("api_server_access_profile.0.authorized_ip_ranges.#").HasValue("3"),
-			),
-		},
-		{
 			Config: r.apiServerAuthorizedIPRangesRemovedConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

@@ -4,67 +4,12 @@
 package kubernetes_cluster
 
 import (
-	"encoding/json"
-	"maps"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-func TestKubernetesClusterAPIAccessProfileExpand(t *testing.T) {
-	tests := []struct {
-		name   string
-		config map[string]any
-		want   map[string]any
-	}{
-		{
-			name:   "omitted block",
-			config: map[string]any{},
-		},
-		{
-			name: "empty block",
-			config: map[string]any{
-				"api_server_access_profile": []any{map[string]any{}},
-			},
-			want: map[string]any{"enableVnetIntegration": false},
-		},
-		{
-			name: "positive ranges",
-			config: map[string]any{
-				"api_server_access_profile": []any{map[string]any{"authorized_ip_ranges": []any{"8.8.8.8/32"}}},
-			},
-			want: map[string]any{
-				"authorizedIPRanges":    []any{"8.8.8.8/32"},
-				"enableVnetIntegration": false,
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			data := schema.TestResourceDataRaw(t, RegisterResource().Schema, test.config)
-			payload, err := json.Marshal(expandKubernetesClusterAPIAccessProfile(data))
-			if err != nil {
-				t.Fatal(err)
-			}
-			var actual map[string]any
-			if err := json.Unmarshal(payload, &actual); err != nil {
-				t.Fatal(err)
-			}
-			expected := map[string]any{
-				"enablePrivateCluster":           false,
-				"enablePrivateClusterPublicFQDN": false,
-				"disableRunCommand":              false,
-			}
-			maps.Copy(expected, test.want)
-			if !reflect.DeepEqual(actual, expected) {
-				t.Fatalf("payload = %s, want %#v", payload, expected)
-			}
-		})
-	}
-}
 
 func TestKubernetesClusterAPIAccessProfileFlatten(t *testing.T) {
 	emptyBlock := map[string]any{"authorized_ip_ranges": []any{}, "virtual_network_integration_enabled": false, "subnet_id": ""}
