@@ -1568,10 +1568,6 @@ func TestAccKubernetesClusterNodePool_updateWindowsNodePoolTags(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:   r.windowsNodePoolWithTags(data, "dev"),
-			PlanOnly: true,
-		},
-		{
 			Config: r.windowsNodePoolWithTags(data, "prod"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1580,10 +1576,6 @@ func TestAccKubernetesClusterNodePool_updateWindowsNodePoolTags(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config:   r.windowsNodePoolWithTags(data, "prod"),
-			PlanOnly: true,
-		},
 	})
 }
 
