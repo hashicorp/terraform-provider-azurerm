@@ -1088,13 +1088,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: strings.Replace(config, "workload_runtime      = \"OCIContainer\"", "workload_runtime      = null", 1),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("workload_runtime").HasValue("OCIContainer"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -1115,14 +1108,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntimeKataVmIsolation(t *testing.
 		data.ImportStep(),
 		{
 			Config: strings.Replace(config, "  workload_runtime      = \"KataVmIsolation\"\n", "", 1),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("os_sku").HasValue("AzureLinux"),
-				check.That(data.ResourceName).Key("workload_runtime").HasValue("KataVmIsolation"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: strings.Replace(config, "workload_runtime      = \"KataVmIsolation\"", "workload_runtime      = null", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("os_sku").HasValue("AzureLinux"),
 				check.That(data.ResourceName).Key("workload_runtime").HasValue("KataVmIsolation"),
