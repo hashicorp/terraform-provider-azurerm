@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -22,7 +22,7 @@ type MonitorAADDiagnosticSettingResource struct{}
 // Azure only being happy about provisioning five per Azure Active Directory at once and
 // there are existing resource in the test tenant hard to clear.
 // (which our test suite can't easily workaround)
-func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
+func TestAccMonitorAADDiagnosticSetting_sequential(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"eventhubDefault":       testAccMonitorAADDiagnosticSetting_eventhubDefault,
@@ -36,10 +36,8 @@ func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})

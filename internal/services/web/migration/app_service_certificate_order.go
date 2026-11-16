@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -147,7 +147,7 @@ func (AppServiceCertificateOrderResourceV0ToV1) Schema() map[string]*pluginsdk.S
 }
 
 func (AppServiceCertificateOrderResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		oldIdRaw := rawState["id"].(string)
 		oldId, err := parse.CertificateOrderOldID(oldIdRaw)
 		if err != nil {
@@ -155,9 +155,7 @@ func (AppServiceCertificateOrderResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpg
 		}
 
 		appServiceCertOrderId := appservicecertificateorders.NewCertificateOrderID(oldId.SubscriptionId, oldId.ResourceGroup, oldId.CertificateOrderName)
-		newId := appServiceCertOrderId.ID()
-
-		rawState["id"] = newId
+		rawState["id"] = appServiceCertOrderId.ID()
 		return rawState, nil
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package manageddevopspools
@@ -18,11 +18,6 @@ type StatelessAgentModel struct {
 type ResourcePredictionsSdkModel struct {
 	TimeZone string             `tfschema:"time_zone"`
 	DaysData []map[string]int64 `tfschema:"days_data"`
-}
-
-type ResourcePredictionsModel struct {
-	Kind                 string `tfschema:"kind"`
-	PredictionPreference string `tfschema:"prediction_preference"`
 }
 
 type ManualResourcePredictionModel struct {

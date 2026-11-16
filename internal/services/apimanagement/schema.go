@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -84,7 +84,8 @@ func apiManagementResourceHostnameProxySchema() map[string]*pluginsdk.Schema {
 	hostnameSchema["default_ssl_binding"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
-		Computed: true, // Azure has certain logic to set this, which we cannot predict
+		// Note: O+C because Azure has certain logic to set the default SSL binding which cannot be predicted
+		Computed: true,
 	}
 
 	return hostnameSchema

@@ -11,6 +11,7 @@ description: |-
 Lists Cognitive Services Account Connection with Entra ID authentication resources.
 
 ## Example Usage
+
 ```hcl
 data "azurerm_cognitive_account" "example" {
   name                = "example-account"
@@ -24,6 +25,9 @@ list "cognitive_account_connection_entra_id" "example" {
   }
 }
 ```
+
 ## Argument Reference
+
 This list resource supports the following arguments:
+
 * `cognitive_account_id` - (Required) The ID of the Cognitive Account to query.

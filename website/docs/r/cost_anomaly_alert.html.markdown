@@ -10,7 +10,7 @@ description: |-
 
 Manages a Cost Anomaly Alert.
 
-~> **Note:** Anomaly alerts are sent based on the current access of the rule creator at the time that the email is sent. Learn more [here](https://learn.microsoft.com/en-us/azure/cost-management-billing/understand/analyze-unexpected-charges#create-an-anomaly-alert).
+~> **Note:** Anomaly alerts are sent based on the current access of the rule creator at the time that the email is sent. Learn more [here](https://learn.microsoft.com/azure/cost-management-billing/understand/analyze-unexpected-charges#create-an-anomaly-alert).
 
 ## Example Usage
 
@@ -71,4 +71,4 @@ terraform import azurerm_cost_anomaly_alert.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement` - 2023-08-01
+* `Microsoft.CostManagement` - 2025-03-01

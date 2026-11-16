@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -31,7 +31,7 @@ func TestAccDataSourceSubnet_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
+func TestAccDataSourceSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 

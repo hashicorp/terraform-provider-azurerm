@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package vmware
@@ -59,7 +59,7 @@ func (r NetappFileVolumeAttachmentResource) ResourceType() string {
 	return "azurerm_vmware_netapp_volume_attachment"
 }
 
-func (r NetappFileVolumeAttachmentResource) ModelObject() interface{} {
+func (r NetappFileVolumeAttachmentResource) ModelObject() any {
 	return &NetappFileVolumeAttachment{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -12,15 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedbackupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/manageddatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstancelongtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -33,6 +31,7 @@ type MsSqlManagedDatabaseModel struct {
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
 	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
 	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	RecoverDatabaseId       string                    `tfschema:"recover_database_id"`
 	Tags                    map[string]string         `tfschema:"tags"`
 }
 
@@ -59,12 +58,12 @@ func (r MsSqlManagedDatabaseResource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (r MsSqlManagedDatabaseResource) ModelObject() interface{} {
+func (r MsSqlManagedDatabaseResource) ModelObject() any {
 	return &MsSqlManagedDatabaseModel{}
 }
 
 func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedDatabaseID
+	return commonids.ValidateSqlManagedInstanceDatabaseID
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -73,7 +72,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
 	}
 
-	resource := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -85,13 +84,13 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: validation.AsGeneratedID(commonids.ParseSqlManagedInstanceIDInsensitively),
 		},
 
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
+			Computed: true, // azignore:AZS007 - pre-existing violation
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -100,7 +99,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -109,7 +108,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -118,7 +117,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "PT0S",
-						ValidateFunc: helperValidate.ISO8601Duration,
+						ValidateFunc: validation.ISO8601Duration,
 						AtLeastOneOf: atLeastOneOf,
 					},
 
@@ -126,7 +125,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					"week_of_year": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
-						Computed:     true,
+						Computed:     true, // azignore:AZS007 - pre-existing violation
 						ValidateFunc: validation.IntBetween(0, 52),
 						AtLeastOneOf: atLeastOneOf,
 					},
@@ -142,10 +141,11 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"point_in_time_restore": {
-			Type:     schema.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
+			Type:          schema.TypeList,
+			Optional:      true,
+			ForceNew:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"recover_database_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"restore_point_in_time": {
@@ -159,71 +159,22 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
+						ValidateFunc: validation.Any(validation.AsGeneratedID(commonids.ParseSqlManagedInstanceDatabaseIDInsensitively), validate.RestorableDatabaseID),
 					},
 				},
 			},
 		},
 
+		"recover_database_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"point_in_time_restore"},
+		},
+
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		resource["long_term_retention_policy"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
-					"weekly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
-					"monthly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
-					"yearly_retention": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: helperValidate.ISO8601Duration,
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
-					"week_of_year": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.IntBetween(0, 52),
-						AtLeastOneOf: atLeastOneOf,
-					},
-
-					"immutable_backups_enabled": {
-						Type:       pluginsdk.TypeBool,
-						Optional:   true,
-						Default:    false,
-						Deprecated: "The `long_term_retention_policy.immutable_backups_enabled` property has been deprecated and will be removed in v5.0 of the AzureRM provider. This property is non-functional and was mistakenly exposed in the resource.",
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func (r MsSqlManagedDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
@@ -274,12 +225,15 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if len(model.PointInTimeRestore) > 0 {
+			if model.RecoverDatabaseId != "" {
+				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModeRecovery)
+				parameters.Properties.RecoverableDatabaseId = pointer.To(model.RecoverDatabaseId)
+			} else if len(model.PointInTimeRestore) > 0 {
 				restorePointInTime := model.PointInTimeRestore[0]
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime
 
-				if _, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
+				if _, err := parse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
 					parameters.Properties.RestorableDroppedDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				} else {
 					parameters.Properties.SourceDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
@@ -352,8 +306,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 					Tags:     pointer.To(model.Tags),
 				}
 
-				err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-				if err != nil {
+				if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 			}
@@ -444,6 +397,9 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			if v, ok := d.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
 			}
+			if v, ok := d.GetOk("recover_database_id"); ok {
+				model.RecoverDatabaseId = v.(string)
+			}
 
 			model.Tags = pointer.From(result.Model.Tags)
 
@@ -463,8 +419,7 @@ func (r MsSqlManagedDatabaseResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id)
-			if err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -484,14 +439,12 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) *managed
 		weekOfYear = ltrPolicy[0].WeekOfYear
 	}
 
-	result := &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
+	return &managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties{
 		WeeklyRetention:  &ltrPolicy[0].WeeklyRetention,
 		MonthlyRetention: &ltrPolicy[0].MonthlyRetention,
 		YearlyRetention:  &ltrPolicy[0].YearlyRetention,
 		WeekOfYear:       &weekOfYear,
 	}
-
-	return result
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {
@@ -505,21 +458,21 @@ func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpo
 	return []LongTermRetentionPolicy{ltrModel}
 }
 
-func flattenManagedDatabasePointInTimeRestore(input interface{}) []PointInTimeRestore {
+func flattenManagedDatabasePointInTimeRestore(input any) []PointInTimeRestore {
 	output := make([]PointInTimeRestore, 0)
 
 	if input == nil {
 		return output
 	}
 
-	attrs := input.([]interface{})
+	attrs := input.([]any)
 
 	for _, attr := range attrs {
 		if attr == nil {
 			return output
 		}
 
-		v := attr.(map[string]interface{})
+		v := attr.(map[string]any)
 
 		output = append(output, PointInTimeRestore{
 			RestorePointInTime: v["restore_point_in_time"].(string),

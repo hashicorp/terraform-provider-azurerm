@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -28,6 +28,18 @@ Accordingly, these tests rely on additional environment variables to be set (and
 */
 
 type ApiManagementIdentityProviderAADB2CResource struct{}
+
+func TestAccAzureRMApiManagementIdentityProviderAADB2C_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
+	r := ApiManagementIdentityProviderAADB2CResource{}
+	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, b2cConfig),
+		},
+	}, "")
+}
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
@@ -103,8 +115,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 	}
 
 	for k := range config {
-		e := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
-		if v := os.Getenv(e); v != "" {
+		if v := os.Getenv(fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))); v != "" {
 			config[k] = v
 			continue
 		}

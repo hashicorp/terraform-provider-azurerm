@@ -7,24 +7,24 @@ name: Check for new usages of deprecated functionality
 
 permissions:
   contents: read
-  pull-requests: write
 
 on:
   pull_request:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/pr-check-gradually-deprecated.yaml'
-      - './scripts/checks/gradually-deprecated.sh'
+      - 'scripts/checks/gradually-deprecated.sh'
       - '**.go'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
         with:
           go-version-file: ./.go-version
       - run: bash ./scripts/checks/gradually-deprecated.sh
@@ -39,12 +39,18 @@ jobs:
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-save-artifacts.yaml
+    uses: $/.github/workflows/pr-save-artifacts.yaml
   comment-on-fail:
     needs: test
     if: ${{ failure() }}
-    uses: ./.github/workflows/pr-comment-failure.yaml
+    uses: $/.github/workflows/pr-comment-failure.yaml
+    permissions:
+      issues: write
+      pull-requests: write
   comment-outdated-on-pass:
     needs: test
     if: ${{ success() }}
-    uses: ./.github/workflows/pr-comment-failure-outdated.yaml
+    uses: $/.github/workflows/pr-comment-failure-outdated.yaml
+    permissions:
+      issues: write
+      pull-requests: write

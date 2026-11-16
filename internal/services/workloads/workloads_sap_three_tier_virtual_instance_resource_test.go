@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads_test
@@ -885,7 +885,5 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
 
 func RandomInt() int {
 	rand.NewSource(time.Now().UnixNano())
-	num := rand.Intn(90) + 10
-
-	return num
+	return rand.Intn(90) + 10
 }

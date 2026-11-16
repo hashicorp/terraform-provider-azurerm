@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -79,7 +79,7 @@ func resourceApiManagementOpenIDConnectProvider() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -121,7 +121,7 @@ func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *pluginsdk.Resourc
 	return resourceApiManagementOpenIDConnectProviderRead(d, meta)
 }
 
-func resourceApiManagementOpenIDConnectProviderRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceApiManagementOpenIDConnectProviderRead(d *pluginsdk.ResourceData, m
 	return nil
 }
 
-func resourceApiManagementOpenIDConnectProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

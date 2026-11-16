@@ -14,7 +14,7 @@ Use this data source to access information about an existing Synapse Workspace.
 
 ```hcl
 data "azurerm_synapse_workspace" "example" {
-  name                = "existing"
+  name                = "example-synapse-workspace"
   resource_group_name = "example-resource-group"
 }
 

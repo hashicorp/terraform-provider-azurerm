@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -46,7 +46,7 @@ func resourceApiManagementProductApi() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -76,7 +76,7 @@ func resourceApiManagementProductApiCreate(d *pluginsdk.ResourceData, meta inter
 	return resourceApiManagementProductApiRead(d, meta)
 }
 
-func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func resourceApiManagementProductApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

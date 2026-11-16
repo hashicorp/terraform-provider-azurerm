@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -40,7 +40,7 @@ func (r StorageContainerImmutabilityPolicyResource) IDValidationFunc() pluginsdk
 	return validate.StorageContainerImmutabilityPolicyID
 }
 
-func (r StorageContainerImmutabilityPolicyResource) ModelObject() interface{} {
+func (r StorageContainerImmutabilityPolicyResource) ModelObject() any {
 	return &ContainerImmutabilityPolicyModel{}
 }
 

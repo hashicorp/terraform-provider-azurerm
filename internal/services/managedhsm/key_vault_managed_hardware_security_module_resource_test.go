@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm_test
@@ -18,7 +18,7 @@ import (
 
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
-func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
+func TestAccKeyVaultManagedHardwareSecurityModule_sequential(t *testing.T) {
 	// @manicminer: these tests are sequential due to low service limits for Managed HSM
 	// (max 5 instances per subscription as of 2024-04-23)
 	// and to try and maintain a little headroom for cleanup after failed tests
