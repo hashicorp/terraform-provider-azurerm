@@ -52,6 +52,28 @@ func TestAccRelayNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccRelayNamespaceAuthorizationRule_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_namespace_authorization_rule", "test")
+	r := RelayNamespaceAuthorizationRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t RelayNamespaceAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseAuthorizationRuleID(state.ID)
 	if err != nil {
@@ -114,4 +136,35 @@ resource "azurerm_relay_namespace_authorization_rule" "import" {
   manage = azurerm_relay_namespace_authorization_rule.test.manage
 }
 `, r.basic(data))
+}
+
+func (r RelayNamespaceAuthorizationRuleResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctestrn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_namespace_authorization_rule" "test" {
+  name                = "acctestrnak-%d"
+  namespace_name      = azurerm_relay_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  listen = true
+  send   = true
+  manage = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

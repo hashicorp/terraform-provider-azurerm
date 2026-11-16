@@ -31,6 +31,7 @@ type MsSqlManagedDatabaseModel struct {
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
 	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
 	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	RecoverDatabaseId       string                    `tfschema:"recover_database_id"`
 	Tags                    map[string]string         `tfschema:"tags"`
 }
 
@@ -140,10 +141,11 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"point_in_time_restore": {
-			Type:     schema.TypeList,
-			Optional: true,
-			ForceNew: true,
-			MaxItems: 1,
+			Type:          schema.TypeList,
+			Optional:      true,
+			ForceNew:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"recover_database_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"restore_point_in_time": {
@@ -161,6 +163,14 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"recover_database_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"point_in_time_restore"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -215,7 +225,10 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				Tags:       pointer.To(model.Tags),
 			}
 
-			if len(model.PointInTimeRestore) > 0 {
+			if model.RecoverDatabaseId != "" {
+				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModeRecovery)
+				parameters.Properties.RecoverableDatabaseId = pointer.To(model.RecoverDatabaseId)
+			} else if len(model.PointInTimeRestore) > 0 {
 				restorePointInTime := model.PointInTimeRestore[0]
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime
@@ -383,6 +396,9 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			d := metadata.ResourceData
 			if v, ok := d.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
+			}
+			if v, ok := d.GetOk("recover_database_id"); ok {
+				model.RecoverDatabaseId = v.(string)
 			}
 
 			model.Tags = pointer.From(result.Model.Tags)
