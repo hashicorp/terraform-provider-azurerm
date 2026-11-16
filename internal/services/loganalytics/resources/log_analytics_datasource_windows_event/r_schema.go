@@ -1,0 +1,52 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package log_analytics_datasource_windows_event
+
+import (
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+func logAnalyticsDatasourceWindowsEventSchema() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"workspace_name": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validate.LogAnalyticsWorkspaceName,
+		},
+
+		"event_log_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"event_types": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			MinItems: 1,
+			Set:      set.HashStringIgnoreCase,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				// API backend accepts event_types case-insensitively
+				ValidateFunc: validation.StringInSlice([]string{"Error", "Warning", "Information"}, false),
+			},
+		},
+	}
+}
