@@ -1,6 +1,6 @@
-change "enhancement" {
-  body = "`azurerm_kubernetes_cluster` - support for the `dranet_mode` property in the `default_node_pool.node_network_profile` block"
+change "new-property" {
+  body = "`azurerm_kubernetes_cluster` - add support for the `default_node_pool.node_network_profile.dranet_mode` property"
 }
-change "enhancement" {
-  body = "`azurerm_kubernetes_cluster_node_pool` - support for the `dranet_mode` property in the `node_network_profile` block"
+change "new-property" {
+  body = "`azurerm_kubernetes_cluster_node_pool` - add support for the `node_network_profile.dranet_mode` property"
 }
