@@ -193,8 +193,6 @@ A HorizonDB Cluster can be imported using the `resource id`, e.g.
 terraform import azurerm_horizondb_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.HorizonDb/clusters/cluster1
 ```
 
-~> **Note:** HorizonDB can omit the original restore-source details and timestamp from API responses, so import cannot always recover the `restore` block. When managing an imported restored Cluster, specify the original restore configuration and use `lifecycle.ignore_changes` for `restore` to avoid replacement caused solely by missing restore metadata.
-
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
