@@ -7,6 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_active_directory_administrator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_backup"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_database"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_firewall_rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/resources/postgresql_flexible_server_virtual_endpoint"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -37,25 +44,25 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_flexible_server": dataSourcePostgresqlFlexibleServer(),
+		"azurerm_postgresql_flexible_server": postgresql_flexible_server.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_flexible_server":                                resourcePostgresqlFlexibleServer(),
-		"azurerm_postgresql_flexible_server_active_directory_administrator": resourcePostgresqlFlexibleServerAdministrator(),
-		"azurerm_postgresql_flexible_server_configuration":                  resourcePostgresqlFlexibleServerConfiguration(),
-		"azurerm_postgresql_flexible_server_database":                       resourcePostgresqlFlexibleServerDatabase(),
-		"azurerm_postgresql_flexible_server_firewall_rule":                  resourcePostgresqlFlexibleServerFirewallRule(),
+		"azurerm_postgresql_flexible_server":                                postgresql_flexible_server.RegisterResource(),
+		"azurerm_postgresql_flexible_server_active_directory_administrator": postgresql_flexible_server_active_directory_administrator.RegisterResource(),
+		"azurerm_postgresql_flexible_server_configuration":                  postgresql_flexible_server_configuration.RegisterResource(),
+		"azurerm_postgresql_flexible_server_database":                       postgresql_flexible_server_database.RegisterResource(),
+		"azurerm_postgresql_flexible_server_firewall_rule":                  postgresql_flexible_server_firewall_rule.RegisterResource(),
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		PostgresqlFlexibleServerBackupResource{},
-		PostgresqlFlexibleServerVirtualEndpointResource{},
+		postgresql_flexible_server_backup.Resource{},
+		postgresql_flexible_server_virtual_endpoint.Resource{},
 	}
 }
 
@@ -81,7 +88,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		PostgresqlFlexibleServerConfigurationListResource{},
-		PostgresqlFlexibleServerFirewallRuleListResource{},
+		postgresql_flexible_server_configuration.ListResource{},
+		postgresql_flexible_server_firewall_rule.ListResource{},
 	}
 }

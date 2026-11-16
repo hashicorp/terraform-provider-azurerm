@@ -34,7 +34,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -164,7 +164,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	}
 	d.Set("enclave_type", enclaveType)
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
+	partnerDatabases, err := helpers.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	skuName := d.Get("sku_name").(string)
 
 	if skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helpers.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -290,7 +290,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 			}
 
 			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helpers.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
 						Name: skuName,
@@ -637,7 +637,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]any))
+	longTermRetentionPolicyProps := helpers.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]any))
 	if longTermRetentionPolicyProps != nil {
 		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
@@ -651,7 +651,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]any))
+	shortTermRetentionPolicyProps := helpers.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]any))
 	if shortTermRetentionPolicyProps != nil {
 		if pointer.From(shortTermRetentionPolicyProps.LockImmutability) {
 			shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id)
@@ -881,7 +881,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
-			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+			partnerDatabases, err := helpers.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 			if err != nil {
 				return err
 			}
@@ -908,7 +908,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 				}
 
 				// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helpers.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
@@ -1108,7 +1108,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
-		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]any))
+		longTermRetentionProps := helpers.ExpandLongTermRetentionPolicy(v.([]any))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := longtermretentionpolicies.LongTermRetentionPolicy{}
 
@@ -1125,7 +1125,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("short_term_retention_policy") {
 		v := d.Get("short_term_retention_policy")
-		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]any))
+		backupShortTermPolicyProps := helpers.ExpandShortTermRetentionPolicy(v.([]any))
 		if backupShortTermPolicyProps != nil {
 			if d.HasChange("short_term_retention_policy.0.immutability_locked") && pointer.From(backupShortTermPolicyProps.LockImmutability) {
 				shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id)
@@ -1325,7 +1325,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if longTermPolicyModel := longTermPolicy.Model; longTermPolicyModel != nil {
-				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(longTermPolicyModel)); err != nil {
+				if err := d.Set("long_term_retention_policy", helpers.FlattenLongTermRetentionPolicy(longTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
 				}
 			}
@@ -1336,7 +1336,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if shortTermPolicyModel := shortTermPolicy.Model; shortTermPolicyModel != nil {
-				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(shortTermPolicyModel)); err != nil {
+				if err := d.Set("short_term_retention_policy", helpers.FlattenShortTermRetentionPolicy(shortTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
 				}
 			}
@@ -1654,9 +1654,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				false),
 		},
 
-		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+		"long_term_retention_policy": helpers.LongTermRetentionPolicySchema(),
 
-		"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
+		"short_term_retention_policy": helpers.ShortTermRetentionPolicySchema(),
 
 		"max_size_gb": {
 			Type:         pluginsdk.TypeFloat,
