@@ -105,11 +105,6 @@ jobs:
       TCTEST_BUILD_TYPE_ID_ADD_SERVICE_SUFFIX: true
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
-        with:
-          go-version: '1.26'
-
       # tctest is pinned in .tools/go.mod; only that directory is checked out (from main, this is a
       # comment-triggered workflow so PR code is never built) and make builds the binary from it
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -119,6 +114,12 @@ jobs:
             GNUmakefile
           sparse-checkout-cone-mode: false
           persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v6
+        with:
+          go-version-file: .tools/go.mod
+          cache: false
 
       - name: Cache tctest binary
         id: cache-tctest
