@@ -32,15 +32,15 @@ service/analysis:
   - any-glob-to-any-file:
     - internal/services/analysisservices/**/*
 
+service/api-center:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/apicenter/**/*
+
 service/api-management:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/apimanagement/**/*
-
-service/apicenter:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/apicenter/**/*
 
 service/app-configuration:
 - changed-files:
