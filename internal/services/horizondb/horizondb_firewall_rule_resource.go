@@ -38,7 +38,7 @@ var (
 	_ sdk.ResourceWithCustomizeDiff = HorizondbFirewallRuleResource{}
 )
 
-func (HorizondbFirewallRuleResource) ModelObject() interface{} {
+func (HorizondbFirewallRuleResource) ModelObject() any {
 	return &HorizondbFirewallRuleResourceModel{}
 }
 

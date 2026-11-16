@@ -150,7 +150,7 @@ resource "azurerm_horizondb_firewall_rule" "test" {
   end_ip_address    = %q
   %s
 }
-`, HorizondbClusterResource{}.withPool(data, "primary", 1, "Disabled", 4), data.RandomInteger, start, end, descriptionConfig)
+`, HorizondbClusterResource{}.withPool(data, "primary", 1, "Disabled"), data.RandomInteger, start, end, descriptionConfig)
 }
 
 func (resource HorizondbFirewallRuleResource) requiresImport(data acceptance.TestData) string {
@@ -167,7 +167,7 @@ resource "azurerm_horizondb_firewall_rule" "import" {
 }
 
 func (HorizondbFirewallRuleResource) overwritePrerequisites(data acceptance.TestData) string {
-	return HorizondbClusterResource{}.withPoolAndFeatures(data, "primary", 1, "Disabled", 4, "skip_import_check_on_create_and_allow_overwriting_existing_resources = true")
+	return HorizondbClusterResource{}.withPoolAndFeatures(data, "primary", 1, "Disabled", "skip_import_check_on_create_and_allow_overwriting_existing_resources = true")
 }
 
 func (r HorizondbFirewallRuleResource) overwriteExisting(data acceptance.TestData) string {

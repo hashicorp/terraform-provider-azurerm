@@ -75,7 +75,7 @@ var (
 	_ sdk.ResourceWithCustomizeDiff = HorizondbClusterResource{}
 )
 
-func (HorizondbClusterResource) ModelObject() interface{} {
+func (HorizondbClusterResource) ModelObject() any {
 	return &HorizondbClusterResourceModel{}
 }
 

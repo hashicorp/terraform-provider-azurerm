@@ -237,7 +237,7 @@ func TestAccHorizondbCluster_poolRenameRejected(t *testing.T) {
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{Config: r.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
 		{
-			Config:      r.withPool(data, "renamed", 1, "Disabled", 4),
+			Config:      r.withPool(data, "renamed", 1, "Disabled"),
 			ExpectError: regexp.MustCompile("changing `read_write_pool.name` in place is not supported"),
 		},
 	})
@@ -256,7 +256,7 @@ func TestAccHorizondbCluster_poolInvalidHighAvailability(t *testing.T) {
 			data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 			r := HorizondbClusterResource{}
 			data.ResourceTest(t, r, []acceptance.TestStep{{
-				Config:      r.withPool(data, "primary", testCase.nodes, testCase.mode, 4),
+				Config:      r.withPool(data, "primary", testCase.nodes, testCase.mode),
 				ExpectError: regexp.MustCompile("`read_write_pool.high_availability_mode` must be `Disabled`"),
 			}})
 		})
@@ -267,7 +267,7 @@ func TestAccHorizondbCluster_poolNameCollision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{{
-		Config:      r.withPool(data, fmt.Sprintf("acctest-horizondb-%d", data.RandomInteger), 1, "Disabled", 4),
+		Config:      r.withPool(data, fmt.Sprintf("acctest-horizondb-%d", data.RandomInteger), 1, "Disabled"),
 		ExpectError: regexp.MustCompile("`read_write_pool.name` must differ"),
 	}})
 }
@@ -306,7 +306,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (r HorizondbClusterResource) basic(data acceptance.TestData) string {
-	return r.withPool(data, "primary", 1, "Disabled", 4)
+	return r.withPool(data, "primary", 1, "Disabled")
 }
 
 func (HorizondbClusterResource) pool() string {
@@ -331,36 +331,6 @@ read_write_pool {
 	return strings.Join(lines, "\n")
 }
 
-func (r HorizondbClusterResource) createModeValidation(data acceptance.TestData, version, mode string, restore bool) string {
-	versionConfig := ""
-	if version != "" {
-		versionConfig = fmt.Sprintf("  postgresql_version     = %q", version)
-	}
-	restoreConfig := ""
-	if restore {
-		restoreConfig = `
-  restore {
-    source_horizondb_cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.HorizonDb/clusters/source"
-    point_in_time_utc           = "2026-10-01T00:00:00Z"
-  }
-`
-	}
-	return fmt.Sprintf(`
-%s
-resource "azurerm_horizondb_cluster" "test" {
-  name                   = "acctest-horizondb-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "acctestadmin"
-  administrator_password = "P@ssword-123!"
-  create_mode            = %q
-%s
-%s
-  %s
-}
-`, r.template(data), data.RandomInteger, mode, versionConfig, restoreConfig, r.pool())
-}
-
 func (r HorizondbClusterResource) withAdministratorPassword(data acceptance.TestData, password string) string {
 	return fmt.Sprintf(`
 %s
@@ -377,8 +347,8 @@ resource "azurerm_horizondb_cluster" "test" {
 `, r.template(data), data.RandomInteger, password, r.pool())
 }
 
-func (r HorizondbClusterResource) withPool(data acceptance.TestData, name string, nodes int, mode string, cores int) string {
-	return r.withPoolAndFeatures(data, name, nodes, mode, cores, "")
+func (r HorizondbClusterResource) withPool(data acceptance.TestData, name string, nodes int, mode string) string {
+	return r.withPoolAndFeatures(data, name, nodes, mode, "")
 }
 
 func (r HorizondbClusterResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
@@ -401,7 +371,7 @@ resource "azurerm_horizondb_cluster" "test" {
 `, r.template(data), string(hclwrite.Format([]byte(acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret)))), data.RandomInteger, version, r.pool())
 }
 
-func (r HorizondbClusterResource) withPoolAndFeatures(data acceptance.TestData, name string, nodes int, mode string, cores int, features string) string {
+func (r HorizondbClusterResource) withPoolAndFeatures(data acceptance.TestData, name string, nodes int, mode string, features string) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_horizondb_cluster" "test" {
@@ -420,12 +390,12 @@ resource "azurerm_horizondb_cluster" "test" {
     compute {
       processor  = "AMD"
       generation = 1
-      vcores     = %d
+      vcores     = 4
     }
   }
 
 }
-`, r.templateWithFeatures(data, features), data.RandomInteger, name, nodes, mode, cores)
+`, r.templateWithFeatures(data, features), data.RandomInteger, name, nodes, mode)
 }
 
 func (r HorizondbClusterResource) complete(data acceptance.TestData) string {
