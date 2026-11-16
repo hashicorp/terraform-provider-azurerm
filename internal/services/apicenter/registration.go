@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_environment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_metadata_schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/resources/api_center_service"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}

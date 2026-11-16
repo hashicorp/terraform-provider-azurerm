@@ -256,7 +256,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		return []sdk.UntypedServiceRegistration{
 			advisor.Registration{},
 			analysisservices.Registration{},
-			apicenter.Registration{},
 			apimanagement.Registration{},
 			appgateway.Registration{},
 			appconfiguration.Registration{},
