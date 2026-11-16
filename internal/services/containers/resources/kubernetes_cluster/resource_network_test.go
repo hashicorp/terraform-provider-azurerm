@@ -1093,6 +1093,68 @@ func TestAccKubernetesCluster_clusterPoolNodePublicIPTags(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_defaultNodePoolDranet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dranet(data, meta.CurrentKubernetesVersionAlias, true, `dranet_mode = "Managed"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_network_profile.0.dranet_mode").HasValue("Managed"),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.dranet(data, meta.CurrentKubernetesVersionAlias, true, `dranet_mode = "Unmanaged"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_network_profile.0.dranet_mode").HasValue("Unmanaged"),
+			),
+		},
+		data.ImportBlockWithIDStep(true),
+
+		{
+			Config: r.dranet(data, meta.CurrentKubernetesVersionAlias, true, `dranet_mode = "Managed"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_network_profile.0.dranet_mode").HasValue("Managed"),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.dranet(data, meta.CurrentKubernetesVersionAlias, true, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_network_profile.0.dranet_mode").HasValue("Unmanaged"),
+			),
+		},
+		data.ImportBlockWithIDStep(true),
+
+		{
+			Config: r.dranet(data, meta.CurrentKubernetesVersionAlias, true, `dranet_mode = "Managed"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_network_profile.0.dranet_mode").HasValue("Managed"),
+			),
+		},
+		data.ImportStep(),
+
+		{
+			Config: r.dranet(data, meta.CurrentKubernetesVersionAlias, false, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.node_network_profile.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_clusterPoolNetworkProfileComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -4912,6 +4974,53 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) dranet(data acceptance.TestData, kubernetesVersion string, includeNetworkProfile bool, settings string) string {
+	networkProfile := ""
+	if includeNetworkProfile {
+		networkProfile = fmt.Sprintf(`
+node_network_profile {
+%s
+}
+`, settings)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-dranet-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+  kubernetes_version  = "%[4]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v4"
+    %[3]s
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, networkProfile, kubernetesVersion)
 }
 
 func (KubernetesClusterResource) clusterPoolNetworkProfileComplete(data acceptance.TestData) string {
