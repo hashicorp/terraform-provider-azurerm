@@ -399,7 +399,8 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			// Unknown values can come from expressions and may later resolve to null, so only
 			// validate `storage_iops` rules when the argument is known to be explicitly configured.
-			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
+			// check for non-zero values as a null value is stored in state as `0`, attribute validation prevents a user from explicitly defniing this as `0`
+			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() && rd.Get("storage_iops") != 0 {
 				if !rd.Get("general_purpose_v2_enabled").(bool) {
 					return errors.New("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
 				}

@@ -26,6 +26,8 @@ type NetappFileVolumeAttachment struct {
 
 type NetappFileVolumeAttachmentResource struct{}
 
+var _ sdk.Resource = NetappFileVolumeAttachmentResource{}
+
 func (r NetappFileVolumeAttachmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

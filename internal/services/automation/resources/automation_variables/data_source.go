@@ -14,21 +14,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type DataSource struct{}
 
 type AutomationVariablesDataSourceModel struct {
-	AutomationAccountId string                     `tfschema:"automation_account_id"`
-	BooleanVariables    []helper.BooleanVariable   `tfschema:"bool"`
-	DateTimeVariables   []helper.DateTimeVariable  `tfschema:"datetime"`
-	EncryptedVariables  []helper.EncryptedVariable `tfschema:"encrypted"`
-	IntegerVariables    []helper.IntegerVariable   `tfschema:"int"`
-	NullVariables       []helper.NullVariable      `tfschema:"null"`
-	ObjectVariables     []helper.ObjectVariable    `tfschema:"object"`
-	StringVariables     []helper.StringVariable    `tfschema:"string"`
+	AutomationAccountId string                      `tfschema:"automation_account_id"`
+	BooleanVariables    []helpers.BooleanVariable   `tfschema:"bool"`
+	DateTimeVariables   []helpers.DateTimeVariable  `tfschema:"datetime"`
+	EncryptedVariables  []helpers.EncryptedVariable `tfschema:"encrypted"`
+	IntegerVariables    []helpers.IntegerVariable   `tfschema:"int"`
+	NullVariables       []helpers.NullVariable      `tfschema:"null"`
+	ObjectVariables     []helpers.ObjectVariable    `tfschema:"object"`
+	StringVariables     []helpers.StringVariable    `tfschema:"string"`
 }
 
 var _ sdk.DataSource = DataSource{}
@@ -61,7 +61,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeBool),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeBool),
 			},
 		},
 
@@ -69,7 +69,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -77,7 +77,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -85,7 +85,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeInt),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeInt),
 			},
 		},
 
@@ -93,7 +93,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -101,7 +101,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -109,7 +109,7 @@ func (v DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+				Schema: helpers.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 	}
@@ -136,13 +136,13 @@ func (v DataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("listing variables in %s: %+v", automationAccountId, err)
 			}
 
-			var var_bool []helper.BooleanVariable
-			var var_dt []helper.DateTimeVariable
-			var var_encrypt []helper.EncryptedVariable
-			var var_int []helper.IntegerVariable
-			var var_null []helper.NullVariable
-			var var_object []helper.ObjectVariable
-			var var_str []helper.StringVariable
+			var var_bool []helpers.BooleanVariable
+			var var_dt []helpers.DateTimeVariable
+			var var_encrypt []helpers.EncryptedVariable
+			var var_int []helpers.IntegerVariable
+			var var_null []helpers.NullVariable
+			var var_object []helpers.ObjectVariable
+			var var_str []helpers.StringVariable
 
 			for _, v := range variableList.Items {
 				if _, err := variable.ParseVariableID(pointer.From(v.Id)); err != nil {
@@ -153,21 +153,21 @@ func (v DataSource) Read() sdk.ResourceFunc {
 				var objVar map[string]any
 
 				if pointer.From(v.Properties.IsEncrypted) {
-					var_encrypt = append(var_encrypt, helper.EncryptedVariable{
+					var_encrypt = append(var_encrypt, helpers.EncryptedVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
 						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
 					})
 				} else if v.Properties.Value == nil {
-					var_null = append(var_null, helper.NullVariable{
+					var_null = append(var_null, helpers.NullVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
 						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
 					})
 				} else if i, err := strconv.ParseInt(pointer.From(v.Properties.Value), 10, 32); err == nil {
-					var_int = append(var_int, helper.IntegerVariable{
+					var_int = append(var_int, helpers.IntegerVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
@@ -175,7 +175,7 @@ func (v DataSource) Read() sdk.ResourceFunc {
 						Value:       i,
 					})
 				} else if b, err := strconv.ParseBool(pointer.From(v.Properties.Value)); err == nil {
-					var_bool = append(var_bool, helper.BooleanVariable{
+					var_bool = append(var_bool, helpers.BooleanVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
@@ -187,7 +187,7 @@ func (v DataSource) Read() sdk.ResourceFunc {
 					if t, err := strconv.ParseInt(matches[1], 10, 64); err == nil {
 						value = time.UnixMilli(t).In(time.UTC).Format("2006-01-02T15:04:05.999Z")
 					}
-					var_dt = append(var_dt, helper.DateTimeVariable{
+					var_dt = append(var_dt, helpers.DateTimeVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
@@ -195,7 +195,7 @@ func (v DataSource) Read() sdk.ResourceFunc {
 						Value:       value,
 					})
 				} else if err := json.Unmarshal([]byte(*v.Properties.Value), &objVar); err == nil {
-					var_object = append(var_object, helper.ObjectVariable{
+					var_object = append(var_object, helpers.ObjectVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
@@ -203,7 +203,7 @@ func (v DataSource) Read() sdk.ResourceFunc {
 						Value:       pointer.From(v.Properties.Value),
 					})
 				} else if s, err := strconv.Unquote(pointer.From(v.Properties.Value)); err == nil {
-					var_str = append(var_str, helper.StringVariable{
+					var_str = append(var_str, helpers.StringVariable{
 						ID:          pointer.From(v.Id),
 						Name:        pointer.From(v.Name),
 						Description: pointer.From(v.Properties.Description),
