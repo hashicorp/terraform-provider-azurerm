@@ -141,6 +141,13 @@ func (r DataCollectionEndpointResource) CustomizeDiff() sdk.ResourceFunc {
 				// Only perform preflight validation if there are changes. This avoids validation failures and
 				// additional API calls for resources that are unchanged between plan invocations.
 				if len(metadata.ResourceDiff.GetChangedKeysPrefix("")) > 0 || metadata.ResourceDiff.Id() == "" {
+					for _, key := range []string{"name", "resource_group_name", "location"} {
+						if !metadata.ResourceDiff.NewValueKnown(key) {
+							metadata.Logger.Infof("skipping preflight validation for `azurerm_monitor_data_collection_endpoint`: `%s` is not known until apply", key)
+							return nil
+						}
+					}
+
 					var model DataCollectionEndpoint
 					if err := metadata.DecodeDiff(&model); err != nil {
 						return err

@@ -29,6 +29,7 @@ Preflight Validation can also be enabled by setting the `ARM_PROVIDER_ENHANCED_V
 
 The following resources currently support Preflight Validation:
 
+* `azurerm_app_service_environment_v3`
 * `azurerm_dashboard_grafana`
 * `azurerm_eventgrid_namespace`
 * `azurerm_managed_redis`

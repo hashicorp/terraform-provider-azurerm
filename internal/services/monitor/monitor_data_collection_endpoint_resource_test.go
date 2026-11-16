@@ -6,6 +6,7 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -122,6 +123,19 @@ func TestAccMonitorDataCollectionEndpoint_completePreflightPlan(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionEndpoint_preflightRejected(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_endpoint", "test")
+	r := MonitorDataCollectionEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.preflightRejected(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(`location 'notaregion' is not available for resource type`),
+		},
+	})
+}
+
 func (r MonitorDataCollectionEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -188,6 +202,26 @@ resource "azurerm_monitor_data_collection_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+// "notaregion" passes local validation (enhanced location validation is disabled) but is rejected by Azure preflight.
+func (r MonitorDataCollectionEndpointResource) preflightRejected(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    enhanced_validation {
+      locations         = false
+      preflight_enabled = true
+    }
+  }
+}
+
+resource "azurerm_monitor_data_collection_endpoint" "test" {
+  name                = "acctestmdce-%[1]d"
+  resource_group_name = "acctestRG-DataCollectionEndpoint-%[1]d"
+  location            = "notaregion"
+}
+`, data.RandomInteger)
 }
 
 func (r MonitorDataCollectionEndpointResource) template(data acceptance.TestData) string {
