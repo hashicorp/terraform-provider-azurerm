@@ -97,6 +97,10 @@ The following arguments are supported:
 
 ---
 
+* `enabled_filtering_criteria` - (Optional) An expression specifying which traffic to record in the flow log, for example `Protocol=TCP && DstPort=443`. The maximum length is 1000 characters. If omitted or set to an empty string, traffic is not filtered. Removing this argument clears existing filtering.
+
+~> **Note:** Filtering expressions support `Direction`, `SrcIP`, `DstIP`, `SrcPort`, `DstPort`, `Protocol` and `Encryption`, with `=` and `!=` comparisons and `&&` and `||` logical operators. Parentheses are not supported. See the [Azure filtering documentation](https://learn.microsoft.com/azure/network-watcher/vnet-flow-logs-filtering) for supported values and syntax.
+
 * `location` - (Optional) The location where the Network Watcher Flow Log resides. Changing this forces a new resource to be created. Defaults to the `location` of the Network Watcher.
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as defined below.
