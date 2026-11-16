@@ -20,6 +20,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type DatabaseVersionsModel struct {
 	Location                       string                     `tfschema:"location"`
 	DatabaseSoftwareImageSupported bool                       `tfschema:"database_software_image_supported"`

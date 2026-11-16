@@ -29,6 +29,8 @@ type DataCollectionRuleAssociationModel struct {
 
 type DataCollectionRuleAssociationResource struct{}
 
+var _ sdk.ResourceWithUpdate = DataCollectionRuleAssociationResource{}
+
 func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"target_resource_id": {

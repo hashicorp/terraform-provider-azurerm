@@ -17,6 +17,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type AdbsNCharSetsModel struct {
 	AdbsCharSets []AdbsNCharSetModel `tfschema:"character_sets"`
 	Location     string              `tfschema:"location"`
