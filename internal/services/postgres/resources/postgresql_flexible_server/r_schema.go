@@ -17,6 +17,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const (
+	postgresqlVersion11 = "11"
+	postgresqlVersion12 = "12"
+	postgresqlVersion13 = "13"
+	postgresqlVersion14 = "14"
+	postgresqlVersion15 = "15"
+	postgresqlVersion16 = "16"
+	postgresqlVersion17 = "17"
+	postgresqlVersion18 = "18"
+)
+
 func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -162,14 +173,14 @@ func postgresqlFlexibleServerSchema() map[string]*pluginsdk.Schema {
 			// Note: O+C because Azure assigns a version when not explicitly set
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"11",
-				"12",
-				"13",
-				"14",
-				"15",
-				"16",
-				"17",
-				"18",
+				postgresqlVersion11,
+				postgresqlVersion12,
+				postgresqlVersion13,
+				postgresqlVersion14,
+				postgresqlVersion15,
+				postgresqlVersion16,
+				postgresqlVersion17,
+				postgresqlVersion18,
 			}, false),
 		},
 

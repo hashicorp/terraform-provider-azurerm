@@ -160,7 +160,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 				if diff.Get("storage_type").(string) == string(servers.StorageTypePremiumVTwoLRS) {
 					version := diff.Get("version").(string)
-					if version == "11" || version == "12" || version == "13" {
+					if version == postgresqlVersion11 || version == postgresqlVersion12 || version == postgresqlVersion13 {
 						return fmt.Errorf("PostgreSQL version `%s` is not supported when `storage_type` is `PremiumV2_LRS`", version)
 					}
 
