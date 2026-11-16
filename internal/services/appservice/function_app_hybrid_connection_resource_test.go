@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -18,6 +18,16 @@ import (
 )
 
 type FunctionAppHybridConnectionResource struct{}
+
+func TestAccFunctionAppHybridConnection_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_hybrid_connection", "test")
+	r := FunctionAppHybridConnectionResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccFunctionAppHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_hybrid_connection", "test")

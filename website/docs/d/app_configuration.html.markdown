@@ -14,8 +14,8 @@ Use this data source to access information about an existing App Configuration.
 
 ```hcl
 data "azurerm_app_configuration" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-app-configuration"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
