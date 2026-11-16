@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2026-10-01/servers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -158,7 +158,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta any)
 	}
 
 	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
-		parameters.Properties.Version = pointer.ToEnum[servers.PostgresMajorVersion](v.(string))
+		parameters.Properties.Version = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
