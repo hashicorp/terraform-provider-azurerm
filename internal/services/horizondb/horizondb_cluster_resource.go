@@ -208,6 +208,7 @@ func (HorizondbClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			if err := validateHorizondbClusterPoolConfig(diff.GetRawConfig()); err != nil {
 				return err
 			}
+			// Only allow pool rename when force new is applied
 			if diff.Id() != "" && !diff.HasChanges("name", "resource_group_name", "location", "administrator_login", "create_mode", "postgresql_version", "restore", "geo_redundant_backup_enabled") && diff.NewValueKnown("read_write_pool.0.name") {
 				old, new := diff.GetChange("read_write_pool.0.name")
 				if err := validateHorizondbClusterPoolRename(old.(string), new.(string)); err != nil {
@@ -252,7 +253,7 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 			if err := createOrReplaceHorizondbClusterPool(ctx, metadata, id, state.ReadWritePool[0]); err != nil {
 				return err
 			}
-			return reconcileHorizondbClusterPasswordAuthentication(ctx, metadata, id, state)
+			return createHorizondbClusterPasswordAuthentication(ctx, metadata, id, state)
 		},
 	}
 }
@@ -326,6 +327,7 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 						password = woPassword.AsString()
 					}
 				}
+				// Changing password can be only sent by PATCH update with only the new password in the payload
 				authenticationId := passwordauthentications.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
 				payload := passwordauthentications.PasswordAuthenticationForPatchUpdate{
 					Properties: &passwordauthentications.PasswordAuthenticationPropertiesForPatchUpdate{
@@ -754,7 +756,7 @@ func flattenHorizondbClusterPool(clusterId clusters.ClusterId, model *pools.Pool
 	}}, nil
 }
 
-func reconcileHorizondbClusterPasswordAuthentication(ctx context.Context, metadata sdk.ResourceMetaData, id clusters.ClusterId, state HorizondbClusterResourceModel) error {
+func createHorizondbClusterPasswordAuthentication(ctx context.Context, metadata sdk.ResourceMetaData, id clusters.ClusterId, state HorizondbClusterResourceModel) error {
 	woPassword, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "administrator_password_wo", cty.String)
 	if err != nil {
 		return err
