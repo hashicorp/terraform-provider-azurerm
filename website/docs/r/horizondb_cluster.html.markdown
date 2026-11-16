@@ -78,9 +78,9 @@ The following arguments are supported:
 
 * `administrator_password_wo_version` - (Optional) A positive integer used to trigger an update for `administrator_password_wo`. Increment this value when updating the write-only password.
 
-* `backup_retention_days` - (Optional) The backup retention period in days.
+* `backup_retention_days` - (Optional) The backup retention period in days. Possible values range between `1` and `35`. Defaults to `7`.
 
-~> **Note:** Possible values range between `1` and `35`. When omitted during creation, Azure uses its default of `7` days. Removing this argument from an existing configuration preserves the current retention period rather than resetting it.
+~> **Note:** Removing this argument from an existing configuration resets the retention period to `7` days.
 
 * `create_mode` - (Optional) The creation mode of the HorizonDB Cluster. Possible values are `Create` and `PointInTimeRestore`. Defaults to `Create`. Changing this forces a new resource to be created.
 

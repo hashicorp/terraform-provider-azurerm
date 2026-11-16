@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the HorizonDB Firewall Rule. Changing this forces a new resource to be created.
 
-~> **Note:** The name must contain between 2 and 128 alphanumeric characters or hyphens and must start and end with an alphanumeric character.
+~> **Note:** The name must contain between 2 and 80 alphanumeric characters or hyphens and must start and end with an alphanumeric character.
 
 * `horizondb_pool_id` - (Required) The ID of the HorizonDB Pool. Changing this forces a new resource to be created.
 
