@@ -229,6 +229,11 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 			id := clusters.NewClusterID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
+			// Pool changes also put the cluster into Updating, so serialize mutations using the cluster ID.
+			lockId := strings.ToLower(id.ID())
+			locks.ByID(lockId)
+			defer locks.UnlockByID(lockId)
+
 			client := metadata.Client.HorizonDB.ClustersClient
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
 				existing, err := client.Get(ctx, id)
@@ -294,6 +299,10 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			lockId := strings.ToLower(id.ID())
+			locks.ByID(lockId)
+			defer locks.UnlockByID(lockId)
+
 			var state HorizondbClusterResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -351,6 +360,10 @@ func (HorizondbClusterResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			lockId := strings.ToLower(id.ID())
+			locks.ByID(lockId)
+			defer locks.UnlockByID(lockId)
+
 			if err := metadata.Client.HorizonDB.ClustersClient.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
@@ -641,9 +654,6 @@ func validateHorizondbClusterPoolRename(old, new string) error {
 
 func createOrReplaceHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, clusterId clusters.ClusterId, state HorizondbClusterPool) error {
 	id := pools.NewPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, state.Name)
-	lockId := strings.ToLower(id.ID())
-	locks.ByID(lockId)
-	defer locks.UnlockByID(lockId)
 
 	result, err := metadata.Client.HorizonDB.ClustersClient.Get(ctx, clusterId)
 	if err != nil {
