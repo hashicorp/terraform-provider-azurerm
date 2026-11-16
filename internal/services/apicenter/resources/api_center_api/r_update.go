@@ -60,7 +60,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("external_documentation") {
 				model.Properties.ExternalDocumentation = expandExternalDocumentationList(state.ExternalDocumentation)
 			}
-			if metadata.ResourceData.HasChange("kind") {
+			if metadata.ResourceData.HasChange("api_type") {
 				model.Properties.Kind = apis.ApiKind(state.Kind)
 			}
 			if metadata.ResourceData.HasChange("license") {

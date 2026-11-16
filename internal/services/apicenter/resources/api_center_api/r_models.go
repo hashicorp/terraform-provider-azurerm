@@ -10,7 +10,7 @@ type ApiCenterApiModel struct {
 	CustomProperties      string                  `tfschema:"custom_properties"`
 	Description           string                  `tfschema:"description"`
 	ExternalDocumentation []ExternalDocumentation `tfschema:"external_documentation"`
-	Kind                  string                  `tfschema:"kind"`
+	Kind                  string                  `tfschema:"api_type"`
 	License               []License               `tfschema:"license"`
 	LifecycleStage        string                  `tfschema:"lifecycle_stage"`
 	Summary               string                  `tfschema:"summary"`

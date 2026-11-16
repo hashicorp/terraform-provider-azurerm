@@ -34,7 +34,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Description: "The type of the environment.",
 			Required:    true,
-			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice(
 				environments.PossibleValuesForEnvironmentKind(),
 				false),

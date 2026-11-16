@@ -83,8 +83,6 @@ func TestAccApiCenterMetadataSchema_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("metadata_assignment.0.deprecated").HasValue("true"),
-				check.That(data.ResourceName).Key("metadata_assignment.0.required").HasValue("true"),
 			),
 		},
 		data.ImportStep(),

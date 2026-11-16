@@ -27,7 +27,7 @@ resource "azurerm_api_center_service" "example" {
 resource "azurerm_api_center_api" "example" {
   name       = "example-api"
   service_id = azurerm_api_center_service.example.id
-  kind       = "rest"
+  api_type   = "rest"
 }
 ```
 
@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
 
-* `kind` - (Required) The kind of API. Possible values include `graphql`, `grpc`, `rest`, `soap`, `webhook`, and `websocket`.
+* `api_type` - (Required) The type of API. Possible values include `graphql`, `grpc`, `rest`, `soap`, `webhook`, and `websocket`.
 
 * `contact` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-636f6e74616374))
 

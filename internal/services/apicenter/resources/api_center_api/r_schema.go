@@ -30,9 +30,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: services.ValidateServiceID,
 		},
 
-		"kind": {
+		"api_type": {
 			Type:         pluginsdk.TypeString,
-			Description:  "The kind of API.",
+			Description:  "The type of API.",
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(apis.PossibleValuesForApiKind(), false),
 		},
@@ -53,7 +53,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The name of the API contact.",
-						Optional:     true,
+						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
 
@@ -95,7 +95,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"url": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The URL of the external documentation.",
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 
@@ -109,7 +109,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"title": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The title of the external documentation.",
-						Optional:     true,
+						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 50),
 					},
 				},
@@ -133,7 +133,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"name": {
 						Type:         pluginsdk.TypeString,
 						Description:  "The name of the API license.",
-						Optional:     true,
+						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 100),
 					},
 

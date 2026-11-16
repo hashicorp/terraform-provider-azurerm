@@ -57,7 +57,9 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("development_portal_uri") {
 				model.Properties.Onboarding.DeveloperPortalUri = pointer.To([]string{state.DevPortalUri})
 			}
-
+			if metadata.ResourceData.HasChange("environment_type") {
+				model.Properties.Kind = environments.EnvironmentKind(state.Type)
+			}
 			if metadata.ResourceData.HasChange("server_type") {
 				model.Properties.Server.Type = pointer.ToEnum[environments.EnvironmentServerType](state.ServerType)
 			}

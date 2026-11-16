@@ -4,8 +4,11 @@
 package api_center_metadata_schema
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/metadataschemas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -30,7 +33,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"metadata_assignment": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"entity": {
@@ -66,4 +69,32 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if rd.Id() == "" || !rd.HasChange("metadata_assignment") {
+				return nil
+			}
+
+			oldRaw, newRaw := rd.GetChange("metadata_assignment")
+			oldAssignments := oldRaw.([]interface{})
+			newAssignments := newRaw.([]interface{})
+
+			for _, oldRawAssignment := range oldAssignments {
+				oldAssignment := oldRawAssignment.(map[string]interface{})
+				for _, newRawAssignment := range newAssignments {
+					newAssignment := newRawAssignment.(map[string]interface{})
+					if oldAssignment["entity"] == newAssignment["entity"] &&
+						oldAssignment["required"] != true && newAssignment["required"] == true {
+						return rd.ForceNew("metadata_assignment")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }
