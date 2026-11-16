@@ -22,6 +22,11 @@ resource "azurerm_cdn_frontdoor_edge_action" "example" {
   name                = "exampleedgeaction"
   resource_group_name = azurerm_resource_group.example.name
 
+  sku {
+    name = "Standard"
+    tier = "Standard"
+  }
+
   tags = {
     environment = "Production"
   }
@@ -36,11 +41,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Edge Action should exist. Changing this forces a new resource to be created.
 
+* `sku` - (Required) A `sku` block as defined below.
+
 ---
 
-* `sku` - (Optional) The SKU of the Edge Action. The only possible value is `Standard`. Defaults to `Standard`.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Edge Action.
+
+---
+
+A `sku` block supports the following:
+
+* `name` - (Required) The name of the SKU. The only possible value is `Standard`.
+
+* `tier` - (Required) The tier of the SKU. The only possible value is `Standard`.
 
 ## Attributes Reference
 

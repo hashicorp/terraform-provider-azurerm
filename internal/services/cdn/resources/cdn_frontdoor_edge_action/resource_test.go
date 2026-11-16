@@ -126,6 +126,11 @@ func (r CdnFrontdoorEdgeActionResource) basic(data acceptance.TestData) string {
 resource "azurerm_cdn_frontdoor_edge_action" "test" {
   name                = "acctestea%d"
   resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name = "Standard"
+    tier = "Standard"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -137,7 +142,11 @@ func (r CdnFrontdoorEdgeActionResource) requiresImport(data acceptance.TestData)
 resource "azurerm_cdn_frontdoor_edge_action" "import" {
   name                = azurerm_cdn_frontdoor_edge_action.test.name
   resource_group_name = azurerm_cdn_frontdoor_edge_action.test.resource_group_name
-  sku                 = azurerm_cdn_frontdoor_edge_action.test.sku
+
+  sku {
+    name = azurerm_cdn_frontdoor_edge_action.test.sku[0].name
+    tier = azurerm_cdn_frontdoor_edge_action.test.sku[0].tier
+  }
 }
 `, r.basic(data))
 }
@@ -149,7 +158,11 @@ func (r CdnFrontdoorEdgeActionResource) complete(data acceptance.TestData) strin
 resource "azurerm_cdn_frontdoor_edge_action" "test" {
   name                = "acctestea%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
+
+  sku {
+    name = "Standard"
+    tier = "Standard"
+  }
 
   tags = {
     Environment = "Test"

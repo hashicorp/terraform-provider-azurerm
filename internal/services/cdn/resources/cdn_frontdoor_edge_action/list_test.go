@@ -57,6 +57,11 @@ resource "azurerm_cdn_frontdoor_edge_action" "test" {
 
   name                = "acctestea${count.index}%d"
   resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name = "Standard"
+    tier = "Standard"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

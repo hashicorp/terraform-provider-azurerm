@@ -26,12 +26,28 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Standard",
-			ValidateFunc: validation.StringInSlice([]string{
-				"Standard",
-			}, false),
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Standard",
+						}, false),
+					},
+
+					"tier": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"Standard",
+						}, false),
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.Tags(),

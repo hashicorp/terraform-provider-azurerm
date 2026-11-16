@@ -41,10 +41,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("sku") {
-				payload.Sku = edgeactions.SkuType{
-					Name: config.Sku,
-					Tier: config.Sku,
-				}
+				payload.Sku = expandSku(config.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
