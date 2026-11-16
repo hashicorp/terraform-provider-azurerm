@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package helper
+package helpers
 
 // sku.name is not an Enum in the REST API specs.
 // These are the accepted values based on https://learn.microsoft.com/azure/azure-sql/database/elastic-jobs-overview?view=azuresql#concurrent-capacity-tiers
