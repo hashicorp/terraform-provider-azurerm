@@ -1041,17 +1041,18 @@ func TestAccKubernetesClusterNodePool_osSkuAzureLinux(t *testing.T) {
 func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.osSkuAzureContainerLinux(data, true, true),
+			Config: r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.osSkuAzureContainerLinux(data, false, false),
+			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, false, false),
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.secure_boot_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
 		},
 	})
@@ -1060,10 +1061,11 @@ func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinux(t *testing.T) {
 func TestAccKubernetesClusterNodePool_osSkuAzureContainerLinuxSecurityDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
+	meta := helpers.GetAKSTestMetadata(t, data.Locations.Primary)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.osSkuAzureContainerLinux(data, false, true),
+			Config:      r.osSkuAzureContainerLinux(data, meta.CurrentKubernetesVersion, false, true),
 			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`security.0.secure_boot_enabled` must be set to `true` when `os_sku` is `AzureContainerLinux`")),
 		},
 	})
@@ -3328,13 +3330,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSku)
 }
 
-func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled, includeOSSKU bool) string {
+func (KubernetesClusterNodePoolResource) osSkuAzureContainerLinux(data acceptance.TestData, kubernetesVersion string, securityEnabled, includeOSSKU bool) string {
 	osSKU := ""
 	if includeOSSKU {
 		osSKU = `os_sku = "AzureContainerLinux"`
 	}
 
-	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3387,7 +3388,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, osSKU, securityEnabled, securityEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, kubernetesVersion, osSKU, securityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterNodePoolResource) dedicatedHost(data acceptance.TestData) string {
