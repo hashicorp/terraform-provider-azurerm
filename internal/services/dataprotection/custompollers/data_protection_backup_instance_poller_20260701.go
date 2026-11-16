@@ -10,22 +10,22 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-06-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2026-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-var _ pollers.PollerType = &dataProtectionBackupInstance20260601Poller{}
+var _ pollers.PollerType = &dataProtectionBackupInstance20260701Poller{}
 
-type dataProtectionBackupInstance20260601Poller struct {
+type dataProtectionBackupInstance20260701Poller struct {
 	client        *backupinstanceresources.BackupInstanceResourcesClient
 	id            backupinstanceresources.BackupInstanceId
 	pendingStates []backupinstanceresources.CurrentProtectionState
 	targetState   backupinstanceresources.CurrentProtectionState
 }
 
-func NewDataProtectionBackupInstance20260601Poller(client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId, targetState backupinstanceresources.CurrentProtectionState, pendingStates []backupinstanceresources.CurrentProtectionState) *dataProtectionBackupInstance20260601Poller {
-	return &dataProtectionBackupInstance20260601Poller{
+func NewDataProtectionBackupInstance20260701Poller(client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId, targetState backupinstanceresources.CurrentProtectionState, pendingStates []backupinstanceresources.CurrentProtectionState) *dataProtectionBackupInstance20260701Poller {
+	return &dataProtectionBackupInstance20260701Poller{
 		client:        client,
 		id:            id,
 		pendingStates: pendingStates,
@@ -33,7 +33,7 @@ func NewDataProtectionBackupInstance20260601Poller(client *backupinstanceresourc
 	}
 }
 
-func (p dataProtectionBackupInstance20260601Poller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p dataProtectionBackupInstance20260701Poller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.BackupInstancesGet(ctx, p.id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
