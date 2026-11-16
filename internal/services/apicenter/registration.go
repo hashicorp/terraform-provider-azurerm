@@ -22,13 +22,13 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Api Center"
+	return "API Center"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Api Center",
+		"API Center",
 	}
 }
 
