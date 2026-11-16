@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `search_service_endpoint` - (Required) The endpoint of the Search Service in which this Blob Data Source should be created. Changing this forces a new resource to be created.
 
+~> **Note:** The `search_service_endpoint` must use HTTPS and must not end with a trailing `/`.
+
 * `connection_string_wo` - (Required, Write-Only) The connection string to the Azure Blob Storage account.
 
 * `connection_string_wo_version` - (Required) An integer value used to trigger an update for `connection_string_wo`.

@@ -53,7 +53,7 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IsURLWithHTTPS,
+			ValidateFunc: searchValidate.SearchServiceEndpoint,
 		},
 
 		"container_name": {
