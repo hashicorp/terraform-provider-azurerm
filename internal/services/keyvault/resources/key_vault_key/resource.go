@@ -57,7 +57,7 @@ func RegisterResource() *pluginsdk.Resource {
 				return false
 			}),
 			func(_ context.Context, d *pluginsdk.ResourceDiff, _ any) error {
-				opts := d.Get("key_opts").([]interface{})
+				opts := d.Get("key_opts").([]any)
 				hasImport := false
 				for _, opt := range opts {
 					if strings.EqualFold(opt.(string), string(keys.JsonWebKeyOperationImport)) {
