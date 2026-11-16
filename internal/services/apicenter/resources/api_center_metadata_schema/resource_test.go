@@ -159,7 +159,7 @@ resource "azurerm_api_center_metadata_schema" "test" {
 
   metadata_assignment {
     entity     = "api"
-    deprecated = true
+    deprecated = false
     required   = true
   }
 

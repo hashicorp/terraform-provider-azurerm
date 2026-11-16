@@ -5,6 +5,7 @@ package api_center_metadata_schema
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/metadataschemas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
@@ -74,23 +75,22 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			rd := metadata.ResourceDiff
-			if rd.Id() == "" || !rd.HasChange("metadata_assignment") {
+			if metadata.ResourceDiff == nil {
 				return nil
 			}
 
-			oldRaw, newRaw := rd.GetChange("metadata_assignment")
-			oldAssignments := oldRaw.([]interface{})
-			newAssignments := newRaw.([]interface{})
+			if !metadata.ResourceDiff.HasChange("metadata_assignment") {
+				return nil
+			}
 
-			for _, oldRawAssignment := range oldAssignments {
-				oldAssignment := oldRawAssignment.(map[string]interface{})
-				for _, newRawAssignment := range newAssignments {
-					newAssignment := newRawAssignment.(map[string]interface{})
-					if oldAssignment["entity"] == newAssignment["entity"] &&
-						oldAssignment["required"] != true && newAssignment["required"] == true {
-						return rd.ForceNew("metadata_assignment")
-					}
+			var model ApiCenterMetadataSchemaModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return err
+			}
+
+			for _, assignment := range model.MetadataAssignment {
+				if assignment.Deprecated && assignment.Required {
+					return fmt.Errorf("metadata_assignment cannot be both deprecated and required")
 				}
 			}
 

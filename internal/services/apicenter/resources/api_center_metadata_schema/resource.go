@@ -12,8 +12,9 @@ import (
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:service_id,resource_group_name:service_id,service_name:service_id"
 var (
-	_ sdk.ResourceWithUpdate   = Resource{}
-	_ sdk.ResourceWithIdentity = Resource{}
+	_ sdk.ResourceWithUpdate        = Resource{}
+	_ sdk.ResourceWithIdentity      = Resource{}
+	_ sdk.ResourceWithCustomizeDiff = Resource{}
 )
 
 type Resource struct{}

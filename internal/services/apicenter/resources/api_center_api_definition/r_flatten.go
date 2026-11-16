@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apiversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -22,15 +23,14 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, ctx context.Context, id
 	}
 
 	exportResp, err := client.ExportSpecification(ctx, *id)
-	if err != nil {
+	if err != nil && !response.WasNotFound(exportResp.HttpResponse) {
 		return err
 	}
 
 	if props := model.Properties; props != nil {
-		specification := flattenApiDefinitionPropertiesSpecification(&exportResp, props.Specification)
 		state.Description = pointer.From(props.Description)
-		state.Specification = specification
 		state.Title = props.Title
+		state.Specification = flattenApiDefinitionPropertiesSpecification(&exportResp, props.Specification)
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
