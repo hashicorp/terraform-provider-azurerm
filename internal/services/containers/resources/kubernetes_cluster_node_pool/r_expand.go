@@ -243,7 +243,10 @@ func expandAgentPoolNetworkProfile(input []any) *agentpools.AgentPoolNetworkProf
 	return &agentpools.AgentPoolNetworkProfile{
 		AllowedHostPorts:          expandAgentPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]any)),
 		ApplicationSecurityGroups: pluginsdk.ExpandStringSlice(v["application_security_group_ids"].([]any)),
-		NodePublicIPTags:          expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
+		Dranet: &agentpools.DRANETProfile{
+			Mode: pointer.ToEnum[agentpools.DRANETMode](v["dranet_mode"].(string)),
+		},
+		NodePublicIPTags: expandAgentPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]any)),
 	}
 }
 
