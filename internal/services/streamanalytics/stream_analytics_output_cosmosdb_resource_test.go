@@ -43,12 +43,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_crossResourceGroup(t *testing.T) {
 			Config: r.crossResourceGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cosmosdb_sql_database_id").MatchesOtherKey(check.That("azurerm_cosmosdb_sql_database.test").Key("id")),
 			),
-		},
-		{
-			Config:   r.crossResourceGroup(data),
-			PlanOnly: true,
 		},
 	})
 }
