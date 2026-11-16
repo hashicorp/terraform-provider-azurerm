@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
@@ -35,7 +35,7 @@ func (r MySQLFlexibleServerAdministratorResource) ResourceType() string {
 	return "azurerm_mysql_flexible_server_active_directory_administrator"
 }
 
-func (r MySQLFlexibleServerAdministratorResource) ModelObject() interface{} {
+func (r MySQLFlexibleServerAdministratorResource) ModelObject() any {
 	return &MySQLFlexibleServerAdministratorModel{}
 }
 

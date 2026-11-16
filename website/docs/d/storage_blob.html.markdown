@@ -41,7 +41,11 @@ The following arguments are supported:
 
 * `content_md5` - The MD5 sum of the blob contents.
 
+* `cache_control` - The cache control directive that is set on the blob.
+
 * `encryption_scope` - The encryption scope for this blob.
+
+* `source_uri` - The source URI used to copy the blob, if it was created from another blob.
 
 * `metadata` - A map of custom blob metadata.
 

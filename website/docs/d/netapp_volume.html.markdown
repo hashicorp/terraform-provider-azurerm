@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `data_protection_replication` - Volume data protection replication block
 
-* `data_protection_backup_policy` - A data protecion backup policy block
+* `data_protection_backup_policy` - A data protection backup policy block
 
 * `data_protection_advanced_ransomware` - An Advanced Ransomware Protection (ARP) data protection block.
 
@@ -105,7 +105,7 @@ A `data_protection_advanced_ransomware` block exports the following:
 
 * `protection_enabled` - Whether the Advanced Ransomware Protection feature is enabled.
 
-~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+~> **Note:** For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/azure/azure-netapp-files/ransomware-configure).
 
 ---
 

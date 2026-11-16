@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -50,7 +50,7 @@ func dataSourceManagementGroupTemplateDeployment() *pluginsdk.Resource {
 	}
 }
 
-func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceManagementGroupTemplateDeploymentRead(d *schema.ResourceData, meta any) error {
 	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -30,7 +30,7 @@ var (
 	_ sdk.ResourceWithIdentity = SyncServerEndpointResource{}
 )
 
-func (r SyncServerEndpointResource) ModelObject() interface{} {
+func (r SyncServerEndpointResource) ModelObject() any {
 	return &StorageSyncServerEndpointResourceSchema{}
 }
 
@@ -236,8 +236,8 @@ func (r SyncServerEndpointResource) flatten(metadata sdk.ResourceMetaData, id *s
 			schema.ServerLocalPath = pointer.From(props.ServerLocalPath)
 			schema.VolumeFreeSpacePercent = pointer.From(props.VolumeFreeSpacePercent)
 			schema.CloudTieringEnabled = pointer.From(props.CloudTiering) == serverendpointresource.FeatureStatusOn
-			schema.InitialDownloadPolicy = string(pointer.From(props.InitialDownloadPolicy))
-			schema.LocalCacheMode = string(pointer.From(props.LocalCacheMode))
+			schema.InitialDownloadPolicy = pointer.FromEnum(props.InitialDownloadPolicy)
+			schema.LocalCacheMode = pointer.FromEnum(props.LocalCacheMode)
 			if pointer.From(props.TierFilesOlderThanDays) != 0 {
 				schema.TierFilesOlderThanDays = pointer.From(props.TierFilesOlderThanDays)
 			}

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -120,7 +120,7 @@ func (r MsSqlJobTargetGroupResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlJobTargetGroupResource) ModelObject() interface{} {
+func (r MsSqlJobTargetGroupResource) ModelObject() any {
 	return &MsSqlJobTargetGroupResourceModel{}
 }
 
@@ -321,7 +321,7 @@ func flattenJobTargets(input []jobtargetgroups.JobTarget) []MsSqlJobTarget {
 		t := MsSqlJobTarget{
 			DatabaseName:    pointer.From(v.DatabaseName),
 			ElasticPoolName: pointer.From(v.ElasticPoolName),
-			MembershipType:  string(pointer.From(v.MembershipType)),
+			MembershipType:  pointer.FromEnum(v.MembershipType),
 			JobCredentialId: pointer.From(v.RefreshCredential),
 			ServerName:      pointer.From(v.ServerName),
 			Type:            string(v.Type),

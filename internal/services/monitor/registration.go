@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -100,9 +100,11 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		MonitorActionGroupListResource{},
 		MonitorActivityLogAlertListResource{},
 		MonitorMetricAlertListResource{},
 		MonitorScheduledQueryRulesAlertListResource{},
+		MonitorWorkspaceListResource{},
 		ScheduledQueryRulesAlertV2ListResource{},
 	}
 }

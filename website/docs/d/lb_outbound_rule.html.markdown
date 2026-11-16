@@ -14,8 +14,8 @@ Use this data source to access information about an existing Load Balancer Outbo
 
 ```hcl
 data "azurerm_lb_outbound_rule" "example" {
-  name            = "existing_lb_outbound_rule"
-  loadbalancer_id = "existing_load_balancer_id"
+  name            = "example-outbound-rule"
+  loadbalancer_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.Network/loadBalancers/example-lb"
 }
 
 output "id" {
@@ -67,4 +67,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-07-01

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -134,10 +134,8 @@ func expandGithubActionConfig(input []GithubActionConfiguration, usesLinux bool)
 
 	ghActionConfig := input[0]
 	output := &webapps.GitHubActionConfiguration{
-		CodeConfiguration:      nil,
-		ContainerConfiguration: nil,
-		IsLinux:                pointer.To(usesLinux),
-		GenerateWorkflowFile:   pointer.To(ghActionConfig.GenerateWorkflowFile),
+		IsLinux:              pointer.To(usesLinux),
+		GenerateWorkflowFile: pointer.To(ghActionConfig.GenerateWorkflowFile),
 	}
 
 	if len(ghActionConfig.CodeConfig) != 0 {
