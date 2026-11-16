@@ -42,11 +42,6 @@ service/api-management:
   - any-glob-to-any-file:
     - internal/services/apimanagement/**/*
 
-service/apicenter:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/apicenter/**/*
-
 service/app-configuration:
 - changed-files:
   - any-glob-to-any-file:

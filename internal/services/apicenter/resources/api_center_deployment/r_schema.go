@@ -70,6 +70,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Description:  "The state of the deployment.",
 			Optional:     true,
+			Default:      deployments.DeploymentStateActive,
 			ValidateFunc: validation.StringInSlice(deployments.PossibleValuesForDeploymentState(), false),
 		},
 	}
