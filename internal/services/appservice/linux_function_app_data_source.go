@@ -25,6 +25,8 @@ import (
 
 type LinuxFunctionAppDataSource struct{}
 
+var _ sdk.DataSource = LinuxFunctionAppDataSource{}
+
 type LinuxFunctionAppDataSourceModel struct {
 	Name               string `tfschema:"name"`
 	ResourceGroup      string `tfschema:"resource_group_name"`
