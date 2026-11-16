@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -56,7 +56,7 @@ func (r ApiManagementNotificationRecipientUserResource) Attributes() map[string]
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ApiManagementNotificationRecipientUserResource) ModelObject() interface{} {
+func (r ApiManagementNotificationRecipientUserResource) ModelObject() any {
 	return &ApiManagementNotificationRecipientUserModel{}
 }
 

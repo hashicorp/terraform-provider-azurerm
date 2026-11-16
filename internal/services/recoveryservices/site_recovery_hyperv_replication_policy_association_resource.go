@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -64,7 +64,7 @@ func (h HyperVReplicationPolicyAssociationResource) Attributes() map[string]*sch
 	return map[string]*schema.Schema{}
 }
 
-func (h HyperVReplicationPolicyAssociationResource) ModelObject() interface{} {
+func (h HyperVReplicationPolicyAssociationResource) ModelObject() any {
 	return &HyperVReplicationPolicyAssociationModel{}
 }
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate_test
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 )
 
-func TestAccContainerRegistryName_validation(t *testing.T) {
+func TestContainerRegistryName_validation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int

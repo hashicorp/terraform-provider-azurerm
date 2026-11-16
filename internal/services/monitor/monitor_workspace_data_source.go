@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -33,7 +33,7 @@ type WorkspaceDataSourceModel struct {
 	Tags                            map[string]string `tfschema:"tags"`
 }
 
-func (d WorkspaceDataSource) ModelObject() interface{} {
+func (d WorkspaceDataSource) ModelObject() any {
 	return &WorkspaceDataSource{}
 }
 

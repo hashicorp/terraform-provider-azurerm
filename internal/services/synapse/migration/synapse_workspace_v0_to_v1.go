@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -238,7 +238,7 @@ func (SynapseWorkspaceV0ToV1) Schema() map[string]*pluginsdk.Schema {
 }
 
 func (SynapseWorkspaceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]any, meta any) (map[string]any, error) {
 		// IDs imported while this resource parsed them with the legacy resourceids.ParseAzureResourceID
 		// can contain non-canonically cased static segments (e.g. `resourcegroups`, `microsoft.synapse`),
 		// which the case-sensitive SDK parser rejects - normalise them to the canonical casing

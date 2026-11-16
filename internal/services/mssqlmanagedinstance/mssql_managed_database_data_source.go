@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -35,7 +35,7 @@ func (d MsSqlManagedDatabaseDataSource) ResourceType() string {
 	return "azurerm_mssql_managed_database"
 }
 
-func (d MsSqlManagedDatabaseDataSource) ModelObject() interface{} {
+func (d MsSqlManagedDatabaseDataSource) ModelObject() any {
 	return &MsSqlManagedDatabaseDataSourceModel{}
 }
 

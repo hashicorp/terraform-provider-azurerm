@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -53,13 +53,13 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 
 		// It's possible to remove the associated vm from the protected backup so we'll only ForceNew this attribute if it's
 		// changing to something other than empty.
-		CustomizeDiff: pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta interface{}) bool {
+		CustomizeDiff: pluginsdk.ForceNewIfChange("source_vm_id", func(ctx context.Context, old, new, meta any) bool {
 			return new.(string) != "" && old.(string) != new.(string)
 		}),
 	}
 }
 
-func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	vaultClient := meta.(*clients.Client).RecoveryServices.VaultsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -169,7 +169,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
 }
 
-func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 	return nil
 }
 
-func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	vaultClient := meta.(*clients.Client).RecoveryServices.VaultsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -288,7 +288,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
 }
 
-func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta any) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -370,8 +370,8 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 	return nil
 }
 
-func expandDiskLunList(input []interface{}) []interface{} {
-	result := make([]interface{}, 0, len(input))
+func expandDiskLunList(input []any) []any {
+	result := make([]any, 0, len(input))
 	for _, v := range input {
 		result = append(result, v.(int))
 	}
@@ -395,7 +395,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx contex
 func optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(vmId string, vaultName string) string {
 	return fmt.Sprintf(`
 An existing soft-deleted Backup Protected VM exists with the source VM %q in the recovery services
-vault %q, however automatically recovering this Backup Protected VM has been disabled via the 
+vault %q, however automatically recovering this Backup Protected VM has been disabled via the
 "features" block.
 
 Terraform can automatically recover the soft-deleted Backup Protected VM when this behaviour is

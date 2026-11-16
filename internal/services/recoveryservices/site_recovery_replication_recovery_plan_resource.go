@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -70,7 +70,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) ResourceType() string {
 	return "azurerm_site_recovery_replication_recovery_plan"
 }
 
-func (r SiteRecoveryReplicationRecoveryPlanResource) ModelObject() interface{} {
+func (r SiteRecoveryReplicationRecoveryPlanResource) ModelObject() any {
 	return &SiteRecoveryReplicationRecoveryPlanModel{}
 }
 

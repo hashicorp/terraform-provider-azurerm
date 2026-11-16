@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -40,7 +40,7 @@ type ServicePlanDataSourceModel struct {
 	Tags                        map[string]string `tfschema:"tags"`
 }
 
-func (r ServicePlanDataSource) ModelObject() interface{} {
+func (r ServicePlanDataSource) ModelObject() any {
 	return &ServicePlanDataSourceModel{}
 }
 

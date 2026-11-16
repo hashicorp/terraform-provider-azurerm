@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package redis
@@ -50,7 +50,7 @@ func (r RedisCacheAccessPolicyResource) Attributes() map[string]*pluginsdk.Schem
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r RedisCacheAccessPolicyResource) ModelObject() interface{} {
+func (r RedisCacheAccessPolicyResource) ModelObject() any {
 	return &RedisCacheAccessPolicyResourceModel{}
 }
 
