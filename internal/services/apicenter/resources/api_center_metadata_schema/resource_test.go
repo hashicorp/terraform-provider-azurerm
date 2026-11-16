@@ -28,7 +28,7 @@ func TestAccApiCenterMetadataSchema_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_id").MatchesOtherKey(check.That("azurerm_api_center_service.test").Key("id")),
+				check.That(data.ResourceName).Key("api_center_service_id").MatchesOtherKey(check.That("azurerm_api_center_service.test").Key("id")),
 			),
 		},
 		data.ImportStep(),
@@ -130,14 +130,14 @@ func (r ApiCenterMetadataSchemaResource) basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_api_center_metadata_schema" "test" {
-  name       = "acctest%d"
-  service_id = azurerm_api_center_service.test.id
+  name                  = "acctest%d"
+  api_center_service_id = azurerm_api_center_service.test.id
 
   metadata_assignment {
     entity = "api"
   }
 
-  schema = jsonencode({
+  schema_json = jsonencode({
     type = "object"
     properties = {
       name = {
@@ -154,8 +154,8 @@ func (r ApiCenterMetadataSchemaResource) complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_api_center_metadata_schema" "test" {
-  name       = "acctest%d"
-  service_id = azurerm_api_center_service.test.id
+  name                  = "acctest%d"
+  api_center_service_id = azurerm_api_center_service.test.id
 
   metadata_assignment {
     entity     = "api"
@@ -163,7 +163,7 @@ resource "azurerm_api_center_metadata_schema" "test" {
     required   = true
   }
 
-  schema = jsonencode({
+  schema_json = jsonencode({
     type = "object"
     properties = {
       description = {
@@ -180,14 +180,14 @@ func (r ApiCenterMetadataSchemaResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_api_center_metadata_schema" "import" {
-  name       = azurerm_api_center_metadata_schema.test.name
-  service_id = azurerm_api_center_metadata_schema.test.service_id
+  name                  = azurerm_api_center_metadata_schema.test.name
+  api_center_service_id = azurerm_api_center_metadata_schema.test.api_center_service_id
 
   metadata_assignment {
     entity = azurerm_api_center_metadata_schema.test.metadata_assignment[0].entity
   }
 
-  schema = azurerm_api_center_metadata_schema.test.schema
+  schema_json = azurerm_api_center_metadata_schema.test.schema_json
 }
 `, r.basic(data))
 }

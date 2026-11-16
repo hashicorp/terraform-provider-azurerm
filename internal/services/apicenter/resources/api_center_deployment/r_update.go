@@ -45,7 +45,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			model := existing.Model
-			if metadata.ResourceData.HasChange("custom_properties") {
+			if metadata.ResourceData.HasChange("custom_properties_json") {
 				model.Properties.CustomProperties, err = helpers.ExpandCustomProperties(state.CustomProperties)
 				if err != nil {
 					return err
@@ -74,8 +74,8 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.EnvironmentId = pointer.To(scopedEnvironmentId)
 			}
 
-			if metadata.ResourceData.HasChange("server_runtime_uri") {
-				model.Properties.Server.RuntimeUri = pointer.To(state.ServerRuntimeUri)
+			if metadata.ResourceData.HasChange("server_runtime_url") {
+				model.Properties.Server.RuntimeUri = pointer.To(state.ServerRuntimeUrl)
 			}
 			if metadata.ResourceData.HasChange("state") {
 				model.Properties.State = pointer.ToEnum[deployments.DeploymentState](state.State)

@@ -56,15 +56,15 @@ func (r ApiCenterMetadataSchemaResource) basicList(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_center_metadata_schema" "test" {
-  count      = 3
-  name       = "acctest%d${count.index}"
-  service_id = azurerm_api_center_service.test.id
+  count                 = 3
+  name                  = "acctest%d${count.index}"
+  api_center_service_id = azurerm_api_center_service.test.id
 
   metadata_assignment {
     entity = "api"
   }
 
-  schema = jsonencode({
+  schema_json = jsonencode({
     type = "object"
     properties = {
       name = {

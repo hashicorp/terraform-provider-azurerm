@@ -22,7 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.Name(),
 		},
 
-		"service_id": {
+		"api_center_service_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API Center service.",
 			Required:     true,
@@ -67,7 +67,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"custom_properties": helpers.CustomPropertiesSchema(),
+		"custom_properties_json": helpers.CustomPropertiesSchema(),
 
 		"description": {
 			Type:         pluginsdk.TypeString,

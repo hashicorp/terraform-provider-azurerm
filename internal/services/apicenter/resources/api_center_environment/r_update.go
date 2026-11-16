@@ -43,7 +43,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 
-			if metadata.ResourceData.HasChange("custom_properties") {
+			if metadata.ResourceData.HasChange("custom_properties_json") {
 				model.Properties.CustomProperties, err = helpers.ExpandCustomProperties(state.CustomProperties)
 				if err != nil {
 					return err
@@ -54,8 +54,8 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.Description = pointer.To(state.Description)
 			}
 
-			if metadata.ResourceData.HasChange("development_portal_uri") {
-				model.Properties.Onboarding.DeveloperPortalUri = pointer.To([]string{state.DevPortalUri})
+			if metadata.ResourceData.HasChange("development_portal_url") {
+				model.Properties.Onboarding.DeveloperPortalUri = pointer.To([]string{state.DevPortalUrl})
 			}
 			if metadata.ResourceData.HasChange("environment_type") {
 				model.Properties.Kind = environments.EnvironmentKind(state.Type)
@@ -64,8 +64,8 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.Server.Type = pointer.ToEnum[environments.EnvironmentServerType](state.ServerType)
 			}
 
-			if metadata.ResourceData.HasChange("management_portal_uri") {
-				model.Properties.Server.ManagementPortalUri = pointer.To([]string{state.MgmtPortalUri})
+			if metadata.ResourceData.HasChange("management_portal_url") {
+				model.Properties.Server.ManagementPortalUri = pointer.To([]string{state.MgmtPortalUrl})
 			}
 
 			if metadata.ResourceData.HasChange("instructions") {

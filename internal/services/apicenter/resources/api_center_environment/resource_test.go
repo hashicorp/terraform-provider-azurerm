@@ -27,7 +27,7 @@ func TestAccApiCenterEnvironment_customProperties(t *testing.T) {
 			Config: r.customProperties(data, "catalog-team", "medium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"medium","owning_team":"catalog-team"}}`),
+				check.That(data.ResourceName).Key("custom_properties_json").HasValue(`{"governance":{"criticality":"medium","owning_team":"catalog-team"}}`),
 			),
 		},
 		data.ImportStep(),
@@ -35,7 +35,7 @@ func TestAccApiCenterEnvironment_customProperties(t *testing.T) {
 			Config: r.customProperties(data, "platform-team", "high"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"high","owning_team":"platform-team"}}`),
+				check.That(data.ResourceName).Key("custom_properties_json").HasValue(`{"governance":{"criticality":"high","owning_team":"platform-team"}}`),
 			),
 		},
 		data.ImportStep(),
@@ -138,15 +138,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_api_center_metadata_schema" "test" {
-  name       = "governance"
-  service_id = azurerm_api_center_service.test.id
+  name                  = "governance"
+  api_center_service_id = azurerm_api_center_service.test.id
 
   metadata_assignment {
     entity   = "environment"
     required = true
   }
 
-  schema = jsonencode({
+  schema_json = jsonencode({
     type = "object"
     properties = {
       owning_team = { type = "string" }
@@ -172,11 +172,11 @@ resource "azurerm_api_center_metadata_schema" "test" {
 }
 
 resource "azurerm_api_center_environment" "test" {
-  name             = "test"
-  service_id       = azurerm_api_center_service.test.id
-  environment_type = "testing"
+  name                  = "test"
+  api_center_service_id = azurerm_api_center_service.test.id
+  environment_type      = "testing"
 
-  custom_properties = jsonencode({
+  custom_properties_json = jsonencode({
     (azurerm_api_center_metadata_schema.test.name) = {
       owning_team = %q
       criticality = %q
@@ -196,10 +196,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_api_center_environment" "test" {
-  name             = "test"
-  service_id       = azurerm_api_center_service.test.id
-  environment_type = "testing"
-  description      = "testing environment"
+  name                  = "test"
+  api_center_service_id = azurerm_api_center_service.test.id
+  environment_type      = "testing"
+  description           = "testing environment"
 }`, template)
 }
 
@@ -214,14 +214,14 @@ provider "azurerm" {
 
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
-  service_id             = azurerm_api_center_service.test.id
+  api_center_service_id  = azurerm_api_center_service.test.id
   display_name           = "testtitle"
   environment_type       = "testing"
   description            = "testing environment"
-  development_portal_uri = "https://developer.com"
+  development_portal_url = "https://developer.com"
   instructions           = "Use this wonderful API to CRUD brilliant data."
   server_type            = "Azure API Management"
-  management_portal_uri  = "https://azure-apim-mgmt-portal.azure.com"
+  management_portal_url  = "https://azure-apim-mgmt-portal.azure.com"
 }
 `, template)
 }
@@ -237,14 +237,14 @@ provider "azurerm" {
 
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
-  service_id             = azurerm_api_center_service.test.id
+  api_center_service_id  = azurerm_api_center_service.test.id
   display_name           = "testtitle"
   environment_type       = "testing"
   description            = "testing environment 2"
-  development_portal_uri = "https://developer2.com"
+  development_portal_url = "https://developer2.com"
   instructions           = "Use this wonderful API2 to CRUD brilliant data."
   server_type            = "Apigee API Management"
-  management_portal_uri  = "https://azure-apim-mgmt-portal2.azure.com"
+  management_portal_url  = "https://azure-apim-mgmt-portal2.azure.com"
 }
 `, template)
 }
@@ -255,10 +255,10 @@ func (ApiCenterEnvironmentResource) requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_center_environment" "import" {
-  name             = azurerm_api_center_environment.test.name
-  service_id       = azurerm_api_center_environment.test.service_id
-  display_name     = azurerm_api_center_environment.test.display_name
-  environment_type = azurerm_api_center_environment.test.environment_type
+  name                  = azurerm_api_center_environment.test.name
+  api_center_service_id = azurerm_api_center_environment.test.api_center_service_id
+  display_name          = azurerm_api_center_environment.test.display_name
+  environment_type      = azurerm_api_center_environment.test.environment_type
 }
 `, template)
 }

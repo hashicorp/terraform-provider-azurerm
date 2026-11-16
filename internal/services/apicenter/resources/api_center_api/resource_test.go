@@ -28,7 +28,7 @@ func TestAccApiCenterApi_customProperties(t *testing.T) {
 			Config: r.customProperties(data, "catalog-team", "medium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"medium","owning_team":"catalog-team"}}`),
+				check.That(data.ResourceName).Key("custom_properties_json").HasValue(`{"governance":{"criticality":"medium","owning_team":"catalog-team"}}`),
 			),
 		},
 		data.ImportStep(),
@@ -36,7 +36,7 @@ func TestAccApiCenterApi_customProperties(t *testing.T) {
 			Config: r.customProperties(data, "platform-team", "high"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_properties").HasValue(`{"governance":{"criticality":"high","owning_team":"platform-team"}}`),
+				check.That(data.ResourceName).Key("custom_properties_json").HasValue(`{"governance":{"criticality":"high","owning_team":"platform-team"}}`),
 			),
 		},
 		data.ImportStep(),
@@ -52,7 +52,7 @@ func TestAccApiCenterApi_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("service_id").MatchesOtherKey(check.That("azurerm_api_center_service.test").Key("id")),
+				check.That(data.ResourceName).Key("api_center_service_id").MatchesOtherKey(check.That("azurerm_api_center_service.test").Key("id")),
 				check.That(data.ResourceName).Key("display_name").MatchesOtherKey(check.That(data.ResourceName).Key("name")),
 				check.That(data.ResourceName).Key("lifecycle_stage").HasValue("design"),
 			),
@@ -161,15 +161,15 @@ func (r ApiCenterApiResource) customProperties(data acceptance.TestData, team, c
 %s
 
 resource "azurerm_api_center_metadata_schema" "test" {
-  name       = "governance"
-  service_id = azurerm_api_center_service.test.id
+  name                  = "governance"
+  api_center_service_id = azurerm_api_center_service.test.id
 
   metadata_assignment {
     entity   = "api"
     required = true
   }
 
-  schema = jsonencode({
+  schema_json = jsonencode({
     type = "object"
     properties = {
       owning_team = { type = "string" }
@@ -195,11 +195,11 @@ resource "azurerm_api_center_metadata_schema" "test" {
 }
 
 resource "azurerm_api_center_api" "test" {
-  name       = "acctest%d"
-  service_id = azurerm_api_center_service.test.id
-  kind       = "rest"
+  name                  = "acctest%d"
+  api_center_service_id = azurerm_api_center_service.test.id
+  api_type              = "rest"
 
-  custom_properties = jsonencode({
+  custom_properties_json = jsonencode({
     (azurerm_api_center_metadata_schema.test.name) = {
       owning_team = %q
       criticality = %q
@@ -214,9 +214,9 @@ func (r ApiCenterApiResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api" "test" {
-  name       = "acctest%d"
-  service_id = azurerm_api_center_service.test.id
-  kind       = "rest"
+  name                  = "acctest%d"
+  api_center_service_id = azurerm_api_center_service.test.id
+  api_type              = "rest"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -226,15 +226,15 @@ func (r ApiCenterApiResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api" "test" {
-  name                 = "acctest%d"
-  service_id           = azurerm_api_center_service.test.id
-  display_name         = "Acceptance Test GraphQL API"
-  kind                 = "graphql"
-  description          = "An API for acceptance testing."
-  summary              = "Acceptance test API summary"
-  terms_of_service_url = "https://example.com/terms"
+  name                  = "acctest%d"
+  api_center_service_id = azurerm_api_center_service.test.id
+  display_name          = "Acceptance Test GraphQL API"
+  api_type              = "graphql"
+  description           = "An API for acceptance testing."
+  summary               = "Acceptance test API summary"
+  terms_of_service_url  = "https://example.com/terms"
 
-  contacts {
+  contact {
     name  = "API Support"
     email = "support@example.com"
     url   = "https://example.com/support"
@@ -259,10 +259,10 @@ func (r ApiCenterApiResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_api_center_api" "import" {
-  name         = azurerm_api_center_api.test.name
-  service_id   = azurerm_api_center_api.test.service_id
-  display_name = azurerm_api_center_api.test.display_name
-  kind         = azurerm_api_center_api.test.kind
+  name                  = azurerm_api_center_api.test.name
+  api_center_service_id = azurerm_api_center_api.test.api_center_service_id
+  display_name          = azurerm_api_center_api.test.display_name
+  api_type              = azurerm_api_center_api.test.api_type
 }
 `, r.basic(data))
 }

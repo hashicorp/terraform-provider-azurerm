@@ -4,10 +4,10 @@
 package api_center_api
 
 type ApiCenterApiModel struct {
-	ServiceId             string                  `tfschema:"service_id"`
+	ServiceId             string                  `tfschema:"api_center_service_id"`
 	Name                  string                  `tfschema:"name"`
 	Contacts              []Contact               `tfschema:"contact"`
-	CustomProperties      string                  `tfschema:"custom_properties"`
+	CustomProperties      string                  `tfschema:"custom_properties_json"`
 	Description           string                  `tfschema:"description"`
 	ExternalDocumentation []ExternalDocumentation `tfschema:"external_documentation"`
 	Kind                  string                  `tfschema:"api_type"`

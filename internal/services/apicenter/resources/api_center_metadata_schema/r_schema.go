@@ -24,7 +24,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"service_id": {
+		"api_center_service_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API Center service.",
 			Required:     true,
@@ -59,7 +59,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"schema": {
+		"schema_json": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The JSON schema defining the metadata.",
 			Required:     true,

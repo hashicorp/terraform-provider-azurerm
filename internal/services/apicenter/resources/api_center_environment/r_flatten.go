@@ -30,14 +30,14 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *environments.Enviro
 			state.Type = string(props.Kind)
 			if server := props.Server; server != nil {
 				if pointer.From(server.ManagementPortalUri) != nil && len(pointer.From(server.ManagementPortalUri)) != 0 {
-					state.MgmtPortalUri = pointer.From(server.ManagementPortalUri)[0]
+					state.MgmtPortalUrl = pointer.From(server.ManagementPortalUri)[0]
 				}
 				state.ServerType = pointer.FromEnum(server.Type)
 			}
 
 			if onboarding := props.Onboarding; onboarding != nil {
 				if pointer.From(onboarding.DeveloperPortalUri) != nil && len(pointer.From(onboarding.DeveloperPortalUri)) != 0 {
-					state.DevPortalUri = pointer.From(onboarding.DeveloperPortalUri)[0]
+					state.DevPortalUrl = pointer.From(onboarding.DeveloperPortalUri)[0]
 				}
 				state.Instructions = pointer.From(onboarding.Instructions)
 			}

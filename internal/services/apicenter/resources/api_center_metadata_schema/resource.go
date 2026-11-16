@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:service_id,resource_group_name:service_id,service_name:service_id"
+//go:generate go run ../../../../tools/generator-tests resourceidentity -properties "name" -compare-values "subscription_id:api_center_service_id,resource_group_name:api_center_service_id,service_name:api_center_service_id"
 var (
 	_ sdk.ResourceWithUpdate        = Resource{}
 	_ sdk.ResourceWithIdentity      = Resource{}

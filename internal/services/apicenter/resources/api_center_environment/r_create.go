@@ -60,12 +60,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 					Description:      new(model.Description),
 					Kind:             environments.EnvironmentKind(model.Type),
 					Onboarding: &environments.Onboarding{
-						DeveloperPortalUri: pointer.To([]string{model.DevPortalUri}),
+						DeveloperPortalUri: pointer.To([]string{model.DevPortalUrl}),
 						Instructions:       pointer.To(model.Instructions),
 					},
 					Server: &environments.EnvironmentServer{
 						Type:                pointer.ToEnum[environments.EnvironmentServerType](model.ServerType),
-						ManagementPortalUri: pointer.To([]string{model.MgmtPortalUri}),
+						ManagementPortalUri: pointer.To([]string{model.MgmtPortalUrl}),
 					},
 					Title: model.Title,
 				},

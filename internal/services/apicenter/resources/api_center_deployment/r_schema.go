@@ -23,21 +23,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.Name(),
 		},
 
-		"api_definition_id": {
+		"api_center_api_definition_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API definition to deploy.",
 			Required:     true,
 			ValidateFunc: apidefinitions.ValidateDefinitionID,
 		},
 
-		"environment_id": {
+		"api_center_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the environment for this deployment.",
 			Required:     true,
 			ValidateFunc: environments.ValidateEnvironmentID,
 		},
 
-		"server_runtime_uri": {
+		"server_runtime_url": {
 			Type:        pluginsdk.TypeSet,
 			Description: "A set of server runtime URLs for this deployment.",
 			Required:    true,
@@ -48,7 +48,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"custom_properties": helpers.CustomPropertiesSchema(),
+		"custom_properties_json": helpers.CustomPropertiesSchema(),
 
 		"description": {
 			Type:         pluginsdk.TypeString,

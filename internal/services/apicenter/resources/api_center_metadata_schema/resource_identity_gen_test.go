@@ -29,9 +29,9 @@ func TestAccApiCenterMetadataSchema_resourceIdentity(t *testing.T) {
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_api_center_metadata_schema.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("service_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("service_name"), tfjsonpath.New("service_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("service_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("api_center_service_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_center_service_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_api_center_metadata_schema.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("api_center_service_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

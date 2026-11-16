@@ -4,10 +4,10 @@
 package api_center_metadata_schema
 
 type ApiCenterMetadataSchemaModel struct {
-	ServiceId          string               `tfschema:"service_id"`
+	ServiceId          string               `tfschema:"api_center_service_id"`
 	Name               string               `tfschema:"name"`
 	MetadataAssignment []MetadataAssignment `tfschema:"metadata_assignment"`
-	Schema             string               `tfschema:"schema"`
+	Schema             string               `tfschema:"schema_json"`
 }
 
 type MetadataAssignment struct {

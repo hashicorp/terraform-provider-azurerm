@@ -44,7 +44,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 
-			if metadata.ResourceData.HasChange("custom_properties") {
+			if metadata.ResourceData.HasChange("custom_properties_json") {
 				model.Properties.CustomProperties, err = helpers.ExpandCustomProperties(state.CustomProperties)
 				if err != nil {
 					return err

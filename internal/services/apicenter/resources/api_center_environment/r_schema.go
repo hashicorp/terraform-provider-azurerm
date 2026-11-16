@@ -22,7 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.Name(),
 		},
 
-		"service_id": {
+		"api_center_service_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API Center service.",
 			Required:     true,
@@ -39,7 +39,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				false),
 		},
 
-		"custom_properties": helpers.CustomPropertiesSchema(),
+		"custom_properties_json": helpers.CustomPropertiesSchema(),
 
 		"description": {
 			Type:         pluginsdk.TypeString,
@@ -48,11 +48,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"development_portal_uri": {
+		"development_portal_url": {
 			Type:         pluginsdk.TypeString,
-			Description:  "The HTTPS URI of the development portal.",
+			Description:  "The HTTPS URL of the development portal.",
 			Optional:     true,
-			ValidateFunc: validation.IsURLWithHTTPS,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"display_name": {
@@ -71,11 +71,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"management_portal_uri": {
+		"management_portal_url": {
 			Type:         pluginsdk.TypeString,
-			Description:  "The HTTPS URI of the management portal.",
+			Description:  "The HTTPS URL of the management portal.",
 			Optional:     true,
-			ValidateFunc: validation.IsURLWithHTTPS,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 
 		"server_type": {

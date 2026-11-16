@@ -31,6 +31,9 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, ctx context.Context, id
 		state.Description = pointer.From(props.Description)
 		state.Title = props.Title
 		state.Specification = flattenApiDefinitionPropertiesSpecification(&exportResp, props.Specification)
+		if len(state.Specification) > 0 {
+			state.Specification[0].Url = metadata.ResourceData.Get("specification.0.url").(string)
+		}
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

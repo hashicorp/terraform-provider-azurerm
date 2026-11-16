@@ -20,7 +20,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.Name(),
 		},
 
-		"api_version_id": {
+		"api_center_api_version_id": {
 			Type:         pluginsdk.TypeString,
 			Description:  "The ID of the API version to which this API definition belongs.",
 			Required:     true,
