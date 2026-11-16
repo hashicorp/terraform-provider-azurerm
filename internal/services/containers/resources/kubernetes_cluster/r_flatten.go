@@ -312,7 +312,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		}
 
 		if sku := ngwp.Sku; sku != nil {
-			ng["sku"] = string(*sku)
+			ng["sku"] = pointer.FromEnum(sku)
 		}
 
 		ng["effective_outbound_ips"] = resourceReferencesToIds(profile.NatGatewayProfile.EffectiveOutboundIPs)

@@ -317,7 +317,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta any) error 
 			if key := "network_profile.0.nat_gateway_profile.0.sku"; d.HasChange(key) {
 				if sku := d.Get(key).(string); sku != "" {
 					natGatewayProfile.Sku = pointer.ToEnum[managedclusters.ManagedClusterNATGatewaySku](sku)
-					natGatewayProfile.EffectiveOutboundIPs = nil
 				}
 			}
 
