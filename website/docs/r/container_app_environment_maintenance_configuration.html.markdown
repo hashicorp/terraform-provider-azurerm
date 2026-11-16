@@ -47,7 +47,7 @@ resource "azurerm_container_app_environment_maintenance_configuration" "example"
   maintenance_window {
     day_of_week       = "Sunday"
     start_hour_in_utc = 1
-    duration_in_hours    = 8
+    duration_in_hours = 8
   }
 }
 ```
