@@ -6,6 +6,7 @@ package kubernetes_cluster_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -755,6 +756,37 @@ func TestAccKubernetesCluster_osSku(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_osSkuAzureContainerLinux(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osSkuAzureContainerLinux(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.osSkuAzureContainerLinux(data, false, false),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
+		},
+	})
+}
+
+func TestAccKubernetesCluster_osSkuAzureContainerLinuxSecurityDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.osSkuAzureContainerLinux(data, false, true),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`default_node_pool.0.security.0.secure_boot_enabled` must be set to `true` when `default_node_pool.0.os_sku` is `AzureContainerLinux`")),
+		},
 	})
 }
 
@@ -3230,6 +3262,58 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion)
+}
+
+func (KubernetesClusterResource) osSkuAzureContainerLinux(data acceptance.TestData, securityEnabled, includeOSSKU bool) string {
+	osSKU := ""
+	if includeOSSKU {
+		osSKU = `os_sku = "AzureContainerLinux"`
+	}
+
+	meta, _ := helpers.ObtainAKSMetadata(data.Locations.Primary)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  node_provisioning_profile {
+    mode               = "Manual"
+    default_node_pools = "Auto"
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v4"
+    %s
+
+    security {
+      secure_boot_enabled = %t
+      vtpm_enabled        = %t
+    }
+
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, meta.CurrentKubernetesVersion, osSKU, securityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
