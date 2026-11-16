@@ -163,7 +163,7 @@ An `egress` block supports the following:
 
 * `http_proxy` - (Optional) An `http_proxy` block as defined below.
 
-~> **Note:** To use `http_proxy`, `sandbox.egress.mode` must be set to `AzureVNet`.
+~> **Note:** `http_proxy` only takes effect when `sandbox.egress.mode` is set to `AzureVNet`.
 
 * `mode` - (Optional) The sandbox egress mode. Possible values are `AzureVNet`, `Limited`, and `Unrestricted`.
 
