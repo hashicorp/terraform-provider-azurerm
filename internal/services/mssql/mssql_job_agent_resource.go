@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -71,8 +71,8 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 			"sku": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      helper.SqlJobAgentSkuJA100,
-				ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSku(), false),
+				Default:      helpers.SqlJobAgentSkuJA100,
+				ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForJobAgentSku(), false),
 			},
 
 			"tags": commonschema.Tags(),
