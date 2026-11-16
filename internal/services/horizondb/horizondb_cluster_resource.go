@@ -219,39 +219,6 @@ func (HorizondbClusterResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func validateHorizondbClusterConfig(config cty.Value) error {
-	if !config.IsKnown() || config.IsNull() {
-		return nil
-	}
-	restore := config.GetAttr("restore")
-	version := config.GetAttr("postgresql_version")
-	createMode := config.GetAttr("create_mode")
-	if createMode.IsKnown() {
-		mode := string(clusters.ClusterCreateModeCreate)
-		if !createMode.IsNull() {
-			mode = createMode.AsString()
-		}
-		hasRestore := restore.IsKnown() && !restore.IsNull() && restore.LengthInt() > 0
-		switch mode {
-		case string(clusters.ClusterCreateModeCreate):
-			if restore.IsKnown() && hasRestore {
-				return errors.New("`restore` can only be specified when `create_mode` is `PointInTimeRestore`")
-			}
-			if version.IsNull() {
-				return errors.New("`postgresql_version` is required when `create_mode` is `Create`")
-			}
-		case string(clusters.ClusterCreateModePointInTimeRestore):
-			if restore.IsKnown() && !hasRestore {
-				return errors.New("`restore` is required when `create_mode` is `PointInTimeRestore`")
-			}
-			if !version.IsNull() {
-				return errors.New("`postgresql_version` must be omitted when `create_mode` is `PointInTimeRestore`")
-			}
-		}
-	}
-	return nil
-}
-
 func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
@@ -390,37 +357,37 @@ func (HorizondbClusterResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func reconcileHorizondbClusterPasswordAuthentication(ctx context.Context, metadata sdk.ResourceMetaData, id clusters.ClusterId, state HorizondbClusterResourceModel) error {
-	woPassword, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "administrator_password_wo", cty.String)
-	if err != nil {
-		return err
+func validateHorizondbClusterConfig(config cty.Value) error {
+	if !config.IsKnown() || config.IsNull() {
+		return nil
 	}
-	properties := passwordauthentications.PasswordAuthenticationProperties{
-		State:                      passwordauthentications.AuthenticationStateEnabled,
-		AdministratorLogin:         pointer.To(state.AdministratorLogin),
-		AdministratorLoginPassword: pointer.To(state.AdministratorPassword),
-	}
-	if !woPassword.IsNull() {
-		properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
-	}
-	authenticationId := passwordauthentications.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-	payload := passwordauthentications.PasswordAuthentication{Properties: &properties}
-	if err := metadata.Client.HorizonDB.PasswordAuthenticationsClient.CreateOrReplaceThenPoll(ctx, authenticationId, payload); err != nil {
-		return fmt.Errorf("configuring password authentication for %s: %+v", id, err)
+	restore := config.GetAttr("restore")
+	version := config.GetAttr("postgresql_version")
+	createMode := config.GetAttr("create_mode")
+	if createMode.IsKnown() {
+		mode := string(clusters.ClusterCreateModeCreate)
+		if !createMode.IsNull() {
+			mode = createMode.AsString()
+		}
+		hasRestore := restore.IsKnown() && !restore.IsNull() && restore.LengthInt() > 0
+		switch mode {
+		case string(clusters.ClusterCreateModeCreate):
+			if restore.IsKnown() && hasRestore {
+				return errors.New("`restore` can only be specified when `create_mode` is `PointInTimeRestore`")
+			}
+			if version.IsNull() {
+				return errors.New("`postgresql_version` is required when `create_mode` is `Create`")
+			}
+		case string(clusters.ClusterCreateModePointInTimeRestore):
+			if restore.IsKnown() && !hasRestore {
+				return errors.New("`restore` is required when `create_mode` is `PointInTimeRestore`")
+			}
+			if !version.IsNull() {
+				return errors.New("`postgresql_version` must be omitted when `create_mode` is `PointInTimeRestore`")
+			}
+		}
 	}
 	return nil
-}
-
-func readHorizondbClusterAdministratorLogin(ctx context.Context, client *passwordauthentications.PasswordAuthenticationsClient, id clusters.ClusterId) (string, error) {
-	authenticationId := passwordauthentications.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-	resp, err := client.Get(ctx, authenticationId)
-	if err != nil {
-		return "", fmt.Errorf("retrieving password authentication for %s: %+v", id, err)
-	}
-	if resp.Model == nil || resp.Model.Properties == nil || pointer.From(resp.Model.Properties.AdministratorLogin) == "" {
-		return "", fmt.Errorf("retrieving password authentication for %s: administrator login is missing", id)
-	}
-	return *resp.Model.Properties.AdministratorLogin, nil
 }
 
 func expandHorizondbCluster(state HorizondbClusterResourceModel) (clusters.Cluster, error) {
@@ -670,76 +637,6 @@ func validateHorizondbClusterPoolRename(old, new string) error {
 	return nil
 }
 
-func readHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, id clusters.ClusterId, cluster *clusters.Cluster) (*pools.Pool, error) {
-	if cluster == nil || cluster.Properties == nil {
-		return nil, fmt.Errorf("retrieving %s: cluster properties are missing", id)
-	}
-	designatedId := pointer.From(cluster.Properties.ReadWritePool.DesignatedPoolResourceId)
-	if designatedId == "" {
-		return nil, fmt.Errorf("retrieving %s: `readWritePool.designatedPoolResourceId` is missing", id)
-	}
-	poolId, err := pools.ParsePoolIDInsensitively(designatedId)
-	if err != nil {
-		return nil, err
-	}
-	if !strings.EqualFold(poolId.SubscriptionId, id.SubscriptionId) || !strings.EqualFold(poolId.ResourceGroupName, id.ResourceGroupName) || !strings.EqualFold(poolId.ClusterName, id.ClusterName) {
-		return nil, fmt.Errorf("designated read/write pool %s does not belong to %s", poolId, id)
-	}
-	result, err := metadata.Client.HorizonDB.PoolsClient.Get(ctx, *poolId)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving designated read/write pool %s: %+v", poolId, err)
-	}
-	if result.Model == nil {
-		return nil, fmt.Errorf("retrieving %s: pool model is missing", poolId)
-	}
-	returnedId, err := pools.ParsePoolIDInsensitively(pointer.From(result.Model.Id))
-	if err != nil {
-		return nil, err
-	}
-	if !strings.EqualFold(returnedId.ID(), poolId.ID()) {
-		return nil, fmt.Errorf("retrieving %s: response pool ID does not match the designated read/write pool", poolId)
-	}
-	if _, err := flattenHorizondbClusterPool(id, result.Model); err != nil {
-		return nil, err
-	}
-	return result.Model, nil
-}
-
-func flattenHorizondbClusterPool(clusterId clusters.ClusterId, model *pools.Pool) ([]HorizondbClusterPool, error) {
-	if model == nil {
-		return []HorizondbClusterPool{}, nil
-	}
-	id, err := pools.ParsePoolIDInsensitively(pointer.From(model.Id))
-	if err != nil {
-		return []HorizondbClusterPool{}, err
-	}
-	if !strings.EqualFold(id.SubscriptionId, clusterId.SubscriptionId) || !strings.EqualFold(id.ResourceGroupName, clusterId.ResourceGroupName) || !strings.EqualFold(id.ClusterName, clusterId.ClusterName) {
-		return []HorizondbClusterPool{}, fmt.Errorf("pool %s does not belong to %s", id, clusterId)
-	}
-	props := model.Properties
-	if props == nil || props.ComputeModel.ComputeProcessor == "" || props.ComputeModel.ComputeGeneration < 1 || props.ComputeModel.VCores < 2 || props.NodeCount < 1 || props.HighAvailability.Mode == "" {
-		return []HorizondbClusterPool{}, fmt.Errorf("retrieving %s: required pool configuration is missing", id)
-	}
-	if props.ComputeModel.Type != pools.PoolComputeModelTypeProvisioned {
-		return []HorizondbClusterPool{}, fmt.Errorf("retrieving %s: unsupported compute model type %q", id, props.ComputeModel.Type)
-	}
-	if props.ScheduledMaintenance != nil {
-		maintenance := props.ScheduledMaintenance.ScheduledMaintenanceProperties().MaintenanceManagementType
-		if maintenance != pools.ScheduledMaintenanceManagementTypeSystem {
-			return []HorizondbClusterPool{}, fmt.Errorf("retrieving %s: unsupported maintenance management type %q", id, maintenance)
-		}
-	}
-	return []HorizondbClusterPool{{
-		Name: id.PoolName, Id: id.ID(), NodeCount: props.NodeCount,
-		HighAvailabilityMode: string(props.HighAvailability.Mode),
-		Compute: []HorizondbClusterPoolCompute{{
-			Type:      string(props.ComputeModel.Type),
-			Processor: string(props.ComputeModel.ComputeProcessor), Generation: props.ComputeModel.ComputeGeneration,
-			VCores: props.ComputeModel.VCores,
-		}},
-	}}, nil
-}
-
 func createOrReplaceHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, clusterId clusters.ClusterId, state HorizondbClusterPool) error {
 	id := pools.NewPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, state.Name)
 	lockId := strings.ToLower(id.ID())
@@ -779,10 +676,113 @@ func createOrReplaceHorizondbClusterPool(ctx context.Context, metadata sdk.Resou
 	return nil
 }
 
+func readHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, id clusters.ClusterId, cluster *clusters.Cluster) (*pools.Pool, error) {
+	if cluster == nil || cluster.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: cluster properties are missing", id)
+	}
+	designatedId := pointer.From(cluster.Properties.ReadWritePool.DesignatedPoolResourceId)
+	if designatedId == "" {
+		return nil, fmt.Errorf("retrieving %s: `readWritePool.designatedPoolResourceId` is missing", id)
+	}
+	poolId, err := pools.ParsePoolIDInsensitively(designatedId)
+	if err != nil {
+		return nil, err
+	}
+	if !strings.EqualFold(poolId.SubscriptionId, id.SubscriptionId) || !strings.EqualFold(poolId.ResourceGroupName, id.ResourceGroupName) || !strings.EqualFold(poolId.ClusterName, id.ClusterName) {
+		return nil, fmt.Errorf("designated read/write pool %s does not belong to %s", poolId, id)
+	}
+	result, err := metadata.Client.HorizonDB.PoolsClient.Get(ctx, *poolId)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving designated read/write pool %s: %+v", poolId, err)
+	}
+	if result.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: pool model is missing", poolId)
+	}
+	returnedId, err := pools.ParsePoolIDInsensitively(pointer.From(result.Model.Id))
+	if err != nil {
+		return nil, err
+	}
+	if !strings.EqualFold(returnedId.ID(), poolId.ID()) {
+		return nil, fmt.Errorf("retrieving %s: response pool ID does not match the designated read/write pool", poolId)
+	}
+	if _, err := flattenHorizondbClusterPool(id, result.Model); err != nil {
+		return nil, err
+	}
+	return result.Model, nil
+}
+
 func expandHorizondbClusterPoolCompute(input HorizondbClusterPoolCompute) pools.PoolComputeModel {
 	return pools.PoolComputeModel{
 		Type:              pools.PoolComputeModelType(input.Type),
 		ComputeProcessor:  pools.ComputeProcessorType(input.Processor),
 		ComputeGeneration: input.Generation, VCores: input.VCores,
 	}
+}
+
+func flattenHorizondbClusterPool(clusterId clusters.ClusterId, model *pools.Pool) ([]HorizondbClusterPool, error) {
+	if model == nil {
+		return []HorizondbClusterPool{}, nil
+	}
+	id, err := pools.ParsePoolIDInsensitively(pointer.From(model.Id))
+	if err != nil {
+		return []HorizondbClusterPool{}, err
+	}
+	if !strings.EqualFold(id.SubscriptionId, clusterId.SubscriptionId) || !strings.EqualFold(id.ResourceGroupName, clusterId.ResourceGroupName) || !strings.EqualFold(id.ClusterName, clusterId.ClusterName) {
+		return []HorizondbClusterPool{}, fmt.Errorf("pool %s does not belong to %s", id, clusterId)
+	}
+	props := model.Properties
+	if props == nil || props.ComputeModel.ComputeProcessor == "" || props.ComputeModel.ComputeGeneration < 1 || props.ComputeModel.VCores < 2 || props.NodeCount < 1 || props.HighAvailability.Mode == "" {
+		return []HorizondbClusterPool{}, fmt.Errorf("retrieving %s: required pool configuration is missing", id)
+	}
+	if props.ComputeModel.Type != pools.PoolComputeModelTypeProvisioned {
+		return []HorizondbClusterPool{}, fmt.Errorf("retrieving %s: unsupported compute model type %q", id, props.ComputeModel.Type)
+	}
+	if props.ScheduledMaintenance != nil {
+		maintenance := props.ScheduledMaintenance.ScheduledMaintenanceProperties().MaintenanceManagementType
+		if maintenance != pools.ScheduledMaintenanceManagementTypeSystem {
+			return []HorizondbClusterPool{}, fmt.Errorf("retrieving %s: unsupported maintenance management type %q", id, maintenance)
+		}
+	}
+	return []HorizondbClusterPool{{
+		Name: id.PoolName, Id: id.ID(), NodeCount: props.NodeCount,
+		HighAvailabilityMode: string(props.HighAvailability.Mode),
+		Compute: []HorizondbClusterPoolCompute{{
+			Type:      string(props.ComputeModel.Type),
+			Processor: string(props.ComputeModel.ComputeProcessor), Generation: props.ComputeModel.ComputeGeneration,
+			VCores: props.ComputeModel.VCores,
+		}},
+	}}, nil
+}
+
+func reconcileHorizondbClusterPasswordAuthentication(ctx context.Context, metadata sdk.ResourceMetaData, id clusters.ClusterId, state HorizondbClusterResourceModel) error {
+	woPassword, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "administrator_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	properties := passwordauthentications.PasswordAuthenticationProperties{
+		State:                      passwordauthentications.AuthenticationStateEnabled,
+		AdministratorLogin:         pointer.To(state.AdministratorLogin),
+		AdministratorLoginPassword: pointer.To(state.AdministratorPassword),
+	}
+	if !woPassword.IsNull() {
+		properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
+	}
+	authenticationId := passwordauthentications.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	payload := passwordauthentications.PasswordAuthentication{Properties: &properties}
+	if err := metadata.Client.HorizonDB.PasswordAuthenticationsClient.CreateOrReplaceThenPoll(ctx, authenticationId, payload); err != nil {
+		return fmt.Errorf("configuring password authentication for %s: %+v", id, err)
+	}
+	return nil
+}
+
+func readHorizondbClusterAdministratorLogin(ctx context.Context, client *passwordauthentications.PasswordAuthenticationsClient, id clusters.ClusterId) (string, error) {
+	authenticationId := passwordauthentications.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
+	resp, err := client.Get(ctx, authenticationId)
+	if err != nil {
+		return "", fmt.Errorf("retrieving password authentication for %s: %+v", id, err)
+	}
+	if resp.Model == nil || resp.Model.Properties == nil || pointer.From(resp.Model.Properties.AdministratorLogin) == "" {
+		return "", fmt.Errorf("retrieving password authentication for %s: administrator login is missing", id)
+	}
+	return *resp.Model.Properties.AdministratorLogin, nil
 }
