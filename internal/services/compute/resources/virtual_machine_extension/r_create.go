@@ -4,18 +4,14 @@
 package virtual_machine_extension
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -61,46 +57,9 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	publisher := d.Get("publisher").(string)
-	extensionType := d.Get("type").(string)
-	typeHandlerVersion := d.Get("type_handler_version").(string)
-	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
-	enableAutomaticUpgrade := d.Get("automatic_upgrade_enabled").(bool)
-	suppressFailure := d.Get("failure_suppression_enabled").(bool)
-	t := d.Get("tags").(map[string]any)
-
-	extension := virtualmachineextensions.VirtualMachineExtension{
-		Location: &location,
-		Properties: &virtualmachineextensions.VirtualMachineExtensionProperties{
-			Publisher:                     &publisher,
-			Type:                          &extensionType,
-			TypeHandlerVersion:            &typeHandlerVersion,
-			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
-			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
-			ProtectedSettingsFromKeyVault: helpers.ExpandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]any)),
-			SuppressFailures:              &suppressFailure,
-		},
-		Tags: tags.Expand(t),
-	}
-
-	if settingsString := d.Get("settings").(string); settingsString != "" {
-		var result any
-		if err := json.Unmarshal([]byte(settingsString), &result); err != nil {
-			return fmt.Errorf("unmarshaling `settings`: %+v", err)
-		}
-		extension.Properties.Settings = pointer.To(result)
-	}
-
-	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		var result any
-		if err := json.Unmarshal([]byte(protectedSettingsString), &result); err != nil {
-			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
-		}
-		extension.Properties.ProtectedSettings = pointer.To(result)
-	}
-
-	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
-		extension.Properties.ProvisionAfterExtensions = pluginsdk.ExpandStringSlice(provisionAfterExtensionsValue.([]any))
+	extension, err := expandCreateForVirtualMachineExtension(d, location)
+	if err != nil {
+		return err
 	}
 
 	if d.IsNewResource() {

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -168,19 +167,9 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 	resourceType = strings.Join(typeSegs, "/")
 	resourceName = strings.Join(nameSegs, "/")
 
+	// Scope ends before `providers` for child resources too; the parent is carried in the type and name.
 	var scopeSegments []string
-	cutOffIndex := providerIdx - 1
-	if len(typeSegs) > 1 {
-		for i, segment := range slices.Backward(segments) {
-			if segment.Type == resourceids.ConstantSegmentType || segment.Type == resourceids.StaticSegmentType {
-				cutOffIndex = i
-				break
-			}
-		}
-	}
-
-	for i := 0; i < cutOffIndex; i++ {
-		s := segments[i]
+	for _, s := range segments[:max(providerIdx-1, 0)] {
 		val, ok := parsed.SegmentNamed(s.Name, true)
 		switch {
 		case ok && val != nil:

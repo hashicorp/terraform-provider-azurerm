@@ -6,6 +6,7 @@ package virtual_machine_extension
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -55,30 +56,21 @@ func RegisterResource() *pluginsdk.Resource {
 }
 
 // resolvePreflightVMLocation looks up the location of the parent VM for use in preflight
-// validation. Returns skip=true if the virtual_machine_id is not yet known or the VM does not
-// exist and no location fallback is configured.
-func resolvePreflightVMLocation(ctx context.Context, client *clients.Client, d *schema.ResourceDiff) (loc string, skip bool, err error) {
-	vmIdRaw := d.Get("virtual_machine_id").(string)
-	if vmIdRaw == "" {
-		return "", true, nil
-	}
-
-	vmId, err := virtualmachines.ParseVirtualMachineID(vmIdRaw)
+// validation. Returns skip=true if the VM does not exist and no location fallback is configured.
+func resolvePreflightVMLocation(ctx context.Context, client *clients.Client, vmId virtualmachines.VirtualMachineId) (loc string, skip bool, err error) {
+	vm, err := client.Compute.VirtualMachinesClient.Get(ctx, vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return "", false, fmt.Errorf("parsing virtual_machine_id for preflight validation: %w", err)
-	}
-
-	vm, err := client.Compute.VirtualMachinesClient.Get(ctx, *vmId, virtualmachines.DefaultGetOperationOptions())
-	if err != nil {
-		if response.WasNotFound(vm.HttpResponse) {
-			if fallback := client.Features.EnhancedValidation.LocationFallback; fallback != nil {
-				return *fallback, false, nil
-			}
-
-			return "", true, nil
+		if !response.WasNotFound(vm.HttpResponse) {
+			return "", false, fmt.Errorf("retrieving %s for preflight validation: %+v", vmId, err)
 		}
 
-		return "", false, fmt.Errorf("retrieving %s for preflight validation: %+v", vmId, err)
+		if fallback := client.Features.EnhancedValidation.LocationFallback; fallback != nil {
+			log.Printf("[DEBUG] %s was not found, using the configured location fallback for preflight validation", vmId)
+			return *fallback, false, nil
+		}
+
+		log.Printf("[DEBUG] skipping preflight validation: %s was not found and no location fallback is configured", vmId)
+		return "", true, nil
 	}
 
 	if vm.Model == nil || vm.Model.Location == "" {
@@ -102,7 +94,21 @@ func resourceVirtualMachineExtensionCustomizeDiff(ctx context.Context, d *schema
 		return nil
 	}
 
-	loc, skip, err := resolvePreflightVMLocation(ctx, client, d)
+	if !d.NewValueKnown("virtual_machine_id") || !d.NewValueKnown("name") {
+		log.Printf("[DEBUG] skipping preflight validation for `azurerm_virtual_machine_extension`: `virtual_machine_id` or `name` is not known until apply")
+		return nil
+	}
+
+	// Untyped CustomizeDiff contexts have no deadline, which the SDK clients require for polling.
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	vmId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing `virtual_machine_id` for preflight validation: %w", err)
+	}
+
+	loc, skip, err := resolvePreflightVMLocation(ctx, client, *vmId)
 	if err != nil {
 		return err
 	}
@@ -110,14 +116,7 @@ func resourceVirtualMachineExtensionCustomizeDiff(ctx context.Context, d *schema
 		return nil
 	}
 
-	vmIdRaw := d.Get("virtual_machine_id").(string)
-	vmId, err := virtualmachines.ParseVirtualMachineID(vmIdRaw)
-	if err != nil {
-		return fmt.Errorf("parsing virtual_machine_id for preflight validation: %w", err)
-	}
-
-	extensionName := d.Get("name").(string)
-	id := virtualmachineextensions.NewExtensionID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, extensionName)
+	id := virtualmachineextensions.NewExtensionID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	req, err := expandCreateForVirtualMachineExtension(d, loc)
 	if err != nil {

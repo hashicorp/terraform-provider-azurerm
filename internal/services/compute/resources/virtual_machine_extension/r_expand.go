@@ -10,14 +10,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// expandCreateForVirtualMachineExtension builds the full ARM PUT body for a VM extension from
-// a ResourceDiff at plan time. location must be resolved beforehand from the parent VM.
-func expandCreateForVirtualMachineExtension(d *schema.ResourceDiff, location string) (virtualmachineextensions.VirtualMachineExtension, error) {
+// extensionConfigGetter is satisfied by both *pluginsdk.ResourceData and *pluginsdk.ResourceDiff.
+type extensionConfigGetter interface {
+	Get(key string) any
+	GetOk(key string) (any, bool)
+}
+
+// expandCreateForVirtualMachineExtension builds the full ARM PUT body used by both Create/Update and preflight.
+func expandCreateForVirtualMachineExtension(d extensionConfigGetter, location string) (virtualmachineextensions.VirtualMachineExtension, error) {
 	publisher := d.Get("publisher").(string)
 	extensionType := d.Get("type").(string)
 	typeHandlerVersion := d.Get("type_handler_version").(string)
