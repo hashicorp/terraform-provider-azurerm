@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func NodePoolSecurityCustomizeDiff(nodePoolPath string) pluginsdk.CustomizeDiffFunc {
+func NodePoolAzureContainerLinuxCustomizeDiff(nodePoolPath string) pluginsdk.CustomizeDiffFunc {
 	prefix := ""
 	if nodePoolPath != "" {
 		prefix = nodePoolPath + ".0."
