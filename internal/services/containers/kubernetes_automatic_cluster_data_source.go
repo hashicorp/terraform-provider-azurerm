@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -37,74 +36,33 @@ type KubernetesAutomaticClusterDataSourceModel struct {
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	Location          string `tfschema:"location"`
 
-	AgentPools                                 []AgentPoolDataSourceModel                                  `tfschema:"agent_pools"`
-	APIServerAccess                            []APIServerAccessDataSourceModel                            `tfschema:"api_server_access"`
-	AzureActiveDirectoryRoleBasedAccessControl []AzureActiveDirectoryRoleBasedAccessControlDataSourceModel `tfschema:"azure_active_directory_role_based_access_control"`
-	AzurePolicyEnabled                         bool                                                        `tfschema:"azure_policy_enabled"`
-	Bootstrap                                  []BootstrapDataSourceModel                                  `tfschema:"bootstrap"`
-	CurrentKubernetesVersion                   string                                                      `tfschema:"current_kubernetes_version"`
-	DiskEncryptionSetID                        string                                                      `tfschema:"disk_encryption_set_id"`
-	DNSPrefix                                  string                                                      `tfschema:"dns_prefix"`
-	FQDN                                       string                                                      `tfschema:"fully_qualified_domain_name"`
-	HostedSystemProfile                        []HostedSystemProfileDataSourceModel                        `tfschema:"hosted_system"`
-	Identity                                   []identity.ModelSystemAssignedUserAssigned                  `tfschema:"identity"`
-	KeyManagementService                       []KeyManagementServiceDataSourceModel                       `tfschema:"key_management_service"`
-	KeyVaultSecretsProvider                    []KeyVaultSecretsProviderDataSourceModel                    `tfschema:"key_vault_secrets_provider"`
-	KubeConfig                                 []KubeConfigModel                                           `tfschema:"kube_config"`
-	KubeConfigRaw                              string                                                      `tfschema:"kube_config_raw"`
-	KubeletIdentity                            []KubeletIdentityDataSourceModel                            `tfschema:"kubelet_identity"`
-	KubernetesVersion                          string                                                      `tfschema:"kubernetes_version"`
-	MicrosoftDefender                          []MicrosoftDefenderDataSourceModel                          `tfschema:"microsoft_defender"`
-	Network                                    []NetworkDataSourceModel                                    `tfschema:"network"`
-	NodeResourceGroup                          string                                                      `tfschema:"node_resource_group"`
-	NodeResourceGroupID                        string                                                      `tfschema:"node_resource_group_id"`
-	OIDCIssuerEnabled                          bool                                                        `tfschema:"oidc_issuer_enabled"`
-	OIDCIssuerURL                              string                                                      `tfschema:"oidc_issuer_url"`
-	OMSAgent                                   []OMSAgentDataSourceModel                                   `tfschema:"oms_agent"`
-	PortalFQDN                                 string                                                      `tfschema:"portal_fully_qualified_domain_name"`
-	PrivateCluster                             []PrivateClusterDataSourceModel                             `tfschema:"private_cluster"`
-	PrivateFQDN                                string                                                      `tfschema:"private_fully_qualified_domain_name"`
-	RoleBasedAccessControlEnabled              bool                                                        `tfschema:"role_based_access_control_enabled"`
-	ServiceMeshProfile                         []ServiceMeshProfileDataSourceModel                         `tfschema:"service_mesh"`
-	Storage                                    []StorageDataSourceModel                                    `tfschema:"storage"`
-	Tags                                       map[string]any                                              `tfschema:"tags"`
-	WebAppRoutingIngress                       []WebAppRoutingIngressDataSourceModel                       `tfschema:"web_app_routing_ingress"`
-}
-
-type AgentPoolDataSourceModel struct {
-	AutoScalingEnabled   bool                                      `tfschema:"auto_scaling_enabled"`
-	Count                int64                                     `tfschema:"count"`
-	MaxCount             int64                                     `tfschema:"max_count"`
-	MaxPods              int64                                     `tfschema:"max_pods"`
-	MinCount             int64                                     `tfschema:"min_count"`
-	Name                 string                                    `tfschema:"name"`
-	NodeLabels           map[string]string                         `tfschema:"node_labels"`
-	NodePublicIPEnabled  bool                                      `tfschema:"node_public_ip_enabled"`
-	NodePublicIPPrefixID string                                    `tfschema:"node_public_ip_prefix_id"`
-	NodeTaints           []string                                  `tfschema:"node_taints"`
-	OrchestratorVersion  string                                    `tfschema:"orchestrator_version"`
-	OSDiskSizeGB         int64                                     `tfschema:"os_disk_size_gb"`
-	OSType               string                                    `tfschema:"os_type"`
-	Tags                 map[string]any                            `tfschema:"tags"`
-	Type                 string                                    `tfschema:"type"`
-	UpgradeSettings      []AgentPoolUpgradeSettingsDataSourceModel `tfschema:"upgrade_settings"`
-	VMSize               string                                    `tfschema:"vm_size"`
-	VnetSubnetID         string                                    `tfschema:"vnet_subnet_id"`
-	Zones                []string                                  `tfschema:"zones"`
-}
-
-type AgentPoolUpgradeSettingsDataSourceModel struct {
-	DrainTimeoutInMinutes     int64  `tfschema:"drain_timeout_in_minutes"`
-	MaxSurge                  string `tfschema:"max_surge"`
-	MaxUnavailable            string `tfschema:"max_unavailable"`
-	NodeSoakDurationInMinutes int64  `tfschema:"node_soak_duration_in_minutes"`
-	UndrainableNodeBehavior   string `tfschema:"undrainable_node_behavior"`
-}
-
-type AzureActiveDirectoryRoleBasedAccessControlDataSourceModel struct {
-	AdminGroupObjectIDs []string `tfschema:"admin_group_object_ids"`
-	AzureRBACEnabled    bool     `tfschema:"azure_rbac_enabled"`
-	TenantID            string   `tfschema:"tenant_id"`
+	APIServerAccess          []APIServerAccessDataSourceModel           `tfschema:"api_server_access"`
+	Bootstrap                []BootstrapDataSourceModel                 `tfschema:"bootstrap"`
+	CurrentKubernetesVersion string                                     `tfschema:"current_kubernetes_version"`
+	DiskEncryptionSetID      string                                     `tfschema:"disk_encryption_set_id"`
+	DNSPrefix                string                                     `tfschema:"dns_prefix"`
+	FQDN                     string                                     `tfschema:"fully_qualified_domain_name"`
+	HostedSystemProfile      []HostedSystemProfileDataSourceModel       `tfschema:"hosted_system"`
+	Identity                 []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyManagementService     []KeyManagementServiceDataSourceModel      `tfschema:"key_management_service"`
+	KeyVaultSecretsProvider  []KeyVaultSecretsProviderDataSourceModel   `tfschema:"key_vault_secrets_provider"`
+	KubeConfig               []KubeConfigModel                          `tfschema:"kube_config"`
+	KubeConfigRaw            string                                     `tfschema:"kube_config_raw"`
+	KubeletIdentity          []KubeletIdentityDataSourceModel           `tfschema:"kubelet_identity"`
+	KubernetesVersion        string                                     `tfschema:"kubernetes_version"`
+	MicrosoftDefender        []MicrosoftDefenderDataSourceModel         `tfschema:"microsoft_defender"`
+	Network                  []NetworkDataSourceModel                   `tfschema:"network"`
+	NodeResourceGroup        string                                     `tfschema:"node_resource_group"`
+	NodeResourceGroupID      string                                     `tfschema:"node_resource_group_id"`
+	OIDCIssuerURL            string                                     `tfschema:"oidc_issuer_url"`
+	OMSAgent                 []OMSAgentDataSourceModel                  `tfschema:"oms_agent"`
+	PortalFQDN               string                                     `tfschema:"portal_fully_qualified_domain_name"`
+	PrivateCluster           []PrivateClusterDataSourceModel            `tfschema:"private_cluster"`
+	PrivateFQDN              string                                     `tfschema:"private_fully_qualified_domain_name"`
+	ServiceMeshProfile       []ServiceMeshProfileDataSourceModel        `tfschema:"service_mesh"`
+	Storage                  []StorageDataSourceModel                   `tfschema:"storage"`
+	Tags                     map[string]any                             `tfschema:"tags"`
+	WebAppRoutingIngress     []WebAppRoutingIngressDataSourceModel      `tfschema:"web_app_routing_ingress"`
 }
 
 type BootstrapDataSourceModel struct {
@@ -134,13 +92,10 @@ type MicrosoftDefenderDataSourceModel struct {
 }
 
 type NetworkDataSourceModel struct {
-	DNSServiceIP    string `tfschema:"dns_service_ip"`
-	LoadBalancerSku string `tfschema:"load_balancer_sku"`
-	NetworkPlugin   string `tfschema:"network_plugin"`
-	NetworkPolicy   string `tfschema:"network_policy"`
-	OutboundType    string `tfschema:"outbound_type"`
-	PodCidr         string `tfschema:"pod_cidr"`
-	ServiceCidr     string `tfschema:"service_cidr"`
+	DNSServiceIP string `tfschema:"dns_service_ip"`
+	OutboundType string `tfschema:"outbound_type"`
+	PodCidr      string `tfschema:"pod_cidr"`
+	ServiceCidr  string `tfschema:"service_cidr"`
 }
 
 type OMSAgentDataSourceModel struct {
@@ -222,104 +177,6 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		"agent_pools": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"auto_scaling_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-
-					"max_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-
-					"max_pods": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-
-					"min_count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"node_labels": {
-						Type:     pluginsdk.TypeMap,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"node_public_ip_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"node_public_ip_prefix_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"node_taints": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-					},
-
-					"orchestrator_version": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"os_disk_size_gb": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-
-					"os_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"tags": commonschema.TagsDataSource(),
-
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"upgrade_settings": upgradeSettingsForDataSourceSchema(),
-
-					"vm_size": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"vnet_subnet_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"zones": commonschema.ZonesMultipleComputed(),
-				},
-			},
-		},
-
 		"api_server_access": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -336,37 +193,6 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 					},
 				},
 			},
-		},
-
-		"azure_active_directory_role_based_access_control": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"admin_group_object_ids": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"azure_rbac_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
-		"azure_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
 		},
 
 		"bootstrap": {
@@ -575,21 +401,6 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 						Computed: true,
 					},
 
-					"load_balancer_sku": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"network_plugin": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"network_policy": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
 					"outbound_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -615,11 +426,6 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 
 		"node_resource_group_id": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"oidc_issuer_enabled": {
-			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -693,11 +499,6 @@ func (KubernetesAutomaticClusterDataSource) Attributes() map[string]*pluginsdk.S
 
 		"private_fully_qualified_domain_name": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"role_based_access_control_enabled": {
-			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -912,18 +713,8 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 					state.DiskEncryptionSetID = pointer.From(props.DiskEncryptionSetID)
 
 					if oidcIssuerProfile := props.OidcIssuerProfile; oidcIssuerProfile != nil {
-						state.OIDCIssuerEnabled = pointer.From(oidcIssuerProfile.Enabled)
 						state.OIDCIssuerURL = pointer.From(oidcIssuerProfile.IssuerURL)
 					}
-
-					state.RoleBasedAccessControlEnabled = true
-					if props.EnableRBAC != nil {
-						state.RoleBasedAccessControlEnabled = *props.EnableRBAC
-					}
-
-					state.AzureActiveDirectoryRoleBasedAccessControl = flattenKubernetesAutomaticClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(props.AadProfile)
-
-					state.AgentPools = flattenKubernetesAutomaticClusterDataSourceAgentPools(props.AgentPoolProfiles)
 
 					state.Bootstrap, err = flattenKubernetesAutomaticClusterDataSourceBootstrap(props.BootstrapProfile)
 					if err != nil {
@@ -931,7 +722,6 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if addonProfiles := props.AddonProfiles; addonProfiles != nil {
-						state.AzurePolicyEnabled = kubernetesAddonProfileLocate(*addonProfiles, azurePolicyKey).Enabled
 						state.KeyVaultSecretsProvider = flattenKubernetesAutomaticClusterDataSourceKeyVaultSecretsProvider(*addonProfiles)
 						state.OMSAgent, err = flattenKubernetesAutomaticClusterDataSourceOMSAgent(*addonProfiles)
 						if err != nil {
@@ -1217,73 +1007,6 @@ func flattenKubernetesAutomaticClusterDataSourceWebAppRoutingIngress(input *mana
 	}}, nil
 }
 
-func flattenKubernetesAutomaticClusterDataSourceAgentPools(input *[]managedclusters.ManagedClusterAgentPoolProfile) []AgentPoolDataSourceModel {
-	agentPools := make([]AgentPoolDataSourceModel, 0)
-	if input == nil {
-		return agentPools
-	}
-
-	for _, profile := range *input {
-		nodeLabels := make(map[string]string)
-		for k, v := range pointer.From(profile.NodeLabels) {
-			if v == "" {
-				continue
-			}
-			nodeLabels[k] = v
-		}
-
-		agentPools = append(agentPools, AgentPoolDataSourceModel{
-			Name:                 profile.Name,
-			Type:                 pointer.FromEnum(profile.Type),
-			Count:                pointer.From(profile.Count),
-			MaxCount:             pointer.From(profile.MaxCount),
-			MinCount:             pointer.From(profile.MinCount),
-			AutoScalingEnabled:   pointer.From(profile.EnableAutoScaling),
-			VMSize:               pointer.From(profile.VMSize),
-			Tags:                 tags.Flatten(profile.Tags),
-			OSDiskSizeGB:         pointer.From(profile.OsDiskSizeGB),
-			VnetSubnetID:         pointer.From(profile.VnetSubnetID),
-			OSType:               pointer.FromEnum(profile.OsType),
-			OrchestratorVersion:  pointer.From(profile.OrchestratorVersion),
-			MaxPods:              pointer.From(profile.MaxPods),
-			NodeLabels:           nodeLabels,
-			NodeTaints:           pointer.From(profile.NodeTaints),
-			NodePublicIPEnabled:  pointer.From(profile.EnableNodePublicIP),
-			NodePublicIPPrefixID: pointer.From(profile.NodePublicIPPrefixID),
-			UpgradeSettings:      flattenKubernetesAutomaticClusterDataSourceUpgradeSettings(profile.UpgradeSettings),
-			Zones:                zones.Flatten(profile.AvailabilityZones),
-		})
-	}
-
-	return agentPools
-}
-
-func flattenKubernetesAutomaticClusterDataSourceUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []AgentPoolUpgradeSettingsDataSourceModel {
-	if input == nil {
-		return []AgentPoolUpgradeSettingsDataSourceModel{}
-	}
-
-	return []AgentPoolUpgradeSettingsDataSourceModel{{
-		MaxSurge:                  pointer.From(input.MaxSurge),
-		MaxUnavailable:            pointer.From(input.MaxUnavailable),
-		DrainTimeoutInMinutes:     pointer.From(input.DrainTimeoutInMinutes),
-		NodeSoakDurationInMinutes: pointer.From(input.NodeSoakDurationInMinutes),
-		UndrainableNodeBehavior:   pointer.FromEnum(input.UndrainableNodeBehavior),
-	}}
-}
-
-func flattenKubernetesAutomaticClusterDataSourceAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterAADProfile) []AzureActiveDirectoryRoleBasedAccessControlDataSourceModel {
-	if input == nil {
-		return []AzureActiveDirectoryRoleBasedAccessControlDataSourceModel{}
-	}
-
-	return []AzureActiveDirectoryRoleBasedAccessControlDataSourceModel{{
-		TenantID:            pointer.From(input.TenantID),
-		AzureRBACEnabled:    pointer.From(input.EnableAzureRBAC),
-		AdminGroupObjectIDs: pointer.From(input.AdminGroupObjectIDs),
-	}}
-}
-
 func flattenKubernetesAutomaticClusterDataSourceBootstrap(input *managedclusters.ManagedClusterBootstrapProfile) ([]BootstrapDataSourceModel, error) {
 	if input == nil || input.ArtifactSource == nil {
 		return []BootstrapDataSourceModel{}, nil
@@ -1381,13 +1104,10 @@ func flattenKubernetesAutomaticClusterDataSourceNetwork(input *managedclusters.C
 	}
 
 	return []NetworkDataSourceModel{{
-		NetworkPlugin:   pointer.FromEnum(input.NetworkPlugin),
-		NetworkPolicy:   pointer.FromEnum(input.NetworkPolicy),
-		ServiceCidr:     pointer.From(input.ServiceCidr),
-		DNSServiceIP:    pointer.From(input.DnsServiceIP),
-		PodCidr:         pointer.From(input.PodCidr),
-		LoadBalancerSku: pointer.FromEnum(input.LoadBalancerSku),
-		OutboundType:    pointer.FromEnum(input.OutboundType),
+		DNSServiceIP: pointer.From(input.DnsServiceIP),
+		OutboundType: pointer.FromEnum(input.OutboundType),
+		PodCidr:      pointer.From(input.PodCidr),
+		ServiceCidr:  pointer.From(input.ServiceCidr),
 	}}
 }
 

@@ -38,13 +38,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Managed Kubernetes Automatic Cluster exists.
 
-* `agent_pools` - One or more `agent_pools` blocks as documented below.
-
 * `api_server_access` - An `api_server_access` block as documented below.
-
-* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
-
-* `azure_policy_enabled` - Is Azure Policy enabled on this Managed Kubernetes Automatic Cluster?
 
 * `bootstrap` - A `bootstrap` block as documented below.
 
@@ -80,8 +74,6 @@ The following attributes are exported:
 
 * `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Automatic Cluster.
 
-* `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
-
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the Managed Kubernetes Automatic Cluster.
 
 * `oms_agent` - An `oms_agent` block as documented below.
@@ -91,8 +83,6 @@ The following attributes are exported:
 * `private_cluster` - A `private_cluster` block as documented below.
 
 * `private_fully_qualified_domain_name` - The FQDN of this Managed Kubernetes Automatic Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located.
-
-* `role_based_access_control_enabled` - Is Role Based Access Control enabled for this Managed Kubernetes Automatic Cluster?
 
 * `service_mesh` - A `service_mesh` block as documented below.
 
@@ -104,77 +94,11 @@ The following attributes are exported:
 
 ---
 
-An `agent_pools` block exports the following:
-
-* `auto_scaling_enabled` - If the auto-scaler is enabled.
-
-* `count` - The number of Agents (VMs) in the Pool.
-
-* `max_count` - Maximum number of nodes for auto-scaling.
-
-* `max_pods` - The maximum number of pods that can run on each agent.
-
-* `min_count` - Minimum number of nodes for auto-scaling.
-
-* `name` - The name assigned to this pool of agents.
-
-* `node_labels` - A map of Kubernetes labels applied to the nodes in this Agent Pool.
-
-* `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
-
-* `node_public_ip_prefix_id` - Resource ID for the Public IP Addresses Prefix for the nodes in this Agent Pool.
-
-* `node_taints` - A list of Kubernetes taints applied to the nodes in this Agent Pool.
-
-* `orchestrator_version` - Kubernetes version used for the Agents.
-
-* `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
-
-* `os_type` - The Operating System used for the Agents.
-
-* `tags` - A mapping of tags assigned to the Agent Pool.
-
-* `type` - The type of the Agent Pool.
-
-* `upgrade_settings` - An `upgrade_settings` block as documented below.
-
-* `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
-
-* `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
-
-* `zones` - A list of Availability Zones in which the nodes in this Agent Pool are located.
-
----
-
-An `upgrade_settings` block exports the following:
-
-* `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honours waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
-
-* `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
-
-* `max_unavailable` - The maximum number or percentage of nodes that can be unavailable during an upgrade.
-
-* `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
-
-* `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
-
----
-
 An `api_server_access` block exports the following:
 
 * `authorized_ip_ranges` - A list of IP ranges authorised to access the API server.
 
 * `subnet_id` - The ID of the subnet that the API server is accessible from.
-
----
-
-An `azure_active_directory_role_based_access_control` block exports the following:
-
-* `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
-
-* `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
-
-* `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
 ---
 
@@ -282,12 +206,6 @@ A `microsoft_defender` block exports the following:
 A `network` block exports the following:
 
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
-
-* `load_balancer_sku` - The SKU of the Load Balancer used for this Managed Kubernetes Automatic Cluster.
-
-* `network_plugin` - Network plugin used such as `azure` or `kubenet`.
-
-* `network_policy` - Network policy to be used with Azure CNI. e.g. `calico`, `azure` or `cilium`.
 
 * `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic.
 
