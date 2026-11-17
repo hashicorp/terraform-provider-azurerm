@@ -470,7 +470,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ds_v5"
   zone                   = "2"
 }
 
