@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -15,13 +15,13 @@ func TestFlexibleServerSkuName(t *testing.T) {
 		valid bool
 	}{
 		{
-			name:  "GP_Standard_E64s_v3",
-			input: "GP_Standard_E64s_v3",
+			name:  "GP_Standard_E64ads_v5",
+			input: "GP_Standard_E64ads_v5",
 			valid: false,
 		},
 		{
-			name:  "GP_Standard_D64s_v3",
-			input: "GP_Standard_D64s_v3",
+			name:  "GP_Standard_D64ads_v5",
+			input: "GP_Standard_D64ads_v5",
 			valid: true,
 		},
 		{
@@ -40,6 +40,61 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "GP_Standard_D16ads_v6",
+			input: "GP_Standard_D16ads_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D96ads_v6",
+			input: "GP_Standard_D96ads_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D128ds_v6",
+			input: "GP_Standard_D128ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D192ds_v6",
+			input: "GP_Standard_D192ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D256ds_v6",
+			input: "GP_Standard_D256ds_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E20ds_v6",
+			input: "MO_Standard_E20ds_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E128ds_v6",
+			input: "MO_Standard_E128ds_v6",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_D12ads_v6",
+			input: "GP_Standard_D12ads_v6",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_E20ads_v6",
+			input: "MO_Standard_E20ads_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E96ads_v6",
+			input: "MO_Standard_E96ads_v6",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_E12ads_v6",
+			input: "MO_Standard_E12ads_v6",
+			valid: false,
+		},
+		{
 			name:  "Standard",
 			input: "Standard",
 			valid: false,
@@ -50,13 +105,13 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
-			name:  "B_Standard_E32s_v3",
-			input: "B_Standard_E32s_v3",
+			name:  "B_Standard_E32ads_v5",
+			input: "B_Standard_E32ads_v5",
 			valid: false,
 		},
 		{
-			name:  "B_Standard_E30s_v3",
-			input: "B_Standard_E30s_v3",
+			name:  "B_Standard_E30ads_v5",
+			input: "B_Standard_E30ads_v5",
 			valid: false,
 		},
 		{
@@ -65,13 +120,13 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
-			name:  "MO_Standard_E2s_v3",
-			input: "MO_Standard_E2s_v3",
+			name:  "MO_Standard_E2ads_v5",
+			input: "MO_Standard_E2ads_v5",
 			valid: true,
 		},
 		{
-			name:  "MO_Standard_E64ds_v3",
-			input: "MO_Standard_E64ds_v3",
+			name:  "MO_Standard_E64dads_v5",
+			input: "MO_Standard_E64dads_v5",
 			valid: false,
 		},
 		{
@@ -85,8 +140,8 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
-			name:  "MO_Standard_D2s_v3",
-			input: "MO_Standard_D2s_v3",
+			name:  "MO_Standard_D2ads_v5",
+			input: "MO_Standard_D2ads_v5",
 			valid: false,
 		},
 		{

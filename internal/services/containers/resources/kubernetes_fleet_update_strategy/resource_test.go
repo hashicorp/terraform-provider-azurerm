@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_fleet_update_strategy_test
@@ -17,6 +17,17 @@ import (
 )
 
 type KubernetesFleetUpdateStrategyTestResource struct{}
+
+func TestAccKubernetesFleetUpdateStrategy_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_strategy", "test")
+	r := KubernetesFleetUpdateStrategyTestResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccKubernetesFleetUpdateStrategy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_update_strategy", "test")

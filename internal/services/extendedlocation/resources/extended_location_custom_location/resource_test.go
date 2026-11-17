@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package extended_location_custom_location_test
@@ -39,6 +39,18 @@ func (r ExtendedLocationCustomLocationResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(true), nil
+}
+
+func TestAccExtendedLocationCustomLocation_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
+	r := ExtendedLocationCustomLocationResource{}
+	credential, privateKey, publicKey := r.getCredentials(t)
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, credential, privateKey, publicKey),
+		},
+	}, "")
 }
 
 func TestAccExtendedLocationCustomLocation_basic(t *testing.T) {

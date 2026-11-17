@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package email_communication_service_domain
@@ -6,7 +6,7 @@ package email_communication_service_domain
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2026-03-18/domains"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -59,11 +59,11 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"domain": helper.DomainVerificationRecordsCommonSchema(),
-					"dkim":   helper.DomainVerificationRecordsCommonSchema(),
-					"dkim2":  helper.DomainVerificationRecordsCommonSchema(),
-					"dmarc":  helper.DomainVerificationRecordsCommonSchema(),
-					"spf":    helper.DomainVerificationRecordsCommonSchema(),
+					"domain": helpers.DomainVerificationRecordsCommonSchema(),
+					"dkim":   helpers.DomainVerificationRecordsCommonSchema(),
+					"dkim2":  helpers.DomainVerificationRecordsCommonSchema(),
+					"dmarc":  helpers.DomainVerificationRecordsCommonSchema(),
+					"spf":    helpers.DomainVerificationRecordsCommonSchema(),
 				},
 			},
 		},

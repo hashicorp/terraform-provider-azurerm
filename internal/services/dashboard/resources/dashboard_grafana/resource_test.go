@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard_grafana_test
@@ -18,6 +18,16 @@ import (
 )
 
 type DashboardGrafanaResource struct{}
+
+func TestAccDashboardGrafana_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+	data.ResourceSequentialRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDashboardGrafana_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")

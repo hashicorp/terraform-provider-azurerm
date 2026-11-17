@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_flux_configuration_test
@@ -21,6 +21,16 @@ import (
 )
 
 type KubernetesFluxConfigurationResource struct{}
+
+func TestAccKubernetesFluxConfiguration_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateGitRepositoryWithHttpKey(data),
+		},
+	}, "")
+}
 
 func TestAccKubernetesFluxConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")

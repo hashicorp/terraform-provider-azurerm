@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage_configuration_test
@@ -18,6 +18,16 @@ import (
 )
 
 type AutomanageConfigurationResource struct{}
+
+func TestAccAutoManageConfigurationProfile_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
+	r := AutomanageConfigurationResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")

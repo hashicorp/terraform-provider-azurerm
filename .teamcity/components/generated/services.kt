@@ -1,9 +1,10 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
         "aadb2c" to "AAD B2C",
+        "apicenter" to "API Center",
         "apimanagement" to "API Management",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",

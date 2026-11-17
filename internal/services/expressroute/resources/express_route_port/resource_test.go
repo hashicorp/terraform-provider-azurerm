@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package express_route_port_test
@@ -20,6 +20,17 @@ import (
 type ExpressRoutePortResource struct{}
 
 const ARMTestExpressRoutePortAdminState = "ARM_TEST_EXPRESS_ROUTE_PORT_ADMIN_STATE"
+
+func TestAccExpressRoutePort_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
+	r := ExpressRoutePortResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+	}, "")
+}
 
 func TestAccExpressRoutePort_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")

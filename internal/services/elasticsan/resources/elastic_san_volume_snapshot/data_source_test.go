@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package elastic_san_volume_snapshot_test
@@ -18,6 +18,17 @@ import (
 )
 
 type ElasticSANVolumeSnapshotDataSource struct{}
+
+func TestAccElasticSANVolumeSnapshotDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_elastic_san_volume_snapshot", "test")
+	d := ElasticSANVolumeSnapshotDataSource{}
+
+	data.DataSourceSequentialRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.snapshotSource(data),
+		},
+	}, "")
+}
 
 // https://github.com/hashicorp/terraform-provider-azurerm/pull/25372#issuecomment-2022105240
 // Elastic SAN Volume Snapshot is context-based and should not be regarded as the infrastructure managed by Terraform

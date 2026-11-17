@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_group_test
@@ -12,6 +12,17 @@ import (
 )
 
 type ContainerGroupDataSource struct{}
+
+func TestAccDataSourceContainerGroup_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_container_group", "test")
+	r := ContainerGroupDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceContainerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_group", "test")

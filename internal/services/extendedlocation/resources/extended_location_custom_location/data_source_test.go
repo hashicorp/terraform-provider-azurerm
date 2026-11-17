@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package extended_location_custom_location_test
@@ -12,6 +12,19 @@ import (
 )
 
 type ExtendedLocationCustomLocationDataSource struct{}
+
+func TestAccExtendedLocationCustomLocationDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_extended_location_custom_location", "test")
+	d := ExtendedLocationCustomLocationDataSource{}
+
+	credential, privateKey, publicKey := ExtendedLocationCustomLocationResource{}.getCredentials(t)
+
+	data.DataSourceSequentialRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: d.basic(data, credential, privateKey, publicKey),
+		},
+	}, "")
+}
 
 func TestAccExtendedLocationCustomLocationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_extended_location_custom_location", "test")

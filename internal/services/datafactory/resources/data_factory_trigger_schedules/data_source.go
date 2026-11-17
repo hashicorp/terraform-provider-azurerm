@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_factory_trigger_schedules
@@ -16,6 +16,8 @@ import (
 )
 
 type DataSource struct{}
+
+var _ sdk.DataSource = DataSource{}
 
 type TriggerSchedulesDataSourceModel struct {
 	DataFactoryID string   `tfschema:"data_factory_id"`

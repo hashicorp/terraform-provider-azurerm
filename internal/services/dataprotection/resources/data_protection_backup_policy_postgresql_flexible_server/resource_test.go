@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package data_protection_backup_policy_postgresql_flexible_server_test
@@ -17,6 +17,17 @@ import (
 )
 
 type DataProtectionBackupPolicyPostgresqlFlexibleServerResource struct{}
+
+func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
+	r := DataProtectionBackupPolicyPostgresqlFlexibleServerResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")

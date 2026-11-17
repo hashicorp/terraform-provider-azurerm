@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog_monitor
@@ -11,18 +11,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Datadog.MonitorsResource
+	client := meta.(*clients.Client).Datadog.DatadogMonitorResources
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := monitorsresource.ParseMonitorID(d.Id())
+	id, err := datadogmonitorresources.ParseMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta any) error {
 			}
 
 			monitoringEnabled := false
-			if props.MonitoringStatus != nil && *props.MonitoringStatus == monitorsresource.MonitoringStatusEnabled {
+			if props.MonitoringStatus != nil && *props.MonitoringStatus == datadogmonitorresources.MonitoringStatusEnabled {
 				monitoringEnabled = true
 			}
 
@@ -74,7 +74,7 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta any) error {
 	return nil
 }
 
-func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties) []any {
+func flattenMonitorIdentityProperties(input *datadogmonitorresources.IdentityProperties) []any {
 	if input == nil || input.Type == nil {
 		return make([]any, 0)
 	}
@@ -92,7 +92,7 @@ func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties
 	}
 }
 
-func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganizationProperties, d *pluginsdk.ResourceData) []any {
+func flattenMonitorOrganizationProperties(input *datadogmonitorresources.DatadogOrganizationProperties, d *pluginsdk.ResourceData) []any {
 	organisationProperties := d.Get("datadog_organization").([]any)
 	if len(organisationProperties) == 0 {
 		return make([]any, 0)

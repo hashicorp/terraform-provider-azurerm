@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_scope_map_test
@@ -17,6 +17,17 @@ import (
 )
 
 type ContainerRegistryScopeMapResource struct{}
+
+func TestAccContainerRegistryScopeMap_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_scope_map", "test")
+	r := ContainerRegistryScopeMapResource{}
+
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccContainerRegistryScopeMap_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_scope_map", "test")

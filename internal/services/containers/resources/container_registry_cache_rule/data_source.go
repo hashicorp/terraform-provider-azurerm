@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package container_registry_cache_rule
@@ -18,6 +18,8 @@ import (
 )
 
 type DataSource struct{}
+
+var _ sdk.DataSource = DataSource{}
 
 func (DataSource) ResourceType() string {
 	return "azurerm_container_registry_cache_rule"

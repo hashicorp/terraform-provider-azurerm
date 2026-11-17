@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_cluster_node_pool
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package kubernetes_node_pool_snapshot_test
@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2026-07-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -19,6 +19,17 @@ import (
 )
 
 type KubernetesNodePoolSnapshotDataSource struct{}
+
+func TestAccDataSourceKubernetesNodePoolSnapshot_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")
+	r := KubernetesNodePoolSnapshotDataSource{}
+
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.snapshotSource(data),
+		},
+	}, "")
+}
 
 func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_node_pool_snapshot", "test")

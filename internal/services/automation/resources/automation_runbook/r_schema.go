@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package automation_runbook
@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/runbook"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -97,7 +97,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-			Set: helper.ResourceAutomationJobScheduleHash,
+			Set: helpers.ResourceAutomationJobScheduleHash,
 		},
 
 		"publish_content_link": contentLinkSchema(false),

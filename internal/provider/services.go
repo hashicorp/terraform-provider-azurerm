@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appgateway"
@@ -145,6 +146,7 @@ import (
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
 	services := []sdk.TypedServiceRegistration{
 		aadb2c.Registration{},
+		apicenter.Registration{},
 		apimanagement.Registration{},
 		appgateway.Registration{},
 		appconfiguration.Registration{},
@@ -222,6 +224,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
+		relay.Registration{},
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
@@ -360,6 +363,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		aadb2c.Registration{},
 		advisor.Registration{},
 		analysisservices.Registration{},
+		apicenter.Registration{},
 		apimanagement.Registration{},
 		appgateway.Registration{},
 		appconfiguration.Registration{},
