@@ -895,7 +895,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 65536
   storage_tier           = "%s"
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger, storageTier)
@@ -912,7 +912,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 65536
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
@@ -929,7 +929,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = %s
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger, storageMb)
@@ -946,7 +946,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
@@ -986,7 +986,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "%d"
   %s
-  sku_name = "GP_Standard_D2s_v3"
+  sku_name = "GP_Standard_D2ads_v5"
 }
 `, r.templateWithLocationOverride(data, "northcentralus"), data.RandomInteger, versionNum, createModeProp)
 }
@@ -1002,7 +1002,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "17"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   storage_type           = "PremiumV2_LRS"
   storage_iops           = 3000
   storage_throughput     = 125
@@ -1022,7 +1022,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "17"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   storage_type           = "PremiumV2_LRS"
   storage_mb             = 1049600
   storage_iops           = 3001
@@ -1051,7 +1051,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
   version                      = "16"
-  sku_name                     = "GP_Standard_D2s_v3"
+  sku_name                     = "GP_Standard_D2ads_v5"
   zone                         = "1"
   geo_redundant_backup_enabled = true
 }
@@ -1146,7 +1146,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   delegated_subnet_id           = azurerm_subnet.test.id
   private_dns_zone_id           = azurerm_private_dns_zone.test.id
   public_network_access_enabled = false
-  sku_name                      = "GP_Standard_D2s_v3"
+  sku_name                      = "GP_Standard_D2ads_v5"
   zone                          = "1"
 
   high_availability {
@@ -1225,7 +1225,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   delegated_subnet_id           = azurerm_subnet.test.id
   private_dns_zone_id           = azurerm_private_dns_zone.test.id
   public_network_access_enabled = false
-  sku_name                      = "GP_Standard_D2s_v3"
+  sku_name                      = "GP_Standard_D2ads_v5"
   zone                          = "2"
 
   high_availability {
@@ -1260,7 +1260,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "16"
   storage_mb             = 32768
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 
   maintenance_window {
@@ -1284,7 +1284,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "16"
   storage_mb             = 32768
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 
   maintenance_window {
@@ -1344,7 +1344,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "%s"
   backup_retention_days  = 10
   storage_mb             = 131072
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
 
   maintenance_window {
     day_of_week  = 0
@@ -1374,7 +1374,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "%s"
   backup_retention_days  = 10
   storage_mb             = 131072
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
 
   maintenance_window {
     day_of_week  = 0
@@ -1397,7 +1397,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
   version                      = "16"
-  sku_name                     = "GP_Standard_D2s_v3"
+  sku_name                     = "GP_Standard_D2ads_v5"
   zone                         = "2"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = true
@@ -1425,7 +1425,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "1"
 
   authentication {
@@ -1478,7 +1478,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 
   %s
@@ -1634,7 +1634,7 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   zone                = "2"
   create_mode         = "Replica"
   source_server_id    = azurerm_postgresql_flexible_server.test.id
-  sku_name            = "GP_Standard_D2s_v3"
+  sku_name            = "GP_Standard_D2ads_v5"
 }
 `, r.cluster(data, 2), data.RandomInteger)
 }
@@ -1832,7 +1832,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 32768
   auto_grow_enabled      = %t
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger, autoGrowEnabled)
@@ -1851,7 +1851,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 65536
   storage_tier           = "P4"
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
@@ -1870,7 +1870,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = %s
   storage_tier           = "%s"
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger, storageMb, storageTier)
@@ -1886,7 +1886,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login           = "adminTerraform"
   administrator_password        = "QAZwsx123"
   version                       = "16"
-  sku_name                      = "GP_Standard_D2s_v3"
+  sku_name                      = "GP_Standard_D2ads_v5"
   zone                          = "2"
   public_network_access_enabled = %t
 }
@@ -1907,7 +1907,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
   administrator_password_wo_version = %[4]d
   version                           = "16"
-  sku_name                          = "GP_Standard_D2s_v3"
+  sku_name                          = "GP_Standard_D2ads_v5"
   zone                              = "2"
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
@@ -1962,7 +1962,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 32768
   storage_tier           = "P4"
   version                = "17"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "2"
 
   cluster {
