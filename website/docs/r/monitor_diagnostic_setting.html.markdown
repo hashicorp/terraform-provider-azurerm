@@ -141,10 +141,8 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Diagnostic Settings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_diagnostic_setting.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vault1|logMonitoring1"
+terraform import azurerm_monitor_diagnostic_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vault1/providers/Microsoft.Insights/diagnosticSettings/logMonitoring1
 ```
-
--> **Note:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
