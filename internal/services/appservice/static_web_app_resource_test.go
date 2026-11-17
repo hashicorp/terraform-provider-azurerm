@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -19,6 +19,16 @@ import (
 )
 
 type StaticWebAppResource struct{}
+
+func TestAccStaticWebApp_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccStaticWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")

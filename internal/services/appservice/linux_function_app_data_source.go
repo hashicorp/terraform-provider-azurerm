@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -24,6 +24,8 @@ import (
 )
 
 type LinuxFunctionAppDataSource struct{}
+
+var _ sdk.DataSource = LinuxFunctionAppDataSource{}
 
 type LinuxFunctionAppDataSourceModel struct {
 	Name               string `tfschema:"name"`

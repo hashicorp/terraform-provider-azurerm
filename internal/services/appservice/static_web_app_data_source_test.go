@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -12,6 +12,16 @@ import (
 )
 
 type StaticWebAppDataSource struct{}
+
+func TestAccAzureStaticWebAppDataSource_regressionTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_static_web_app", "test")
+	r := StaticWebAppDataSource{}
+	data.DataSourceRegressionTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+		},
+	}, "")
+}
 
 func TestAccAzureStaticWebAppDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_static_web_app", "test")
