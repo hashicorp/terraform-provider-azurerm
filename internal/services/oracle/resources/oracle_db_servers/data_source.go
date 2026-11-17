@@ -19,6 +19,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type DBServersDataModel struct {
 	CloudExadataInfrastructureName string              `tfschema:"cloud_exadata_infrastructure_name"`
 	DBServers                      []DBServerDataModel `tfschema:"db_servers"`
