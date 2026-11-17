@@ -81,6 +81,33 @@ func TestAccApiCenterApiDefinition_specificationContent(t *testing.T) {
 	})
 }
 
+func TestAccApiCenterApiDefinition_specificationUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_api_definition", "test")
+	r := ApiCenterApiDefinitionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.specificationContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.specificationLink(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.specificationContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiCenterApiDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_api_definition", "test")
 	r := ApiCenterApiDefinitionResource{}

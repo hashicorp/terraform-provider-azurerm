@@ -33,7 +33,7 @@ func (r Resource) flatten(metadata sdk.ResourceMetaData, id *deployments.Deploym
 		state.Description = pointer.From(props.Description)
 		state.EnvironmentId = fmt.Sprintf("%s%s", serviceId.ID(), pointer.From(props.EnvironmentId))
 		state.ServerRuntimeUrl = flattenDeploymentServer(props.Server)
-		state.State = metadata.ResourceData.Get("state").(string)
+		state.State = pointer.FromEnum(props.State)
 		state.Title = pointer.From(props.Title)
 	}
 

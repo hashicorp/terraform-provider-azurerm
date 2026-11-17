@@ -46,7 +46,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				model.Properties.AssignedTo = expandMetadataAssignmentList(state.MetadataAssignment)
 			}
 
-			if metadata.ResourceData.HasChange("schema") {
+			if metadata.ResourceData.HasChange("schema_json") {
 				model.Properties.Schema = state.Schema
 			}
 

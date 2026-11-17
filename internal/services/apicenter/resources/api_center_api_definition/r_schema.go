@@ -61,11 +61,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The content of the Specification.",
 						Optional:    true,
 						// Note: O+C if URL is set, Azure will be used to fetch the specification content and only return that
-						Computed: true,
-						AtLeastOneOf: []string{
-							"specification.0.url",
-							"specification.0.content",
-						},
+						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -74,10 +70,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Description:  "The URL containing the Specification content.",
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPS,
-						AtLeastOneOf: []string{
-							"specification.0.url",
-							"specification.0.content",
-						},
 					},
 
 					"version": {
