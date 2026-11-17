@@ -65,18 +65,17 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"horizondb_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.PoolId{}),
 		"end_ip_address": {
-			Type: pluginsdk.TypeString, 
-			Required: true, 
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
 		"start_ip_address": {
-			Type: pluginsdk.TypeString, 
-			Required: true, ValidateFunc: 
-			validation.IsIPv4Address,
+			Type:     pluginsdk.TypeString,
+			Required: true, ValidateFunc: validation.IsIPv4Address,
 		},
 		"description": {
-			Type: pluginsdk.TypeString, 
-			Optional: true, 
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
@@ -217,13 +216,4 @@ func expandHorizondbFirewallRule(state HorizondbFirewallRuleResourceModel) firew
 			Description:    pointer.To(state.Description),
 		},
 	}
-}
-
-func validateHorizondbFirewallRange(start, end string) error {
-	startAddress, _ := netip.ParseAddr(start)
-	endAddress, _ := netip.ParseAddr(end)
-	if endAddress.Less(startAddress) {
-		return errors.New("`end_ip_address` must be greater than or equal to `start_ip_address`")
-	}
-	return nil
 }
