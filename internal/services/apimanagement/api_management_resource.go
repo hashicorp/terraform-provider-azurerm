@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -65,7 +66,7 @@ var (
 )
 
 func resourceApiManagementService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceApiManagementServiceCreate,
 		Read:   resourceApiManagementServiceRead,
 		Update: resourceApiManagementServiceUpdate,
@@ -103,6 +104,40 @@ func resourceApiManagementService() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["tenant_access"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true, // azignore:AZS007 - pre-existing violation
+			MaxItems:   1,
+			Deprecated: "`tenant_access` has been deprecated and will be removed in v6.0 of the AzureRM provider as the direct management API of API Management has been retired.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"primary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"secondary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		}
+	}
+
+	return r
 }
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
@@ -599,35 +634,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"tenant_access": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"primary_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-					"secondary_key": {
-						Type:      pluginsdk.TypeString,
-						Computed:  true,
-						Sensitive: true,
-					},
-				},
-			},
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -899,19 +905,21 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta any) err
 		}
 	}
 
-	tenantAccessRaw := d.Get("tenant_access").([]any)
-	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
-		return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
-	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
-		tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
-		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
-		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
-		tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
-		if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
-			// skip error if direct management API is disabled and tenant access is not enabled
-			if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
-				return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+	if !features.SixPointOh() {
+		tenantAccessRaw := d.Get("tenant_access").([]any)
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
+			return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
+		}
+		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
+			tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]any)
+			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
+			tenantAccessClient := meta.(*clients.Client).ApiManagement.TenantAccessClient
+			if resp, err := tenantAccessClient.Update(ctx, tenantAccessServiceId, tenantAccessInformationParameters, tenantaccess.UpdateOperationOptions{}); err != nil {
+				// skip error if direct management API is disabled and tenant access is not enabled
+				if pointer.From(tenantAccessInformationParameters.Properties.Enabled) || !wasDirectManagementApiDisabled(resp.HttpResponse, err) {
+					return fmt.Errorf(" updating tenant access settings for %s: %+v", id, err)
+				}
 			}
 		}
 	}
@@ -1120,7 +1128,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta any) err
 		}
 	}
 
-	if d.HasChange("tenant_access") {
+	if !features.SixPointOh() && d.HasChange("tenant_access") {
 		tenantAccessRaw := d.Get("tenant_access").([]any)
 		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
 			return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
@@ -1282,19 +1290,21 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error
 				return fmt.Errorf("setting `delegation`: %+v", err)
 			}
 
-			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
-			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
-			var tenantAccess []any
-			switch {
-			case err == nil:
-				tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
-			case wasDirectManagementApiDisabled(tenantAccessInformationContract.HttpResponse, err):
-				tenantAccess = flattenApiManagementTenantAccessSettings(tenantaccess.AccessInformationSecretsContract{Enabled: pointer.To(false)})
-			default:
-				return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
-			}
-			if err := d.Set("tenant_access", tenantAccess); err != nil {
-				return fmt.Errorf("setting `tenant_access`: %+v", err)
+			if !features.SixPointOh() {
+				tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+				tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
+				var tenantAccess []any
+				switch {
+				case err == nil:
+					tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
+				case wasDirectManagementApiDisabled(tenantAccessInformationContract.HttpResponse, err):
+					tenantAccess = flattenApiManagementTenantAccessSettings(tenantaccess.AccessInformationSecretsContract{Enabled: pointer.To(false)})
+				default:
+					return fmt.Errorf("retrieving tenant access properties for %s: %+v", *id, err)
+				}
+				if err := d.Set("tenant_access", tenantAccess); err != nil {
+					return fmt.Errorf("setting `tenant_access`: %+v", err)
+				}
 			}
 		} else {
 			d.Set("sign_in", []any{})

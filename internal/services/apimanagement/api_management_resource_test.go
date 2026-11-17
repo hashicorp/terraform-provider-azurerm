@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -931,6 +932,10 @@ func TestAccApiManagement_identitySystemAssignedUserAssignedUpdateUserAssigned(t
 }
 
 func TestAccApiManagement_tenantAccess(t *testing.T) {
+	if features.SixPointOh() {
+		t.Skip("This test is no longer valid in 6.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
