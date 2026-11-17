@@ -552,11 +552,15 @@ provider "azurerm" {
 
 %[1]s
 
+locals {
+  subnet_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/test"
+}
+
 resource "azurerm_sre_agent" "test" {
   name                = "acctest-sre-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  subnet_id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test/subnets/test"
+  subnet_id           = local.subnet_id
 
   identity {
     type = "SystemAssigned"
@@ -589,6 +593,11 @@ provider "azurerm" {
 
 %[1]s
 
+locals {
+  assigned_identity_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test"
+  unassigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/other"
+}
+
 resource "azurerm_sre_agent" "test" {
   name                = "acctest-sre-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -596,11 +605,11 @@ resource "azurerm_sre_agent" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test"]
+    identity_ids = [local.assigned_identity_id]
   }
 
   action {
-    user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/other"
+    user_assigned_identity_id = local.unassigned_identity_id
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -618,6 +627,11 @@ provider "azurerm" {
 
 %[1]s
 
+locals {
+  assigned_identity_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test"
+  unassigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/other"
+}
+
 resource "azurerm_sre_agent" "test" {
   name                = "acctest-sre-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -625,11 +639,11 @@ resource "azurerm_sre_agent" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = ["/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test"]
+    identity_ids = [local.assigned_identity_id]
   }
 
   knowledge_graph {
-    user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.ManagedIdentity/userAssignedIdentities/other"
+    user_assigned_identity_id = local.unassigned_identity_id
   }
 }
 `, r.template(data), data.RandomInteger)

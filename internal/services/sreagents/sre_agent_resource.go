@@ -537,14 +537,14 @@ func (SREAgentResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			identity := config.GetAttr("identity")
+			identityConfig := config.GetAttr("identity")
 			if metadata.ResourceDiff.HasChanges("identity", "action", "knowledge_graph") &&
-				identity.IsKnown() && !identity.IsNull() && identity.LengthInt() > 0 {
-				identity = identity.AsValueSlice()[0]
+				identityConfig.IsKnown() && !identityConfig.IsNull() && identityConfig.LengthInt() > 0 {
+				identityConfig = identityConfig.AsValueSlice()[0]
 
-				if identity.IsKnown() && !identity.IsNull() && identity.GetAttr("identity_ids").IsWhollyKnown() {
+				if identityConfig.IsKnown() && !identityConfig.IsNull() && identityConfig.GetAttr("identity_ids").IsWhollyKnown() {
 					ids := make([]string, 0)
-					identityIds := identity.GetAttr("identity_ids")
+					identityIds := identityConfig.GetAttr("identity_ids")
 					if !identityIds.IsNull() {
 						for _, id := range identityIds.AsValueSlice() {
 							if !id.IsNull() {
@@ -684,14 +684,14 @@ func (r SREAgentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
 			param := agents.Agent{
 				Location: location.Normalize(config.Location),
-				Identity: identity,
+				Identity: expandedIdentity,
 				Properties: &agents.AgentProperties{
 					ActionConfiguration:             expandSREAgentAction(config.Action),
 					LogConfiguration:                expandSREAgentApplicationInsights(config.ApplicationInsights),
@@ -784,11 +784,11 @@ func (SREAgentResource) Update() sdk.ResourceFunc {
 			existing.Model.Properties.IncidentManagementConfiguration = expandSREAgentIncidentManagement(config.IncidentManagement)
 
 			if metadata.ResourceData.HasChange("identity") {
-				identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				existing.Model.Identity = identity
+				existing.Model.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -871,11 +871,11 @@ func (SREAgentResource) flatten(metadata sdk.ResourceMetaData, id *agents.AgentI
 		state.Location = location.Normalize(model.Location)
 		state.Tags = pointer.From(model.Tags)
 
-		identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		state.Identity = identity
+		state.Identity = flattenedIdentity
 
 		if props := model.Properties; props != nil {
 			state.Endpoint = pointer.From(props.AgentEndpoint)
@@ -948,7 +948,7 @@ func flattenSREAgentAction(input *agents.ActionConfiguration) ([]ActionModel, er
 	if pointer.From(input.Identity) != "" {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity)
 		if err != nil {
-			return nil, err
+			return make([]ActionModel, 0), err
 		}
 
 		action.UserAssignedIdentityId = parsed.ID()
@@ -1085,7 +1085,7 @@ func flattenSREAgentKnowledgeGraph(input *agents.KnowledgeGraphConfiguration) ([
 	if pointer.From(input.Identity) != "" {
 		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.Identity)
 		if err != nil {
-			return nil, err
+			return make([]KnowledgeGraphModel, 0), err
 		}
 
 		knowledgeGraph.UserAssignedIdentityId = parsed.ID()
