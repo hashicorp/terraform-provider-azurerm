@@ -284,15 +284,21 @@ func TestAccHorizondbCluster_identity(t *testing.T) {
 	})
 }
 
-func TestAccHorizondbCluster_poolRenameRejected(t *testing.T) {
+func TestAccHorizondbCluster_poolRename(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{Config: r.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
 		{
-			Config:      r.withPool(data, "renamed", 1, "Disabled"),
-			ExpectError: regexp.MustCompile("changing `read_write_pool.name` in place is not supported"),
+			Config: r.withPool(data, "renamed", 1, "Disabled"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionDestroyBeforeCreate),
+				},
+			},
+			Check: check.That(data.ResourceName).ExistsInAzure(r),
 		},
+		data.ImportStep("administrator_password"),
 	})
 }
 
@@ -462,7 +468,7 @@ resource "azurerm_horizondb_cluster" "test" {
   postgresql_version            = "18"
   administrator_login           = "acctestadmin"
   administrator_password        = "P@ssword-456!"
-  backup_retention_days         = 14
+  backup_retention_in_days      = 14
   public_network_access_enabled = true
 
   read_write_pool {
@@ -496,7 +502,7 @@ resource "azurerm_horizondb_cluster" "test" {
   postgresql_version            = "18"
   administrator_login           = "acctestadmin"
   administrator_password        = "P@ssword-123!"
-  backup_retention_days         = 7
+  backup_retention_in_days      = 7
   public_network_access_enabled = false
 
   %s
@@ -514,7 +520,7 @@ resource "azurerm_horizondb_cluster" "test" {
   postgresql_version            = "18"
   administrator_login           = "acctestadmin"
   administrator_password        = "P@ssword-123!"
-  backup_retention_days         = %d
+  backup_retention_in_days      = %d
   public_network_access_enabled = %t
 
   %s

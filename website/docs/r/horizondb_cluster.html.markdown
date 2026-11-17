@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `administrator_password_wo_version` - (Optional) A positive integer used to trigger an update for `administrator_password_wo`. Increment this value when updating the write-only password.
 
-* `backup_retention_days` - (Optional) The backup retention period in days. Possible values range between `1` and `35`. Defaults to `7`.
+* `backup_retention_in_days` - (Optional) The backup retention period in days. Possible values range between `1` and `35`. Defaults to `7`.
 
 ~> **Note:** Removing this argument from an existing configuration resets the retention period to `7` days.
 
@@ -144,9 +144,9 @@ A `read_write_pool` block supports the following:
 
 ~> **Note:** Use `Disabled` with one node, or `AnyZone` or `ZoneRedundant` with two or more nodes. Change the mode and node count together when crossing these ranges. `ZoneRedundant` requires allocation across availability zones; changing the mode can replace nodes and disconnect their clients.
 
-* `name` - (Required) The name of the Pool.
+* `name` - (Required) The name of the Pool. Changing this forces a new resource to be created.
 
-~> **Note:** The name must contain between 1 and 63 lowercase letters, numbers, or hyphens, must start and end with a letter or number, and must differ from the Cluster name. In-place renaming is rejected. Replace the Cluster to use a different Pool name.
+~> **Note:** The name must contain between 1 and 63 lowercase letters, numbers, or hyphens, must start and end with a letter or number, and must differ from the Cluster name.
 
 * `node_count` - (Required) The number of nodes allocated to the Pool.
 
