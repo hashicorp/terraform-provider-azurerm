@@ -772,5 +772,8 @@ func readHorizondbClusterAdministratorLogin(ctx context.Context, client *passwor
 	if err != nil {
 		return "", fmt.Errorf("retrieving password authentication for %s: %+v", id, err)
 	}
-	return *resp.Model.Properties.AdministratorLogin, nil
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return "", fmt.Errorf("retrieving password authentication for %s: properties are missing", id)
+	}
+	return pointer.From(resp.Model.Properties.AdministratorLogin), nil
 }
