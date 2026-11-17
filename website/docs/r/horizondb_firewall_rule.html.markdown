@@ -42,10 +42,6 @@ The following arguments are supported:
 
 * `start_ip_address` - (Required) The first IPv4 address in the allowed range.
 
-* `description` - (Optional) A description of the HorizonDB Firewall Rule.
-
--> **Note:** The description can contain up to 1024 characters.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

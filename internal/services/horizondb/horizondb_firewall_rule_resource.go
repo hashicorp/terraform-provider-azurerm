@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -29,7 +28,6 @@ type HorizondbFirewallRuleResourceModel struct {
 	HorizondbPoolId string `tfschema:"horizondb_pool_id"`
 	EndIpAddress    string `tfschema:"end_ip_address"`
 	StartIpAddress  string `tfschema:"start_ip_address"`
-	Description     string `tfschema:"description"`
 }
 
 var (
@@ -72,11 +70,6 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		"start_ip_address": {
 			Type:     pluginsdk.TypeString,
 			Required: true, ValidateFunc: validation.IsIPv4Address,
-		},
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
@@ -200,7 +193,6 @@ func (HorizondbFirewallRuleResource) flatten(metadata sdk.ResourceMetaData, id *
 		HorizondbPoolId: firewallrules.NewPoolID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.PoolName).ID(),
 		StartIpAddress:  model.Properties.StartIPAddress,
 		EndIpAddress:    model.Properties.EndIPAddress,
-		Description:     pointer.From(model.Properties.Description),
 	}
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 		return err
@@ -213,7 +205,6 @@ func expandHorizondbFirewallRule(state HorizondbFirewallRuleResourceModel) firew
 		Properties: &firewallrules.FirewallRuleProperties{
 			StartIPAddress: state.StartIpAddress,
 			EndIPAddress:   state.EndIpAddress,
-			Description:    pointer.To(state.Description),
 		},
 	}
 }

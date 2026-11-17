@@ -55,10 +55,6 @@ func TestAccHorizondbFirewallRule_update(t *testing.T) {
 		data.ImportStep(),
 		{Config: resource.complete(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
 		data.ImportStep(),
-		{Config: resource.config(data, "192.0.2.10", "192.0.2.20", "Updated acceptance test firewall rule"), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
-		data.ImportStep(),
-		{Config: resource.config(data, "192.0.2.10", "192.0.2.20", ""), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
-		data.ImportStep(),
 		{Config: resource.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
 		data.ImportStep(),
 	})
@@ -69,7 +65,7 @@ func TestAccHorizondbFirewallRule_invalidRange(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_firewall_rule", "test")
 	data.ResourceTest(t, resource, []acceptance.TestStep{
 		{
-			Config:      resource.config(data, "192.0.2.10", "192.0.2.1", ""),
+			Config:      resource.config(data, "192.0.2.10", "192.0.2.1"),
 			ExpectError: regexp.MustCompile("`end_ip_address` must be greater than or equal to `start_ip_address`"),
 		},
 	})
@@ -105,7 +101,6 @@ func (HorizondbFirewallRuleResource) prepareOverwrite(data acceptance.TestData) 
 			Properties: &firewallrules.FirewallRuleProperties{
 				StartIPAddress: "192.0.2.1",
 				EndIPAddress:   "192.0.2.1",
-				Description:    pointer.To("Before overwrite"),
 			},
 		}
 		if err := client.HorizonDB.FirewallRulesClient.CreateOrReplaceThenPoll(ctx, id, payload); err != nil {
@@ -128,18 +123,14 @@ func (HorizondbFirewallRuleResource) Exists(ctx context.Context, client *clients
 }
 
 func (resource HorizondbFirewallRuleResource) basic(data acceptance.TestData) string {
-	return resource.config(data, "192.0.2.1", "192.0.2.1", "")
+	return resource.config(data, "192.0.2.1", "192.0.2.1")
 }
 
 func (resource HorizondbFirewallRuleResource) complete(data acceptance.TestData) string {
-	return resource.config(data, "192.0.2.10", "192.0.2.20", "Acceptance test firewall rule")
+	return resource.config(data, "192.0.2.10", "192.0.2.20")
 }
 
-func (HorizondbFirewallRuleResource) config(data acceptance.TestData, start, end, description string) string {
-	descriptionConfig := ""
-	if description != "" {
-		descriptionConfig = fmt.Sprintf("description = %q", description)
-	}
+func (HorizondbFirewallRuleResource) config(data acceptance.TestData, start, end string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -148,9 +139,8 @@ resource "azurerm_horizondb_firewall_rule" "test" {
   horizondb_pool_id = azurerm_horizondb_cluster.test.read_write_pool[0].id
   start_ip_address  = %q
   end_ip_address    = %q
-  %s
 }
-`, HorizondbClusterResource{}.withPool(data, "primary", 1, "Disabled"), data.RandomInteger, start, end, descriptionConfig)
+`, HorizondbClusterResource{}.withPool(data, "primary", 1, "Disabled"), data.RandomInteger, start, end)
 }
 
 func (resource HorizondbFirewallRuleResource) requiresImport(data acceptance.TestData) string {
@@ -179,7 +169,6 @@ resource "azurerm_horizondb_firewall_rule" "test" {
   horizondb_pool_id = azurerm_horizondb_cluster.test.read_write_pool[0].id
   start_ip_address  = "192.0.2.10"
   end_ip_address    = "192.0.2.20"
-  description       = "Acceptance test firewall rule"
 }
 `, r.overwritePrerequisites(data), data.RandomInteger)
 }
