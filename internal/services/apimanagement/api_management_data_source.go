@@ -18,13 +18,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceApiManagementService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceApiManagementRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -198,36 +199,41 @@ func dataSourceApiManagementService() *pluginsdk.Resource {
 				},
 			},
 
-			"tenant_access": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"primary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"secondary_key": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.SixPointOh() {
+		r.Schema["tenant_access"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
+			Deprecated: "`tenant_access` has been deprecated and will be removed in v6.0 of the AzureRM provider as the direct management API of API Management has been retired.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"primary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"secondary_key": {
+						Type:      pluginsdk.TypeString,
+						Computed:  true,
+						Sensitive: true,
+					},
+				},
+			},
+		}
+	}
+
+	return r
 }
 
 func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta any) error {
@@ -288,20 +294,23 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta any) error {
 
 		d.Set("sku_name", flattenApiManagementServiceSkuName(&model.Sku))
 
-		tenantAccess := make([]any, 0)
-		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(model.Sku.Name), "V2") {
-			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
-			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
-			if err != nil {
-				if !response.WasForbidden(tenantAccessInformationContract.HttpResponse) {
+		if !features.SixPointOh() {
+			tenantAccess := make([]any, 0)
+			if model.Sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(model.Sku.Name), "V2") {
+				tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
+				tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
+				switch {
+				case err == nil:
+					tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
+				case wasDirectManagementApiDisabled(tenantAccessInformationContract.HttpResponse, err):
+					tenantAccess = flattenApiManagementTenantAccessSettings(tenantaccess.AccessInformationSecretsContract{Enabled: pointer.To(false)})
+				case !response.WasForbidden(tenantAccessInformationContract.HttpResponse):
 					return fmt.Errorf("retrieving tenant access properties for %s: %+v", id, err)
 				}
-			} else {
-				tenantAccess = flattenApiManagementTenantAccessSettings(*tenantAccessInformationContract.Model)
 			}
-		}
-		if err := d.Set("tenant_access", tenantAccess); err != nil {
-			return fmt.Errorf("setting `tenant_access`: %+v", err)
+			if err := d.Set("tenant_access", tenantAccess); err != nil {
+				return fmt.Errorf("setting `tenant_access`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
