@@ -109,4 +109,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DBforMySQL` - 2023-12-30
+* `Microsoft.DBforMySQL` - 2024-12-30
