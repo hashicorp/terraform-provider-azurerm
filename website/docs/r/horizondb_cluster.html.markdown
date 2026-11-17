@@ -15,6 +15,12 @@ Manages a HorizonDB Cluster.
 ## Example Usage
 
 ```hcl
+variable "horizondb_administrator_password" {
+  type        = string
+  description = "The PostgreSQL administrator password for the HorizonDB Cluster."
+  sensitive   = true
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
   location = "East US 2"
