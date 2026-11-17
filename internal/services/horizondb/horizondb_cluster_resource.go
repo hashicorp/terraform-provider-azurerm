@@ -112,12 +112,11 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"read_write_pool": horizondbClusterPoolSchema(),
 		"administrator_password": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Sensitive:     true,
-			ConflictsWith: []string{"administrator_password_wo"},
-			ExactlyOneOf:  []string{"administrator_password", "administrator_password_wo"},
-			ValidateFunc:  validation.StringLenBetween(8, 128),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ExactlyOneOf: []string{"administrator_password", "administrator_password_wo"},
+			ValidateFunc: validation.StringLenBetween(8, 128),
 		},
 		"administrator_password_wo": {
 			Type:          pluginsdk.TypeString,
@@ -586,7 +585,7 @@ func horizondbClusterPoolSchema() *pluginsdk.Schema {
 					"vcores": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(2, 192),
+						ValidateFunc: validation.IntInSlice([]int{2, 4, 8, 16, 20, 32, 48, 64, 96}),
 					},
 				}},
 			},

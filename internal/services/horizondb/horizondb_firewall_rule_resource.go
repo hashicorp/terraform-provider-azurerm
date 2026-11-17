@@ -65,13 +65,19 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"horizondb_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.PoolId{}),
 		"end_ip_address": {
-			Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.IsIPv4Address,
+			Type: pluginsdk.TypeString, 
+			Required: true, 
+			ValidateFunc: validation.IsIPv4Address,
 		},
 		"start_ip_address": {
-			Type: pluginsdk.TypeString, Required: true, ValidateFunc: validation.IsIPv4Address,
+			Type: pluginsdk.TypeString, 
+			Required: true, ValidateFunc: 
+			validation.IsIPv4Address,
 		},
 		"description": {
-			Type: pluginsdk.TypeString, Optional: true, ValidateFunc: validation.StringLenBetween(0, 1024),
+			Type: pluginsdk.TypeString, 
+			Optional: true, 
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
@@ -88,7 +94,12 @@ func (HorizondbFirewallRuleResource) CustomizeDiff() sdk.ResourceFunc {
 			if !diff.NewValueKnown("start_ip_address") || !diff.NewValueKnown("end_ip_address") {
 				return nil
 			}
-			return validateHorizondbFirewallRange(diff.Get("start_ip_address").(string), diff.Get("end_ip_address").(string))
+			startAddress, _ := netip.ParseAddr(diff.Get("start_ip_address").(string))
+			endAddress, _ := netip.ParseAddr(diff.Get("end_ip_address").(string))
+			if endAddress.Less(startAddress) {
+				return errors.New("`end_ip_address` must be greater than or equal to `start_ip_address`")
+			}
+			return nil
 		},
 	}
 }
@@ -209,14 +220,8 @@ func expandHorizondbFirewallRule(state HorizondbFirewallRuleResourceModel) firew
 }
 
 func validateHorizondbFirewallRange(start, end string) error {
-	startAddress, err := netip.ParseAddr(start)
-	if err != nil || !startAddress.Is4() {
-		return errors.New("`start_ip_address` must be a valid IPv4 address")
-	}
-	endAddress, err := netip.ParseAddr(end)
-	if err != nil || !endAddress.Is4() {
-		return errors.New("`end_ip_address` must be a valid IPv4 address")
-	}
+	startAddress, _ := netip.ParseAddr(start)
+	endAddress, _ := netip.ParseAddr(end)
 	if endAddress.Less(startAddress) {
 		return errors.New("`end_ip_address` must be greater than or equal to `start_ip_address`")
 	}

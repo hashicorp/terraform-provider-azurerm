@@ -118,9 +118,9 @@ A `compute` block supports the following:
 
 * `processor` - (Required) The processor type. Possible values are `AMD` and `Intel`.
 
-* `vcores` - (Required) The provisioned compute capacity in vCores.
+* `vcores` - (Required) The provisioned compute capacity in vCores. Possible values are `2`, `4`, `8`, `16`, `20`, `32`, `48`, `64`, and `96`.
 
-~> **Note:** The number of vCores must be between `2` and `192`. Azure validates the supported combinations of processor, generation, and capacity.
+~> **Note:** Azure validates the supported combinations of processor, generation, and capacity.
 
 * `type` - (Optional) The compute model type. The only possible value is `Provisioned`. Defaults to `Provisioned`.
 
