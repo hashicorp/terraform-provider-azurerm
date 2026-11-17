@@ -47,8 +47,12 @@ func (r Resource) Create() sdk.ResourceFunc {
 			// Edge Actions are global resources, the API only accepts `global` as the location
 			param := edgeactions.EdgeAction{
 				Location: "global",
-				Sku:      expandSku(config.Sku),
-				Tags:     pointer.To(config.Tags),
+				// `Standard` is currently the only SKU the API accepts, and `name` and `tier` must match
+				Sku: edgeactions.SkuType{
+					Name: "Standard",
+					Tier: "Standard",
+				},
+				Tags: pointer.To(config.Tags),
 			}
 
 			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
@@ -58,16 +62,5 @@ func (r Resource) Create() sdk.ResourceFunc {
 			metadata.SetID(id)
 			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
-	}
-}
-
-func expandSku(input []SkuModel) edgeactions.SkuType {
-	if len(input) == 0 {
-		return edgeactions.SkuType{}
-	}
-
-	return edgeactions.SkuType{
-		Name: input[0].Name,
-		Tier: input[0].Tier,
 	}
 }

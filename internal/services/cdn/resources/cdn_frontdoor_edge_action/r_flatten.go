@@ -17,7 +17,6 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *edgeactions.EdgeActio
 	}
 
 	if model != nil {
-		state.Sku = flattenSku(model.Sku)
 		state.Tags = pointer.From(model.Tags)
 	}
 
@@ -26,13 +25,4 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *edgeactions.EdgeActio
 	}
 
 	return metadata.Encode(&state)
-}
-
-func flattenSku(input edgeactions.SkuType) []SkuModel {
-	return []SkuModel{
-		{
-			Name: input.Name,
-			Tier: input.Tier,
-		},
-	}
 }

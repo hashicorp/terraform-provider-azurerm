@@ -40,10 +40,6 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 
-			if metadata.ResourceData.HasChange("sku") {
-				payload.Sku = expandSku(config.Sku)
-			}
-
 			if metadata.ResourceData.HasChange("tags") {
 				// the API rejects a `null` value for `tags`, so an empty map is sent to remove all tags
 				if config.Tags == nil {
