@@ -1564,7 +1564,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "16"
-  sku_name               = "B_Standard_B1ms"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "1"
 
   identity {
@@ -1592,7 +1592,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
   version                = "16"
-  sku_name               = "B_Standard_B1ms"
+  sku_name               = "GP_Standard_D2ads_v5"
   zone                   = "1"
 
   identity {
@@ -1718,7 +1718,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
   version                      = "16"
-  sku_name                     = "B_Standard_B1ms"
+  sku_name                     = "GP_Standard_D2ads_v5"
   zone                         = "2"
   geo_redundant_backup_enabled = true
 
@@ -1800,7 +1800,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password       = "QAZwsx123"
   storage_mb                   = 32768
   version                      = "16"
-  sku_name                     = "B_Standard_B1ms"
+  sku_name                     = "GP_Standard_D2ads_v5"
   zone                         = "2"
   geo_redundant_backup_enabled = true
 
