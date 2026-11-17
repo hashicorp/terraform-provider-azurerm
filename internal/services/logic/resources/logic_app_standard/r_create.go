@@ -132,13 +132,6 @@ func (r Resource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = pointer.To(appSettings)
 
-			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
-				// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
-				// a replacement of this resource should consider deprecating support for this.
-				vnetRouteAll, _ := strconv.ParseBool(v)
-				siteConfig.VnetRouteAllEnabled = pointer.To(vnetRouteAll)
-			}
-
 			applicationTrafficEnabled := data.VNETApplicationTrafficEnabled
 			if !features.SixPointOh() {
 				if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
