@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package oracle
+package oracle_network_anchor
 
 import (
 	"context"
@@ -16,19 +16,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkAnchorListResource struct{}
+type ListResource struct{}
 
-var _ sdk.FrameworkListWrappedResource = new(NetworkAnchorListResource)
+var _ sdk.FrameworkListWrappedResource = new(ListResource)
 
-func (NetworkAnchorListResource) ResourceFunc() *pluginsdk.Resource {
-	return sdk.WrappedResource(NetworkAnchorResource{})
+func (ListResource) ResourceFunc() *pluginsdk.Resource {
+	return sdk.WrappedResource(Resource{})
 }
 
-func (NetworkAnchorListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = NetworkAnchorResource{}.ResourceType()
+func (ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = Resource{}.ResourceType()
 }
 
-func (NetworkAnchorListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Oracle.OracleClient.NetworkAnchors
 
 	var data sdk.DefaultListModel
@@ -43,7 +43,7 @@ func (NetworkAnchorListResource) List(ctx context.Context, request list.ListRequ
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	r := NetworkAnchorResource{}
+	r := Resource{}
 	var results []networkanchors.NetworkAnchor
 
 	switch {

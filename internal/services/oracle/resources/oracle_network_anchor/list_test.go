@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package oracle_test
+package oracle_network_anchor_test
 
 import (
 	"context"
@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_network_anchor"
 )
 
 func TestAccNetworkAnchorResource_list(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle_network_anchor.Resource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	listResourceAddress := "azurerm_oracle_network_anchor.list"
 	identity := map[string]knownvalue.Check{

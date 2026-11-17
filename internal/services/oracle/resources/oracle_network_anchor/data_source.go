@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package oracle
+package oracle_network_anchor
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type NetworkAnchorDataSource struct{}
+type DataSource struct{}
 
 type NetworkAnchorDataModel struct {
 	Name              string `tfschema:"name"`
@@ -51,7 +51,7 @@ type NetworkAnchorDataModel struct {
 	Tags                             map[string]string `tfschema:"tags"`
 }
 
-func (d NetworkAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -66,7 +66,7 @@ func (d NetworkAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -151,19 +151,19 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (d NetworkAnchorDataSource) ModelObject() any {
+func (d DataSource) ModelObject() any {
 	return &NetworkAnchorDataModel{}
 }
 
-func (d NetworkAnchorDataSource) ResourceType() string {
+func (d DataSource) ResourceType() string {
 	return "azurerm_oracle_network_anchor"
 }
 
-func (d NetworkAnchorDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (d DataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networkanchors.ValidateNetworkAnchorID
 }
 
-func (d NetworkAnchorDataSource) Read() sdk.ResourceFunc {
+func (d DataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

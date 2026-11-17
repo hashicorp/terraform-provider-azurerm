@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package oracle_test
+package oracle_network_anchor_test
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/resources/oracle_network_anchor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -38,7 +38,7 @@ func (a NetworkAnchorResource) Exists(ctx context.Context, client *clients.Clien
 }
 
 func TestAccNetworkAnchorResource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle_network_anchor.Resource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccNetworkAnchorResource_basic(t *testing.T) {
 }
 
 func TestAccNetworkAnchorResource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle_network_anchor.Resource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func (r NetworkAnchorResource) completeReordered(data acceptance.TestData) strin
 }
 
 func TestAccNetworkAnchorResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle_network_anchor.Resource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccNetworkAnchorResource_requiresImport(t *testing.T) {
 }
 
 func TestAccNetworkAnchorResource_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.NetworkAnchorResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle_network_anchor.Resource{}.ResourceType(), "test")
 	r := NetworkAnchorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
