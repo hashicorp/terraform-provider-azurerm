@@ -112,9 +112,7 @@ The following arguments are supported:
 
 A `compute` block supports the following:
 
-* `generation` - (Required) The compute generation.
-
-~> **Note:** The generation must be between `1` and `2147483647`. Azure validates availability for the selected region and processor.
+* `generation` - (Required) The compute generation. The only possible value is `1`.
 
 * `processor` - (Required) The processor type. Possible values are `AMD` and `Intel`.
 

@@ -580,7 +580,7 @@ func horizondbClusterPoolSchema() *pluginsdk.Schema {
 					"generation": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(1, 2147483647),
+						ValidateFunc: validation.IntInSlice([]int{1}),
 					},
 					"vcores": {
 						Type:         pluginsdk.TypeInt,
