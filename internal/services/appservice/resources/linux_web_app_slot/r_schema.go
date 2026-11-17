@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package linux_web_app_slot
@@ -142,7 +142,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 
 		"logs": helpers.LogsConfigSchema(),
 
-		"site_config": helpers.SiteConfigSchemaLinuxWebAppSlot(),
+		"site_config": SiteConfigSchemaLinuxWebAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchema(),
 

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function_app_flex_consumption
@@ -100,7 +100,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			if state.StorageContainerEndpoint != "" || metadata.ResourceData.HasChange("storage_container_endpoint") {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Value = pointer.To(state.StorageContainerEndpoint)
 				if storageName, _, ok := strings.Cut(strings.TrimPrefix(state.StorageContainerEndpoint, "https://"), "."); ok {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
+					storageString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
 				} else {
 					return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
 				}

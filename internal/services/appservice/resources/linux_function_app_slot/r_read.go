@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package linux_function_app_slot
@@ -17,8 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/linux_function_app_slot/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -164,11 +162,11 @@ func (r Resource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 					}
 
-					siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppSlot(configResp.Model.Properties)
+					siteConfig, err := FlattenSiteConfigLinuxFunctionAppSlot(configResp.Model.Properties)
 					if err != nil {
 						return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
 					}
-					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppSlot{*siteConfig}
+					state.SiteConfig = []SiteConfigLinuxFunctionAppSlot{*siteConfig}
 
 					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
 
@@ -283,13 +281,4 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 	}
 
 	m.AppSettings = appSettings
-}
-
-func (r Resource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
-		Upgraders: map[int]pluginsdk.StateUpgrade{
-			0: migration.LinuxFunctionAppSlotV0toV1{},
-		},
-	}
 }

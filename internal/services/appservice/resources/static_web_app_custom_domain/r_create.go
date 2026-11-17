@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -54,7 +53,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if strings.EqualFold(model.ValidationType, helpers.ValidationTypeCName) {
+			if strings.EqualFold(model.ValidationType, ValidationTypeCName) {
 				if err = client.CreateOrUpdateStaticSiteCustomDomainCallbackThenPoll(ctx, id, customDomain, metadata.SetIDCallback(&id)); err != nil {
 					return fmt.Errorf("creating %s: %+v", id, err)
 				}

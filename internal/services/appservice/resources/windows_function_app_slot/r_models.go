@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_function_app_slot
@@ -35,7 +35,7 @@ type WindowsFunctionAppSlotModel struct {
 	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	SiteConfig                         []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
+	SiteConfig                         []SiteConfigWindowsFunctionAppSlot         `tfschema:"site_config"`
 	Tags                               map[string]string                          `tfschema:"tags"`
 	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
 	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`

@@ -236,7 +236,7 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"site_config": helpers.SiteConfigSchemaLinuxComputed(),
+		"site_config": SiteConfigSchemaLinuxComputed(),
 
 		"storage_account": helpers.StorageAccountSchemaComputed(),
 

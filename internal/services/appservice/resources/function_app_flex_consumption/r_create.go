@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function_app_flex_consumption
@@ -102,7 +102,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 			var storageString string
 			if storageName, _, ok := strings.Cut(strings.TrimPrefix(functionAppFlexConsumption.StorageContainerEndpoint, "https://"), "."); ok {
-				storageString = fmt.Sprintf(helpers.StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
+				storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
 			} else {
 				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 			}

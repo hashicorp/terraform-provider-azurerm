@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package static_web_app_custom_domain
@@ -6,7 +6,6 @@ package static_web_app_custom_domain
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -32,8 +31,8 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				helpers.ValidationTypeTXT,
-				helpers.ValidationTypeCName,
+				ValidationTypeTXT,
+				ValidationTypeCName,
 			}, false),
 		},
 	}

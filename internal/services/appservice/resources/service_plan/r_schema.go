@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package service_plan
@@ -152,7 +152,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if rd.HasChange("maximum_elastic_worker_count") && newEcValue.(int) > 1 {
-				if !helpers.PlanSupportsScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
+				if !PlanSupportsScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus, or with Premium Skus when `premium_plan_auto_scale_enabled` is set to `true`")
 				}
 			}

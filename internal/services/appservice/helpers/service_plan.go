@@ -216,10 +216,6 @@ func PlanSupportsZoneBalancing(input string) bool {
 	}
 }
 
-func PlanSupportsScaleOut(plan string) bool {
-	return strings.HasPrefix(plan, "EP") || strings.HasPrefix(plan, "WS")
-}
-
 // ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
 func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id commonids.AppServiceId) (osType *string, planSku *string, err error) {
 	client := metadata.Client.AppService.WebAppsClient

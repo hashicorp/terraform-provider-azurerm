@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package linux_function_app_slot
@@ -31,7 +31,7 @@ type LinuxFunctionAppSlotModel struct {
 	ForceDisableContentShare           bool                                       `tfschema:"content_share_force_disabled"`
 	HttpsOnly                          bool                                       `tfschema:"https_only"`
 	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
-	SiteConfig                         []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
+	SiteConfig                         []SiteConfigLinuxFunctionAppSlot           `tfschema:"site_config"`
 	Tags                               map[string]string                          `tfschema:"tags"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`

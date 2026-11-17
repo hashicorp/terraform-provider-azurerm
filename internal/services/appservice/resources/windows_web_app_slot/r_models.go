@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_web_app_slot
@@ -28,7 +28,7 @@ type WindowsWebAppSlotModel struct {
 	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
 	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                         []helpers.SiteConfigWindowsWebAppSlot      `tfschema:"site_config"`
+	SiteConfig                         []SiteConfigWindowsWebAppSlot              `tfschema:"site_config"`
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
 	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`

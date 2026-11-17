@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package linux_web_app_slot
@@ -25,7 +25,7 @@ type LinuxWebAppSlotModel struct {
 	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                         []helpers.LogsConfig                       `tfschema:"logs"`
 	MetaData                           map[string]string                          `tfschema:"app_metadata"`
-	SiteConfig                         []helpers.SiteConfigLinuxWebAppSlot        `tfschema:"site_config"`
+	SiteConfig                         []SiteConfigLinuxWebAppSlot                `tfschema:"site_config"`
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
 	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`

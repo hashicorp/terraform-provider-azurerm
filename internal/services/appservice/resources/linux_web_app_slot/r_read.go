@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package linux_web_app_slot
@@ -16,8 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/linux_web_app_slot/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -175,7 +173,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				siteConfig := helpers.SiteConfigLinuxWebAppSlot{}
+				siteConfig := SiteConfigLinuxWebAppSlot{}
 				siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties)
 				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
@@ -183,7 +181,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					siteConfig.DecodeDockerAppStack(state.AppSettings)
 				}
 
-				state.SiteConfig = []helpers.SiteConfigLinuxWebAppSlot{siteConfig}
+				state.SiteConfig = []SiteConfigLinuxWebAppSlot{siteConfig}
 
 				// Filter out all settings we've consumed above
 				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
@@ -204,15 +202,6 @@ func (r Resource) Read() sdk.ResourceFunc {
 			}
 
 			return nil
-		},
-	}
-}
-
-func (r Resource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
-		Upgraders: map[int]pluginsdk.StateUpgrade{
-			0: migration.LinuxWebAppSlotV0toV1{},
 		},
 	}
 }

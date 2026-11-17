@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package service_plan
@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/service_plan/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -45,12 +43,3 @@ const (
 	OSTypeWindows          OSType = "Windows"
 	OSTypeWindowsContainer OSType = "WindowsContainer"
 )
-
-func (r Resource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{
-		SchemaVersion: 1,
-		Upgraders: map[int]pluginsdk.StateUpgrade{
-			0: migration.ServicePlanV0toV1{},
-		},
-	}
-}

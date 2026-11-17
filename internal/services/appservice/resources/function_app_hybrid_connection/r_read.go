@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package function_app_hybrid_connection
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
 
 func (r Resource) Read() sdk.ResourceFunc {
@@ -78,27 +77,5 @@ func (r Resource) Read() sdk.ResourceFunc {
 
 			return metadata.Encode(&appHybridConn)
 		},
-	}
-}
-
-func (r Resource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
-		if err != nil {
-			return err
-		}
-
-		appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
-
-		_, sku, err := helpers.ServicePlanInfoForApp(ctx, metadata, appId)
-		if err != nil {
-			return err
-		}
-
-		if helpers.PlanIsConsumption(sku) {
-			return fmt.Errorf("unsupported plan type. Hybrid Connections are not supported on Consumption service plans")
-		}
-
-		return nil
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_function_app_slot
@@ -164,7 +164,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionAppSlot(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			siteConfig, err := ExpandSiteConfigWindowsFunctionAppSlot(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
