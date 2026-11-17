@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -144,7 +143,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if longTermPolicyModel := longTermPolicy.Model; longTermPolicyModel != nil {
-				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(longTermPolicyModel)); err != nil {
+				if err := d.Set("long_term_retention_policy", FlattenLongTermRetentionPolicy(longTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
 				}
 			}
@@ -155,7 +154,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			if shortTermPolicyModel := shortTermPolicy.Model; shortTermPolicyModel != nil {
-				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(shortTermPolicyModel)); err != nil {
+				if err := d.Set("short_term_retention_policy", FlattenShortTermRetentionPolicy(shortTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
 				}
 			}

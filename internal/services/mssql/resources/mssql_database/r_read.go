@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/replicationlinks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -62,7 +61,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	}
 	d.Set("enclave_type", enclaveType)
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
+	partnerDatabases, err := FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}

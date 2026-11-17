@@ -1,7 +1,11 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
+<<<<<<<< HEAD:internal/services/mssql/helpers/constants.go
 package helpers
+========
+package mssql_job_agent
+>>>>>>>> bb31be9448 (re run mssql for conflicts resolution):internal/services/mssql/resources/mssql_job_agent/constants.go
 
 // sku.name is not an Enum in the REST API specs.
 // These are the accepted values based on https://learn.microsoft.com/azure/azure-sql/database/elastic-jobs-overview?view=azuresql#concurrent-capacity-tiers

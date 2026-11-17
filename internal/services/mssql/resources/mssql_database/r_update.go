@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -224,7 +223,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
-			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+			partnerDatabases, err := FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 			if err != nil {
 				return err
 			}
@@ -251,7 +250,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 				}
 
 				// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 					if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
@@ -451,7 +450,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
-		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]any))
+		longTermRetentionProps := ExpandLongTermRetentionPolicy(v.([]any))
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := longtermretentionpolicies.LongTermRetentionPolicy{}
 
@@ -468,7 +467,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta any) error {
 
 	if d.HasChange("short_term_retention_policy") {
 		v := d.Get("short_term_retention_policy")
-		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]any))
+		backupShortTermPolicyProps := ExpandShortTermRetentionPolicy(v.([]any))
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 

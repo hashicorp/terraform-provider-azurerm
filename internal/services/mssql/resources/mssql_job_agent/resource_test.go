@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -63,7 +62,11 @@ func TestAccMsSqlJobAgent_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+<<<<<<< HEAD
 			Config: r.complete(data, helpers.SqlJobAgentSkuJA200),
+=======
+			Config: r.complete(data, mssql_job_agent.SqlJobAgentSkuJA200),
+>>>>>>> bb31be9448 (re run mssql for conflicts resolution)
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

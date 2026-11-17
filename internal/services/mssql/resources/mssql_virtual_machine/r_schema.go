@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -360,9 +359,9 @@ func mssqlVirtualMachineSchema() map[string]*pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-					"data_settings":    helper.StorageSettingSchema(),
-					"log_settings":     helper.StorageSettingSchema(),
-					"temp_db_settings": helper.SQLTempDBStorageSettingSchema(),
+					"data_settings":    StorageSettingSchema(),
+					"log_settings":     StorageSettingSchema(),
+					"temp_db_settings": SQLTempDBStorageSettingSchema(),
 				},
 			},
 		},

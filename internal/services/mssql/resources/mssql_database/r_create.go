@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -111,7 +110,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 	skuName := d.Get("sku_name").(string)
 
 	if skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -135,7 +134,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 			}
 
 			// See: https://docs.microsoft.com/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
 				if err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 					Sku: &databases.Sku{
 						Name: skuName,
@@ -482,7 +481,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		return err
 	}
 
-	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]any))
+	longTermRetentionPolicyProps := ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]any))
 	if longTermRetentionPolicyProps != nil {
 		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
@@ -496,7 +495,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		}
 	}
 
-	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]any))
+	shortTermRetentionPolicyProps := ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]any))
 	if shortTermRetentionPolicyProps != nil {
 		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 

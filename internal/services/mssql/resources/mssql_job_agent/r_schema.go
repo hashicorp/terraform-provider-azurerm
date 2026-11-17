@@ -6,7 +6,6 @@ package mssql_job_agent
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,8 +36,8 @@ func mssqlJobAgentSchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      helper.SqlJobAgentSkuJA100,
-			ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSku(), false),
+			Default:      SqlJobAgentSkuJA100,
+			ValidateFunc: validation.StringInSlice(PossibleValuesForJobAgentSku(), false),
 		},
 
 		"tags": commonschema.Tags(),

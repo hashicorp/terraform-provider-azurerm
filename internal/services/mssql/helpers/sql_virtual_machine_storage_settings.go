@@ -1,7 +1,11 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
+<<<<<<<< HEAD:internal/services/mssql/helpers/sql_virtual_machine_storage_settings.go
 package helpers
+========
+package mssql_virtual_machine
+>>>>>>>> bb31be9448 (re run mssql for conflicts resolution):internal/services/mssql/resources/mssql_virtual_machine/sql_virtual_machine_storage_settings.go
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"

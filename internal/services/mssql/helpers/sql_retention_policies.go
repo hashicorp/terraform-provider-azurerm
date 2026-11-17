@@ -1,7 +1,11 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
+<<<<<<<< HEAD:internal/services/mssql/helpers/sql_retention_policies.go
 package helpers
+========
+package mssql_database
+>>>>>>>> bb31be9448 (re run mssql for conflicts resolution):internal/services/mssql/resources/mssql_database/sql_retention_policies.go
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/serversecurityalertpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -128,9 +127,9 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				false),
 		},
 
-		"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+		"long_term_retention_policy": LongTermRetentionPolicySchema(),
 
-		"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
+		"short_term_retention_policy": ShortTermRetentionPolicySchema(),
 
 		"max_size_gb": {
 			Type:         pluginsdk.TypeFloat,

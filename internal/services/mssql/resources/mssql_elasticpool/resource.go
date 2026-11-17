@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -41,7 +41,7 @@ func RegisterResource() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v any) error {
-				if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
+				if err := helpers.MSSQLElasticPoolValidateSKU(diff); err != nil {
 					return err
 				}
 
