@@ -584,6 +584,12 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"custom_domain_verification_id": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
 		"portal_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -1292,6 +1298,14 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta any) error
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}
+	}
+
+	domainOwnershipResp, err := client.GetDomainOwnershipIdentifier(ctx, commonids.NewSubscriptionID(id.SubscriptionId))
+	if err != nil {
+		return fmt.Errorf("retrieving Domain Ownership Identifier for %s: %+v", *id, err)
+	}
+	if domainOwnershipResp.Model != nil {
+		d.Set("custom_domain_verification_id", pointer.From(domainOwnershipResp.Model.DomainOwnershipIdentifier))
 	}
 
 	return nil
