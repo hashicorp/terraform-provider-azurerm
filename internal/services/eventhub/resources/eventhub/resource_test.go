@@ -498,7 +498,7 @@ func TestAccEventHub_captureDescriptionDisabled(t *testing.T) {
 
 func TestAccEventHub_captureDescriptionUpdateDestinationStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	r := EventHubResource{}
+	r := EventhubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -951,7 +951,7 @@ resource "azurerm_eventhub" "test" {
 `, r.template(data), data.RandomString, data.RandomString, enabledString)
 }
 
-func (r EventHubResource) captureDescriptionUpdateDestinationStorage(data acceptance.TestData, enabled bool) string {
+func (r EventhubResource) captureDescriptionUpdateDestinationStorage(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 %s
