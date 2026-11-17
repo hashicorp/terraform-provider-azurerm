@@ -96,20 +96,6 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_userAssignedIdentity(t
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccDataProtectionBackupInstanceKubernetesCluster_userAssignedIdentityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernetesClusterResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeWithUserAssignedIdentity(data, "test"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.completeWithUserAssignedIdentity(data, "test_update"),
 			Check: acceptance.ComposeTestCheckFunc(
