@@ -32,7 +32,7 @@ func RegisterResource() *pluginsdk.Resource {
 		},
 
 		// function takes a schema map and adds the authorization rule properties to it
-		Schema: helpers.AuthorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
+		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,

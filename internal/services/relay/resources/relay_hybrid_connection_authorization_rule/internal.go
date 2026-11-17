@@ -10,6 +10,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+	s["primary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["primary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	s["secondary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+	return s
+}
+
 func expandHybridConnectionAuthorizationRuleRights(d *pluginsdk.ResourceData) []hybridconnections.AccessRights {
 	rights := make([]hybridconnections.AccessRights, 0)
 

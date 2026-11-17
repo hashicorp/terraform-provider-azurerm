@@ -4,53 +4,56 @@
 package relay_namespace_authorization_rule
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
-func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta any) error {
-	client := meta.(*clients.Client).Relay.NamespacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r Resource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.NamespacesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	resourceId := namespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+			var model RelayNamespaceAuthorizationRuleResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	if d.IsNewResource() {
-		if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-			existing, err := client.GetAuthorizationRule(ctx, resourceId)
-			if err != nil {
+			id := namespaces.NewAuthorizationRuleID(subscriptionId, model.ResourceGroupName, model.NamespaceName, model.Name)
+
+			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
+				existing, err := client.GetAuthorizationRule(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+					}
+				}
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_relay_namespace_authorization_rule", resourceId.ID())
-			}
-		}
-	}
 
-	parameters := namespaces.AuthorizationRule{
-		Name: pointer.To(resourceId.AuthorizationRuleName),
-		Properties: &namespaces.AuthorizationRuleProperties{
-			Rights: expandAuthorizationRuleRights(d),
+			parameters := namespaces.AuthorizationRule{
+				Name: pointer.To(model.Name),
+				Properties: &namespaces.AuthorizationRuleProperties{
+					Rights: expandAuthorizationRuleRights(metadata.ResourceData),
+				},
+			}
+
+			if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
 		},
 	}
-
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceId, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
-	}
-
-	if d.IsNewResource() {
-		d.SetId(resourceId.ID())
-	}
-
-	return resourceRelayNamespaceAuthorizationRuleRead(d, meta)
 }
