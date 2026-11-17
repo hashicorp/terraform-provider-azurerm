@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -88,7 +89,7 @@ func (r WindowsWebAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -238,6 +239,13 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
+	if !features.SixPointOh() {
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+	}
+
+	return s
 }
 
 func (r WindowsWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -367,6 +375,14 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			applicationTrafficEnabled := webAppSlot.VirtualNetworkApplicationTrafficEnabled
+			if !features.SixPointOh() {
+				if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+					applicationTrafficEnabled = sc.VnetRouteAllEnabled
+				}
+				siteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+			}
+
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(webApp.Model.Location),
 				Tags:     pointer.To(webAppSlot.Tags),
@@ -383,7 +399,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ImagePullTraffic:     pointer.To(webAppSlot.VirtualNetworkImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
-						ApplicationTraffic:   pointer.To(webAppSlot.VirtualNetworkApplicationTrafficEnabled),
+						ApplicationTraffic:   pointer.To(applicationTrafficEnabled),
 					},
 				},
 			}
@@ -895,10 +911,6 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VirtualNetworkImagePullEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
-				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
-			}
-
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
@@ -916,6 +928,20 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.EndToEndTLSEncryptionEnabled)
 			}
 
+			routingChanged := metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled")
+			if !features.SixPointOh() {
+				routingChanged = routingChanged || metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled")
+			}
+			if routingChanged {
+				applicationTrafficEnabled := state.VirtualNetworkApplicationTrafficEnabled
+				if !features.SixPointOh() {
+					if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+						applicationTrafficEnabled = sc.VnetRouteAllEnabled
+					}
+					model.Properties.SiteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+				}
+				vnetRoutingProps.ApplicationTraffic = pointer.To(applicationTrafficEnabled)
+			}
 			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {
@@ -1108,7 +1134,6 @@ func (r WindowsWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
-
 			return nil
 		},
 	}

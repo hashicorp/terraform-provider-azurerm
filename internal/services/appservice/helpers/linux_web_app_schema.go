@@ -251,13 +251,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
-				"vnet_route_all_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -275,6 +268,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
+			Computed:      true,
 			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
 			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
@@ -822,10 +816,6 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 
-	if !features.SixPointOh() {
-		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	}
-
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
 			Id: pointer.To(s.ApiManagementConfigId),
@@ -946,10 +936,6 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
-
-	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -1146,6 +1132,10 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 
 			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
 			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
+		}
+
+		if !features.SixPointOh() {
+			s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		}
 	}
 }

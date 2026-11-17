@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -422,10 +421,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				siteConfig := helpers.SiteConfigLinux{}
 				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
 				siteConfig.SetHealthCheckEvictionTime(webApp.AppSettings)
-
-				if !features.SixPointOh() {
-					siteConfig.VnetRouteAllEnabled = webApp.VirtualNetworkApplicationTrafficEnabled
-				}
 
 				if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
 					siteConfig.DecodeDockerAppStack(webApp.AppSettings)

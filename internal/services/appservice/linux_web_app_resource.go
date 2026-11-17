@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -80,7 +81,7 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxWebAppResource{}
 var _ sdk.ResourceWithStateMigration = LinuxWebAppResource{}
 
 func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -229,6 +230,13 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.SixPointOh() {
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+	}
+	return s
 }
 
 func (r LinuxWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -388,6 +396,14 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			applicationTrafficEnabled := webApp.VirtualNetworkApplicationTrafficEnabled
+			if !features.SixPointOh() {
+				if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+					applicationTrafficEnabled = sc.VnetRouteAllEnabled
+				}
+				siteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+			}
+
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(webApp.Location),
 				Identity: expandedIdentity,
@@ -404,7 +420,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ImagePullTraffic:     pointer.To(webApp.VnetImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-						ApplicationTraffic:   pointer.To(webApp.VirtualNetworkApplicationTrafficEnabled),
+						ApplicationTraffic:   pointer.To(applicationTrafficEnabled),
 					},
 				},
 			}
@@ -880,8 +896,22 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
-				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
+			routingChanged := metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled")
+			if !features.SixPointOh() {
+				routingChanged = routingChanged || metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled")
+			}
+
+			if routingChanged {
+				applicationTrafficEnabled := state.VirtualNetworkApplicationTrafficEnabled
+				if !features.SixPointOh() {
+					if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+						applicationTrafficEnabled = state.SiteConfig[0].VnetRouteAllEnabled
+					}
+
+					model.Properties.SiteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+				}
+
+				vnetRoutingProps.ApplicationTraffic = pointer.To(applicationTrafficEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
@@ -1122,6 +1152,7 @@ func (r LinuxWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
+
 			return nil
 		},
 	}

@@ -79,7 +79,7 @@ var (
 )
 
 func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -228,6 +228,13 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 	}
+	if !features.SixPointOh() {
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+	}
+
+	return s
 }
 
 func (r WindowsWebAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -394,6 +401,14 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			applicationTrafficEnabled := webApp.VirtualNetworkApplicationTrafficEnabled
+			if !features.SixPointOh() {
+				if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+					applicationTrafficEnabled = sc.VnetRouteAllEnabled
+				}
+				siteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+			}
+
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(webApp.Location),
 				Tags:     pointer.To(webApp.Tags),
@@ -410,7 +425,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						ImagePullTraffic:     pointer.To(webApp.VirtualNetworkImagePullEnabled),
 						BackupRestoreTraffic: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-						ApplicationTraffic:   pointer.To(webApp.VirtualNetworkApplicationTrafficEnabled),
+						ApplicationTraffic:   pointer.To(applicationTrafficEnabled),
 					},
 				},
 			}
@@ -696,9 +711,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.OutboundVnetRouting.BackupRestoreTraffic)
 						state.VirtualNetworkImagePullEnabled = pointer.From(props.OutboundVnetRouting.ImagePullTraffic)
 						state.VirtualNetworkApplicationTrafficEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						if !features.SixPointOh() {
-							siteConfig.VnetRouteAllEnabled = pointer.From(props.OutboundVnetRouting.ApplicationTraffic)
-						}
 					}
 
 					serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
@@ -890,10 +902,6 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VirtualNetworkImagePullEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
-				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
-			}
-
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
@@ -933,10 +941,6 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-				vnetRoutingProps.ApplicationTraffic = &sc.VnetRouteAllEnabled
-			}
-
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
 				if !state.PublicNetworkAccess {
@@ -948,6 +952,20 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
+			routingChanged := metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled")
+			if !features.SixPointOh() {
+				routingChanged = routingChanged || metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled")
+			}
+			if routingChanged {
+				applicationTrafficEnabled := state.VirtualNetworkApplicationTrafficEnabled
+				if !features.SixPointOh() {
+					if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+						applicationTrafficEnabled = sc.VnetRouteAllEnabled
+					}
+					model.Properties.SiteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+				}
+				vnetRoutingProps.ApplicationTraffic = pointer.To(applicationTrafficEnabled)
+			}
 			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {

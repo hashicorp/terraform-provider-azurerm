@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -421,10 +420,6 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 				siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionApp(configResp.Model.Properties)
 				if err != nil {
 					return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
-				}
-
-				if !features.SixPointOh() {
-					siteConfig.VnetRouteAllEnabled = functionApp.VirtualNetworkApplicationTrafficEnabled
 				}
 
 				functionApp.SiteConfig = []helpers.SiteConfigWindowsFunctionApp{*siteConfig}

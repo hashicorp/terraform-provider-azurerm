@@ -6,14 +6,17 @@ package logic_app_standard
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Update() sdk.ResourceFunc {
@@ -114,9 +117,35 @@ func (r Resource) Update() sdk.ResourceFunc {
 				siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
 			}
 
-			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
-				siteEnvelope.VnetContentShareEnabled = pointer.To(data.VNETContentShareEnabled)
+			vNetRoutingProps := &webapps.OutboundVnetRouting{}
+			if siteEnvelope.OutboundVnetRouting != nil {
+				vNetRoutingProps = siteEnvelope.OutboundVnetRouting
 			}
+
+			if metadata.ResourceData.HasChange("vnet_content_share_enabled") {
+				vNetRoutingProps.ContentShareTraffic = pointer.To(data.VNETContentShareEnabled)
+			}
+
+			routingChanged := metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled")
+			if !features.SixPointOh() {
+				routingChanged = routingChanged || metadata.ResourceData.HasChanges("site_config.0.vnet_route_all_enabled", "app_settings.WEBSITE_VNET_ROUTE_ALL")
+			}
+			if routingChanged {
+				applicationTrafficEnabled := data.VNETApplicationTrafficEnabled
+				if !features.SixPointOh() {
+					if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+						if len(data.SiteConfig) > 0 {
+							applicationTrafficEnabled = data.SiteConfig[0].VNETRouteAllEnabled
+						}
+						if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+							applicationTrafficEnabled, _ = strconv.ParseBool(v)
+						}
+					}
+					siteEnvelope.SiteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+				}
+				vNetRoutingProps.ApplicationTraffic = pointer.To(applicationTrafficEnabled)
+			}
+			siteEnvelope.OutboundVnetRouting = vNetRoutingProps
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := data.VirtualNetworkSubnetId

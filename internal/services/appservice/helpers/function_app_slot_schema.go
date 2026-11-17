@@ -322,10 +322,11 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -659,10 +660,11 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 		}, false)
 
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -787,10 +789,6 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
 		expanded.MinimumElasticInstanceCount = pointer.To(windowsSlotSiteConfig.ElasticInstanceMinimum)
-	}
-
-	if !features.SixPointOh() {
-		expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
@@ -1135,10 +1133,6 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
 		expanded.MinimumElasticInstanceCount = pointer.To(linuxSlotSiteConfig.ElasticInstanceMinimum)
-	}
-
-	if !features.SixPointOh() {
-		expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {

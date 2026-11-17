@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -30,13 +31,13 @@ type LogicAppSiteConfig struct {
 	AppScaleLimit                 int64           `tfschema:"app_scale_limit"`
 	RuntimeScaleMonitoringEnabled bool            `tfschema:"runtime_scale_monitoring_enabled"`
 	DotnetFrameworkVersion        string          `tfschema:"dotnet_framework_version"`
-	VNETRouteAllEnabled           bool            `tfschema:"vnet_route_all_enabled"`
+	VNETRouteAllEnabled           bool            `tfschema:"vnet_route_all_enabled,removedInNextMajorVersion"`
 	AutoSwapSlotName              string          `tfschema:"auto_swap_slot_name"`
 	IpRestrictionDefaultAction    string          `tfschema:"ip_restriction_default_action"`
 }
 
 func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true, // azignore:AZS007 - pre-existing violation
@@ -170,12 +171,6 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
-				},
-
 				"ip_restriction_default_action": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -189,4 +184,15 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.SixPointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+		}
+	}
+	return s
 }

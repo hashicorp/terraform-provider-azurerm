@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -105,7 +106,7 @@ func (r WindowsFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -326,6 +327,13 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
 	}
+	if !features.SixPointOh() {
+		s["virtual_network_application_traffic_enabled"].ConflictsWith = []string{"site_config.0.vnet_route_all_enabled"}
+		s["virtual_network_application_traffic_enabled"].Computed = true
+		s["virtual_network_application_traffic_enabled"].Default = nil
+	}
+
+	return s
 }
 
 func (r WindowsFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -538,6 +546,14 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			applicationTrafficEnabled := functionApp.VirtualNetworkApplicationTrafficEnabled
+			if !features.SixPointOh() {
+				if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+					applicationTrafficEnabled = functionApp.SiteConfig[0].VnetRouteAllEnabled
+				}
+				siteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+			}
+
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Location),
 				Tags:     pointer.To(functionApp.Tags),
@@ -555,7 +571,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					OutboundVnetRouting: &webapps.OutboundVnetRouting{
 						BackupRestoreTraffic: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
 						ImagePullTraffic:     pointer.To(functionApp.VnetImagePullEnabled),
-						ApplicationTraffic:   pointer.To(functionApp.VirtualNetworkApplicationTrafficEnabled),
+						ApplicationTraffic:   pointer.To(applicationTrafficEnabled),
 					},
 				},
 			}
@@ -975,10 +991,6 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				vnetRoutingProps.ImagePullTraffic = pointer.To(state.VnetImagePullEnabled)
 			}
 
-			if metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled") {
-				vnetRoutingProps.ApplicationTraffic = pointer.To(state.VirtualNetworkApplicationTrafficEnabled)
-			}
-
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
@@ -1097,6 +1109,20 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			routingChanged := metadata.ResourceData.HasChange("virtual_network_application_traffic_enabled")
+			if !features.SixPointOh() {
+				routingChanged = routingChanged || metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled")
+			}
+			if routingChanged {
+				applicationTrafficEnabled := state.VirtualNetworkApplicationTrafficEnabled
+				if !features.SixPointOh() {
+					if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+						applicationTrafficEnabled = state.SiteConfig[0].VnetRouteAllEnabled
+					}
+					model.Properties.SiteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+				}
+				vnetRoutingProps.ApplicationTraffic = pointer.To(applicationTrafficEnabled)
+			}
 			model.Properties.OutboundVnetRouting = vnetRoutingProps
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {

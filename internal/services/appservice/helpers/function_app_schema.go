@@ -338,10 +338,11 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -810,10 +811,11 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -1119,10 +1121,11 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -1976,10 +1979,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.AcrUseManagedIdentityCreds = pointer.To(linuxSiteConfig.UseManagedIdentityACR)
 	}
 
-	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(linuxSiteConfig.VnetRouteAllEnabled)
-	}
-
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
 		expanded.AcrUserManagedIdentityID = pointer.To(linuxSiteConfig.ContainerRegistryMSI)
 	}
@@ -2236,10 +2235,6 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		expanded.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(FlexConsumptionSiteConfig.RuntimeScaleMonitoring)
 	}
 
-	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(FlexConsumptionSiteConfig.VnetRouteAllEnabled)
-	}
-
 	expanded.AppSettings = &appSettings
 
 	return expanded, nil
@@ -2375,10 +2370,6 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	} else {
 		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
 		expanded.WindowsFxVersion = pointer.To("")
-	}
-
-	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(windowsSiteConfig.VnetRouteAllEnabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {

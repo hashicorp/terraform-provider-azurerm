@@ -266,10 +266,11 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -530,10 +531,11 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 
 	if !features.SixPointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["vnet_route_all_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"virtual_network_application_traffic_enabled"},
+			Deprecated:    "`site_config.vnet_route_all_enabled` has been deprecated in favour of the `virtual_network_application_traffic_enabled` property and will be removed in v6.0 of the AzureRM Provider",
 		}
 	}
 
@@ -559,10 +561,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	expanded.MinTlsCipherSuite = pointer.ToEnum[webapps.TlsCipherSuites](s.MinTlsCipherSuite)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
-
-	if !features.SixPointOh() {
-		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	}
 
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -844,10 +842,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
-	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	}
-
 	return &expanded, nil
 }
 
@@ -962,9 +956,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.IpRestrictionDefaultAction)
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](s.ScmIpRestrictionDefaultAction)
 
-	if !features.SixPointOh() {
-		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
-	}
 	if s.ApiManagementConfigId != "" {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
 			Id: pointer.To(s.ApiManagementConfigId),
@@ -1271,10 +1262,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 			expanded.AutoHealEnabled = pointer.To(true)
 		}
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
-	}
-
-	if !features.SixPointOh() && metadata.ResourceData.HasChange("site_config.0.vnet_route_all_enabled") {
-		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	}
 
 	return &expanded, nil

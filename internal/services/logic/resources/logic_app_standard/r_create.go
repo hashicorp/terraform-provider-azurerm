@@ -17,10 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func (r Resource) Create() sdk.ResourceFunc {
@@ -137,6 +139,26 @@ func (r Resource) Create() sdk.ResourceFunc {
 				siteConfig.VnetRouteAllEnabled = pointer.To(vnetRouteAll)
 			}
 
+			applicationTrafficEnabled := data.VNETApplicationTrafficEnabled
+			if !features.SixPointOh() {
+				if pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "virtual_network_application_traffic_enabled") {
+					if len(data.SiteConfig) > 0 {
+						applicationTrafficEnabled = data.SiteConfig[0].VNETRouteAllEnabled
+					}
+					if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+						// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
+						// a replacement of this resource should consider deprecating support for this.
+						vnetRouteAll, _ := strconv.ParseBool(v)
+						applicationTrafficEnabled = vnetRouteAll
+					}
+				}
+				siteConfig.VnetRouteAllEnabled = pointer.To(applicationTrafficEnabled)
+			}
+			vNetSettings := &webapps.OutboundVnetRouting{
+				ContentShareTraffic: pointer.To(data.VNETContentShareEnabled),
+				ApplicationTraffic:  pointer.To(applicationTrafficEnabled),
+			}
+
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(data.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -147,14 +169,14 @@ func (r Resource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To(kind),
 				Location: location.Normalize(data.Location),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:            pointer.To(data.AppServicePlanId),
-					Enabled:                 pointer.To(data.Enabled),
-					ClientAffinityEnabled:   pointer.To(data.ClientAffinityEnabled),
-					ClientCertEnabled:       pointer.To(data.ClientCertificateMode != ""),
-					HTTPSOnly:               pointer.To(data.HTTPSOnly),
-					SiteConfig:              siteConfig,
-					VnetContentShareEnabled: pointer.To(data.VNETContentShareEnabled),
-					PublicNetworkAccess:     pointer.To(data.PublicNetworkAccess),
+					ServerFarmId:          pointer.To(data.AppServicePlanId),
+					Enabled:               pointer.To(data.Enabled),
+					ClientAffinityEnabled: pointer.To(data.ClientAffinityEnabled),
+					ClientCertEnabled:     pointer.To(data.ClientCertificateMode != ""),
+					HTTPSOnly:             pointer.To(data.HTTPSOnly),
+					SiteConfig:            siteConfig,
+					OutboundVnetRouting:   vNetSettings,
+					PublicNetworkAccess:   pointer.To(data.PublicNetworkAccess),
 				},
 				Tags: pointer.To(data.Tags),
 			}
@@ -267,8 +289,6 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	siteConfig.NetFrameworkVersion = pointer.To(config.DotnetFrameworkVersion)
-	siteConfig.VnetRouteAllEnabled = pointer.To(config.VNETRouteAllEnabled)
-
 	siteConfig.PublicNetworkAccess = pointer.To(metadata.ResourceData.Get("public_network_access").(string))
 
 	siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
@@ -298,7 +318,6 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.Use32BitWorkerProcess = pointer.To(config.Use32BitWorkerProcess)
 	siteConfig.ScmIPSecurityRestrictionsUseMain = pointer.To(config.SCMUseMainIpRestriction)
 	siteConfig.WebSocketsEnabled = pointer.To(config.WebSocketsEnabled)
-	siteConfig.VnetRouteAllEnabled = pointer.To(config.VNETRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.linux_fx_version") {
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
