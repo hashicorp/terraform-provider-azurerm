@@ -1,10 +1,10 @@
 # AI Usage
 
-As Generative AI tools have continued to improve in quality and usefulness, their adoption and usage across the software development community has grown significantly. Regardless of the tools used in the development process, maintaining the stability and security of Terraform is our primary priority. If you choose to use AI tools to assist in your contributions, we ask that you do so using the three principles of transparency, accountability and quality to guide that work.
+As Generative AI tools have continued to improve in quality and usefulness, their adoption and usage across the software development community has grown significantly. Regardless of the tools used in the development process, maintaining the stability and security of the Terraform Azure Providers is our primary priority. If you choose to use AI tools to assist in your contributions, we ask that you do so using the three principles of transparency, accountability and quality to guide that work.
 
 ### Transparency
 
-We value open communication about the tools and methods used to build Terraform. If you utilize AI to generate code, documentation, or tests, please disclose this in your Pull Request description.
+We value open communication about the tools and methods used to build the Terraform Azure Providers. If you utilize AI to generate code, documentation, or tests, please disclose this in your Pull Request description.
 
 * **Be specific**: Clearly state the role AI played in your submission (e.g., "Used to generate boilerplate for the new function," or "Used to refactor existing tests").
 * **Share the context**: Where it adds clarity, share the process or prompts used. This helps reviewers understand the intent and verify the output effectively.
