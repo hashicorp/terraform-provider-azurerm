@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceazureadonlyauthentications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -399,7 +399,8 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			// Unknown values can come from expressions and may later resolve to null, so only
 			// validate `storage_iops` rules when the argument is known to be explicitly configured.
-			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() {
+			// check for non-zero values as a null value is stored in state as `0`, attribute validation prevents a user from explicitly defniing this as `0`
+			if storageIOps, ok := rawConfig["storage_iops"]; ok && storageIOps.IsKnown() && !storageIOps.IsNull() && rd.Get("storage_iops") != 0 {
 				if !rd.Get("general_purpose_v2_enabled").(bool) {
 					return errors.New("`storage_iops` can only be set when `general_purpose_v2_enabled` is `true`")
 				}

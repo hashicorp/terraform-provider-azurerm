@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2019, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package tfjson
@@ -6,6 +6,8 @@ package tfjson
 // VersionOutput represents output from the version -json command
 // added in v0.13
 type VersionOutput struct {
+	FormatVersion string `json:"format_version"` // Added in v1.17
+
 	Version            string            `json:"terraform_version"`
 	Revision           string            `json:"terraform_revision"`
 	Platform           string            `json:"platform,omitempty"`
