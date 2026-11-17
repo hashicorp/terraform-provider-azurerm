@@ -5,10 +5,13 @@ package monitor_data_collection_rule_association
 
 import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionruleassociations"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Resource struct{}
+
+var _ sdk.ResourceWithUpdate = Resource{}
 
 func (r Resource) ResourceType() string {
 	return "azurerm_monitor_data_collection_rule_association"
