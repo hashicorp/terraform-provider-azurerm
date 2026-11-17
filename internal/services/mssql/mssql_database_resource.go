@@ -349,6 +349,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta any) error {
 		Tags: tags.Expand(d.Get("tags").(map[string]any)),
 	}
 
+	if v, ok := d.GetOk("catalog_collation"); ok {
+		input.Properties.CatalogCollation = pointer.ToEnum[databases.CatalogCollationType](v.(string))
+	}
+
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
 	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
@@ -1200,6 +1204,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			}
 
 			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
+			d.Set("catalog_collation", pointer.FromEnum(props.CatalogCollation))
 			d.Set("collation", pointer.From(props.Collation))
 			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 			d.Set("storage_account_type", requestedBackupStorageRedundancy)
@@ -1588,6 +1593,15 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				},
 			},
 			ConflictsWith: []string{"create_mode"}, // it needs `create_mode` to be `Default` to work, so make them conflict.
+		},
+
+		"catalog_collation": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C Azure sets the value when it is omitted, and existing databases may hold either value, so a `Default` could force them to be replaced
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForCatalogCollationType(), false),
 		},
 
 		"collation": {

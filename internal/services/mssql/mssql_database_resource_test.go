@@ -34,6 +34,23 @@ func TestAccMsSqlDatabase_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+				check.That(data.ResourceName).Key("catalog_collation").HasValue("SQL_Latin1_General_CP1_CI_AS"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_catalogCollation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.catalogCollation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("catalog_collation").HasValue("DATABASE_DEFAULT"),
 			),
 		},
 		data.ImportStep(),
@@ -1372,6 +1389,18 @@ func (r MssqlDatabaseResource) basic(data acceptance.TestData) string {
 resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[2]d"
   server_id = azurerm_mssql_server.test.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) catalogCollation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name              = "acctest-db-%[2]d"
+  server_id         = azurerm_mssql_server.test.id
+  catalog_collation = "DATABASE_DEFAULT"
 }
 `, r.template(data), data.RandomInteger)
 }
