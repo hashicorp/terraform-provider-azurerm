@@ -1,29 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Resource: azurerm_api_center_service"
-subcategory: "ApiCenter"
+subcategory: "API Center"
 description: |-
   Documentation for azurerm_api_center_service.
 ---
 
-# azurerm_api_center_service
+# Resource: azurerm_api_center_service
 
 Documentation for azurerm_api_center_service.
-
-## Example Usage
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
-  location = "West Europe"
-}
-
-resource "azurerm_api_center_service" "example" {
-  name                = "example-service"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-}
-```
 
 ## Arguments Reference
 
@@ -78,14 +63,8 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-API Center Services can be imported using the `resource id`, e.g.
+This resource can be imported using its resource ID, e.g.
 
 ```shell
-terraform import azurerm_api_center_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service
+terraform import azurerm_api_center_service.example "<resource-id>"
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.ApiCenter` - 2024-03-01

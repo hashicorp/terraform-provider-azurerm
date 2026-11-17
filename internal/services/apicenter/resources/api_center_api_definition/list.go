@@ -94,7 +94,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 			meta := sdk.NewResourceMetaData(metadata.Client, resource)
 			meta.SetID(id)
 
-			if err := resource.flatten(meta, ctx, id, &item, true); err != nil {
+			if err := resource.flatten(meta, ctx, id, &item, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", resource.ResourceType()), err)
 				return
 			}

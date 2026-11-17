@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Resource: azurerm_api_center_api_definition"
-subcategory: "ApiCenter"
+subcategory: "API Center"
 description: |-
   Documentation for azurerm_api_center_api_definition.
 ---
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the API definition. Changing this value forces a new resource to be created.
 
-* `api_version_id` - (Required) The ID of the API version to which this API definition belongs. Changing this value forces a new resource to be created.
+* `api_center_api_version_id` - (Required) The ID of the API version to which this API definition belongs. Changing this value forces a new resource to be created.
 
 * `description` - (Optional) The description of the API definition.
 
@@ -86,14 +86,8 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-API Center API Definitions can be imported using the `resource id`, e.g.
+This resource can be imported using its resource ID, e.g.
 
 ```shell
-terraform import azurerm_api_center_api_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service/workspaces/default/apis/example-api/versions/example-version/definitions/example-definition
+terraform import azurerm_api_center_api_definition.example "<resource-id>"
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.ApiCenter` - 2024-03-01

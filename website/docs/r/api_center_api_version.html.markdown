@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Resource: azurerm_api_center_api_version"
-subcategory: "ApiCenter"
+subcategory: "API Center"
 description: |-
   Documentation for azurerm_api_center_api_version.
 ---
@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the API version. Changing this value forces a new resource to be created.
 
-* `api_id` - (Required) The ID of the API to which this API version belongs. Changing this value forces a new resource to be created.
+* `api_center_api_id` - (Required) The ID of the API to which this API version belongs. Changing this value forces a new resource to be created.
 
 * `lifecycle_stage` - (Required) The lifecycle stage of the API version. Possible values include `deprecated`, `design`, `development`, `preview`, `production`, `retired`, and `testing`.
 
@@ -66,14 +66,8 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-API Center API Versions can be imported using the `resource id`, e.g.
+This resource can be imported using its resource ID, e.g.
 
 ```shell
-terraform import azurerm_api_center_api_version.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service/workspaces/default/apis/example-api/versions/example-version
+terraform import azurerm_api_center_api_version.example "<resource-id>"
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.ApiCenter` - 2024-03-01

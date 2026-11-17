@@ -1,5 +1,5 @@
 ---
-subcategory: "ApiCenter"
+subcategory: "API Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_center_api"
 description: |-

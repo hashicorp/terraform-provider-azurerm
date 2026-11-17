@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Resource: azurerm_api_center_deployment"
-subcategory: "ApiCenter"
+subcategory: "API Center"
 description: |-
   Documentation for azurerm_api_center_deployment.
 ---
@@ -61,19 +61,19 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the deployment. Changing this value forces a new resource to be created.
 
-* `api_definition_id` - (Required) The ID of the API definition to deploy.
+* `api_center_api_definition_id` - (Required) The ID of the API definition to deploy.
 
-* `environment_id` - (Required) The ID of the environment for this deployment.
+* `api_center_environment_id` - (Required) The ID of the environment for this deployment.
 
-* `server_runtime_uri` - (Required) A set of server runtime URLs for this deployment.
+* `server_runtime_url` - (Required) A set of server runtime URLs for this deployment.
 
-* `custom_properties` - (Optional) A JSON object containing custom properties. Defaults to `{}`.
+* `custom_properties_json` - (Optional) A JSON object containing custom properties. Defaults to `{}`.
 
 * `description` - (Optional) A description of the deployment. String length must be between `1` and `500` characters inclusive.
 
 * `display_name` - (Optional) The display name of the deployment. String length must be between `1` and `50` characters inclusive.
 
-* `state` - (Optional) The state of the deployment. Possible values include `active` and `inactive`.
+* `state` - (Optional) The state of the deployment. Possible values include `active` and `inactive`. Defaults to `active`.
 
 ## Attributes Reference
 
@@ -92,14 +92,8 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-API Center Deployments can be imported using the `resource id`, e.g.
+This resource can be imported using its resource ID, e.g.
 
 ```shell
-terraform import azurerm_api_center_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service/workspaces/default/apis/example-api/deployments/example-deployment
+terraform import azurerm_api_center_deployment.example "<resource-id>"
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.ApiCenter` - 2024-03-01

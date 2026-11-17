@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Resource: azurerm_api_center_metadata_schema"
-subcategory: "ApiCenter"
+subcategory: "API Center"
 description: |-
   Documentation for azurerm_api_center_metadata_schema.
 ---
@@ -49,11 +49,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the metadata schema. Changing this value forces a new resource to be created.
 
-* `service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
+* `api_center_service_id` - (Required) The ID of the API Center service. Changing this value forces a new resource to be created.
 
-* `metadata_assignment` - (Required) (see [nested schema](#schema-6e6573746564-696e707574-6d657461646174615f61737369676e6d656e74))
+* `schema_json` - (Required) The JSON schema defining the metadata.
 
-* `schema` - (Required) The JSON schema defining the metadata.
+* `metadata_assignment` - (Optional) (see [nested schema](#schema-6e6573746564-696e707574-6d657461646174615f61737369676e6d656e74))
 
 ---
 
@@ -83,14 +83,8 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-API Center Metadata Schemas can be imported using the `resource id`, e.g.
+This resource can be imported using its resource ID, e.g.
 
 ```shell
-terraform import azurerm_api_center_metadata_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.ApiCenter/services/example-service/metadataSchemas/example-schema
+terraform import azurerm_api_center_metadata_schema.example "<resource-id>"
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.ApiCenter` - 2024-03-01
