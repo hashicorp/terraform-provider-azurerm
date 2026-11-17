@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/pools"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/config"
@@ -85,6 +86,58 @@ func TestAccHorizondbCluster_authentication(t *testing.T) {
 		{
 			Config: r.withAdministratorPassword(data, "P@ssword-456!"),
 			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
+func TestAccHorizondbCluster_poolUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
+	r := HorizondbClusterResource{}
+	var parameterGroupId string
+	checkParameterGroup := data.CheckWithClient(func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := pools.ParsePoolID(state.Attributes["read_write_pool.0.id"])
+		if err != nil {
+			return err
+		}
+		resp, err := client.HorizonDB.PoolsClient.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.ParameterGroup == nil || resp.Model.Properties.ParameterGroup.ParameterGroupResourceId == "" {
+			return fmt.Errorf("retrieving %s: parameter-group association is missing", id)
+		}
+		current := resp.Model.Properties.ParameterGroup.ParameterGroupResourceId
+		if parameterGroupId == "" {
+			parameterGroupId = current
+		} else if !strings.EqualFold(parameterGroupId, current) {
+			return fmt.Errorf("parameter-group association changed from `%s` to `%s`", parameterGroupId, current)
+		}
+		return nil
+	})
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				checkParameterGroup,
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.withPoolAndFeatures(data, "primary", 1, "Disabled", 8, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				checkParameterGroup,
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.withPoolAndFeatures(data, "primary", 2, "AnyZone", 8, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				checkParameterGroup,
+			),
 		},
 		data.ImportStep("administrator_password"),
 	})
@@ -348,7 +401,7 @@ resource "azurerm_horizondb_cluster" "test" {
 }
 
 func (r HorizondbClusterResource) withPool(data acceptance.TestData, name string, nodes int, mode string) string {
-	return r.withPoolAndFeatures(data, name, nodes, mode, "")
+	return r.withPoolAndFeatures(data, name, nodes, mode, 4, "")
 }
 
 func (r HorizondbClusterResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
@@ -371,7 +424,7 @@ resource "azurerm_horizondb_cluster" "test" {
 `, r.template(data), string(hclwrite.Format([]byte(acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret)))), data.RandomInteger, version, r.pool())
 }
 
-func (r HorizondbClusterResource) withPoolAndFeatures(data acceptance.TestData, name string, nodes int, mode string, features string) string {
+func (r HorizondbClusterResource) withPoolAndFeatures(data acceptance.TestData, name string, nodes int, mode string, vcores int, features string) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_horizondb_cluster" "test" {
@@ -390,12 +443,12 @@ resource "azurerm_horizondb_cluster" "test" {
     compute {
       processor  = "AMD"
       generation = 1
-      vcores     = 4
+      vcores     = %d
     }
   }
 
 }
-`, r.templateWithFeatures(data, features), data.RandomInteger, name, nodes, mode)
+`, r.templateWithFeatures(data, features), data.RandomInteger, name, nodes, mode, vcores)
 }
 
 func (r HorizondbClusterResource) complete(data acceptance.TestData) string {

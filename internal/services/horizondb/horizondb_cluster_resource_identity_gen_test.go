@@ -33,7 +33,7 @@ func TestAccHorizondbCluster_resourceIdentity(t *testing.T) {
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_horizondb_cluster.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 			},
 		},
-		data.ImportBlockWithResourceIdentityStep(false),
-		data.ImportBlockWithIDStep(false),
+		data.ImportBlockWithResourceIdentityStep(true),
+		data.ImportBlockWithIDStep(true),
 	}, false)
 }

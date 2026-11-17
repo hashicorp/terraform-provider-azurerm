@@ -27,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity
+//go:generate go run ../../tools/generator-tests resourceidentity -test-expect-non-empty
 type HorizondbClusterResource struct{}
 
 type HorizondbClusterResourceModel struct {
@@ -255,7 +255,7 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
 				return err
 			}
-			if err := createOrReplaceHorizondbClusterPool(ctx, metadata, id, state.ReadWritePool[0]); err != nil {
+			if err := createOrUpdateHorizondbClusterPool(ctx, metadata, id, state.ReadWritePool[0]); err != nil {
 				return err
 			}
 			return createHorizondbClusterPasswordAuthentication(ctx, metadata, id, state)
@@ -321,7 +321,7 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 			if metadata.ResourceData.HasChange("read_write_pool") {
-				if err := createOrReplaceHorizondbClusterPool(ctx, metadata, *id, state.ReadWritePool[0]); err != nil {
+				if err := createOrUpdateHorizondbClusterPool(ctx, metadata, *id, state.ReadWritePool[0]); err != nil {
 					return err
 				}
 			}
@@ -652,7 +652,7 @@ func validateHorizondbClusterPoolRename(old, new string) error {
 	return nil
 }
 
-func createOrReplaceHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, clusterId clusters.ClusterId, state HorizondbClusterPool) error {
+func createOrUpdateHorizondbClusterPool(ctx context.Context, metadata sdk.ResourceMetaData, clusterId clusters.ClusterId, state HorizondbClusterPool) error {
 	id := pools.NewPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ClusterName, state.Name)
 
 	result, err := metadata.Client.HorizonDB.ClustersClient.Get(ctx, clusterId)
@@ -674,6 +674,23 @@ func createOrReplaceHorizondbClusterPool(ctx context.Context, metadata sdk.Resou
 		if !strings.EqualFold(existingId.ID(), id.ID()) {
 			return fmt.Errorf("creating or replacing %s: remote pool changed; refresh state before retrying", id)
 		}
+		compute := expandHorizondbClusterPoolCompute(state.Compute[0])
+		payload := pools.PoolForPatchUpdate{
+			Properties: &pools.PoolPropertiesForPatchUpdate{
+				ComputeModel: &pools.PoolComputeModelForPatchUpdate{
+					Type:              pointer.To(compute.Type),
+					ComputeProcessor:  pointer.To(compute.ComputeProcessor),
+					ComputeGeneration: pointer.To(compute.ComputeGeneration),
+					VCores:            pointer.To(compute.VCores),
+				},
+				NodeCount:        pointer.To(state.NodeCount),
+				HighAvailability: &pools.PoolHighAvailabilityPatch{Mode: pointer.To(pools.PoolHighAvailabilityMode(state.HighAvailabilityMode))},
+			},
+		}
+		if err := metadata.Client.HorizonDB.PoolsClient.UpdateThenPoll(ctx, id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+		return nil
 	}
 	payload := pools.Pool{
 		Properties: &pools.PoolProperties{
