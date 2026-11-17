@@ -122,6 +122,7 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:      true,
 			WriteOnly:     true,
 			ConflictsWith: []string{"administrator_password"},
+			AtLeastOneOf:  []string{"administrator_password", "administrator_password_wo"},
 			RequiredWith:  []string{"administrator_password_wo_version"},
 			ValidateFunc:  validation.StringLenBetween(8, 128),
 		},
@@ -248,7 +249,10 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 			if err := createHorizondbClusterPool(ctx, metadata, id, state.ReadWritePool[0]); err != nil {
 				return err
 			}
-			return createHorizondbClusterPasswordAuthentication(ctx, metadata, id, state)
+			if err := createHorizondbClusterPasswordAuthentication(ctx, metadata, id, state); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }
