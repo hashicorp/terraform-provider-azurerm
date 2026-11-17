@@ -378,7 +378,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "17"
-  sku_name               = "GP_Standard_D4s_v3"
+  sku_name               = "GP_Standard_D4ads_v5"
   storage_mb             = 32768
   zone                   = "2"
 }
@@ -403,7 +403,7 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   source_server_id    = azurerm_postgresql_flexible_server.test.id
   zone                = azurerm_postgresql_flexible_server.test.zone
   version             = "17"
-  sku_name            = "GP_Standard_D4s_v3"
+  sku_name            = "GP_Standard_D4ads_v5"
   storage_mb          = 32768
 }
 

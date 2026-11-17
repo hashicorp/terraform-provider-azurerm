@@ -1308,7 +1308,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "16"
   storage_mb             = 32768
-  sku_name               = "MO_Standard_E2s_v3"
+  sku_name               = "MO_Standard_E2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
