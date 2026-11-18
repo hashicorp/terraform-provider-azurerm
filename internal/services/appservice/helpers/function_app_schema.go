@@ -1019,10 +1019,11 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker.",
+					Type:             pluginsdk.TypeBool,
+					Optional:         true,
+					Default:          true,
+					DiffSuppressFunc: suppressWindowsFunctionAppPowerShell76WorkerDiff,
+					Description:      "Should the Windows Web App use a 32-bit worker. PowerShell 7.6 requires a 64-bit worker; leave unset or set to false.",
 				},
 
 				"websockets_enabled": {
@@ -1736,6 +1737,57 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 	}
 }
 
+const (
+	windowsFunctionAppDefaultDotNetVersion     = "v4.0"
+	windowsFunctionAppPowerShellCoreVersionKey = "site_config.0.application_stack.0.powershell_core_version"
+)
+
+// Apply the site config settings returned by the Azure Functions stacks API for Windows PowerShell 7.6.
+func applyWindowsFunctionAppPowerShellStackSettings(expanded *webapps.SiteConfig, stack []ApplicationStackWindowsFunctionApp) {
+	if len(stack) > 0 && stack[0].PowerShellCoreVersion == "7.6" {
+		expanded.NetFrameworkVersion = pointer.To("v10.0")
+		expanded.Use32BitWorkerProcess = pointer.To(false)
+	}
+}
+
+func suppressWindowsFunctionAppPowerShell76WorkerDiff(_, old, new string, d *pluginsdk.ResourceData) bool {
+	return old == "false" && new == "true" && d.Get(windowsFunctionAppPowerShellCoreVersionKey) == "7.6"
+}
+
+func ValidateWindowsFunctionAppPowerShellWorker(d *pluginsdk.ResourceDiff) error {
+	raw := d.GetRawConfig()
+	if raw.IsNull() || !raw.IsKnown() {
+		return nil
+	}
+	siteConfigs := raw.GetAttr("site_config")
+	if siteConfigs.IsNull() || !siteConfigs.IsKnown() || siteConfigs.LengthInt() == 0 {
+		return nil
+	}
+	siteConfig := siteConfigs.AsValueSlice()[0]
+	if siteConfig.IsNull() || !siteConfig.IsKnown() {
+		return nil
+	}
+
+	// The schema defaults to true, so only raw config distinguishes an explicit request for a 32-bit worker.
+	worker := siteConfig.GetAttr("use_32_bit_worker")
+	if worker.IsNull() || !worker.IsKnown() || !worker.True() {
+		return nil
+	}
+	stacks := siteConfig.GetAttr("application_stack")
+	if stacks.IsNull() || !stacks.IsKnown() || stacks.LengthInt() == 0 {
+		return nil
+	}
+	stack := stacks.AsValueSlice()[0]
+	if stack.IsNull() || !stack.IsKnown() {
+		return nil
+	}
+	version := stack.GetAttr("powershell_core_version")
+	if version.IsKnown() && !version.IsNull() && version.AsString() == "7.6" {
+		return fmt.Errorf("PowerShell 7.6 requires a 64-bit worker; remove `use_32_bit_worker` or set it to `false`")
+	}
+	return nil
+}
+
 func windowsFunctionAppStackSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -2417,6 +2469,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 	}
 
 	expanded.Use32BitWorkerProcess = pointer.To(windowsSiteConfig.Use32BitWorker)
+	applyWindowsFunctionAppPowerShellStackSettings(expanded, windowsSiteConfig.ApplicationStack)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
 		expanded.WebSocketsEnabled = pointer.To(windowsSiteConfig.WebSockets)
@@ -2662,6 +2715,10 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		JavaVersion:           pointer.From(functionAppSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
 	}}
+	if powershellVersion == "7.6" {
+		// The .NET host is a PowerShell stack setting, not a configured .NET language version.
+		result.ApplicationStack[0].DotNetVersion = windowsFunctionAppDefaultDotNetVersion
+	}
 
 	return result, nil
 }
