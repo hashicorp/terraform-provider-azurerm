@@ -18,3 +18,14 @@ func trimURLScheme(input string) string {
 
 	return input
 }
+
+// trimDockerFxPrefix removes the `DOCKER|` prefix from a Linux or Windows FX version string.
+// App Service can return the prefix in lowercase (e.g. after the stack is saved in the portal), so the match ignores case.
+func trimDockerFxPrefix(input string) string {
+	prefix := "docker|"
+	if strings.HasPrefix(strings.ToLower(input), prefix) {
+		return input[len(prefix):]
+	}
+
+	return input
+}
