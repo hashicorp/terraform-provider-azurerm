@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -39,11 +39,6 @@ func (r Resource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			// the API rejects a `null` value for `tags`, so an empty map is sent when none are configured
-			if config.Tags == nil {
-				config.Tags = map[string]string{}
-			}
-
 			// Edge Actions are global resources, the API only accepts `global` as the location
 			param := edgeactions.EdgeAction{
 				Location: "global",
@@ -52,7 +47,7 @@ func (r Resource) Create() sdk.ResourceFunc {
 					Name: "Standard",
 					Tier: "Standard",
 				},
-				Tags: pointer.To(config.Tags),
+				Tags: tags.Expand(config.Tags),
 			}
 
 			if err := client.CreateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {

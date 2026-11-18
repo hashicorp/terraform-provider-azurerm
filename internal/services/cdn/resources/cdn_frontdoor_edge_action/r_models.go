@@ -4,9 +4,9 @@
 package cdn_frontdoor_edge_action
 
 type EdgeActionModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name              string         `tfschema:"name"`
+	ResourceGroupName string         `tfschema:"resource_group_name"`
+	Tags              map[string]any `tfschema:"tags"`
 }
 
 func (Resource) ModelObject() any {

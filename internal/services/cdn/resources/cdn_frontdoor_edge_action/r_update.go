@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
@@ -41,13 +41,11 @@ func (r Resource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("tags") {
-				// the API rejects a `null` value for `tags`, so an empty map is sent to remove all tags
-				if config.Tags == nil {
-					config.Tags = map[string]string{}
-				}
-				payload.Tags = pointer.To(config.Tags)
+				payload.Tags = tags.Expand(config.Tags)
 			}
 
+			// `Create` is the SDK's name for the `PUT` operation, which is used rather than the `PATCH` (`Update`)
+			// so that the full model is sent back and fields removed from the configuration are cleared
 			if err := client.CreateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}

@@ -4,7 +4,7 @@
 package cdn_frontdoor_edge_action
 
 import (
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,7 +17,7 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *edgeactions.EdgeActio
 	}
 
 	if model != nil {
-		state.Tags = pointer.From(model.Tags)
+		state.Tags = tags.Flatten(model.Tags)
 	}
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {

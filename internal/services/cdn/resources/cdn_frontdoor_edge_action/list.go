@@ -40,7 +40,7 @@ func (ListResource) List(ctx context.Context, request list.ListRequest, stream *
 
 	var results []edgeactions.EdgeAction
 
-	subscriptionID := metadata.Client.Account.SubscriptionId
+	subscriptionID := metadata.SubscriptionId
 	if !data.SubscriptionId.IsNull() {
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
