@@ -295,8 +295,11 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			appClient := metadata.Client.AppService.WebAppsClient
 			rd := metadata.ResourceDiff
+			if err := helpers.ValidateWindowsFunctionAppPowerShellWorker(rd); err != nil {
+				return err
+			}
+			appClient := metadata.Client.AppService.WebAppsClient
 			if rd.HasChange("vnet_image_pull_enabled") {
 				appId := rd.Get("function_app_id")
 				if appId.(string) == "" {

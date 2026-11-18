@@ -237,10 +237,11 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     true,
-					Description: "Should the Windows Function App use a 32-bit worker?",
+					Type:             pluginsdk.TypeBool,
+					Optional:         true,
+					Default:          true,
+					DiffSuppressFunc: helpers.SuppressWindowsFunctionAppPowerShell76WorkerDiff,
+					Description:      "Should the Windows Function App use a 32-bit worker? PowerShell 7.6 requires a 64-bit worker; leave unset or set to false.",
 				},
 
 				"websockets_enabled": {
@@ -501,6 +502,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	}
 
 	expanded.Use32BitWorkerProcess = pointer.To(windowsSlotSiteConfig.Use32BitWorker)
+	helpers.ApplyWindowsFunctionAppPowerShellStackSettings(expanded, windowsSlotSiteConfig.ApplicationStack)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
 		expanded.WebSocketsEnabled = pointer.To(windowsSlotSiteConfig.WebSockets)
@@ -613,6 +615,10 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		JavaVersion:           pointer.From(functionAppSlotSiteConfig.JavaVersion),
 		PowerShellCoreVersion: powershellVersion,
 	}}
+	if powershellVersion == "7.6" {
+		// The .NET host is a PowerShell stack setting, not a configured .NET language version.
+		result.ApplicationStack[0].DotNetVersion = "v4.0"
+	}
 
 	return result, nil
 }
