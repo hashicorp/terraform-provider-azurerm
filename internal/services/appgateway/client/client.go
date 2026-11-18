@@ -6,17 +6,17 @@ package client
 import (
 	"fmt"
 
-	network_2025_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01"
+	network_2026_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2026-03-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	*network_2025_07_01.Client
+	*network_2026_03_01.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	client, err := network_2025_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	client, err := network_2026_03_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

@@ -1,0 +1,10 @@
+package connectionanalyzers
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type DiagnosticOperationResult struct {
+	DiagnosticOperation DiagnosticOperation `json:"diagnosticOperation"`
+	Error               *string             `json:"error,omitempty"`
+	Result              *string             `json:"result,omitempty"`
+}
