@@ -20,6 +20,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type GiVersionsModel struct {
 	Versions []string `tfschema:"versions"`
 	Location string   `tfschema:"location"`

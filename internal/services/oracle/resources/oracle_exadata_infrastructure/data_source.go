@@ -21,6 +21,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type ExadataInfraDataModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`

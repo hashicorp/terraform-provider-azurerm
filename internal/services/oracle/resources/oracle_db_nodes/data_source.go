@@ -18,6 +18,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type DBNodesDataModel struct {
 	CloudVmClusterId string            `tfschema:"cloud_vm_cluster_id"`
 	DBNodes          []DBNodeDataModel `tfschema:"db_nodes"`
