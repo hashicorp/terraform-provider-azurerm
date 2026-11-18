@@ -232,7 +232,7 @@ func flattenVirtualNetworkSubnetDelegation(delegations *[]virtualnetworks.Delega
 	retDeles := make([]any, 0)
 
 	normalizeServiceName := map[string]string{}
-	for _, normName := range subnetDelegationServiceNames {
+	for _, normName := range helpers.SubnetDelegationServiceNames {
 		normalizeServiceName[strings.ToLower(normName)] = normName
 	}
 

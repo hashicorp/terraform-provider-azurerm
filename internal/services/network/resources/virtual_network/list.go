@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,7 +35,7 @@ type VirtualNetworkListModel struct {
 }
 
 func (r ListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = VirtualNetworkResourceName
+	response.TypeName = helpers.VirtualNetworkResourceName
 }
 
 func (r ListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
@@ -65,7 +66,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 
 	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(metadata.SubscriptionId, data.ResourceGroupName.ValueString()))
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", VirtualNetworkResourceName), err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", helpers.VirtualNetworkResourceName), err)
 		return
 	}
 

@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+var VirtualNetworkResourceName = "azurerm_virtual_network"
+
 func FlattenVirtualNetworkDNSServers(input *virtualnetworks.DhcpOptions) []string {
 	results := make([]string, 0)
 

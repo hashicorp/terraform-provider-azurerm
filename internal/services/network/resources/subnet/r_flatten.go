@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-07-01/subnets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -111,7 +112,7 @@ func flattenSubnetDelegation(delegations *[]subnets.Delegation) []any {
 	retDeles := make([]any, 0)
 
 	normalizeServiceName := map[string]string{}
-	for _, normName := range subnetDelegationServiceNames {
+	for _, normName := range helpers.SubnetDelegationServiceNames {
 		normalizeServiceName[strings.ToLower(normName)] = normName
 	}
 

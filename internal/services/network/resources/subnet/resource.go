@@ -15,10 +15,6 @@ import (
 
 //go:generate go run ../../../../tools/generator-tests resourceidentity
 
-var VirtualNetworkResourceName = "azurerm_virtual_network"
-
-var SubnetResourceName = "azurerm_subnet"
-
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create:   resourceSubnetCreate,
