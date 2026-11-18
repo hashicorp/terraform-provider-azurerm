@@ -6,6 +6,7 @@ package virtual_desktop_app_attach_package
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -46,14 +47,9 @@ func (r Resource) Update() sdk.ResourceFunc {
 				"register_at_log_on_enabled",
 				"state_enabled",
 			}
-			imageChildPropertyHasChanged := false
-
-			for _, imageChildProperty := range imageChildProperties {
-				if metadata.ResourceData.HasChange(imageChildProperty) {
-					imageChildPropertyHasChanged = true
-					break
-				}
-			}
+			imageChildPropertyHasChanged := slices.ContainsFunc(imageChildProperties, func(imageChildProperty string) bool {
+				return metadata.ResourceData.HasChange(imageChildProperty)
+			})
 
 			// Update `param.Properties.Image` if any of the child properties has changed
 			if imageChildPropertyHasChanged {
