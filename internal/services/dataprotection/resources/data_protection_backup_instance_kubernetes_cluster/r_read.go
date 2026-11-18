@@ -52,7 +52,7 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.KubernetesClusterId = properties.DataSourceInfo.ResourceID
 					state.ProtectionState = pointer.FromEnum(properties.CurrentProtectionState)
 
-					if identityDetails := properties.IdentityDetails; identityDetails != nil && !pointer.From(identityDetails.UseSystemAssignedIdentity) {
+					if identityDetails := properties.IdentityDetails; identityDetails != nil {
 						if identityId := pointer.From(identityDetails.UserAssignedIdentityArmURL); identityId != "" {
 							parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(identityId)
 							if err != nil {
@@ -76,6 +76,8 @@ func (r Resource) Read() sdk.ResourceFunc {
 						}
 						if backupDsp := policyParameters.BackupDatasourceParametersList; backupDsp != nil {
 							if v := pointer.From(flattenBackupDatasourceParameters(*backupDsp)); len(v) > 0 {
+								// Create sends defaults because the API requires this block and both boolean fields.
+								// Skip those defaults in state unless the block was configured.
 								if !isDefaultBackupDatasourceParameters(v[0]) || len(metadata.ResourceData.Get("backup_datasource_parameters").([]any)) > 0 {
 									state.BackupDatasourceParameters = v
 								}

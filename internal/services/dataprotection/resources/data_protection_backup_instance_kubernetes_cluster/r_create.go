@@ -40,10 +40,6 @@ func (r Resource) Create() sdk.ResourceFunc {
 					UseSystemAssignedIdentity:  pointer.To(false),
 					UserAssignedIdentityArmURL: pointer.To(identityId.ID()),
 				}
-			} else {
-				identityDetails = &backupinstanceresources.IdentityDetails{
-					UseSystemAssignedIdentity: pointer.To(true),
-				}
 			}
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
