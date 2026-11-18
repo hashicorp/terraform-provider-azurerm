@@ -7,12 +7,14 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/discovery/2026-06-01/bookshelves"
@@ -50,10 +52,8 @@ type DiscoveryBookshelfModel struct {
 }
 
 type DiscoveryBookshelfCustomerManagedKey struct {
-	IdentityClientId string `tfschema:"identity_client_id"`
-	KeyName          string `tfschema:"key_name"`
-	KeyVaultUri      string `tfschema:"key_vault_uri"`
-	KeyVersion       string `tfschema:"key_version"`
+	KeyVaultKeyId          string `tfschema:"key_vault_key_id"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
 }
 
 func (r DiscoveryBookshelfResource) ResourceType() string {
@@ -95,30 +95,17 @@ func (r DiscoveryBookshelfResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"log_analytics_cluster_id"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"identity_client_id": {
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
+					},
+
+					"user_assigned_identity_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-
-					"key_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"key_vault_uri": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.IsURLWithHTTPS,
-					},
-
-					"key_version": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
 			},
@@ -194,6 +181,10 @@ func (r DiscoveryBookshelfResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			diff := metadata.ResourceDiff
 
+			if err := validateDiscoveryBookshelfCustomerManagedKeyIdentity(diff); err != nil {
+				return err
+			}
+
 			if !diff.HasChange("customer_managed_key") {
 				return nil
 			}
@@ -203,9 +194,22 @@ func (r DiscoveryBookshelfResource) CustomizeDiff() sdk.ResourceFunc {
 				return diff.ForceNew("customer_managed_key")
 			}
 
-			oldVersion, newVersion := diff.GetChange("customer_managed_key.0.key_version")
-			if oldVersion.(string) != "" && newVersion.(string) == "" {
-				return diff.ForceNew("customer_managed_key.0.key_version")
+			if !diff.NewValueKnown("customer_managed_key.0.key_vault_key_id") {
+				return nil
+			}
+
+			oldKeyId, newKeyId := diff.GetChange("customer_managed_key.0.key_vault_key_id")
+			oldKey, err := keyvault.ParseNestedItemID(oldKeyId.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+			if err != nil {
+				return err
+			}
+			newKey, err := keyvault.ParseNestedItemID(newKeyId.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+			if err != nil {
+				return err
+			}
+
+			if !strings.EqualFold(oldKey.KeyVaultBaseURL, newKey.KeyVaultBaseURL) {
+				return diff.ForceNew("customer_managed_key.0.key_vault_key_id")
 			}
 
 			return nil
@@ -238,8 +242,28 @@ func (r DiscoveryBookshelfResource) Create() sdk.ResourceFunc {
 			}
 
 			customerManagedKeys := bookshelves.CustomerManagedKeysDisabled
+			var keyVaultProperties *bookshelves.BookshelfKeyVaultProperties
 			if len(model.CustomerManagedKey) > 0 {
 				customerManagedKeys = bookshelves.CustomerManagedKeysEnabled
+
+				identityId, err := commonids.ParseUserAssignedIdentityID(model.CustomerManagedKey[0].UserAssignedIdentityId)
+				if err != nil {
+					return err
+				}
+
+				identity, err := metadata.Client.ManagedIdentity.V20241130.Identities.UserAssignedIdentitiesGet(ctx, *identityId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", *identityId, err)
+				}
+
+				if identity.Model == nil || identity.Model.Properties == nil || identity.Model.Properties.ClientId == nil {
+					return fmt.Errorf("retrieving %s: `clientId` was nil", *identityId)
+				}
+
+				keyVaultProperties, err = expandDiscoveryBookshelfCustomerManagedKey(model.CustomerManagedKey, *identity.Model.Properties.ClientId)
+				if err != nil {
+					return err
+				}
 			}
 
 			publicNetworkAccess := bookshelves.PublicNetworkAccessDisabled
@@ -251,7 +275,7 @@ func (r DiscoveryBookshelfResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &bookshelves.BookshelfProperties{
 					CustomerManagedKeys:     pointer.To(customerManagedKeys),
-					KeyVaultProperties:      expandDiscoveryBookshelfCustomerManagedKey(model.CustomerManagedKey),
+					KeyVaultProperties:      keyVaultProperties,
 					PrivateEndpointSubnetId: pointer.To(model.PrivateEndpointSubnetId),
 					PublicNetworkAccess:     pointer.To(publicNetworkAccess),
 					SearchSubnetId:          pointer.To(model.SearchSubnetId),
@@ -298,42 +322,18 @@ func (r DiscoveryBookshelfResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			return r.flatten(metadata, id, resp.Model)
+			state, err := flattenDiscoveryBookshelf(*id, resp.Model)
+			if err != nil {
+				return err
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
+			return metadata.Encode(state)
 		},
 	}
-}
-
-func (r DiscoveryBookshelfResource) flatten(metadata sdk.ResourceMetaData, id *bookshelves.BookshelfId, model *bookshelves.Bookshelf) error {
-	state := DiscoveryBookshelfModel{
-		Name:              id.BookshelfName,
-		ResourceGroupName: id.ResourceGroupName,
-	}
-
-	if model != nil {
-		state.Location = location.Normalize(model.Location)
-		state.Tags = pointer.From(model.Tags)
-
-		if props := model.Properties; props != nil {
-			state.LogAnalyticsClusterId = pointer.From(props.LogAnalyticsClusterId)
-			state.ManagedResourceGroupName = pointer.From(props.ManagedResourceGroup)
-			state.PrivateEndpointSubnetId = pointer.From(props.PrivateEndpointSubnetId)
-			state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == bookshelves.PublicNetworkAccessEnabled
-			state.SearchSubnetId = pointer.From(props.SearchSubnetId)
-			state.Uri = pointer.From(props.BookshelfUri)
-			state.WorkloadIdentityIds = flattenDiscoveryBookshelfWorkloadIdentities(props.WorkloadIdentities)
-			state.ManagedOnBehalfOfBrokerResourceIds = flattenDiscoveryBookshelfMoboBrokerResourceIds(props.ManagedOnBehalfOfConfiguration)
-
-			if pointer.From(props.CustomerManagedKeys) == bookshelves.CustomerManagedKeysEnabled {
-				state.CustomerManagedKey = flattenDiscoveryBookshelfCustomerManagedKey(props.KeyVaultProperties)
-			}
-		}
-	}
-
-	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-		return err
-	}
-
-	return metadata.Encode(&state)
 }
 
 func (r DiscoveryBookshelfResource) Update() sdk.ResourceFunc {
@@ -352,18 +352,29 @@ func (r DiscoveryBookshelfResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			payload := bookshelves.BookshelfUpdate{
-				Properties: &bookshelves.BookshelfPropertiesUpdate{},
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if metadata.ResourceData.HasChange("customer_managed_key") && len(model.CustomerManagedKey) > 0 {
-				payload.Properties.KeyVaultProperties = &bookshelves.BookshelfKeyVaultPropertiesUpdate{
-					KeyName: pointer.To(model.CustomerManagedKey[0].KeyName),
-				}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
 
-				if model.CustomerManagedKey[0].KeyVersion != "" {
-					payload.Properties.KeyVaultProperties.KeyVersion = pointer.To(model.CustomerManagedKey[0].KeyVersion)
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
+			payload := existing.Model
+			props := payload.Properties
+			props.ManagedOnBehalfOfConfiguration = nil
+
+			if metadata.ResourceData.HasChange("customer_managed_key") && props.KeyVaultProperties != nil {
+				keyVaultProperties, err := expandDiscoveryBookshelfCustomerManagedKey(model.CustomerManagedKey, props.KeyVaultProperties.IdentityClientId)
+				if err != nil {
+					return err
 				}
+				props.KeyVaultProperties = keyVaultProperties
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
@@ -371,14 +382,14 @@ func (r DiscoveryBookshelfResource) Update() sdk.ResourceFunc {
 				if model.PublicNetworkAccessEnabled {
 					publicNetworkAccess = bookshelves.PublicNetworkAccessEnabled
 				}
-				payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+				props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = pointer.To(model.Tags)
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -407,36 +418,103 @@ func (r DiscoveryBookshelfResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandDiscoveryBookshelfCustomerManagedKey(input []DiscoveryBookshelfCustomerManagedKey) *bookshelves.BookshelfKeyVaultProperties {
-	if len(input) == 0 {
+func flattenDiscoveryBookshelf(id bookshelves.BookshelfId, model *bookshelves.Bookshelf) (*DiscoveryBookshelfModel, error) {
+	state := DiscoveryBookshelfModel{
+		Name:              id.BookshelfName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		if props := model.Properties; props != nil {
+			state.LogAnalyticsClusterId = pointer.From(props.LogAnalyticsClusterId)
+			state.ManagedResourceGroupName = pointer.From(props.ManagedResourceGroup)
+			state.PrivateEndpointSubnetId = pointer.From(props.PrivateEndpointSubnetId)
+			state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == bookshelves.PublicNetworkAccessEnabled
+			state.SearchSubnetId = pointer.From(props.SearchSubnetId)
+			state.Uri = pointer.From(props.BookshelfUri)
+			state.WorkloadIdentityIds = flattenDiscoveryBookshelfWorkloadIdentities(props.WorkloadIdentities)
+			state.ManagedOnBehalfOfBrokerResourceIds = flattenDiscoveryBookshelfMoboBrokerResourceIds(props.ManagedOnBehalfOfConfiguration)
+
+			if pointer.From(props.CustomerManagedKeys) == bookshelves.CustomerManagedKeysEnabled {
+				customerManagedKey, err := flattenDiscoveryBookshelfCustomerManagedKey(props.KeyVaultProperties, props.WorkloadIdentities)
+				if err != nil {
+					return nil, err
+				}
+				state.CustomerManagedKey = customerManagedKey
+			}
+		}
+	}
+
+	return &state, nil
+}
+
+func validateDiscoveryBookshelfCustomerManagedKeyIdentity(diff *pluginsdk.ResourceDiff) error {
+	identityId, ok := diff.GetOk("customer_managed_key.0.user_assigned_identity_id")
+	if !ok || !diff.NewValueKnown("customer_managed_key.0.user_assigned_identity_id") {
 		return nil
 	}
 
-	v := input[0]
-	output := bookshelves.BookshelfKeyVaultProperties{
-		IdentityClientId: v.IdentityClientId,
-		KeyName:          v.KeyName,
-		KeyVaultUri:      v.KeyVaultUri,
+	rawConfig := diff.GetRawConfig()
+	if rawConfig.IsNull() || !rawConfig.GetAttr("workload_identity_ids").IsWhollyKnown() {
+		return nil
 	}
 
-	if v.KeyVersion != "" {
-		output.KeyVersion = pointer.To(v.KeyVersion)
+	for _, v := range diff.Get("workload_identity_ids").(*pluginsdk.Set).List() {
+		if strings.EqualFold(v.(string), identityId.(string)) {
+			return nil
+		}
 	}
 
-	return &output
+	return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be one of the identities specified in `workload_identity_ids`")
 }
 
-func flattenDiscoveryBookshelfCustomerManagedKey(input *bookshelves.BookshelfKeyVaultProperties) []DiscoveryBookshelfCustomerManagedKey {
+func expandDiscoveryBookshelfCustomerManagedKey(input []DiscoveryBookshelfCustomerManagedKey, identityClientId string) (*bookshelves.BookshelfKeyVaultProperties, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	keyId, err := keyvault.ParseNestedItemID(input[0].KeyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bookshelves.BookshelfKeyVaultProperties{
+		IdentityClientId: identityClientId,
+		KeyName:          keyId.Name,
+		KeyVaultUri:      keyId.KeyVaultBaseURL,
+		KeyVersion:       pointer.To(keyId.Version),
+	}, nil
+}
+
+func flattenDiscoveryBookshelfCustomerManagedKey(input *bookshelves.BookshelfKeyVaultProperties, workloadIdentities *map[string]bookshelves.UserAssignedIdentity) ([]DiscoveryBookshelfCustomerManagedKey, error) {
 	if input == nil {
-		return []DiscoveryBookshelfCustomerManagedKey{}
+		return []DiscoveryBookshelfCustomerManagedKey{}, nil
+	}
+
+	keyId, err := keyvault.NewNestedItemID(input.KeyVaultUri, keyvault.NestedItemTypeKey, input.KeyName, pointer.From(input.KeyVersion))
+	if err != nil {
+		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+	}
+
+	userAssignedIdentityId := ""
+	for id, identity := range pointer.From(workloadIdentities) {
+		if strings.EqualFold(pointer.From(identity.ClientId), input.IdentityClientId) {
+			parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(id)
+			if err != nil {
+				return nil, err
+			}
+			userAssignedIdentityId = parsed.ID()
+			break
+		}
 	}
 
 	return []DiscoveryBookshelfCustomerManagedKey{{
-		IdentityClientId: input.IdentityClientId,
-		KeyName:          input.KeyName,
-		KeyVaultUri:      input.KeyVaultUri,
-		KeyVersion:       pointer.From(input.KeyVersion),
-	}}
+		KeyVaultKeyId:          keyId.ID(),
+		UserAssignedIdentityId: userAssignedIdentityId,
+	}}, nil
 }
 
 func expandDiscoveryBookshelfWorkloadIdentities(input []string) *map[string]bookshelves.UserAssignedIdentity {

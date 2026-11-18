@@ -93,7 +93,9 @@ The following arguments are supported:
 
 ---
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. When specified, data at rest is encrypted with a customer managed key. Adding or removing this block forces a new Microsoft Discovery Bookshelf to be created.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
+
+-> **Note:** Adding or removing this block forces a new Microsoft Discovery Bookshelf to be created.
 
 -> **Note:** `log_analytics_cluster_id` is required when `customer_managed_key` is specified.
 
@@ -107,13 +109,9 @@ The following arguments are supported:
 
 A `customer_managed_key` block supports the following:
 
-* `identity_client_id` - (Required) The Client ID of the Identity which should be used to access the Key Vault. This must be one of the Identities specified in `workload_identity_ids`. Changing this forces a new Microsoft Discovery Bookshelf to be created.
+* `key_vault_key_id` - (Required) The versioned ID of the Key Vault Key which should be used to encrypt data at rest. Changing the Key Vault forces a new Microsoft Discovery Bookshelf to be created.
 
-* `key_name` - (Required) The name of the Key Vault Key.
-
-* `key_vault_uri` - (Required) The URI of the Key Vault. Changing this forces a new Microsoft Discovery Bookshelf to be created.
-
-* `key_version` - (Optional) The version of the Key Vault Key. When omitted the latest version of the key is used. Removing a previously specified `key_version` forces a new Microsoft Discovery Bookshelf to be created.
+* `user_assigned_identity_id` - (Required) The ID of the User Assigned Identity which should be used to access the Key Vault. This must be one of the Identities specified in `workload_identity_ids`. Changing this forces a new Microsoft Discovery Bookshelf to be created.
 
 ## Attributes Reference
 
@@ -149,3 +147,5 @@ terraform import azurerm_discovery_bookshelf.example /subscriptions/12345678-123
 This resource uses the following Azure API Providers:
 
 * `Microsoft.Discovery` - 2026-06-01
+
+* `Microsoft.ManagedIdentity` - 2024-11-30
