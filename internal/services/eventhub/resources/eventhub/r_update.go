@@ -53,14 +53,11 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 		},
 	}
 
-	rawConfig := d.GetRawConfig()
-	messageRetention := rawConfig.GetAttr("message_retention")
-	if messageRetention.IsKnown() && !messageRetention.IsNull() {
+	if d.GetRawConfig().GetAttr("message_retention").IsKnown() && !d.GetRawConfig().GetAttr("message_retention").IsNull() {
 		parameters.Properties.MessageRetentionInDays = pointer.To(int64(d.Get("message_retention").(int)))
 	}
 
-	retentionDescription := rawConfig.GetAttr("retention_description")
-	if retentionDescription.IsKnown() && !retentionDescription.IsNull() {
+	if d.HasChange("retention_description") {
 		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
 	}
 
