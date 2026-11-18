@@ -515,7 +515,7 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Windows Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker. Defaults to `true`.
+* `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker. Defaults to `true`, except for PowerShell `7.6`, which always uses a 64-bit worker. For PowerShell `7.6`, this must be unset or `false`.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
@@ -646,6 +646,8 @@ An `application_stack` block supports the following:
 * `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16`, `~18`, `~20`, `~22` and `~24`.
 
 * `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, `7.2`, `7.4`, and `7.6`.
+
+-> **Note:** For PowerShell `7.6`, the provider applies the Azure Functions stack settings, matching the Azure portal and CLI: a .NET 10 host and a 64-bit worker. Only `powershell_core_version = "7.6"` needs to be configured; do not set `dotnet_version`, and leave `use_32_bit_worker` unset or set it to `false`. Existing PowerShell `7.6` slots using a different host or a 32-bit worker are corrected the next time Terraform updates the resource; this correction is not shown in the plan.
 
 * `use_custom_runtime` - (Optional) Does the Function App use a custom Application Stack?
 

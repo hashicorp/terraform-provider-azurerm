@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -1074,6 +1075,58 @@ func TestAccWindowsFunctionAppSlot_appStackPowerShellCore72(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_appStackPowerShellCore76(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuStandardPlan, "7.6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				data.CheckWithClient(r.hasPowerShell76StackSettings()),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config:   r.appStackPowerShellCore(data, SkuStandardPlan, "7.6"),
+			PlanOnly: true,
+		},
+		{
+			Config:      strings.Replace(r.appStackPowerShellCore(data, SkuStandardPlan, "7.6"), "site_config {\n    application_stack {", "site_config {\n    use_32_bit_worker = true\n    application_stack {", 1),
+			ExpectError: regexp.MustCompile("PowerShell 7.6 requires a 64-bit worker"),
+		},
+	})
+}
+
+func TestAccWindowsFunctionAppSlot_appStackPowerShellCoreUpgradeTo76(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackPowerShellCore(data, SkuStandardPlan, "7.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackPowerShellCore(data, SkuStandardPlan, "7.6"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.hasPowerShell76StackSettings()),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config:   r.appStackPowerShellCore(data, SkuStandardPlan, "7.6"),
+			PlanOnly: true,
+		},
+	})
+}
+
 // Others
 
 func TestAccWindowsFunctionAppSlot_identity(t *testing.T) {
@@ -1566,6 +1619,32 @@ func (r WindowsFunctionAppSlotResource) Exists(ctx context.Context, client *clie
 		return pointer.To(false), nil
 	}
 	return pointer.To(true), nil
+}
+
+func (r WindowsFunctionAppSlotResource) hasPowerShell76StackSettings() acceptance.ClientCheckFunc {
+	return func(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := webapps.ParseSlotID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := client.AppService.WebAppsClient.GetConfigurationSlot(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving Site Config for %s: %+v", id, err)
+		}
+		if resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("retrieving Site Config for %s: model was nil", id)
+		}
+
+		if actual := pointer.From(resp.Model.Properties.NetFrameworkVersion); actual != "v10.0" {
+			return fmt.Errorf("expected `netFrameworkVersion` for %s to be v10.0, got %q", id, actual)
+		}
+		if actual := resp.Model.Properties.Use32BitWorkerProcess; actual == nil || *actual {
+			return fmt.Errorf("expected `use32BitWorkerProcess` for %s to be false, got %v", id, actual)
+		}
+
+		return nil
+	}
 }
 
 // Configs
