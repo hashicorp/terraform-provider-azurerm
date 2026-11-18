@@ -65,7 +65,6 @@ tf.zip
 
 # do not upload .bob instructions
 .bob
-AGENTS.md
 
 # dev tools installed by make: Go tools from the pins in .tools/go.mod, the rest from the pins in GNUmakefile
 .tools/bin/
