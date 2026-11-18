@@ -97,11 +97,11 @@ func TestMergeUserAppSettings(t *testing.T) {
 	}
 }
 
-func windowsFunctionAppSiteConfigRaw(stack map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"site_config": []interface{}{
-			map[string]interface{}{
-				"application_stack": []interface{}{stack},
+func windowsFunctionAppSiteConfigRaw(stack map[string]any) map[string]any {
+	return map[string]any{
+		"site_config": []any{
+			map[string]any{
+				"application_stack": []any{stack},
 			},
 		},
 	}
@@ -209,7 +209,7 @@ func TestExpandSiteConfigWindowsFunctionApp_PowerShellStackSettings(t *testing.T
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			stackRaw := map[string]interface{}{
+			stackRaw := map[string]any{
 				"dotnet_version":          tc.stack.DotNetVersion,
 				"node_version":            tc.stack.NodeVersion,
 				"powershell_core_version": tc.stack.PowerShellCoreVersion,
@@ -262,8 +262,7 @@ func copySiteConfig(input *webapps.SiteConfig) *webapps.SiteConfig {
 	if input == nil {
 		return nil
 	}
-	output := *input
-	return &output
+	return pointer.To(*input)
 }
 
 func TestFlattenSiteConfigWindowsFunctionApp_PowerShellStackSettings(t *testing.T) {
@@ -316,8 +315,8 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 		stateDotNet  string
 		statePS      string
 		stateWorker  string
-		configStack  map[string]interface{}
-		configWorker interface{}
+		configStack  map[string]any
+		configWorker any
 		dotNetDiff   bool
 		workerDiff   bool
 	}{
@@ -326,21 +325,21 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 			stateDotNet: "v4.0",
 			statePS:     "7.6",
 			stateWorker: "false",
-			configStack: map[string]interface{}{"powershell_core_version": "7.6"},
+			configStack: map[string]any{"powershell_core_version": "7.6"},
 		},
 		{
 			name:        "legacy powershell 7.6 app on v4.0 and 32-bit has no diff",
 			stateDotNet: "v4.0",
 			statePS:     "7.6",
 			stateWorker: "true",
-			configStack: map[string]interface{}{"powershell_core_version": "7.6"},
+			configStack: map[string]any{"powershell_core_version": "7.6"},
 		},
 		{
 			name:         "explicit 64-bit is stable",
 			stateDotNet:  "v4.0",
 			statePS:      "7.6",
 			stateWorker:  "false",
-			configStack:  map[string]interface{}{"powershell_core_version": "7.6"},
+			configStack:  map[string]any{"powershell_core_version": "7.6"},
 			configWorker: false,
 		},
 		{
@@ -348,7 +347,7 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 			stateDotNet:  "v4.0",
 			statePS:      "7.6",
 			stateWorker:  "true",
-			configStack:  map[string]interface{}{"powershell_core_version": "7.6"},
+			configStack:  map[string]any{"powershell_core_version": "7.6"},
 			configWorker: false,
 			workerDiff:   true,
 		},
@@ -357,7 +356,7 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 			stateDotNet: "v4.0",
 			statePS:     "7.6",
 			stateWorker: "false",
-			configStack: map[string]interface{}{"powershell_core_version": "7.4"},
+			configStack: map[string]any{"powershell_core_version": "7.4"},
 			workerDiff:  true,
 		},
 		{
@@ -365,7 +364,7 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 			stateDotNet: "v8.0",
 			statePS:     "7.4",
 			stateWorker: "false",
-			configStack: map[string]interface{}{"powershell_core_version": "7.4"},
+			configStack: map[string]any{"powershell_core_version": "7.4"},
 			dotNetDiff:  true,
 			workerDiff:  true,
 		},
@@ -373,41 +372,44 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 			name:        "dotnet diffs are not suppressed",
 			stateDotNet: "v10.0",
 			stateWorker: "false",
-			configStack: map[string]interface{}{"dotnet_version": "v4.0"},
+			configStack: map[string]any{"dotnet_version": "v4.0"},
 			dotNetDiff:  true,
 			workerDiff:  true,
 		},
 	}
 
-	resources := map[string]*schema.Resource{
-		"app":  {Schema: map[string]*schema.Schema{"site_config": helpers.SiteConfigSchemaWindowsFunctionApp()}},
-		"slot": {Schema: map[string]*schema.Schema{"site_config": windows_function_app_slot.SiteConfigSchemaWindowsFunctionAppSlot()}},
+	resources := []struct {
+		name     string
+		resource *schema.Resource
+	}{
+		{name: "app", resource: &schema.Resource{Schema: map[string]*schema.Schema{"site_config": helpers.SiteConfigSchemaWindowsFunctionApp()}}},
+		{name: "slot", resource: &schema.Resource{Schema: map[string]*schema.Schema{"site_config": windows_function_app_slot.SiteConfigSchemaWindowsFunctionAppSlot()}}},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			for kind, resource := range resources {
-				stateRaw := windowsFunctionAppSiteConfigRaw(map[string]interface{}{
+			for _, target := range resources {
+				stateRaw := windowsFunctionAppSiteConfigRaw(map[string]any{
 					"dotnet_version":          tc.stateDotNet,
 					"powershell_core_version": tc.statePS,
 				})
-				stateRaw["site_config"].([]interface{})[0].(map[string]interface{})["use_32_bit_worker"] = tc.stateWorker == "true"
-				stateData := schema.TestResourceDataRaw(t, resource.Schema, stateRaw)
+				stateRaw["site_config"].([]any)[0].(map[string]any)["use_32_bit_worker"] = tc.stateWorker == "true"
+				stateData := schema.TestResourceDataRaw(t, target.resource.Schema, stateRaw)
 				stateData.SetId("test")
 				state := stateData.State()
 				raw := windowsFunctionAppSiteConfigRaw(tc.configStack)
 				if tc.configWorker != nil {
-					raw["site_config"].([]interface{})[0].(map[string]interface{})["use_32_bit_worker"] = tc.configWorker
+					raw["site_config"].([]any)[0].(map[string]any)["use_32_bit_worker"] = tc.configWorker
 				}
 				config := terraform.NewResourceConfigRaw(raw)
 
-				diff, err := resource.Diff(context.Background(), state, config, nil)
+				diff, err := target.resource.Diff(context.Background(), state, config, nil)
 				if err != nil {
-					t.Fatalf("%s: diffing: %+v", kind, err)
+					t.Fatalf("%s: diffing: %+v", target.name, err)
 				}
 
 				if tc.statePS == "7.6" && tc.configStack["powershell_core_version"] == "7.6" && !tc.workerDiff && !tc.dotNetDiff && diff != nil && !diff.Empty() {
-					t.Errorf("%s: expected a clean follow-up plan, got %+v", kind, diff)
+					t.Errorf("%s: expected a clean follow-up plan, got %+v", target.name, diff)
 				}
 				for key, expected := range map[string]bool{dotNetVersionKey: tc.dotNetDiff, workerKey: tc.workerDiff} {
 					var attrDiff *terraform.ResourceAttrDiff
@@ -415,7 +417,7 @@ func TestWindowsFunctionAppStack_PowerShell76Diff(t *testing.T) {
 						attrDiff = diff.Attributes[key]
 					}
 					if hasDiff := attrDiff != nil; hasDiff != expected {
-						t.Errorf("%s: expected %s diff %t, got %t (%+v)", kind, key, expected, hasDiff, attrDiff)
+						t.Errorf("%s: expected %s diff %t, got %t (%+v)", target.name, key, expected, hasDiff, attrDiff)
 					}
 				}
 			}

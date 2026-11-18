@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	appserviceclient "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_function_app"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/resources/windows_function_app_slot"
@@ -55,10 +55,10 @@ func TestWindowsFunctionAppPowerShellWorkerCustomizeDiff(t *testing.T) {
 					})
 					r := &schema.Resource{
 						Schema: map[string]*schema.Schema{"site_config": resource.siteConfig},
-						CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
+						CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, _ any) error {
 							return resource.customize.Func(ctx, sdk.ResourceMetaData{
 								ResourceDiff: d,
-								Client:       &clients.Client{AppService: &appserviceclient.Client{}},
+								Client:       &clients.Client{AppService: &client.Client{}},
 							})
 						},
 					}
@@ -69,14 +69,15 @@ func TestWindowsFunctionAppPowerShellWorkerCustomizeDiff(t *testing.T) {
 						Attributes: map[string]string{
 							"site_config.#":                     "1",
 							"site_config.0.application_stack.#": "1",
+
 							"site_config.0.application_stack.0.powershell_core_version": "7.6",
 							"site_config.0.application_stack.0.dotnet_version":          "v4.0",
 							"site_config.0.use_32_bit_worker":                           "false",
 						},
 					}
-					config := terraform.NewResourceConfigRaw(map[string]interface{}{
-						"site_config": []interface{}{map[string]interface{}{
-							"application_stack": []interface{}{map[string]interface{}{"powershell_core_version": "7.6"}},
+					config := terraform.NewResourceConfigRaw(map[string]any{
+						"site_config": []any{map[string]any{
+							"application_stack": []any{map[string]any{"powershell_core_version": "7.6"}},
 						}},
 					})
 					_, err := r.Diff(context.Background(), state, config, nil)
