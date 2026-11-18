@@ -28,6 +28,9 @@ func TestAccDiscoveryBookshelf_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_on_behalf_of_broker_resource_ids.0").IsNotEmpty(),
+				check.That(data.ResourceName).Key("managed_resource_group_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("uri").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -244,9 +247,8 @@ resource "azurerm_discovery_bookshelf" "test" {
   }
 
   customer_managed_key {
-    identity_client_id = "00000000-0000-0000-0000-000000000000"
-    key_name           = "acctestkey"
-    key_vault_uri      = "https://acctestkv-%[2]s.vault.azure.net/"
+    key_vault_key_id          = "https://acctestkv-%[2]s.vault.azure.net/keys/acctestkey/00000000000000000000000000000000"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.template(data), data.RandomString)

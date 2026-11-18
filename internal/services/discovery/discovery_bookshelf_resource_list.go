@@ -79,7 +79,18 @@ func (DiscoveryBookshelfListResource) List(ctx context.Context, request list.Lis
 			meta := sdk.NewResourceMetaData(metadata.Client, r)
 			meta.SetID(id)
 
-			if err := r.flatten(meta, id, &item); err != nil {
+			state, err := flattenDiscoveryBookshelf(*id, &item)
+			if err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("flattening `%s` resource data", r.ResourceType()), err)
+				return
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(meta.ResourceData, id); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("setting `%s` resource identity", r.ResourceType()), err)
+				return
+			}
+
+			if err := meta.Encode(state); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", r.ResourceType()), err)
 				return
 			}
