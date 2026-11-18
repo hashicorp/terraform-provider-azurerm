@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/resources/iotcentral_application"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/resources/iotcentral_application_network_rule_set"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/resources/iotcentral_organization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,7 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_iotcentral_application": resourceIotCentralApplication(),
+		"azurerm_iotcentral_application": iotcentral_application.RegisterResource(),
 	}
 }
 
@@ -44,8 +47,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		IotCentralApplicationNetworkRuleSetResource{},
-		IotCentralOrganizationResource{},
+		iotcentral_application_network_rule_set.Resource{},
+		iotcentral_organization.Resource{},
 	}
 }
 
