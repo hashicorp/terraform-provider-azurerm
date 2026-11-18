@@ -1742,7 +1742,7 @@ const (
 	windowsFunctionAppPowerShellCoreVersionKey = "site_config.0.application_stack.0.powershell_core_version"
 )
 
-// Apply the site config settings advertised by the Azure Functions stacks API for Windows PowerShell 7.6.
+// Apply the site config settings returned by the Azure Functions stacks API for Windows PowerShell 7.6.
 func ApplyWindowsFunctionAppPowerShellStackSettings(expanded *webapps.SiteConfig, stack []ApplicationStackWindowsFunctionApp) {
 	if len(stack) > 0 && stack[0].PowerShellCoreVersion == "7.6" {
 		expanded.NetFrameworkVersion = pointer.To("v10.0")
