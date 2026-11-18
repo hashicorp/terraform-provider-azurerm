@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementGatewayRead,
+		Description: "Use this data source to access information about an existing API Management Gateway.",
+		Read:        dataSourceApiManagementGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -29,14 +30,16 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"name": schemaz.SchemaApiManagementChildDataSourceName(),
 
 			"api_management_id": {
+				Description:  "The ID of the API Management Service in which the Gateway exists.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimanagementservice.ValidateServiceID,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of the API Management Gateway.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"location_data": {
@@ -45,16 +48,19 @@ func RegisterDataSource() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "A canonical name for the geographic or physical location.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"city": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The city or locality where the resource is located.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"district": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
+							Description: "The district, state, or province where the resource is located.",
+							Type:        pluginsdk.TypeString,
+							Computed:    true,
 						},
 						"region": {
 							Type:     pluginsdk.TypeString,

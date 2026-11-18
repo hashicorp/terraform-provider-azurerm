@@ -20,23 +20,27 @@ func apiManagementApiOperationSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The Display Name for this API Management Operation.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"method": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The HTTP Method used for this API Management Operation, like `GET`, `DELETE`, `PUT` or `POST` - but not limited to these values.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"url_template": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The relative URL Template identifying the target resource for this operation, which may include parameters.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for this API Operation, which may include HTML formatting tags.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"request": {
@@ -47,8 +51,9 @@ func apiManagementApiOperationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "A description of the HTTP Request, which may include HTML tags.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"header": schemaz.SchemaApiManagementOperationParameterContract(),
@@ -66,13 +71,15 @@ func apiManagementApiOperationSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"status_code": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Description: "The HTTP Status Code.",
+						Type:        pluginsdk.TypeInt,
+						Required:    true,
 					},
 
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "A description of the HTTP Response, which may include HTML tags.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"header": schemaz.SchemaApiManagementOperationParameterContract(),

@@ -17,12 +17,14 @@ func apiManagementIdentityProviderAadSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"client_id": {
+			Description:  "Client Id of the Application in the AAD Identity Provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"client_secret": {
+			Description:  "Client secret of the Application in the AAD Identity Provider.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -30,8 +32,9 @@ func apiManagementIdentityProviderAadSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"allowed_tenants": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
+			Description: "List of allowed AAD Tenants.",
+			Type:        pluginsdk.TypeList,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsUUID,
@@ -39,12 +42,14 @@ func apiManagementIdentityProviderAadSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_library": {
+			Description:  "The client library to be used in the AAD Identity Provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(0, 16),
 		},
 
 		"signin_tenant": {
+			Description:  "The AAD Tenant to use instead of Common when logging into Active Directory.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,

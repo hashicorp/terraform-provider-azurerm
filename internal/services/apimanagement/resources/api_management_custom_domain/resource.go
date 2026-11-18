@@ -14,10 +14,11 @@ var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domai
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: apiManagementCustomDomainCreateUpdate,
-		Read:   apiManagementCustomDomainRead,
-		Update: apiManagementCustomDomainCreateUpdate,
-		Delete: apiManagementCustomDomainDelete,
+		Description: "Manages an API Management Custom Domain.",
+		Create:      apiManagementCustomDomainCreateUpdate,
+		Read:        apiManagementCustomDomainRead,
+		Update:      apiManagementCustomDomainCreateUpdate,
+		Delete:      apiManagementCustomDomainDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.CustomDomainID(id)

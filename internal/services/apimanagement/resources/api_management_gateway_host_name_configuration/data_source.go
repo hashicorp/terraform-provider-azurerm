@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementGatewayHostnameConfigurationRead,
+		Description: "Use this data source to access information about an existing API Management Gateway Host Configuration.",
+		Read:        dataSourceApiManagementGatewayHostnameConfigurationRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -27,11 +28,13 @@ func RegisterDataSource() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Description: "The name of the API Management Gateway Host Name Configuration.",
+				Type:        pluginsdk.TypeString,
+				Required:    true,
 			},
 
 			"api_management_id": {
+				Description:  "The ID of the API Management Service.",
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: apimanagementservice.ValidateServiceID,
@@ -40,33 +43,39 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"gateway_name": schemaz.SchemaApiManagementChildDataSourceName(),
 
 			"certificate_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The ID of the certificate used for TLS connection establishment.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"host_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The host name used for the API Management Gateway Host Name Configuration.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"request_client_certificate_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether the API Management Gateway requests a client certificate.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"http2_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether HTTP/2.0 is supported.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tls10_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether TLS 1.0 is supported.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"tls11_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Whether TLS 1.1 is supported.",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 		},
 	}

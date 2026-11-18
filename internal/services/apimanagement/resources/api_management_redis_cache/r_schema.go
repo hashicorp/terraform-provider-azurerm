@@ -15,6 +15,7 @@ import (
 func apiManagementRedisCacheSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this API Management Redis Cache.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func apiManagementRedisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"api_management_id": {
+			Description:  "The resource ID of the API Management Service from which to create this external cache.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +31,7 @@ func apiManagementRedisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"connection_string": {
+			Description:  "The connection string to the Cache for Redis.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -36,18 +39,21 @@ func apiManagementRedisCacheSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"redis_cache_id": {
+			Description:  "The resource ID of the Cache for Redis.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
 		},
 
 		"description": {
+			Description:  "The description of the API Management Redis Cache.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"cache_location": {
+			Description:      "The location where to use cache from.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Default:          "default",

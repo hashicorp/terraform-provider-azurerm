@@ -17,10 +17,11 @@ const analysisServicesServerResourceName = "azurerm_analysis_services_server"
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAnalysisServicesServerCreate,
-		Read:   resourceAnalysisServicesServerRead,
-		Update: resourceAnalysisServicesServerUpdate,
-		Delete: resourceAnalysisServicesServerDelete,
+		Description: "Manages an Analysis Services Server.",
+		Create:      resourceAnalysisServicesServerCreate,
+		Read:        resourceAnalysisServicesServerRead,
+		Update:      resourceAnalysisServicesServerUpdate,
+		Delete:      resourceAnalysisServicesServerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

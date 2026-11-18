@@ -19,9 +19,10 @@ func apiManagementEmailTemplateSchema() map[string]*pluginsdk.Schema {
 
 		// There is an open issue for the capitalization of the template names: https://github.com/Azure/azure-rest-api-specs/issues/13341
 		"template_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The name of the Email Template.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				titleCase(string(emailtemplates.TemplateNameAccountClosedDeveloper)),
 				titleCase(string(emailtemplates.TemplateNameApplicationApprovedNotificationMessage)),
@@ -40,22 +41,26 @@ func apiManagementEmailTemplateSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 		"body": {
+			Description:  "The body of the Email. Its format has to be a well-formed HTML document.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"subject": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The subject of the Email.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 		},
 		// Computed:
 		"title": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The title of the Email Template.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The description of the Email Template.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

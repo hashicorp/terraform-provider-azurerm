@@ -19,6 +19,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_api_management_workspace_api_version_set"
 }
 
+func (r Resource) Description() string {
+	return "Manages an API Version Set within an API Management Workspace."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return apiversionset.ValidateWorkspaceApiVersionSetID
 }

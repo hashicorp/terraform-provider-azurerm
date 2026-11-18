@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_api_management_workspace_certificate"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Certificate within an API Management Workspace."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return certificate.ValidateWorkspaceCertificateID
 }
