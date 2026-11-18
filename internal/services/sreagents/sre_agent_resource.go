@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -342,11 +343,11 @@ func (SREAgentResource) Arguments() map[string]*pluginsdk.Schema {
 									Elem: &pluginsdk.Schema{
 										Type: pluginsdk.TypeString,
 										ValidateFunc: validation.All(
-											// https://github.com/Azure/azure-rest-api-specs/blob/fdba4d6ef03d157da38bb8d7d6c3384e1fd9f25c/specification/app/resource-manager/Microsoft.App/SreAgent/agent.models.tsp#L180-L188
+											// https://github.com/Azure/azure-rest-api-specs/blob/fdba4d6ef03d157da38bb8d7d6c3384e1fd9f25c/specification/app/resource-manager/Microsoft.App/SreAgent/agent.models.tsp#L214-L219
 											validation.StringLenBetween(1, 253),
 											validation.StringMatch(
-												regexp.MustCompile(`^(\*\.[A-Za-z0-9][A-Za-z0-9.-]*\.)?[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`),
-												"must be a hostname or a hostname with a leading wildcard `*.` followed by at least two hostname labels, for example `*.example.com`",
+												regexp.MustCompile(`^(\*\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)?[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$`),
+												"must be a DNS hostname with labels of 1 to 63 letters, digits, or hyphens that start and end with a letter or digit, optionally prefixed with `*.` followed by at least two labels, for example `*.example.com`",
 											),
 										),
 									},
@@ -629,6 +630,32 @@ func (SREAgentResource) CustomizeDiff() sdk.ResourceFunc {
 							}
 
 							if !egress.IsNull() {
+								proxy := egress.GetAttr("http_proxy")
+								if proxy.IsKnown() && !proxy.IsNull() && proxy.LengthInt() > 0 {
+									proxy = proxy.AsValueSlice()[0]
+									if proxy.IsKnown() && !proxy.IsNull() {
+										httpURL := proxy.GetAttr("http_url")
+										httpsURL := proxy.GetAttr("https_url")
+										if httpURL.IsKnown() && !httpURL.IsNull() && httpsURL.IsKnown() && !httpsURL.IsNull() {
+											httpProxyURL, err := url.Parse(httpURL.AsString())
+											if err != nil {
+												return fmt.Errorf("parsing `sandbox.egress.http_proxy.http_url`: %+v", err)
+											}
+
+											httpsProxyURL, err := url.Parse(httpsURL.AsString())
+											if err != nil {
+												return fmt.Errorf("parsing `sandbox.egress.http_proxy.https_url`: %+v", err)
+											}
+
+											if !strings.EqualFold(httpProxyURL.Scheme, httpsProxyURL.Scheme) ||
+												!strings.EqualFold(httpProxyURL.Hostname(), httpsProxyURL.Hostname()) ||
+												httpProxyURL.Port() != httpsProxyURL.Port() {
+												return errors.New("`sandbox.egress.http_proxy.http_url` must use the same origin (scheme, host, and port) as `sandbox.egress.http_proxy.https_url`")
+											}
+										}
+									}
+								}
+
 								value := egress.GetAttr("mode")
 								if !value.IsKnown() {
 									return nil
@@ -821,10 +848,7 @@ func (SREAgentResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("upgrade_channel") {
-				existing.Model.Properties.UpgradeChannel = nil
-				if config.UpgradeChannel != "" {
-					existing.Model.Properties.UpgradeChannel = pointer.ToEnum[agents.UpgradeChannel](config.UpgradeChannel)
-				}
+				existing.Model.Properties.UpgradeChannel = pointer.ToEnum[agents.UpgradeChannel](config.UpgradeChannel)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -1134,8 +1158,10 @@ func expandSREAgentSandbox(input []SandboxModel) *agents.SandboxConfiguration {
 			proxy := egress.HTTPProxy[0]
 			result.Egress.HTTPProxy = &agents.SandboxHTTPProxyConfiguration{
 				HTTPSURL: pointer.To(proxy.HTTPSURL),
-				HTTPURL:  pointer.To(proxy.HTTPURL),
 				NoProxy:  pointer.To(proxy.NoProxy),
+			}
+			if proxy.HTTPURL != "" {
+				result.Egress.HTTPProxy.HTTPURL = pointer.To(proxy.HTTPURL)
 			}
 		}
 	}

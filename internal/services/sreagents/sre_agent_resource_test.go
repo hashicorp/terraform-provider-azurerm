@@ -148,6 +148,34 @@ func TestAccSreAgent_invalidIdentity(t *testing.T) {
 	})
 }
 
+func TestAccSreAgent_httpProxyOrigin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sre_agent", "test")
+	r := SreAgentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://other.example.invalid:8080"),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`sandbox.egress.http_proxy.http_url` must use the same origin"),
+		},
+		{
+			Config:      r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://proxy.example.invalid:8081"),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`sandbox.egress.http_proxy.http_url` must use the same origin"),
+		},
+		{
+			Config:             r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://proxy.example.invalid:8080/"),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config:             r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://PROXY.example.invalid:8080"),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
+	})
+}
+
 func (SreAgentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := agents.ParseAgentID(state.ID)
 	if err != nil {
@@ -647,4 +675,39 @@ resource "azurerm_sre_agent" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SreAgentResource) httpProxyOrigin(data acceptance.TestData, httpsURL, httpURL string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    application_insights {
+      disable_generated_rule = true
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_sre_agent" "test" {
+  name                = "acctest-sre-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  sandbox {
+    egress {
+      mode = "Limited"
+
+      http_proxy {
+        https_url = "%[3]s"
+        http_url  = "%[4]s"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, httpsURL, httpURL)
 }

@@ -18,61 +18,13 @@ resource "azurerm_resource_group" "example" {
   location = "Sweden Central"
 }
 
-resource "azurerm_user_assigned_identity" "example" {
-  name                = "example-user-assigned-identity"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_log_analytics_workspace" "example" {
-  name                = "example-log-analytics-workspace"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "PerGB2018"
-}
-
-resource "azurerm_application_insights" "example" {
-  name                = "example-application-insights"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  application_type    = "web"
-  workspace_id        = azurerm_log_analytics_workspace.example.id
-}
-
 resource "azurerm_sre_agent" "example" {
   name                = "example-sre-agent"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  upgrade_channel     = "Stable"
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.example.id]
-  }
-
-  action {
-    access_level              = "Low"
-    mode                      = "Review"
-    user_assigned_identity_id = azurerm_user_assigned_identity.example.id
-  }
-
-  application_insights {
-    application_id    = azurerm_application_insights.example.app_id
-    connection_string = azurerm_application_insights.example.connection_string
-  }
-
-  sandbox {
-    egress {
-      mode               = "Limited"
-      allowed_hosts      = ["*.example.com"]
-      allowed_registries = ["pypi"]
-    }
-
-    package {
-      name            = "requests"
-      package_manager = "pip"
-      version         = "2.32.5"
-    }
+    type = "SystemAssigned"
   }
 }
 ```
@@ -269,6 +221,8 @@ An Azure SRE Agent can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sre_agent.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.App/agents/agent1
 ```
+
+~> **Note:** When importing an Azure SRE Agent, `application_insights.connection_string` and `incident_management.connection_key` cannot be retrieved from the Azure API and must be specified in the configuration when using the corresponding integrations.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
