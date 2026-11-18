@@ -39,9 +39,24 @@ func (r Resource) Update() sdk.ResourceFunc {
 			}
 
 			param := *existing.Model
+			imageChildProperties := []string{
+				"display_name",
+				"msix_package_name",
+				"storage_share_file_id",
+				"register_at_log_on_enabled",
+				"state_enabled",
+			}
+			imageChildPropertyHasChanged := false
+
+			for _, imageChildProperty := range imageChildProperties {
+				if metadata.ResourceData.HasChange(imageChildProperty) {
+					imageChildPropertyHasChanged = true
+					break
+				}
+			}
 
 			// Update `param.Properties.Image` if any of the child properties has changed
-			if metadata.ResourceData.HasChanges("display_name", "msix_package_name", "storage_share_file_id", "register_at_log_on_enabled", "state_enabled") {
+			if imageChildPropertyHasChanged {
 				msixImageProperties, err := helpers.GetMsixImageProperties(ctx, metadata, model.HostPoolIds, model.StorageShareFileId, model.MsixPackageName)
 				if err != nil {
 					return fmt.Errorf("retrieving MSIX image properties: %+v", err)

@@ -37,8 +37,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"host_pool_ids": {
-			// `TypeSet` because order is not guaranteed
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
@@ -161,7 +160,7 @@ func (r Resource) CustomizeDiff() sdk.ResourceFunc {
 			oldHostPoolIds, newHostPoolIds := metadata.ResourceDiff.GetChange("host_pool_ids")
 
 			// If number of `host_pool_ids` elements has changed, actual elements will be updated incorrectly to be different from Terraform configurations
-			if oldHostPoolIds.(*pluginsdk.Set).Len() != newHostPoolIds.(*pluginsdk.Set).Len() {
+			if len(oldHostPoolIds.([]any)) != len(newHostPoolIds.([]any)) {
 				metadata.ResourceDiff.ForceNew("host_pool_ids")
 			}
 
