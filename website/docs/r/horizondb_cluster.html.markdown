@@ -94,17 +94,17 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** This block is required when `create_mode` is `PointInTimeRestore` and must be omitted when `create_mode` is `Create`.
+
+-> **Note:** HorizonDB can omit restore-source details and the restore timestamp from API responses. This resource preserves the existing `point_in_time_restore` values in Terraform state when those details are not returned.
+
 * `postgresql_version` - (Optional) The PostgreSQL major version. Possible values are `17` and `18`. Changing this forces a new resource to be created.
 
 ~> **Note:** `postgresql_version` is required when `create_mode` is `Create` and must be omitted when `create_mode` is `PointInTimeRestore`. For restored Clusters, the version is obtained from the source backup and exported by this resource.
 
 * `public_network_access_enabled` - (Optional) Whether `public network access` is enabled. Defaults to `false`.
-
-* `restore` - (Optional) A `restore` block as defined below. Changing this forces a new resource to be created.
-
-~> **Note:** This block is required when `create_mode` is `PointInTimeRestore` and must be omitted when `create_mode` is `Create`.
-
--> **Note:** HorizonDB can omit restore-source details and the restore timestamp from API responses. This resource preserves the existing `restore` values in Terraform state when those details are not returned.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -134,6 +134,22 @@ An `identity` block supports the following:
 
 ---
 
+A `point_in_time_restore` block supports the following:
+
+* `point_in_time_utc` - (Required) The restore timestamp in RFC3339 format.
+
+~> **Note:** For a same-region restore, HorizonDB uses the latest available backup at or before this timestamp. For a cross-region restore, the timestamp is required but ignored by the service, which uses the latest available geo-replicated backup.
+
+* `source_horizondb_cluster_id` - (Required) The ID of the source HorizonDB Cluster.
+
+* `source_location` - (Optional) The Azure Region of the source HorizonDB Cluster.
+
+~> **Note:** This is required for cross-region restores and optional for same-region restores. Cross-region restores require an eligible geo-replicated backup from the source Cluster.
+
+-> **Note:** Restoring a Cluster does not clone the source Pool or its child resources. A new Pool is created from the required `read_write_pool` block after restoration using the restored PostgreSQL version to select its default parameter group.
+
+---
+
 A `read_write_pool` block supports the following:
 
 * `compute` - (Required) A `compute` block as defined above.
@@ -149,22 +165,6 @@ A `read_write_pool` block supports the following:
 * `node_count` - (Required) The number of nodes allocated to the Pool.
 
 ~> **Note:** The node count must be between `1` and `16`. Zero nodes is not a supported configuration; stopping compute is a separate Azure operation.
-
----
-
-A `restore` block supports the following:
-
-* `point_in_time_utc` - (Required) The restore timestamp in RFC3339 format.
-
-~> **Note:** For a same-region restore, HorizonDB uses the latest available backup at or before this timestamp. For a cross-region restore, the timestamp is required but ignored by the service, which uses the latest available geo-replicated backup.
-
-* `source_horizondb_cluster_id` - (Required) The ID of the source HorizonDB Cluster.
-
-* `source_location` - (Optional) The Azure Region of the source HorizonDB Cluster.
-
-~> **Note:** This is required for cross-region restores and optional for same-region restores. Cross-region restores require an eligible geo-replicated backup from the source Cluster.
-
--> **Note:** Restoring a Cluster does not clone the source Pool or its child resources. A new Pool is created from the required `read_write_pool` block after restoration using the restored PostgreSQL version to select its default parameter group.
 
 ## Attributes Reference
 

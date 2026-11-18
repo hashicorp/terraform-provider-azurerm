@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -163,7 +164,22 @@ func (HorizondbFirewallRuleResource) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			if err := metadata.Client.HorizonDB.FirewallRulesClient.CreateOrReplaceThenPoll(ctx, *id, expandHorizondbFirewallRule(state)); err != nil {
+			client := metadata.Client.HorizonDB.FirewallRulesClient
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: firewall rule properties are missing", id)
+			}
+			payload := pointer.From(existing.Model)
+			if metadata.ResourceData.HasChange("start_ip_address") {
+				payload.Properties.StartIPAddress = state.StartIpAddress
+			}
+			if metadata.ResourceData.HasChange("end_ip_address") {
+				payload.Properties.EndIPAddress = state.EndIpAddress
+			}
+			if err := client.CreateOrReplaceThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil

@@ -44,7 +44,7 @@ resource "azurerm_horizondb_firewall_rule" "test" {
   start_ip_address  = "192.0.2.${count.index}"
   end_ip_address    = "192.0.2.${count.index}"
 }
-`, HorizondbClusterResource{}.withPool(data, "primary", 1, "Disabled"), data.RandomInteger)},
+`, HorizondbClusterResource{}.basic(data), data.RandomInteger)},
 			{
 				Query: true,
 				Config: `
