@@ -61,10 +61,6 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta any) error {
 		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
 	}
 
-	if d.HasChange("capture_description") {
-		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return err
 	}
