@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package horizondb_test
@@ -35,9 +35,11 @@ func TestAccHorizondbCluster_list(t *testing.T) {
 		checks = append(checks, querycheck.ExpectIdentity("azurerm_horizondb_cluster.list", identity))
 		resourceChecks = append(resourceChecks, querycheck.ExpectResourceKnownValues("azurerm_horizondb_cluster.list",
 			queryfilter.ByResourceIdentity(identity), []querycheck.KnownValueCheck{{
-				Path: tfjsonpath.New("postgresql_version"), KnownValue: knownvalue.StringExact("18"),
+				Path:       tfjsonpath.New("postgresql_version"),
+				KnownValue: knownvalue.StringExact("18"),
 			}, {
-				Path: tfjsonpath.New("read_write_pool").AtSliceIndex(0).AtMapKey("name"), KnownValue: knownvalue.StringExact("primary"),
+				Path:       tfjsonpath.New("read_write_pool").AtSliceIndex(0).AtMapKey("name"),
+				KnownValue: knownvalue.StringExact("primary"),
 			}, {
 				Path:       tfjsonpath.New("read_write_pool").AtSliceIndex(0).AtMapKey("id"),
 				KnownValue: knownvalue.StringExact(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-horizondb-%d/providers/Microsoft.HorizonDb/clusters/acctest-horizondb-%d-%d/pools/primary", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger, index)),

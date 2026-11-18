@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package horizondb_test
@@ -24,7 +24,10 @@ func TestAccHorizondbFirewallRule_basic(t *testing.T) {
 	resource := HorizondbFirewallRuleResource{}
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_firewall_rule", "test")
 	data.ResourceTest(t, resource, []acceptance.TestStep{
-		{Config: resource.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
+		{
+			Config: resource.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(resource),
+		},
 		data.ImportStep(),
 	})
 }
@@ -33,7 +36,10 @@ func TestAccHorizondbFirewallRule_complete(t *testing.T) {
 	resource := HorizondbFirewallRuleResource{}
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_firewall_rule", "test")
 	data.ResourceTest(t, resource, []acceptance.TestStep{
-		{Config: resource.complete(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
+		{
+			Config: resource.complete(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(resource),
+		},
 		data.ImportStep(),
 	})
 }
@@ -42,7 +48,10 @@ func TestAccHorizondbFirewallRule_requiresImport(t *testing.T) {
 	resource := HorizondbFirewallRuleResource{}
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_firewall_rule", "test")
 	data.ResourceTest(t, resource, []acceptance.TestStep{
-		{Config: resource.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
+		{
+			Config: resource.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(resource),
+		},
 		data.RequiresImportErrorStep(resource.requiresImport),
 	})
 }
@@ -51,11 +60,20 @@ func TestAccHorizondbFirewallRule_update(t *testing.T) {
 	resource := HorizondbFirewallRuleResource{}
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_firewall_rule", "test")
 	data.ResourceTest(t, resource, []acceptance.TestStep{
-		{Config: resource.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
+		{
+			Config: resource.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(resource),
+		},
 		data.ImportStep(),
-		{Config: resource.complete(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
+		{
+			Config: resource.complete(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(resource),
+		},
 		data.ImportStep(),
-		{Config: resource.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(resource)},
+		{
+			Config: resource.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(resource),
+		},
 		data.ImportStep(),
 	})
 }

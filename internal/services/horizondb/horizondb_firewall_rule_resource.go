@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package horizondb
@@ -55,7 +55,9 @@ func (HorizondbFirewallRuleResource) Identity() resourceids.ResourceId {
 func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type: pluginsdk.TypeString, Required: true, ForceNew: true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 80),
 				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]$`), "must contain only alphanumeric characters and hyphens and start and end with an alphanumeric character"),
@@ -68,8 +70,9 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsIPv4Address,
 		},
 		"start_ip_address": {
-			Type:     pluginsdk.TypeString,
-			Required: true, ValidateFunc: validation.IsIPv4Address,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.IsIPv4Address,
 		},
 	}
 }

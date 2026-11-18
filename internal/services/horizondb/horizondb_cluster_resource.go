@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package horizondb
@@ -735,12 +735,15 @@ func flattenHorizondbClusterPool(clusterId clusters.ClusterId, model *pools.Pool
 		return []HorizondbClusterPool{}, nil
 	}
 	return []HorizondbClusterPool{{
-		Name: id.PoolName, Id: id.ID(), NodeCount: props.NodeCount,
+		Name:                 id.PoolName,
+		Id:                   id.ID(),
+		NodeCount:            props.NodeCount,
 		HighAvailabilityMode: string(props.HighAvailability.Mode),
 		Compute: []HorizondbClusterPoolCompute{{
-			Type:      string(props.ComputeModel.Type),
-			Processor: string(props.ComputeModel.ComputeProcessor), Generation: props.ComputeModel.ComputeGeneration,
-			VCores: props.ComputeModel.VCores,
+			Type:       string(props.ComputeModel.Type),
+			Processor:  string(props.ComputeModel.ComputeProcessor),
+			Generation: props.ComputeModel.ComputeGeneration,
+			VCores:     props.ComputeModel.VCores,
 		}},
 	}}, nil
 }

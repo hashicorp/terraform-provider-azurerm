@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package horizondb_test
@@ -37,7 +37,10 @@ func TestAccHorizondbCluster_basic(t *testing.T) {
 		plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
 	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{Config: r.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		data.ImportStep("administrator_password"),
 		importPlan,
 	})
@@ -47,7 +50,10 @@ func TestAccHorizondbCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{Config: r.complete(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.complete(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		data.ImportStep("administrator_password"),
 	})
 }
@@ -56,7 +62,10 @@ func TestAccHorizondbCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{Config: r.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
@@ -65,11 +74,20 @@ func TestAccHorizondbCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{Config: r.settings(data, 7, false), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.settings(data, 7, false),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		data.ImportStep("administrator_password"),
-		{Config: r.complete(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.complete(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		data.ImportStep("administrator_password"),
-		{Config: r.resetSettings(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.resetSettings(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		data.ImportStep("administrator_password"),
 	})
 }
@@ -288,7 +306,10 @@ func TestAccHorizondbCluster_poolRename(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{Config: r.basic(data), Check: check.That(data.ResourceName).ExistsInAzure(r)},
+		{
+			Config: r.basic(data),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		},
 		{
 			Config: r.withPool(data, "renamed", 1, "Disabled"),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -307,8 +328,14 @@ func TestAccHorizondbCluster_poolInvalidHighAvailability(t *testing.T) {
 		nodes int
 		mode  string
 	}{
-		"singleNode":    {nodes: 1, mode: "ZoneRedundant"},
-		"multipleNodes": {nodes: 2, mode: "Disabled"},
+		"singleNode": {
+			nodes: 1,
+			mode:  "ZoneRedundant",
+		},
+		"multipleNodes": {
+			nodes: 2,
+			mode:  "Disabled",
+		},
 	}
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
