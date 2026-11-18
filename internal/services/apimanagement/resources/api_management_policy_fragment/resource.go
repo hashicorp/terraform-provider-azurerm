@@ -17,10 +17,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementPolicyFragmentCreate,
-		Read:   resourceApiManagementPolicyFragmentRead,
-		Update: resourceApiManagementPolicyFragmentUpdate,
-		Delete: resourceApiManagementPolicyFragmentDelete,
+		Description: "Manages an Api Management Policy Fragment.",
+		Create:      resourceApiManagementPolicyFragmentCreate,
+		Read:        resourceApiManagementPolicyFragmentRead,
+		Update:      resourceApiManagementPolicyFragmentUpdate,
+		Delete:      resourceApiManagementPolicyFragmentDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := policyfragment.ParsePolicyFragmentID(id)
 			return err

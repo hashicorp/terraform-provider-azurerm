@@ -21,12 +21,14 @@ func apiManagementApiSchemaSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"content_type": {
+			Description:  "The content type of the API Schema.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"value": {
+			Description:  "The JSON escaped string defining the document representing the Schema.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -40,6 +42,7 @@ func apiManagementApiSchemaSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"components": {
+			Description:      "Types definitions. Used for Swagger/OpenAPI v2/v3 schemas only.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
@@ -47,6 +50,7 @@ func apiManagementApiSchemaSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"definitions": {
+			Description:      "Types definitions. Used for Swagger/OpenAPI v1 schemas only.",
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,

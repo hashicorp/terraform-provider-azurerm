@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderAADB2CRead,
-		Update: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderAADB2CDelete,
+		Description: "Manages an API Management Azure AD B2C Identity Provider.",
+		Create:      resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
+		Read:        resourceArmApiManagementIdentityProviderAADB2CRead,
+		Update:      resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
+		Delete:      resourceArmApiManagementIdentityProviderAADB2CDelete,
 
 		Importer: helpers.IdentityProviderImportFunc(identityprovider.IdentityProviderTypeAadBTwoC),
 

@@ -20,24 +20,28 @@ func apiManagementUserSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"first_name": {
+			Description:  "The first name for this user.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"email": {
+			Description:  "The email address associated with this user.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"last_name": {
+			Description:  "The last name for this user.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"confirmation": {
+			Description:  "The kind of confirmation email which will be sent to this user.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
@@ -45,20 +49,23 @@ func apiManagementUserSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"note": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A note about this user.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"password": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Description: "The password associated with this user.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 		},
 
 		"state": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // azignore:AZS007 - pre-existing violation
+			Description: "The state of this user.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringInSlice([]string{
 				string(user.UserStateActive),
 				string(user.UserStateBlocked),

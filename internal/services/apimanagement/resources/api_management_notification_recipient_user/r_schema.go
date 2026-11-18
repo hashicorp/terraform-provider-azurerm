@@ -14,6 +14,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_management_id": {
+			Description:  "The ID of the API Management Service from which to create this Notification Recipient User.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -21,6 +22,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"notification_type": {
+			Description:  "The Notification Name to be received.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -28,6 +30,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"user_id": {
+			Description:  "The recipient user ID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

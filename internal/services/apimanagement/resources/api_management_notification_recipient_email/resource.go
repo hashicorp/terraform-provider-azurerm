@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_api_management_notification_recipient_email"
 }
 
+func (r Resource) Description() string {
+	return "Manages a API Management Notification Recipient Email."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return notificationrecipientemail.ValidateRecipientEmailID
 }

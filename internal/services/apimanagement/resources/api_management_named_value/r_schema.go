@@ -21,12 +21,14 @@ func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 		"api_management_name": schemaz.SchemaApiManagementName(),
 
 		"display_name": {
+			Description:  "The display name of this API Management Named Value.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ApiManagementNamedValueDisplayName,
 		},
 
 		"value_from_key_vault": {
+			Description:  "If specified, `secret` must also be set to `true`.",
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
 			MaxItems:     1,
@@ -34,11 +36,13 @@ func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"secret_id": {
+						Description:  "The resource ID of the Key Vault Secret.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					},
 					"identity_client_id": {
+						Description:  "The client ID of User Assigned Identity, for the API Management Service, which will be used to access the key vault secret. The System Assigned Identity will be used in absence.",
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsUUID,
@@ -49,6 +53,7 @@ func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"value": {
+			Description:  "The value of this API Management Named Value.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -57,14 +62,16 @@ func apiManagementNamedValueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"secret": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Specifies whether the API Management Named Value is secret.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"tags": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Description: "A list of tags to be applied to the API Management Named Value.",
+			Type:        pluginsdk.TypeList,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

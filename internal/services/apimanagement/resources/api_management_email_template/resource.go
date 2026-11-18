@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementEmailTemplateCreateUpdate,
-		Read:   resourceApiManagementEmailTemplateRead,
-		Update: resourceApiManagementEmailTemplateCreateUpdate,
-		Delete: resourceApiManagementEmailTemplateDelete,
+		Description: "Manages a API Management Email Template.",
+		Create:      resourceApiManagementEmailTemplateCreateUpdate,
+		Read:        resourceApiManagementEmailTemplateRead,
+		Update:      resourceApiManagementEmailTemplateCreateUpdate,
+		Delete:      resourceApiManagementEmailTemplateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := emailtemplates.ParseTemplateIDInsensitively(id)
 			return err

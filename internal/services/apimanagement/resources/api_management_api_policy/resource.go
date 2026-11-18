@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementAPIPolicyCreateUpdate,
-		Read:   resourceApiManagementAPIPolicyRead,
-		Update: resourceApiManagementAPIPolicyCreateUpdate,
-		Delete: resourceApiManagementAPIPolicyDelete,
+		Description: "Manages an API Management API Policy",
+		Create:      resourceApiManagementAPIPolicyCreateUpdate,
+		Read:        resourceApiManagementAPIPolicyRead,
+		Update:      resourceApiManagementAPIPolicyCreateUpdate,
+		Delete:      resourceApiManagementAPIPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apipolicy.ParseApiID(id)
 			return err

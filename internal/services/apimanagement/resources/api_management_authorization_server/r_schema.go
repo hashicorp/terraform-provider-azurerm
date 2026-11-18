@@ -20,14 +20,16 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"authorization_endpoint": {
+			Description:  "The OAUTH Authorization Endpoint.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"authorization_methods": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "The HTTP Verbs supported by the Authorization Endpoint.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForAuthorizationMethod(), false),
@@ -36,26 +38,30 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_id": {
+			Description:  "The Client/App ID registered with this Authorization Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"client_registration_endpoint": {
+			Description:  "The URI of page where Client/App Registration is performed for this Authorization Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"display_name": {
+			Description:  "The user-friendly name of this Authorization Server.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"grant_types": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
+			Description: "Form of Authorization Grants required when requesting an Access Token.",
+			Type:        pluginsdk.TypeSet,
+			Required:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForGrantType(), false),
@@ -65,8 +71,9 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 
 		// Optional
 		"bearer_token_sending_methods": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "The mechanism by which Access Tokens are passed to the API.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForBearerTokenSendingMethod(), false),
@@ -75,8 +82,9 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_authentication_method": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Description: "The Authentication Methods supported by the Token endpoint of this Authorization Server..",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(authorizationserver.PossibleValuesForClientAuthenticationMethod(), false),
@@ -85,9 +93,10 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"client_secret": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Description: "The Client/App Secret registered with this Authorization Server.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 		},
 
 		"default_scope": {
@@ -96,24 +105,28 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description of the Authorization Server, which may contain HTML formatting tags.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"resource_owner_username": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The username associated with the Resource Owner.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"resource_owner_password": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Description: "The password associated with the Resource Owner.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Sensitive:   true,
 		},
 
 		"support_state": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Description: "Does this Authorization Server support State? If this is set to `true` the client may use the state parameter to raise protocol security.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
 		},
 
 		"token_body_parameter": {
@@ -122,11 +135,13 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The Name of the Parameter.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"value": {
+						Description:  "The Value of the Parameter.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -136,8 +151,9 @@ func apiManagementAuthorizationServerSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"token_endpoint": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The OAUTH Token Endpoint.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

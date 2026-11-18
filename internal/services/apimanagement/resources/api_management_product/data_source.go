@@ -19,7 +19,8 @@ import (
 
 func RegisterDataSource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Read: dataSourceApiManagementProductRead,
+		Description: "Use this data source to access information about an existing API Management Product.",
+		Read:        dataSourceApiManagementProductRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -33,38 +34,45 @@ func RegisterDataSource() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"display_name": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The Display Name for this API Management Product.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subscription_required": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is a Subscription required to access API's included in this Product?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"approval_required": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Do subscribers need to be approved prior to being able to use the Product?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"published": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Description: "Is this Product Published?",
+				Type:        pluginsdk.TypeBool,
+				Computed:    true,
 			},
 
 			"description": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "The description of this Product, which may include HTML formatting tags.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"terms": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Description: "Any Terms and Conditions for this Product, which must be accepted by Developers before they can begin the Subscription process.",
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
 			},
 
 			"subscriptions_limit": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
+				Description: "The number of subscriptions a user can have to this Product at the same time.",
+				Type:        pluginsdk.TypeInt,
+				Computed:    true,
 			},
 		},
 	}
