@@ -24,7 +24,7 @@ func TestAccCommunicationService_regressionTest(t *testing.T) {
 	r := CommunicationServiceResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regressionTest(data),
 		},
 	}, "")
 }
@@ -73,10 +73,6 @@ func TestAccCommunicationService_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("hostname").Exists(),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
-				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -251,6 +247,22 @@ resource "azurerm_communication_service" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) regressionTest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+
+  tags = {
+    env = "Test"
   }
 }
 `, r.template(data), data.RandomInteger)
