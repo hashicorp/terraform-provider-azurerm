@@ -73,6 +73,7 @@ type LinuxFunctionAppModel struct {
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
 	EndToEndTLSEncryptionEnabled       bool                                       `tfschema:"end_to_end_tls_encryption_enabled"`
+	VnetContentShareEnabled            bool                                       `tfschema:"website_content_share_over_vnet_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -306,6 +307,13 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
+		"website_content_share_over_vnet_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the traffic between the function app and the storage account be routed through the virtual network when Apps running in a Premium plan use a file share to store content? Defaults to `false`.",
+		},
+
 		"vnet_image_pull_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
@@ -511,14 +519,15 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				if !functionApp.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
+					contentShareOverVnetEnabledSiteSetting := functionApp.VnetContentShareEnabled
 					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
 					if _, contentShareConnectionStringPresent := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 
 					if !contentSharePresent {
-						if contentOverVnetEnabled {
-							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
+						if contentOverVnetEnabled || contentShareOverVnetEnabledSiteSetting {
+							return fmt.Errorf("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}
@@ -554,6 +563,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					VnetImagePullEnabled:      pointer.To(functionApp.VnetImagePullEnabled),
 					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
 					EndToEndEncryptionEnabled: pointer.To(functionApp.EndToEndTLSEncryptionEnabled),
+					VnetContentShareEnabled:   pointer.To(functionApp.VnetContentShareEnabled),
 				},
 			}
 
@@ -791,6 +801,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 					state.EndToEndTLSEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
@@ -1082,6 +1093,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("website_content_share_over_vnet_enabled") {
+				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
