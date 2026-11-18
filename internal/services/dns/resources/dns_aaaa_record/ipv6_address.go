@@ -1,0 +1,17 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package dns_aaaa_record
+
+import "net"
+
+func NormalizeIPv6Address(ipv6 any) string {
+	if ipv6 == nil || ipv6.(string) == "" {
+		return ""
+	}
+	r := net.ParseIP(ipv6.(string))
+	if r == nil {
+		return ""
+	}
+	return r.String()
+}

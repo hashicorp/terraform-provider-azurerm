@@ -130,6 +130,7 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtestsapis.We
 		CertificateRemainingLifetime: pointer.From(rules.SSLCertRemainingLifetimeCheck),
 		SSLCheck:                     pointer.From(rules.SSLCheck),
 		Content:                      flattenApplicationInsightsStandardWebTestContentValidations(rules.ContentValidation),
+		IgnoreStatusCode:             pointer.From(rules.IgnoreHTTPStatusCode),
 	}
 
 	return []ValidationRuleModel{result}

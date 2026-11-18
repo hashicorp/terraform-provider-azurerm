@@ -22,6 +22,8 @@ import (
 
 type FunctionAppConnectorResource struct{}
 
+var _ sdk.ResourceWithUpdate = FunctionAppConnectorResource{}
+
 type FunctionAppConnectorResourceModel struct {
 	Name             string             `tfschema:"name"`
 	FunctionAppId    string             `tfschema:"function_app_id"`

@@ -167,13 +167,12 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+	parameters.Properties.Sampling = nil
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "sampling_percentage") {
 		parameters.Properties.Sampling = &diagnostic.SamplingSettings{
 			SamplingType: pointer.To(diagnostic.SamplingTypeFixed),
-			Percentage:   pointer.To(samplingPercentage.(float64)),
+			Percentage:   pointer.To(d.Get("sampling_percentage").(float64)),
 		}
-	} else {
-		parameters.Properties.Sampling = nil
 	}
 
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
