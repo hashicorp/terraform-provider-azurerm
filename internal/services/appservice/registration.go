@@ -32,6 +32,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		AppServiceEnvironmentV3DataSource{},
 		AppServiceSourceControlTokenDataSource{},
+		FunctionAppFunctionKeysDataSource{},
 		LinuxFunctionAppDataSource{},
 		LinuxWebAppDataSource{},
 		ServicePlanDataSource{},
@@ -83,7 +84,9 @@ func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
 }
 
 func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
-	return []func() ephemeral.EphemeralResource{}
+	return []func() ephemeral.EphemeralResource{
+		NewFunctionAppFunctionKeysEphemeralResource,
+	}
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
