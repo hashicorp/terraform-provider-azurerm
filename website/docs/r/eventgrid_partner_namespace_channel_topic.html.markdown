@@ -81,7 +81,7 @@ resource "azurerm_eventgrid_partner_namespace_channel_topic" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Channel. Must be between 3 and 50 characters and contain only letters, numbers and hyphens. The name must be unique within the Azure region. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Channel. The name must be unique within the Azure region. Changing this forces a new resource to be created.
 
 * `partner_namespace_id` - (Required) The ID of the Event Grid Partner Namespace in which to create the Channel. Changing this forces a new resource to be created.
 
@@ -97,11 +97,11 @@ An `event_type` block supports the following:
 
 * `display_name` - (Required) A non-empty display name for the event type.
 
-* `name` - (Required) The name of the event type, for example `Contoso.OrderCreated`. Must be between 1 and 128 characters. Names must be unique within the Channel.
+* `name` - (Required) The name of the event type, for example `Contoso.OrderCreated`. Names must be unique within the Channel.
 
 * `data_schema_url` - (Optional) An HTTP or HTTPS URL describing the event's data schema.
 
-* `description` - (Optional) A description of the event type. Must be between 1 and 256 characters.
+* `description` - (Optional) A description of the event type.
 
 * `documentation_url` - (Optional) An HTTP or HTTPS URL for the event type's documentation.
 
@@ -109,7 +109,7 @@ An `event_type` block supports the following:
 
 A `partner_topic` block supports the following:
 
-* `name` - (Required) The name of the associated Partner Topic. Must be between 3 and 50 characters and contain only letters, numbers and hyphens. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the associated Partner Topic. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the subscriber's existing Resource Group in which the Partner Topic will be created. Changing this forces a new resource to be created.
 

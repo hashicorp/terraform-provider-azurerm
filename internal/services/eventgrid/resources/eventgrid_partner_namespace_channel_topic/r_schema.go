@@ -27,7 +27,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"must be between 3 and 50 characters and contain only letters, numbers and hyphens",
 			),
 		},
+
 		"partner_namespace_id": commonschema.ResourceIDReferenceRequiredForceNew(&channels.PartnerNamespaceId{}),
+
 		"partner_topic": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -43,13 +45,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 							"must be between 3 and 50 characters and contain only letters, numbers and hyphens",
 						),
 					},
+
 					"resource_group_name": commonschema.ResourceGroupName(),
+
 					"source": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"subscription_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -59,6 +64,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
 		"event_type": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -69,6 +75,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringLenBetween(1, 128),
 					},
+
 					"display_name": {
 						Type: pluginsdk.TypeString,
 						// Optional in spec, but API will return 400 "DisplayName is null or empty" if not provided
@@ -76,16 +83,19 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
 					"data_schema_url": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
+
 					"description": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringLenBetween(1, 256),
 					},
+
 					"documentation_url": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -106,6 +116,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		// Property is writable at / after creation. Maximum value and default if not specified is 7 days from
 		// creation. Designing this as a read-only: after activation, this property is no longer returned by the
 		// API, creating a potentially confusing plan diff.
@@ -113,6 +124,7 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"readiness_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

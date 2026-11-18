@@ -34,7 +34,7 @@ func (r Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *id)
 			}
 			props := existing.Model.Properties
-			if props.ChannelType == nil || *props.ChannelType != channels.ChannelTypePartnerTopic || props.PartnerTopicInfo == nil {
+			if pointer.From(props.ChannelType) != channels.ChannelTypePartnerTopic || props.PartnerTopicInfo == nil {
 				return fmt.Errorf("%s is not a Partner Topic channel", *id)
 			}
 			if metadata.ResourceData.HasChange("event_type") {
