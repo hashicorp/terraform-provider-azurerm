@@ -138,12 +138,12 @@ func TestAccSreAgent_invalidIdentity(t *testing.T) {
 		{
 			Config:      r.unassignedActionIdentity(data),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("action.user_assigned_identity_id"),
+			ExpectError: regexp.MustCompile("`action\\.user_assigned_identity_id` must be included in `identity\\.identity_ids`"),
 		},
 		{
 			Config:      r.unassignedKnowledgeIdentity(data),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("knowledge_graph.user_assigned_identity_id"),
+			ExpectError: regexp.MustCompile("`knowledge_graph\\.user_assigned_identity_id` must be included in `identity\\.identity_ids`"),
 		},
 	})
 }
@@ -154,22 +154,22 @@ func TestAccSreAgent_httpProxyOrigin(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://other.example.invalid:8080"),
+			Config:      r.httpProxyOrigin(data, "http://other.example.invalid:8080"),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("`sandbox.egress.http_proxy.http_url` must use the same origin"),
+			ExpectError: regexp.MustCompile("`sandbox\\.egress\\.http_proxy\\.http_url` must use the same origin"),
 		},
 		{
-			Config:      r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://proxy.example.invalid:8081"),
+			Config:      r.httpProxyOrigin(data, "http://proxy.example.invalid:8081"),
 			PlanOnly:    true,
-			ExpectError: regexp.MustCompile("`sandbox.egress.http_proxy.http_url` must use the same origin"),
+			ExpectError: regexp.MustCompile("`sandbox\\.egress\\.http_proxy\\.http_url` must use the same origin"),
 		},
 		{
-			Config:             r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://proxy.example.invalid:8080/"),
+			Config:             r.httpProxyOrigin(data, "http://proxy.example.invalid:8080/"),
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: true,
 		},
 		{
-			Config:             r.httpProxyOrigin(data, "http://proxy.example.invalid:8080", "http://PROXY.example.invalid:8080"),
+			Config:             r.httpProxyOrigin(data, "http://PROXY.example.invalid:8080"),
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: true,
 		},
@@ -677,7 +677,7 @@ resource "azurerm_sre_agent" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SreAgentResource) httpProxyOrigin(data acceptance.TestData, httpsURL, httpURL string) string {
+func (r SreAgentResource) httpProxyOrigin(data acceptance.TestData, httpURL string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -703,11 +703,11 @@ resource "azurerm_sre_agent" "test" {
       mode = "Limited"
 
       http_proxy {
-        https_url = "%[3]s"
-        http_url  = "%[4]s"
+        https_url = "http://proxy.example.invalid:8080"
+        http_url  = "%[3]s"
       }
     }
   }
 }
-`, r.template(data), data.RandomInteger, httpsURL, httpURL)
+`, r.template(data), data.RandomInteger, httpURL)
 }
