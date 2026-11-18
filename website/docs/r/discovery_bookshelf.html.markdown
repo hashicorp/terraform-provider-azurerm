@@ -147,5 +147,3 @@ terraform import azurerm_discovery_bookshelf.example /subscriptions/12345678-123
 This resource uses the following Azure API Providers:
 
 * `Microsoft.Discovery` - 2026-06-01
-
-* `Microsoft.ManagedIdentity` - 2024-11-30
