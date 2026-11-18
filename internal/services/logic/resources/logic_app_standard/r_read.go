@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2025-05-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 )
@@ -68,10 +69,17 @@ func (r Resource) Read() sdk.ResourceFunc {
 					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
-					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
 					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(kvRefId, "SystemAssigned") {
 						state.KeyvaultReferenceIdentityId = kvRefId
+					}
+					if outboundVnet := props.OutboundVnetRouting; outboundVnet != nil {
+						if outboundVnet.ContentShareTraffic != nil {
+							state.VNETContentShareEnabled = pointer.From(outboundVnet.ContentShareTraffic)
+						}
+						if outboundVnet.ApplicationTraffic != nil {
+							state.VNETApplicationTrafficEnabled = pointer.From(outboundVnet.ApplicationTraffic)
+						}
 					}
 					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 				}
@@ -210,7 +218,9 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 
 	result.DotnetFrameworkVersion = pointer.From(input.NetFrameworkVersion)
 
-	result.VNETRouteAllEnabled = pointer.From(input.VnetRouteAllEnabled)
+	if !features.SixPointOh() {
+		result.VNETRouteAllEnabled = pointer.From(input.VnetRouteAllEnabled)
+	}
 
 	result.IpRestrictionDefaultAction = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
 

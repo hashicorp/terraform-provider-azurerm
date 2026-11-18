@@ -117,9 +117,15 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Should application traffic be routed through the virtual network. Defaults to `false`.
+
 * `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
 
 * `identity` - (Optional) A `identity` block as defined below.
+
+* `site_update_strategy` - (Optional) The strategy used to apply site updates to the Function App. Possible values are `Recreate` and `RollingUpdate`. Defaults to `Recreate`.
+
+~> **Note:** `RollingUpdate` creates a temporary deployment slot, applies the configuration changes to it, and then swaps it with production. This allows zero-downtime updates but may cause issues with certain configuration changes. `Recreate` applies changes directly to production and may cause downtime.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
@@ -665,8 +671,6 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Linux Web App Linux Function App use a 32-bit worker. Defaults to `false`.
 
-* `vnet_route_all_enabled` - (Optional) Should the Linux Function App route all traffic through the virtual network. Defaults to `false`.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux Function App.
@@ -752,4 +756,4 @@ terraform import azurerm_function_app_flex_consumption.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2025-05-01, 2023-01-01

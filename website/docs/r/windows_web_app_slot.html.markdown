@@ -108,6 +108,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Web App Slot.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
+
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
 
 * `virtual_network_image_pull_enabled` - (Optional) Whether traffic for the image pull should be routed over the virtual network. Defaults to `false`.
@@ -774,8 +776,6 @@ A `site_config` block supports the following:
 
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
-
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Windows App Service Slot.
@@ -951,4 +951,4 @@ terraform import azurerm_windows_web_app_slot.example /subscriptions/12345678-12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01
+* `Microsoft.Web` - 2025-05-01

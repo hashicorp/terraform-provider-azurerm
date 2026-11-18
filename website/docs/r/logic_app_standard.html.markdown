@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `version` - (Optional) The runtime version associated with the Logic App. Defaults to `~4`.
 
+* `virtual_network_application_traffic_enabled` - (Optional) Whether application traffic is routed through the virtual network. Defaults to `false`.
+
 * `virtual_network_subnet_id` - (Optional) The subnet ID which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously.
@@ -379,4 +381,4 @@ terraform import azurerm_logic_app_standard.logicapp1 /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web` - 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2025-05-01, 2023-01-01
