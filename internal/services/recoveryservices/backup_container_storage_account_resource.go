@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -62,7 +63,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	opStatusClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	storageAccountID := d.Get("storage_account_id").(string)
@@ -96,25 +97,8 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 		},
 	}
 
-	resp, err := client.Register(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("registering %s: %+v", id, err)
-	}
-
-	locationURL, err := resp.HttpResponse.Location() // Operation ID found in the Location header
-	if locationURL == nil || err != nil {
-		return fmt.Errorf("unable to determine operation URL for %s: Location header missing or empty", id)
-	}
-
-	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
-
-	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
-	if err != nil {
-		return err
-	}
-
-	operationID := parsedLocation.Path["operationResults"]
-	if err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, id.VaultName, id.ResourceGroupName, operationID, d); err != nil {
+	poller := custompollers.NewStorageContainerRegistrationPoller(client, opStatusClient, id, parameters, d.Timeout(pluginsdk.TimeoutCreate))
+	if err := poller.WaitForCompletion(ctx); err != nil {
 		return err
 	}
 
