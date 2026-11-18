@@ -33,6 +33,9 @@ type resourceBase interface {
 	// that's a story for another day.
 	resourceWithPluginSdkSchema
 
+	// Description returns the description of this resource
+	// Description() string
+
 	// ModelObject is an instance of the object the Schema is decoded/encoded into
 	ModelObject() any
 

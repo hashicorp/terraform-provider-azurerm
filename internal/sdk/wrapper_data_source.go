@@ -49,6 +49,7 @@ func (dw *DataSourceWrapper) DataSource() (*schema.Resource, error) {
 	}
 
 	resource := schema.Resource{
+		// Description: dw.dataSource.Description(),
 		Schema: *resourceSchema,
 		ReadContext: dw.diagnosticsWrapper(func(ctx context.Context, d *schema.ResourceData, meta any) error {
 			metaData := runArgs(d, meta, dw.logger)
