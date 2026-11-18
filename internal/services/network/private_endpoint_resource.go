@@ -33,6 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/edgezones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -384,7 +385,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta any) error {
 
 	parameters := privateendpoints.PrivateEndpoint{
 		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
-		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Properties: &privateendpoints.PrivateEndpointProperties{
 			PrivateLinkServiceConnections:       privateLinkServiceConnections,
 			ManualPrivateLinkServiceConnections: manualPrivateLinkServiceConnections,
@@ -568,7 +569,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta any) error {
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := privateendpoints.PrivateEndpoint{
 		Location:         pointer.To(location),
-		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
+		ExtendedLocation: edgezones.Expand(d.Get("edge_zone").(string)),
 		Properties: &privateendpoints.PrivateEndpointProperties{
 			ApplicationSecurityGroups:           applicationSecurityGroupAssociation,
 			PrivateLinkServiceConnections:       privateLinkServiceConnections,
@@ -704,7 +705,7 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 
 	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+		d.Set("edge_zone", edgezones.Flatten(model.ExtendedLocation))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("custom_dns_configs", flattenCustomDnsConfigs(props.CustomDnsConfigs)); err != nil {
