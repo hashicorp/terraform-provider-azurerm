@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -597,7 +598,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta any) er
 		}
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := azuresdkhacks.DeleteVaultThenPoll(ctx, client, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
