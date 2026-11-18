@@ -395,25 +395,32 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("updating backup retention for %s: %+v", id, err)
 					}
 				}
+				// Public network access must also be changed separately from other cluster settings.
+				if metadata.ResourceData.HasChange("public_network_access_enabled") {
+					if payload.Properties.Network == nil {
+						payload.Properties.Network = &clusters.Network{}
+					}
+					payload.Properties.Network.PublicAccess = pointer.To(horizondbPublicNetworkAccess(state.PublicNetworkAccessEnabled))
+					if err := client.CreateOrReplaceThenPoll(ctx, *id, payload); err != nil {
+						return fmt.Errorf("updating public network access for %s: %+v", id, err)
+					}
+				}
+				// Identity must also be changed separately from other cluster settings.
 				if metadata.ResourceData.HasChange("identity") {
 					expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
 					if err != nil {
 						return fmt.Errorf("expanding `identity`: %+v", err)
 					}
 					payload.Identity = expandedIdentity
+					if err := client.CreateOrReplaceThenPoll(ctx, *id, payload); err != nil {
+						return fmt.Errorf("updating identity for %s: %+v", id, err)
+					}
 				}
+				// Tags must also be changed separately from other cluster settings.
 				if metadata.ResourceData.HasChange("tags") {
 					payload.Tags = pointer.To(state.Tags)
-				}
-				if metadata.ResourceData.HasChange("public_network_access_enabled") {
-					if payload.Properties.Network == nil {
-						payload.Properties.Network = &clusters.Network{}
-					}
-					payload.Properties.Network.PublicAccess = pointer.To(horizondbPublicNetworkAccess(state.PublicNetworkAccessEnabled))
-				}
-				if metadata.ResourceData.HasChanges("identity", "tags", "public_network_access_enabled") {
 					if err := client.CreateOrReplaceThenPoll(ctx, *id, payload); err != nil {
-						return fmt.Errorf("updating %s: %+v", id, err)
+						return fmt.Errorf("updating tags for %s: %+v", id, err)
 					}
 				}
 			}
