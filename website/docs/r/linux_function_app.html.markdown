@@ -53,6 +53,73 @@ resource "azurerm_linux_function_app" "example" {
 }
 ```
 
+### Container Apps Environment
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "linuxfunctionappsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_container_app_environment" "example" {
+  name                = "example-container-app-environment"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_linux_function_app" "example" {
+  name                         = "example-linux-function-app"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  container_app_environment_id = azurerm_container_app_environment.example.id
+
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+
+  dapr {
+    app_id = "example-linux-function-app"
+  }
+
+  site_config {
+    application_stack {
+      docker {
+        registry_url = "https://mcr.microsoft.com"
+        image_name   = "azure-functions/dotnet"
+        image_tag    = "4-dotnet8"
+      }
+    }
+  }
+}
+```
+
+## Container App Environment Hosting
+
+When `container_app_environment_id` is specified, the Function App runs as a container in the Container App Environment rather than on an App Service Plan, and the following apply:
+
+* The `name` must be at most 32 characters, start with a lowercase letter, end with a lowercase letter or digit, and contain only lowercase letters, digits and single hyphens.
+
+* Only the following `site_config` settings can be configured: `application_stack` (`docker` only), `application_insights_key`, `application_insights_connection_string`, `container_registry_use_managed_identity`, `container_registry_managed_identity_client_id`, `elastic_instance_minimum` (the minimum number of replicas) and `app_scale_limit` (the maximum number of replicas).
+
+* `public_network_access_enabled`, `enabled`, `https_only`, `client_certificate_enabled`, `client_certificate_mode`, `client_certificate_exclusion_paths`, `daily_memory_time_quota`, `vnet_image_pull_enabled`, `virtual_network_backup_restore_enabled`, `virtual_network_subnet_id`, `ftp_publish_basic_authentication_enabled` and `webdeploy_publish_basic_authentication_enabled` cannot be configured. Networking, including public network access, is managed on the Container App Environment.
+
+* `auth_settings`, `auth_settings_v2`, `backup`, `connection_string`, `content_share_force_disabled`, `end_to_end_tls_encryption_enabled`, `sticky_settings`, `storage_account` and `zip_deploy_file` are not supported. Use `app_settings` for application connection strings.
+
+* Deployment slots and publishing credentials are not available.
+
+* Dapr can be enabled with the `dapr` block, which is only available in this hosting mode.
+
+* Azure does not return `enabled`, `client_certificate_mode`, `public_network_access_enabled`, `ftp_publish_basic_authentication_enabled` or `webdeploy_publish_basic_authentication_enabled` for these Function Apps, so they are always set to their default values (`true`, `Optional`, `true`, `true` and `true` respectively) in the state and do not reflect changes made outside of Terraform.
+
+* Azure does not return `ftps_state`, `load_balancing_mode`, `managed_pipeline_mode`, `minimum_tls_version`, `scm_minimum_tls_version`, `ip_restriction_default_action` or `scm_ip_restriction_default_action` in `site_config` for these Function Apps, so they are always set to their default values (`Disabled`, `LeastRequests`, `Integrated`, `1.2`, `1.2`, `Allow` and `Allow` respectively) in the state and do not reflect changes made outside of Terraform.
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -63,7 +130,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
 
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+* `container_app_environment_id` - (Optional) The ID of the Container App Environment within which to create this Function App. Changing this forces a new Linux Function App to be created.
+
+-> **Note:** A `docker` block must be specified in `site_config.application_stack` when `container_app_environment_id` is specified.
+
+* `service_plan_id` - (Optional) The ID of the App Service Plan within which to create this Function App.
+
+-> **Note:** Exactly one of `container_app_environment_id` or `service_plan_id` must be specified.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
@@ -102,6 +175,8 @@ The following arguments are supported:
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
+
+* `dapr` - (Optional) A `dapr` block as defined below. Can only be specified when `container_app_environment_id` is specified. Removing this block disables Dapr.
 
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
 
@@ -504,6 +579,24 @@ A `cors` block supports the following:
 * `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
+
+---
+
+A `dapr` block supports the following:
+
+* `app_id` - (Required) The Dapr Application Identifier.
+
+* `app_port` - (Optional) The port which the application is listening on.
+
+~> **Note:** The Dapr sidecar waits for the application to respond on this port before it starts. Only specify `app_port` when the Function App has a Dapr trigger that needs to receive requests from the sidecar. Bindings and output do not need it.
+
+* `api_logging_enabled` - (Optional) Should API logging be enabled for the Dapr sidecar? Defaults to `false`.
+
+* `http_max_request_size_in_mb` - (Optional) The maximum size of the request body for the Dapr HTTP servers, in MB. When not specified, Dapr uses its default of `4` MB.
+
+* `http_read_buffer_size_in_kb` - (Optional) The maximum size of the HTTP header read buffer for the Dapr sidecar, in KB. Possible values are between `1` and `65`. When not specified, Dapr uses its default of `65` KB.
+
+* `log_level` - (Optional) The log level for the Dapr sidecar. Possible values are `debug`, `error`, `info` and `warn`. Defaults to `info`.
 
 ---
 
