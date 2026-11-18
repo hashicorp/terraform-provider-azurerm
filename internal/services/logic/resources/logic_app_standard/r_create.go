@@ -421,41 +421,30 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]any,
 		n, v := pointer.From(i.Name), pointer.From(i.Value)
 		eMap[n] = v
 	}
-	// Existing ASE apps may use Azure Files; preserve their content storage.
-	_, hasContentStorage := eMap[contentFileConnStringAppSettingName]
 
 	oMap := f(old)
 	cMap := f(new)
 
-	if metadata.ResourceData.HasChange("storage_key_vault_secret_id") && metadata.ResourceData.Get("storage_key_vault_secret_id").(string) != "" {
-		kvRef := fmt.Sprintf(helpers.StorageStringFmtKV, metadata.ResourceData.Get("storage_key_vault_secret_id").(string))
-		eMap[storageAppSettingName] = kvRef
-		if !isASE || hasContentStorage {
-			eMap[contentFileConnStringAppSettingName] = kvRef
-		}
-	} else if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
-		accountName := metadata.ResourceData.Get("storage_account_name").(string)
-		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
-		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
-
-		conn := fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
-		eMap[storageAppSettingName] = conn
-		if !isASE || hasContentStorage {
-			eMap[contentFileConnStringAppSettingName] = conn
-		}
-	}
-
-	if metadata.ResourceData.HasChange("storage_account_share_name") {
-		n := metadata.ResourceData.Get("storage_account_share_name").(string)
-
-		if n != "" {
-			eMap[contentShareAppSettingName] = n
-			if isASE && !hasContentStorage {
-				eMap[contentFileConnStringAppSettingName] = eMap[storageAppSettingName]
-			}
+	if metadata.ResourceData.HasChanges("storage_key_vault_secret_id", "storage_account_name", "storage_account_access_key", "storage_account_share_name") {
+		var storageConnection string
+		if kvSecretId := metadata.ResourceData.Get("storage_key_vault_secret_id").(string); kvSecretId != "" {
+			storageConnection = fmt.Sprintf(helpers.StorageStringFmtKV, kvSecretId)
 		} else {
-			name := metadata.ResourceData.Get("name").(string)
-			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
+			accountName := metadata.ResourceData.Get("storage_account_name").(string)
+			accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
+			suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			storageConnection = fmt.Sprintf(helpers.StorageStringFmt, accountName, accountAccessKey, *suffix)
+		}
+		eMap[storageAppSettingName] = storageConnection
+
+		// Existing ASE apps with content storage keep their Computed storage_account_share_name in state.
+		contentShare := metadata.ResourceData.Get("storage_account_share_name").(string)
+		if !isASE || contentShare != "" {
+			if contentShare == "" {
+				contentShare = strings.ToLower(metadata.ResourceData.Get("name").(string)) + "-content"
+			}
+			eMap[contentShareAppSettingName] = contentShare
+			eMap[contentFileConnStringAppSettingName] = storageConnection
 		}
 	}
 
