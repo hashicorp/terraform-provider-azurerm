@@ -42,6 +42,7 @@ func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) 
 func TestAccDatadogMonitorSSO_regressionTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
+	r.populateValuesFromEnvironment(t)
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
