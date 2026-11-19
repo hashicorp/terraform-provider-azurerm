@@ -65,6 +65,11 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+
+		"validation_status": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -78,11 +83,15 @@ func (Resource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			oldCode, newCode := rd.GetChange("code_content_base64")
-			hadCode := oldCode.(string) != ""
+			// `validation_status` is only returned by the API once code has been deployed to the version, which also
+			// covers code deployed outside of Terraform (e.g. before the version was imported), since the deployed code
+			// itself can't be read back in a form which can be compared with the configuration
+			hadCode := oldCode.(string) != "" || rd.Get("validation_status").(string) != ""
 
 			// the API can't remove deployed code from a version, and can't redeploy the code of the
-			// default version once it has been deployed, so a new version needs to be created instead
-			codeRemoved := hadCode && newCode.(string) == ""
+			// default version once it has been deployed, so a new version needs to be created instead.
+			// a value which isn't known until apply is reported as empty, so it isn't treated as removing the code
+			codeRemoved := hadCode && rd.NewValueKnown("code_content_base64") && newCode.(string) == ""
 			defaultVersionRedeployed := hadCode && rd.Get("default_version_enabled").(bool)
 
 			if codeRemoved || defaultVersionRedeployed {

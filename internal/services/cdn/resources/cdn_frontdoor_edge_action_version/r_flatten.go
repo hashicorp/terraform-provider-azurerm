@@ -4,6 +4,7 @@
 package cdn_frontdoor_edge_action_version
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactionversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -24,6 +25,7 @@ func (Resource) flatten(metadata sdk.ResourceMetaData, id *edgeactionversions.Ve
 		if props := model.Properties; props != nil {
 			state.DeploymentType = string(props.DeploymentType)
 			state.DefaultVersionEnabled = props.IsDefaultVersion == edgeactionversions.EdgeActionIsDefaultVersionTrue
+			state.ValidationStatus = pointer.FromEnum(props.ValidationStatus)
 		}
 		state.Tags = tags.Flatten(model.Tags)
 	}

@@ -52,6 +52,17 @@ func (r Resource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChanges("code_content_base64", "code_file_name") && config.CodeContentBase64 != "" {
 				if err := deployVersionCode(ctx, client, *id, config); err != nil {
+					// the deployed code can't be read back in a form which can be compared with the configuration, so the
+					// previous values are kept in state when the deployment fails - otherwise the new values would be
+					// persisted and the failed deployment would be hidden from subsequent plans
+					oldContent, _ := metadata.ResourceData.GetChange("code_content_base64")
+					oldFileName, _ := metadata.ResourceData.GetChange("code_file_name")
+					if setErr := metadata.ResourceData.Set("code_content_base64", oldContent); setErr != nil {
+						return fmt.Errorf("%+v (restoring `code_content_base64` in state: %+v)", err, setErr)
+					}
+					if setErr := metadata.ResourceData.Set("code_file_name", oldFileName); setErr != nil {
+						return fmt.Errorf("%+v (restoring `code_file_name` in state: %+v)", err, setErr)
+					}
 					return err
 				}
 			}

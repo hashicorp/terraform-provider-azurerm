@@ -11,6 +11,7 @@ type EdgeActionVersionModel struct {
 	CodeFileName             string         `tfschema:"code_file_name"`
 	Tags                     map[string]any `tfschema:"tags"`
 	DefaultVersionEnabled    bool           `tfschema:"default_version_enabled"`
+	ValidationStatus         string         `tfschema:"validation_status"`
 }
 
 func (Resource) ModelObject() any {

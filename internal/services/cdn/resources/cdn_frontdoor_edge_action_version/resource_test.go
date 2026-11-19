@@ -143,6 +143,67 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateNonDefaultVersionCode(t *testing
 	})
 }
 
+func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action_version", "test")
+	r := CdnFrontdoorEdgeActionVersionResource{}
+	secondVersion := "azurerm_cdn_frontdoor_edge_action_version.second"
+
+	// both the default version (`test`) and a version which isn't the default (`second`) have code deployed,
+	// only their tags are changed and then removed, which must not redeploy the code or recreate the versions
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tagsWithDeployedCode(data, map[string]string{}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_version_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("validation_status").HasValue("Succeeded"),
+				check.That(secondVersion).Key("default_version_enabled").HasValue("false"),
+				check.That(secondVersion).Key("validation_status").HasValue("Succeeded"),
+			),
+		},
+		data.ImportStep("code_content_base64", "code_file_name"),
+		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
+		{
+			Config: r.tagsWithDeployedCode(data, map[string]string{"Environment": "Test"}),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectResourceAction(secondVersion, plancheck.ResourceActionUpdate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Test"),
+				check.That(secondVersion).Key("tags.Environment").HasValue("Test"),
+			),
+		},
+		data.ImportStep("code_content_base64", "code_file_name"),
+		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
+		{
+			Config: r.tagsWithDeployedCode(data, map[string]string{"Environment": "Updated", "Label": "EdgeAction"}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(secondVersion).Key("tags.%").HasValue("2"),
+			),
+		},
+		data.ImportStep("code_content_base64", "code_file_name"),
+		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
+		{
+			Config: r.tagsWithDeployedCode(data, map[string]string{}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("validation_status").HasValue("Succeeded"),
+				check.That(secondVersion).Key("tags.%").HasValue("0"),
+				check.That(secondVersion).Key("validation_status").HasValue("Succeeded"),
+			),
+		},
+		data.ImportStep("code_content_base64", "code_file_name"),
+		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
+	})
+}
+
 func TestAccCdnFrontdoorEdgeActionVersion_multipleVersions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action_version", "test")
 	r := CdnFrontdoorEdgeActionVersionResource{}
@@ -287,4 +348,39 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
   depends_on = [azurerm_cdn_frontdoor_edge_action_version.test]
 }
 `, r.template(data), data.RandomInteger, r.code(headerValue))
+}
+
+func (r CdnFrontdoorEdgeActionVersionResource) tagsWithDeployedCode(data acceptance.TestData, tags map[string]string) string {
+	tagsHCL := ""
+	for k, v := range tags {
+		tagsHCL += fmt.Sprintf("    %s = %q\n", k, v)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_edge_action_version" "test" {
+  name                         = "acctesteav%[2]d"
+  cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
+  deployment_type              = "file"
+  code_file_name               = "edge_action.js"
+  code_content_base64          = "%[3]s"
+
+  tags = {
+%[4]s  }
+}
+
+resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
+  name                         = "acctesteav2%[2]d"
+  cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
+  deployment_type              = "file"
+  code_file_name               = "edge_action.js"
+  code_content_base64          = "%[3]s"
+
+  tags = {
+%[4]s  }
+
+  depends_on = [azurerm_cdn_frontdoor_edge_action_version.test]
+}
+`, r.template(data), data.RandomInteger, r.code("tags"), tagsHCL)
 }

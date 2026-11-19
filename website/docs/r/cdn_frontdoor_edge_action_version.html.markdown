@@ -50,7 +50,9 @@ The following arguments are supported:
 
 * `code_file_name` - (Optional) The file name of the code to deploy to this Edge Action Version, for example `edge_action.js`.
 
--> **Note:** `code_content_base64` and `code_file_name` must be specified together. Deploying the code can take more than 10 minutes. The code is validated by the service when it is deployed. The code of a version which isn't the default can be changed in-place, but changing the deployed code of the default version, or removing the code from a version, forces a new resource to be created.
+-> **Note:** `code_content_base64` and `code_file_name` must be specified together. Deploying the code can take more than 10 minutes, and the code is validated by the service when it is deployed. The deployed code can't be read back from the API in a form which matches the configuration, so these fields aren't populated when a version is imported and changes made to the code outside of Terraform aren't detected.
+
+~> **Note:** The code of a version which isn't the default can be changed in-place. Changing the deployed code of the default version, or removing the code from any version, forces a new resource to be created - however the default version can't be deleted while the Edge Action has other versions, so this plan will fail to apply once other versions exist. To roll out new code, deploy it to a version which isn't the default and then make that version the default (which currently needs to be done outside of Terraform, for example in the Azure Portal).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Edge Action Version.
 
@@ -61,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Edge Action Version.
 
 * `default_version_enabled` - Whether this is the default version of the Edge Action.
+
+* `validation_status` - The validation status of the code deployed to this Edge Action Version. This is empty until code has been deployed to the version.
 
 ## Timeouts
 
