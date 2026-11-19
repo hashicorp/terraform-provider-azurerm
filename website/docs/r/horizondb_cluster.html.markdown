@@ -41,7 +41,6 @@ resource "azurerm_horizondb_cluster" "example" {
     high_availability_mode = "Disabled"
 
     compute {
-      type       = "Provisioned"
       processor  = "AMD"
       generation = 1
       vcores     = 4
@@ -88,23 +87,21 @@ The following arguments are supported:
 
 ~> **Note:** Removing this argument from an existing configuration resets the retention period to `7` days.
 
-* `create_mode` - (Optional) The creation mode of the HorizonDB Cluster. Possible values are `Create` and `PointInTimeRestore`. Defaults to `Create`. Changing this forces a new resource to be created.
-
 * `geo_redundant_backup_enabled` - (Optional) Whether `geo redundant backup` is enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** This block is required when `create_mode` is `PointInTimeRestore` and must be omitted when `create_mode` is `Create`.
+-> **Note:** Specifying this block creates the Cluster by restoring a backup. Otherwise, a new Cluster is created.
 
 -> **Note:** HorizonDB can omit restore-source details and the restore timestamp from API responses. This resource preserves the existing `point_in_time_restore` values in Terraform state when those details are not returned.
 
 * `postgresql_version` - (Optional) The PostgreSQL major version. Possible values are `17` and `18`. Changing this forces a new resource to be created.
 
-~> **Note:** `postgresql_version` is required when `create_mode` is `Create` and must be omitted when `create_mode` is `PointInTimeRestore`. For restored Clusters, the version is obtained from the source backup and exported by this resource.
+~> **Note:** `postgresql_version` is required when `point_in_time_restore` is not specified and conflicts with `point_in_time_restore`. For restored Clusters, the version is obtained from the source backup and exported by this resource.
 
-* `public_network_access_enabled` - (Optional) Whether `public network access` is enabled. Defaults to `false`.
+* `public_network_access` - (Optional) The public network access setting for the HorizonDB Cluster. Possible values are `Disabled` and `Enabled`. Defaults to `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -119,8 +116,6 @@ A `compute` block supports the following:
 * `vcores` - (Required) The provisioned compute capacity in vCores. Possible values are `2`, `4`, `8`, `16`, `20`, `32`, `48`, `64`, and `96`.
 
 ~> **Note:** Azure validates the supported combinations of processor, generation, and capacity.
-
-* `type` - (Optional) The compute model type. The only possible value is `Provisioned`. Defaults to `Provisioned`.
 
 ---
 

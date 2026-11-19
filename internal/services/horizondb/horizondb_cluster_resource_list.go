@@ -35,10 +35,12 @@ func (HorizondbClusterListResource) List(ctx context.Context, request list.ListR
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
 		return
 	}
+
 	subscriptionId := metadata.SubscriptionId
 	if !config.SubscriptionId.IsNull() {
 		subscriptionId = config.SubscriptionId.ValueString()
 	}
+
 	client := metadata.Client.HorizonDB.ClustersClient
 	var items []clusters.Cluster
 	if !config.ResourceGroupName.IsNull() {
@@ -56,25 +58,31 @@ func (HorizondbClusterListResource) List(ctx context.Context, request list.ListR
 		}
 		items = resp.Items
 	}
+
 	deadline, ok := ctx.Deadline()
+
 	if !ok {
 		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
 		return
 	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
 		ctx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
 		for _, item := range items {
 			result := request.NewListResult(ctx)
+
 			id, err := clusters.ParseClusterIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing HorizonDB Cluster ID", err)
 				return
 			}
+
 			result.DisplayName = id.ClusterName
 			resourceMetadata := sdk.NewResourceMetaData(metadata.Client, HorizondbClusterResource{})
 			resourceMetadata.ResourceData.SetId(id.ID())
+
 			var pool *pools.Pool
 			var administratorLogin string
 			if request.IncludeResource {
@@ -83,6 +91,7 @@ func (HorizondbClusterListResource) List(ctx context.Context, request list.ListR
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "retrieving HorizonDB Cluster Pool", err)
 					return
 				}
+
 				administratorLogin, err = readHorizondbClusterAdministratorLogin(ctx, metadata.Client.HorizonDB.PasswordAuthenticationsClient, *id)
 				if err != nil {
 					sdk.SetErrorDiagnosticAndPushListResult(result, push, "retrieving HorizonDB Cluster administrator login", err)
@@ -93,7 +102,9 @@ func (HorizondbClusterListResource) List(ctx context.Context, request list.ListR
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", HorizondbClusterResource{}.ResourceType()), err)
 				return
 			}
+
 			sdk.EncodeListResult(ctx, resourceMetadata.ResourceData, &result)
+
 			if !push(result) || result.Diagnostics.HasError() {
 				return
 			}

@@ -64,12 +64,15 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]$`), "must contain only alphanumeric characters and hyphens and start and end with an alphanumeric character"),
 			),
 		},
+
 		"horizondb_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.PoolId{}),
+		
 		"end_ip_address": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsIPv4Address,
 		},
+
 		"start_ip_address": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -90,6 +93,7 @@ func (HorizondbFirewallRuleResource) CustomizeDiff() sdk.ResourceFunc {
 			if !diff.NewValueKnown("start_ip_address") || !diff.NewValueKnown("end_ip_address") {
 				return nil
 			}
+
 			startAddress, _ := netip.ParseAddr(diff.Get("start_ip_address").(string))
 			endAddress, _ := netip.ParseAddr(diff.Get("end_ip_address").(string))
 			if endAddress.Less(startAddress) {
@@ -108,10 +112,12 @@ func (r HorizondbFirewallRuleResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+
 			poolId, err := firewallrules.ParsePoolID(state.HorizondbPoolId)
 			if err != nil {
 				return err
 			}
+
 			id := firewallrules.NewFirewallRuleID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.ClusterName, poolId.PoolName, state.Name)
 			client := metadata.Client.HorizonDB.FirewallRulesClient
 			if !metadata.Client.Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
@@ -123,10 +129,13 @@ func (r HorizondbFirewallRuleResource) Create() sdk.ResourceFunc {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
+
 			if err := client.CreateOrReplaceCallbackThenPoll(ctx, id, expandHorizondbFirewallRule(state), metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
 			metadata.SetID(id)
+
 			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
@@ -140,6 +149,7 @@ func (r HorizondbFirewallRuleResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			resp, err := metadata.Client.HorizonDB.FirewallRulesClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -147,6 +157,7 @@ func (r HorizondbFirewallRuleResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
+
 			return r.flatten(metadata, id, resp.Model)
 		},
 	}
@@ -160,28 +171,36 @@ func (HorizondbFirewallRuleResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			var state HorizondbFirewallRuleResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+
 			client := metadata.Client.HorizonDB.FirewallRulesClient
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			if existing.Model.Properties == nil {
+
+			if existing.Model == nil || existing.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s: firewall rule properties are missing", id)
 			}
+
 			payload := pointer.From(existing.Model)
+
 			if metadata.ResourceData.HasChange("start_ip_address") {
 				payload.Properties.StartIPAddress = state.StartIpAddress
 			}
+
 			if metadata.ResourceData.HasChange("end_ip_address") {
 				payload.Properties.EndIPAddress = state.EndIpAddress
 			}
+
 			if err := client.CreateOrReplaceThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
+
 			return nil
 		},
 	}
@@ -195,9 +214,11 @@ func (HorizondbFirewallRuleResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
 			if err := metadata.Client.HorizonDB.FirewallRulesClient.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
+
 			return nil
 		},
 	}
@@ -207,15 +228,18 @@ func (HorizondbFirewallRuleResource) flatten(metadata sdk.ResourceMetaData, id *
 	if model == nil || model.Properties == nil {
 		return fmt.Errorf("retrieving %s: firewall rule properties are missing", id)
 	}
+
 	state := HorizondbFirewallRuleResourceModel{
 		Name:            id.FirewallRuleName,
 		HorizondbPoolId: firewallrules.NewPoolID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.PoolName).ID(),
 		StartIpAddress:  model.Properties.StartIPAddress,
 		EndIpAddress:    model.Properties.EndIPAddress,
 	}
+
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 		return err
 	}
+
 	return metadata.Encode(&state)
 }
 

@@ -50,36 +50,45 @@ func (HorizondbFirewallRuleListResource) ListResourceConfigSchema(_ context.Cont
 
 func (r HorizondbFirewallRuleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	var config HorizondbFirewallRuleListModel
+
 	if diags := request.Config.Get(ctx, &config); diags.HasError() {
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
 		return
 	}
+
 	poolId, err := firewallrules.ParsePoolID(config.HorizondbPoolId.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, "parsing HorizonDB Pool ID", err)
 		return
 	}
+
 	resp, err := metadata.Client.HorizonDB.FirewallRulesClient.ListComplete(ctx, *poolId)
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, "listing HorizonDB Firewall Rules", err)
 		return
 	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, item := range resp.Items {
 			result := request.NewListResult(ctx)
+
 			id, err := firewallrules.ParseFirewallRuleIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing HorizonDB Firewall Rule ID", err)
 				return
 			}
+
 			result.DisplayName = id.FirewallRuleName
 			resourceMetadata := sdk.NewResourceMetaData(metadata.Client, HorizondbFirewallRuleResource{})
 			resourceMetadata.ResourceData.SetId(id.ID())
+			
 			if err := (HorizondbFirewallRuleResource{}).flatten(resourceMetadata, id, &item); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", HorizondbFirewallRuleResource{}.ResourceType()), err)
 				return
 			}
+			
 			sdk.EncodeListResult(ctx, resourceMetadata.ResourceData, &result)
+			
 			if !push(result) || result.Diagnostics.HasError() {
 				return
 			}

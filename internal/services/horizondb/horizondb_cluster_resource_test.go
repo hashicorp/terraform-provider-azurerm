@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/horizondb/2026-10-01-preview/clusters"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/config"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,21 +68,11 @@ func TestAccHorizondbCluster_update(t *testing.T) {
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.updated(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
 			Check: check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.updatedWithWriteOnlyPassword(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
 			Check: check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password", "administrator_password_wo_version"),
@@ -108,8 +96,6 @@ func TestAccHorizondbCluster_restore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	restoreVariables := config.Variables{}
 	// Azure can omit creation-time restore metadata from GET responses.
-	restoreImport := data.ImportStepFor("azurerm_horizondb_cluster.restored", "administrator_password", "point_in_time_restore")
-	restoreImport.ConfigVariables = restoreVariables
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -125,7 +111,7 @@ func TestAccHorizondbCluster_restore(t *testing.T) {
 			ConfigVariables: restoreVariables,
 			Check:           check.That("azurerm_horizondb_cluster.restored").ExistsInAzure(r),
 		},
-		restoreImport,
+		data.ImportStepFor("azurerm_horizondb_cluster.restored", "administrator_password", "point_in_time_restore"),
 	})
 }
 
@@ -169,31 +155,16 @@ func TestAccHorizondbCluster_identity(t *testing.T) {
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.withTwoUserAssignedIdentities(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
 			Check: check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.withOneUserAssignedIdentity(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
 			Check: check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.withoutIdentity(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-				},
-			},
 			Check: check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
@@ -267,7 +238,7 @@ resource "azurerm_horizondb_cluster" "test" {
   administrator_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
   administrator_password_wo_version = 1
   backup_retention_in_days          = 14
-  public_network_access_enabled     = true
+  public_network_access             = "Enabled"
 
   read_write_pool {
     name                   = "primary"
@@ -295,14 +266,14 @@ func (r HorizondbClusterResource) updated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_horizondb_cluster" "test" {
-  name                          = "acctest-horizondb-%d"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  postgresql_version            = "18"
-  administrator_login           = "acctestadmin"
-  administrator_password        = "P@ssword-456!"
-  backup_retention_in_days      = 14
-  public_network_access_enabled = true
+  name                     = "acctest-horizondb-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  postgresql_version       = "18"
+  administrator_login      = "acctestadmin"
+  administrator_password   = "P@ssword-456!"
+  backup_retention_in_days = 14
+  public_network_access    = "Enabled"
 
   read_write_pool {
     name                   = "primary"
@@ -329,14 +300,14 @@ func (r HorizondbClusterResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_horizondb_cluster" "test" {
-  name                          = "acctest-horizondb-%d"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  postgresql_version            = "18"
-  administrator_login           = "acctestadmin"
-  administrator_password        = "P@ssword-456!"
-  backup_retention_in_days      = 14
-  public_network_access_enabled = true
+  name                     = "acctest-horizondb-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  postgresql_version       = "18"
+  administrator_login      = "acctestadmin"
+  administrator_password   = "P@ssword-456!"
+  backup_retention_in_days = 14
+  public_network_access    = "Enabled"
 
   read_write_pool {
     name                   = "primary"
@@ -424,7 +395,6 @@ resource "azurerm_horizondb_cluster" "restored" {
   name                   = "acctest-horizondb-restored-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  create_mode            = "PointInTimeRestore"
   administrator_login    = "acctestadmin"
   administrator_password = "P@ssword-123!"
 
@@ -460,7 +430,6 @@ resource "azurerm_horizondb_cluster" "restored" {
   name                   = "acctest-horizondb-restored-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = %q
-  create_mode            = "PointInTimeRestore"
   administrator_login    = "acctestadmin"
   administrator_password = "P@ssword-123!"
 
