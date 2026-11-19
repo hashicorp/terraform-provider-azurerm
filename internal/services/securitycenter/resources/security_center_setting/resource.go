@@ -14,8 +14,6 @@ import (
 // TODO: this resource should be split into data_export_setting and alert_sync_setting
 
 func RegisterResource() *pluginsdk.Resource {
-	validSettingName := settings.PossibleValuesForSettingName()
-
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSettingUpdate,
 		Read:   resourceSecurityCenterSettingRead,

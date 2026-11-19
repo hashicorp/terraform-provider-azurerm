@@ -4,11 +4,14 @@
 package security_center_setting
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func securityCenterSettingSchema() map[string]*pluginsdk.Schema {
+	validSettingName := settings.PossibleValuesForSettingName()
+
 	return map[string]*pluginsdk.Schema{
 		"setting_name": {
 			Type:         pluginsdk.TypeString,
