@@ -2047,13 +2047,6 @@ resource "azurerm_storage_blob" "test" {
   size                 = 512
 }
 
-resource "azurerm_storage_blob" "test2" {
-  name                 = "script2"
-  storage_container_id = azurerm_storage_container.test.id
-  type                 = "Page"
-  size                 = 512
-}
-
 resource "azurerm_shared_image_gallery" "test" {
   name                = "acctestsig%[3]d"
   resource_group_name = azurerm_resource_group.test.name
