@@ -140,7 +140,7 @@ provider "azurerm" {
 
 resource "azurerm_api_management_workspace_policy" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  xml_link                    = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/internal/services/apimanagement/testdata/api_management_policy_test.xml"
+  xml_link                    = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/internal/services/apimanagement/resources/api_management_workspace_policy/testdata/api_management_policy_test.xml"
 }
 `, r.template(data))
 }
@@ -155,7 +155,7 @@ provider "azurerm" {
 
 resource "azurerm_api_management_workspace_policy" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  xml_link                    = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/internal/services/apimanagement/testdata/api_management_policy_update_test.xml"
+  xml_link                    = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/internal/services/apimanagement/resources/api_management_workspace_policy/testdata/api_management_policy_update_test.xml"
 }
 `, r.template(data))
 }
