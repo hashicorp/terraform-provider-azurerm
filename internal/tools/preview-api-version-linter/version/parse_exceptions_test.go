@@ -147,6 +147,9 @@ func TestValidResponsibleIndividual(t *testing.T) {
 		{input: "gerry.tan@microsoft.com,johndoe@microsoft.com", expected: true},
 		{input: "github.com/gerrytan, github.com/johndoe", expected: true},
 		{input: "", expected: false},
+		{input: ",github.com/gerrytan", expected: false},
+		{input: "github.com/gerrytan,", expected: false},
+		{input: "github.com/gerrytan, ,johndoe@microsoft.com", expected: false},
 		{input: "Gerry Tan", expected: false},
 		{input: "gerrytan", expected: false},
 	}

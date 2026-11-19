@@ -133,7 +133,7 @@ func validRFC3339DateOnly(s string) bool {
 var githubHandleRegex = regexp.MustCompile(`(?i)^github\.com/[a-z0-9-_]+$`)
 
 func validResponsibleIndividual(s string) bool {
-	for _, item := range strings.Split(s, ",") {
+	for item := range strings.SplitSeq(s, ",") {
 		item = strings.TrimSpace(item)
 		if item == "" {
 			return false
