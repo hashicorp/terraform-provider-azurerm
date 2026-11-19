@@ -561,7 +561,6 @@ func (HorizondbClusterResource) flatten(metadata sdk.ResourceMetaData, id *clust
 		AdministratorLogin:             administratorLogin,
 		AdministratorPassword:          previous.AdministratorPassword,
 		AdministratorPasswordWOVersion: int64(metadata.ResourceData.Get("administrator_password_wo_version").(int)),
-		PublicNetworkAccess:            string(clusters.PublicNetworkAccessStateDisabled),
 		Tags:                           pointer.From(model.Tags),
 	}
 

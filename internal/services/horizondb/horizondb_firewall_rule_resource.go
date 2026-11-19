@@ -183,8 +183,12 @@ func (HorizondbFirewallRuleResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: firewall rule properties are missing", id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			payload := pointer.From(existing.Model)

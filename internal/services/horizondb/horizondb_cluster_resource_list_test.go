@@ -6,10 +6,10 @@ package horizondb_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"testing"
 
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
@@ -18,13 +18,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
-	"github.com/zclconf/go-cty/cty"
 )
 
 func TestAccHorizondbCluster_list(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	r := HorizondbClusterResource{}
-	checks := make([]querycheck.QueryResultCheck, 0, 2)
 	resourceChecks := make([]querycheck.QueryResultCheck, 0, 2)
 	for index := range 2 {
 		identity := map[string]knownvalue.Check{
@@ -32,7 +30,6 @@ func TestAccHorizondbCluster_list(t *testing.T) {
 			"resource_group_name": knownvalue.StringExact(fmt.Sprintf("acctestRG-horizondb-%d", data.RandomInteger)),
 			"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 		}
-		checks = append(checks, querycheck.ExpectIdentity("azurerm_horizondb_cluster.list", identity))
 		resourceChecks = append(resourceChecks, querycheck.ExpectResourceKnownValues("azurerm_horizondb_cluster.list",
 			queryfilter.ByResourceIdentity(identity), []querycheck.KnownValueCheck{{
 				Path:       tfjsonpath.New("postgresql_version"),
@@ -46,74 +43,42 @@ func TestAccHorizondbCluster_list(t *testing.T) {
 			}}))
 	}
 	resource.Test(t, resource.TestCase{
-		TerraformVersionChecks:   []tfversion.TerraformVersionCheck{tfversion.SkipBelow(tfversion.Version1_14_0)},
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
-			{Config: r.listConfig(data)},
 			{
-				Query: true,
-				Config: `
-list "azurerm_horizondb_cluster" "list" {
-  provider = azurerm
-  config {}
-}
-`,
-				QueryResultChecks: append(checks, querycheck.ExpectLengthAtLeast("azurerm_horizondb_cluster.list", 2)),
+				Config: r.basicList(data),
 			},
 			{
-				Query: true,
-				Config: `
-list "azurerm_horizondb_cluster" "list" {
-  provider         = azurerm
-  include_resource = true
-  config {
-    resource_group_name = azurerm_resource_group.test.name
-  }
-}
-`,
-				QueryResultChecks: append(append(resourceChecks, checks...), querycheck.ExpectLength("azurerm_horizondb_cluster.list", 2)),
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast("azurerm_horizondb_cluster.list", 2),
+					querycheck.ExpectIdentity(
+						"azurerm_horizondb_cluster.list",
+						map[string]knownvalue.Check{
+							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name": knownvalue.StringExact(fmt.Sprintf("acctestRG-horizondb-%d", data.RandomInteger)),
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						},
+					),
+				},
+			},
+			{
+				Query:             true,
+				Config:            r.basicQueryByResourceGroupName(),
+				QueryResultChecks: append(resourceChecks, querycheck.ExpectLength("azurerm_horizondb_cluster.list", 2)),
 			},
 		},
 	})
 }
 
-func TestHorizondbClusterListConfig(t *testing.T) {
-	data := acceptance.TestData{RandomInteger: 12345}
-	data.Locations.Primary = "eastus2"
-	file, diags := hclsyntax.ParseConfig([]byte(HorizondbClusterResource{}.listConfig(data)), "list.tf", hcl.InitialPos)
-	if diags.HasErrors() {
-		t.Fatalf("parsing list setup: %s", diags.Error())
-	}
-	for _, block := range file.Body.(*hclsyntax.Body).Blocks {
-		if block.Type != "resource" || len(block.Labels) != 2 || block.Labels[0] != "azurerm_horizondb_cluster" || block.Labels[1] != "test" {
-			continue
-		}
-		for name, expected := range map[string]string{
-			"administrator_login":    "acctestadmin",
-			"administrator_password": "P@ssword-123!",
-		} {
-			attribute, ok := block.Body.Attributes[name]
-			if !ok {
-				t.Errorf("list setup is missing required attribute %q", name)
-				continue
-			}
-			value, diags := attribute.Expr.Value(nil)
-			if diags.HasErrors() {
-				t.Errorf("evaluating %q: %s", name, diags.Error())
-				continue
-			}
-			if !value.RawEquals(cty.StringVal(expected)) {
-				t.Errorf("list setup has an unexpected value for %q", name)
-			}
-		}
-		return
-	}
-	t.Fatal("list setup is missing the cluster resource")
-}
-
-func (r HorizondbClusterResource) listConfig(data acceptance.TestData) string {
+func (r HorizondbClusterResource) basicList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_horizondb_cluster" "test" {
   count                  = 2
   name                   = "acctest-horizondb-%d-${count.index}"
@@ -136,4 +101,25 @@ resource "azurerm_horizondb_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (HorizondbClusterResource) basicQuery() string {
+	return `
+list "azurerm_horizondb_cluster" "list" {
+  provider = azurerm
+  config {}
+}
+`
+}
+
+func (HorizondbClusterResource) basicQueryByResourceGroupName() string {
+	return `
+list "azurerm_horizondb_cluster" "list" {
+  provider         = azurerm
+  include_resource = true
+  config {
+    resource_group_name = azurerm_resource_group.test.name
+  }
+}
+`
 }
