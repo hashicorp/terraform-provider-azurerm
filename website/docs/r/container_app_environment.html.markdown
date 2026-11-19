@@ -99,6 +99,8 @@ A `workload_profile` block supports the following:
 
 * `minimum_count` - (Optional) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
 
+~> **Note:** The `maximum_count` and `minimum_count` arguments are not supported when `workload_profile_type` is set to `Consumption`, `Consumption-GPU-NC24-A100`, or `Consumption-GPU-NC8as-T4`.
+
 ---
 
 An `identity` block supports the following:
