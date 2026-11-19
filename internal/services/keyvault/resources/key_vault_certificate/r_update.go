@@ -10,15 +10,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -34,24 +33,26 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseURL)
 
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseURL)
+
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
 			certificate := expandKeyVaultCertificate(v)
-			importParameters := kv.CertificateImportParameters{
-				Base64EncodedCertificate: pointer.To(certificate.CertificateData),
-				Password:                 pointer.To(certificate.CertificatePassword),
+			importParameters := certificates.CertificateImportParameters{
+				Value: certificate.CertificateData,
+				Pwd:   pointer.To(certificate.CertificatePassword),
 			}
-			resp, err := client.ImportCertificate(ctx, id.KeyVaultBaseURL, id.Name, importParameters)
+			resp, err := client.ImportCertificate(ctx, certificates.NewCertificateID(id.KeyVaultBaseURL, id.Name), importParameters)
 			if err != nil {
 				return err
 			}
 
-			if resp.ID == nil {
+			if resp.Model == nil || resp.Model.Id == nil {
 				return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", id.Name, id.KeyVaultBaseURL)
 			}
 
-			certificateId, err := keyvault.ParseNestedItemID(*resp.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+			certificateId, err := keyvault.ParseNestedItemID(*resp.Model.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 			if err != nil {
 				return err
 			}
@@ -80,11 +81,14 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 	// do not recreate cerfiticate when only lifetime_action changes
 	if !cmp.Equal(policyNewList, policyOldList) {
 		policyNew["lifetime_action"] = lifeTimeNew
-		newCert, err := createCertificate(d, meta)
+		newCert, _, err := createCertificate(d, meta)
 		if err != nil {
 			return err
 		}
-		certificateId, err := keyvault.ParseNestedItemID(pointer.From(newCert.ID), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+		if newCert == nil || newCert.Id == nil {
+			return fmt.Errorf("retrieving Certificate %q in Vault %q: unable to determine certificate ID", id.Name, id.KeyVaultBaseURL)
+		}
+		certificateId, err := keyvault.ParseNestedItemID(*newCert.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 		if err != nil {
 			return err
 		}
@@ -92,7 +96,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 	}
 
 	if updateLifetime := !cmp.Equal(lifeTimeOld, lifeTimeNew); d.HasChange("tags") || updateLifetime {
-		patch := kv.CertificateUpdateParameters{}
+		patch := certificates.CertificateUpdateParameters{}
 		if d.HasChange("tags") {
 			if t, ok := d.GetOk("tags"); ok {
 				patch.Tags = tags.Expand(t.(map[string]any))
@@ -100,12 +104,12 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta any) error {
 		}
 
 		if updateLifetime {
-			patch.CertificatePolicy = &kv.CertificatePolicy{
+			patch.Policy = &certificates.CertificatePolicy{
 				LifetimeActions: expandKeyVaultCertificatePolicyLifetimeAction(lifeTimeNew),
 			}
 		}
 
-		if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseURL, id.Name, "", patch); err != nil {
+		if _, err = client.UpdateCertificate(ctx, certificates.NewCertificateversionID(id.KeyVaultBaseURL, id.Name, ""), patch); err != nil {
 			return err
 		}
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/managedinstanceencryptionprotectors"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -125,13 +126,14 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionVersionedKey(ctx conte
 			keyUrl = pointer.From(resp.Key.Kid)
 		}
 	} else {
-		resp, err := meta.(*clients.Client).KeyVault.ManagementClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+		keysClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseURL)
+		resp, err := keysClient.GetKey(ctx, keys.NewKeyversionID(id.KeyVaultBaseURL, id.Name, ""))
 		if err != nil {
 			return nil, err
 		}
 
-		if resp.Key != nil {
-			keyUrl = pointer.From(resp.Key.Kid)
+		if resp.Model != nil && resp.Model.Key != nil {
+			keyUrl = pointer.From(resp.Model.Key.Kid)
 		}
 	}
 

@@ -10,15 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -54,9 +54,10 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta a
 		return nil
 	}
 
-	resp, err := client.GetStorageAccount(ctx, id.KeyVaultBaseURL, id.Name)
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Storage.Clone(id.KeyVaultBaseURL)
+	resp, err := client.GetStorageAccount(ctx, storage.NewStorageID(id.KeyVaultBaseURL, id.Name))
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Managed Storage Account %q (Key Vault %q) was not found - removing from state", id.Name, *keyVaultId)
 			d.SetId("")
 			return nil
@@ -66,10 +67,15 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta a
 
 	d.Set("name", id.Name)
 	d.Set("key_vault_id", keyVaultId.ID())
-	d.Set("storage_account_id", resp.ResourceID)
-	d.Set("storage_account_key", resp.ActiveKeyName)
-	d.Set("regenerate_key_automatically", resp.AutoRegenerateKey)
-	d.Set("regeneration_period", resp.RegenerationPeriod)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("storage_account_id", model.ResourceId)
+		d.Set("storage_account_key", model.ActiveKeyName)
+		d.Set("regenerate_key_automatically", model.AutoRegenerateKey)
+		d.Set("regeneration_period", model.RegenerationPeriod)
+
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+
+	return nil
 }

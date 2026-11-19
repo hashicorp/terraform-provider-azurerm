@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
@@ -82,7 +82,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Computed:     true, // azignore:AZS007 - pre-existing violation
-									ValidateFunc: validation.StringInEnumSlice(kv.PossibleJSONWebKeyCurveNameValues(), false),
+									ValidateFunc: validation.StringInSlice(certificates.PossibleValuesForJsonWebKeyCurveName(), false),
 								},
 								"exportable": {
 									Type:     pluginsdk.TypeBool,
@@ -105,11 +105,11 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(kv.JSONWebKeyTypeEC),
-										string(kv.JSONWebKeyTypeECHSM),
-										string(kv.JSONWebKeyTypeRSA),
-										string(kv.JSONWebKeyTypeRSAHSM),
-										string(kv.JSONWebKeyTypeOct),
+										string(certificates.JsonWebKeyTypeEC),
+										string(certificates.JsonWebKeyTypeECNegativeHSM),
+										string(certificates.JsonWebKeyTypeRSA),
+										string(certificates.JsonWebKeyTypeRSANegativeHSM),
+										string(certificates.JsonWebKeyTypeOct),
 									}, false),
 								},
 								"reuse_key": {
@@ -133,7 +133,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 											"action_type": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
-												ValidateFunc: validation.StringInEnumSlice(kv.PossibleCertificatePolicyActionValues(), false),
+												ValidateFunc: validation.StringInSlice(certificates.PossibleValuesForCertificatePolicyAction(), false),
 											},
 										},
 									},
@@ -194,7 +194,7 @@ func keyVaultCertificateSchema() map[string]*pluginsdk.Schema {
 									Required: true,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringInEnumSlice(kv.PossibleKeyUsageTypeValues(), false),
+										ValidateFunc: validation.StringInSlice(certificates.PossibleValuesForKeyUsageType(), false),
 									},
 								},
 								"subject": {

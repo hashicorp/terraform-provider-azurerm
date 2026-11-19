@@ -5,22 +5,22 @@ package key_vault_certificate
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	kv "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -35,16 +35,19 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
 	}
 
+	client := keyVaultsClient.DataPlaneKeyVaultClient.Certificates.Clone(*keyVaultBaseUrl)
+	certificateId := certificates.NewCertificateID(*keyVaultBaseUrl, name)
+
 	if !meta.(*clients.Client).Features.SkipImportCheckOnCreateAndAllowOverwritingExistingResources {
-		existing, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
+		existing, err := client.GetCertificate(ctx, certificates.NewCertificateversionID(*keyVaultBaseUrl, name, ""))
 		if err != nil {
-			if !response.WasNotFound(existing.Response.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Certificate %q in %s: %s", name, *keyVaultBaseUrl, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		if existing.Model != nil && pointer.From(existing.Model.Id) != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.Model.Id)
 		}
 	}
 
@@ -54,23 +57,23 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) erro
 		return fmt.Errorf("expanding certificate policy: %s", err)
 	}
 
-	var newCert kv.CertificateBundle
+	var newCert *certificates.CertificateBundle
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
 		certificate := expandKeyVaultCertificate(v)
-		importParameters := kv.CertificateImportParameters{
-			Base64EncodedCertificate: pointer.To(certificate.CertificateData),
-			Password:                 pointer.To(certificate.CertificatePassword),
-			CertificatePolicy:        policy,
-			Tags:                     tags.Expand(t),
+		importParameters := certificates.CertificateImportParameters{
+			Value:  certificate.CertificateData,
+			Pwd:    pointer.To(certificate.CertificatePassword),
+			Policy: policy,
+			Tags:   tags.Expand(t),
 		}
-		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
+		resp, err := client.ImportCertificate(ctx, certificateId, importParameters)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(resp.HttpResponse) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
-				newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
+				resp, err = client.ImportCertificate(ctx, certificateId, importParameters)
 				if err != nil {
 					return fmt.Errorf("update recovered certificate: %+v", err)
 				}
@@ -78,16 +81,18 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) erro
 				return err
 			}
 		}
+		newCert = resp.Model
 	} else {
 		// Generate new
-		newCert, err = createCertificate(d, meta)
+		var httpResp *http.Response
+		newCert, httpResp, err = createCertificate(d, meta)
 		if err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(newCert.Response.Response) {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && response.WasConflict(httpResp) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
 					return fmt.Errorf("recover deleted certificate: %+v", err)
 				}
 				// after we recovered the existing certificate we still have to apply our changes
-				newCert, err = createCertificate(d, meta)
+				newCert, _, err = createCertificate(d, meta)
 				if err != nil {
 					return fmt.Errorf("update recovered certificate: %+v", err)
 				}
@@ -97,11 +102,15 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta any) erro
 		}
 	}
 
-	certificateId, err := keyvault.ParseNestedItemID(*newCert.ID, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
+	if newCert == nil || newCert.Id == nil {
+		return fmt.Errorf("retrieving Certificate %q in %s: unable to determine certificate ID", name, *keyVaultBaseUrl)
+	}
+
+	parsedCertificateId, err := keyvault.ParseNestedItemID(*newCert.Id, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeCertificate)
 	if err != nil {
 		return err
 	}
-	d.SetId(certificateId.ID())
+	d.SetId(parsedCertificateId.ID())
 
 	return resourceKeyVaultCertificateRead(d, meta)
 }

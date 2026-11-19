@@ -7,10 +7,12 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -447,15 +449,22 @@ func (r KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseURL, err)
 	}
 
-	cert, err := client.ManagementClient.GetCertificate(ctx, id.KeyVaultBaseURL, id.Name, "")
+	certificatesClient := client.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseURL)
+	resp, err := certificatesClient.GetCertificate(ctx, certificates.NewCertificateversionID(id.KeyVaultBaseURL, id.Name, ""))
 	if err != nil {
 		return nil, fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
-	return pointer.To(cert.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	if _, ok := ctx.Deadline(); !ok {
+		ctx2, cancel := context.WithTimeout(ctx, time.Minute*5)
+		defer cancel()
+		ctx = ctx2
+	}
+
 	ok, err := KeyVaultResource{}.Destroy(ctx, client, state)
 	if err != nil {
 		return err
@@ -480,7 +489,8 @@ func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.
 		return nil, fmt.Errorf("looking up base uri for Secret %q from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := client.KeyVault.ManagementClient.DeleteCertificate(ctx, *vaultBaseUrl, name); err != nil {
+	certificatesClient := client.KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(*vaultBaseUrl)
+	if _, err := certificatesClient.DeleteCertificate(ctx, certificates.NewCertificateID(*vaultBaseUrl, name)); err != nil {
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 

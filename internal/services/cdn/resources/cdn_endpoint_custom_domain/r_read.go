@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/customdomains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -134,16 +135,17 @@ func flattenArmCdnEndpointCustomDomainUserManagedHttpsSettings(ctx context.Conte
 		return nil, fmt.Errorf("looking up Key Vault Secret %q vault url from id %q: %+v", vaultName, keyVaultId, err)
 	}
 
-	secret, err := keyVaultsClient.ManagementClient.GetSecret(ctx, *keyVaultBaseUrl, secretName, secretVersion)
+	secretsClient := keyVaultsClient.DataPlaneKeyVaultClient.Secrets.Clone(*keyVaultBaseUrl)
+	secret, err := secretsClient.GetSecret(ctx, secrets.NewSecretversionID(*keyVaultBaseUrl, secretName, secretVersion))
 	if err != nil {
 		return nil, err
 	}
 
-	if secret.ID == nil {
+	if secret.Model == nil || secret.Model.Id == nil {
 		return nil, fmt.Errorf("unexpected null Key Vault Secret retrieved for Key Vault %s / Secret Name %s / Secret Version %s", keyVaultId, secretName, secretVersion)
 	}
 
-	secretId, err := keyvault.ParseNestedItemID(*secret.ID, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	secretId, err := keyvault.ParseNestedItemID(*secret.Model.Id, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	if err != nil {
 		return nil, err
 	}

@@ -88,7 +88,7 @@ func (r ListResource) List(ctx context.Context, request list.ListRequest, stream
 			rd := RegisterResource().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceKeyVaultFlatten(ctx, metadata.Client.KeyVault.ManagementClient, rd, id, &vault, request.IncludeResource); err != nil {
+			if err := resourceKeyVaultFlatten(ctx, metadata.Client.KeyVault.DataPlaneKeyVaultClient.Certificates, rd, id, &vault, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", keyVaultResourceName), err)
 				return
 			}

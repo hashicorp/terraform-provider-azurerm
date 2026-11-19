@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -92,7 +93,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta any) error {
 }
 
 func getKeyURL(ctx context.Context, id *keyvault.NestedItemID, rotationToLatestKeyVersionEnabled bool, meta any) (string, error) {
-	keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+	keyVaultClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys
 	managedHSMClient := meta.(*clients.Client).ManagedHSMs.DataPlaneKeysClient
 
 	keyURL := ""
@@ -112,13 +113,13 @@ func getKeyURL(ctx context.Context, id *keyvault.NestedItemID, rotationToLatestK
 				keyURL = pointer.From(keyBundle.Key.Kid)
 			}
 		} else {
-			keyBundle, err := keyVaultClient.GetKey(ctx, id.KeyVaultBaseURL, id.Name, "")
+			resp, err := keyVaultClient.Clone(id.KeyVaultBaseURL).GetKey(ctx, keys.NewKeyversionID(id.KeyVaultBaseURL, id.Name, ""))
 			if err != nil {
 				return keyURL, err
 			}
 
-			if keyBundle.Key != nil {
-				keyURL = pointer.From(keyBundle.Key.Kid)
+			if resp.Model != nil && resp.Model.Key != nil {
+				keyURL = pointer.From(resp.Model.Key.Kid)
 			}
 		}
 	} else {

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -123,16 +124,15 @@ func (r KeyVaultCertificateIssuerResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	resp, err := client.ManagementClient.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+	resp, err := client.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseUrl).GetCertificateIssuer(ctx, certificates.NewIssuernameID(id.KeyVaultBaseUrl, id.Name))
 	if err != nil {
 		return nil, fmt.Errorf("failed to make Read request on Azure KeyVault Certificate Issuer %s: %+v", id.Name, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	dataPlaneClient := client.KeyVault.ManagementClient
 	keyVaultsClient := client.KeyVault
 
 	name := state.Attributes["name"]
@@ -154,9 +154,9 @@ func (r KeyVaultCertificateIssuerResource) Destroy(ctx context.Context, client *
 		return pointer.To(false), fmt.Errorf("Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q", name, keyVaultId.ID(), *vaultBaseUrl)
 	}
 
-	resp, err := dataPlaneClient.DeleteCertificateIssuer(ctx, *vaultBaseUrl, name)
+	resp, err := keyVaultsClient.DataPlaneKeyVaultClient.Certificates.Clone(*vaultBaseUrl).DeleteCertificateIssuer(ctx, certificates.NewIssuernameID(*vaultBaseUrl, name))
 	if err != nil {
-		if response.WasNotFound(resp.Response.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(true), nil
 		}
 

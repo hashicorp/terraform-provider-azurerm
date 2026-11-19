@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -344,10 +345,10 @@ func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx contex
 		return nil, fmt.Errorf("checking if key vault %q for Managed Storage Account Sas Definition %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	resp, err := client.KeyVault.ManagementClient.GetSasDefinition(ctx, id.KeyVaultBaseUrl, id.StorageAccountName, id.Name)
+	resp, err := client.KeyVault.DataPlaneKeyVaultClient.Storage.Clone(id.KeyVaultBaseUrl).GetSasDefinition(ctx, storage.NewSaID(id.KeyVaultBaseUrl, id.StorageAccountName, id.Name))
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Key Vault Managed Storage Account Sas Definition %q: %+v", state.ID, err)
 	}
 
-	return pointer.To(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }

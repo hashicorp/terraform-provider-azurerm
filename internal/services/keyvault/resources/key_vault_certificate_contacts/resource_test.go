@@ -108,12 +108,12 @@ func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.KeyVault.ManagementClient.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+	resp, err := clients.KeyVault.DataPlaneKeyVaultClient.Certificates.Clone(id.KeyVaultBaseUrl).GetCertificateContacts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return pointer.To(resp.ContactList != nil && len(*resp.ContactList) != 0), nil
+	return pointer.To(resp.Model != nil && resp.Model.Contacts != nil && len(*resp.Model.Contacts) != 0), nil
 }
 
 func (r KeyVaultCertificateContactsResource) basic(data acceptance.TestData) string {
