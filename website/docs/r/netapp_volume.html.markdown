@@ -224,7 +224,7 @@ The following arguments are supported:
 
 * `cool_access` - (Optional) A `cool_access` block as defined below.
 
-* `unix_permissions` - (Optional) The unix permissions for an NFS volume are accepted in a four-digit octal format. The first digit selects the set user ID (4), set group ID (2), and sticky bit (1) attributes. The second digit selects the permissions for the owner of the file: read (4), write (2), and execute (1). The third digit selects the permissions for users in the same group. The fourth digit selects the permissions for users not in the group. Defaults to `0770`.
+* `unix_permissions` - (Optional) The unix permissions for an NFS volume are accepted in a four-digit octal format. The first digit selects the set user ID (4), set group ID (2), and sticky bit (1) attributes. The second digit selects the permissions for the owner of the file: read (4), write (2), and execute (1). The third digit selects the permissions for users in the same group. The fourth digit selects the permissions for users not in the group.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

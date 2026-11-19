@@ -80,6 +80,28 @@ func TestAccRelayNamespace_complete(t *testing.T) {
 	})
 }
 
+func TestAccRelayNamespace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+	r := RelayNamespaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t RelayNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespaces.ParseNamespaceID(state.ID)
 	if err != nil {
