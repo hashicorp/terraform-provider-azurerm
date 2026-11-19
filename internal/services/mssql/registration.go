@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/actions/mssql_execute_job"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_database"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_database_extended_auditing_policy"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_database_vulnerability_assessment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_database_vulnerability_assessment_rule_baseline"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_elasticpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/resources/mssql_failover_group"
@@ -100,7 +101,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns the typed Resources supported by this service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		MsSqlDatabaseVulnerabilityAssessmentResource{},
+		mssql_database_vulnerability_assessment.Resource{},
 		mssql_failover_group.Resource{},
 		mssql_job.Resource{},
 		mssql_job_schedule.Resource{},
@@ -133,7 +134,7 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		mssql_database.ListResource{},
-		MssqlDatabaseVulnerabilityAssessmentListResource{},
+		mssql_database_vulnerability_assessment.ListResource{},
 		mssql_elasticpool.ListResource{},
 		mssql_job_agent.ListResource{},
 		mssql_server.ListResource{},
