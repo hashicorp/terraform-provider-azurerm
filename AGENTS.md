@@ -4,19 +4,21 @@ This file provides guidance to AI Agents working in this repository with basic c
 
 ## Contributing
 
-When implementing a new feature, fixing a bug, or modifying the provider in any other way, first reference **only** relevant topic documentation for best practices and requirements. See [AzureRM Provider Contributor Guides - Topics](contributing/README.md#topics).
-
-When writing code, favour readability. Separate statements, or distinct groupings of statements, with blank lines. Avoid flattening large structs, maps, or other nested types into a single line.
-
-## Code Review
-
-When performing a code review, apply **all** coding practices defined in the following guides:
+When contributing, apply **all** coding practices defined in the following guides:
 
 - [Best Practices](contributing/topics/best-practices.md)
 - [Naming Conventions](contributing/topics/reference-naming.md)
 - [Error Handling](contributing/topics/reference-errors.md)
 
-Additionally, see [AzureRM Provider Contributor Guides - Topics](contributing/README.md#topics) and reference **only** guides that apply to the change introduced in the PR.
+### Code Additions
+
+When implementing a new feature, fixing a bug, or modifying the provider in any other way, first reference **only** relevant topic documentation for best practices and requirements. See [AzureRM Provider Contributor Guides - Topics](contributing/README.md#topics).
+
+When writing code, favour readability. Separate statements, or distinct groupings of statements, with blank lines. Avoid flattening large structs, maps, or other nested types into a single line.
+
+### Code Review
+
+In addition to the guides linked above, see [AzureRM Provider Contributor Guides - Topics](contributing/README.md#topics) and reference **only** guides that apply to the change introduced in the PR.
 
 CI already checks formatting, lint, copyright headers, spelling, generated code, and that a new resource has a list resource. Spend the review on what it cannot: is the resource registered, does every property get sent on create and update and read back, is this a breaking change, does it need a state migration.
 
