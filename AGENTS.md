@@ -18,9 +18,13 @@ When performing a code review, apply **all** coding practices defined in the fol
 
 Additionally, see [AzureRM Provider Contributor Guides - Topics](contributing/README.md#topics) and reference **only** guides that apply to the change introduced in the PR.
 
+CI already checks formatting, lint, copyright headers, spelling, generated code, and that a new resource has a list resource. Spend the review on what it cannot: is the resource registered, does every property get sent on create and update and read back, is this a breaking change, does it need a state migration.
+
 ## Tests
 
 When adding tests, first reference our [acceptance testing guide](contributing/topics/reference-acceptance-testing.md), the majority of the provider's logic is tested using real Terraform operations (plan, apply, import, etc.).
+
+Running acceptance tests costs real money. Ask to run them, if permitted run a narrow selection of tests covering the change instead of tests across whole service packages.
 
 By default, most AI models generate extensive unit tests for even the most trivial change, these tests are frequently meaningless when it comes to testing the provider's logic.
 These tests should not be included as they add an unnecessary maintenance and review burden.
