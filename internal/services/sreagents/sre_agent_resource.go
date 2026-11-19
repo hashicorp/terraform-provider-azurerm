@@ -878,14 +878,6 @@ func (SREAgentResource) Delete() sdk.ResourceFunc {
 }
 
 func (SREAgentResource) flatten(metadata sdk.ResourceMetaData, id *agents.AgentId, input *agents.Agent) error {
-	if input == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-
-	if input.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
-	}
-
 	var config SREAgentModel
 	if err := metadata.Decode(&config); err != nil {
 		return fmt.Errorf("decoding: %+v", err)
