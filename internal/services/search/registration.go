@@ -38,12 +38,7 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-<<<<<<< HEAD
-		SearchServiceDatasourceBlobResource{},
-		SharedPrivateLinkServiceResource{},
-=======
 		search_shared_private_link_service.Resource{},
->>>>>>> 8cce469352 (refactor search)
 	}
 }
 
