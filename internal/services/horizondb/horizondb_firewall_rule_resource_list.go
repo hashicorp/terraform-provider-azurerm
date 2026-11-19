@@ -81,14 +81,14 @@ func (r HorizondbFirewallRuleListResource) List(ctx context.Context, request lis
 			result.DisplayName = id.FirewallRuleName
 			resourceMetadata := sdk.NewResourceMetaData(metadata.Client, HorizondbFirewallRuleResource{})
 			resourceMetadata.ResourceData.SetId(id.ID())
-			
+
 			if err := (HorizondbFirewallRuleResource{}).flatten(resourceMetadata, id, &item); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", HorizondbFirewallRuleResource{}.ResourceType()), err)
 				return
 			}
-			
+
 			sdk.EncodeListResult(ctx, resourceMetadata.ResourceData, &result)
-			
+
 			if !push(result) || result.Diagnostics.HasError() {
 				return
 			}
