@@ -30,7 +30,13 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "example" {
   cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.example.id
   deployment_type              = "file"
   code_file_name               = "edge_action.js"
-  code_content_base64          = filebase64("edge_action.js")
+  code_content_base64 = base64encode(<<-EOT
+    function handler(event) {
+        event.response.headers["x-example"] = "true";
+        return event;
+    }
+  EOT
+  )
 }
 ```
 
