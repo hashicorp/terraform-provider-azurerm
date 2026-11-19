@@ -134,6 +134,11 @@ linters:
             allow-extra-values: true
           AZS007:
             exclude-packages: "migration"
+          AZT010:
+            ignore: # notes and scripts on how test data was made: no test names them and they are kept on purpose
+              - '(^|/)HOWTO\.md$'
+              - '\.cnf$'
+              - '_testdata\.sh$'
       tfproviderlint:
         type: module
         settings: # all checks run (including the tfproviderlintx X* checks, via extended) except those disabled below
