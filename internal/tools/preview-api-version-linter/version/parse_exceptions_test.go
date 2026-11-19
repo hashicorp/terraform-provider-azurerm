@@ -67,6 +67,12 @@ func TestParseException(t *testing.T) {
   responsibleIndividual: johndoe@microsoft.com
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: compute
+  version: 2021-06-01-preview
+  stableVersionTargetDate: 2027-01-01
+  responsibleIndividual: johndoe@microsoft.com, github.com/gerrytan
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: containerregistry
   version: 2023-11-01-preview
   stableVersionTargetDate: 2027-01-01
@@ -75,8 +81,21 @@ func TestParseException(t *testing.T) {
 			isHistorical: false,
 			expectedVersions: []Version{
 				{Module: "github.com/hashicorp/go-azure-sdk/resource-manager", Service: "blueprints", Version: "2018-11-01-preview"},
+				{Module: "github.com/hashicorp/go-azure-sdk/resource-manager", Service: "compute", Version: "2021-06-01-preview"},
 				{Module: "github.com/hashicorp/go-azure-sdk/resource-manager", Service: "containerregistry", Version: "2023-11-01-preview"},
 			},
+		},
+		{
+			name: "Invalid responsibleIndividual",
+			yamlBytes: []byte(`
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: containerregistry
+  version: 2020-01-01-preview
+  stableVersionTargetDate: 2027-01-01
+  responsibleIndividual: johndoe@email.com, invalid-user
+`),
+			isHistorical:  false,
+			expectedError: regexp.MustCompile("invalid responsibleIndividual"),
 		},
 		{
 			name: "Invalid stableVersionTargetDate",
@@ -124,6 +143,10 @@ func TestValidResponsibleIndividual(t *testing.T) {
 	}{
 		{input: "gerry.tan@microsoft.com", expected: true},
 		{input: "github.com/gerrytan", expected: true},
+		{input: "gerry.tan@microsoft.com, github.com/gerrytan", expected: true},
+		{input: "gerry.tan@microsoft.com,johndoe@microsoft.com", expected: true},
+		{input: "github.com/gerrytan, github.com/johndoe", expected: true},
+		{input: "", expected: false},
 		{input: "Gerry Tan", expected: false},
 		{input: "gerrytan", expected: false},
 	}
