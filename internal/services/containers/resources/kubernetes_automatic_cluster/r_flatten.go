@@ -147,7 +147,11 @@ func flattenKubernetesAutomaticClusterPrivateCluster(enablePrivateCluster bool, 
 		return []PrivateClusterModel{}, nil
 	}
 
-	if privateDNSZoneID != "None" && privateDNSZoneID != "System" && privateDNSZoneID != "" {
+	if strings.EqualFold(privateDNSZoneID, "System") {
+		privateDNSZoneID = "System"
+	} else if strings.EqualFold(privateDNSZoneID, "None") {
+		privateDNSZoneID = "None"
+	} else if privateDNSZoneID != "" {
 		parsedPrivateDNSZoneID, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDNSZoneID)
 		if err != nil {
 			return nil, fmt.Errorf("parsing `private_cluster.0.private_dns_zone_id`: %+v", err)
