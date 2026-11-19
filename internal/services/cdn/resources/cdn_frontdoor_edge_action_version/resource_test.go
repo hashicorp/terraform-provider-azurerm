@@ -152,7 +152,7 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.
 	// only their tags are changed and then removed, which must not redeploy the code or recreate the versions
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.tagsWithDeployedCode(data, map[string]string{}),
+			Config: r.tagsWithDeployedCode(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_version_enabled").HasValue("true"),
@@ -164,7 +164,7 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
 		{
-			Config: r.tagsWithDeployedCode(data, map[string]string{"Environment": "Test"}),
+			Config: r.tagsWithDeployedCode(data, "single"),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
@@ -180,7 +180,7 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
 		{
-			Config: r.tagsWithDeployedCode(data, map[string]string{"Environment": "Updated", "Label": "EdgeAction"}),
+			Config: r.tagsWithDeployedCode(data, "multiple"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
@@ -190,7 +190,7 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
 		{
-			Config: r.tagsWithDeployedCode(data, map[string]string{}),
+			Config: r.tagsWithDeployedCode(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
@@ -350,10 +350,20 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
 `, r.template(data), data.RandomInteger, r.code(headerValue))
 }
 
-func (r CdnFrontdoorEdgeActionVersionResource) tagsWithDeployedCode(data acceptance.TestData, tags map[string]string) string {
-	tagsHCL := ""
-	for k, v := range tags {
-		tagsHCL += fmt.Sprintf("    %s = %q\n", k, v)
+// tagsWithDeployedCode returns a default version and a version which isn't the default, both with code deployed, using
+// the given set of tags: "" for no tags, "single" for one tag, or "multiple" for an updated tag plus an additional one
+func (r CdnFrontdoorEdgeActionVersionResource) tagsWithDeployedCode(data acceptance.TestData, tagSet string) string {
+	tags := "{}"
+	switch tagSet {
+	case "single":
+		tags = `{
+    Environment = "Test"
+  }`
+	case "multiple":
+		tags = `{
+    Environment = "Updated"
+    Label       = "EdgeAction"
+  }`
 	}
 
 	return fmt.Sprintf(`
@@ -366,8 +376,7 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "test" {
   code_file_name               = "edge_action.js"
   code_content_base64          = "%[3]s"
 
-  tags = {
-%[4]s  }
+  tags = %[4]s
 }
 
 resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
@@ -377,10 +386,9 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
   code_file_name               = "edge_action.js"
   code_content_base64          = "%[3]s"
 
-  tags = {
-%[4]s  }
+  tags = %[4]s
 
   depends_on = [azurerm_cdn_frontdoor_edge_action_version.test]
 }
-`, r.template(data), data.RandomInteger, r.code("tags"), tagsHCL)
+`, r.template(data), data.RandomInteger, r.code("tags"), tags)
 }
