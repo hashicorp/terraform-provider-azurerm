@@ -25,6 +25,8 @@ const (
 	FxStringPrefixTomcat         FxStringPrefix = "TOMCAT"
 )
 
+const LinuxFxVersionSiteContainers = "sitecontainers"
+
 type FxStringPrefix string
 
 var urlSchemes = []string{
@@ -33,8 +35,9 @@ var urlSchemes = []string{
 }
 
 func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
-	parts := strings.Split(fxString, "|")
 	result := ApplicationStackLinux{}
+
+	parts := strings.Split(fxString, "|")
 	if len(parts) != 2 {
 		return result
 	}
