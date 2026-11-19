@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package serviceconnector
+package helpers
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ type SecretStoreModel struct {
 	KeyVaultId string `tfschema:"key_vault_id"`
 }
 
-func secretStoreSchema() *pluginsdk.Schema {
+func SecretStoreSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -47,7 +47,7 @@ func secretStoreSchema() *pluginsdk.Schema {
 	}
 }
 
-func authInfoSchema() *pluginsdk.Schema {
+func AuthInfoSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -109,8 +109,8 @@ func authInfoSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandServiceConnectorAuthInfoForCreate(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
-	if err := validateServiceConnectorAuthInfo(input); err != nil {
+func ExpandServiceConnectorAuthInfoForCreate(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
+	if err := ValidateServiceConnectorAuthInfo(input); err != nil {
 		return nil, err
 	}
 
@@ -155,8 +155,8 @@ func expandServiceConnectorAuthInfoForCreate(input []AuthInfoModel) (servicelink
 	return nil, fmt.Errorf("unrecognised authentication type: %q", in.Type)
 }
 
-func expandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (links.AuthInfoBase, error) {
-	if err := validateServiceConnectorAuthInfo(input); err != nil {
+func ExpandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (links.AuthInfoBase, error) {
+	if err := ValidateServiceConnectorAuthInfo(input); err != nil {
 		return nil, err
 	}
 
@@ -201,7 +201,7 @@ func expandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (links.AuthI
 	return nil, fmt.Errorf("unrecognised authentication type: %q", in.Type)
 }
 
-func validateServiceConnectorAuthInfo(input []AuthInfoModel) error {
+func ValidateServiceConnectorAuthInfo(input []AuthInfoModel) error {
 	if len(input) > 0 {
 		authInfo := input[0]
 		switch servicelinker.AuthType(authInfo.Type) {
@@ -295,7 +295,7 @@ func validateServiceConnectorAuthInfo(input []AuthInfoModel) error {
 	return nil
 }
 
-func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
+func ExpandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
 	if len(input) == 0 {
 		return nil
 	}
@@ -307,7 +307,7 @@ func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
 	}
 }
 
-func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {
+func FlattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {
 	var authType string
 	var name string
 	var secret string
@@ -366,7 +366,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd strin
 }
 
 // TODO: Only support Azure resource for now. Will include ConfluentBootstrapServer and ConfluentSchemaRegistry in the future.
-func flattenTargetService(input servicelinker.TargetServiceBase) string {
+func FlattenTargetService(input servicelinker.TargetServiceBase) string {
 	var targetServiceId string
 
 	if value, ok := input.(servicelinker.AzureResource); ok {
@@ -382,7 +382,7 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 	return targetServiceId
 }
 
-func flattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
+func FlattenSecretStore(input servicelinker.SecretStore) []SecretStoreModel {
 	return []SecretStoreModel{
 		{
 			KeyVaultId: pointer.From(input.KeyVaultId),
