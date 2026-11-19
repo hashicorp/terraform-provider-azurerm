@@ -218,23 +218,6 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
-		"postgresql_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C - Restored clusters inherit their PostgreSQL version from the source backup.
-			Computed:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"postgresql_version", "point_in_time_restore"},
-			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPostgreSqlVersion(), false),
-		},
-
-		"public_network_access": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(clusters.PublicNetworkAccessStateDisabled),
-			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPublicNetworkAccessState(), false),
-		},
-
 		"point_in_time_restore": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
@@ -259,6 +242,23 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"postgresql_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C - Restored clusters inherit their PostgreSQL version from the source backup.
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"postgresql_version", "point_in_time_restore"},
+			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPostgreSqlVersion(), false),
+		},
+
+		"public_network_access": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(clusters.PublicNetworkAccessStateDisabled),
+			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForPublicNetworkAccessState(), false),
 		},
 
 		"tags": commonschema.Tags(),
