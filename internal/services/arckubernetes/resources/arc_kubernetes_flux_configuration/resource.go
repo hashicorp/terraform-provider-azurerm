@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_arc_kubernetes_flux_configuration"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Arc Kubernetes Flux Configuration."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(val any, key string) (warns []string, errs []error) {
 		idRaw, ok := val.(string)

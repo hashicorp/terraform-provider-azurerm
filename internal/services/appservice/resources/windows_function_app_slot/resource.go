@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_windows_function_app_slot"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Windows Function App Slot."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webapps.ValidateSlotID
 }

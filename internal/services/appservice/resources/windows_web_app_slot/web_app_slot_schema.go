@@ -65,18 +65,21 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
+					Description: "If this Windows Web App Slot is Always On enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     true,
 				},
 
 				"api_management_api_id": {
+					Description:  "The API Management API ID this Windows Web App Slot os associated with.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.AsGeneratedID(api.ParseApiIDInsensitively),
 				},
 
 				"api_definition_url": {
+					Description:  "The URL to the API Definition for this Windows Web App Slot.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -85,43 +88,49 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"application_stack": helpers.WindowsApplicationStackSchema(),
 
 				"app_command_line": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Description: "The App command line to launch.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
 				},
 
 				"auto_heal_setting": helpers.AutoHealSettingSchemaWindows(),
 
 				"auto_swap_slot_name": {
+					Description:  "The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"container_registry_use_managed_identity": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Should connections for Azure Container Registry use Managed Identity.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"container_registry_managed_identity_client_id": {
+					Description:  "The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
 				},
 
 				"default_documents": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "Specifies a list of Default Documents for the Windows Web App Slot.",
+					Type:        pluginsdk.TypeList,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
 				},
 
 				"http2_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Should the HTTP2 be enabled?",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -134,9 +143,10 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Should the Windows Web App Slot `ip_restriction` configuration be used for the SCM also.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -149,12 +159,14 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"local_mysql_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Use Local MySQL.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"load_balancing_mode": {
+					Description:  "The Site load balancing.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SiteLoadBalancingLeastRequests),
@@ -162,6 +174,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"managed_pipeline_mode": {
+					Description:  "Managed pipeline mode.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
@@ -169,15 +182,17 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"remote_debugging_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Should Remote Debugging be enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"remote_debugging_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true, // azignore:AZS007 - pre-existing violation
+					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Computed:    true, // azignore:AZS007 - pre-existing violation
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
@@ -189,19 +204,22 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"use_32_bit_worker": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
+					Description: "Should the Windows Web App Slot use a 32-bit worker.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
 					// Note: O+C because Variable default value depending on several factors, such as plan type.
 					Computed: true,
 				},
 
 				"websockets_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Description: "Should Web Sockets be enabled.",
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
 				},
 
 				"ftps_state": {
+					Description:  "The State of FTP / FTPS service.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
@@ -209,6 +227,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
+					Description:  "The path to the Health Check.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
@@ -219,10 +238,11 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
 				},
 
 				"worker_count": {
+					Description:  "The number of Workers for this Windows App Service Slot.",
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -230,6 +250,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
@@ -237,6 +258,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"scm_minimum_tls_version": {
+					Description:  "The configures the minimum version of TLS required for SSL requests to the SCM site.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
@@ -247,7 +269,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Description:  "The configures the minimum cipher suite of TLS required for SSL requests.",
 				},
 
 				"cors": helpers.CorsSettingsSchema(),
@@ -260,7 +282,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {

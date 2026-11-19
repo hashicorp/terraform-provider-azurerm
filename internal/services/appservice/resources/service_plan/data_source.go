@@ -48,9 +48,14 @@ func (r DataSource) ResourceType() string {
 	return "azurerm_service_plan"
 }
 
+func (r DataSource) Description() string {
+	return "Use this data source to access information about an existing Service Plan."
+}
+
 func (r DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of this Service Plan.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.ServicePlanName,
@@ -65,53 +70,63 @@ func (r DataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The SKU for the Service Plan.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"app_service_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment this Service Plan is part of.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The O/S type for the App Services hosted in this plan.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"per_site_scaling_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is Per Site Scaling be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"premium_plan_auto_scale_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is premium plan autoscale enabled.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"worker_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of Workers (instances) allocated.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"maximum_elastic_worker_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The maximum number of workers in use in an Elastic SKU Plan.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A string representing the Kind of Service Plan.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"reserved": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Whether this is a reserved Service Plan Type. `true` if `os_type` is `Linux`, otherwise `false`.",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"zone_balancing_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Description: "Is the Service Plan balance across Availability Zones in the region?",
+			Type:        pluginsdk.TypeBool,
+			Computed:    true,
 		},
 
 		"tags": commonschema.TagsDataSource(),

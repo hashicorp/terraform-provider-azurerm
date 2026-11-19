@@ -22,6 +22,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name of the App Service Environment.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,6 +32,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"subnet_id": { // (@jackofallops) - This _should_ be updatable via `ChangeVnet`, but the service returns Code="NotImplemented" Message="The requested method is not implemented."
+			Description:  "The ID of the Subnet which the App Service Environment should be connected to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,9 +40,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"allow_new_private_endpoint_connections": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should new Private Endpoint Connections be allowed.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"cluster_setting": {
@@ -50,20 +53,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:  "The name of the Cluster Setting.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Description: "The value for the Cluster Setting.",
+						Type:        pluginsdk.TypeString,
+						Required:    true,
 					},
 				},
 			},
 		},
 
 		"dedicated_host_count": {
+			Description:  "This ASEv3 should use dedicated Hosts.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
@@ -74,10 +80,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"internal_load_balancing_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(appserviceenvironments.LoadBalancingModeNone),
+			Description: "Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     string(appserviceenvironments.LoadBalancingModeNone),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(appserviceenvironments.LoadBalancingModeNone),
 				string(appserviceenvironments.LoadBalancingModeWebPublishing),
@@ -85,16 +92,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"remote_debugging_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable remote debug.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"zone_redundant": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
+			Description: "Set to `true` to deploy the ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both.",
+			Type:        pluginsdk.TypeBool,
+			ForceNew:    true,
+			Optional:    true,
+			Default:     false,
 			ConflictsWith: []string{
 				"dedicated_host_count",
 			},
@@ -107,13 +116,15 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dns_suffix": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "the DNS suffix for this App Service Environment V3.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"external_inbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The external inbound IP addresses of the App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -125,21 +136,24 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "A short description of the purpose of the network traffic.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 
 					"ip_addresses": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "A list of IP addresses that network traffic will originate from in CIDR notation.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
 					},
 
 					"ports": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
+						Description: "The ports that network traffic will arrive to the App Service Environment V3 on.",
+						Type:        pluginsdk.TypeList,
+						Computed:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -149,39 +163,45 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"internal_inbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "The internal inbound IP addresses of the App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"ip_ssl_address_count": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
+			Description: "The number of IP SSL addresses reserved for the App Service Environment V3.",
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
 		},
 
 		"linux_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "Outbound addresses of Linux based Apps in this App Service Environment V3",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The location where the App Service Environment exists.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"pricing_tier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "Pricing tier for the front end instances.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"windows_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "Outbound addresses of Windows based Apps in this App Service Environment V3.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

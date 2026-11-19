@@ -26,6 +26,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_windows_web_app"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Windows Web App."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateAppServiceID
 }

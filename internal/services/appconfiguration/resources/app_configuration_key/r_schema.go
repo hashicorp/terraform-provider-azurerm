@@ -19,40 +19,46 @@ import (
 func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "Specifies the id of the App Configuration.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			// User-specified segments are lowercased in the API response
 			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
 			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
+			Description:  "The name of the App Configuration Key to create.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"content_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The content type of the App Configuration Key. This should only be set when type is set to `kv`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C We set some values in this field depending on the `type` so this needs to remain Computed
 			Computed: true,
 		},
 		"etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ETag of the key.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 			// NOTE: O+C The value of this is updated anytime the resource changes
 			Optional: true,
 		},
 		"label": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
+			Description: "The label of the App Configuration Key.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			ForceNew:    true,
 		},
 		"value": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The value of the App Configuration Key. This should only be set when type is set to `kv`.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			ConflictsWith: []string{
 				"vault_key_reference",
 			},
@@ -62,17 +68,20 @@ func (k Resource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"locked": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should this App Configuration Key be Locked to prevent changes?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 		"type": {
+			Description:  "The type of the App Configuration Key.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      KeyTypeKV,
 			ValidateFunc: validation.StringInSlice([]string{KeyTypeVault, KeyTypeKV}, false),
 		},
 		"vault_key_reference": {
+			Description:  "The ID of the vault secret this App Configuration Key refers to. This should only be set when `type` is set to `vault`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,

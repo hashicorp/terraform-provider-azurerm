@@ -23,6 +23,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_app_service_environment_v3"
 }
 
+func (r Resource) Description() string {
+	return "Manages a 3rd Generation (v3) App Service Environment."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateAppServiceEnvironmentID
 }
