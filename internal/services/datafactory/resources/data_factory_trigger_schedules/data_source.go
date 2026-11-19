@@ -17,6 +17,8 @@ import (
 
 type DataSource struct{}
 
+var _ sdk.DataSource = DataSource{}
+
 type TriggerSchedulesDataSourceModel struct {
 	DataFactoryID string   `tfschema:"data_factory_id"`
 	Items         []string `tfschema:"items"`
