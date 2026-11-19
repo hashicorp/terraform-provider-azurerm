@@ -135,6 +135,66 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "B_Standard_B2ats_v2",
+			input: "B_Standard_B2ats_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B2afs_v2",
+			input: "B_Standard_B2afs_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B2als_v2",
+			input: "B_Standard_B2als_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B2as_v2",
+			input: "B_Standard_B2as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B4as_v2",
+			input: "B_Standard_B4as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B8as_v2",
+			input: "B_Standard_B8as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B16as_v2",
+			input: "B_Standard_B16as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B32as_v2",
+			input: "B_Standard_B32as_v2",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_B1as_v2",
+			input: "B_Standard_B1as_v2",
+			valid: false,
+		},
+		{
+			name:  "B_Standard_B2ats",
+			input: "B_Standard_B2ats",
+			valid: false,
+		},
+		{
+			name:  "B_Standard_B64as_v2",
+			input: "B_Standard_B64as_v2",
+			valid: false,
+		},
+		{
+			name:  "B_Standard_B2ats_v3",
+			input: "B_Standard_B2ats_v3",
+			valid: false,
+		},
+		{
 			name:  "B_Standard_B1",
 			input: "B_Standard_B1",
 			valid: false,
