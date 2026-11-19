@@ -22,7 +22,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "16"
-  sku_name               = "GP_Standard_D2s_v3"
+  sku_name               = "GP_Standard_D2ds_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
@@ -83,7 +83,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   delegated_subnet_id           = azurerm_subnet.test.id
   private_dns_zone_id           = azurerm_private_dns_zone.test.id
   public_network_access_enabled = false
-  sku_name                      = "GP_Standard_D2s_v3"
+  sku_name                      = "GP_Standard_D2ds_v5"
   zone                          = "1"
 
   high_availability {
