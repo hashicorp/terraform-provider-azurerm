@@ -726,6 +726,7 @@ func (r SREAgentResource) Create() sdk.ResourceFunc {
 					IncidentManagementConfiguration: expandSREAgentIncidentManagement(config.IncidentManagement),
 					KnowledgeGraphConfiguration:     expandSREAgentKnowledgeGraph(config.KnowledgeGraph),
 					SandboxConfiguration:            expandSREAgentSandbox(config.Sandbox),
+					UpgradeChannel:                  pointer.ToEnum[agents.UpgradeChannel](config.UpgradeChannel),
 				},
 				Tags: pointer.To(config.Tags),
 			}
@@ -734,10 +735,6 @@ func (r SREAgentResource) Create() sdk.ResourceFunc {
 				param.Properties.VnetConfiguration = &agents.VnetConfiguration{
 					SubnetResourceId: pointer.To(config.SubnetId),
 				}
-			}
-
-			if config.UpgradeChannel != "" {
-				param.Properties.UpgradeChannel = pointer.ToEnum[agents.UpgradeChannel](config.UpgradeChannel)
 			}
 
 			if err := client.CreateOrUpdateCallbackThenPoll(ctx, id, param, metadata.SetIDAndIdentityCallback(&id)); err != nil {
@@ -881,6 +878,14 @@ func (SREAgentResource) Delete() sdk.ResourceFunc {
 }
 
 func (SREAgentResource) flatten(metadata sdk.ResourceMetaData, id *agents.AgentId, input *agents.Agent) error {
+	if input == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if input.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
 	var config SREAgentModel
 	if err := metadata.Decode(&config); err != nil {
 		return fmt.Errorf("decoding: %+v", err)
