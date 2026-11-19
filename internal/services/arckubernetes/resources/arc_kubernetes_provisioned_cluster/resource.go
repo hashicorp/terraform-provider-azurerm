@@ -22,6 +22,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_arc_kubernetes_provisioned_cluster"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Arc Kubernetes Provisioned Cluster."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return connectedclusters.ValidateConnectedClusterID
 }

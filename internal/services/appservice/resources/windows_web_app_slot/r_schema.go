@@ -22,6 +22,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Windows Web App Slot.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,6 +30,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"app_service_id": {
+			Description:  "The ID of the Windows Web App this Deployment Slot will be part of.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -38,14 +40,16 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		// Optional
 
 		"service_plan_id": {
+			Description:  "The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Windows Web App will be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A map of key-value pairs of App Settings.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -59,18 +63,21 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchema(),
 
 		"client_affinity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should Client Affinity be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"client_certificate_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should Client Certificates be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"client_certificate_mode": {
+			Description:  "The Client Certificate mode. This property has no effect when `client_certificate_enabled` is `false`.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(webapps.ClientCertModeRequired),
@@ -86,20 +93,23 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"connection_string": helpers.ConnectionStringSchema(),
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the Windows Web App Slot be enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"https_only": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Should the Windows Web App Slot require HTTPS connections.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"key_vault_reference_identity_id": {
+			Description:  "The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
@@ -109,21 +119,24 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"logs": helpers.LogsConfigSchema(),
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should public network access be enabled for the Web App.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the default FTP Basic Authentication publishing profile be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"site_config": SiteConfigSchemaWindowsWebAppSlot(),
@@ -135,33 +148,37 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Web App.",
 		},
 
 		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"virtual_network_image_pull_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether traffic for the image pull should be routed over the virtual network.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"virtual_network_subnet_id": {
+			Description:  "The subnet id which will be used by this Web App Slot for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
 		"end_to_end_tls_encryption_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable end-to-end TLS encryption.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 	}
 }
@@ -169,9 +186,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The identifier used by App Service to perform domain ownership verification via DNS TXT record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_hostname": {
@@ -180,36 +198,42 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by App Service Slot.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Kind value for this Windows Web App Slot.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of outbound IP addresses - such as `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"possible_outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of possible outbound ip address.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

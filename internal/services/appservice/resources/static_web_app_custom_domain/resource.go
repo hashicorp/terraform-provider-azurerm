@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_static_web_app_custom_domain"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Static Web App Custom Domain."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return staticsites.ValidateCustomDomainID
 }

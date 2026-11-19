@@ -12,6 +12,7 @@ import (
 func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Specifies the name of the Application Insights API key.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -19,6 +20,7 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"application_insights_id": {
+			Description:  "The ID of the Application Insights component on which the API key operates.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -26,10 +28,11 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"read_permissions": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			ForceNew: true,
-			Set:      pluginsdk.HashString,
+			Description: "Specifies the list of read permissions granted to the API key. Please note these values are case sensitive.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"agentconfig", "aggregate", "api", "draft", "extendqueries", "search"}, false),
@@ -37,10 +40,11 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"write_permissions": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			ForceNew: true,
-			Set:      pluginsdk.HashString,
+			Description: "Specifies the list of write permissions granted to the API key. Please note these values are case sensitive.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			ForceNew:    true,
+			Set:         pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"annotations"}, false),
@@ -48,9 +52,10 @@ func applicationInsightsApiKeySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"api_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The API Key secret (Sensitive).",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 	}
 }

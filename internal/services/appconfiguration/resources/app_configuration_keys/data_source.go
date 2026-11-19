@@ -56,19 +56,22 @@ type KeysDataSourceModel struct {
 func (k DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
+			Description:  "Specifies the id of the App Configuration.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "",
+			Description: "The name of the App Configuration Keys to look up.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "",
 		},
 		"label": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "",
+			Description: "The label of the App Configuration Keys tp look up.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     "",
 		},
 	}
 }
@@ -81,36 +84,44 @@ func (k DataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"key": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The name of the App Configuration Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"label": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The label of the App Configuration Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"content_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The content type of the App Configuration Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"etag": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ETag of the key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The value of the App Configuration Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"locked": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
+						Description: "Is this App Configuration Key be Locked to prevent changes.",
+						Type:        pluginsdk.TypeBool,
+						Computed:    true,
 					},
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The type of the App Configuration Key.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"vault_key_reference": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The ID of the vault secret this App Configuration Key refers to, when `type` is `vault`.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 					"tags": commonschema.TagsDataSource(),
 				},
@@ -125,6 +136,10 @@ func (k DataSource) ModelObject() any {
 
 func (k DataSource) ResourceType() string {
 	return "azurerm_app_configuration_keys"
+}
+
+func (k DataSource) Description() string {
+	return "Use this data source to access information about existing Azure App Configuration Keys."
 }
 
 func (k DataSource) Read() sdk.ResourceFunc {

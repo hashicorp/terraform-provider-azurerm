@@ -31,6 +31,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_linux_function_app"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Linux Function App."
+}
+
 func (r Resource) Identity() resourceids.ResourceId {
 	return &commonids.FunctionAppId{}
 }

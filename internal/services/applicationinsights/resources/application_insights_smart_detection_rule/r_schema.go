@@ -12,9 +12,10 @@ import (
 func applicationInsightsSmartDetectionRuleSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "Specifies the name of the Application Insights Smart Detection Rule.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Slow page load time",
 				"Slow server response time",
@@ -32,6 +33,7 @@ func applicationInsightsSmartDetectionRuleSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"application_insights_id": {
+			Description:  "The ID of the Application Insights component on which the Smart Detection Rule operates.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -39,21 +41,24 @@ func applicationInsightsSmartDetectionRuleSchema() map[string]*pluginsdk.Schema 
 		},
 
 		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Is the Application Insights Smart Detection Rule enabled?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"send_emails_to_subscription_owners": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Do emails get sent to subscription owners?",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"additional_email_recipients": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Description: "Specifies a list of additional recipients that will be sent emails on this Application Insights Smart Detection Rule.",
+			Type:        pluginsdk.TypeSet,
+			Optional:    true,
+			Elem:        &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 	}
 }

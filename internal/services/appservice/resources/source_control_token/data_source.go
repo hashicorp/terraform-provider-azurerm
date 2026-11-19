@@ -22,8 +22,9 @@ var _ sdk.DataSource = DataSource{}
 func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The Token type.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Bitbucket",
 				"Dropbox",
@@ -37,9 +38,10 @@ func (d DataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d DataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"token": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "The GitHub Token value.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 
 		"token_secret": {
@@ -56,6 +58,10 @@ func (d DataSource) ModelObject() any {
 
 func (d DataSource) ResourceType() string {
 	return "azurerm_source_control_token"
+}
+
+func (d DataSource) Description() string {
+	return "Use this data source to access information about an existing App Service Source Control Token."
 }
 
 func (d DataSource) Read() sdk.ResourceFunc {

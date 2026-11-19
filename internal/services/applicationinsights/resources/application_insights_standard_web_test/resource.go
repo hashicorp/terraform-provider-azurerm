@@ -21,6 +21,10 @@ func (Resource) ResourceType() string {
 	return "azurerm_application_insights_standard_web_test"
 }
 
+func (Resource) Description() string {
+	return "Manages a Application Insights Standard WebTest."
+}
+
 func (Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webtestsapis.ValidateWebTestID
 }

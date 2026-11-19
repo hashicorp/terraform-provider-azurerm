@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsSmartDetectionRuleUpdate,
-		Read:   resourceApplicationInsightsSmartDetectionRuleRead,
-		Update: resourceApplicationInsightsSmartDetectionRuleUpdate,
-		Delete: resourceApplicationInsightsSmartDetectionRuleDelete,
+		Description: "Manages an Application Insights Smart Detection Rule.",
+		Create:      resourceApplicationInsightsSmartDetectionRuleUpdate,
+		Read:        resourceApplicationInsightsSmartDetectionRuleRead,
+		Update:      resourceApplicationInsightsSmartDetectionRuleUpdate,
+		Delete:      resourceApplicationInsightsSmartDetectionRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := componentproactivedetectionapis.ParseProactiveDetectionConfigID(id)

@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_application_insights_workbook"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Azure Workbook."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workbooksapis.ValidateWorkbookID
 }

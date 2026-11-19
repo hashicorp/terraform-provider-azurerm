@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.WebAppName,
-			Description:  "The name of the Function App.",
+			Description:  "The name which should be used for this Function App. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)",
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -40,52 +40,59 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFunctionsDeploymentStorageType(), false),
-			Description:  "The type of the Storage Container where the Function App's code is hosted.",
+			Description:  "The storage container type used for the Function App. The current supported type is `blobContainer`.",
 		},
 
 		"storage_container_endpoint": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
-			Description: "The endpoint of the Storage Container where the Function App's code is hosted.",
+			Description: "The backend storage container endpoint which will be used by this Function App.",
 		},
 
 		"storage_authentication_type": {
+			Description:  "The authentication type which will be used to access the backend storage account for the Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAuthenticationType(), false),
 		},
 
 		"storage_access_key": {
+			Description:  "The access key which will be used to access the backend storage account for the Function App.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"storage_user_assigned_identity_id": {
+			Description:  "The user assigned Managed Identity to access the storage account.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"runtime_name": {
+			Description:  "The Runtime of the Linux Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForRuntimeName(), false),
 		},
 
 		"runtime_version": {
+			Description:  "The Runtime version of the Linux Function App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"instance_memory_in_mb": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  2048,
+			Description: "The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan#instance-memory).",
+			Type:        pluginsdk.TypeInt,
+			Optional:    true,
+			Default:     2048,
 		},
 
 		"maximum_instance_count": {
+			Description:  "The number of workers this function app can scale out to.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Default:      100,
@@ -93,6 +100,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"http_concurrency": {
+			Description:  "The Http concurrency of the instances on which your app runs.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(1, 1000),
@@ -105,6 +113,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
+						Description:      "The name of the `always_ready` of the Function App.",
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ValidateFunc:     validation.StringIsNotEmpty,
@@ -112,6 +121,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"instance_count": {
+						Description:  "The instance count of the `always_ready` of the Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.",
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 1000),
@@ -170,25 +180,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should public network access be enabled for the Function App.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"https_only": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Can the Function App only be accessed via HTTPS?",
+			Description: "Is Https Connection enforced to the function app.",
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"virtual_network_subnet_id": {
+			Description:  "The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -199,7 +212,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App.",
 		},
 
 		"tags": commonschema.Tags(),
@@ -209,9 +222,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The identifier used by App Service to perform domain ownership verification via DNS TXT record.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_hostname": {
@@ -220,36 +234,42 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kind": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The Kind value for this Linux Function App.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of outbound IP addresses. For example `[\"52.23.25.3\", \"52.143.43.12\"]`",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"possible_outbound_ip_addresses": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"possible_outbound_ip_address_list": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
+			Description: "A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `[\"52.23.25.3\", \"52.143.43.12\"]`.",
+			Type:        pluginsdk.TypeList,
+			Computed:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},

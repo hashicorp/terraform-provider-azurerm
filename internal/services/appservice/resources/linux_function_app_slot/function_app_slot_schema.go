@@ -99,7 +99,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Optional:    true,
 					Computed:    true, // azignore:AZS007 - pre-existing violation
-					Description: "The number of workers this Function App can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 					// TODO Validation?
 				},
 
@@ -124,6 +124,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 				"app_service_logs": helpers.FunctionAppAppServiceLogsSchema(),
 
 				"auto_swap_slot_name": {
+					Description:  "The name of the slot to automatically swap with when this slot is successfully deployed.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -133,7 +134,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should connections for Azure Container Registry use Managed Identity?",
+					Description: "Should connections for Azure Container Registry use Managed Identity.",
 				},
 
 				"container_registry_managed_identity_client_id": {
@@ -150,7 +151,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
-					Description: "A list of Default Documents for the Linux Web App.",
+					Description: "Specifies a list of Default Documents for the Linux Web App.",
 				},
 
 				"elastic_instance_minimum": {
@@ -164,7 +165,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Whether the http2 protocol should be enabled.",
+					Description: "Specifies if the HTTP2 protocol should be enabled.",
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -180,7 +181,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also?",
+					Description: "Should the Linux Function App `ip_restriction` configuration be used for the SCM also.",
 				},
 
 				"scm_ip_restriction": helpers.IpRestrictionSchema(),
@@ -220,14 +221,14 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because Variable defaults depending on plan etc
 					Computed:    true,
-					Description: "The number of pre-warmed instances for this Function App. Only affects apps on an Elastic Premium plan.",
+					Description: "The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.",
 				},
 
 				"remote_debugging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled?",
+					Description: "Should Remote Debugging be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -237,13 +238,13 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2022",
 					}, false),
-					Description: "The Remote Debugging Version.",
+					Description: "The Remote Debugging Version. Currently only `VS2022` is supported.",
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled?",
+					Description: "Should Functions Runtime Scale Monitoring be enabled.",
 				},
 
 				"scm_type": {
@@ -256,14 +257,14 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should the Linux Web App use a 32-bit worker?",
+					Description: "Should the Linux Web App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled?",
+					Description: "Should Web Sockets be enabled.",
 				},
 
 				"ftps_state": {
@@ -271,13 +272,13 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this Function App.",
+					Description:  "State of FTP / FTPS service for this function app.",
 				},
 
 				"health_check_path": {
 					Type:        pluginsdk.TypeString,
 					Optional:    true,
-					Description: "The path to be checked for this Function App health.",
+					Description: "The path to be checked for this function app health.",
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
@@ -316,7 +317,7 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Description:  "The configures the minimum cipher suite of TLS required for SSL requests.",
 				},
 
 				"cors": helpers.CorsSettingsSchema(),
@@ -325,19 +326,19 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied?",
+					Description: "Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
-					Description: "Is detailed error logging enabled?",
+					Description: "Is detailed error logging enabled",
 				},
 
 				"linux_fx_version": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Linux FX Version.",
+					Description: "The Linux FX Version",
 				},
 			},
 		},
