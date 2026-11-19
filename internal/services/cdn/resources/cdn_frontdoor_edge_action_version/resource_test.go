@@ -11,6 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactionversions"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -78,21 +80,61 @@ func TestAccCdnFrontdoorEdgeActionVersion_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			// deploying code to a default version which has no code yet is an in-place update
 			Config: r.complete(data, "first"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("code_content_base64", "code_file_name"),
+	})
+}
+
+func TestAccCdnFrontdoorEdgeActionVersion_updateDefaultVersionCode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action_version", "test")
+	r := CdnFrontdoorEdgeActionVersionResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
+			Config: r.complete(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_version_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("code_content_base64", "code_file_name"),
+		{
+			// the deployed code of the default version can't be redeployed, so the version is recreated
 			Config: r.complete(data, "second"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionDestroyBeforeCreate),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("code_content_base64", "code_file_name"),
+	})
+}
+
+func TestAccCdnFrontdoorEdgeActionVersion_updateNonDefaultVersionCode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action_version", "second")
+	r := CdnFrontdoorEdgeActionVersionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.nonDefaultVersionWithCode(data, "first"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_version_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("code_content_base64", "code_file_name"),
+		{
+			// the code of a version which isn't the default can be redeployed in-place
+			Config: r.nonDefaultVersionWithCode(data, "second"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -223,4 +265,26 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
   depends_on = [azurerm_cdn_frontdoor_edge_action_version.test]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorEdgeActionVersionResource) nonDefaultVersionWithCode(data acceptance.TestData, headerValue string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_edge_action_version" "test" {
+  name                         = "acctesteav%[2]d"
+  cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
+  deployment_type              = "file"
+}
+
+resource "azurerm_cdn_frontdoor_edge_action_version" "second" {
+  name                         = "acctesteav2%[2]d"
+  cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
+  deployment_type              = "file"
+  code_file_name               = "edge_action.js"
+  code_content_base64          = "%[3]s"
+
+  depends_on = [azurerm_cdn_frontdoor_edge_action_version.test]
+}
+`, r.template(data), data.RandomInteger, r.code(headerValue))
 }

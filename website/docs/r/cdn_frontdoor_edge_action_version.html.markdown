@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `code_file_name` - (Optional) The file name of the code to deploy to this Edge Action Version, for example `edge_action.js`.
 
--> **Note:** `code_content_base64` and `code_file_name` must be specified together. Deploying the code can take more than 10 minutes. The code is validated by the service when it is deployed.
+-> **Note:** `code_content_base64` and `code_file_name` must be specified together. Deploying the code can take more than 10 minutes. The code is validated by the service when it is deployed. The code of a version which isn't the default can be changed in-place, but changing the deployed code of the default version, or removing the code from a version, forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Edge Action Version.
 

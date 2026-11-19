@@ -4,10 +4,13 @@
 package cdn_frontdoor_edge_action_version
 
 import (
+	"context"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactionversions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -61,6 +64,38 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 		"default_version_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
+		},
+	}
+}
+
+func (Resource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			if rd.Id() == "" || !rd.HasChanges("code_content_base64", "code_file_name") {
+				return nil
+			}
+
+			oldCode, newCode := rd.GetChange("code_content_base64")
+			hadCode := oldCode.(string) != ""
+
+			// the API can't remove deployed code from a version, and can't redeploy the code of the
+			// default version once it has been deployed, so a new version needs to be created instead
+			codeRemoved := hadCode && newCode.(string) == ""
+			defaultVersionRedeployed := hadCode && rd.Get("default_version_enabled").(bool)
+
+			if codeRemoved || defaultVersionRedeployed {
+				for _, key := range []string{"code_content_base64", "code_file_name"} {
+					if rd.HasChange(key) {
+						if err := rd.ForceNew(key); err != nil {
+							return err
+						}
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }
