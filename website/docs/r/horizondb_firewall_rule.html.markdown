@@ -13,14 +13,42 @@ Manages a HorizonDB Firewall Rule.
 ## Example Usage
 
 ```hcl
-variable "horizondb_pool_id" {
+variable "horizondb_administrator_password" {
   type        = string
-  description = "The ID of an existing HorizonDB Pool."
+  description = "The PostgreSQL administrator password for the HorizonDB Cluster."
+  sensitive   = true
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resource-group"
+  location = "East US 2"
+}
+
+resource "azurerm_horizondb_cluster" "example" {
+  name                = "example-horizondb-cluster"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  postgresql_version  = "18"
+
+  administrator_login    = "exampleadmin"
+  administrator_password = var.horizondb_administrator_password
+
+  read_write_pool {
+    name                   = "example-pool"
+    node_count             = 1
+    high_availability_mode = "Disabled"
+
+    compute {
+      processor  = "AMD"
+      generation = 1
+      vcores     = 4
+    }
+  }
 }
 
 resource "azurerm_horizondb_firewall_rule" "example" {
   name              = "example-horizondb-firewall-rule"
-  horizondb_pool_id = var.horizondb_pool_id
+  horizondb_pool_id = azurerm_horizondb_cluster.example.read_write_pool[0].id
   start_ip_address  = "192.0.2.1"
   end_ip_address    = "192.0.2.10"
 }

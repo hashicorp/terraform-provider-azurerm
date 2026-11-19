@@ -46,10 +46,6 @@ resource "azurerm_horizondb_cluster" "example" {
       vcores     = 4
     }
   }
-
-  tags = {
-    environment = "example"
-  }
 }
 ```
 

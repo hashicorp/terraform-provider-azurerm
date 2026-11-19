@@ -122,6 +122,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
 
+        // HorizonDB is only available in certain locations
+        "horizondb" to testConfiguration(locationOverride = LocationConfiguration("koreacentral", "japaneast", "eastus", false)),
+
         // IoT Central is only available in certain locations
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 

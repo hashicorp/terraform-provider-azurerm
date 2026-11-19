@@ -308,10 +308,44 @@ func (r HorizondbClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			payload, err := expandHorizondbCluster(state)
-			if err != nil {
-				return err
+			geoRedundancy := clusters.GeoRedundancyStateDisabled
+			if state.GeoRedundantBackupEnabled {
+				geoRedundancy = clusters.GeoRedundancyStateEnabled
 			}
+
+			payload := clusters.Cluster{
+				Location: location.Normalize(state.Location),
+				Tags:     pointer.To(state.Tags),
+				Properties: &clusters.ClusterProperties{
+					CreationMode: pointer.To(clusters.ClusterCreateModeCreate),
+					Network:      &clusters.Network{PublicAccess: pointer.ToEnum[clusters.PublicNetworkAccessState](state.PublicNetworkAccess)},
+					Backup: &clusters.BackupProperties{
+						GeoRedundancy: geoRedundancy,
+						RetentionDays: pointer.To(state.BackupRetentionInDays),
+					},
+				},
+			}
+
+			if len(state.Identity) > 0 {
+				expanded, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				payload.Identity = expanded
+			}
+
+			if len(state.PointInTimeRestore) == 0 {
+				payload.Properties.PostgreSqlVersion = pointer.ToEnum[clusters.PostgreSqlVersion](state.PostgresqlVersion)
+			} else {
+				payload.Properties.CreationMode = pointer.To(clusters.ClusterCreateModePointInTimeRestore)
+				restore := state.PointInTimeRestore[0]
+				payload.Properties.CreationSourceClusterResourceId = pointer.To(restore.SourceHorizondbClusterId)
+				payload.Properties.PointInTimeUtc = pointer.To(restore.PointInTimeUtc)
+				if restore.SourceLocation != "" {
+					payload.Properties.CreationSourceClusterLocation = pointer.To(location.Normalize(restore.SourceLocation))
+				}
+			}
+
 			if err := client.CreateOrReplaceCallbackThenPoll(ctx, id, payload, metadata.SetIDAndIdentityCallback(&id)); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -384,8 +418,12 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %+v", id, err)
 				}
-				if existing.Model == nil || existing.Model.Properties == nil {
-					return fmt.Errorf("retrieving %s: model or properties are nil", id)
+				if existing.Model == nil {
+					return fmt.Errorf("retrieving %s: `model` was nil", *id)
+				}
+
+				if existing.Model.Properties == nil {
+					return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 				}
 
 				props := existing.Model.Properties
@@ -402,7 +440,7 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 					},
 				}
 
-				// Backup retention is in a separate change group and must be updated independently from other properpty change groups.
+				// Backup retention is in a separate change group and must be updated independently from other property change groups.
 				if metadata.ResourceData.HasChange("backup_retention_in_days") {
 					if payload.Properties.Backup == nil {
 						payload.Properties.Backup = &clusters.BackupProperties{}
@@ -413,7 +451,7 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 					}
 				}
 
-				// Public network access is in a separate change group and must be updated independently from other properpty change groups.
+				// Public network access is in a separate change group and must be updated independently from other property change groups.
 				if metadata.ResourceData.HasChange("public_network_access") {
 					if payload.Properties.Network == nil {
 						payload.Properties.Network = &clusters.Network{}
@@ -424,13 +462,14 @@ func (HorizondbClusterResource) Update() sdk.ResourceFunc {
 					}
 				}
 
-				// Tags is in a separate change group and must be updated independently from other properpty change groups.
+				// Tags is in a separate change group and must be updated independently from other property change groups.
 				if metadata.ResourceData.HasChange("tags") {
 					payload.Tags = pointer.To(state.Tags)
 				}
 
 				// Aggregate other changes into a single update for the cluster.
 				// All other changes that are not part of separate change groups are aggregated here.
+				// Service team will fix the mutually exclusive update handling in the future, we can clean this up later.
 				if metadata.ResourceData.HasChange("identity") {
 					expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
 					if err != nil {
@@ -498,50 +537,6 @@ func (HorizondbClusterResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandHorizondbCluster(state HorizondbClusterResourceModel) (clusters.Cluster, error) {
-	geoRedundancy := clusters.GeoRedundancyStateDisabled
-	if state.GeoRedundantBackupEnabled {
-		geoRedundancy = clusters.GeoRedundancyStateEnabled
-	}
-
-	payload := clusters.Cluster{
-		Location: location.Normalize(state.Location),
-		Tags:     pointer.To(state.Tags),
-		Properties: &clusters.ClusterProperties{
-			CreationMode: pointer.To(clusters.ClusterCreateModeCreate),
-			Network:      &clusters.Network{PublicAccess: pointer.ToEnum[clusters.PublicNetworkAccessState](state.PublicNetworkAccess)},
-			Backup: &clusters.BackupProperties{
-				GeoRedundancy: geoRedundancy,
-				RetentionDays: pointer.To(state.BackupRetentionInDays),
-			},
-		},
-	}
-
-	if len(state.Identity) > 0 {
-		expanded, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
-		if err != nil {
-			return payload, fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		payload.Identity = expanded
-	}
-
-	if len(state.PointInTimeRestore) == 0 {
-		if state.PostgresqlVersion == "" {
-			return payload, errors.New("`postgresql_version` is required when `point_in_time_restore` is not specified")
-		}
-		payload.Properties.PostgreSqlVersion = pointer.ToEnum[clusters.PostgreSqlVersion](state.PostgresqlVersion)
-	} else {
-		payload.Properties.CreationMode = pointer.To(clusters.ClusterCreateModePointInTimeRestore)
-		restore := state.PointInTimeRestore[0]
-		payload.Properties.CreationSourceClusterResourceId = pointer.To(restore.SourceHorizondbClusterId)
-		payload.Properties.PointInTimeUtc = pointer.To(restore.PointInTimeUtc)
-		if restore.SourceLocation != "" {
-			payload.Properties.CreationSourceClusterLocation = pointer.To(location.Normalize(restore.SourceLocation))
-		}
-	}
-	return payload, nil
-}
-
 func (HorizondbClusterResource) flatten(metadata sdk.ResourceMetaData, id *clusters.ClusterId, model *clusters.Cluster, pool *pools.Pool, administratorLogin string) error {
 	if model == nil || model.Properties == nil {
 		return nil
@@ -569,9 +564,7 @@ func (HorizondbClusterResource) flatten(metadata sdk.ResourceMetaData, id *clust
 	}
 
 	if props.Backup != nil {
-		if props.Backup.RetentionDays != nil {
-			state.BackupRetentionInDays = pointer.From(props.Backup.RetentionDays)
-		}
+		state.BackupRetentionInDays = pointer.From(props.Backup.RetentionDays)
 		state.GeoRedundantBackupEnabled = props.Backup.GeoRedundancy == clusters.GeoRedundancyStateEnabled
 	}
 
