@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_automation_hybrid_runbook_worker"
 }
 
+func (m Resource) Description() string {
+	return "Manages a Automation Hybrid Runbook Worker."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return hybridrunbookworker.ValidateHybridRunbookWorkerID
 }

@@ -19,7 +19,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Scope for this role assignment, should be a valid resource ID",
+			Description: "The scope for this role assignment, should be a valid resource ID.",
 			ValidateFunc: validation.Any(
 				// Elevated access for a global admin is needed to assign roles in this scope:
 				// https://docs.microsoft.com/azure/role-based-access-control/elevate-access-global-admin#azure-cli
@@ -38,14 +38,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			ForceNew:    true,
-			Description: "Role definition ID for this role assignment",
+			Description: "The role definition ID for this role assignment.",
 		},
 
 		"principal_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "Object ID of the principal for this role assignment",
+			Description:  "Object ID of the principal for this role assignment.",
 			ValidateFunc: validation.IsUUID,
 		},
 
@@ -54,7 +54,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
 			ForceNew:    true,
-			Description: "The justification for this role assignment",
+			Description: "The justification for the role assignment.",
 		},
 
 		"schedule": {
@@ -71,7 +71,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Computed:    true, // azignore:AZS007 - pre-existing violation
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
-						Description: "The start date/time of the role assignment",
+						Description: "The start date/time of the role assignment.",
 					},
 
 					"expiration": {
@@ -89,7 +89,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_hours",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the role assignment in days",
+									Description: "The duration of the role assignment in days.",
 								},
 
 								"duration_hours": {
@@ -101,7 +101,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.end_date_time",
 									},
-									Description: "The duration of the role assignment in hours",
+									Description: "The duration of the role assignment in hours.",
 								},
 
 								"end_date_time": {
@@ -113,7 +113,7 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.duration_hours",
 									},
-									Description: "The end date/time of the role assignment",
+									Description: "The end date/time of the role assignment.",
 								},
 							},
 						},
@@ -135,14 +135,14 @@ func (Resource) Arguments() map[string]*pluginsdk.Schema {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ForceNew:    true,
-						Description: "User-supplied ticket number to be included with the request",
+						Description: "User-supplied ticket number to be included with the request.",
 					},
 
 					"system": {
 						Type:        pluginsdk.TypeString,
 						Optional:    true,
 						ForceNew:    true,
-						Description: "User-supplied ticket system name to be included with the request",
+						Description: "User-supplied ticket system name to be included with the request.",
 					},
 				},
 			},
@@ -155,7 +155,7 @@ func (Resource) Attributes() map[string]*pluginsdk.Schema {
 		"principal_type": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "Type of principal to which the role will be assigned",
+			Description: "Type of principal to which the role will be assigned.",
 		},
 	}
 }

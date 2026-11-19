@@ -13,6 +13,7 @@ import (
 func automationConnectionServicePrincipalSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Specifies the name of the Connection.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -22,6 +23,7 @@ func automationConnectionServicePrincipalSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"automation_account_name": {
+			Description:  "The name of the automation account in which the Connection is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -29,32 +31,37 @@ func automationConnectionServicePrincipalSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"application_id": {
+			Description:  "The (Client) ID of the Service Principal.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"certificate_thumbprint": {
+			Description:  "The thumbprint of the Service Principal Certificate.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subscription_id": {
+			Description:  "The subscription GUID.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"tenant_id": {
+			Description:  "The ID of the Tenant the Service Principal is assigned in.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsUUID,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for this Connection.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 	}
 }

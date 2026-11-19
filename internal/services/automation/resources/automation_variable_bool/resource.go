@@ -13,10 +13,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationVariableBoolCreate,
-		Read:   resourceAutomationVariableBoolRead,
-		Update: resourceAutomationVariableBoolUpdate,
-		Delete: resourceAutomationVariableBoolDelete,
+		Description: "Manages a boolean variable in Azure Automation",
+		Create:      resourceAutomationVariableBoolCreate,
+		Read:        resourceAutomationVariableBoolRead,
+		Update:      resourceAutomationVariableBoolUpdate,
+		Delete:      resourceAutomationVariableBoolDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := variable.ParseVariableID(id)

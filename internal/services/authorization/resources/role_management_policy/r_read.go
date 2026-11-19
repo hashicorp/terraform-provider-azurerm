@@ -304,20 +304,20 @@ func notificationRuleSchema() map[string]*pluginsdk.Schema {
 func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"notification_level": {
-			Description:  "What level of notifications are sent",
+			Description:  "What level of notifications should be sent. Options are `All` or `Critical`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice([]string{"All", "Critical"}, false),
 		},
 
 		"default_recipients": {
-			Description: "Whether the default recipients are notified",
+			Description: "Should the default recipients receive these notifications.",
 			Type:        pluginsdk.TypeBool,
 			Required:    true,
 		},
 
 		"additional_recipients": {
-			Description: "The additional recipients to notify",
+			Description: "A list of additional email addresses that will receive these notifications.",
 			Type:        pluginsdk.TypeSet,
 			Optional:    true,
 			Computed:    true, // azignore:AZS007 - pre-existing violation
