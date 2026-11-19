@@ -37,7 +37,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
 		"location": commonschema.Location(),
 
