@@ -80,9 +80,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Edge Action Execution Filter.
+* `create` - (Defaults to 1 hour) Used when creating the Edge Action Execution Filter.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Edge Action Execution Filter.
-* `update` - (Defaults to 30 minutes) Used when updating the Edge Action Execution Filter.
+* `update` - (Defaults to 1 hour) Used when updating the Edge Action Execution Filter.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Edge Action Execution Filter.
 
 ## Import

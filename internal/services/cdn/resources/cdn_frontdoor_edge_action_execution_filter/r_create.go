@@ -17,7 +17,8 @@ import (
 
 func (r Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		// applying an execution filter to the Front Door edge can take more than 10 minutes
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cdn.EdgeActionFiltersClient
 
