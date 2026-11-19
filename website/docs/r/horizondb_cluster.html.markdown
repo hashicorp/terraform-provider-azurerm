@@ -127,13 +127,13 @@ An `identity` block supports the following:
 
 A `point_in_time_restore` block supports the following:
 
-* `point_in_time_utc` - (Required) The restore timestamp in RFC3339 format.
+* `point_in_time_utc` - (Required) The restore timestamp in RFC3339 format. Changing this forces a new resource to be created.
 
 ~> **Note:** For a same-region restore, HorizonDB uses the latest available backup at or before this timestamp. For a cross-region restore, the timestamp is required but ignored by the service, which uses the latest available geo-replicated backup.
 
-* `source_horizondb_cluster_id` - (Required) The ID of the source HorizonDB Cluster.
+* `source_horizondb_cluster_id` - (Required) The ID of the source HorizonDB Cluster. Changing this forces a new resource to be created.
 
-* `source_location` - (Optional) The Azure Region of the source HorizonDB Cluster.
+* `source_location` - (Optional) The Azure Region of the source HorizonDB Cluster. Changing this forces a new resource to be created.
 
 ~> **Note:** This is required for cross-region restores and optional for same-region restores. Cross-region restores require an eligible geo-replicated backup from the source Cluster.
 

@@ -229,14 +229,16 @@ func (HorizondbClusterResource) Arguments() map[string]*pluginsdk.Schema {
 					"point_in_time_utc": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.IsRFC3339Time,
 					},
 
-					"source_horizondb_cluster_id": commonschema.ResourceIDReferenceRequired(&clusters.ClusterId{}),
+					"source_horizondb_cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&clusters.ClusterId{}),
 
 					"source_location": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						StateFunc:    location.StateFunc,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
