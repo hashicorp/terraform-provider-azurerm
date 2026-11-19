@@ -66,7 +66,7 @@ func (HorizondbFirewallRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"horizondb_pool_id": commonschema.ResourceIDReferenceRequiredForceNew(&firewallrules.PoolId{}),
-		
+
 		"end_ip_address": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

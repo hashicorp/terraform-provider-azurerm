@@ -68,12 +68,12 @@ func TestAccHorizondbCluster_update(t *testing.T) {
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.updated(data),
-			Check: check.That(data.ResourceName).ExistsInAzure(r),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.updatedWithWriteOnlyPassword(data),
-			Check: check.That(data.ResourceName).ExistsInAzure(r),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password", "administrator_password_wo_version"),
 	})
@@ -155,17 +155,17 @@ func TestAccHorizondbCluster_identity(t *testing.T) {
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.withTwoUserAssignedIdentities(data),
-			Check: check.That(data.ResourceName).ExistsInAzure(r),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.withOneUserAssignedIdentity(data),
-			Check: check.That(data.ResourceName).ExistsInAzure(r),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.withoutIdentity(data),
-			Check: check.That(data.ResourceName).ExistsInAzure(r),
+			Check:  check.That(data.ResourceName).ExistsInAzure(r),
 		},
 		data.ImportStep("administrator_password"),
 	})
