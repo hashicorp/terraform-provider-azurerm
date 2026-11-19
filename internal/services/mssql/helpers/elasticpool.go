@@ -13,18 +13,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type skuType int
+type SkuType int
 
 const (
-	DTU   skuType = 0
-	VCore skuType = 1
+	DTU   SkuType = 0
+	VCore SkuType = 1
 )
 
-type sku struct {
+type Sku struct {
 	Name, Tier, Family                                string
 	Capacity                                          int
 	MaxAllowedGB, MaxSizeGb, MinCapacity, MaxCapacity float64
-	SkuType                                           skuType
+	SkuType                                           SkuType
 }
 
 // getDTUMaxGB: this map holds all of the DTU to 'max_size_gb' mappings based on a DTU lookup
@@ -32,7 +32,7 @@ type sku struct {
 //              value must match exactly what is returned else it will be rejected by the API
 //              which will return a 'Internal Server Error'
 
-var getDTUMaxGB = map[string]map[int]float64{
+var GetDTUMaxGB = map[string]map[int]float64{
 	"basic": {
 		50:   4.8828125,
 		100:  9.765625,
@@ -75,7 +75,7 @@ var getDTUMaxGB = map[string]map[int]float64{
 //                          other than the values in the map the API with throw
 //                          an 'Internal Server Error'
 
-var supportedDTUMaxGBValues = map[int]float64{
+var SupportedDTUMaxGBValues = map[int]float64{
 	50:   1,
 	100:  1,
 	150:  1,
@@ -109,7 +109,7 @@ var supportedDTUMaxGBValues = map[int]float64{
 // getvCoreMaxGB: this map holds all of the vCore to 'max_size_gb' mappings based on a vCore lookup
 //                note that the value can be below the returned value
 
-var getvCoreMaxGB = map[string]map[string]map[int]float64{
+var GetvCoreMaxGB = map[string]map[string]map[int]float64{
 	"generalpurpose": {
 		"gen4": {
 			1:  512,
@@ -257,7 +257,7 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 //                  to lookup the correct values in other maps even if the config file
 //                  contains an invalid 'tier' attribute.
 
-var getTierFromName = map[string]string{
+var GetTierFromName = map[string]string{
 	"basicpool":    "Basic",
 	"standardpool": "Standard",
 	"premiumpool":  "Premium",
@@ -284,7 +284,7 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	maxCapacity := diff.Get("per_database_settings.0.max_capacity")
 	enclaveType := diff.Get("enclave_type")
 
-	s := sku{
+	s := Sku{
 		Name:        name.(string),
 		Tier:        tier.(string),
 		Family:      family.(string),
@@ -307,15 +307,15 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	}
 
 	// Universal check for both DTU and vCore based SKUs
-	if !nameTierIsValid(s) {
-		return fmt.Errorf("mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
+	if !NameTierIsValid(s) {
+		return fmt.Errorf("mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, GetTierFromName[strings.ToLower(s.Name)])
 	}
 
 	// Verify that Family is valid
 	if s.SkuType == DTU && s.Family != "" {
 		return fmt.Errorf("invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
-	} else if s.SkuType == VCore && !nameContainsFamily(s) {
-		return fmt.Errorf("mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
+	} else if s.SkuType == VCore && !NameContainsFamily(s) {
+		return fmt.Errorf("mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, GetFamilyFromName(s))
 	}
 
 	// Validate if 'enclave_type' is valid for this SKU type
@@ -325,15 +325,15 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 
 	// Get max GB and do validation based on SKU type
 	if s.SkuType == DTU {
-		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
-		return doDTUSKUValidation(s)
+		s.MaxAllowedGB = GetDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
+		return DoDTUSKUValidation(s)
 	} else {
-		s.MaxAllowedGB = getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)][s.Capacity]
-		return doVCoreSKUValidation(s)
+		s.MaxAllowedGB = GetvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)][s.Capacity]
+		return DoVCoreSKUValidation(s)
 	}
 }
 
-func nameContainsFamily(s sku) bool {
+func NameContainsFamily(s Sku) bool {
 	if s.Family == "" {
 		return false
 	}
@@ -341,7 +341,7 @@ func nameContainsFamily(s sku) bool {
 	return strings.Contains(strings.ToLower(s.Name), strings.ToLower(s.Family))
 }
 
-func nameTierIsValid(s sku) bool {
+func NameTierIsValid(s Sku) bool {
 	if strings.EqualFold(s.Name, "BasicPool") && !strings.EqualFold(s.Tier, "Basic") ||
 		strings.EqualFold(s.Name, "StandardPool") && !strings.EqualFold(s.Tier, "Standard") ||
 		strings.EqualFold(s.Name, "PremiumPool") && !strings.EqualFold(s.Tier, "Premium") ||
@@ -353,7 +353,7 @@ func nameTierIsValid(s sku) bool {
 	return true
 }
 
-func getFamilyFromName(s sku) string {
+func GetFamilyFromName(s Sku) string {
 	if !strings.HasPrefix(strings.ToLower(s.Name), "gp_") && !strings.HasPrefix(strings.ToLower(s.Name), "bc_") {
 		return ""
 	}
@@ -376,25 +376,25 @@ func getFamilyFromName(s sku) string {
 	return retFamily
 }
 
-func getDTUCapacityErrorMsg(s sku) string {
-	m := getDTUMaxGB[strings.ToLower(s.Tier)]
+func GetDTUCapacityErrorMsg(s Sku) string {
+	m := GetDTUMaxGB[strings.ToLower(s.Tier)]
 	stub := fmt.Sprintf("service tier '%s' must have a 'capacity'(%d) of ", s.Tier, s.Capacity)
-	return buildErrorString(stub, m) + " DTUs"
+	return BuildErrorString(stub, m) + " DTUs"
 }
 
-func getVCoreCapacityErrorMsg(s sku) string {
-	m := getvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)]
+func GetVCoreCapacityErrorMsg(s Sku) string {
+	m := GetvCoreMaxGB[strings.ToLower(s.Tier)][strings.ToLower(s.Family)]
 	stub := fmt.Sprintf("service tier '%s' %s must have a 'capacity'(%d) of ", s.Tier, s.Family, s.Capacity)
-	return buildErrorString(stub, m) + " vCores"
+	return BuildErrorString(stub, m) + " vCores"
 }
 
-func getDTUNotValidSizeErrorMsg(s sku) string {
-	m := supportedDTUMaxGBValues
+func GetDTUNotValidSizeErrorMsg(s Sku) string {
+	m := SupportedDTUMaxGBValues
 	stub := fmt.Sprintf("'max_size_gb'(%d) is not a valid value for service tier '%s', 'max_size_gb' must have a value of ", int(s.MaxSizeGb), s.Tier)
-	return buildErrorString(stub, m) + " GB"
+	return BuildErrorString(stub, m) + " GB"
 }
 
-func buildErrorString(stub string, m map[int]float64) string {
+func BuildErrorString(stub string, m map[int]float64) string {
 	var a []int
 
 	// copy the keys into another map
@@ -421,9 +421,9 @@ func buildErrorString(stub string, m map[int]float64) string {
 	return stub
 }
 
-func doDTUSKUValidation(s sku) error {
+func DoDTUSKUValidation(s Sku) error {
 	if s.MaxAllowedGB == 0 {
-		return errors.New(getDTUCapacityErrorMsg(s))
+		return errors.New(GetDTUCapacityErrorMsg(s))
 	}
 
 	if strings.EqualFold(s.Name, "BasicPool") {
@@ -442,8 +442,8 @@ func doDTUSKUValidation(s sku) error {
 		}
 
 		// Check to see if the max_size_gb value is valid for this SKU type and capacity
-		if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
-			return errors.New(getDTUNotValidSizeErrorMsg(s))
+		if SupportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
+			return errors.New(GetDTUNotValidSizeErrorMsg(s))
 		}
 	}
 
@@ -459,9 +459,9 @@ func doDTUSKUValidation(s sku) error {
 	return nil
 }
 
-func doVCoreSKUValidation(s sku) error {
+func DoVCoreSKUValidation(s Sku) error {
 	if s.MaxAllowedGB == 0 {
-		return errors.New(getVCoreCapacityErrorMsg(s))
+		return errors.New(GetVCoreCapacityErrorMsg(s))
 	}
 
 	if s.MaxSizeGb > s.MaxAllowedGB {
