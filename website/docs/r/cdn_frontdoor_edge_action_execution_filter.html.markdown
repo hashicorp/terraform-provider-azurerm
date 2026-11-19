@@ -10,7 +10,7 @@ description: |-
 
 Manages an execution filter for a Front Door (standard/premium) Edge Action. Requests which contain the specified header name and value run the specified Edge Action Version instead of the default version.
 
-~> **Note:** An Edge Action Version which is referenced by an execution filter cannot be deleted until the execution filter has been deleted.
+~> **Note:** An Edge Action Version which is referenced by an execution filter cannot be deleted until the execution filter has been deleted. Because `cdn_frontdoor_edge_action_version_id` can be updated in-place, a plan which replaces the referenced version (for example when its `name` changes, its code is removed, or the code of the default version changes) would try to delete the old version while this execution filter still references it, and fail to apply. To avoid this, add `replace_triggered_by = [azurerm_cdn_frontdoor_edge_action_version.example.id]` to the `lifecycle` block of this resource so it is recreated together with the version it references, as shown in the example below.
 
 ## Example Usage
 
@@ -29,16 +29,12 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "v1" {
   name                         = "v1"
   cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.example.id
   deployment_type              = "file"
-  code_file_name               = "edge_action.js"
-  code_content_base64          = filebase64("v1/edge_action.js")
 }
 
 resource "azurerm_cdn_frontdoor_edge_action_version" "v2" {
   name                         = "v2"
   cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.example.id
   deployment_type              = "file"
-  code_file_name               = "edge_action.js"
-  code_content_base64          = filebase64("v2/edge_action.js")
 
   depends_on = [azurerm_cdn_frontdoor_edge_action_version.v1]
 }
@@ -49,6 +45,10 @@ resource "azurerm_cdn_frontdoor_edge_action_execution_filter" "example" {
   cdn_frontdoor_edge_action_version_id = azurerm_cdn_frontdoor_edge_action_version.v2.id
   header_name                          = "x-canary"
   header_value                         = "true"
+
+  lifecycle {
+    replace_triggered_by = [azurerm_cdn_frontdoor_edge_action_version.v2.id]
+  }
 }
 ```
 

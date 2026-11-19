@@ -11,6 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2026-10-01/edgeactionexecutionfilters"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,6 +104,36 @@ func TestAccCdnFrontdoorEdgeActionExecutionFilter_versionFromAnotherEdgeAction(t
 			Config:      r.versionFromAnotherEdgeAction(data),
 			ExpectError: regexp.MustCompile("must be a version of the Edge Action specified in `cdn_frontdoor_edge_action_id`"),
 		},
+	})
+}
+
+func TestAccCdnFrontdoorEdgeActionExecutionFilter_replaceReferencedVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action_execution_filter", "test")
+	r := CdnFrontdoorEdgeActionExecutionFilterResource{}
+
+	// renaming the referenced version replaces it, which the API only allows once the execution filter no longer
+	// references it - `replace_triggered_by` recreates the execution filter together with the version
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.replaceTriggeredByVersion(data, "canary"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.replaceTriggeredByVersion(data, "canaryrenamed"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction("azurerm_cdn_frontdoor_edge_action_version.canary", plancheck.ResourceActionDestroyBeforeCreate),
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionDestroyBeforeCreate),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -224,4 +256,30 @@ resource "azurerm_cdn_frontdoor_edge_action_execution_filter" "test" {
   header_value                         = "true"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontdoorEdgeActionExecutionFilterResource) replaceTriggeredByVersion(data acceptance.TestData, versionName string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cdn_frontdoor_edge_action_version" "canary" {
+  name                         = "%[3]s%[2]d"
+  cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
+  deployment_type              = "file"
+
+  depends_on = [azurerm_cdn_frontdoor_edge_action_version.default]
+}
+
+resource "azurerm_cdn_frontdoor_edge_action_execution_filter" "test" {
+  name                                 = "acctesteaf%[2]d"
+  cdn_frontdoor_edge_action_id         = azurerm_cdn_frontdoor_edge_action.test.id
+  cdn_frontdoor_edge_action_version_id = azurerm_cdn_frontdoor_edge_action_version.canary.id
+  header_name                          = "x-canary"
+  header_value                         = "true"
+
+  lifecycle {
+    replace_triggered_by = [azurerm_cdn_frontdoor_edge_action_version.canary.id]
+  }
+}
+`, r.template(data), data.RandomInteger, versionName)
 }
