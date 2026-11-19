@@ -38,7 +38,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/transparentdataencryptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2025-01-01/virtualnetworkrules"
-	// The 2026-08-01-preview is only for short term immutability feature, which is guranteed to remain the same in next stable version.
+	// The 2026-08-01-preview is only for short term immutability feature, which is guaranteed to remain the same in next stable version.
 	// for other features, shall continue using the stable versions.
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2026-08-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
