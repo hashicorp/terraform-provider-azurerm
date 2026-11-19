@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Optional) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
 
-* `allowed_ips` - (Optional) (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
+* `allowed_ips` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses and CIDR ranges.
 
 ~> **Note:** `allowed_ips`  cannot be updated after provisioning the resource with an empty list (i.e., a publicly accessible Autonomous Database)
               size: the maximum number of Ips provided shouldn't exceed 1024. At this time we only support IpV4.
