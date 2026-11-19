@@ -259,11 +259,31 @@ resource "azurerm_cdn_frontdoor_edge_action_execution_filter" "test" {
 }
 
 func (r CdnFrontdoorEdgeActionExecutionFilterResource) replaceTriggeredByVersion(data acceptance.TestData, versionName string) string {
+	// an Edge Action can have at most 3 versions, so this test uses its own Edge Action with only 2 versions
+	// rather than the template, leaving room for the replacement version which is created before the old one is deleted
 	return fmt.Sprintf(`
-%[1]s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-eaf-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cdn_frontdoor_edge_action" "test" {
+  name                = "acctestea%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_cdn_frontdoor_edge_action_version" "default" {
+  name                         = "default%[1]d"
+  cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
+  deployment_type              = "file"
+}
 
 resource "azurerm_cdn_frontdoor_edge_action_version" "canary" {
-  name                         = "%[3]s%[2]d"
+  name                         = "%[3]s%[1]d"
   cdn_frontdoor_edge_action_id = azurerm_cdn_frontdoor_edge_action.test.id
   deployment_type              = "file"
 
@@ -271,7 +291,7 @@ resource "azurerm_cdn_frontdoor_edge_action_version" "canary" {
 }
 
 resource "azurerm_cdn_frontdoor_edge_action_execution_filter" "test" {
-  name                                 = "acctesteaf%[2]d"
+  name                                 = "acctesteaf%[1]d"
   cdn_frontdoor_edge_action_id         = azurerm_cdn_frontdoor_edge_action.test.id
   cdn_frontdoor_edge_action_version_id = azurerm_cdn_frontdoor_edge_action_version.canary.id
   header_name                          = "x-canary"
@@ -281,5 +301,5 @@ resource "azurerm_cdn_frontdoor_edge_action_execution_filter" "test" {
     replace_triggered_by = [azurerm_cdn_frontdoor_edge_action_version.canary.id]
   }
 }
-`, r.template(data), data.RandomInteger, versionName)
+`, data.RandomInteger, data.Locations.Primary, versionName)
 }
