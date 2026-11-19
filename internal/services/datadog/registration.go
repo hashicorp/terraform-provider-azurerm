@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package datadog
@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/resources/datadog_monitor"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/resources/datadog_monitor_sso_configuration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/resources/datadog_monitor_tag_rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -38,9 +41,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_datadog_monitor":                   resourceDatadogMonitor(),
-		"azurerm_datadog_monitor_sso_configuration": resourceDatadogSingleSignOnConfigurations(),
-		"azurerm_datadog_monitor_tag_rule":          resourceDatadogTagRules(),
+		"azurerm_datadog_monitor":                   datadog_monitor.RegisterResource(),
+		"azurerm_datadog_monitor_sso_configuration": datadog_monitor_sso_configuration.RegisterResource(),
+		"azurerm_datadog_monitor_tag_rule":          datadog_monitor_tag_rule.RegisterResource(),
 	}
 }
 

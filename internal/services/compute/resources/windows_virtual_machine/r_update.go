@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package windows_virtual_machine
@@ -234,15 +234,20 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta any) er
 
 	if d.HasChange("capacity_reservation_group_id") {
 		shouldUpdate = true
-		shouldDeallocate = true
 
 		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
+			oldCRGId, _ := d.GetChange("capacity_reservation_group_id")
+			if _, ok := d.GetOk("zone"); !ok || oldCRGId.(string) != "" {
+				shouldDeallocate = true
+			}
+
 			update.Properties.CapacityReservation = &virtualmachines.CapacityReservationProfile{
 				CapacityReservationGroup: &virtualmachines.SubResource{
 					Id: pointer.To(v.(string)),
 				},
 			}
 		} else {
+			shouldDeallocate = true
 			update.Properties.CapacityReservation = &virtualmachines.CapacityReservationProfile{
 				CapacityReservationGroup: &virtualmachines.SubResource{},
 			}
