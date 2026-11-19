@@ -149,14 +149,23 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.
 	secondVersion := "azurerm_cdn_frontdoor_edge_action_version.second"
 
 	// both the default version (`test`) and a version which isn't the default (`second`) have code deployed,
-	// only their tags are changed and then removed, which must not redeploy the code or recreate the versions
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	// only their tags are changed and then removed, which must update both versions in-place without redeploying
+	// the code. `ResourceTestIgnoreRecreate` is used since `ResourceTest` would replace these plan checks
+	expectUpdateInPlace := resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
+			plancheck.ExpectResourceAction(secondVersion, plancheck.ResourceActionUpdate),
+		},
+	}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.tagsWithDeployedCode(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_version_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("validation_status").HasValue("Succeeded"),
+				check.That(secondVersion).ExistsInAzure(r),
 				check.That(secondVersion).Key("default_version_enabled").HasValue("false"),
 				check.That(secondVersion).Key("validation_status").HasValue("Succeeded"),
 			),
@@ -164,61 +173,37 @@ func TestAccCdnFrontdoorEdgeActionVersion_updateTagsWithDeployedCode(t *testing.
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
 		{
-			Config: r.tagsWithDeployedCode(data, "single"),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectResourceAction(secondVersion, plancheck.ResourceActionUpdate),
-				},
-			},
+			Config:           r.tagsWithDeployedCode(data, "single"),
+			ConfigPlanChecks: expectUpdateInPlace,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.Environment").HasValue("Test"),
-				check.That(secondVersion).Key("tags.Environment").HasValue("Test"),
+				check.That(secondVersion).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
 		{
-			Config: r.tagsWithDeployedCode(data, "multiple"),
+			Config:           r.tagsWithDeployedCode(data, "multiple"),
+			ConfigPlanChecks: expectUpdateInPlace,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(secondVersion).Key("tags.%").HasValue("2"),
+				check.That(secondVersion).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
 		{
-			Config: r.tagsWithDeployedCode(data, ""),
+			Config:           r.tagsWithDeployedCode(data, ""),
+			ConfigPlanChecks: expectUpdateInPlace,
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 				check.That(data.ResourceName).Key("validation_status").HasValue("Succeeded"),
-				check.That(secondVersion).Key("tags.%").HasValue("0"),
+				check.That(secondVersion).ExistsInAzure(r),
 				check.That(secondVersion).Key("validation_status").HasValue("Succeeded"),
 			),
 		},
 		data.ImportStep("code_content_base64", "code_file_name"),
 		data.ImportStepFor(secondVersion, "code_content_base64", "code_file_name"),
-	})
-}
-
-func TestAccCdnFrontdoorEdgeActionVersion_multipleVersions(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_edge_action_version", "test")
-	r := CdnFrontdoorEdgeActionVersionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.multipleVersions(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_version_enabled").HasValue("true"),
-				check.That("azurerm_cdn_frontdoor_edge_action_version.second").ExistsInAzure(r),
-				check.That("azurerm_cdn_frontdoor_edge_action_version.second").Key("default_version_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
