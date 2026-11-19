@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package servicefabricmanaged_test
+package service_fabric_managed_cluster_test
 
 import (
 	"context"
