@@ -7,6 +7,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/signalr_service"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/signalr_service_custom_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/signalr_service_custom_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/signalr_service_network_acl"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/signalr_shared_private_link_resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_custom_certificate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_custom_domain"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_hub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_network_acl"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_private_link_resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_shared_private_link_resource"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/signalr/resources/web_pubsub_socketio"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -24,11 +37,11 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		CustomCertSignalrServiceResource{},
-		CustomCertWebPubsubResource{},
-		CustomDomainSignalrServiceResource{},
-		CustomDomainWebPubsubResource{},
-		WebPubSubSocketIOResource{},
+		signalr_service_custom_certificate.Resource{},
+		web_pubsub_custom_certificate.Resource{},
+		signalr_service_custom_domain.Resource{},
+		web_pubsub_custom_domain.Resource{},
+		web_pubsub_socketio.Resource{},
 	}
 }
 
@@ -52,22 +65,22 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_signalr_service":                  dataSourceArmSignalRService(),
-		"azurerm_web_pubsub":                       dataSourceWebPubsub(),
-		"azurerm_web_pubsub_private_link_resource": dataSourceWebPubsubPrivateLinkResource(),
+		"azurerm_signalr_service":                  signalr_service.RegisterDataSource(),
+		"azurerm_web_pubsub":                       web_pubsub.RegisterDataSource(),
+		"azurerm_web_pubsub_private_link_resource": web_pubsub_private_link_resource.RegisterDataSource(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_signalr_service":                         resourceArmSignalRService(),
-		"azurerm_signalr_service_network_acl":             resourceArmSignalRServiceNetworkACL(),
-		"azurerm_signalr_shared_private_link_resource":    resourceSignalRSharedPrivateLinkResource(),
-		"azurerm_web_pubsub":                              resourceWebPubSub(),
-		"azurerm_web_pubsub_hub":                          resourceWebPubSubHub(),
-		"azurerm_web_pubsub_network_acl":                  resourceWebpubsubNetworkACL(),
-		"azurerm_web_pubsub_shared_private_link_resource": resourceWebPubSubSharedPrivateLinkService(),
+		"azurerm_signalr_service":                         signalr_service.RegisterResource(),
+		"azurerm_signalr_service_network_acl":             signalr_service_network_acl.RegisterResource(),
+		"azurerm_signalr_shared_private_link_resource":    signalr_shared_private_link_resource.RegisterResource(),
+		"azurerm_web_pubsub":                              web_pubsub.RegisterResource(),
+		"azurerm_web_pubsub_hub":                          web_pubsub_hub.RegisterResource(),
+		"azurerm_web_pubsub_network_acl":                  web_pubsub_network_acl.RegisterResource(),
+		"azurerm_web_pubsub_shared_private_link_resource": web_pubsub_shared_private_link_resource.RegisterResource(),
 	}
 }
 
@@ -89,12 +102,12 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
-		CustomCertSignalrServiceListResource{},
-		CustomCertWebPubsubListResource{},
-		CustomDomainSignalrServiceListResource{},
-		CustomDomainWebPubsubListResource{},
-		SignalRServiceListResource{},
-		WebPubSubListResource{},
-		WebPubSubSocketIOListResource{},
+		signalr_service_custom_certificate.ListResource{},
+		web_pubsub_custom_certificate.ListResource{},
+		signalr_service_custom_domain.ListResource{},
+		web_pubsub_custom_domain.ListResource{},
+		signalr_service.ListResource{},
+		web_pubsub.ListResource{},
+		web_pubsub_socketio.ListResource{},
 	}
 }
