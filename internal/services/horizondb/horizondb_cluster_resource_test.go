@@ -96,6 +96,8 @@ func TestAccHorizondbCluster_restore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_horizondb_cluster", "test")
 	restoreVariables := config.Variables{}
 	// Azure can omit creation-time restore metadata from GET responses.
+  restoreImport := data.ImportStepFor("azurerm_horizondb_cluster.restored", "administrator_password", "restore")
+	restoreImport.ConfigVariables = restoreVariables
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -111,7 +113,7 @@ func TestAccHorizondbCluster_restore(t *testing.T) {
 			ConfigVariables: restoreVariables,
 			Check:           check.That("azurerm_horizondb_cluster.restored").ExistsInAzure(r),
 		},
-		data.ImportStepFor("azurerm_horizondb_cluster.restored", "administrator_password", "point_in_time_restore"),
+		restoreImport,
 	})
 }
 
