@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package serviceconnector_test
+package app_service_connection_test
 
 import (
 	"context"
