@@ -17,6 +17,10 @@ func (m Resource) ResourceType() string {
 	return "azurerm_automation_python3_package"
 }
 
+func (m Resource) Description() string {
+	return "Manages a Automation Python3 Package."
+}
+
 func (m Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return python3package.ValidatePython3PackageID
 }

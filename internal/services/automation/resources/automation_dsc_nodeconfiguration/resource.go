@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscNodeConfigurationCreate,
-		Read:   resourceAutomationDscNodeConfigurationRead,
-		Update: resourceAutomationDscNodeConfigurationUpdate,
-		Delete: resourceAutomationDscNodeConfigurationDelete,
+		Description: "Manages a Automation DSC Node Configuration.",
+		Create:      resourceAutomationDscNodeConfigurationCreate,
+		Read:        resourceAutomationDscNodeConfigurationRead,
+		Update:      resourceAutomationDscNodeConfigurationUpdate,
+		Delete:      resourceAutomationDscNodeConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := dscnodeconfiguration.ParseNodeConfigurationID(id)

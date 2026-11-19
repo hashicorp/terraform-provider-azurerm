@@ -16,9 +16,10 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "The Name which should be used for this Arc Resource Bridge Appliance.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(1, 260),
 				validation.StringMatch(regexp.MustCompile(`[^+#%&'?/,%\\]+$`), "any of '+', '#', '%', '&', ''', '?', '/', ',', '%', '&', '\\', are not allowed"),
@@ -30,6 +31,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		"location": commonschema.Location(),
 
 		"distro": {
+			Description:  "Specifies a supported Fabric/Infrastructure for this Arc Resource Bridge Appliance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(appliances.PossibleValuesForDistro(), false),
@@ -38,6 +40,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
 
 		"infrastructure_provider": {
+			Description:  "The infrastructure provider about the connected Arc Resource Bridge Appliance.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -45,6 +48,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"public_key_base64": {
+			Description:  "The `public_key_base64` is an RSA public key in PKCS1 format encoded in base64.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,

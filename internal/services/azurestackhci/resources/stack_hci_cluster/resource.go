@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmStackHCIClusterCreate,
-		Read:   resourceArmStackHCIClusterRead,
-		Update: resourceArmStackHCIClusterUpdate,
-		Delete: resourceArmStackHCIClusterDelete,
+		Description: "Manages an Azure Stack HCI Cluster.",
+		Create:      resourceArmStackHCIClusterCreate,
+		Read:        resourceArmStackHCIClusterRead,
+		Update:      resourceArmStackHCIClusterUpdate,
+		Delete:      resourceArmStackHCIClusterDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -15,9 +15,10 @@ import (
 func automationDscConfigurationSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "Specifies the name of the DSC Configuration.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9_]{1,64}$`),
 				`The name length must be from 1 to 64 characters. The name can only contain letters, numbers and underscores.`,
@@ -25,6 +26,7 @@ func automationDscConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
+			Description:  "The name of the automation account in which the DSC Configuration is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -32,6 +34,7 @@ func automationDscConfigurationSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"content_embedded": {
+			Description:  "The PowerShell DSC Configuration script.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -42,14 +45,16 @@ func automationDscConfigurationSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"log_verbose": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Verbose log option.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "Description to go with DSC Configuration.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"state": {

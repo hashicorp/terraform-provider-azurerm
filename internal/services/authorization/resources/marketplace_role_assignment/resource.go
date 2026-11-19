@@ -20,3 +20,7 @@ func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 func (r Resource) ResourceType() string {
 	return "azurerm_marketplace_role_assignment"
 }
+
+func (r Resource) Description() string {
+	return "Assigns a given Principal (User or Group) to a given Role in a Private Azure Marketplace."
+}

@@ -13,6 +13,7 @@ import (
 func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"automation_account_id": {
+			Description:  "The ID of Automation Account to manage this Watcher.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"name": {
+			Description:  "The name which should be used for this Automation Watcher.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,18 +33,21 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"etag": {
+			Description:  "A string of etag assigned to this Automation Watcher.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"execution_frequency_in_seconds": {
+			Description:  "Specify the frequency at which the watcher is invoked.",
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"script_name": {
+			Description:  "Specify the name of an existing runbook this watcher is attached to.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -50,21 +55,24 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"script_parameters": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			ForceNew: true,
+			Description: "Specifies a list of key-value parameters.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
+			ForceNew:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
 		},
 
 		"script_run_on": {
+			Description:  "Specify the name of the Hybrid work group the watcher will run on.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
+			Description:  "A description of this Automation Watcher.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -75,8 +83,9 @@ func (m Resource) Arguments() map[string]*pluginsdk.Schema {
 func (m Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The current status of the Automation Watcher.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 	}
 }

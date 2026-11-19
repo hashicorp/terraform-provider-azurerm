@@ -16,6 +16,7 @@ import (
 func automationRunbookSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "Specifies the name of the Runbook.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -23,6 +24,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"automation_account_name": {
+			Description:  "The name of the automation account in which the Runbook is created.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -34,6 +36,7 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"runbook_type": {
+			Description:  "The type of the runbook - can be either `Graph`, `GraphPowerShell`, `GraphPowerShellWorkflow`, `PowerShellWorkflow`, `PowerShell`, `PowerShell72`, `Python`, `Python3`, `Python2` or `Script`.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -41,23 +44,27 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_progress": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Progress log option.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"log_verbose": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
+			Description: "Verbose log option.",
+			Type:        pluginsdk.TypeBool,
+			Required:    true,
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "A description for the runbook.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 		},
 
 		"content": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Description: "The desired content of the runbook.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
 			// NOTE: O+C the API returns some defaults for this if `publish_content_link` is specified
 			Computed:     true,
 			AtLeastOneOf: []string{"content", "publish_content_link", "draft"},
@@ -72,14 +79,16 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"schedule_name": {
+						Description:  "The name of the Schedule.",
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.ScheduleName(),
 					},
 
 					"parameters": {
-						Type:     pluginsdk.TypeMap,
-						Optional: true,
+						Description: "A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.",
+						Type:        pluginsdk.TypeMap,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
@@ -87,13 +96,15 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"run_on": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
+						Description: "Name of a Hybrid Worker Group the Runbook will be executed on.",
+						Type:        pluginsdk.TypeString,
+						Optional:    true,
 					},
 
 					"job_schedule_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Description: "The UUID of automation runbook job schedule ID.",
+						Type:        pluginsdk.TypeString,
+						Computed:    true,
 					},
 				},
 			},
@@ -116,8 +127,9 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					"content_link": contentLinkSchema(true),
 
 					"edit_mode_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Description: "Whether the draft in edit mode.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
 					},
 
 					"last_modified_time": {
@@ -126,8 +138,9 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 					},
 
 					"output_types": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
+						Description: "Specifies the output types of the runbook.",
+						Type:        pluginsdk.TypeList,
+						Optional:    true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -140,30 +153,35 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"key": {
+									Description:  "The name of the parameter.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"type": {
+									Description:  "Specifies the type of this parameter.",
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"mandatory": {
-									Type:     pluginsdk.TypeBool,
-									Default:  false,
-									Optional: true,
+									Description: "Whether this parameter is mandatory.",
+									Type:        pluginsdk.TypeBool,
+									Default:     false,
+									Optional:    true,
 								},
 
 								"position": {
+									Description:  "Specifies the position of the parameter.",
 									Type:         pluginsdk.TypeInt,
 									Optional:     true,
 									ValidateFunc: validation.IntAtLeast(0),
 								},
 
 								"default_value": {
+									Description:  "Specifies the default value of the parameter.",
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -176,12 +194,14 @@ func automationRunbookSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"log_activity_trace_level": {
+			Description:  "Specifies the activity-level tracing options of the runbook, available only for Graphical runbooks. Must turn on Verbose logging in order to see the tracing.",
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"runtime_environment_name": {
+			Description:  "The runtime environment name for the runbook.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -199,8 +219,9 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"uri": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The URI of the runbook content.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					ValidateFunc: validation.Any(
 						validation.IsURLWithScheme([]string{"http", "https"}),
 						validation.StringIsEmpty,
@@ -208,6 +229,7 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 				},
 
 				"version": {
+					Description:  "Specifies the version of the content",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -220,12 +242,14 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"algorithm": {
+								Description:  "Specifies the hash algorithm used to hash the content.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 
 							"value": {
+								Description:  "Specifies the expected hash value of the content.",
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								ValidateFunc: validation.StringIsNotEmpty,

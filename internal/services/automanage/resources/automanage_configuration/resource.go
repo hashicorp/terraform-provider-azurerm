@@ -24,6 +24,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_automanage_configuration"
 }
 
+func (r Resource) Description() string {
+	return "Manages an Automanage Configuration."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return configurationprofiles.ValidateConfigurationProfileID
 }

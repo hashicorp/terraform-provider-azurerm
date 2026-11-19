@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_automation_powershell72_module"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Automation Powershell 7.2 Module."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return module.ValidatePowerShell72ModuleID
 }

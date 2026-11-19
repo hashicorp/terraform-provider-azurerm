@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationModuleCreate,
-		Read:   resourceAutomationModuleRead,
-		Update: resourceAutomationModuleUpdate,
-		Delete: resourceAutomationModuleDelete,
+		Description: "Manages a Automation Module.",
+		Create:      resourceAutomationModuleCreate,
+		Read:        resourceAutomationModuleRead,
+		Update:      resourceAutomationModuleUpdate,
+		Delete:      resourceAutomationModuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := module.ParseModuleID(id)

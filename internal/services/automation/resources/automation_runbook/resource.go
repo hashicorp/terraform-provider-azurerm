@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationRunbookCreateUpdate,
-		Read:   resourceAutomationRunbookRead,
-		Update: resourceAutomationRunbookCreateUpdate,
-		Delete: resourceAutomationRunbookDelete,
+		Description: "Manages a Automation Runbook.",
+		Create:      resourceAutomationRunbookCreateUpdate,
+		Read:        resourceAutomationRunbookRead,
+		Update:      resourceAutomationRunbookCreateUpdate,
+		Delete:      resourceAutomationRunbookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := runbook.ParseRunbookID(id)
