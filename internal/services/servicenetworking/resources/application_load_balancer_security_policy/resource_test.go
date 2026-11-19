@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package servicenetworking_test
+package application_load_balancer_security_policy_test
 
 import (
 	"context"
