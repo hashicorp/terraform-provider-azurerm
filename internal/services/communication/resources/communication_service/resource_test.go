@@ -24,7 +24,7 @@ func TestAccCommunicationService_regressionTest(t *testing.T) {
 	r := CommunicationServiceResource{}
 	data.ResourceRegressionTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regressionTest(data),
 		},
 	}, "")
 }
@@ -84,6 +84,27 @@ func TestAccCommunicationService_update(t *testing.T) {
 	r := CommunicationServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -147,12 +168,25 @@ resource "azurerm_communication_service" "import" {
 
 func (r CommunicationServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 
 resource "azurerm_communication_service" "test" {
-  name                = "acctest-CommunicationService-%d"
+  name                = "acctest-CommunicationService-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
 
   tags = {
     env = "Test"
@@ -172,6 +206,63 @@ resource "azurerm_communication_service" "test" {
 
   tags = {
     env = "Test2"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CommunicationServiceResource) regressionTest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_communication_service" "test" {
+  name                = "acctest-CommunicationService-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_location       = "United States"
+
+  tags = {
+    env = "Test"
   }
 }
 `, r.template(data), data.RandomInteger)

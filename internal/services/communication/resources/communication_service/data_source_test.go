@@ -18,7 +18,7 @@ func TestAccCommunicationServiceDataSource_regressionTest(t *testing.T) {
 	r := CommunicationServiceDataSource{}
 	data.DataSourceRegressionTest(t, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.regressionTest(data),
 		},
 	}, "")
 }
@@ -53,6 +53,10 @@ func TestAccCommunicationServiceDataSource_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("Test"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 	})
@@ -78,4 +82,15 @@ data "azurerm_communication_service" "test" {
   resource_group_name = azurerm_communication_service.test.resource_group_name
 }
 `, CommunicationServiceResource{}.complete(data))
+}
+
+func (d CommunicationServiceDataSource) regressionTest(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_communication_service" "test" {
+  name                = azurerm_communication_service.test.name
+  resource_group_name = azurerm_communication_service.test.resource_group_name
+}
+`, CommunicationServiceResource{}.regressionTest(data))
 }
