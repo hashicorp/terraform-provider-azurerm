@@ -12,13 +12,17 @@ func expandLogRules(input []any) *tagrules.LogRules {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]any)
-	filteringTag := v["filter"].([]any)
+	// an empty `log {}` block is returned as a nil element since every attribute is optional
+	v, _ := input[0].(map[string]any)
+	aadLogEnabled, _ := v["aad_log_enabled"].(bool)
+	subscriptionLogEnabled, _ := v["subscription_log_enabled"].(bool)
+	resourceLogEnabled, _ := v["resource_log_enabled"].(bool)
+	filteringTag, _ := v["filter"].([]any)
 
 	return &tagrules.LogRules{
-		SendAadLogs:          pointer.To(v["aad_log_enabled"].(bool)),
-		SendSubscriptionLogs: pointer.To(v["subscription_log_enabled"].(bool)),
-		SendResourceLogs:     pointer.To(v["resource_log_enabled"].(bool)),
+		SendAadLogs:          pointer.To(aadLogEnabled),
+		SendSubscriptionLogs: pointer.To(subscriptionLogEnabled),
+		SendResourceLogs:     pointer.To(resourceLogEnabled),
 		FilteringTags:        expandFilteringTag(filteringTag),
 	}
 }
@@ -27,8 +31,9 @@ func expandMetricRules(input []any) *tagrules.MetricRules {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]any)
-	filteringTag := v["filter"].([]any)
+	// an empty `metric {}` block is returned as a nil element since every attribute is optional
+	v, _ := input[0].(map[string]any)
+	filteringTag, _ := v["filter"].([]any)
 
 	return &tagrules.MetricRules{
 		FilteringTags: expandFilteringTag(filteringTag),
