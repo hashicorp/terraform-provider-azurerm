@@ -9,6 +9,9 @@ service/advisor:
 service/analysis:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_analysis_services_server((.|\n)*)###'
 
+service/api-center:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_api_center_((.|\n)*)###'
+
 service/api-management:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_api_management((.|\n)*)###'
 

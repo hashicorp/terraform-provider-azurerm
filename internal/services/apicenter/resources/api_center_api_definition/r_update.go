@@ -1,0 +1,66 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package api_center_api_definition
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/apidefinitions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+func (r Resource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiCenter.ApiDefinitionsClient
+
+			id, err := apidefinitions.ParseDefinitionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state ApiCenterApiDefinitionModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			model := existing.Model
+			if metadata.ResourceData.HasChange("description") {
+				model.Properties.Description = pointer.To(state.Description)
+			}
+			if metadata.ResourceData.HasChange("display_name") {
+				model.Properties.Title = state.Title
+			}
+
+			if metadata.ResourceData.HasChange("specification") {
+				importSpec := expandApiDefinitionPropertiesSpecification(state.Specification)
+				if err := client.ImportSpecificationThenPoll(ctx, *id, *importSpec); err != nil {
+					return fmt.Errorf("importing specification for %s: %+v", id, err)
+				}
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
