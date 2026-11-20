@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	appplatform "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +21,7 @@ func resourceSpringCloudCertificateRead(d *pluginsdk.ResourceData, meta any) err
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
-	id, err := appplatform_rm.ParseCertificateIDInsensitively(d.Id())
+	id, err := appplatform.ParseCertificateIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

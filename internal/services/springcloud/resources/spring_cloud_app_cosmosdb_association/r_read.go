@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +21,7 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, me
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
-	id, err := appplatform_rm.ParseBindingIDInsensitively(d.Id())
+	id, err := appplatform.ParseBindingIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func resourceSpringCloudAppCosmosDBAssociationRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.BindingName)
-	d.Set("spring_cloud_app_id", appplatform_rm.NewAppID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.AppName).ID())
+	d.Set("spring_cloud_app_id", appplatform.NewAppID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.AppName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("cosmosdb_account_id", props.ResourceID)
 

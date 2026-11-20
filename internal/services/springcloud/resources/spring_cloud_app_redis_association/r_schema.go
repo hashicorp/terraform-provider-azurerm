@@ -4,7 +4,7 @@
 package spring_cloud_app_redis_association
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +24,7 @@ func springCloudAppRedisAssociationSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseAppIDInsensitively),
 		},
 
 		"redis_cache_id": {

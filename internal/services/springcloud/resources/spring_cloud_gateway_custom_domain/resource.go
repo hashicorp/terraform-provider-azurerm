@@ -6,7 +6,7 @@ package spring_cloud_gateway_custom_domain
 import (
 	"time"
 
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/resources/spring_cloud_gateway_custom_domain/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -35,7 +35,7 @@ func RegisterResource() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 			// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
-			_, err := appplatform_rm.ParseGatewayDomainIDInsensitively(id)
+			_, err := appplatform.ParseGatewayDomainIDInsensitively(id)
 			return err
 		}),
 

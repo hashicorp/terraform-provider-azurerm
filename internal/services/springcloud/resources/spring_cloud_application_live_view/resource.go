@@ -4,7 +4,7 @@
 package spring_cloud_application_live_view
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -25,5 +25,5 @@ func (s Resource) ResourceType() string {
 }
 
 func (s Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return appplatform_rm.ValidateApplicationLiveViewID
+	return appplatform.ValidateApplicationLiveViewID
 }

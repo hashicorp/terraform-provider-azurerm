@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +21,7 @@ func resourceSpringCloudAPIPortalCustomDomainRead(d *pluginsdk.ResourceData, met
 
 	// the ID is parsed insensitively to preserve the behaviour of the legacy parser this replaced -
 	// we are ok with this remaining insensitive as Azure Spring Apps is deprecated and will be removed
-	id, err := appplatform_rm.ParseApiPortalDomainIDInsensitively(d.Id())
+	id, err := appplatform.ParseApiPortalDomainIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func resourceSpringCloudAPIPortalCustomDomainRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.Set("name", id.DomainName)
-	d.Set("spring_cloud_api_portal_id", appplatform_rm.NewApiPortalID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.ApiPortalName).ID())
+	d.Set("spring_cloud_api_portal_id", appplatform.NewApiPortalID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.ApiPortalName).ID())
 	if props := resp.Properties; props != nil {
 		d.Set("thumbprint", props.Thumbprint)
 	}

@@ -4,7 +4,7 @@
 package spring_cloud_app_mysql_association
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	flexibleServers "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -25,7 +25,7 @@ func springCloudAppMysqlAssociationSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseAppIDInsensitively),
 		},
 
 		"mysql_server_id": {

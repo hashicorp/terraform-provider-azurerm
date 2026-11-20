@@ -4,7 +4,7 @@
 package spring_cloud_build_deployment
 
 import (
-	appplatform_rm "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +23,7 @@ func springCloudBuildDeploymentSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.AsGeneratedID(appplatform_rm.ParseAppIDInsensitively),
+			ValidateFunc: validation.AsGeneratedID(appplatform.ParseAppIDInsensitively),
 		},
 
 		"build_result_id": {
@@ -38,7 +38,7 @@ func springCloudBuildDeploymentSchema() map[string]*pluginsdk.Schema {
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: appplatform_rm.ValidateApmID,
+				ValidateFunc: appplatform.ValidateApmID,
 			},
 		},
 
