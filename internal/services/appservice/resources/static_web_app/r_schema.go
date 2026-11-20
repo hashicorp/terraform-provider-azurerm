@@ -20,6 +20,7 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Description:  "The name which should be used for this Static Web App.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -31,27 +32,31 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"configuration_file_changes_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should changes to the configuration file be permitted.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"preview_environments_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Are Preview (Staging) environments enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should public network access be enabled for the Static Web App.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"sku_tier": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(resourceproviders.SkuNameFree),
+			Description: "Specifies the SKU tier of the Static Web App.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(resourceproviders.SkuNameFree),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(resourceproviders.SkuNameStandard),
 				string(resourceproviders.SkuNameFree),
@@ -59,9 +64,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_size": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(resourceproviders.SkuNameFree),
+			Description: "Specifies the SKU size of the Static Web App.",
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Default:     string(resourceproviders.SkuNameFree),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(resourceproviders.SkuNameStandard),
 				string(resourceproviders.SkuNameFree),
@@ -69,8 +75,9 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Description: "A key-value pair of App Settings.",
+			Type:        pluginsdk.TypeMap,
+			Optional:    true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -81,6 +88,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"repository_url": {
+			Description:  "Repository URL to use for the Static Web App. `repository_branch` and `repository_token` must also be set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -88,6 +96,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"repository_token": {
+			Description:  "Repository Token with `admin` privileges to use for the Static Web App. `repository_branch` and `repository_url` must also be set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
@@ -96,6 +105,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"repository_branch": {
+			Description:  "Repository branch to use for the Static Web App. `repository_url` and `repository_token` must also be set.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -109,9 +119,10 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"api_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
+			Description: "The API key of this Static Web App, which is used for later interacting with this Static Web App from other clients, e.g. GitHub Action.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
 		},
 
 		"default_host_name": {

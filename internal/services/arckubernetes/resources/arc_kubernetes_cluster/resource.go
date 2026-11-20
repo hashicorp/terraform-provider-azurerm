@@ -12,10 +12,11 @@ import (
 
 func RegisterResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArcKubernetesClusterCreate,
-		Read:   resourceArcKubernetesClusterRead,
-		Update: resourceArcKubernetesClusterUpdate,
-		Delete: resourceArcKubernetesClusterDelete,
+		Description: "Manages an Arc Kubernetes Cluster.",
+		Create:      resourceArcKubernetesClusterCreate,
+		Read:        resourceArcKubernetesClusterRead,
+		Update:      resourceArcKubernetesClusterUpdate,
+		Delete:      resourceArcKubernetesClusterDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -47,7 +47,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      "RootManageSharedAccessKey",
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The name of the Relay key with `Send` permission to use. Defaults to `RootManageSharedAccessKey`",
+			Description:  "The name of the Relay key with `Send` permission to use.",
 		},
 	}
 }

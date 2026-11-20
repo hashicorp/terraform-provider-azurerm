@@ -34,6 +34,7 @@ func BasicAuthSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"password": {
+					Description:  "The password for the basic authentication access.",
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					Sensitive:    true,
@@ -41,8 +42,9 @@ func BasicAuthSchema() *pluginsdk.Schema {
 				},
 
 				"environments": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Description: "The Environment types to use the Basic Auth for access.",
+					Type:        pluginsdk.TypeString,
+					Required:    true,
 					ValidateFunc: validation.StringInSlice([]string{
 						EnvironmentsTypeAllEnvironments,
 						EnvironmentsTypeStagingEnvironments,
@@ -61,8 +63,9 @@ func BasicAuthSchemaComputed() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
 				"environments": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
+					Description: "The Environment types which are configured to use Basic Auth access.",
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
 				},
 			},
 		},

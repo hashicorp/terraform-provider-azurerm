@@ -20,6 +20,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_linux_function_app_slot"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Linux Function App Slot."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webapps.ValidateSlotID
 }

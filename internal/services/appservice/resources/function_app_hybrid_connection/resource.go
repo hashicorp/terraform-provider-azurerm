@@ -24,6 +24,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_function_app_hybrid_connection"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Function App Hybrid Connection."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return webapps.ValidateRelayID
 }

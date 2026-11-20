@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_function_app_flex_consumption"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Function App Running on a Flex Consumption Plan."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateFunctionAppID
 }

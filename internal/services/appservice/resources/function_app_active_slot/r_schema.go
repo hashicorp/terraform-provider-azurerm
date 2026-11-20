@@ -21,7 +21,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot. Defaults to `true`.",
+			Description: "The swap action should overwrite the Production slot's network configuration with the configuration from this slot.",
 			ForceNew:    true,
 		},
 	}

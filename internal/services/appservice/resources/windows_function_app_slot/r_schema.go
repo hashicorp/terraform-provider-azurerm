@@ -35,10 +35,11 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateFunctionAppID,
-			Description:  "The ID of the Windows Function App this Slot is a member of.",
+			Description:  "The name of the Windows Function App this Slot is a member of.",
 		},
 
 		"service_plan_id": {
+			Description:  "The ID of the Service Plan in which to run this slot. If not specified the same Service Plan as the Windows Function App will be used.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateAppServicePlanID,
@@ -75,7 +76,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
 			},
-			Description: "Should the Function App Slot use its Managed Identity to access storage?",
+			Description: "Should the Function App Slot use its Managed Identity to access storage.",
 		},
 
 		"storage_key_vault_secret_id": {
@@ -86,7 +87,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 				"storage_account_name",
 				"storage_key_vault_secret_id",
 			},
-			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
+			Description: "The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App Slot.",
 		},
 
 		"app_settings": {
@@ -108,7 +109,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
+			Description: "Should built-in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting.",
 		},
 
 		"client_certificate_enabled": {
@@ -123,7 +124,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
-			Description:  "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
+			Description:  "The mode of the Function App Slot's client certificates requirement for incoming requests.",
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -167,13 +168,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Can the Function App Slot only be accessed via HTTPS?",
+			Description: "Can the Function App Slot only be accessed via HTTPS?.",
 		},
 
 		"end_to_end_tls_encryption_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether to enable end-to-end TLS encryption.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -183,25 +185,28 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true, // azignore:AZS007 - pre-existing violation
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Description:  "The User Assigned Identity to use for Key Vault access.",
+			Description:  "The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)",
 		},
 
 		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should public network access be enabled for the Function App.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the default WebDeploy Basic Authentication publishing credentials enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"ftp_publish_basic_authentication_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			Description: "Should the default FTP Basic Authentication publishing profile be enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     true,
 		},
 
 		"site_config": SiteConfigSchemaWindowsFunctionAppSlot(),
@@ -211,12 +216,14 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
+			Description: "Whether backup and restore operations over the linked virtual network are enabled.",
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
 		},
 
 		"virtual_network_subnet_id": {
+			Description:  "The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
@@ -226,7 +233,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+			Description: "Specifies whether traffic for the image pull should be routed over virtual network.",
 		},
 	}
 }
@@ -247,8 +254,9 @@ func (r Resource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hosting_environment_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Description: "The ID of the App Service Environment used by Function App Slot.",
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
 		},
 
 		"kind": {

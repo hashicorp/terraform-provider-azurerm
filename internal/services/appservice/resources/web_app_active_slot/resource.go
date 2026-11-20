@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_web_app_active_slot"
 }
 
+func (r Resource) Description() string {
+	return "Manages a Web App Active Slot."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateAppServiceID
 }

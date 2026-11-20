@@ -70,7 +70,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					// Note: O+C because several factors change the default for this, so needs to be computed.
 					Computed:    true,
-					Description: "If this Windows Web App is Always On enabled. Defaults to `false`.",
+					Description: "If this Windows Web App is Always On enabled.",
 				},
 
 				"api_management_api_id": {
@@ -122,6 +122,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"app_service_logs": helpers.FunctionAppAppServiceLogsSchema(),
 
 				"auto_swap_slot_name": {
+					Description:  "The name of the slot to automatically swap with when this slot is successfully deployed.",
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -148,7 +149,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Specifies if the http2 protocol should be enabled. Defaults to `false`.",
+					Description: "Specifies if the HTTP2 protocol should be enabled.",
 				},
 
 				"ip_restriction": helpers.IpRestrictionSchema(),
@@ -188,7 +189,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 						"RequestHash",
 						"PerSiteRoundRobin",
 					}, false),
-					Description: "The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
+					Description: "The Site load balancing mode.",
 				},
 
 				"managed_pipeline_mode": {
@@ -196,7 +197,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.ManagedPipelineModeIntegrated),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForManagedPipelineMode(), false),
-					Description:  "The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.",
+					Description:  "The Managed Pipeline mode.",
 				},
 
 				"pre_warmed_instance_count": {
@@ -211,7 +212,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Remote Debugging be enabled. Defaults to `false`.",
+					Description: "Should Remote Debugging be enabled.",
 				},
 
 				"remote_debugging_version": {
@@ -227,7 +228,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 				"runtime_scale_monitoring_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Description: "Should Functions Runtime Scale Monitoring be enabled.",
+					Description: "Should Scale Monitoring of the Functions Runtime be enabled?",
 				},
 
 				"scm_type": {
@@ -240,14 +241,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Function App use a 32-bit worker.",
+					Description: "Should the Windows Web App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should Web Sockets be enabled. Defaults to `false`.",
+					Description: "Should Web Sockets be enabled.",
 				},
 
 				"ftps_state": {
@@ -255,7 +256,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.FtpsStateDisabled),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForFtpsState(), false),
-					Description:  "State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.",
+					Description:  "State of FTP / FTPS service for this function app.",
 				},
 
 				"health_check_path": {
@@ -269,7 +270,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Only valid in conjunction with `health_check_path`.",
 				},
 
 				"worker_count": {
@@ -285,7 +286,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
+					Description:  "The configures the minimum version of TLS required for SSL requests.",
 				},
 
 				"scm_minimum_tls_version": {
@@ -293,14 +294,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site.",
 				},
 
 				"minimum_tls_cipher_suite": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
-					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+					Description:  "The configures the minimum cipher suite of TLS required for SSL requests.",
 				},
 
 				"cors": helpers.CorsSettingsSchema(),
@@ -309,7 +310,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     false,
-					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
+					Description: "Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied?",
 				},
 
 				"detailed_error_logging_enabled": {

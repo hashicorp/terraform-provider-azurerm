@@ -11,8 +11,9 @@ import (
 func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Description: "The Token type.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Bitbucket",
 				"Dropbox",
@@ -22,6 +23,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"token": {
+			Description:  "The Access Token.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
@@ -29,6 +31,7 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"token_secret": {
+			Description:  "The Access Token Secret.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,

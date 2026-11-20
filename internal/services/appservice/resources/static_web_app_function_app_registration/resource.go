@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_static_web_app_function_app_registration"
 }
 
+func (r Resource) Description() string {
+	return "Manages an App Service Static Web App Function App Registration."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return staticsites.ValidateUserProvidedFunctionAppID
 }

@@ -13,6 +13,7 @@ import (
 func (r Resource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"static_web_app_id": {
+			Description:  "The ID of the Static Site.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -20,6 +21,7 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"domain_name": {
+			Description:  "The Domain Name which should be associated with this Static Site.",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -27,9 +29,10 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 		},
 
 		"validation_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Description: "One of `cname-delegation` or `dns-txt-token`.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
 			ValidateFunc: validation.StringInSlice([]string{
 				ValidationTypeTXT,
 				ValidationTypeCName,
@@ -41,9 +44,10 @@ func (r Resource) Arguments() map[string]*schema.Schema {
 func (r Resource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"validation_token": {
-			Type:      pluginsdk.TypeString,
-			Sensitive: true,
-			Computed:  true,
+			Description: "Token to be used with `dns-txt-token` validation.",
+			Type:        pluginsdk.TypeString,
+			Sensitive:   true,
+			Computed:    true,
 		},
 	}
 }

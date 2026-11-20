@@ -17,6 +17,10 @@ func (r Resource) ResourceType() string {
 	return "azurerm_app_service_source_control" // TODO - Does this name fit the new convention?
 }
 
+func (r Resource) Description() string {
+	return "Manages an App Service Web App or Function App Source Control Configuration."
+}
+
 func (r Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	// This is a meta resource with a 1:1 relationship with the service it's pointed at so we use the same ID
 	return commonids.ValidateAppServiceID
