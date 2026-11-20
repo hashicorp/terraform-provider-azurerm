@@ -175,11 +175,9 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
-  db_workload                      = "OLTP"
+  db_workload                      = "AJD"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
-  character_set                    = "AL32UTF8"
-  national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
 }
@@ -325,8 +323,6 @@ resource "azurerm_oracle_autonomous_database" "import" {
   db_workload                      = azurerm_oracle_autonomous_database.test.db_workload
   admin_password                   = azurerm_oracle_autonomous_database.test.admin_password
   db_version                       = azurerm_oracle_autonomous_database.test.db_version
-  character_set                    = azurerm_oracle_autonomous_database.test.character_set
-  national_character_set           = azurerm_oracle_autonomous_database.test.national_character_set
   subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
   virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 }
