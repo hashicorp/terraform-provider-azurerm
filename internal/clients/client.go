@@ -13,6 +13,7 @@ import (
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
 	azurestackhci_v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"
 	datadog_v2025_06_11 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11"
+	discovery_v2026_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/discovery/2026-06-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
@@ -66,6 +67,7 @@ import (
 	desktopvirtualization "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
+	discovery "github.com/hashicorp/terraform-provider-azurerm/internal/services/discovery/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
 	dynatrace "github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace/client"
@@ -208,6 +210,7 @@ type Client struct {
 	DesktopVirtualization             *desktopvirtualization.Client
 	DevTestLabs                       *devtestlabs.Client
 	DigitalTwins                      *digitaltwins.Client
+	Discovery                         *discovery_v2026_06_01.Client
 	Dns                               *dns_v2018_05_01.Client
 	DomainServices                    *domainservices.Client
 	Dynatrace                         *dynatrace.Client
@@ -443,6 +446,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.DigitalTwins, err = digitaltwins.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DigitalTwins: %+v", err)
+	}
+	if client.Discovery, err = discovery.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Discovery: %+v", err)
 	}
 	if client.Dns, err = dns.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Dns: %+v", err)

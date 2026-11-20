@@ -51,6 +51,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/discovery"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace"
@@ -178,6 +179,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		dataprotection.Registration{},
 		desktopvirtualization.Registration{},
 		digitaltwins.Registration{},
+		discovery.Registration{},
 		dns.Registration{},
 		domainservices.Registration{},
 		dynatrace.Registration{},
@@ -417,6 +419,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		devcenter.Registration{},
 		devtestlabs.Registration{},
 		digitaltwins.Registration{},
+		discovery.Registration{},
 		dns.Registration{},
 		domainservices.Registration{},
 		dynatrace.Registration{},
