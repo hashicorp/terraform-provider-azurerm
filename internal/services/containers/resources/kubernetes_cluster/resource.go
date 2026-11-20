@@ -129,6 +129,13 @@ func RegisterResource() *pluginsdk.Resource {
 				}
 				return nil
 			},
+			func(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+				// The API does not allow disabling infrastructure encryption after it has been enabled
+				if old, new := d.GetChange("kms_infrastructure_encryption_enabled"); old.(bool) && !new.(bool) {
+					return fmt.Errorf("`kms_infrastructure_encryption_enabled` cannot be disabled once it has been enabled")
+				}
+				return nil
+			},
 			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin_mode", func(ctx context.Context, _, new, meta any) bool {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),

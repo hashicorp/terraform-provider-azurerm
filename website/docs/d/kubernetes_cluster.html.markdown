@@ -64,6 +64,8 @@ The following attributes are exported:
 
 * `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as defined below.
 
+* `kms_infrastructure_encryption_enabled` - Is encryption at rest of Kubernetes resource objects using service-managed keys (infrastructure encryption) enabled?
+
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
 -> **Note:** At this time Private Link is in Public Preview.

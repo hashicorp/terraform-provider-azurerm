@@ -897,6 +897,13 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"kms_infrastructure_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// NOTE: O+C AKS enables infrastructure encryption by default on Kubernetes 1.37 and later, and it cannot be disabled once enabled
+			Computed: true,
+		},
+
 		"microsoft_defender": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
