@@ -176,11 +176,15 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference") {
+	if d.HasChanges("data_disk", "os_disk", "source_image_id", "source_image_reference", "disk_controller_type") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
 			updateProps.VirtualMachineProfile.StorageProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateStorageProfile{}
+		}
+
+		if d.HasChange("disk_controller_type") {
+			updateProps.VirtualMachineProfile.StorageProfile.DiskControllerType = pointer.ToEnum[virtualmachinescalesets.DiskControllerTypes](d.Get("disk_controller_type").(string))
 		}
 
 		if d.HasChange("data_disk") {
