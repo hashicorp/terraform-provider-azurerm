@@ -32,7 +32,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"backup_policy_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 		},
 
@@ -48,14 +47,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 		"backup_datasource_parameters": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"excluded_namespaces": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -63,21 +60,18 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"excluded_resource_types": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"cluster_scoped_resources_enabled": {
 						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
 						Optional: true,
 						Default:  false,
 					},
 					"included_namespaces": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -85,7 +79,6 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"included_resource_types": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
@@ -93,14 +86,12 @@ func (r Resource) Arguments() map[string]*pluginsdk.Schema {
 					"label_selectors": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
 					},
 					"volume_snapshot_enabled": {
 						Type:     pluginsdk.TypeBool,
-						ForceNew: true,
 						Optional: true,
 						Default:  false,
 					},
