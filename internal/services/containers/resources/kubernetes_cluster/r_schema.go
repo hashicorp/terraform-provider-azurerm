@@ -1225,8 +1225,9 @@ func kubernetesClusterSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// Note: O+C because a Private Cluster is `System` by default even if unspecified
-			Computed: true,
-			ForceNew: true,
+			Computed:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc: validation.Any(
 				privatezones.ValidatePrivateDnsZoneID,
 				validation.StringInSlice([]string{
