@@ -54,8 +54,7 @@ func windowsVirtualMachineSchema() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{
 				"admin_password",
 			},
-			ExactlyOneOf: []string{
-				"admin_username",
+			ConflictsWith: []string{
 				"os_managed_disk_id",
 			},
 			ValidateFunc: validate.WindowsAdminUsername,
